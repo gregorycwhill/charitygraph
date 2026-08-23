@@ -1,185 +1,69 @@
-# CauseBase Builder Architecture
+# CharityGraph Builder Target Architecture
 
-**Status:** Canonical Builder architecture; public models are provisional through the reality spike  
-**Version:** 0.1
+**Status:** Canonical Builder architecture  
+**Version:** 0.2  
+**Scope:** future internal knowledge construction; not a public-schema proposal
 
-## Phase 2B longitudinal source contract
+This architecture implements the product authority in the sibling Data repository. Read its DOCUMENT_AUTHORITY.md and the implemented PUBLIC_CONTRACT_0_5.md before changing distribution or compatibility behaviour.
 
-Builder persists source-native records beside, not inside, canonical cards. Each record has a source family, dataset/version, source-record ID, original field names, retrieval/observation time, effective period where known and evidence IDs. Public sidecars contain safe structured observations; raw archives, report text and private working evidence stay outside the publication bundle.
+## 1. Architectural boundary
 
-Financial records append by reporting period. A current card projection may select the latest applicable observation but must retain prior periods. Relationships support validity and observation time, so ordinary organisational change does not require a new CauseBase ID. ACNC reporting arrangements remain regulator observations, not brand/federation assertions.
+Builder transforms durable source artefacts into governed knowledge and validated release candidates:
 
-The deterministic change gate returns a change profile and per-derivative reuse/refresh/undecided decision. Only an ambiguous meaning change is eligible for a bounded low-cost semantic assessment; expensive synthesis and embeddings run only after invalidation.
+source blobs → source-native records → bindings and evidence → candidates → governed decisions → canonical observations and coverage → derivatives → release projections
 
-## 1. Architectural idea
+A public card is a versioned release projection. It is not Builder's canonical stored object.
 
-CauseBase Builder behaves like a compiler.
+## 2. Canonical internal records
 
-It transforms heterogeneous public source material into a versioned CauseBase representation, then renders that representation into multiple public formats.
+The minimum durable record set is:
 
-```text
-SOURCE WORLD
-    |
-    v
-ACQUIRE
-    |
-    v
-EXTRACT / NORMALISE
-    |
-    v
-EVIDENCE
-    |
-    v
-DERIVE / ESTIMATE / SYNTHESISE
-    |
-    v
-CANONICAL CAUSEBASE ENTITIES
-    |
-    +--> taxonomy classifications
-    +--> embeddings
-    +--> similarities
-    |
-    v
-RENDER
-    |
-    v
-VALIDATE
-    |
-    v
-PUBLICATION CANDIDATE
-```
+- SubjectRecord: opaque subject_id, kind, lifecycle, identity attributes, external identifiers and provenance;
+- ScopeRecord and SubjectRelationship: program/service/unit scope and real-world relationships, distinct from artefact lineage;
+- SourceBlob, SourceRecord and SubjectBinding: source identity, source-native preservation and governed resolution;
+- EvidenceFragment: bounded source support, location, rights and time;
+- CandidateObservation, DecisionRecord and CanonicalObservation: proposed, governed and accepted knowledge states;
+- CoverageAssessment and DerivativeArtifact: what was assessed and release-safe computed outputs;
+- CorrectionSubmission, CorrectionProposal and retraction/disposition records;
+- benchmark, source-opportunity, proposition/review and cost artefacts;
+- TaskRun, RunManifest and ReleaseProjection.
 
-## 2. Three storage classes
+Names and domains never mint or bind a SubjectRecord by themselves. A program or service may remain subject-local scope until governed evidence justifies durable promotion. Artefact lineage explains production; subject relationships explain the world.
 
-### Source
+## 3. Subject lifecycle and corrections
 
-Fresh or historical copies of external material, including regulator datasets, annual/financial reports, website pages, feeds and permitted reference sources.
+Subject lifecycle supports creation, active/inactive status, merges, splits, predecessors, successors and tombstones without silently reassigning identity. Source bindings remain reversible and record resolution basis, conflict and review state.
 
-Source files are retained locally where useful for reproducibility and change detection. They are not automatically publishable.
+Raw correction submissions are private. Moderation produces a governed proposal and disposition. An accepted correction changes evidence, bindings, decisions or observations, then invalidates affected candidates, coverage, derivatives and release projections. Retraction, challenge and exceptional privacy/legal removal remain explicit workflows, not manual edits to published files.
 
-### Processed
+## 4. Evidence, domains and authority
 
-Intermediate artefacts produced by Builder: extracted text, parsed tables, cleaned web text, evidence packets, LLM inputs/outputs, estimation diagnostics, entity-resolution results and quality reports.
+Durable artefacts, not a local database or card, are evidence authority. Claim basis and extraction method are independent. Conflicting legitimate observations remain represented with reconciliation status.
 
-Processed artefacts are implementation details and may change without changing the public data contract.
+Domain policies keep funding source, standing fundraising practice, campaign and expenditure distinct. Fundraising expenditure may be unavailable; universal priors, peer fill, forced midpoints and forced points are prohibited. Ethos is separate from service or mission orientation; notable_context is neutral sourced context. Participation is a first-production domain, with stable modes separate from transient opportunities.
 
-### Publication
+Evaluated shadow registries are claim-specific authorities for registry-defined facts such as membership, applicable code or stated fee rule. A code establishes what applies, not compliance; a fee rule does not establish member-specific spend or volume. Promotional effectiveness claims remain source-native or review-only unless separately governed.
 
-Only validated artefacts intended for CauseBase Data, including structured datasets, semantic data, taxonomies, Markdown cards, schemas, manifests and public correction records.
+## 5. Operational control plane
 
-Only this class crosses the publication boundary.
+SQLite is the local operational catalogue and rebuildable index, outside synchronised storage. It may index locations, hashes, edges, task states, cache validity and refresh state, but no governed fact may exist only in SQLite.
 
-## 3. Recommended local layout
+All execution contracts specify deterministic idempotency keys, transaction boundaries, bounded concurrency, retry/backoff, terminal failures, leases/locks, process-death recovery, resumable slices, held/quarantined cases, migrations and deterministic reindex from durable artefacts. The database may be deleted and rebuilt without loss of governed evidence.
 
-```text
-OneDrive durable archive\
-  CauseBase\archive\
-    sources\
-      regulator\ reports\ web\ reference\
-    processed\
-      documents\ tables\ evidence\ entities\ metrics\ classifications\
-    governed-inputs\
+## 6. Evaluation and economics
 
-Local mutable runtime\
-  CauseBase-runtime\
-    state\ temp\ cache\ logs\ staging\
+Production telemetry is not sufficient to choose methods. Builder maintains versioned cohort/benchmark definitions, source-opportunity inventories, proposition/review ledgers and cost ledgers. It measures precision, recoverable recall, oracle and source-scope gaps, sparsity, review burden, accepted observations per dollar and refresh cost.
 
-OneDrive repositories\
-  CauseBase\
-    charitygraph\ charitygraph-data\ charitygraph-viewer\
-```
+Every eligible subject receives a cheap common baseline. Additional processing follows evidence opportunity and measured information yield, never prestige, size, perceived quality or donor appeal. Model outputs are candidates or derivatives, never human decisions and never automatically promoted.
 
-Completed durable artefacts are content-addressed or dated where practical. Downloads first complete in local temporary storage, are validated and hashed, then move to the durable archive. The exact paths are configurable; the storage classes remain explicit.
+## 7. Release and distribution
 
-## 4. Pipeline stages
+Builder selects observations, coverage and derivatives into a complete ReleaseProjection. Data owns immutable public artefacts; Viewer renders an explicitly selected release and never private Builder state.
 
-### Discover/check
-Determine which remote sources or known entity sources require checking.
+Release acceptance includes allowlisted artefacts, privacy and source-rights checks, schemas, manifests and hashes, stable subject routes, JSON/Markdown alternatives, source references, bulk projections where declared, citation metadata, sitemap/robots responsibilities, cross-representation consistency and preservation of the previous valid release on failure.
 
-### Acquire
-Fetch changed source material and record source identity, retrieval time, URL, HTTP metadata, content hash and licence/attribution metadata where relevant.
+Public contract 0.5 is an isolated implemented compatibility boundary. It does not constrain the internal object model. A future public contract needs separate approval, schemas, examples, migration analysis and Data/Viewer acceptance.
 
-### Extract
-Use deterministic tools first: parse structured files, extract PDF text by page, extract financial tables, strip HTML boilerplate, detect headings, find feeds/sitemaps and deduplicate text.
+## 8. Implementation sequence
 
-Website acquisition is a first-class source stage. Start with homepage, About/What we do, programs, volunteer/get involved, events, governance, news/blog, RSS/Atom and selected current-opportunity pages. Keep stable entity understanding distinct from transient current-activity evidence, with independent refresh/freshness semantics.
-
-### Build evidence
-Create compact attributable evidence objects suitable for downstream rules and LLM interpretation.
-
-### Derive and estimate
-Calculate values that can be obtained mechanically. For required estimates, follow `PROVENANCE_AND_ESTIMATION.md`.
-
-### Synthesis
-Use an LLM over selected evidence to produce structured entity understanding: neutral summary, activities, beneficiaries, geography, approaches, participation, uncertainties and evidence references.
-
-### Apply governed correction inputs
-Accepted corrections and overrides enter as governed inputs. Regenerate dependent outputs where relevant.
-
-### Construct canonical entity/card
-Assemble the public conceptual object defined in `CARD_SPEC.md`.
-
-### Embed
-Generate versioned semantic vectors from defined card representations.
-
-### Derive similarities
-Compute reproducible semantic or structured neighbourhood relationships. Similarity is descriptive navigation, not recommendation.
-
-### Render
-Render all public formats from the canonical card objects and shared derived tables.
-
-### Validate
-Run data, semantic, provenance, publication-safety and representation-consistency checks.
-
-### Stage
-Write a complete release candidate into a dedicated publication staging directory.
-
-### Publish
-Only a validated candidate may cross into CauseBase Data.
-
-### Verify
-Verify remote artefacts, hashes, release metadata and Viewer-facing current data.
-
-## 5. Incremental processing
-
-Builder should avoid recomputing unchanged work.
-
-Useful identities include source content hash, cleaned evidence hash, synthesis-input hash, editorial-policy version, prompt/model version, taxonomy version and embedding version.
-
-If inputs governing an artefact are unchanged, Builder may reuse the prior artefact.
-
-## 6. Local state
-
-A small local store such as SQLite may track source checks, ETags, hashes, extraction status, retries, synthesis versions, embedding versions and last successful publication.
-
-This is operational state, not the public CauseBase database.
-
-## 7. Production execution
-
-Initial production is expected to run locally on Windows.
-
-Conceptually:
-
-```text
-causebase refresh
-causebase validate
-causebase publish
-```
-
-Exact command names remain an implementation choice until the CLI is built.
-
-## 8. Failure policy
-
-Failures should be scoped where possible.
-
-- One broken website should not invalidate fresh regulator data.
-- Optional-source failure should preserve prior observations with staleness metadata.
-- A material national row-count collapse should block publication.
-- Missing fundraising values are publishable when explicit `not_available_from_source` (or equivalent) coverage is present; missing coverage should block publication.
-- Inconsistent public representations should block publication.
-
-## 9. Cloud/container boundary
-
-Local execution is primary.
-
-Cloud coding agents or containers may operate on code and representative fixtures. The complete national working corpus need not be uploaded to a cloud environment merely to make development reproducible.
+The next code PR defines typed contracts and no-op interfaces only after this documentation authority is accepted. It must not create a runtime database, index the archive, import evidence, rebuild a release or change public schemas. The first material vertical slice is deterministic, fixture-bounded and projects through an explicit 0.5 compatibility adapter.
