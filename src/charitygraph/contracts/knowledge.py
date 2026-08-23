@@ -8,7 +8,7 @@ from typing import Annotated, Generic, Literal, TypeVar, Union
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .canonical import canonical_sha256
-from .common import ArtifactRecord, ArtifactRef, SchemaRef, StrictModel, utc_datetime, require_nonblank
+from .common import ArtifactRecord, ArtifactRef, SchemaRef, Sha256, StrictModel, utc_datetime, require_nonblank
 from .ids import deterministic_id, validate_typed_id
 
 
@@ -115,7 +115,7 @@ class SourceRecord(ArtifactRecord):
     observed_at: datetime | date
     media_type: str | None = None
     payload_ref: str
-    payload_hash: str
+    payload_hash: Sha256
     rights_policy_id: str | None = None
     attribution: str | None = None
 
@@ -153,7 +153,7 @@ class EvidenceFragment(ArtifactRecord):
     fragment_kind: Literal["text", "table_cell", "table_region", "visual_region", "structured_field"]
     locator: str
     content_ref: str
-    fragment_hash: str
+    fragment_hash: Sha256
     selection_method: str
     selection_policy_version: str
     observed_at: datetime | date
