@@ -194,9 +194,9 @@ def render_publication(
     source_records_dir.mkdir(exist_ok=True)
 
     json_rows = [_jsonable(c) for c in cards]
-
+    json_payload = {"entities": json_rows}
     (output_dir / "charitygraph.json").write_text(
-        json.dumps({"entities": json_rows}, indent=2, ensure_ascii=False),
+        json.dumps(json_payload, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
     with (output_dir / "charitygraph.jsonl").open("w", encoding="utf-8") as f:

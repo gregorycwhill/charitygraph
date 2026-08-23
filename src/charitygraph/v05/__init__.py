@@ -1,4 +1,4 @@
-"""Isolated implementation of the approved CauseBase public contract 0.5.
+"""Isolated implementation of the approved CharityGraph public contract 0.5.
 
 This package deliberately does not alter the legacy RC4 models or publisher.
 """

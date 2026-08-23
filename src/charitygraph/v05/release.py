@@ -82,7 +82,7 @@ def assemble_release(rc4_release: Path, output: Path, registry: CapabilityRegist
     manifest = {
         "dataset": "CauseBase",
         "dataset_version": context.dataset_version,
-        "contract_version": "0.5",
+        "contract_version": context.contract_version,
         "release_id": context.release_id,
         "based_on_release": context.based_on_release,
         "generated_at": context.generated_at,

@@ -26,6 +26,7 @@ class Capability(PublicModel): capability_id: str; definition: str; observed_whe
 class CapabilityRegistry(PublicModel): registry_id: str; contract_version: Literal["0.5"]; capabilities: list[Capability]
 class ReleaseContext(PublicModel):
     release_id: str; dataset_version: str; contract_version: Literal["0.5"] = "0.5"; based_on_release: str; generated_at: str; capability_registry: dict[str, str]
+
 class Coverage(PublicModel):
     capability: str; status: CoverageStatus; assessed_at: str; observation_ids: list[str] = Field(default_factory=list); source_record_ids: list[str] = Field(default_factory=list); evidence_ids: list[str] = Field(default_factory=list); note: str | None = None
 class Evidence(PublicModel): evidence_id: str; title: str; url: str | None = None
