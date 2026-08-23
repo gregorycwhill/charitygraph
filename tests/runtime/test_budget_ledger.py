@@ -50,10 +50,10 @@ def test_release_is_checked_against_its_own_reservation_and_cost_entries_idempot
     catalog.reserve_cost(reservation(RES_B, 100), now=NOW)
     catalog.record_cost_entry(entry("actual-a", "actual", 30, RES_A), entry_key="actual-a")
     with pytest.raises(ConflictError):
-        catalog.release_reservation(RES_A, 71, now=NOW)
-    release = catalog.release_reservation(RES_A, 70, now=NOW)
+        catalog.release_reservation(RES_A, 71, now=NOW, entry_key="release-too-much")
+    release = catalog.release_reservation(RES_A, 70, now=NOW, entry_key="release-a")
     assert release["entry_type"] == "reservation_release"
-    assert catalog.release_reservation(RES_A, 70, now=NOW)["entry_key"] == release["entry_key"]
+    assert catalog.release_reservation(RES_A, 70, now=NOW, entry_key="release-a")["entry_key"] == release["entry_key"]
     assert catalog.budget_position(COHORT_ID).released_reserve_aud == 70
     duplicate = catalog.record_cost_entry(entry("credit-1", "credit", 2, RES_A), entry_key="credit-1")
     assert catalog.record_cost_entry(entry("credit-1", "credit", 2, RES_A), entry_key="credit-1")["entry_key"] == duplicate["entry_key"]

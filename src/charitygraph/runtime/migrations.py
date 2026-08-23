@@ -102,17 +102,17 @@ CREATE TABLE cost_entries (
     entry_hash TEXT NOT NULL,
     cohort_id TEXT NOT NULL REFERENCES cohorts(cohort_id),
     run_id TEXT NOT NULL REFERENCES runs(run_id),
-    task_run_id TEXT NOT NULL,
+    task_run_id TEXT,
     reservation_id TEXT NOT NULL,
     entry_type TEXT NOT NULL CHECK(entry_type IN ('reservation','reservation_release','actual','credit','adjustment')),
-    paid_output_category TEXT NOT NULL,
-    provider_amount TEXT NOT NULL,
-    provider_currency TEXT NOT NULL,
+    paid_output_category TEXT,
+    provider_amount TEXT,
+    provider_currency TEXT,
     aud_amount TEXT NOT NULL,
     adjustment_direction TEXT CHECK(adjustment_direction IN ('debit','credit') OR adjustment_direction IS NULL),
-    pricing_snapshot_id TEXT NOT NULL,
-    fx_snapshot_id TEXT NOT NULL,
-    usage_json TEXT NOT NULL,
+    pricing_snapshot_id TEXT,
+    fx_snapshot_id TEXT,
+    usage_json TEXT,
     provider_invoice_ref TEXT,
     recorded_at TEXT NOT NULL
 );
@@ -127,6 +127,17 @@ CREATE TABLE cache_entries (
     invalidated_at TEXT,
     invalidation_reason TEXT
 );
+CREATE TABLE cache_events (
+    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cache_key TEXT NOT NULL,
+    event_type TEXT NOT NULL CHECK(event_type IN ('created','invalidated','replaced')),
+    event_at TEXT NOT NULL,
+    result_artifact_id TEXT,
+    result_content_hash TEXT,
+    reason TEXT
+);
+CREATE INDEX cache_events_key_idx ON cache_events(cache_key, event_id);
+
 CREATE TABLE artifact_index (
     artifact_id TEXT PRIMARY KEY,
     content_hash TEXT NOT NULL,

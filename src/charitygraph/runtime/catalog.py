@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Iterator, Mapping
 
 from .migrations import MIGRATIONS, SUPPORTED_VERSION
+from ..contracts.economics import CostLedgerEntry
 
 
 class CatalogError(RuntimeError):
@@ -180,6 +181,8 @@ class SQLiteCatalog:
     """A per-operation-connection SQLite catalogue with explicit transactions."""
 
     def __init__(self, path: str | Path, *, busy_timeout_ms: int = 5_000) -> None:
+        if str(path) == ":memory:":
+            raise CatalogError("SQLiteCatalog requires a file-backed database; :memory: is unsupported")
         self.path = Path(path)
         self.busy_timeout_ms = int(busy_timeout_ms)
         if self.busy_timeout_ms <= 0:
@@ -370,12 +373,14 @@ class SQLiteCatalog:
         if expiry_s <= now_s:
             raise LeaseError("lease expiry must be after now")
         with self._connection(immediate=True) as conn:
-            row = conn.execute("SELECT status, lease_owner, lease_expires_at FROM tasks WHERE model_task_id = ?", (model_task_id,)).fetchone()
+            row = conn.execute("SELECT status, lease_owner, lease_expires_at, next_eligible_at FROM tasks WHERE model_task_id = ?", (model_task_id,)).fetchone()
             if row is None:
                 raise CatalogError(f"unknown task {model_task_id}")
             if row["status"] not in {"ready", "failed_retryable"}:
                 if row["lease_expires_at"] and row["lease_expires_at"] > now_s:
                     return False
+                return False
+            if row["next_eligible_at"] and row["next_eligible_at"] > now_s:
                 return False
             conn.execute("UPDATE tasks SET status='leased', lease_owner=?, lease_expires_at=?, updated_at=? WHERE model_task_id=?", (owner, expiry_s, now_s, model_task_id))
             self._commit(conn)
@@ -390,12 +395,17 @@ class SQLiteCatalog:
             row = conn.execute("SELECT * FROM tasks WHERE model_task_id=?", (model_task_id,)).fetchone()
             if row is None:
                 raise CatalogError(f"unknown task {model_task_id}")
+            if target_status == "running" or row["status"] == "running":
+                raise InvalidTransitionError("running state changes require task-attempt operations")
+            if target_status == "leased":
+                raise InvalidTransitionError("leased state requires claim_task")
+            if row["status"] in {"leased", "running"}:
+                if owner is None or row["lease_owner"] != owner:
+                    raise LeaseError("wrong task lease owner")
+                if not row["lease_expires_at"] or row["lease_expires_at"] <= now_s:
+                    raise LeaseError("caller does not hold an unexpired task lease")
             if target_status not in TASK_TRANSITIONS.get(row["status"], set()):
                 raise InvalidTransitionError(f"cannot transition {row["status"]} to {target_status}")
-            if row["status"] in {"leased", "running"} and owner is None:
-                raise LeaseError("a leased or running task requires its lease owner")
-            if row["status"] in {"leased", "running"} and row["lease_owner"] != owner:
-                raise LeaseError("wrong task lease owner")
             conn.execute("UPDATE tasks SET status=?, lease_owner=NULL, lease_expires_at=NULL, error_class=?, error_message_redacted=?, updated_at=? WHERE model_task_id=?", (target_status, error_class, error_message_redacted, now_s, model_task_id))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM tasks WHERE model_task_id=?", (model_task_id,)).fetchone())
@@ -423,7 +433,7 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM task_attempts WHERE task_run_id = ?", (task_run_id,)).fetchone())
 
-    def _finish_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, status: str, result_artifact_id: str | None = None, retryable: bool | None = None, error_class: str | None = None, error_message_redacted: str | None = None) -> dict[str, Any]:
+    def _finish_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, status: str, result_artifact_id: str | None = None, retryable: bool | None = None, error_class: str | None = None, error_message_redacted: str | None = None, next_eligible_at: datetime | str | None = None) -> dict[str, Any]:
         completed_s = _utc(completed_at, "completed_at")
         with self._connection(immediate=True) as conn:
             attempt = conn.execute("SELECT * FROM task_attempts WHERE task_run_id = ?", (task_run_id,)).fetchone()
@@ -441,15 +451,16 @@ class SQLiteCatalog:
             else:
                 next_state = "failed_terminal"
             conn.execute("UPDATE task_attempts SET status=?, completed_at=?, retryable=?, result_artifact_id=?, error_class=?, error_message_redacted=? WHERE task_run_id=?", (status, completed_s, retryable, result_artifact_id, error_class, error_message_redacted, task_run_id))
-            conn.execute("UPDATE tasks SET status=?, lease_owner=NULL, lease_expires_at=NULL, result_artifact_id=?, error_class=?, error_message_redacted=?, updated_at=? WHERE model_task_id=?", (next_state, result_artifact_id, error_class, error_message_redacted, completed_s, task["model_task_id"]))
+            next_eligible_s = _utc(next_eligible_at, "next_eligible_at") if next_eligible_at is not None else None
+            conn.execute("UPDATE tasks SET status=?, lease_owner=NULL, lease_expires_at=NULL, next_eligible_at=?, result_artifact_id=?, error_class=?, error_message_redacted=?, updated_at=? WHERE model_task_id=?", (next_state, next_eligible_s, result_artifact_id, error_class, error_message_redacted, completed_s, task["model_task_id"]))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM tasks WHERE model_task_id = ?", (task["model_task_id"],)).fetchone())
 
     def finish_successful_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, result_artifact_id: str) -> dict[str, Any]:
         return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="succeeded", result_artifact_id=result_artifact_id, retryable=False)
 
-    def finish_failed_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, retryable: bool, error_class: str, error_message_redacted: str) -> dict[str, Any]:
-        return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="failed_retryable" if retryable else "failed_terminal", retryable=retryable, error_class=error_class, error_message_redacted=error_message_redacted)
+    def finish_failed_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, retryable: bool, error_class: str, error_message_redacted: str, next_eligible_at: datetime | str | None = None) -> dict[str, Any]:
+        return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="failed_retryable" if retryable else "failed_terminal", retryable=retryable, error_class=error_class, error_message_redacted=error_message_redacted, next_eligible_at=next_eligible_at)
 
     def finish_held_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, error_class: str, error_message_redacted: str) -> dict[str, Any]:
         return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="held", retryable=False, error_class=error_class, error_message_redacted=error_message_redacted)
@@ -499,15 +510,47 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM operation_receipts WHERE operation_key=?", (operation_key,)).fetchone())
 
+    def _update_reservation_status(self, conn: sqlite3.Connection, reservation_id: str, now_s: str) -> None:
+        row = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
+        if row is None or row["status"] in {"released", "consumed", "expired"}:
+            return
+        if row["expires_at"] is not None and row["expires_at"] <= now_s:
+            conn.execute("UPDATE budget_reservations SET status='expired', updated_at=? WHERE reservation_id=?", (now_s, reservation_id))
+            return
+        reserved = Decimal(row["reserved_aud"])
+        actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
+        released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+        unused = reserved - min(actual, reserved) - released
+        if actual >= reserved:
+            status = "released" if released > 0 else "consumed"
+        elif unused <= 0:
+            status = "released"
+        elif actual > 0 or released > 0:
+            status = "partially_consumed"
+        else:
+            status = "active"
+        conn.execute("UPDATE budget_reservations SET status=?, updated_at=? WHERE reservation_id=?", (status, now_s, reservation_id))
+
+    def expire_reservations(self, *, now: datetime | str) -> int:
+        now_s = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            rows = conn.execute("SELECT reservation_id FROM budget_reservations WHERE status IN ('active','partially_consumed') AND expires_at IS NOT NULL AND expires_at <= ?", (now_s,)).fetchall()
+            for row in rows:
+                self._update_reservation_status(conn, row["reservation_id"], now_s)
+            self._commit(conn)
+            return len(rows)
+
     def _position(self, conn: sqlite3.Connection, cohort_id: str) -> BudgetPosition:
         cohort = conn.execute("SELECT budget_cap_aud FROM cohorts WHERE cohort_id=?", (cohort_id,)).fetchone()
         if cohort is None:
             raise CatalogError(f"unknown cohort {cohort_id}")
-        reservations = conn.execute("SELECT reservation_id, reserved_aud FROM budget_reservations WHERE cohort_id=?", (cohort_id,)).fetchall()
+        reservations = conn.execute("SELECT reservation_id, reserved_aud, status FROM budget_reservations WHERE cohort_id=?", (cohort_id,)).fetchall()
         reservation_ids = {row["reservation_id"] for row in reservations}
         outstanding = Decimal("0")
         overrun = Decimal("0")
         for reservation in reservations:
+            if reservation["status"] == "expired":
+                continue
             rid, reserved = reservation["reservation_id"], Decimal(reservation["reserved_aud"])
             actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='actual'", (cohort_id, rid)).fetchone()[0])
             released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='reservation_release'", (cohort_id, rid)).fetchone()[0])
@@ -556,38 +599,57 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (rid,)).fetchone())
 
-    def release_reservation(self, reservation_id: str, amount: Any, *, now: datetime | str, entry_key: str | None = None) -> dict[str, Any]:
-        """Record a release event using deterministic system metadata."""
+    def release_reservation(self, reservation_id: str, amount: Any, *, now: datetime | str, entry_key: str) -> dict[str, Any]:
+        """Record a caller-keyed release with no fabricated provider semantics."""
 
         with self._connection(immediate=True) as conn:
             reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
             if reservation is None:
                 raise ConflictError("reservation release requires a matching reservation")
             amount_decimal = _money_amount(amount, "release amount")
-            key = entry_key or f"release:{reservation_id}:{amount_decimal}"
-            payload = {"entry_key": key, "reservation_id": reservation_id, "amount": str(amount_decimal), "recorded_at": _utc(now, "now")}
+            timestamp = _utc(now, "now")
+            payload = {"entry_key": entry_key, "reservation_id": reservation_id, "amount": str(amount_decimal)}
             entry_hash = _canonical_hash(payload)
-            existing = conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (key,)).fetchone()
+            existing = conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (entry_key,)).fetchone()
             if existing:
                 if existing["entry_hash"] != entry_hash:
-                    raise ConflictError("cost entry key was reused with different content")
+                    raise ConflictError("cost entry key was reused with different material")
                 return dict(existing)
             reserved = Decimal(reservation["reserved_aud"])
             actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
             released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
             if amount_decimal > reserved - min(actual, reserved) - released:
                 raise ConflictError("reservation release exceeds its own unused amount")
-            conn.execute("INSERT INTO cost_entries(entry_key, entry_hash, cohort_id, run_id, task_run_id, reservation_id, entry_type, paid_output_category, provider_amount, provider_currency, aud_amount, pricing_snapshot_id, fx_snapshot_id, usage_json, recorded_at) VALUES (?, ?, ?, ?, ?, ?, 'reservation_release', 'retry', '0', 'AUD', ?, 'system', 'system', '{}', ?)", (key, entry_hash, reservation["cohort_id"], reservation["run_id"], f"system:{reservation_id}", reservation_id, str(amount_decimal), payload["recorded_at"]))
+            conn.execute("INSERT INTO cost_entries(entry_key, entry_hash, cohort_id, run_id, task_run_id, reservation_id, entry_type, paid_output_category, provider_amount, provider_currency, aud_amount, adjustment_direction, pricing_snapshot_id, fx_snapshot_id, usage_json, recorded_at) VALUES (?, ?, ?, ?, NULL, ?, 'reservation_release', NULL, NULL, NULL, ?, NULL, NULL, NULL, NULL, ?)", (entry_key, entry_hash, reservation["cohort_id"], reservation["run_id"], reservation_id, str(amount_decimal), timestamp))
+            self._update_reservation_status(conn, reservation_id, timestamp)
             self._commit(conn)
-            return dict(conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (key,)).fetchone())
+            return dict(conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (entry_key,)).fetchone())
 
     def record_cost_entry(self, entry: Any, *, entry_key: str, entry_hash: str | None = None) -> dict[str, Any]:
         self._require_migrated()
-        material_hash = entry_hash or _canonical_hash(entry)
-        cohort_id = _text(_get(entry, "cohort_id"), "cohort_id")
-        reservation_id = _text(_get(entry, "reservation_id"), "reservation_id")
-        entry_type = _text(_get(entry, "entry_type"), "entry_type")
-        amount = _money_amount(_get(entry, "aud_cost"), "aud_cost")
+        raw_type = _text(_get(entry, "entry_type"), "entry_type")
+        if raw_type == "reservation_release":
+            normalized = _dump(entry)
+            if normalized.get("adjustment_direction") is not None:
+                raise CatalogError("reservation releases cannot carry adjustment_direction")
+            _text(normalized.get("cohort_id"), "cohort_id")
+            _text(normalized.get("run_id"), "run_id")
+            _text(normalized.get("reservation_id"), "reservation_id")
+            _money_amount(normalized.get("aud_cost"), "aud_cost")
+            _utc(normalized.get("recorded_at"), "recorded_at")
+        else:
+            try:
+                normalized = _dump(CostLedgerEntry.model_validate(entry))
+            except Exception as exc:
+                raise CatalogError(f"invalid CostLedgerEntry: {exc}") from exc
+        canonical_hash = _canonical_hash(normalized)
+        if entry_hash is not None and entry_hash != canonical_hash:
+            raise ConflictError("supplied cost entry hash does not match canonical content")
+        material_hash = canonical_hash
+        cohort_id = _text(normalized.get("cohort_id"), "cohort_id")
+        reservation_id = _text(normalized.get("reservation_id"), "reservation_id")
+        entry_type = _text(normalized.get("entry_type"), "entry_type")
+        amount = _money_amount(normalized.get("aud_cost"), "aud_cost")
         with self._connection(immediate=True) as conn:
             existing = conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (entry_key,)).fetchone()
             if existing:
@@ -595,6 +657,8 @@ class SQLiteCatalog:
                     raise ConflictError("cost entry key was reused with different content")
                 return dict(existing)
             reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
+            if reservation is not None and (reservation["cohort_id"] != cohort_id or reservation["run_id"] != normalized.get("run_id")):
+                raise ConflictError("cost entry cohort_id and run_id must match its reservation")
             if entry_type == "reservation_release":
                 if reservation is None:
                     raise ConflictError("reservation release requires a matching reservation")
@@ -602,19 +666,19 @@ class SQLiteCatalog:
                 released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
                 if amount > Decimal(reservation["reserved_aud"]) - min(actual, Decimal(reservation["reserved_aud"])) - released:
                     raise ConflictError("reservation release exceeds its own unused amount")
-            usage = _dump(_get(entry, "usage", default={}))
-            provider_cost = _get(entry, "provider_cost", default={})
-            recorded = _get(entry, "recorded_at")
-            values = (
-                entry_key, material_hash, cohort_id, _text(_get(entry, "run_id"), "run_id"), _text(_get(entry, "task_run_id"), "task_run_id"), reservation_id,
-                entry_type, _text(_get(entry, "paid_output_category"), "paid_output_category"), str(_decimal(_get(provider_cost, "amount", default=provider_cost), "provider_cost")), str(_get(provider_cost, "currency", default="AUD")), str(amount),
-                _get(entry, "adjustment_direction"), _text(_get(entry, "pricing_snapshot_id"), "pricing_snapshot_id"), _text(_get(entry, "fx_snapshot_id"), "fx_snapshot_id"), json.dumps(usage, sort_keys=True, separators=(",", ":")), _utc(recorded, "recorded_at"),
-            )
+            usage = normalized.get("usage")
+            provider_cost = normalized.get("provider_cost") or {}
+            recorded = _utc(normalized.get("recorded_at"), "recorded_at")
+            provider_amount = None if not provider_cost else str(_decimal(_get(provider_cost, "amount", default=provider_cost), "provider_cost"))
+            provider_currency = None if not provider_cost else str(_get(provider_cost, "currency", default="AUD"))
+            values = (entry_key, material_hash, cohort_id, _text(normalized.get("run_id"), "run_id"), normalized.get("task_run_id"), reservation_id, entry_type, normalized.get("paid_output_category"), provider_amount, provider_currency, str(amount), normalized.get("adjustment_direction"), normalized.get("pricing_snapshot_id"), normalized.get("fx_snapshot_id"), json.dumps(_dump(usage), sort_keys=True, separators=(",", ":")) if usage is not None else None, recorded)
             conn.execute("INSERT INTO cost_entries(entry_key, entry_hash, cohort_id, run_id, task_run_id, reservation_id, entry_type, paid_output_category, provider_amount, provider_currency, aud_amount, adjustment_direction, pricing_snapshot_id, fx_snapshot_id, usage_json, recorded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
+            if reservation is not None:
+                self._update_reservation_status(conn, reservation_id, recorded)
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (entry_key,)).fetchone())
 
-    def release_cost(self, reservation_id: str, amount: Any, *, now: datetime | str, entry_key: str | None = None) -> dict[str, Any]:
+    def release_cost(self, reservation_id: str, amount: Any, *, now: datetime | str, entry_key: str) -> dict[str, Any]:
         return self.release_reservation(reservation_id, amount, now=now, entry_key=entry_key)
 
     def put_cache(self, *, cache_key: str, model_task_id: str, result_artifact_id: str, result_content_hash: str, created_at: datetime | str, replace_invalidated: bool = False) -> dict[str, Any]:
@@ -629,13 +693,19 @@ class SQLiteCatalog:
                 if not replace_invalidated:
                     raise ConflictError("replacement after invalidation must be explicit")
                 conn.execute("UPDATE cache_entries SET model_task_id=?, result_artifact_id=?, result_content_hash=?, status='valid', created_at=?, invalidated_at=NULL, invalidation_reason=NULL WHERE cache_key=?", (model_task_id, result_artifact_id, result_content_hash, created_s, cache_key))
+                conn.execute("INSERT INTO cache_events(cache_key, event_type, event_at, result_artifact_id, result_content_hash, reason) VALUES (?, 'replaced', ?, ?, ?, ?)", (cache_key, created_s, result_artifact_id, result_content_hash, 'explicit replacement'))
             else:
                 conn.execute("INSERT INTO cache_entries(cache_key, model_task_id, result_artifact_id, result_content_hash, status, created_at) VALUES (?, ?, ?, ?, 'valid', ?)", (cache_key, model_task_id, result_artifact_id, result_content_hash, created_s))
+                conn.execute("INSERT INTO cache_events(cache_key, event_type, event_at, result_artifact_id, result_content_hash) VALUES (?, 'created', ?, ?, ?)", (cache_key, created_s, result_artifact_id, result_content_hash))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM cache_entries WHERE cache_key=?", (cache_key,)).fetchone())
 
     def retrieve_cache(self, cache_key: str) -> dict[str, Any] | None:
         return self.get_cache(cache_key)
+
+    def cache_events(self, cache_key: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            return [dict(item) for item in conn.execute("SELECT * FROM cache_events WHERE cache_key=? ORDER BY event_id", (cache_key,)).fetchall()]
 
     def get_cache(self, cache_key: str) -> dict[str, Any] | None:
         with self._connection() as conn:
@@ -650,18 +720,21 @@ class SQLiteCatalog:
             if row["status"] == "invalidated":
                 return dict(row)
             conn.execute("UPDATE cache_entries SET status='invalidated', invalidated_at=?, invalidation_reason=? WHERE cache_key=?", (timestamp, reason, cache_key))
+            conn.execute("INSERT INTO cache_events(cache_key, event_type, event_at, result_artifact_id, result_content_hash, reason) VALUES (?, 'invalidated', ?, ?, ?, ?)", (cache_key, timestamp, row["result_artifact_id"], row["result_content_hash"], reason))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM cache_entries WHERE cache_key=?", (cache_key,)).fetchone())
 
     def index_artifact(self, *, artifact_id: str, content_hash: str, schema_id: str, schema_version: str, storage_path: str, availability: str, created_at: datetime | str, indexed_at: datetime | str) -> dict[str, Any]:
         if availability not in {"available", "missing", "quarantined"}:
             raise CatalogError("invalid artefact availability")
-        values = (artifact_id, content_hash, schema_id, schema_version, storage_path, availability, _utc(created_at, "created_at"), _utc(indexed_at, "indexed_at"))
+        created_s, indexed_s = _utc(created_at, "created_at"), _utc(indexed_at, "indexed_at")
+        values = (artifact_id, content_hash, schema_id, schema_version, storage_path, availability, created_s, indexed_s)
         with self._connection(immediate=True) as conn:
             row = conn.execute("SELECT * FROM artifact_index WHERE artifact_id=?", (artifact_id,)).fetchone()
             if row:
-                if row["content_hash"] != content_hash:
-                    raise ConflictError("artefact ID was indexed with a different content hash")
+                material = (row["content_hash"], row["schema_id"], row["schema_version"], row["storage_path"], row["availability"], row["created_at"])
+                if material != (content_hash, schema_id, schema_version, storage_path, availability, created_s):
+                    raise ConflictError("artefact ID was indexed with conflicting material metadata")
                 return dict(row)
             conn.execute("INSERT INTO artifact_index(artifact_id, content_hash, schema_id, schema_version, storage_path, availability, created_at, indexed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", values)
             self._commit(conn)
