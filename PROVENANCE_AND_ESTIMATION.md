@@ -1,62 +1,21 @@
-# Provenance and Estimation
+# CharityGraph Provenance and Estimation
 
-**Status:** Canonical Builder guidance aligned to CauseBase Data authority
+**Status:** Canonical Builder guidance  
+**Authority:** PRODUCT.md and PRINCIPLES.md in the sibling Data repository
 
-## Principle
+Evidence precedes synthesis. Every material observation identifies appropriate source record, evidence, claim basis, extraction method, time, qualification and derivation where applicable. A recovery route such as OCR or LLM does not itself determine whether a source fact is direct.
 
-CauseBase publishes useful conclusions without hiding how they were obtained.
-Provenance is part of the data model, and absence is not evidence of zero.
+Source authority is claim-specific. Evaluated shadow registries may establish their own institutional facts, but neither a code nor membership proves compliance. Promotional outcomes and performance claims remain source-native or review-only unless a policy says otherwise.
 
-## Source classes
+## Money and fundraising expenditure
 
-CauseBase distinguishes regulatory/authoritative, organisation self-report,
-independent reference, community contribution and CauseBase derivation.
+Money retains exact source amount, source presentation, currency and unit scale. Normalisation and currency conversion are explicit derivations. Legitimate conflicting observations remain visible with reconciliation status.
 
-## Derivation classes
+Fundraising expenditure uses only this ladder:
 
-The generic vocabulary includes `direct_extract`, `deterministic_derivation`,
-`heuristic_estimate`, `llm_interpretation` and `peer_imputation`. Peer imputation
-is retained only for separately approved future domains; it is prohibited for
-fundraising expenditure. There is no `fallback_prior` publication method.
+1. direct disclosure;
+2. deterministic reconstruction from identified components;
+3. defensible bounds or a specifically governed interpretation;
+4. unavailable/null with explicit coverage.
 
-## Evidence and money
-
-Evidence references should identify source ID/type/URL, title, publisher, reporting
-period, observed date, document hash, page/table/section or structured field where
-practical. Monetary observations retain exact source amount, currency, unit scale,
-normalised amount/currency and raw value. Currency conversion is an explicit derived
-operation with its own provenance.
-
-## Confidence and fundraising ladder
-
-Confidence expresses uncertainty and must not conceal method. Fundraising expenditure
-uses this governed ladder:
-
-1. **Direct disclosure:** use an explicit source value.
-2. **Deterministic reconstruction:** calculate from clearly identified components.
-3. **Bounded or governed interpretation:** use defensible attribution bounds or a
-   specifically governed interpretation, with included/excluded components, rule and
-   evidence references.
-4. **Unavailable/null:** when no defensible value exists, return `null` and persist
-   explicit coverage such as `not_available_from_source`.
-
-The pipeline must not invent values absent from evidence. Universal priors,
-peer-imputation fill, forced midpoint and forced point estimate are prohibited for
-fundraising expenditure. A null value is valid when its coverage state is explicit.
-
-## Fundraising expenditure
-
-Fundraising expenditure is a key capability for enriched entities, not a guaranteed
-scalar. Direct/component labels may include fundraising, appeals, donor acquisition,
-development, marketing, advertising, promotion, public relations, fundraising events,
-supporter engagement and relevant communications expenditure. Labels do not imply
-automatic inclusion; rules define context-sensitive treatment.
-
-If a value is published, include method, confidence, evidence, components/rule and
-any supported plausible range. Do not manufacture an interval or midpoint.
-
-## Reproducibility and contradictions
-
-Derived values record rule/model/version information sufficient to explain or
-reproduce them. Contradictory evidence remains visible with reconciliation status;
-it is not silently collapsed into a scalar.
+Universal priors, peer-imputation fill, forced midpoint and forced point estimates are prohibited. A published value records method, rule/version, components, evidence and any defensible range. Do not manufacture a range or interpret descriptive campaign metrics as ROI or causal attribution.
