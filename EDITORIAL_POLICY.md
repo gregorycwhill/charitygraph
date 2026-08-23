@@ -6,6 +6,8 @@ CharityGraph writes neutral, information-dense descriptions from bounded evidenc
 
 Do not infer effectiveness, quality, worthiness, popularity, compliance, fundraising efficiency, mandate fit or moral value. Preserve material conflict, uncertainty and source qualification. Beneficiary identity does not establish ethos; ethos, service or mission orientation and notable_context require their separate evidence and review policies.
 
-Model outputs use supplied evidence only, validate against task-specific schemas, preserve source references and remain candidates or derivatives until governed. They are never human decisions. Editorial summaries may consume governed observations; they cannot create new facts.
+Model outputs use supplied evidence only, validate against task-specific schemas and preserve source references. They are never human decisions. A model candidate may be accepted by an explicit benchmarked automation policy; a model-written derivative remains labelled with its method. Editorial summaries consume governed observations and cannot create new facts.
 
-Public prose is plain Australian English, dense, restrained and non-persuasive. Similarity is descriptive navigation, not recommendation. Sensitive contextual claims require adequate evidence, precise procedural status and human review.
+LLM writing is routine, not exceptional. Python selects the release-safe observation/evidence pack, enforces length/style/schema constraints, caches by complete task identity and invalidates prose when inputs or policy change. Human review is risk-weighted and sampled rather than universal.
+
+Public prose is plain Australian English, dense, restrained and non-persuasive. Similarity is descriptive navigation, not recommendation. Sensitive contextual claims require adequate evidence, precise procedural status and the approved risk route, which may require stronger-model adjudication, human review or hold.

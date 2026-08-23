@@ -1,7 +1,7 @@
 # CharityGraph Builder Architecture
 
 **Status:** Canonical Builder implementation authority  
-**Version:** 0.2.1  
+**Version:** 0.3.0-draft  
 **Scope:** local internal knowledge construction, governed review, private evidence/archive boundary, and validated Builder-to-Data release candidates; not a public-schema proposal  
 **Reconciled:** 2026-08-23 from approved target architecture revision 0.1.1, retaining the required v0.2 amendments
 
@@ -9,7 +9,7 @@ This architecture implements the shared authority in the sibling Data repository
 
 ## 1. Decision in one sentence
 
-Builder vNext will be a local, evidence-first pipeline that turns immutable source material into typed candidates, governed canonical observations, and separately versioned derivatives; CharityGraph cards and releases will be projections of those records, not Builder's internal data model.
+Builder vNext will be a local, Python-controlled and LLM-powered pipeline that turns immutable source material into typed candidates, policy-governed canonical observations and separately versioned derivatives; CharityGraph cards and releases will be projections of those records, not Builder's internal data model.
 
 This is a rearchitecture, not a rewrite of the evidence. The existing archive, source records, extracts, schemas, model runs, human decisions, public releases, and golden cases are migration inputs and validation evidence.
 
@@ -26,11 +26,11 @@ The strongest retained findings are:
 - Source absence, retrieval failure, non-applicability, and not-yet-processed must remain distinct.
 - Identity binding is an explicit governed process; names and domains never create subject identity.
 - Extraction method and claim basis are independent.
-- Deterministic extraction should precede semantic interpretation and expensive escalation.
+- Deterministic acquisition, hashing, obvious structure recovery and evidence preparation should constrain semantic work; they must not become a brittle substitute for routine model-assisted interpretation.
 - The Phase 2A synthesis call combined evidence interpretation, taxonomy assignment, uncertainty handling, and editorial writing in one model response. Those tasks have different validity and refresh rules and must be separated.
 - Historical cache identity based on evidence, prompt, taxonomy, and model was directionally correct, but cache records lacked explicit task and subject identity.
 - Lineage inferred merely from a shared subject is not lineage. Causal relationships require typed edges.
-- A model result is not a human decision. Governed decisions require authority, rationale, applicability, and supersession semantics; model outputs are never automatically promoted.
+- A model result is not a human decision. Governed decisions require authority, rationale, applicability and supersession semantics. A model candidate may become canonical through an explicit benchmarked automation policy, but never merely because a model emitted it and never under a human-governed label.
 - All 114 audited v0.5 `legacy_unbound` origins are recoverable from the immutable RC4 cards when the documented canonical JSON hash is used. The 1,399 origin-only items are preserved historical assertions, not unresolved origins and not canonical facts.
 - The 299 synthesis-cache records are recoverable experimental runs. They demonstrate prompt evolution and cost, but they are not governed canonical observations.
 - The current archive is active CharityGraph evidence, not a legacy archive. Old releases and identifiers remain historical; the active workspace and operating paths use CharityGraph.
@@ -43,6 +43,8 @@ Builder has four responsibilities:
 2. **Knowledge production:** produce typed candidates, apply governed promotion decisions, and maintain canonical observations.
 3. **Derivative production:** create summaries, classifications, embeddings, similarities, and transparent analytics from governed inputs.
 4. **Release compilation:** project selected canonical records and derivatives into a validated immutable CharityGraph Data release.
+
+Python is the control plane: it acquires, hashes, parses obvious structure, selects evidence, joins, batches, schedules, caches, validates, accounts for cost and compiles releases. LLMs are the routine semantic engine: they recover difficult text/vision, screen relevance, extract typed facts, interpret activities and participation, classify, adjudicate and write bounded derivatives.
 
 Builder is not:
 
@@ -71,7 +73,7 @@ The internal model is a typed artefact graph. Each persisted artefact has an ID,
 | `CanonicalObservation` | Accepted typed assertion with scope, time, evidence, and claim basis | Internal canonical knowledge eligible for projection |
 | `CoverageAssessment` | Result of applying a defined assessment scope to available evidence/observations | Governed current-state assessment |
 | `DerivativeArtifact` | Summary, classification, embedding, similarity, or analytic projection | Recomputable output with independent lineage |
-| `BenchmarkDefinition`, `SourceOpportunity`, `PropositionReviewLedger`, `CostLedger` | Versioned evaluation cohort, opportunity, adjudication and economics records | Private evaluation authority |
+| `BudgetCohort`, `BenchmarkDefinition`, `SourceOpportunity`, `PropositionReviewLedger`, `CostLedger`, `PricingSnapshot` | Versioned processing cohort, donor-exposure proxy, evaluation opportunity, adjudication, pricing and economics records | Private evaluation and cost authority |
 | `CorrectionSubmission`, `CorrectionProposal`, retraction/challenge records | Private intake and governed contestability workflow | Governed correction authority |
 | `TaskRun` | One deterministic, local-model, or remote-model execution | Operational and reproducibility record |
 | `RunManifest` | A bounded pipeline invocation, its configuration, inputs, outputs, and failures | Operational audit record |
@@ -136,7 +138,7 @@ plan → acquire → parse → bind → evidence → candidates → decide → c
 
 ### 6.1 Plan
 
-Create a `RunManifest` from explicit source scope, subject/cohort scope, adapter versions, policy versions, cost limits, and requested outputs. Discovery and refresh planning are deterministic where possible.
+Create a `RunManifest` from explicit source scope, subject/cohort scope, cohort budget, pricing/FX snapshot, adapter versions, policy versions, cost limits and requested outputs. Discovery and refresh planning are deterministic where possible. Paid tasks must reserve budget before scheduling.
 
 ### 6.2 Acquire
 
@@ -154,11 +156,11 @@ Resolve source records to subjects using authoritative identifiers and governed 
 
 ### 6.5 Build evidence
 
-Create bounded, attributable fragments suitable for rules, local NLP, or an LLM task. Evidence selection has its own version and hash. A fragment retains exact source location and does not silently become a paraphrased claim.
+Create bounded, attributable fragments suitable for mechanical rules or an LLM task. Evidence selection has its own version and hash. A fragment retains exact source location and does not silently become a paraphrased claim.
 
 ### 6.6 Generate candidates
 
-Mechanical parsers, rules, NER, relevance classifiers, and LLMs emit `CandidateObservation` records. Candidate generation is non-destructive and may be non-exclusive: the same passage can support candidates in several domains.
+Mechanical parsers, rules and LLMs emit `CandidateObservation` records. Candidate generation is non-destructive and may be non-exclusive: the same passage can support candidates in several domains. Custom local NER, relevance, taxonomy or summarisation models are outside the initial build unless a later total-cost-of-ownership benchmark approves them.
 
 ### 6.7 Decide
 
@@ -194,21 +196,21 @@ Select governed records into a declared public contract, render all formats, val
 
 Every stage records whether a requested result is `available`, `unprocessed`, `inapplicable`, `not_found_after_assessment`, `failed`, `held`, `quarantined`, or another controlled policy state. Missing input, retrieval failure, inapplicability, not-yet-processed work and a scoped negative assessment are never collapsed. `not_found_after_assessment` requires the source families/roles, time window, capability and policy version actually assessed.
 
-A decision gate separates candidate generation from canonicalisation. No model output, heuristic, cache hit or historical assertion may be represented as a human-governed decision. Automation is authorised only through a separately versioned, domain-specific policy with applicable benchmark evidence and secure subject binding.
+A decision gate separates candidate generation from canonicalisation. No model output, heuristic, cache hit or historical assertion may be represented as a human-governed decision. Automation is authorised only through a separately versioned, domain-specific policy with applicable benchmark evidence and secure subject binding. Human review is targeted to samples, conflicts, sensitive claims and higher-exposure cases rather than imposed universally.
 
-## 7. LLM and local-NLP task architecture
+## 7. Model-task and cost-orchestration architecture
 
-LLM use is task-specific, bounded, and optional. The production design separates at least these tasks:
+LLM use is task-specific, bounded and routine. The production design separates at least these logical tasks:
 
-| Task | Normal route | Escalation/output |
+| Task | Python preparation/control | Model output |
 | --- | --- | --- |
-| Page text recovery | Native parser, then local OCR | Vision/LLM recovery of a specified page/region; output remains extracted syntax |
-| Relevance screening | Rules and local classifier | Bounded model classification; no factual claim |
-| Entity/phrase extraction | Parser, regex, local NER | Structured candidate extraction with exact evidence spans |
-| Semantic interpretation | Rules where defensible | Typed candidate with alternatives and uncertainty |
-| Taxonomy mapping | Deterministic vocabulary/rules | Proposed classification candidate, never a taxonomy decision |
-| Editorial synthesis | Governed observations only | Reader-facing derivative with cited observation/evidence IDs |
-| Writing/explanation | Existing governed facts and policy | Derivative text, never new canonical facts |
+| Page text recovery | Native parse and off-the-shelf OCR; select failed page/region | Vision recovery of specified content; output remains extracted syntax |
+| Relevance screening | Segment, deduplicate and supply task context | Bounded classification with reason/evidence reference; no factual claim |
+| Structured extraction | Preserve obvious fields, spans, units and signs | Typed candidates with exact evidence references |
+| Semantic interpretation | Supply schema, alternatives and domain policy | Typed candidate with uncertainty, including activity, participation, fundraising, ethos and context judgements |
+| Taxonomy mapping | Validate vocabulary and version | Proposed classification candidate, never a taxonomy-governance decision |
+| Editorial synthesis | Select governed observations and evidence | Reader-facing derivative that cannot introduce new facts |
+| Embeddings | Produce stable release-safe derivative text and hash it | Versioned vector derivative for descriptive search/navigation |
 
 The historical monolithic Phase 2A/2B synthesis prompt is retained as experimental evidence, not copied into vNext. It showed useful neutrality and sparsity policies, but it coupled summary prose, activity/beneficiary extraction, geography, participation, taxonomy selection, taxonomy-maintenance signals, and uncertainty into one cache and refresh boundary.
 
@@ -224,7 +226,32 @@ Each new model task records:
 - output artefact IDs;
 - reuse, supersession, and invalidation status.
 
-Cache identity is a canonical hash of task type, task schema, selected inputs, policy/prompt, model configuration, and material local-tool versions. Subject ID is recorded explicitly even when derivable from a joined artefact.
+Cache identity is:
+
+```text
+H(task type, task schema, evidence hashes, prompt/policy version,
+  model snapshot, parameters, material tool versions)
+```
+
+Subject ID is recorded explicitly even when derivable from a joined artefact. The cache retains the request specification, selected evidence, raw response, separately validated logical outputs, usage/cost, retries/escalations and validity/invalidation state.
+
+Several logical tasks may share one physical request after benchmark evidence shows acceptable contamination and validation behaviour. Provider batch processing of independent requests is preferred where its price/latency contract fits. Optional multi-subject batching requires a contamination benchmark; optional multi-task bundling for one subject retains separately validated output artefacts.
+
+The scheduler ranks subjects by an approved `BudgetCohort`, discovers evidence, groups work by model/schema/prompt, reserves cost, observes rate limits, retries safely, resumes incomplete batches and prevents duplicate paid work. It reconciles actual cost after each request, returns unused reserve and stops new paid work before a cohort cap can be exceeded.
+
+The initial paid-model budgets are pooled within cohorts and include text/vision extraction, judgement, writing, embeddings, retries and escalation:
+
+| Cohort | Priority rule | Cap |
+| --- | --- | ---: |
+| first 100 | highest total donations | AUD 100 |
+| next 1,000 | next highest total donations | AUD 100 |
+| next 10,000 | next highest total donations | AUD 100 |
+
+Total donations is stored as `donor_decision_exposure_proxy`. It estimates processing exposure, not donor count, merit, quality, credibility or recommendation. Easy subjects may subsidise difficult ones inside a cohort; cross-cohort transfer requires explicit approval. Cost records retain provider currency, actual usage, pricing-table version, AUD conversion rate/source and reservation/reconciliation events.
+
+Embeddings are part of the budget even when negligible. Generate them only from stable release-safe text and cache them by text hash, embedding model and material parameters.
+
+Custom local NLP is not a default tier. Simple parsing, regular expressions, vocabulary validation and off-the-shelf OCR remain. A custom NER, relevance, taxonomy or summarisation component requires a benchmark of total cost of ownership: API savings plus Codex implementation cost, labels/evals, maintenance, drift and operations.
 
 ## 8. Storage and local operation
 
@@ -258,7 +285,7 @@ The storage choices are complementary rather than interchangeable:
 | SQLite | Mutable local workflow state and a rebuildable index over durable artefacts | Operational authority only |
 | DuckDB | Ad hoc/batch analysis over JSON, Parquet and indexed metadata | Disposable query engine unless a later decision says otherwise |
 
-SQLite is the recommended initial operational catalogue, not a repository for raw documents or the only copy of governed knowledge. Its likely tables cover artefact locations and hashes, task/run status, dependency edges, source refresh checks, retries, locks, and cache validity. Durable artefacts and manifests remain sufficient to rebuild the evidentiary parts of the catalogue.
+SQLite is the recommended initial operational catalogue, not a repository for raw documents or the only copy of governed knowledge. The first implementation is deliberately thin: task/batch state, idempotency, budget reservations, reconciled cost, cache validity and artefact locations/hashes. Domain knowledge remains in durable typed artefacts. Broader catalogue tables are added only when a working vertical slice requires them.
 
 ### 8.2 Alternatives and trade-offs
 
@@ -328,18 +355,18 @@ Required safeguards:
 
 This document authorises no implementation by itself. Each following stage is a bounded PR with tests, migration notes and explicit exclusions:
 
-1. **Architecture/contracts and package skeleton** — record approved boundaries and typed contracts; no runtime database, archive mutation, evidence import, model call, schema/release change or Viewer change.
-2. **Catalogue and artefact contracts** — typed IDs, hashes, lineage, manifests and SQLite behind a narrow rebuildable interface.
-3. **Read-only archive index** — index existing files in place with hashes and migration status; do not move, rewrite or promote evidence.
-4. **Deterministic authoritative-source vertical slice** — plan through public 0.5 fixture projection, classifying every difference.
-5. **Program, participation and scope slice** — implement scoped subject semantics and initial participation extraction without automatic durable promotion.
-6. **Document/web evidence slice** — reuse validated routes behind page/fragment contracts and preserve failures.
-7. **Candidate, governance and correction workflow** — decisions, review packets, supersession, challenges, retractions, coverage and dependent invalidation.
-8. **Task-runner/model boundary** — task-specific local/remote interfaces, canonical cache identity, budgets, telemetry and fake-client tests; no whole-card prompt.
-9. **Historical evidence import** — map caches, approved decisions and historical unbound ledgers without automatic promotion.
-10. **Fundraising and other shadow-registry slices** — source-role policies, subject binding, review-only provider material and no performance inference.
-11. **Controlled comparison pilot** — measure domain-specific yield, precision, review load, source-scope gap, cost and reproducibility.
-12. **Cutover proposal** — only after the pilot, propose production commands, phase-orchestration deprecation and any future public-contract change separately.
+1. **Authority and minimum contracts** — install the product/architecture amendment and define only the artefact, logical-task, budget-cohort, pricing and cache contracts needed for a model-assisted spike; no real model call.
+2. **Thin operational ledger** — implement SQLite task/batch/cache/cost state, idempotency and recovery behind a rebuildable interface.
+3. **Scheduler and fake provider** — batching, reservation/reconciliation, retry/resume, duplicate prevention and hard cohort stops, tested without paid calls.
+4. **Bounded economics spike** — run 10–20 representative charities against existing evidence under a separately approved micro-budget; cover difficult extraction, judgement, writing and embeddings; publish nothing.
+5. **LLM-powered vertical slice** — complete the typed candidate/decision/observation/derivative path for representative subjects, including fixture-only release projection.
+6. **Read-only archive index and evidence reuse** — index existing files in place and bind the most useful existing extracts, model runs and governed cases without automatic promotion.
+7. **Core-domain expansion** — program/service scope, participation, activities/beneficiaries, geography, fundraising/shadow registries, ethos/service orientation, notable context and taxonomy policies.
+8. **Governance and corrections** — risk-weighted automation policies, review sampling, conflicts, sensitive claims, challenges, retractions and dependent invalidation.
+9. **First-100 cohort** — process the highest-donation cohort within AUD 100, including embeddings and risk-aligned assurance; evaluate anti-sparsity acceptance before any public proposal.
+10. **Next-1,000 cohort** — process within AUD 100 using proven batching/caching/routing and sampled quality assurance.
+11. **Next-10,000 cohort** — process within AUD 100 using the economical route, targeted escalation and explicit coverage states.
+12. **Cutover proposal** — only after cohort evidence, propose production commands, phase-orchestration deprecation and any future public-contract change separately.
 
 Architecture-critical stages use Terra-High. Later bounded adapters, fixtures and mechanical migrations may use Luna-High only after the governing contracts are fixed.
 
@@ -354,7 +381,11 @@ Before material implementation begins, confirm:
 - model tasks are separated by schema and invalidation boundary and cannot create human-governed decisions;
 - participation is in the initial production scope and shadow-registry authority is claim-specific;
 - correction, challenge, retraction and dependent invalidation are explicit and append-only;
-- benchmark/economics artefacts measure evidence opportunity, accepted-observation yield, review burden and cost without worthiness proxies;
+- budget/economics artefacts enforce the three cohort caps, label total donations only as a donor-decision-exposure proxy and never imply worthiness;
+- Python orchestration proves batching, scheduling, caching, cost reservation/reconciliation, duplicate prevention and resumability;
+- model-assisted extraction, judgement, writing and embeddings are routine, separately typed and included in cost accounting;
+- custom local NLP is absent from the initial build unless a total-cost-of-ownership benchmark approves it;
+- acceptance measures coverage and recoverable recall as well as precision; a high-precision sparse pipeline fails;
 - durable evidence is indexed/reused rather than destructively reorganised;
 - SQLite operating semantics, recovery and deterministic reindex are testable; durable evidence never exists only in SQLite;
 - public contract 0.5, its compatibility adapter, fixtures and immutable checksum remain protected;
@@ -369,10 +400,10 @@ These questions can be answered during implementation without changing the archi
 - Which 143 synthesis-cache records without a direct candidate-card join can be rebound through exact evidence-pack joins?
 - Which approved knowledge-validation decisions should become current governed fixtures rather than benchmark-only history?
 - Which `legacy_unbound` domains merit first re-extraction based on public value and review cost?
-- Whether a local lightweight NER/relevance model materially improves accepted observations per dollar over rules plus bounded LLM calls.
+- Whether any custom local NLP component later reduces total cost of ownership after implementation, evaluation, maintenance and operational cost are included.
 
 They should be recorded in `CharityGraph\archaeology\tranche-4\` or a later durable tranche directory, never Temp.
 
 ## 14. Immediate implementation boundary
 
-The architecture authority is now documented. The next implementation task remains a bounded architecture/contracts PR: establish only approved internal contracts and tests, without moving archive files, importing evidence, creating a production SQLite catalogue, calling a model, changing public schemas or rebuilding a release. Any public-contract migration remains a separate Data decision.
+The next implementation task is a bounded model-economics contracts PR. Establish the minimum artefact/task/cohort/pricing/cache schemas and tests required for a paid-call-free scheduler skeleton. Do not move archive files, import evidence, make a real model call, change public schemas or rebuild a release. The following PR implements the thin SQLite ledger and fake-provider scheduler; real calls begin only in the separately approved economics spike.

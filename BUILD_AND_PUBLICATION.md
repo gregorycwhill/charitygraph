@@ -13,7 +13,7 @@ A candidate is written only to an isolated runtime staging location. The allowli
 
 ## Acceptance
 
-A candidate must pass software and contract tests; identity/binding invariants; evidence and derivative-lineage resolution; domain-policy checks; coverage/assessment-scope checks; taxonomy validation; source-rights and privacy checks; declared bulk/JSON/Markdown consistency; drift/anomaly review; manifest/hash verification; and previous-valid-release preservation.
+A candidate must pass software and contract tests; identity/binding invariants; evidence and derivative-lineage resolution; model-method/policy labels; domain-policy checks; coverage/assessment-scope and anti-sparsity checks; cohort-budget reconciliation; taxonomy validation; source-rights and privacy checks; declared bulk/JSON/Markdown consistency; drift/anomaly review; manifest/hash verification; and previous-valid-release preservation.
 
 Fundraising expenditure may be null only with explicit valid coverage. Source-reported campaign metrics retain wording, period and scope; they do not become ROI or accounting reconciliation.
 
