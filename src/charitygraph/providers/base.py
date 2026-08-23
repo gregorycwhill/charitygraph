@@ -4,22 +4,22 @@ from __future__ import annotations
 
 from typing import Generic, Protocol, TypeVar
 
-from pydantic import model_validator
+from pydantic import BaseModel, model_validator
 
 from charitygraph.contracts.common import StrictModel, require_nonblank
 from charitygraph.contracts.knowledge import CanonicalObservation
 from charitygraph.contracts.tasks import EmbeddingResult, ModelResult, ModelTask, TaskRun
 
 
-PayloadT = TypeVar("PayloadT")
+PayloadT = TypeVar("PayloadT", bound=BaseModel)
 
 
-class ProviderExecution(StrictModel):
+class ProviderExecution(StrictModel, Generic[PayloadT]):
     """One synchronous logical result, not a production scheduler abstraction."""
 
-    task: ModelTask
+    task: ModelTask[PayloadT]
     task_run: TaskRun
-    logical_result: ModelResult | EmbeddingResult
+    logical_result: ModelResult[PayloadT] | EmbeddingResult
 
     @model_validator(mode="after")
     def _consistent(self) -> "ProviderExecution":
@@ -43,4 +43,4 @@ class ProviderExecution(StrictModel):
 class ModelProvider(Protocol, Generic[PayloadT]):
     provider_id: str
 
-    def execute(self, task: ModelTask[PayloadT]) -> ProviderExecution: ...
+    def execute(self, task: ModelTask[PayloadT]) -> ProviderExecution[PayloadT]: ...
