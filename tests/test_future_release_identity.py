@@ -106,8 +106,28 @@ def test_future_context_rejects_contract_05():
         future_context(contract_version="0.5")
 
 
-def test_serialised_identity_fields_agree_with_data_schema():
-    data_root = Path(os.environ.get("CHARITYGRAPH_DATA_REPOSITORY", Path(__file__).resolve().parents[2] / "charitygraph-data"))
-    schema = json.loads((data_root / "schemas/future/release-manifest.schema.json").read_text(encoding="utf-8"))
+EXPECTED_PUBLICATION_IDENTITY_FIELDS = {
+    "publisher_name",
+    "canonical_data_repository",
+    "immutable_release_path",
+    "data_license_identifier",
+    "license_url",
+    "attribution_guidance",
+    "upstream_rights_caveat_url",
+    "editorial_commitments",
+    "producing_builder",
+}
+
+
+def test_serialised_identity_fields_have_expected_contract_names():
+    assert set(identity().model_dump()) == EXPECTED_PUBLICATION_IDENTITY_FIELDS
+
+
+def test_serialised_identity_fields_agree_with_data_schema_when_configured():
+    data_repository = os.environ.get("CHARITYGRAPH_DATA_REPOSITORY")
+    if not data_repository:
+        pytest.skip("CHARITYGRAPH_DATA_REPOSITORY not set; skipping cross-repository schema parity")
+    schema_path = Path(data_repository) / "schemas/future/release-manifest.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
     expected = set(schema["properties"]["publication_identity"]["properties"])
     assert set(identity().model_dump()) == expected
