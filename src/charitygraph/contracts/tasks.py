@@ -87,7 +87,7 @@ PayloadT = TypeVar("PayloadT", bound=BaseModel)
 
 class ModelTask(ArtifactRecord, Generic[PayloadT]):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("model-task"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("model-task"), validation_alias="schema", serialization_alias="schema")
     subject_id: str
     scope_id: str | None = None
     cohort_id: str | None = None
@@ -212,7 +212,7 @@ class ProviderUsage(StrictModel):
 
 class ModelResult(ArtifactRecord, Generic[PayloadT]):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("model-result"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("model-result"), validation_alias="schema", serialization_alias="schema")
     model_task_id: str
     task_run_id: str
     output_schema: SchemaRef
@@ -258,7 +258,7 @@ class ModelResult(ArtifactRecord, Generic[PayloadT]):
 
 class EmbeddingResult(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("embedding-result"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("embedding-result"), validation_alias="schema", serialization_alias="schema")
     model_task_id: str
     task_run_id: str
     source_text_artifact_id: str
@@ -307,7 +307,7 @@ class EmbeddingResult(ArtifactRecord):
 
 class TaskRun(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("task-run"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("task-run"), validation_alias="schema", serialization_alias="schema")
     model_task_ids: tuple[str, ...]
     subject_id: str
     provider_id: str

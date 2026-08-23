@@ -59,9 +59,36 @@ class Money(StrictModel):
         return value
 
 
+class SignedMoney(StrictModel):
+    """A finite signed amount used only for reconciled totals, never input charges."""
+
+    amount: Decimal
+    currency: str
+
+    @field_validator("amount", mode="before")
+    @classmethod
+    def _decimal(cls, value):
+        if isinstance(value, float):
+            raise TypeError("SignedMoney cannot use binary float")
+        return value
+
+    @field_validator("amount")
+    @classmethod
+    def _finite(cls, value: Decimal) -> Decimal:
+        if not value.is_finite():
+            raise ValueError("signed money amounts must be finite")
+        return value
+
+    @field_validator("currency")
+    @classmethod
+    def _currency(cls, value: str) -> str:
+        if len(value) != 3 or not value.isascii() or not value.isupper() or not value.isalpha():
+            raise ValueError("currency must be three upper-case ASCII letters")
+        return value
+
 class BudgetCohort(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("budget-cohort"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("budget-cohort"), validation_alias="schema", serialization_alias="schema")
     cohort_code: Literal["C100", "C1K", "C10K", "SPIKE"]
     definition_version: str
     ranking_metric: Literal["donor_decision_exposure_proxy"]
@@ -149,7 +176,7 @@ class PriceRate(StrictModel):
 
 class PricingSnapshot(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("pricing-snapshot"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("pricing-snapshot"), validation_alias="schema", serialization_alias="schema")
     provider_id: str
     model_snapshot: str
     effective_at: datetime
@@ -189,7 +216,7 @@ class PricingSnapshot(ArtifactRecord):
 
 class FxRateSnapshot(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("fx-rate-snapshot"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("fx-rate-snapshot"), validation_alias="schema", serialization_alias="schema")
     base_currency: str
     quote_currency: Literal["AUD"]
     aud_per_base_unit: Decimal
@@ -239,7 +266,7 @@ class FxRateSnapshot(ArtifactRecord):
 
 class CostReservation(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("cost-reservation"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("cost-reservation"), validation_alias="schema", serialization_alias="schema")
     cohort_id: str
     run_id: str
     model_task_ids: tuple[str, ...]
@@ -292,18 +319,21 @@ class CostReservation(ArtifactRecord):
 
 
 class CostLedgerEntry(StrictModel):
+    """One immutable accounting fact; all charge amounts remain non-negative Money."""
+
     cohort_id: str
     run_id: str
     task_run_id: str
     reservation_id: str
     pricing_snapshot_id: str
     fx_snapshot_id: str
-    entry_type: Literal["actual", "reservation_release", "credit", "adjustment"]
+    entry_type: Literal["reservation", "reservation_release", "actual", "credit", "adjustment"]
     paid_output_category: PaidOutputCategory
     provider_cost: Money
     aud_cost: Money
     usage: ProviderUsage
     recorded_at: datetime
+    adjustment_direction: Literal["debit", "credit"] | None = None
     provider_invoice_ref: str | None = None
 
     @field_validator("cohort_id", "run_id", "task_run_id", "reservation_id", "pricing_snapshot_id", "fx_snapshot_id")
@@ -321,17 +351,33 @@ class CostLedgerEntry(StrictModel):
 
     _recorded_at = field_validator("recorded_at")(utc_datetime)
 
+    @model_validator(mode="after")
+    def _adjustment_semantics(self) -> "CostLedgerEntry":
+        if self.entry_type == "adjustment" and self.adjustment_direction is None:
+            raise ValueError("adjustments require an explicit debit or credit direction")
+        if self.entry_type != "adjustment" and self.adjustment_direction is not None:
+            raise ValueError("only adjustments may carry adjustment_direction")
+        return self
+
 
 class CostLedger(ArtifactRecord):
+    """Append-only cost reconciliation separating reserve exposure from actual cohort spend."""
+
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("cost-ledger"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("cost-ledger"), validation_alias="schema", serialization_alias="schema")
     cohort_id: str
     budget_cap_aud: Money
     entries: tuple[CostLedgerEntry, ...] = ()
     as_at: datetime
+    reserved_exposure_aud: Money
+    released_reservations_aud: Money
     actual_spend_aud: Money
     credits_aud: Money
-    net_spend_aud: Money
+    adjustment_debits_aud: Money
+    adjustment_credits_aud: Money
+    net_actual_spend_aud: SignedMoney
+    committed_exposure_aud: SignedMoney
+    remaining_budget_aud: SignedMoney
     breach: bool
 
     @field_validator("record_id")
@@ -344,30 +390,63 @@ class CostLedger(ArtifactRecord):
     def _cohort(cls, value: str) -> str:
         return _prefix(value, "cohort:", "cohort_id")
 
-    @field_validator("budget_cap_aud", "actual_spend_aud", "credits_aud", "net_spend_aud")
+    @field_validator(
+        "budget_cap_aud", "reserved_exposure_aud", "released_reservations_aud", "actual_spend_aud",
+        "credits_aud", "adjustment_debits_aud", "adjustment_credits_aud",
+    )
     @classmethod
     def _aud(cls, value: Money) -> Money:
         if value.currency != "AUD":
             raise ValueError("cost ledger money must be AUD")
         return value
 
+    @field_validator("net_actual_spend_aud", "committed_exposure_aud", "remaining_budget_aud")
+    @classmethod
+    def _signed_aud(cls, value: SignedMoney) -> SignedMoney:
+        if value.currency != "AUD":
+            raise ValueError("reconciled ledger totals must be AUD")
+        return value
+
     _as_at = field_validator("as_at")(utc_datetime)
 
     @model_validator(mode="after")
     def _reconcile(self) -> "CostLedger":
-        actual = sum((item.aud_cost.amount for item in self.entries if item.entry_type in {"actual", "adjustment"}), Decimal("0"))
-        credits = sum((item.aud_cost.amount for item in self.entries if item.entry_type in {"credit", "reservation_release"}), Decimal("0"))
-        net = actual - credits
-        if self.actual_spend_aud.amount != actual or self.credits_aud.amount != credits or self.net_spend_aud.amount != net:
-            raise ValueError("cost ledger totals do not reconcile with entries")
-        if self.breach != (net > self.budget_cap_aud.amount):
-            raise ValueError("cost ledger breach flag does not match net spend")
+        reservations = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "reservation"), Decimal("0"))
+        releases = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "reservation_release"), Decimal("0"))
+        actual = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "actual"), Decimal("0"))
+        credits = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "credit"), Decimal("0"))
+        adjustment_debits = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "adjustment" and item.adjustment_direction == "debit"), Decimal("0"))
+        adjustment_credits = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "adjustment" and item.adjustment_direction == "credit"), Decimal("0"))
+        reserved_exposure = reservations - releases - actual
+        if reserved_exposure < 0:
+            raise ValueError("reservation releases and actual charges cannot exceed reserved exposure")
+        net_actual = actual + adjustment_debits - credits - adjustment_credits
+        committed = net_actual + reserved_exposure
+        remaining = self.budget_cap_aud.amount - committed
+        expected_unsigned = (
+            (self.reserved_exposure_aud.amount, reserved_exposure),
+            (self.released_reservations_aud.amount, releases),
+            (self.actual_spend_aud.amount, actual),
+            (self.credits_aud.amount, credits),
+            (self.adjustment_debits_aud.amount, adjustment_debits),
+            (self.adjustment_credits_aud.amount, adjustment_credits),
+        )
+        if any(actual_value != expected_value for actual_value, expected_value in expected_unsigned):
+            raise ValueError("cost ledger unsigned totals do not reconcile with entries")
+        expected_signed = (
+            (self.net_actual_spend_aud.amount, net_actual),
+            (self.committed_exposure_aud.amount, committed),
+            (self.remaining_budget_aud.amount, remaining),
+        )
+        if any(actual_value != expected_value for actual_value, expected_value in expected_signed):
+            raise ValueError("cost ledger signed totals do not reconcile with entries")
+        if self.breach != (committed > self.budget_cap_aud.amount):
+            raise ValueError("cost ledger breach flag does not match committed exposure")
         return self
-
 
 class RunManifest(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("run-manifest"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("run-manifest"), validation_alias="schema", serialization_alias="schema")
     run_kind: Literal["contract_fixture", "economics_spike", "vertical_slice", "cohort_build", "reindex"]
     status: Literal["planned", "running", "completed", "completed_with_failures", "failed", "cancelled"]
     cohort_id: str | None = None

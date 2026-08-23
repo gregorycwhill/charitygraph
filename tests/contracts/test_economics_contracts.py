@@ -4,62 +4,128 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from charitygraph.contracts import BudgetCohort, CostLedger, CostLedgerEntry, FxRateSnapshot, Money, PriceRate, PricingSnapshot, RunManifest
+from charitygraph.contracts import (
+    BudgetCohort, CostLedger, CostLedgerEntry, FxRateSnapshot, Money, PriceRate,
+    PricingSnapshot, RunManifest, SignedMoney,
+)
 from charitygraph.contracts.tasks import ProviderUsage
 
-NOW=datetime(2026,1,1,tzinfo=timezone.utc)
+NOW = datetime(2026, 1, 1, tzinfo=timezone.utc)
+
 
 def money(amount, currency="AUD"):
-    return Money(amount=amount, currency=currency)
+    return Money(amount=Decimal(str(amount)), currency=currency)
+
+
+def signed(amount, currency="AUD"):
+    return SignedMoney(amount=Decimal(str(amount)), currency=currency)
+
+
+def entry(entry_type, amount, *, direction=None):
+    return CostLedgerEntry(
+        cohort_id="cohort:" + "1" * 32, run_id="run:" + "4" * 32, task_run_id="taskrun:" + "5" * 32,
+        reservation_id="reservation:" + "6" * 32, pricing_snapshot_id="pricing:" + "2" * 32,
+        fx_snapshot_id="fx:" + "3" * 32, entry_type=entry_type, paid_output_category="extraction",
+        provider_cost=money(amount, "USD"), aud_cost=money(amount), usage=ProviderUsage(input_tokens=1),
+        recorded_at=NOW, adjustment_direction=direction,
+    )
+
+
+def ledger(entries, *, reserved, released, actual, credits, adjustment_debits, adjustment_credits, net_actual, committed, remaining, breach):
+    return CostLedger(
+        record_id="costledger:" + "7" * 32, created_at=NOW, producer={"kind": "code", "producer_id": "test"},
+        cohort_id="cohort:" + "1" * 32, budget_cap_aud=money(100), entries=tuple(entries), as_at=NOW,
+        reserved_exposure_aud=money(reserved), released_reservations_aud=money(released), actual_spend_aud=money(actual),
+        credits_aud=money(credits), adjustment_debits_aud=money(adjustment_debits), adjustment_credits_aud=money(adjustment_credits),
+        net_actual_spend_aud=signed(net_actual), committed_exposure_aud=signed(committed),
+        remaining_budget_aud=signed(remaining), breach=breach,
+    )
+
 
 def test_money_and_exact_cohort_caps():
     with pytest.raises((ValidationError, TypeError)):
         Money(amount=1.2, currency="AUD")
-    cohort=BudgetCohort(
-        record_id="cohort:"+"1"*32, created_at=NOW, producer={"kind":"code","producer_id":"test"}, cohort_code="C100",
+    cohort = BudgetCohort(
+        record_id="cohort:" + "1" * 32, created_at=NOW, producer={"kind": "code", "producer_id": "test"}, cohort_code="C100",
         definition_version="1", ranking_metric="donor_decision_exposure_proxy", rank_start=1, rank_end=100,
-        expected_member_count=100, membership_manifest_ref="manifest:1", membership_hash="a"*64,
-        budget_cap=money(Decimal("100")), pooling="within_cohort_only",
+        expected_member_count=100, membership_manifest_ref="manifest:1", membership_hash="a" * 64,
+        budget_cap=money(100), pooling="within_cohort_only",
     )
     assert cohort.budget_cap.amount == Decimal("100")
     with pytest.raises(ValidationError):
-        BudgetCohort(**{**cohort.model_dump(), "cohort_code":"C1K"})
+        BudgetCohort(**{**cohort.model_dump(), "cohort_code": "C1K"})
+
 
 def test_pricing_fx_and_url_rules():
-    rate=PriceRate(dimension="input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.2"))
-    pricing=PricingSnapshot(
-        record_id="pricing:"+"2"*32, created_at=NOW, producer={"kind":"code","producer_id":"test"}, provider_id="fake",
+    rate = PriceRate(dimension="input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.2"))
+    pricing = PricingSnapshot(
+        record_id="pricing:" + "2" * 32, created_at=NOW, producer={"kind": "code", "producer_id": "test"}, provider_id="fake",
         model_snapshot="model-1", effective_at=NOW, retrieved_at=NOW, provider_currency="USD",
-        authoritative_source_url="https://example.test/pricing", rates=(rate,), source_content_hash="b"*64,
+        authoritative_source_url="https://example.test/pricing", rates=(rate,), source_content_hash="b" * 64,
     )
     assert pricing.rates[0].price_per_unit == Decimal("0.2")
     with pytest.raises(ValidationError):
         FxRateSnapshot(
-            record_id="fx:"+"3"*32, created_at=NOW, producer={"kind":"code","producer_id":"test"}, base_currency="USD",
-            quote_currency="AUD", aud_per_base_unit=Decimal("1.5"), observed_at=NOW, source_name="fx", source_url="https://example.test/fx?x=1", source_content_hash="c"*64,
+            record_id="fx:" + "3" * 32, created_at=NOW, producer={"kind": "code", "producer_id": "test"}, base_currency="USD",
+            quote_currency="AUD", aud_per_base_unit=Decimal("1.5"), observed_at=NOW, source_name="fx", source_url="https://example.test/fx?x=1", source_content_hash="c" * 64,
         )
 
-def test_cost_ledger_reconciles_and_represents_breach():
-    actual=CostLedgerEntry(
-        cohort_id="cohort:"+"1"*32, run_id="run:"+"4"*32, task_run_id="taskrun:"+"5"*32, reservation_id="reservation:"+"6"*32,
-        pricing_snapshot_id="pricing:"+"2"*32, fx_snapshot_id="fx:"+"3"*32, entry_type="actual", paid_output_category="extraction",
-        provider_cost=money(Decimal("1"),"USD"), aud_cost=money(Decimal("101")), usage=ProviderUsage(input_tokens=1), recorded_at=NOW,
+
+def test_reservation_partial_actual_and_release_are_not_credits():
+    result = ledger(
+        [entry("reservation", 100), entry("actual", 30), entry("reservation_release", 70)],
+        reserved=0, released=70, actual=30, credits=0, adjustment_debits=0, adjustment_credits=0,
+        net_actual=30, committed=30, remaining=70, breach=False,
     )
-    ledger=CostLedger(
-        record_id="costledger:"+"7"*32, created_at=NOW, producer={"kind":"code","producer_id":"test"}, cohort_id="cohort:"+"1"*32,
-        budget_cap_aud=money(Decimal("100")), entries=(actual,), as_at=NOW, actual_spend_aud=money(Decimal("101")),
-        credits_aud=money(Decimal("0")), net_spend_aud=money(Decimal("101")), breach=True,
+    assert result.net_actual_spend_aud.amount == Decimal("30")
+    assert result.credits_aud.amount == Decimal("0")
+
+
+def test_complete_unused_reservation_release_has_no_actual_spend():
+    result = ledger(
+        [entry("reservation", 100), entry("reservation_release", 100)],
+        reserved=0, released=100, actual=0, credits=0, adjustment_debits=0, adjustment_credits=0,
+        net_actual=0, committed=0, remaining=100, breach=False,
     )
-    assert ledger.breach is True
+    assert result.released_reservations_aud.amount == Decimal("100")
+
+
+def test_credits_and_adjustments_use_explicit_signed_reconciliation():
+    result = ledger(
+        [entry("reservation", 10), entry("actual", 10), entry("credit", 20), entry("adjustment", 5, direction="debit"), entry("adjustment", 3, direction="credit")],
+        reserved=0, released=0, actual=10, credits=20, adjustment_debits=5, adjustment_credits=3,
+        net_actual=-8, committed=-8, remaining=108, breach=False,
+    )
+    assert result.net_actual_spend_aud.amount == Decimal("-8")
+    with pytest.raises(ValidationError):
+        entry("adjustment", 1)
+    with pytest.raises(ValidationError):
+        entry("actual", 1, direction="debit")
+
+
+def test_cost_ledger_breach_and_reservation_reconciliation_are_exact():
+    result = ledger(
+        [entry("reservation", 120)],
+        reserved=120, released=0, actual=0, credits=0, adjustment_debits=0, adjustment_credits=0,
+        net_actual=0, committed=120, remaining=-20, breach=True,
+    )
+    assert result.breach is True
+    with pytest.raises(ValidationError, match="cannot exceed reserved exposure"):
+        ledger(
+            [entry("reservation", 10), entry("actual", 11)],
+            reserved=0, released=0, actual=11, credits=0, adjustment_debits=0, adjustment_credits=0,
+            net_actual=11, committed=11, remaining=89, breach=False,
+        )
+
 
 def test_run_manifest_status_and_times():
     with pytest.raises(ValidationError):
         RunManifest(
-            record_id="run:"+"8"*32, created_at=NOW, producer={"kind":"code","producer_id":"test"}, run_kind="contract_fixture",
-            status="running", configuration_hash="d"*64, completed_at=NOW,
+            record_id="run:" + "8" * 32, created_at=NOW, producer={"kind": "code", "producer_id": "test"}, run_kind="contract_fixture",
+            status="running", configuration_hash="d" * 64, completed_at=NOW,
         )
-    run=RunManifest(
-        record_id="run:"+"9"*32, created_at=NOW, producer={"kind":"code","producer_id":"test"}, run_kind="contract_fixture",
-        status="planned", configuration_hash="d"*64,
+    run = RunManifest(
+        record_id="run:" + "9" * 32, created_at=NOW, producer={"kind": "code", "producer_id": "test"}, run_kind="contract_fixture",
+        status="planned", configuration_hash="d" * 64,
     )
     assert run.status == "planned"

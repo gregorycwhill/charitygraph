@@ -48,7 +48,7 @@ def utc_datetime(value: datetime) -> datetime:
 class StrictModel(BaseModel):
     """Base configuration shared by every persisted PR2 model."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, validate_assignment=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, validate_assignment=True, populate_by_name=True, serialize_by_alias=True)
 
 
 class VersionedPolicy(StrictModel):
@@ -98,7 +98,7 @@ class ProducerRef(StrictModel):
 class ArtifactRef(StrictModel):
     artifact_id: str
     content_hash: Sha256
-    schema: SchemaRef
+    schema_ref: SchemaRef = Field(validation_alias="schema", serialization_alias="schema")
 
     _artifact_id = field_validator("artifact_id")(lambda value: require_nonblank(value, "artifact_id"))
 
@@ -118,7 +118,7 @@ class ArtifactRecord(StrictModel):
     """Common immutable envelope; domain payloads remain typed subclasses."""
 
     record_id: str
-    schema: SchemaRef
+    schema_ref: SchemaRef = Field(validation_alias="schema", serialization_alias="schema")
     created_at: datetime
     producer: ProducerRef
     about_subject_ids: tuple[str, ...] = ()

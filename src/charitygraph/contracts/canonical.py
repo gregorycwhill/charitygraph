@@ -50,7 +50,7 @@ def _canonical(value: object, *, excluded: set[str], root: bool = False) -> Json
     if isinstance(value, Path):
         raise TypeError("paths cannot be canonicalised")
     if isinstance(value, BaseModel):
-        value = value.model_dump(mode="python")
+        value = value.model_dump(mode="python", by_alias=True)
     if isinstance(value, dict):
         normalised: dict[str, JsonValue] = {}
         for key, item in value.items():

@@ -52,7 +52,7 @@ class ExternalIdentifier(StrictModel):
 
 class SubjectRecord(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("subject-record"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("subject-record"), validation_alias="schema", serialization_alias="schema")
     subject_id: str
     subject_kind: Literal[
         "unknown", "organisation", "organisation_group", "legal_entity", "fund",
@@ -106,7 +106,7 @@ class SubjectRecord(ArtifactRecord):
 
 class SourceRecord(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("source-record"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("source-record"), validation_alias="schema", serialization_alias="schema")
     source_family: str
     source_role: str
     source_version: str | None = None
@@ -148,7 +148,7 @@ class SourceRecord(ArtifactRecord):
 
 class EvidenceFragment(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("evidence-fragment"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("evidence-fragment"), validation_alias="schema", serialization_alias="schema")
     source_record: ArtifactRef
     fragment_kind: Literal["text", "table_cell", "table_region", "visual_region", "structured_field"]
     locator: str
@@ -206,7 +206,7 @@ PayloadT = TypeVar("PayloadT", bound=BaseModel)
 
 class CandidateObservation(ArtifactRecord, Generic[PayloadT]):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("candidate-observation"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("candidate-observation"), validation_alias="schema", serialization_alias="schema")
     subject_id: str | None = None
     identity_state: Literal["resolved", "ambiguous", "unresolved"]
     scope_id: str | None = None
@@ -244,8 +244,8 @@ class CandidateObservation(ArtifactRecord, Generic[PayloadT]):
     def _identity_and_fingerprint(self) -> "CandidateObservation[PayloadT]":
         if self.identity_state == "resolved" and self.subject_id is None:
             raise ValueError("resolved candidates require subject_id")
-        if self.identity_state == "unresolved" and self.subject_id is not None:
-            raise ValueError("unresolved candidates cannot carry subject_id")
+        if self.identity_state in {"ambiguous", "unresolved"} and self.subject_id is not None:
+            raise ValueError("ambiguous or unresolved candidates cannot carry a governed subject_id")
         fingerprint = canonical_sha256({
             "subject_id": self.subject_id, "scope_id": self.scope_id, "identity_state": self.identity_state,
             "domain": self.domain, "payload_schema": self.payload_schema,
@@ -297,7 +297,7 @@ DecisionAuthority = Annotated[Union[HumanAuthority, AutomationAuthority], Field(
 
 class DecisionRecord(ArtifactRecord):
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("decision-record"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("decision-record"), validation_alias="schema", serialization_alias="schema")
     candidate_id: str
     disposition: Literal["accepted", "edited", "rejected", "insufficient", "identity_blocked", "scope_blocked", "held"]
     authority: DecisionAuthority
@@ -343,8 +343,10 @@ class DecisionRecord(ArtifactRecord):
 
 
 class CanonicalObservation(ArtifactRecord, Generic[PayloadT]):
+    """An immutable promoted proposition; effective state is derived from later edges/events."""
+
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("canonical-observation"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("canonical-observation"), validation_alias="schema", serialization_alias="schema")
     subject_id: str
     scope_id: str | None = None
     domain: str
@@ -359,7 +361,6 @@ class CanonicalObservation(ArtifactRecord, Generic[PayloadT]):
     confidence: str | None = None
     qualifications: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
-    status: Literal["current", "superseded", "retracted"] = "current"
     supersedes_observation_id: str | None = None
 
     @field_validator("record_id")
@@ -395,27 +396,39 @@ class CanonicalObservation(ArtifactRecord, Generic[PayloadT]):
         return value
 
     @model_validator(mode="after")
-    def _producer_and_status(self) -> "CanonicalObservation[PayloadT]":
+    def _producer_and_append_only_lineage(self) -> "CanonicalObservation[PayloadT]":
         if self.producer.kind == "model":
             raise ValueError("model output cannot directly create a canonical observation")
-        if self.status == "superseded" and self.supersedes_observation_id is None:
-            raise ValueError("superseded observations require supersedes_observation_id")
         if self.supersedes_observation_id is not None:
             _prefix(self.supersedes_observation_id, "observation:", "supersedes_observation_id")
+            directed = [
+                edge for edge in self.lineage
+                if edge.edge_type == "supersedes"
+                and edge.source_artifact_id == self.record_id
+                and edge.target_artifact_id == self.supersedes_observation_id
+            ]
+            reversed_edges = [
+                edge for edge in self.lineage
+                if edge.edge_type == "supersedes"
+                and edge.source_artifact_id == self.supersedes_observation_id
+                and edge.target_artifact_id == self.record_id
+            ]
+            if len(directed) != 1 or reversed_edges:
+                raise ValueError("a replacement observation requires one directed supersedes edge")
         return self
 
 
 class DerivativeArtifact(ArtifactRecord, Generic[PayloadT]):
+    """Immutable derivative; later invalidation/supersession events are deferred to the state-event contract."""
+
     record_id: str
-    schema: SchemaRef = Field(default_factory=lambda: _schema("derivative-artifact"))
+    schema_ref: SchemaRef = Field(default_factory=lambda: _schema("derivative-artifact"), validation_alias="schema", serialization_alias="schema")
     derivative_type: Literal["summary", "classification", "embedding", "similarity", "analytic_projection", "other"]
     payload_schema: SchemaRef
     payload: PayloadT
     input_observation_ids: tuple[str, ...]
     generation_policy_id: str
     model_result_ids: tuple[str, ...] = ()
-    status: Literal["current", "invalidated", "superseded"] = "current"
-    invalidated_by_ids: tuple[str, ...] = ()
     release_safe: bool = False
 
     @field_validator("record_id")
@@ -437,43 +450,82 @@ class DerivativeArtifact(ArtifactRecord, Generic[PayloadT]):
             _prefix(item, "observation:", "input_observation_id")
         return value
 
-    @model_validator(mode="after")
-    def _invalidations(self) -> "DerivativeArtifact[PayloadT]":
-        if self.status == "invalidated" and not self.invalidated_by_ids:
-            raise ValueError("invalidated derivatives require invalidating artefact IDs")
-        return self
+
+def _assert_promoted_proposition(candidate: CandidateObservation[PayloadT], observation: CanonicalObservation[PayloadT]) -> None:
+    """Require a promoted observation to reproduce the governed candidate proposition exactly."""
+
+    comparisons = (
+        ("subject", candidate.subject_id, observation.subject_id),
+        ("scope", candidate.scope_id, observation.scope_id),
+        ("domain", candidate.domain, observation.domain),
+        ("payload schema", candidate.payload_schema, observation.payload_schema),
+        ("payload", canonical_sha256(candidate.payload), canonical_sha256(observation.payload)),
+        ("evidence", candidate.evidence, observation.evidence),
+        ("claim basis", candidate.claim_basis_proposed, observation.claim_basis),
+        ("extraction method", candidate.extraction_method, observation.extraction_method),
+        ("observation time", candidate.observation_time, observation.observation_time),
+        ("confidence", candidate.confidence_proposed, observation.confidence),
+        ("warnings", candidate.warnings, observation.warnings),
+    )
+    for label, candidate_value, observation_value in comparisons:
+        if candidate_value != observation_value:
+            raise ValueError(f"canonical observation does not reproduce accepted {label}")
+    if observation.qualifications:
+        raise ValueError("canonical observation cannot introduce qualifications absent from the governed candidate")
+
+
+def _require_directed_edge(
+    edges: tuple[LineageEdge, ...],
+    *,
+    edge_type: Literal["reviewed_by", "promoted_as"],
+    source_id: str,
+    target_id: str,
+) -> None:
+    directed = [
+        edge for edge in edges
+        if edge.edge_type == edge_type and edge.source_artifact_id == source_id and edge.target_artifact_id == target_id
+    ]
+    reversed_edges = [
+        edge for edge in edges
+        if edge.edge_type == edge_type and edge.source_artifact_id == target_id and edge.target_artifact_id == source_id
+    ]
+    if len(directed) != 1 or reversed_edges:
+        raise ValueError(f"promotion requires exactly one directed {edge_type} lineage edge")
 
 
 def validate_promotion_chain(
     candidate: CandidateObservation[PayloadT],
     decision: DecisionRecord,
     observation: CanonicalObservation[PayloadT],
+    replacement_candidate: CandidateObservation[PayloadT] | None = None,
 ) -> None:
-    """Purely validate candidate -> decision -> canonical observation continuity."""
+    """Validate an accepted or explicitly edited candidate-to-canonical promotion chain."""
 
     if decision.candidate_id != candidate.record_id:
-        raise ValueError("decision does not reference candidate")
-    if observation.candidate_id != candidate.record_id or observation.decision_id != decision.record_id:
-        raise ValueError("canonical observation does not reference promotion chain")
-    if decision.disposition not in {"accepted", "edited"}:
+        raise ValueError("decision does not reference the original candidate")
+    if decision.disposition == "accepted":
+        if replacement_candidate is not None:
+            raise ValueError("accepted decisions cannot supply a replacement candidate")
+        promoted_candidate = candidate
+    elif decision.disposition == "edited":
+        if replacement_candidate is None:
+            raise ValueError("edited decisions require the supplied replacement candidate")
+        if decision.replacement_candidate_id != replacement_candidate.record_id:
+            raise ValueError("edited decision does not reference the supplied replacement candidate")
+        if candidate.subject_id != replacement_candidate.subject_id or candidate.scope_id != replacement_candidate.scope_id:
+            raise ValueError("edited replacement candidates must retain the original governed subject and scope")
+        promoted_candidate = replacement_candidate
+    else:
         raise ValueError("only accepted or edited candidates may become canonical")
-    if candidate.identity_state != "resolved" or candidate.subject_id != observation.subject_id:
+
+    if promoted_candidate.identity_state != "resolved" or promoted_candidate.subject_id != observation.subject_id:
         raise ValueError("promotion requires a resolved candidate with matching subject")
-    if candidate.payload_schema != observation.payload_schema:
-        raise ValueError("candidate and canonical payload schemas differ")
-    candidate_evidence = {item.artifact_id for item in candidate.evidence}
-    observation_evidence = {item.artifact_id for item in observation.evidence}
-    if not candidate_evidence.issubset(observation_evidence):
-        raise ValueError("promotion loses candidate evidence")
-    reviewed = any(
-        edge.edge_type == "reviewed_by" and {edge.source_artifact_id, edge.target_artifact_id}
-        == {candidate.record_id, decision.record_id}
-        for edge in decision.lineage
+    if observation.candidate_id != promoted_candidate.record_id or observation.decision_id != decision.record_id:
+        raise ValueError("canonical observation does not reference the promoted candidate and decision")
+    _assert_promoted_proposition(promoted_candidate, observation)
+    _require_directed_edge(
+        decision.lineage, edge_type="reviewed_by", source_id=candidate.record_id, target_id=decision.record_id,
     )
-    promoted = any(
-        edge.edge_type == "promoted_as" and {edge.source_artifact_id, edge.target_artifact_id}
-        == {candidate.record_id, observation.record_id}
-        for edge in observation.lineage
+    _require_directed_edge(
+        observation.lineage, edge_type="promoted_as", source_id=promoted_candidate.record_id, target_id=observation.record_id,
     )
-    if not reviewed or not promoted:
-        raise ValueError("promotion requires reviewed_by and promoted_as lineage edges")
