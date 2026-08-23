@@ -48,11 +48,6 @@ def _financial_reports(card: dict, source_records: dict[str,dict]) -> tuple[list
         reports.append({"financial_report_id":financial["financial_record_id"],"source_record_id":source_id,"evidence_ids":evidence_ids,"reporting_period":period,"reporting_scope":financial.get("reporting_scope","unknown"),"consolidated":None if consolidated in {None,"unknown"} else consolidated == "true","statements":statements,"structured_observations":structured,"functional_expense_allocations":allocations})
     return reports,metrics,unbound
 
-def _release_payload(context: ReleaseContext) -> dict:
-    payload = context.model_dump(exclude={"capability_registry", "publication_identity"})
-    if context.publication_identity is not None:
-        payload["publication_identity"] = context.publication_identity.model_dump()
-    return payload
 def adapt_rc4_fixture(rc4: dict, template: dict, context: ReleaseContext) -> dict:
     """Map governed RC4 statement structure into a supplied 0.5 card shape.
 
@@ -61,7 +56,7 @@ def adapt_rc4_fixture(rc4: dict, template: dict, context: ReleaseContext) -> dic
     """
     card = deepcopy(template)
     card.pop("source_statement_fixture", None)
-    card["release"] = _release_payload(context)
+    card["release"] = context.model_dump()
     record = next((x for x in rc4.get("financial_records", []) if x.get("statements")), None)
     if record:
         source_id = card["financial_reports"][0]["source_record_id"]
@@ -153,6 +148,6 @@ def adapt_rc4_card(rc4_card: dict, source_records: dict[str, dict], capability_r
         derivative_id=f"der:rc4:{rc4_card['causebase_id']}:summary"
         summary={"derivative_id":derivative_id,"text":rc4_card["causebase_summary"]}
         derivatives=[{"derivative_id":derivative_id,"kind":"summary","input_observation_ids":[],"evidence_ids":rc4_card.get("summary_evidence_ids",[]),"generated_under":{"output_contract_version":summary_assessment.get("assessment_method","rc4 historical output"),"input_hash":summary_assessment["input_hash"],"generated_at":summary_assessment["generated_at"]},"current_assessment":{"assessed_at":summary_assessment["last_assessed_at"],"assessed_against_contract":"0.5","governing_input_hash":summary_assessment["input_hash"],"disposition":summary_assessment["disposition"],"reason":summary_assessment.get("reason")}}]
-    card={"causebase_id":rc4_card["causebase_id"],"contract_version":"0.5","subject_kind":rc4_card["subject_kind"],"identity":identity,"release":_release_payload(release_context),"source_record_refs":source_refs,"source_bindings":[{"source_record_id":x["source_record_id"],"resolution_status":x["resolution_status"],"resolution_basis":x.get("resolution_basis"),"confidence":x["confidence"],"review_status":x["review_status"],"conflicting_signals":x.get("conflicting_signals",[])} for x in rc4_card.get("source_resolutions",[])],"evidence":evidence,"summary":summary,"activities":activities,"beneficiaries":beneficiaries,"descriptive_geography":geography,"navigation_geography":rc4_card.get("navigation_geography",[]),"funding_sources":[],"fundraising_methods":[],"participation":participation,"opportunities":[],"programs":programs,"relationships":[],"classifications":classifications,"coverage":{"registry_id":capability_registry.registry_id,"current":coverage},"financial_reports":reports,"canonical_metrics":canonical_metrics,"analytic_projections":[],"derivatives":derivatives}
+    card={"causebase_id":rc4_card["causebase_id"],"contract_version":"0.5","subject_kind":rc4_card["subject_kind"],"identity":identity,"release":release_context.model_dump(),"source_record_refs":source_refs,"source_bindings":[{"source_record_id":x["source_record_id"],"resolution_status":x["resolution_status"],"resolution_basis":x.get("resolution_basis"),"confidence":x["confidence"],"review_status":x["review_status"],"conflicting_signals":x.get("conflicting_signals",[])} for x in rc4_card.get("source_resolutions",[])],"evidence":evidence,"summary":summary,"activities":activities,"beneficiaries":beneficiaries,"descriptive_geography":geography,"navigation_geography":rc4_card.get("navigation_geography",[]),"funding_sources":[],"fundraising_methods":[],"participation":participation,"opportunities":[],"programs":programs,"relationships":[],"classifications":classifications,"coverage":{"registry_id":capability_registry.registry_id,"current":coverage},"financial_reports":reports,"canonical_metrics":canonical_metrics,"analytic_projections":[],"derivatives":derivatives}
     if legacy: card["legacy_unbound"]=legacy
     return card

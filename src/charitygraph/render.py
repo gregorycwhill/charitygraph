@@ -184,7 +184,6 @@ def render_publication(
     agent_guide: str | None = None,
     source_inventory: dict | None = None,
     release_history: dict | None = None,
-    publication_identity: dict | None = None,
 ) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
     cards_dir = output_dir / "cards"
@@ -195,11 +194,7 @@ def render_publication(
     source_records_dir.mkdir(exist_ok=True)
 
     json_rows = [_jsonable(c) for c in cards]
-
     json_payload = {"entities": json_rows}
-    if publication_identity is not None:
-        json_payload["publication_identity"] = publication_identity
-        (output_dir / "publication-identity.json").write_text(json.dumps(publication_identity, indent=2, ensure_ascii=False), encoding="utf-8")
     (output_dir / "charitygraph.json").write_text(
         json.dumps(json_payload, indent=2, ensure_ascii=False),
         encoding="utf-8",
@@ -351,8 +346,6 @@ def render_publication(
         "validation": {"status": "pending"},
         "artefacts": artefacts,
     }
-    if publication_identity is not None:
-        manifest["publication_identity"] = publication_identity
     (output_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2), encoding="utf-8"
     )
