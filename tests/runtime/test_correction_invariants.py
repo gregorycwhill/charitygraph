@@ -46,9 +46,9 @@ def test_cost_entry_reservation_scope_is_exact(tmp_path):
     other_run = {**BASE_RUN, "record_id": "run:13131313131313131313131313131313", "cohort_id": other_cohort["record_id"]}
     catalog.register_cohort(other_cohort)
     catalog.register_run(other_run)
-    with pytest.raises(ConflictError, match="cohort_id and run_id"):
+    with pytest.raises(ConflictError, match="cohort_id"):
         catalog.record_cost_entry({**entry("cross-cohort", "actual", 1, RES_A), "cohort_id": other_cohort["record_id"]}, entry_key="cross-cohort")
-    with pytest.raises(ConflictError, match="cohort_id and run_id"):
+    with pytest.raises(ConflictError, match="cohort_id"):
         catalog.record_cost_entry({**entry("cross-run", "actual", 1, RES_A), "run_id": other_run["record_id"]}, entry_key="cross-run")
 
 
@@ -127,3 +127,69 @@ def test_foreign_keys_and_integrity_check(tmp_path):
     assert catalog.integrity_check() == "ok"
     with sqlite3.connect(tmp_path / "state.sqlite3") as conn:
         assert conn.execute("PRAGMA foreign_key_check").fetchall() == []
+
+
+def test_stale_attempt_completion_is_rejected_without_mutation(tmp_path):
+    catalog = task_opened(tmp_path)
+    first_expiry = NOW + timedelta(minutes=5)
+    catalog.claim_task(TASK["record_id"], owner="worker", lease_expires_at=first_expiry, now=NOW)
+    first = catalog.begin_task_attempt(TASK["record_id"], owner="worker", task_run_id="taskrun:12121212121212121212121212121212", now=NOW)
+    catalog.finish_failed_attempt(first["task_run_id"], owner="worker", completed_at=NOW + timedelta(seconds=1), retryable=True, error_class="retry", error_message_redacted="retry")
+    second_now = NOW + timedelta(seconds=2)
+    catalog.claim_task(TASK["record_id"], owner="worker", lease_expires_at=second_now + timedelta(minutes=5), now=second_now)
+    second = catalog.begin_task_attempt(TASK["record_id"], owner="worker", task_run_id="taskrun:13131313131313131313131313131313", now=second_now)
+    with pytest.raises(InvalidTransitionError):
+        catalog.finish_successful_attempt(first["task_run_id"], owner="worker", completed_at=NOW + timedelta(seconds=3), result_artifact_id="artifact:stale")
+    assert catalog.get_task(TASK["record_id"])["status"] == "running"
+    with sqlite3.connect(tmp_path / "state.sqlite3") as conn:
+        rows = conn.execute("SELECT task_run_id, status FROM task_attempts WHERE model_task_id=? ORDER BY attempt_number", (TASK["record_id"],)).fetchall()
+    assert rows == [(first["task_run_id"], "failed_retryable"), (second["task_run_id"], "running")]
+
+
+def test_relational_cohort_run_and_task_scope_is_enforced(tmp_path):
+    catalog = opened(tmp_path)
+    other_cohort = {**BASE_COHORT, "record_id": "cohort:14141414141414141414141414141414"}
+    other_run = {**BASE_RUN, "record_id": "run:15151515151515151515151515151515", "cohort_id": other_cohort["record_id"]}
+    catalog.register_cohort(other_cohort)
+    catalog.register_run(other_run)
+    with pytest.raises(ConflictError):
+        catalog.reserve_cost({**reservation("reservation:16161616161616161616161616161616", 10), "run_id": other_run["record_id"]}, now=NOW)
+    with pytest.raises(ConflictError):
+        catalog.register_task({**TASK, "record_id": "modeltask:17171717171717171717171717171717", "cohort_id": other_cohort["record_id"]}, run_id=BASE_RUN["record_id"], now=NOW)
+    other_task = {**TASK, "record_id": "modeltask:18181818181818181818181818181818", "cohort_id": other_cohort["record_id"]}
+    catalog.register_task(other_task, run_id=other_run["record_id"], now=NOW)
+    with pytest.raises(ConflictError):
+        catalog.reserve_cost({**reservation("reservation:19191919191919191919191919191919", 10), "model_task_ids": (other_task["record_id"],)}, now=NOW)
+    with pytest.raises(ConflictError):
+        catalog.record_cost_entry({**entry("wrong-run", "actual", 1, "reservation:20202020202020202020202020202020"), "run_id": other_run["record_id"]}, entry_key="wrong-run")
+
+
+def test_attempt_reservation_must_match_run_and_task_association(tmp_path):
+    catalog = opened(tmp_path)
+    task_two = {**TASK, "record_id": "modeltask:21212121212121212121212121212121", "cohort_id": COHORT_ID}
+    catalog.register_task(task_two, run_id=BASE_RUN["record_id"], now=NOW)
+    task_associated = {**TASK, "record_id": "modeltask:26262626262626262626262626262626", "cohort_id": COHORT_ID}
+    catalog.register_task(task_associated, run_id=BASE_RUN["record_id"], now=NOW)
+    associated = "reservation:22222222222222222222222222222222"
+    unassociated = "reservation:23232323232323232323232323232323"
+    catalog.reserve_cost({**reservation(associated, 10), "model_task_ids": (task_associated["record_id"],)}, now=NOW)
+    catalog.reserve_cost({**reservation(unassociated, 10), "model_task_ids": ()}, now=NOW)
+    catalog.claim_task(task_two["record_id"], owner="worker", lease_expires_at=NOW + timedelta(minutes=5), now=NOW)
+    with pytest.raises(ConflictError):
+        catalog.begin_task_attempt(task_two["record_id"], owner="worker", task_run_id="taskrun:24242424242424242424242424242424", now=NOW, reservation_id=associated)
+    with pytest.raises(ConflictError):
+        catalog.begin_task_attempt(task_two["record_id"], owner="worker", task_run_id="taskrun:25252525252525252525252525252525", now=NOW, reservation_id=unassociated)
+
+
+def test_actual_after_release_is_rejected_atomically_and_position_remains_valid(tmp_path):
+    catalog = opened(tmp_path, cap="200")
+    catalog.reserve_cost(reservation(RES_A, 100), now=NOW)
+    catalog.record_cost_entry(entry("partial-before-release", "actual", 30, RES_A), entry_key="partial-before-release")
+    catalog.release_reservation(RES_A, 70, now=NOW, entry_key="release-before-actual")
+    with pytest.raises(ConflictError, match="prior reservation release"):
+        catalog.record_cost_entry(entry("incompatible-after-release", "actual", 1, RES_A), entry_key="incompatible-after-release")
+    position = catalog.budget_position(COHORT_ID)
+    assert position.actual_spend_aud == 30
+    assert position.released_reserve_aud == 70
+    with sqlite3.connect(tmp_path / "state.sqlite3") as conn:
+        assert conn.execute("SELECT COUNT(*) FROM cost_entries WHERE entry_key=?", ("incompatible-after-release",)).fetchone()[0] == 0

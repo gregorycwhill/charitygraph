@@ -355,6 +355,12 @@ class SQLiteCatalog:
             None, None, None, None, None, None, timestamp, timestamp, material_hash,
         )
         with self._connection(immediate=True) as conn:
+            run = conn.execute("SELECT run_id, cohort_id FROM runs WHERE run_id=?", (resolved_run_id,)).fetchone()
+            if run is None:
+                raise CatalogError(f"unknown run {resolved_run_id}")
+            task_cohort_id = _get(task, "cohort_id")
+            if task_cohort_id is not None and run["cohort_id"] != task_cohort_id:
+                raise ConflictError("task cohort_id must match its run cohort_id")
             existing = conn.execute("SELECT * FROM tasks WHERE model_task_id = ?", (task_id,)).fetchone()
             if existing:
                 if existing["material_hash"] != material_hash:
@@ -427,6 +433,15 @@ class SQLiteCatalog:
             row = self._lease_row(conn, model_task_id, owner, now_s)
             if row["status"] != "leased":
                 raise InvalidTransitionError("only leased tasks can begin an attempt")
+            if reservation_id is not None:
+                reservation = conn.execute("SELECT reservation_id, run_id, cohort_id FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
+                if reservation is None:
+                    raise ConflictError("attempt reservation does not exist")
+                if reservation["run_id"] != row["run_id"]:
+                    raise ConflictError("attempt reservation must belong to the task run")
+                associated = conn.execute("SELECT 1 FROM reservation_tasks WHERE reservation_id=? AND model_task_id=?", (reservation_id, model_task_id)).fetchone()
+                if associated is None:
+                    raise ConflictError("attempt reservation is not associated with the task")
             attempt = int(row["attempt_count"]) + 1
             conn.execute("INSERT INTO task_attempts(task_run_id, model_task_id, attempt_number, status, provider_request_id, provider_batch_id, submitted_at, started_at, reservation_id) VALUES (?, ?, ?, 'running', ?, ?, ?, ?, ?)", (task_run_id, model_task_id, attempt, provider_request_id, provider_batch_id, now_s, now_s, reservation_id))
             conn.execute("UPDATE tasks SET status='running', attempt_count=?, updated_at=? WHERE model_task_id=?", (attempt, now_s, model_task_id))
@@ -439,6 +454,11 @@ class SQLiteCatalog:
             attempt = conn.execute("SELECT * FROM task_attempts WHERE task_run_id = ?", (task_run_id,)).fetchone()
             if attempt is None:
                 raise CatalogError(f"unknown task attempt {task_run_id}")
+            if attempt["status"] != "running":
+                raise InvalidTransitionError("only running attempts can finish")
+            running = conn.execute("SELECT task_run_id FROM task_attempts WHERE model_task_id=? AND status='running'", (attempt["model_task_id"],)).fetchall()
+            if len(running) != 1 or running[0]["task_run_id"] != task_run_id:
+                raise InvalidTransitionError("attempt is not the task's sole current running attempt")
             task = self._lease_row(conn, attempt["model_task_id"], owner, completed_s)
             if task["status"] != "running":
                 raise InvalidTransitionError("only running tasks can finish an attempt")
@@ -585,6 +605,19 @@ class SQLiteCatalog:
         expires = _get(reservation, "expires_at")
         material_hash = _canonical_hash(reservation)
         with self._connection(immediate=True) as conn:
+            run = conn.execute("SELECT run_id, cohort_id FROM runs WHERE run_id=?", (run_id,)).fetchone()
+            if run is None:
+                raise CatalogError(f"unknown run {run_id}")
+            if run["cohort_id"] != cohort_id:
+                raise ConflictError("reservation cohort_id must match its run cohort_id")
+            for task_id in (_get(reservation, "model_task_ids", default=()) or ()):
+                task = conn.execute("SELECT run_id, cohort_id FROM tasks WHERE model_task_id=?", (task_id,)).fetchone()
+                if task is None:
+                    raise CatalogError(f"unknown reservation task {task_id}")
+                if task["run_id"] != run_id:
+                    raise ConflictError("reservation task must belong to its run")
+                if task["cohort_id"] is not None and task["cohort_id"] != cohort_id:
+                    raise ConflictError("reservation task cohort_id must match its reservation cohort_id")
             existing = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (rid,)).fetchone()
             if existing:
                 if existing["material_hash"] != material_hash:
@@ -651,6 +684,9 @@ class SQLiteCatalog:
         entry_type = _text(normalized.get("entry_type"), "entry_type")
         amount = _money_amount(normalized.get("aud_cost"), "aud_cost")
         with self._connection(immediate=True) as conn:
+            run = conn.execute("SELECT run_id, cohort_id FROM runs WHERE run_id=?", (normalized.get("run_id"),)).fetchone()
+            if run is None or run["cohort_id"] != cohort_id:
+                raise ConflictError("cost entry run must belong to its cohort_id")
             existing = conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (entry_key,)).fetchone()
             if existing:
                 if existing["entry_hash"] != material_hash:
@@ -659,6 +695,13 @@ class SQLiteCatalog:
             reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
             if reservation is not None and (reservation["cohort_id"] != cohort_id or reservation["run_id"] != normalized.get("run_id")):
                 raise ConflictError("cost entry cohort_id and run_id must match its reservation")
+            if entry_type == "actual" and reservation is not None:
+                existing_actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
+                released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+                projected_actual = existing_actual + amount
+                unused_after_actual = Decimal(reservation["reserved_aud"]) - min(projected_actual, Decimal(reservation["reserved_aud"])) - released
+                if unused_after_actual < 0:
+                    raise ConflictError("actual charge would invalidate prior reservation release")
             if entry_type == "reservation_release":
                 if reservation is None:
                     raise ConflictError("reservation release requires a matching reservation")

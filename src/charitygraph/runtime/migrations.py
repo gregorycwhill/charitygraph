@@ -72,6 +72,9 @@ CREATE TABLE task_attempts (
     error_message_redacted TEXT,
     UNIQUE(model_task_id, attempt_number)
 );
+CREATE UNIQUE INDEX task_attempts_one_running_idx
+    ON task_attempts(model_task_id)
+    WHERE status='running';
 CREATE TABLE operation_receipts (
     operation_key TEXT PRIMARY KEY,
     operation_type TEXT NOT NULL,
