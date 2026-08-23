@@ -28,3 +28,9 @@ Thumbs.db
 *.pdf
 *.html.gz
 *.warc
+
+# SQLite operational state (rebuildable, never committed).
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
