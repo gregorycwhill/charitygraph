@@ -66,7 +66,7 @@ def test_edited_promotion_requires_the_explicit_replacement_candidate():
         validate_promotion_chain(original, different_decision, observation(different_subject, different_decision), different_subject)
 
 
-def test_promotion_lineage_is_directed():
+def test_promotion_lineage_is_directed_and_exactly_corresponds_to_fields():
     cand = candidate()
     reversed_decision = decision(cand, lineage=(LineageEdge(edge_type="reviewed_by", source_artifact_id="decision:" + "6" * 32, target_artifact_id=cand.record_id),))
     with pytest.raises(ValueError, match="reviewed_by"):
@@ -75,6 +75,18 @@ def test_promotion_lineage_is_directed():
     reversed_observation = observation(cand, dec, lineage=(LineageEdge(edge_type="promoted_as", source_artifact_id="observation:" + "7" * 32, target_artifact_id=cand.record_id),))
     with pytest.raises(ValueError, match="promoted_as"):
         validate_promotion_chain(cand, dec, reversed_observation)
+    extra_review = decision(cand, lineage=(
+        LineageEdge(edge_type="reviewed_by", source_artifact_id=cand.record_id, target_artifact_id="decision:" + "6" * 32),
+        LineageEdge(edge_type="reviewed_by", source_artifact_id="candidate:" + "8" * 32, target_artifact_id="decision:" + "6" * 32),
+    ))
+    with pytest.raises(ValueError, match="exactly one reviewed_by"):
+        validate_promotion_chain(cand, extra_review, observation(cand, extra_review))
+    duplicate_promoted = observation(cand, dec, lineage=(
+        LineageEdge(edge_type="promoted_as", source_artifact_id=cand.record_id, target_artifact_id="observation:" + "7" * 32),
+        LineageEdge(edge_type="promoted_as", source_artifact_id=cand.record_id, target_artifact_id="observation:" + "7" * 32),
+    ))
+    with pytest.raises(ValueError, match="exactly one promoted_as"):
+        validate_promotion_chain(cand, dec, duplicate_promoted)
 
 
 def test_append_only_observation_and_derivative_lifecycle_contracts():
@@ -86,7 +98,18 @@ def test_append_only_observation_and_derivative_lifecycle_contracts():
         LineageEdge(edge_type="supersedes", source_artifact_id="observation:" + "7" * 32, target_artifact_id=prior_id),
     ))
     assert replacement.supersedes_observation_id == prior_id
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError, match="supersedes edges require"):
+        observation(cand, dec, lineage=(
+            LineageEdge(edge_type="promoted_as", source_artifact_id=cand.record_id, target_artifact_id="observation:" + "7" * 32),
+            LineageEdge(edge_type="supersedes", source_artifact_id="observation:" + "7" * 32, target_artifact_id=prior_id),
+        ))
+    with pytest.raises(ValidationError, match="exactly one supersedes"):
+        observation(cand, dec, supersedes_observation_id=prior_id, lineage=(
+            LineageEdge(edge_type="promoted_as", source_artifact_id=cand.record_id, target_artifact_id="observation:" + "7" * 32),
+            LineageEdge(edge_type="supersedes", source_artifact_id="observation:" + "7" * 32, target_artifact_id=prior_id),
+            LineageEdge(edge_type="supersedes", source_artifact_id="observation:" + "7" * 32, target_artifact_id="observation:" + "9" * 32),
+        ))
+    with pytest.raises(ValidationError, match="supersedes edge must run"):
         observation(cand, dec, supersedes_observation_id=prior_id, lineage=(
             LineageEdge(edge_type="promoted_as", source_artifact_id=cand.record_id, target_artifact_id="observation:" + "7" * 32),
             LineageEdge(edge_type="supersedes", source_artifact_id=prior_id, target_artifact_id="observation:" + "7" * 32),

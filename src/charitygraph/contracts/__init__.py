@@ -7,7 +7,7 @@ from .common import (
 )
 from .economics import (
     BudgetCohort, CostLedger, CostLedgerEntry, CostReservation, FxRateSnapshot, Money, SignedMoney,
-    PriceRate, PricingSnapshot, RunManifest,
+    PriceRate, PricingSnapshot, ReservationReconciliation, RunManifest,
 )
 from .ids import deterministic_id, new_opaque_id, validate_typed_id
 from .knowledge import (
@@ -27,7 +27,7 @@ __all__ = [
     "EmbeddingResult", "EvidenceFragment", "EvidenceInput", "ExternalIdentifier", "FxRateSnapshot",
     "HumanAuthority", "IdPrefix", "JsonValue", "LineageEdge", "ModelResult", "ModelTask", "ModelTaskType",
     "Money", "NamedUsage", "SignedMoney", "ObservationTime", "PaidOutputCategory", "PriceRate", "PricingSnapshot",
-    "ProducerRef", "ProviderUsage", "RunManifest", "SchemaRef", "Sha256", "SourceRecord", "StrictModel",
+    "ProducerRef", "ProviderUsage", "ReservationReconciliation", "RunManifest", "SchemaRef", "Sha256", "SourceRecord", "StrictModel",
     "SubjectRecord", "TaskRun", "VersionedPolicy", "VersionedTool", "canonical_data", "canonical_json_bytes",
     "canonical_sha256", "deterministic_id", "model_task_cache_key", "new_opaque_id", "seal_record",
     "validate_promotion_chain", "validate_task_run_tasks", "validate_typed_id", "verify_record_hash",

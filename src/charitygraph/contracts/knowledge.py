@@ -399,22 +399,17 @@ class CanonicalObservation(ArtifactRecord, Generic[PayloadT]):
     def _producer_and_append_only_lineage(self) -> "CanonicalObservation[PayloadT]":
         if self.producer.kind == "model":
             raise ValueError("model output cannot directly create a canonical observation")
-        if self.supersedes_observation_id is not None:
+        supersedes_edges = [edge for edge in self.lineage if edge.edge_type == "supersedes"]
+        if self.supersedes_observation_id is None:
+            if supersedes_edges:
+                raise ValueError("supersedes edges require supersedes_observation_id")
+        else:
             _prefix(self.supersedes_observation_id, "observation:", "supersedes_observation_id")
-            directed = [
-                edge for edge in self.lineage
-                if edge.edge_type == "supersedes"
-                and edge.source_artifact_id == self.record_id
-                and edge.target_artifact_id == self.supersedes_observation_id
-            ]
-            reversed_edges = [
-                edge for edge in self.lineage
-                if edge.edge_type == "supersedes"
-                and edge.source_artifact_id == self.supersedes_observation_id
-                and edge.target_artifact_id == self.record_id
-            ]
-            if len(directed) != 1 or reversed_edges:
-                raise ValueError("a replacement observation requires one directed supersedes edge")
+            if len(supersedes_edges) != 1:
+                raise ValueError("a replacement observation requires exactly one supersedes edge")
+            edge = supersedes_edges[0]
+            if edge.source_artifact_id != self.record_id or edge.target_artifact_id != self.supersedes_observation_id:
+                raise ValueError("supersedes edge must run from the new observation to supersedes_observation_id")
         return self
 
 
@@ -481,16 +476,12 @@ def _require_directed_edge(
     source_id: str,
     target_id: str,
 ) -> None:
-    directed = [
-        edge for edge in edges
-        if edge.edge_type == edge_type and edge.source_artifact_id == source_id and edge.target_artifact_id == target_id
-    ]
-    reversed_edges = [
-        edge for edge in edges
-        if edge.edge_type == edge_type and edge.source_artifact_id == target_id and edge.target_artifact_id == source_id
-    ]
-    if len(directed) != 1 or reversed_edges:
-        raise ValueError(f"promotion requires exactly one directed {edge_type} lineage edge")
+    controlled_edges = [edge for edge in edges if edge.edge_type == edge_type]
+    if len(controlled_edges) != 1:
+        raise ValueError(f"promotion requires exactly one {edge_type} lineage edge")
+    edge = controlled_edges[0]
+    if edge.source_artifact_id != source_id or edge.target_artifact_id != target_id:
+        raise ValueError(f"promotion requires one directed {edge_type} lineage edge")
 
 
 def validate_promotion_chain(

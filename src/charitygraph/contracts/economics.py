@@ -360,18 +360,61 @@ class CostLedgerEntry(StrictModel):
         return self
 
 
+class ReservationReconciliation(StrictModel):
+    """Per-reservation accounting position; unmatched actuals are represented separately on CostLedger."""
+
+    reservation_id: str
+    reserved_aud: Money
+    actual_charge_aud: Money
+    actual_consuming_reservation_aud: Money
+    released_unused_reserve_aud: Money
+    reservation_overrun_aud: Money
+    outstanding_reserved_exposure_aud: Money
+
+    @field_validator("reservation_id")
+    @classmethod
+    def _reservation(cls, value: str) -> str:
+        return _prefix(value, "reservation:", "reservation_id")
+
+    @field_validator(
+        "reserved_aud", "actual_charge_aud", "actual_consuming_reservation_aud",
+        "released_unused_reserve_aud", "reservation_overrun_aud", "outstanding_reserved_exposure_aud",
+    )
+    @classmethod
+    def _aud(cls, value: Money) -> Money:
+        if value.currency != "AUD":
+            raise ValueError("reservation reconciliation money must be AUD")
+        return value
+
+    @model_validator(mode="after")
+    def _reconcile_position(self) -> "ReservationReconciliation":
+        if self.actual_consuming_reservation_aud.amount + self.reservation_overrun_aud.amount != self.actual_charge_aud.amount:
+            raise ValueError("reservation actual charge must equal consumed reserve plus overrun")
+        if (
+            self.actual_consuming_reservation_aud.amount
+            + self.released_unused_reserve_aud.amount
+            + self.outstanding_reserved_exposure_aud.amount
+            != self.reserved_aud.amount
+        ):
+            raise ValueError("reservation use, release and outstanding exposure must equal reserved amount")
+        return self
+
+
 class CostLedger(ArtifactRecord):
-    """Append-only cost reconciliation separating reserve exposure from actual cohort spend."""
+    """Append-only accounting with exact per-reservation exposure and faithful actual-cost overruns."""
 
     record_id: str
     schema_ref: SchemaRef = Field(default_factory=lambda: _schema("cost-ledger"), validation_alias="schema", serialization_alias="schema")
     cohort_id: str
     budget_cap_aud: Money
     entries: tuple[CostLedgerEntry, ...] = ()
+    reservation_reconciliations: tuple[ReservationReconciliation, ...]
     as_at: datetime
     reserved_exposure_aud: Money
     released_reservations_aud: Money
     actual_spend_aud: Money
+    reservation_overrun_aud: Money
+    unreserved_actual_aud: Money
     credits_aud: Money
     adjustment_debits_aud: Money
     adjustment_credits_aud: Money
@@ -392,12 +435,20 @@ class CostLedger(ArtifactRecord):
 
     @field_validator(
         "budget_cap_aud", "reserved_exposure_aud", "released_reservations_aud", "actual_spend_aud",
-        "credits_aud", "adjustment_debits_aud", "adjustment_credits_aud",
+        "reservation_overrun_aud", "unreserved_actual_aud", "credits_aud", "adjustment_debits_aud",
+        "adjustment_credits_aud",
     )
     @classmethod
     def _aud(cls, value: Money) -> Money:
         if value.currency != "AUD":
             raise ValueError("cost ledger money must be AUD")
+        return value
+
+    @field_validator("reservation_reconciliations")
+    @classmethod
+    def _reservation_ids(cls, value: tuple[ReservationReconciliation, ...]) -> tuple[ReservationReconciliation, ...]:
+        if len({item.reservation_id for item in value}) != len(value):
+            raise ValueError("reservation reconciliations must be unique by reservation_id")
         return value
 
     @field_validator("net_actual_spend_aud", "committed_exposure_aud", "remaining_budget_aud")
@@ -411,15 +462,57 @@ class CostLedger(ArtifactRecord):
 
     @model_validator(mode="after")
     def _reconcile(self) -> "CostLedger":
-        reservations = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "reservation"), Decimal("0"))
-        releases = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "reservation_release"), Decimal("0"))
-        actual = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "actual"), Decimal("0"))
-        credits = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "credit"), Decimal("0"))
+        reservation_ids = {item.reservation_id for item in self.entries if item.entry_type == "reservation"}
+        release_ids = {item.reservation_id for item in self.entries if item.entry_type == "reservation_release"}
+        if not release_ids.issubset(reservation_ids):
+            raise ValueError("reservation releases require a matching reservation")
+        positions = {item.reservation_id: item for item in self.reservation_reconciliations}
+        if set(positions) != reservation_ids:
+            raise ValueError("ledger must contain exactly one reconciliation for every reservation")
+
+        def total(entry_type: str, reservation_id: str | None = None) -> Decimal:
+            return sum(
+                (
+                    item.aud_cost.amount for item in self.entries
+                    if item.entry_type == entry_type and (reservation_id is None or item.reservation_id == reservation_id)
+                ),
+                Decimal("0"),
+            )
+
+        reservation_overrun = Decimal("0")
+        reserved_exposure = Decimal("0")
+        for reservation_id in reservation_ids:
+            reserved = total("reservation", reservation_id)
+            actual = total("actual", reservation_id)
+            released = total("reservation_release", reservation_id)
+            consumed = min(actual, reserved)
+            overrun = max(actual - reserved, Decimal("0"))
+            outstanding = reserved - consumed - released
+            if outstanding < 0:
+                raise ValueError("releases cannot exceed the unused portion of their own reservation")
+            position = positions[reservation_id]
+            expected_position = (
+                (position.reserved_aud.amount, reserved),
+                (position.actual_charge_aud.amount, actual),
+                (position.actual_consuming_reservation_aud.amount, consumed),
+                (position.released_unused_reserve_aud.amount, released),
+                (position.reservation_overrun_aud.amount, overrun),
+                (position.outstanding_reserved_exposure_aud.amount, outstanding),
+            )
+            if any(actual_value != expected_value for actual_value, expected_value in expected_position):
+                raise ValueError("reservation reconciliation does not match its entry facts")
+            reservation_overrun += overrun
+            reserved_exposure += outstanding
+
+        releases = total("reservation_release")
+        actual = total("actual")
+        unreserved_actual = sum(
+            (item.aud_cost.amount for item in self.entries if item.entry_type == "actual" and item.reservation_id not in reservation_ids),
+            Decimal("0"),
+        )
+        credits = total("credit")
         adjustment_debits = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "adjustment" and item.adjustment_direction == "debit"), Decimal("0"))
         adjustment_credits = sum((item.aud_cost.amount for item in self.entries if item.entry_type == "adjustment" and item.adjustment_direction == "credit"), Decimal("0"))
-        reserved_exposure = reservations - releases - actual
-        if reserved_exposure < 0:
-            raise ValueError("reservation releases and actual charges cannot exceed reserved exposure")
         net_actual = actual + adjustment_debits - credits - adjustment_credits
         committed = net_actual + reserved_exposure
         remaining = self.budget_cap_aud.amount - committed
@@ -427,6 +520,8 @@ class CostLedger(ArtifactRecord):
             (self.reserved_exposure_aud.amount, reserved_exposure),
             (self.released_reservations_aud.amount, releases),
             (self.actual_spend_aud.amount, actual),
+            (self.reservation_overrun_aud.amount, reservation_overrun),
+            (self.unreserved_actual_aud.amount, unreserved_actual),
             (self.credits_aud.amount, credits),
             (self.adjustment_debits_aud.amount, adjustment_debits),
             (self.adjustment_credits_aud.amount, adjustment_credits),
