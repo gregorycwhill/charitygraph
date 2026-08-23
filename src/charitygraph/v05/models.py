@@ -24,8 +24,36 @@ class Amount(PublicModel):
     def decimal_string(cls, value: str) -> str: Decimal(value); return value
 class Capability(PublicModel): capability_id: str; definition: str; observed_when: str; applicability: Literal["all_cards"]
 class CapabilityRegistry(PublicModel): registry_id: str; contract_version: Literal["0.5"]; capabilities: list[Capability]
+class EditorialCommitments(PublicModel):
+    identifier: str
+    version: str
+    url: str
+
+class BuilderProvenance(PublicModel):
+    version: str
+    commit: str | None = None
+
+class PublicationIdentity(PublicModel):
+    publisher_name: Literal["CharityGraph"]
+    canonical_data_repository: str
+    immutable_release_path: str
+    data_license_identifier: Literal["CC-BY-4.0"]
+    license_url: str
+    attribution_guidance: str
+    upstream_rights_caveat_url: str
+    editorial_commitments: EditorialCommitments
+    producing_builder: BuilderProvenance
 class ReleaseContext(PublicModel):
-    release_id: str; dataset_version: str; contract_version: Literal["0.5"] = "0.5"; based_on_release: str; generated_at: str; capability_registry: dict[str, str]
+    release_id: str; dataset_version: str; contract_version: Literal["0.5"] = "0.5"; based_on_release: str; generated_at: str; capability_registry: dict[str, str]; publication_identity: PublicationIdentity | None = None
+class FutureReleaseContext(PublicModel):
+    release_id: str
+    dataset_version: str
+    contract_version: str
+    based_on_release: str
+    generated_at: str
+    capability_registry: dict[str, str]
+    publication_identity: PublicationIdentity
+
 class Coverage(PublicModel):
     capability: str; status: CoverageStatus; assessed_at: str; observation_ids: list[str] = Field(default_factory=list); source_record_ids: list[str] = Field(default_factory=list); evidence_ids: list[str] = Field(default_factory=list); note: str | None = None
 class Evidence(PublicModel): evidence_id: str; title: str; url: str | None = None

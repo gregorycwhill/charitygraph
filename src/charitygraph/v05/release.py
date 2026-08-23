@@ -79,10 +79,14 @@ def assemble_release(rc4_release: Path, output: Path, registry: CapabilityRegist
         if path.is_file() and path.name != "manifest.json":
             relative = path.relative_to(output).as_posix()
             artefacts[relative] = {"bytes": path.stat().st_size, "sha256": _file_sha256(path)}
+    if context.contract_version != "0.5" and getattr(context, "publication_identity", None) is None:
+        raise ValueError("future release candidates require publication_identity")
     manifest = {
-        "dataset": "CauseBase",
+        # The immutable 0.5 contract retains its historical dataset label;
+        # future release candidates use the active CharityGraph identity.
+        "dataset": "CauseBase" if context.contract_version == "0.5" else "CharityGraph",
         "dataset_version": context.dataset_version,
-        "contract_version": "0.5",
+        "contract_version": context.contract_version,
         "release_id": context.release_id,
         "based_on_release": context.based_on_release,
         "generated_at": context.generated_at,
@@ -91,5 +95,7 @@ def assemble_release(rc4_release: Path, output: Path, registry: CapabilityRegist
         "validation": {"status": "passed" if not errors else "failed", "errors": errors},
         "artefacts": artefacts,
     }
+    if context.publication_identity is not None:
+        manifest["publication_identity"] = context.publication_identity.model_dump()
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return manifest
