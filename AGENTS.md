@@ -5,7 +5,7 @@
 
 Read the sibling Data repository's DOCUMENT_AUTHORITY.md, current state and plans before changing cross-product behaviour. Builder's internal authority is governed typed observations attached to durable subjects and scopes. Cards are public release projections, not canonical stored knowledge.
 
-Builder is Python-controlled and LLM-powered. Follow the sibling Data repository's `LLM_ECONOMICS_AND_COHORT_POLICY.md`: routine semantic work uses typed model tasks; Python owns evidence preparation, batching, scheduling, caching, cost enforcement, validation and release compilation.
+Builder is Python-controlled and LLM-powered. Follow the sibling Data repository's [`COVERAGE_LLM_ECONOMICS_AND_OPEN_CURATION_POLICY.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/COVERAGE_LLM_ECONOMICS_AND_OPEN_CURATION_POLICY.md): routine semantic work uses typed model tasks; Python owns evidence preparation, batching, scheduling, caching, cost enforcement, validation and release compilation. Read the canonical [`INTEGRATED_PRODUCT_AND_DATA_MODEL.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/INTEGRATED_PRODUCT_AND_DATA_MODEL.md), [`SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md), [`TAXONOMY_AND_SCHEME_GOVERNANCE.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/TAXONOMY_AND_SCHEME_GOVERNANCE.md), [`IMPLEMENTATION_PLAN.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/IMPLEMENTATION_PLAN.md) and [`TEST_PLAN.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/TEST_PLAN.md) before cross-product work.
 
 ## Boundaries
 
