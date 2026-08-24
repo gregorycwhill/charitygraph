@@ -5,7 +5,7 @@ import pytest
 
 from charitygraph.runtime import MigrationError, SQLiteCatalog
 import charitygraph.runtime.catalog as catalog_module
-from charitygraph.runtime.migrations import Migration
+from charitygraph.runtime.migrations import Migration, SUPPORTED_VERSION
 
 
 NOW = datetime(2026, 1, 1, tzinfo=timezone.utc)
@@ -14,11 +14,11 @@ NOW = datetime(2026, 1, 1, tzinfo=timezone.utc)
 def test_new_database_migrates_reopens_and_integrity_is_green(tmp_path):
     path = tmp_path / "catalog.sqlite3"
     catalog = SQLiteCatalog(path).open(initialize=True)
-    assert catalog.migrate() == 1
+    assert catalog.migrate() == SUPPORTED_VERSION
     assert catalog.integrity_check() == "ok"
     catalog.close()
     reopened = SQLiteCatalog(path).open()
-    assert reopened.migrate() == 1
+    assert reopened.migrate() == SUPPORTED_VERSION
     assert reopened.integrity_check() == "ok"
 
 

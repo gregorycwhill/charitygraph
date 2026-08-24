@@ -18,6 +18,7 @@ from typing import Any, Iterator, Mapping
 
 from .migrations import MIGRATIONS, SUPPORTED_VERSION
 from ..contracts.economics import CostLedgerEntry
+from ..contracts.source import AcquisitionReceipt, EvidenceLocator, SourceDefinition
 
 
 class CatalogError(RuntimeError):
@@ -792,3 +793,109 @@ class SQLiteCatalog:
 
 
     # End of catalogue operations.
+    def register_source_definition(self, definition: Any, *, now: datetime | str | None = None) -> dict[str, Any]:
+        self._require_migrated()
+        model = definition if isinstance(definition, SourceDefinition) else SourceDefinition.model_validate(definition)
+        material_hash = _canonical_hash(model)
+        created = _utc(model.created_at, 'created_at')
+        updated = _utc(now or model.created_at, 'updated_at')
+        values = (model.record_id, model.definition_version, model.publisher, model.source_class,
+                  json.dumps(_dump(model.authority_roles), sort_keys=True), json.dumps(_dump(model), sort_keys=True),
+                  material_hash, created, updated)
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute('SELECT * FROM source_definitions WHERE source_definition_id=?', (model.record_id,)).fetchone()
+            if existing:
+                if existing['material_hash'] != material_hash:
+                    raise ConflictError(f'source definition {model.record_id} is already registered with different material')
+                return dict(existing)
+            conn.execute('INSERT INTO source_definitions(source_definition_id, definition_version, publisher, source_class, authority_roles_json, material_json, material_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', values)
+            self._commit(conn)
+            return dict(conn.execute('SELECT * FROM source_definitions WHERE source_definition_id=?', (model.record_id,)).fetchone())
+
+    def get_source_definition(self, source_definition_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute('SELECT * FROM source_definitions WHERE source_definition_id=?', (source_definition_id,)).fetchone())
+
+    register_source = register_source_definition
+    def record_acquisition_receipt(self, receipt: Any, *, now: datetime | str | None = None) -> dict[str, Any]:
+        self._require_migrated()
+        model = receipt if isinstance(receipt, AcquisitionReceipt) else AcquisitionReceipt.model_validate(receipt)
+        material_hash = _canonical_hash(model)
+        created = _utc(now or model.created_at, 'created_at')
+        effective = model.effective_at.isoformat() if model.effective_at is not None else None
+        with self._connection(immediate=True) as conn:
+            if conn.execute('SELECT 1 FROM source_definitions WHERE source_definition_id=?', (model.source_definition_id,)).fetchone() is None:
+                raise CatalogError('acquisition receipt references an unknown source definition')
+            if model.artifact_id and model.content_hash:
+                artifact = conn.execute('SELECT content_hash FROM artifact_index WHERE artifact_id=?', (model.artifact_id,)).fetchone()
+                if artifact is not None and artifact['content_hash'] != str(model.content_hash):
+                    raise ConflictError('acquisition receipt artefact hash conflicts with indexed artefact')
+            values = (model.record_id, model.source_definition_id, model.requested_locator, model.resolved_locator,
+                      _utc(model.retrieved_at, 'retrieved_at') if model.retrieved_at else None, effective, model.outcome,
+                      model.response_status, model.media_type, str(model.content_hash) if model.content_hash else None,
+                      model.byte_size, model.artifact_id, model.tool_id, model.tool_version,
+                      json.dumps(_dump(model.material_parameters), sort_keys=True), model.retry_of, model.replaces_receipt_id,
+                      model.error_class, json.dumps(_dump(model), sort_keys=True), material_hash, created)
+            existing = conn.execute('SELECT * FROM acquisition_receipts WHERE acquisition_id=?', (model.record_id,)).fetchone()
+            if existing:
+                if existing['material_hash'] != material_hash:
+                    raise ConflictError(f'acquisition receipt {model.record_id} is already registered with different material')
+                return dict(existing)
+            conn.execute('INSERT INTO acquisition_receipts(acquisition_id, source_definition_id, requested_locator, resolved_locator, retrieved_at, effective_at, outcome, response_status, media_type, content_hash, byte_size, artifact_id, tool_id, tool_version, material_parameters_json, retry_of, replaces_receipt_id, error_class, material_json, material_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', values)
+            self._commit(conn)
+            return dict(conn.execute('SELECT * FROM acquisition_receipts WHERE acquisition_id=?', (model.record_id,)).fetchone())
+
+    def get_acquisition_receipt(self, acquisition_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute('SELECT * FROM acquisition_receipts WHERE acquisition_id=?', (acquisition_id,)).fetchone())
+
+    record_acquisition = record_acquisition_receipt
+    def record_artifact_lineage(self, artifact_id: str, input_artifact_ids: tuple[str, ...] | list[str], *, edge_type: str = 'derived_from') -> list[dict[str, Any]]:
+        self._require_migrated()
+        if edge_type not in {'derived_from', 'acquired_as', 'parsed_from', 'excerpted_from'}:
+            raise CatalogError('unsupported artefact lineage type')
+        inputs = tuple(dict.fromkeys(str(item) for item in input_artifact_ids))
+        if not artifact_id or not inputs or artifact_id in inputs:
+            raise CatalogError('artefact lineage requires distinct nonblank identifiers')
+        with self._connection(immediate=True) as conn:
+            if conn.execute('SELECT 1 FROM artifact_index WHERE artifact_id=?', (artifact_id,)).fetchone() is None:
+                raise CatalogError('lineage output artefact is not indexed')
+            for input_id in inputs:
+                if conn.execute('SELECT 1 FROM artifact_index WHERE artifact_id=?', (input_id,)).fetchone() is None:
+                    raise CatalogError('lineage input artefact is not indexed')
+                row = conn.execute('SELECT edge_type FROM artifact_lineage WHERE artifact_id=? AND input_artifact_id=?', (artifact_id, input_id)).fetchone()
+                if row is not None and row['edge_type'] != edge_type:
+                    raise ConflictError('artefact lineage edge conflicts with existing edge')
+                conn.execute('INSERT OR IGNORE INTO artifact_lineage(artifact_id, input_artifact_id, edge_type) VALUES (?, ?, ?)', (artifact_id, input_id, edge_type))
+            self._commit(conn)
+            return [dict(row) for row in conn.execute('SELECT * FROM artifact_lineage WHERE artifact_id=? ORDER BY input_artifact_id', (artifact_id,)).fetchall()]
+
+    def get_artifact_lineage(self, artifact_id: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            return [dict(row) for row in conn.execute('SELECT * FROM artifact_lineage WHERE artifact_id=? ORDER BY input_artifact_id', (artifact_id,)).fetchall()]
+
+    def register_evidence_locator(self, locator: Any, *, evidence_locator_id: str | None = None, now: datetime | str | None = None) -> dict[str, Any]:
+        self._require_migrated()
+        model = locator if isinstance(locator, EvidenceLocator) else EvidenceLocator.model_validate(locator)
+        material = _dump(model)
+        material_hash = _canonical_hash(material)
+        locator_id = evidence_locator_id or 'locator:' + material_hash
+        created = _utc(now or datetime.now(timezone.utc), 'created_at')
+        with self._connection(immediate=True) as conn:
+            if model.artifact_id and conn.execute('SELECT 1 FROM artifact_index WHERE artifact_id=?', (model.artifact_id,)).fetchone() is None:
+                raise CatalogError('evidence locator references an unknown artefact')
+            values = (locator_id, model.artifact_id, model.source_record_id, model.kind, json.dumps(material, sort_keys=True), material_hash, created)
+            existing = conn.execute('SELECT * FROM evidence_locators WHERE evidence_locator_id=?', (locator_id,)).fetchone()
+            if existing:
+                if existing['material_hash'] != material_hash:
+                    raise ConflictError('evidence locator ID was registered with different material')
+                return dict(existing)
+            conn.execute('INSERT INTO evidence_locators(evidence_locator_id, artifact_id, source_record_id, kind, locator_json, material_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)', values)
+            self._commit(conn)
+            return dict(conn.execute('SELECT * FROM evidence_locators WHERE evidence_locator_id=?', (locator_id,)).fetchone())
+
+    def get_evidence_locator(self, evidence_locator_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute('SELECT * FROM evidence_locators WHERE evidence_locator_id=?', (evidence_locator_id,)).fetchone())
+
+    register_evidence = register_evidence_locator
