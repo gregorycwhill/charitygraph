@@ -19,8 +19,14 @@ from .tasks import (
     EmbeddingResult, EvidenceInput, ModelResult, ModelTask, ModelTaskType, NamedUsage,
     PaidOutputCategory, ProviderUsage, TaskRun, model_task_cache_key, validate_task_run_tasks,
 )
+from .source import (
+    AcquisitionReceipt, DocumentLocator, EvidenceLocator, PropositionAuthorityRole,
+    SourceDefinition, StructuredFieldLocator, TextSpanLocator,
+)
 
 __all__ = [
+    'AcquisitionReceipt', 'DocumentLocator', 'EvidenceLocator', 'PropositionAuthorityRole', 'SourceDefinition',
+    'StructuredFieldLocator', 'TextSpanLocator',
     "ArtifactRecord", "ArtifactRef", "AutomationAuthority", "BudgetCohort", "CandidateObservation",
     "CanonicalObservation", "CanonicalObject", "CanonicalScalar", "CanonicalValue", "CostLedger",
     "CostLedgerEntry", "CostReservation", "DecisionAuthority", "DecisionRecord", "DerivativeArtifact",
