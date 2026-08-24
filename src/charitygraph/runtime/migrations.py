@@ -165,11 +165,68 @@ class Migration:
         return hashlib.sha256(self.sql.encode("utf-8")).hexdigest()
 
 
+
+CATALOGUE_SQL_V2 = """
+CREATE TABLE source_definitions (
+    source_definition_id TEXT PRIMARY KEY,
+    definition_version TEXT NOT NULL,
+    publisher TEXT NOT NULL,
+    source_class TEXT NOT NULL,
+    authority_roles_json TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE acquisition_receipts (
+    acquisition_id TEXT PRIMARY KEY,
+    source_definition_id TEXT NOT NULL REFERENCES source_definitions(source_definition_id),
+    requested_locator TEXT NOT NULL,
+    resolved_locator TEXT,
+    retrieved_at TEXT,
+    effective_at TEXT,
+    outcome TEXT NOT NULL CHECK(outcome IN ('available','not_modified','absent','blocked','failed','partial','unavailable')),
+    response_status INTEGER,
+    media_type TEXT,
+    content_hash TEXT,
+    byte_size INTEGER CHECK(byte_size IS NULL OR byte_size >= 0),
+    artifact_id TEXT,
+    tool_id TEXT,
+    tool_version TEXT,
+    material_parameters_json TEXT NOT NULL,
+    retry_of TEXT,
+    replaces_receipt_id TEXT,
+    error_class TEXT,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX acquisition_receipts_source_idx ON acquisition_receipts(source_definition_id, retrieved_at);
+CREATE TABLE artifact_lineage (
+    artifact_id TEXT NOT NULL,
+    input_artifact_id TEXT NOT NULL,
+    edge_type TEXT NOT NULL CHECK(edge_type IN ('derived_from','acquired_as','parsed_from','excerpted_from')),
+    PRIMARY KEY(artifact_id, input_artifact_id)
+);
+CREATE INDEX artifact_lineage_input_idx ON artifact_lineage(input_artifact_id);
+CREATE TABLE evidence_locators (
+    evidence_locator_id TEXT PRIMARY KEY,
+    artifact_id TEXT,
+    source_record_id TEXT,
+    kind TEXT NOT NULL CHECK(kind IN ('structured_field','text_span','document')),
+    locator_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CHECK(artifact_id IS NOT NULL OR source_record_id IS NOT NULL)
+);
+CREATE INDEX evidence_locator_artifact_idx ON evidence_locators(artifact_id);
+CREATE INDEX evidence_locator_source_idx ON evidence_locators(source_record_id);
+CREATE INDEX artifact_index_content_idx ON artifact_index(content_hash);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
+    Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
 )
 
-SUPPORTED_VERSION = MIGRATIONS[-1].version
-CATALOGUE_SQL_V2 = __import__('base64').b64decode('Q1JFQVRFIFRBQkxFIHNvdXJjZV9kZWZpbml0aW9ucyAoc291cmNlX2RlZmluaXRpb25faWQgVEVYVCBQUklNQVJZIEtFWSwgZGVmaW5pdGlvbl92ZXJzaW9uIFRFWFQgTk9UIE5VTEwsIHB1Ymxpc2hlciBURVhUIE5PVCBOVUxMLCBzb3VyY2VfY2xhc3MgVEVYVCBOT1QgTlVMTCwgYXV0aG9yaXR5X3JvbGVzX2pzb24gVEVYVCBOT1QgTlVMTCwgbWF0ZXJpYWxfanNvbiBURVhUIE5PVCBOVUxMLCBtYXRlcmlhbF9oYXNoIFRFWFQgTk9UIE5VTEwsIGNyZWF0ZWRfYXQgVEVYVCBOT1QgTlVMTCwgdXBkYXRlZF9hdCBURVhUIE5PVCBOVUxMKTsKQ1JFQVRFIFRBQkxFIGFjcXVpc2l0aW9uX3JlY2VpcHRzIChhY3F1aXNpdGlvbl9pZCBURVhUIFBSSU1BUlkgS0VZLCBz' 'b3VyY2VfZGVmaW5pdGlvbl9pZCBURVhUIE5PVCBOVUxMIFJFRkVSRU5DRVMgc291cmNlX2RlZmluaXRpb25zKHNvdXJjZV9kZWZpbml0aW9uX2lkKSwgcmVxdWVzdGVkX2xvY2F0b3IgVEVYVCBOT1QgTlVMTCwgcmVzb2x2ZWRfbG9jYXRvciBURVhULCByZXRyaWV2ZWRfYXQgVEVYVCwgZWZmZWN0aXZlX2F0IFRFWFQsIG91dGNvbWUgVEVYVCBOT1QgTlVMTCBDSEVDSyhvdXRjb21lIElOICgnYXZhaWxhYmxlJywnbm90X21vZGlmaWVkJywnYWJzZW50JywnYmxvY2tlZCcsJ2ZhaWxlZCcsJ3BhcnRpYWwnLCd1bmF2YWlsYWJsZScpKSwgcmVzcG9uc2Vfc3RhdHVzIElOVEVHRVIsIG1lZGlhX3R5cGUgVEVYVCwgY29udGVudF9oYXNoIFRFWFQsIGJ5dGVfc2l6ZSBJ' 'TlRFR0VSIENIRUNLKGJ5dGVfc2l6ZSBJUyBOVUxMIE9SIGJ5dGVfc2l6ZSA+PSAwKSwgYXJ0aWZhY3RfaWQgVEVYVCwgdG9vbF9pZCBURVhULCB0b29sX3ZlcnNpb24gVEVYVCwgbWF0ZXJpYWxfcGFyYW1ldGVyc19qc29uIFRFWFQgTk9UIE5VTEwsIHJldHJ5X29mIFRFWFQsIHJlcGxhY2VzX3JlY2VpcHRfaWQgVEVYVCwgZXJyb3JfY2xhc3MgVEVYVCwgbWF0ZXJpYWxfanNvbiBURVhUIE5PVCBOVUxMLCBtYXRlcmlhbF9oYXNoIFRFWFQgTk9UIE5VTEwsIGNyZWF0ZWRfYXQgVEVYVCBOT1QgTlVMTCk7CkNSRUFURSBJTkRFWCBhY3F1aXNpdGlvbl9yZWNlaXB0c19zb3VyY2VfaWR4IE9OIGFjcXVpc2l0aW9uX3JlY2VpcHRzKHNvdXJjZV9kZWZpbml0aW9uX2lk' 'LCByZXRyaWV2ZWRfYXQpOwpDUkVBVEUgVEFCTEUgYXJ0aWZhY3RfbGluZWFnZSAoYXJ0aWZhY3RfaWQgVEVYVCBOT1QgTlVMTCwgaW5wdXRfYXJ0aWZhY3RfaWQgVEVYVCBOT1QgTlVMTCwgZWRnZV90eXBlIFRFWFQgTk9UIE5VTEwgQ0hFQ0soZWRnZV90eXBlIElOICgnZGVyaXZlZF9mcm9tJywnYWNxdWlyZWRfYXMnLCdwYXJzZWRfZnJvbScsJ2V4Y2VycHRlZF9mcm9tJykpLCBQUklNQVJZIEtFWShhcnRpZmFjdF9pZCwgaW5wdXRfYXJ0aWZhY3RfaWQpKTsKQ1JFQVRFIElOREVYIGFydGlmYWN0X2xpbmVhZ2VfaW5wdXRfaWR4IE9OIGFydGlmYWN0X2xpbmVhZ2UoaW5wdXRfYXJ0aWZhY3RfaWQpOwpDUkVBVEUgVEFCTEUgZXZpZGVuY2VfbG9jYXRvcnMgKGV2' 'aWRlbmNlX2xvY2F0b3JfaWQgVEVYVCBQUklNQVJZIEtFWSwgYXJ0aWZhY3RfaWQgVEVYVCwgc291cmNlX3JlY29yZF9pZCBURVhULCBraW5kIFRFWFQgTk9UIE5VTEwgQ0hFQ0soa2luZCBJTiAoJ3N0cnVjdHVyZWRfZmllbGQnLCd0ZXh0X3NwYW4nLCdkb2N1bWVudCcpKSwgbG9jYXRvcl9qc29uIFRFWFQgTk9UIE5VTEwsIG1hdGVyaWFsX2hhc2ggVEVYVCBOT1QgTlVMTCwgY3JlYXRlZF9hdCBURVhUIE5PVCBOVUxMLCBDSEVDSyhhcnRpZmFjdF9pZCBJUyBOT1QgTlVMTCBPUiBzb3VyY2VfcmVjb3JkX2lkIElTIE5PVCBOVUxMKSk7CkNSRUFURSBJTkRFWCBldmlkZW5jZV9sb2NhdG9yX2FydGlmYWN0X2lkeCBPTiBldmlkZW5jZV9sb2NhdG9ycyhhcnRpZmFj' 'dF9pZCk7CkNSRUFURSBJTkRFWCBldmlkZW5jZV9sb2NhdG9yX3NvdXJjZV9pZHggT04gZXZpZGVuY2VfbG9jYXRvcnMoc291cmNlX3JlY29yZF9pZCk7CkNSRUFURSBJTkRFWCBhcnRpZmFjdF9pbmRleF9jb250ZW50X2lkeCBPTiBhcnRpZmFjdF9pbmRleChjb250ZW50X2hhc2gpOw==').decode('utf-8')
-MIGRATIONS = (Migration(1, 'initial_operational_catalogue', CATALOGUE_SQL_V1), Migration(2, 'source_evidence_foundation', CATALOGUE_SQL_V2))
 SUPPORTED_VERSION = MIGRATIONS[-1].version

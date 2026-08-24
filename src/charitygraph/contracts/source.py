@@ -84,7 +84,7 @@ class SourceDefinition(StrictModel):
     owner: str | None = None
     jurisdiction: str | None = None
     source_class: str
-    authority_roles: tuple[PropositionAuthorityRole | str, ...] = ()
+    authority_roles: tuple[PropositionAuthorityRole, ...] = ()
     acquisition_locator: str
     acquisition_method: str = "http"
     expected_cadence: str | None = None
@@ -128,17 +128,6 @@ class SourceDefinition(StrictModel):
     def _lists(cls, value: tuple[str, ...], info: Any) -> tuple[str, ...]:
         return _unique_texts(value, info.field_name)
 
-    @field_validator("authority_roles", mode="before")
-    @classmethod
-    def _roles(cls, value: Any) -> tuple[PropositionAuthorityRole | str, ...]:
-        if value is None:
-            return ()
-        if isinstance(value, str):
-            value = (value,)
-        return tuple(
-            PropositionAuthorityRole(proposition="unspecified", role=item) if isinstance(item, str) else item
-            for item in value
-        )
 
     @model_validator(mode="after")
     def _authority_and_scope(self) -> "SourceDefinition":

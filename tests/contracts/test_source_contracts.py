@@ -36,6 +36,8 @@ def make_source(**overrides):
 
 def test_source_definition_has_proposition_authority_and_rejects_subjects():
     assert make_source().authority_roles[0].proposition == 'identity'
+    with pytest.raises(ValidationError):
+        make_source(authority_roles=('authoritative',))
     with pytest.raises(ValidationError, match='proposition-specific'):
         SourceDefinition(**{**make_source().model_dump(), 'authority_roles': ()})
     with pytest.raises(ValidationError, match='not a subject'):
