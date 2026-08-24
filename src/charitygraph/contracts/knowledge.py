@@ -5,10 +5,13 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Annotated, Generic, Literal, TypeVar, Union
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import AliasChoices, BaseModel, Field, field_validator, model_validator
 
 from .canonical import canonical_sha256
-from .common import ArtifactRecord, ArtifactRef, SchemaRef, Sha256, StrictModel, utc_datetime, require_nonblank
+from .common import (
+    ArtifactRecord, ArtifactRef, CanonicalValue, LineageEdge, ProducerRef, SchemaRef, Sha256,
+    StrictModel, utc_datetime, require_nonblank,
+)
 from .ids import deterministic_id, validate_typed_id
 
 
@@ -198,6 +201,383 @@ class ObservationTime(StrictModel):
         if self.effective_from is not None and self.effective_to is not None:
             if self.effective_to < self.effective_from:
                 raise ValueError("effective_to cannot precede effective_from")
+        return self
+
+
+OutcomeState = Literal[
+    "resolved", "supported", "contradicted", "unknown", "insufficient_evidence",
+    "not_applicable", "not_attempted", "withheld", "acquisition_failure",
+    "extraction_failure", "model_failure",
+]
+
+LifecycleState = Literal[
+    "candidate", "accepted", "edited", "rejected", "superseded",
+    "contradicted", "withdrawn", "held", "unresolved",
+]
+
+
+def _unique_ids(value: tuple[str, ...], field_name: str) -> tuple[str, ...]:
+    if any(not isinstance(item, str) or not item.strip() for item in value):
+        raise ValueError(f"{field_name} must contain nonblank IDs")
+    if len(set(value)) != len(value):
+        raise ValueError(f"{field_name} must be unique")
+    return value
+
+
+class ScopeRecord(ArtifactRecord):
+    """A bounded subject context; scope is not a free-text propagation hint."""
+
+    record_id: str = Field(
+        validation_alias=AliasChoices("record_id", "scope_id"),
+        serialization_alias="record_id",
+    )
+    schema_ref: SchemaRef = Field(
+        default_factory=lambda: _schema("scope-record"),
+        validation_alias="schema",
+        serialization_alias="schema",
+    )
+    subject_id: str
+    scope_kind: Literal[
+        "organisation", "program", "service", "project", "campaign",
+        "site", "geographic", "reporting_group", "other",
+    ]
+    label: str | None = None
+    parent_scope_id: str | None = None
+    valid_from: date | datetime | None = None
+    valid_to: date | datetime | None = None
+    lifecycle_status: Literal["active", "inactive", "superseded", "withdrawn"] = "active"
+
+    @field_validator("record_id")
+    @classmethod
+    def _record_prefix(cls, value: str) -> str:
+        return _prefix(value, "scope:", "scope_id")
+
+    @field_validator("subject_id")
+    @classmethod
+    def _subject(cls, value: str) -> str:
+        return _prefix(value, "subject:", "subject_id")
+
+    @field_validator("parent_scope_id")
+    @classmethod
+    def _parent(cls, value: str | None) -> str | None:
+        return None if value is None else _prefix(value, "scope:", "parent_scope_id")
+
+    @field_validator("label")
+    @classmethod
+    def _label(cls, value: str | None) -> str | None:
+        return None if value is None else require_nonblank(value, "label")
+
+    @model_validator(mode="after")
+    def _range(self) -> "ScopeRecord":
+        if self.valid_from is not None and self.valid_to is not None and self.valid_to < self.valid_from:
+            raise ValueError("valid_to cannot precede valid_from")
+        if self.parent_scope_id == self.record_id:
+            raise ValueError("a scope cannot be its own parent")
+        return self
+
+    @property
+    def scope_id(self) -> str:
+        return self.record_id
+
+
+class PartyRole(ArtifactRecord):
+    """A contextual role held by a party without creating a second identity model."""
+
+    record_id: str = Field(
+        validation_alias=AliasChoices("record_id", "party_role_id"),
+        serialization_alias="record_id",
+    )
+    schema_ref: SchemaRef = Field(
+        default_factory=lambda: _schema("party-role"),
+        validation_alias="schema",
+        serialization_alias="schema",
+    )
+    party_id: str
+    role: str
+    context_record_id: str | None = None
+    scope_id: str | None = None
+    valid_from: date | datetime | None = None
+    valid_to: date | datetime | None = None
+    status: Literal["active", "inactive", "withdrawn"] = "active"
+
+    @field_validator("record_id")
+    @classmethod
+    def _record_prefix(cls, value: str) -> str:
+        return _prefix(value, "partyrole:", "party_role_id")
+
+    @field_validator("party_id", "role")
+    @classmethod
+    def _text(cls, value: str) -> str:
+        return require_nonblank(value)
+
+    @field_validator("scope_id")
+    @classmethod
+    def _scope(cls, value: str | None) -> str | None:
+        return None if value is None else _prefix(value, "scope:", "scope_id")
+
+    @model_validator(mode="after")
+    def _range(self) -> "PartyRole":
+        if self.valid_from is not None and self.valid_to is not None and self.valid_to < self.valid_from:
+            raise ValueError("valid_to cannot precede valid_from")
+        return self
+
+
+class Observation(ArtifactRecord):
+    """Append-only report of what a source, process, observer or model encountered."""
+
+    record_id: str = Field(
+        validation_alias=AliasChoices("record_id", "observation_id"),
+        serialization_alias="record_id",
+    )
+    schema_ref: SchemaRef = Field(
+        default_factory=lambda: _schema("observation"),
+        validation_alias="schema",
+        serialization_alias="schema",
+    )
+    subject_id: str
+    scope_id: str | None = None
+    predicate: str
+    value: CanonicalValue | None = None
+    outcome_state: OutcomeState = "resolved"
+    evidence_locator_ids: tuple[str, ...] = ()
+    source_record_ids: tuple[str, ...] = ()
+    observation_time: ObservationTime
+    method: str
+    lifecycle_status: LifecycleState = "candidate"
+    confidence: str | None = None
+    qualifications: tuple[str, ...] = ()
+    supersedes_observation_id: str | None = None
+
+    @field_validator("record_id")
+    @classmethod
+    def _record_prefix(cls, value: str) -> str:
+        return _prefix(value, "observation:", "observation_id")
+
+    @field_validator("subject_id")
+    @classmethod
+    def _subject(cls, value: str) -> str:
+        return _prefix(value, "subject:", "subject_id")
+
+    @field_validator("scope_id")
+    @classmethod
+    def _scope(cls, value: str | None) -> str | None:
+        return None if value is None else _prefix(value, "scope:", "scope_id")
+
+    @field_validator("predicate", "method")
+    @classmethod
+    def _text(cls, value: str) -> str:
+        return require_nonblank(value)
+
+    _evidence = field_validator("evidence_locator_ids")(
+        lambda value: _unique_ids(value, "evidence_locator_ids")
+    )
+    _sources = field_validator("source_record_ids")(
+        lambda value: _unique_ids(value, "source_record_ids")
+    )
+
+    @field_validator("supersedes_observation_id")
+    @classmethod
+    def _supersedes(cls, value: str | None) -> str | None:
+        return None if value is None else _prefix(value, "observation:", "supersedes_observation_id")
+
+    @model_validator(mode="after")
+    def _lifecycle(self) -> "Observation":
+        supersedes_edges = [edge for edge in self.lineage if edge.edge_type == "supersedes"]
+        if self.supersedes_observation_id is None and supersedes_edges:
+            raise ValueError("supersedes edges require supersedes_observation_id")
+        if self.supersedes_observation_id is not None:
+            if self.supersedes_observation_id == self.record_id:
+                raise ValueError("an observation cannot supersede itself")
+            if len(supersedes_edges) != 1:
+                raise ValueError("a replacement observation requires exactly one supersedes edge")
+            edge = supersedes_edges[0]
+            if edge.source_artifact_id != self.record_id or edge.target_artifact_id != self.supersedes_observation_id:
+                raise ValueError("supersedes edge must run from the new observation to supersedes_observation_id")
+        return self
+
+
+class Assertion(ArtifactRecord):
+    """A governed proposition whose history remains reconstructible."""
+
+    record_id: str = Field(
+        validation_alias=AliasChoices("record_id", "assertion_id"),
+        serialization_alias="record_id",
+    )
+    schema_ref: SchemaRef = Field(
+        default_factory=lambda: _schema("assertion"),
+        validation_alias="schema",
+        serialization_alias="schema",
+    )
+    subject_id: str
+    scope_id: str | None = None
+    predicate: str
+    value: CanonicalValue | None = None
+    outcome_state: OutcomeState = "resolved"
+    observation_ids: tuple[str, ...] = ()
+    evidence_locator_ids: tuple[str, ...] = ()
+    assertion_time: ObservationTime
+    method: str
+    lifecycle_status: LifecycleState = "accepted"
+    confidence: str | None = None
+    publication_eligibility: Literal["eligible", "ineligible", "review_required", "withheld"] = "review_required"
+    supersedes_assertion_id: str | None = None
+
+    @field_validator("record_id")
+    @classmethod
+    def _record_prefix(cls, value: str) -> str:
+        return _prefix(value, "assertion:", "assertion_id")
+
+    @field_validator("subject_id")
+    @classmethod
+    def _subject(cls, value: str) -> str:
+        return _prefix(value, "subject:", "subject_id")
+
+    @field_validator("scope_id")
+    @classmethod
+    def _scope(cls, value: str | None) -> str | None:
+        return None if value is None else _prefix(value, "scope:", "scope_id")
+
+    @field_validator("predicate", "method")
+    @classmethod
+    def _text(cls, value: str) -> str:
+        return require_nonblank(value)
+
+    _observations = field_validator("observation_ids")(
+        lambda value: _unique_ids(value, "observation_ids")
+    )
+    _evidence = field_validator("evidence_locator_ids")(
+        lambda value: _unique_ids(value, "evidence_locator_ids")
+    )
+
+    @field_validator("supersedes_assertion_id")
+    @classmethod
+    def _supersedes(cls, value: str | None) -> str | None:
+        return None if value is None else _prefix(value, "assertion:", "supersedes_assertion_id")
+
+    @model_validator(mode="after")
+    def _lifecycle(self) -> "Assertion":
+        if self.lifecycle_status == "superseded" and self.supersedes_assertion_id is None:
+            raise ValueError("superseded assertions require supersedes_assertion_id")
+        if self.supersedes_assertion_id == self.record_id:
+            raise ValueError("an assertion cannot supersede itself")
+        supersedes_edges = [edge for edge in self.lineage if edge.edge_type == "supersedes"]
+        if self.supersedes_assertion_id is None and supersedes_edges:
+            raise ValueError("supersedes edges require supersedes_assertion_id")
+        if self.supersedes_assertion_id is not None:
+            if len(supersedes_edges) != 1:
+                raise ValueError("a replacement assertion requires exactly one supersedes edge")
+            edge = supersedes_edges[0]
+            if edge.source_artifact_id != self.record_id or edge.target_artifact_id != self.supersedes_assertion_id:
+                raise ValueError("supersedes edge must run from the new assertion to supersedes_assertion_id")
+        return self
+
+
+class RelationshipStatement(ArtifactRecord):
+    """A typed, directed and scoped relationship between subjects."""
+
+    record_id: str = Field(
+        validation_alias=AliasChoices("record_id", "relationship_id"),
+        serialization_alias="record_id",
+    )
+    schema_ref: SchemaRef = Field(
+        default_factory=lambda: _schema("relationship-statement"),
+        validation_alias="schema",
+        serialization_alias="schema",
+    )
+    source_subject_id: str = Field(validation_alias=AliasChoices("source_subject_id", "source_id"))
+    target_subject_id: str = Field(validation_alias=AliasChoices("target_subject_id", "target_id"))
+    relationship_type: str
+    scope_id: str | None = None
+    source_role: str | None = None
+    target_role: str | None = None
+    evidence_locator_ids: tuple[str, ...] = ()
+    observation_ids: tuple[str, ...] = ()
+    valid_from: date | datetime | None = None
+    valid_to: date | datetime | None = None
+    status: Literal["candidate", "accepted", "rejected", "withdrawn", "superseded"] = "candidate"
+
+    @field_validator("record_id")
+    @classmethod
+    def _record_prefix(cls, value: str) -> str:
+        return _prefix(value, "relationship:", "relationship_id")
+
+    @field_validator("source_subject_id", "target_subject_id")
+    @classmethod
+    def _subjects(cls, value: str) -> str:
+        return _prefix(value, "subject:", "subject_id")
+
+    @field_validator("relationship_type")
+    @classmethod
+    def _relationship_type(cls, value: str) -> str:
+        return require_nonblank(value, "relationship_type")
+
+    @field_validator("scope_id")
+    @classmethod
+    def _scope(cls, value: str | None) -> str | None:
+        return None if value is None else _prefix(value, "scope:", "scope_id")
+
+    _evidence = field_validator("evidence_locator_ids")(
+        lambda value: _unique_ids(value, "evidence_locator_ids")
+    )
+    _observations = field_validator("observation_ids")(
+        lambda value: _unique_ids(value, "observation_ids")
+    )
+
+    @model_validator(mode="after")
+    def _range(self) -> "RelationshipStatement":
+        if self.valid_from is not None and self.valid_to is not None and self.valid_to < self.valid_from:
+            raise ValueError("valid_to cannot precede valid_from")
+        if self.source_subject_id == self.target_subject_id:
+            raise ValueError("relationship endpoints must be distinct")
+        return self
+
+
+class AdjudicationDecision(ArtifactRecord):
+    """A governed decision over candidate knowledge, preserving rejected inputs."""
+
+    record_id: str = Field(
+        validation_alias=AliasChoices("record_id", "adjudication_id"),
+        serialization_alias="record_id",
+    )
+    schema_ref: SchemaRef = Field(
+        default_factory=lambda: _schema("adjudication-decision"),
+        validation_alias="schema",
+        serialization_alias="schema",
+    )
+    input_record_ids: tuple[str, ...]
+    outcome: Literal[
+        "accepted", "edited", "rejected", "insufficient", "withheld",
+        "identity_blocked", "scope_blocked", "deferred",
+    ]
+    rationale: str
+    reviewer_id: str
+    result_record_id: str | None = None
+    decision_time: datetime
+    review_policy_id: str
+    supersedes_decision_id: str | None = None
+
+    @field_validator("record_id")
+    @classmethod
+    def _record_prefix(cls, value: str) -> str:
+        return _prefix(value, "adjudication:", "adjudication_id")
+
+    _inputs = field_validator("input_record_ids")(
+        lambda value: _unique_ids(value, "input_record_ids")
+    )
+
+    @field_validator("rationale", "reviewer_id", "review_policy_id")
+    @classmethod
+    def _text(cls, value: str) -> str:
+        return require_nonblank(value)
+
+    _decision_time = field_validator("decision_time")(utc_datetime)
+
+    @model_validator(mode="after")
+    def _result(self) -> "AdjudicationDecision":
+        if self.outcome in {"accepted", "edited"} and self.result_record_id is None:
+            raise ValueError("accepted or edited adjudications require result_record_id")
+        if self.result_record_id == self.record_id:
+            raise ValueError("an adjudication cannot result in itself")
         return self
 
 

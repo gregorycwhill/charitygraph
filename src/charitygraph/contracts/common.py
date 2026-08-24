@@ -21,7 +21,8 @@ Sha256 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 
 IdPrefix: TypeAlias = Literal[
     "subject:", "subjectrecord:", "srcrec:", "evidence:", "candidate:",
-    "decision:", "observation:", "derivative:", "modeltask:", "modelresult:",
+    "decision:", "observation:", "assertion:", "scope:", "partyrole:",
+    "relationship:", "adjudication:", "externalid:", "derivative:", "modeltask:", "modelresult:",
     "embedding:", "taskrun:", "cohort:", "pricing:", "fx:", "reservation:",
     "costledger:", "run:",
 ]
