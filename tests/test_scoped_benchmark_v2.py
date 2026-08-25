@@ -13,6 +13,7 @@ from charitygraph.scoped_benchmark_v2 import (
     SUBJECT_IDS,
     ScopedBenchmarkV2,
     assert_not_holdout,
+    benchmark_completeness,
     build_benchmark_cases,
     build_evidence_registry,
     build_scoped_benchmark_v2,
@@ -88,12 +89,14 @@ def test_fred_health_and_research_only_negative_case():
     assert any(c.expected_disposition == "acceptable" and c.concept_or_relation == "activity.workforce_training" for c in cases)
     assert any(c.expected_disposition == "acceptable_secondary" and c.concept_or_relation == "activity.research_evaluation" for c in cases)
     assert any(c.expected_disposition == "prohibited" and c.concept_or_relation == "activity.research_evaluation" for c in cases)
+    assert not any(c.concept_or_relation == "international operating scope" for c in cases)
 
 
 def test_world_vision_mechanism_is_not_activity_and_campaign_is_named():
     cases = build_scoped_benchmark_v2().cases
     assert any(c.expected_subject_kind == "mechanism" and c.concept_or_relation == "child sponsorship" for c in cases)
     assert any(c.expected_disposition == "prohibited" and c.concept_or_relation == "activity.community_engagement" for c in cases)
+    assert not any(c.expected_subject_kind == "sdg" and c.benchmark_scope_ref == "benchmark_scope_ref:world_vision:child-sponsorship" for c in cases)
     conservation = [c for c in cases if c.subject_name == "Australian Conservation Foundation Incorporated"]
     assert any(c.concept_or_relation == "Save our big backyard" and c.expected_subject_kind == "campaign" for c in conservation)
 
@@ -101,9 +104,35 @@ def test_world_vision_mechanism_is_not_activity_and_campaign_is_named():
 def test_real_evidence_backed_unresolved_cases_exist():
     benchmark = build_scoped_benchmark_v2()
     unresolved = [c for c in benchmark.cases if c.expected_disposition == "unresolved"]
-    assert len(unresolved) >= 3
-    assert all(c.evidence_locator_ids for c in unresolved)
+    assert len(unresolved) >= 2
+    assert all(c.evidence_locator_ids for c in unresolved if c.expected_subject_kind != "coverage_gap")
+    mission = [c for c in unresolved if c.subject_name == "Mission Australia"]
+    assert [c.concept_or_relation for c in mission] == ["Mission Australia program/service decomposition"]
+    assert not any("service family" in c.concept_or_relation for c in mission)
 
+
+def test_mission_identity_does_not_establish_named_service_propositions():
+    benchmark = build_scoped_benchmark_v2()
+    mission = [c for c in benchmark.cases if c.subject_name == "Mission Australia"]
+    assert any(c.expected_disposition == "required" and c.expected_subject_kind == "organisation" and c.evidence_locator_ids for c in mission)
+    assert all(c.expected_subject_kind != "candidate" for c in mission)
+    assert all(c.proposition_key != "identity_only" for c in mission)
+
+
+def test_frozen_scorecard_benchmark_completeness_gate():
+    report = benchmark_completeness(build_scoped_benchmark_v2())
+    assert report["identity_evaluable"] is True
+    assert report["operational_activity_evaluable"] is True
+    assert report["operational_activity_denominator"] >= 6
+    assert report["sdg_evaluable"] is True
+    assert report["sdg_denominator"] >= 5
+    assert report["program_benchmark_adequacy"] == "insufficient"
+    assert report["program_service_recall_precision_evaluable"] is False
+    assert "program_service" in report["blocked_task_families"]
+    assert report["classie_rights_disabled_path_evaluable"] is True
+    assert report["classie_semantic_assignment_evaluation"] == "blocked_until_rights_permit"
+    assert report["abstention_insufficient_evidence_evaluable"] is True
+    assert report["paid_execution_allowed"] is False
 
 def test_classie_rights_gate_and_holdout_firewall():
     assert CLASSIE_RIGHTS_GATE["material_discoverable"] is True

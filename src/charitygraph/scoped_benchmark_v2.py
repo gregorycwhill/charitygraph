@@ -77,18 +77,18 @@ class EvidenceRecord:
 # The registry is independent of benchmark cases and contains no source bodies.
 _EVIDENCE_METADATA = (
     {"member_abn":"28000030179","family":"acnc","source_record_id":"srcrec:4c6b1cf0478bfb09c5248e982d3ba830377dc4984681f126696d4d69ed03112e","url":"https://www.acnc.gov.au/charity/charities/charity-details?charity=28000030179","hash":"5754a3314a6be6a3fae85902c20aae8fb25d4df9d0cc6376adc17ecb0fd055c8","selector":"structured_field:display_name","propositions":["organisation_identity"]},
-    {"member_abn":"28000030179","family":"official-website","source_record_id":"srcrec:a7f1589c2890b7bcba6134e76438be2502897ad3b33989dca20de5df7938f4d6","url":"https://www.thesmithfamily.com.au/programs","hash":"2a0f3d95d9e19b79dd5711bf26ac57e108dbf930e93224a83467b6bcb5f9fffd","selector":"text:Learning for Life;Literacy programs;Numeracy programs","propositions":["smith_learning_for_life","smith_program_domains"]},
+    {"member_abn":"28000030179","family":"official-website","source_record_id":"srcrec:a7f1589c2890b7bcba6134e76438be2502897ad3b33989dca20de5df7938f4d6","url":"https://www.thesmithfamily.com.au/programs","hash":"2a0f3d95d9e19b79dd5711bf26ac57e108dbf930e93224a83467b6bcb5f9fffd","selector":"text:Learning for Life;Literacy programs;Numeracy programs","propositions":["smith_learning_for_life","smith_program_domains","smith_sdg4"]},
     {"member_abn":"50169561394","family":"acnc","source_record_id":"srcrec:652ac6ee1dd850a78bdc97cefc5a7123a64d13856bbb3e1f2657017030bbfcd8","url":"https://www.acnc.gov.au/charity/charities/charity-details?charity=50169561394","hash":"b07e3f21ad53fb2789301d55cf6d2da3b43e5b6fc30561a7cbc69a6b695050f0","selector":"structured_field:display_name","propositions":["organisation_identity"]},
-    {"member_abn":"50169561394","family":"official-website","source_record_id":"srcrec:a69080c0e0dcde793aae15d728da2d3b1cd75075a5e0015fd5ae4fb0043a4682","url":"https://www.redcross.org.au/about/what-we-do/","hash":"8deaee2436e6f4fed462572d9f0a7e8acb6c3aa7e2e6bd4f1d7879255a6d7c36","selector":"heading:Australian Red Cross Lifeblood;heading:Community activities and programs","propositions":["redcross_lifeblood_division","redcross_humanitarian_service"]},
+    {"member_abn":"50169561394","family":"official-website","source_record_id":"srcrec:a69080c0e0dcde793aae15d728da2d3b1cd75075a5e0015fd5ae4fb0043a4682","url":"https://www.redcross.org.au/about/what-we-do/","hash":"8deaee2436e6f4fed462572d9f0a7e8acb6c3aa7e2e6bd4f1d7879255a6d7c36","selector":"heading:Australian Red Cross Lifeblood;heading:Community activities and programs","propositions":["redcross_lifeblood_division","redcross_humanitarian_service","redcross_sdg3"]},
     {"member_abn":"20077830347","family":"acnc","source_record_id":"srcrec:662df54f07f918035ae3a3ebeec5be7e442ee4f4d77fd0fd3b1997a7a8f07135","url":"https://www.acnc.gov.au/charity/charities/charity-details?charity=20077830347","hash":"419b19d2297851f9b8c78aef0edcf2c6ff0c84879dd227c9df195f0ec18dc737","selector":"structured_field:display_name","propositions":["organisation_identity"]},
     {"member_abn":"20077830347","family":"official-website","source_record_id":"srcrec:486706d6577bdf9f85229b66a1cccbac2898bd713d24469d02e963d3f9ed5131","url":"https://communityfoundation.org.au/philanthropic-services/","hash":"9642000757f521cd9221622d4aa6441cbc43e76ea5b1da9d86e26276ada52a39","selector":"text:Corporate Fund;heading:Philanthropic Services","propositions":["acf_philanthropic_services","acf_fund_boundary"]},
     {"member_abn":"22007498482","family":"acnc","source_record_id":"srcrec:7adf694673e8cf471dc703c1f7359dbc4506ab91d87df87bbf0727a6d36c85d1","url":"https://www.acnc.gov.au/charity/charities/charity-details?charity=22007498482","hash":"bad1d991f9322dbf4ea28b4236a0797c71766510bf667a6be2601069723bb55a","selector":"structured_field:display_name","propositions":["organisation_identity"]},
-    {"member_abn":"22007498482","family":"official-website","source_record_id":"srcrec:27dbb6e6de02cfb63f5c1862c88ef0df436ab7bf094aff27587761090b493671","url":"https://www.acf.org.au/our-work","hash":"72ae3653a7acbd1f66beec05970ec1bd030bb35a4cc8cfb59e048cb58e63c7be","selector":"heading:Save our big backyard;heading:Corporate campaigns;heading:Environmental investigations","propositions":["acf_campaign","acf_advocacy","acf_policy_change"]},
+    {"member_abn":"22007498482","family":"official-website","source_record_id":"srcrec:27dbb6e6de02cfb63f5c1862c88ef0df436ab7bf094aff27587761090b493671","url":"https://www.acf.org.au/our-work","hash":"72ae3653a7acbd1f66beec05970ec1bd030bb35a4cc8cfb59e048cb58e63c7be","selector":"heading:Save our big backyard;heading:Corporate campaigns;heading:Environmental investigations","propositions":["acf_campaign","acf_advocacy","acf_policy_change","acf_sdg13","acf_sdg15"]},
     {"member_abn":"15000002522","family":"acnc","source_record_id":"srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af","url":"https://www.acnc.gov.au/charity/charities/charity-details?charity=15000002522","hash":"41ad91ea63e074c5d85cfbaaa368772a91d0bbd472c8dc774fa70277dfb8ccea","selector":"structured_field:display_name","propositions":["organisation_identity","identity_only"]},
     {"member_abn":"28004778081","family":"acnc","source_record_id":"srcrec:805f0dc884bfc229ef31c66225a21980fa917a5703a0c3d4cf5bc5f31dde96a4","url":"https://www.acnc.gov.au/charity/charities/charity-details?charity=28004778081","hash":"4250ef9627230fb2525801f8e508f756bfdc250946c65e085a3f894fc4a92c51","selector":"structured_field:display_name","propositions":["organisation_identity","identity_only"]},
-    {"member_abn":"28004778081","family":"official-website","source_record_id":"srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a","url":"https://www.worldvision.com.au/about-child-sponsorship","hash":"bf244653e878e289a43ce90333fbb4fb13771a4f217add5195a94fa27d757812","selector":"text:child sponsorship;text:healthcare, education, water, sanitation and food","propositions":["worldvision_child_sponsorship","worldvision_activity_domains"]},
+    {"member_abn":"28004778081","family":"official-website","source_record_id":"srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a","url":"https://www.worldvision.com.au/about-child-sponsorship","hash":"bf244653e878e289a43ce90333fbb4fb13771a4f217add5195a94fa27d757812","selector":"text:child sponsorship;text:healthcare, education, water, sanitation and food","propositions":["worldvision_child_sponsorship","worldvision_activity_domains","worldvision_sdg4"]},
     {"member_abn":"46070556642","family":"acnc","source_record_id":"srcrec:919df45fbbc01fa5bc8738fa055c186afaa0cafee0492c4a89a7ce11cb8296b0","url":"https://www.acnc.gov.au/charity/charities/charity-details?charity=46070556642","hash":"6d01ae40390c30ebd64e6068fe33623b4150abd9e4160e25d56eb0df2669baf4","selector":"structured_field:display_name","propositions":["organisation_identity"]},
-    {"member_abn":"46070556642","family":"official-website","source_record_id":"srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966","url":"https://www.hollows.org/what-we-do/","hash":"57103b0ceae5fd23f38293b2965e55bf02cd51ba4f0951c6a3c4972e57f54855","selector":"heading:Ending Avoidable Blindness;heading:Research and Technology;heading:Advocacy;heading:Training;heading:Indigenous Australia","propositions":["fred_eye_health","fred_research","fred_advocacy","fred_training","fred_indigenous_scope","fred_international_scope"]},
+    {"member_abn":"46070556642","family":"official-website","source_record_id":"srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966","url":"https://www.hollows.org/what-we-do/","hash":"57103b0ceae5fd23f38293b2965e55bf02cd51ba4f0951c6a3c4972e57f54855","selector":"heading:Ending Avoidable Blindness;heading:Research and Technology;heading:Advocacy;heading:Training;heading:Indigenous Australia","propositions":["fred_eye_health","fred_research","fred_advocacy","fred_training","fred_indigenous_scope"]},
 )
 
 
@@ -162,9 +162,13 @@ def build_benchmark_cases() -> tuple[BenchmarkCase, ...]:
         _case("smith_family", "learning-for-life", "program", "durable_subject", "entity_decomposition", "required", "Learning for Life", "smith_learning_for_life", "actual named program on the official programs page", relation="has_program", target="benchmark_candidate_ref:smith:learning-for-life"),
         _case("smith_family", "literacy-programs", "service_domain", "semantic_domain", "entity_decomposition", "acceptable", "Literacy programs", "smith_program_domains", "source names a program domain; no durable SubjectRecord is asserted", evidence=True),
         _case("smith_family", "numeracy-programs", "service_domain", "semantic_domain", "entity_decomposition", "acceptable_secondary", "Numeracy programs", "smith_program_domains", "source names a program domain; no durable SubjectRecord is asserted", evidence=True),
+        _case("smith_family", "education-support", "activity", "semantic_domain", "operational_activity", "required", "activity.education_support_delivery", "smith_program_domains", "Learning for Life and the named literacy/numeracy programs establish education-support delivery"),
+        _case("smith_family", "learning-for-life-sdg4", "sdg", "semantic_domain", "sdg_alignment", "required", "sdg:4", "smith_sdg4", "SDG 4 is scoped to the evidenced Learning for Life education-support scope, not mechanically to every organisation claim"),
         _case("red_cross", "organisation", "organisation", "durable_subject", "entity_decomposition", "required", "Australian Red Cross Society", "organisation_identity", "governed organisation identity"),
         _case("red_cross", "lifeblood", "division", "organisational_scope", "relationship", "required", "Lifeblood", "redcross_lifeblood_division", "official page names Lifeblood as an operating division", relation="has_division", target="benchmark_candidate_ref:red-cross:lifeblood"),
         _case("red_cross", "humanitarian-services", "service_domain", "semantic_domain", "entity_decomposition", "acceptable", "humanitarian and community services", "redcross_humanitarian_service", "official page supports separately scoped service domains"),
+        _case("red_cross", "humanitarian-service-activity", "activity", "semantic_domain", "operational_activity", "required", "activity.direct_service_delivery", "redcross_humanitarian_service", "humanitarian and community service scope supports direct service delivery"),
+        _case("red_cross", "lifeblood-sdg3", "sdg", "semantic_domain", "sdg_alignment", "required", "sdg:3", "redcross_sdg3", "SDG 3 is scoped specifically to Lifeblood, not asserted for all Red Cross activity"),
         _case("red_cross", "lifeblood-as-program", "program", "benchmark_candidate_ref", "entity_decomposition", "prohibited", "Lifeblood as ordinary program", "redcross_lifeblood_division", "same evidence establishes division; ontology rule prohibits program promotion", correct="Lifeblood is a division/operating scope", evidence=True),
         _case("acf", "organisation", "organisation", "durable_subject", "entity_decomposition", "required", "Australian Communities Foundation", "organisation_identity", "governed organisation identity"),
         _case("acf", "philanthropic-services", "service_domain", "semantic_domain", "entity_decomposition", "acceptable", "Philanthropic Services", "acf_philanthropic_services", "official service page names a service line, not a durable program"),
@@ -175,18 +179,17 @@ def build_benchmark_cases() -> tuple[BenchmarkCase, ...]:
         _case("conservation", "campaign-as-program", "program", "benchmark_candidate_ref", "entity_decomposition", "prohibited", "campaign promoted to program", "acf_campaign", "campaign evidence does not establish a durable program", correct="retain campaign type", evidence=True),
         _case("conservation", "advocacy", "activity", "semantic_domain", "operational_activity", "required", "activity.advocacy", "acf_advocacy", "official work page supports advocacy"),
         _case("conservation", "policy-change", "activity", "semantic_domain", "operational_activity", "acceptable", "activity.policy_change", "acf_policy_change", "official work page supports policy/systems action"),
-        _case("mission", "housing", "candidate", "benchmark_candidate_ref", "scope_decomposition", "unresolved", "housing/homelessness service family", "identity_only", "the bounded preflight acquired only ABN identity evidence; service-family boundary remains unresolved", evidence=True),
-        _case("mission", "children-families", "candidate", "benchmark_candidate_ref", "scope_decomposition", "unresolved", "children and families service family", "identity_only", "no proposition-specific service evidence was acquired", evidence=True),
-        _case("mission", "employment", "candidate", "benchmark_candidate_ref", "scope_decomposition", "unresolved", "employment service family", "identity_only", "no proposition-specific service evidence was acquired", evidence=True),
-        _case("mission", "mental-health", "candidate", "benchmark_candidate_ref", "scope_decomposition", "unresolved", "mental health service family", "identity_only", "no proposition-specific service evidence was acquired", evidence=True),
-        _case("mission", "disability", "candidate", "benchmark_candidate_ref", "scope_decomposition", "unresolved", "disability service family", "identity_only", "no proposition-specific service evidence was acquired", evidence=True),
-        _case("mission", "alcohol-drugs", "candidate", "benchmark_candidate_ref", "scope_decomposition", "unresolved", "alcohol and other drug service family", "identity_only", "no proposition-specific service evidence was acquired", evidence=True),
+        _case("conservation", "sdg15", "sdg", "semantic_domain", "sdg_alignment", "required", "sdg:15", "acf_sdg15", "the environmental campaign/investigation evidence supports a scoped Life on Land alignment"),
+        _case("conservation", "sdg13", "sdg", "semantic_domain", "sdg_alignment", "acceptable_secondary", "sdg:13", "acf_sdg13", "the environmental campaign/investigation evidence supports a secondary Climate Action alignment"),
+        _case("mission", "organisation", "organisation", "durable_subject", "entity_decomposition", "required", "Mission Australia", "organisation_identity", "governed organisation identity"),
+        _case("mission", "program-service-decomposition", "coverage_gap", "benchmark_coverage", "scope_decomposition", "unresolved", "Mission Australia program/service decomposition", "mission_service_decomposition_unavailable", "bounded official-site attempt was blocked and acquired evidence establishes identity only; no specific service family is asserted; attempted homepage: https://www.missionaustralia.com.au", evidence=False),
         _case("world_vision", "organisation", "organisation", "durable_subject", "entity_decomposition", "required", "World Vision Australia", "organisation_identity", "governed organisation identity"),
         _case("world_vision", "child-sponsorship", "mechanism", "semantic_domain", "mechanism_decomposition", "required", "child sponsorship", "worldvision_child_sponsorship", "official page describes child sponsorship as donor engagement", relation="has_engagement_mechanism", target="benchmark_candidate_ref:world-vision:child-sponsorship"),
         _case("world_vision", "sponsorship-as-activity", "activity", "benchmark_candidate_ref", "operational_activity", "prohibited", "activity.community_engagement", "worldvision_child_sponsorship", "same evidence establishes the mechanism; it is not an operational activity", correct="child sponsorship is a fundraising/engagement mechanism", evidence=True),
         _case("world_vision", "community-development", "activity", "semantic_domain", "operational_activity", "acceptable", "activity.community_development", "worldvision_activity_domains", "source describes work in sponsorship communities; no durable program is asserted"),
         _case("world_vision", "education", "activity", "semantic_domain", "operational_activity", "acceptable_secondary", "activity.education_support_delivery", "worldvision_activity_domains", "source names education as a work domain, not a named durable program"),
         _case("world_vision", "health", "activity", "semantic_domain", "operational_activity", "acceptable_secondary", "activity.health_clinical_service_delivery", "worldvision_activity_domains", "source names healthcare as a work domain, not a named durable program"),
+        _case("world_vision", "community-development-sdg4", "sdg", "semantic_domain", "sdg_alignment", "acceptable", "sdg:4", "worldvision_sdg4", "education is scoped to the evidenced community work domain, not to the donor mechanism"),
         _case("fred_hollows", "organisation", "organisation", "durable_subject", "entity_decomposition", "required", "The Fred Hollows Foundation", "organisation_identity", "governed organisation identity"),
         _case("fred_hollows", "eye-health", "activity", "semantic_domain", "operational_activity", "required", "activity.health_clinical_service_delivery", "fred_eye_health", "Ending Avoidable Blindness and eye-care evidence require clinical health activity"),
         _case("fred_hollows", "training", "activity", "semantic_domain", "operational_activity", "acceptable", "activity.workforce_training", "fred_training", "official page names Training"),
@@ -195,7 +198,6 @@ def build_benchmark_cases() -> tuple[BenchmarkCase, ...]:
         _case("fred_hollows", "research", "activity", "semantic_domain", "operational_activity", "acceptable_secondary", "activity.research_evaluation", "fred_research", "official page names Research and Technology"),
         _case("fred_hollows", "research-only", "activity", "benchmark_candidate_ref", "operational_activity", "prohibited", "activity.research_evaluation", "fred_eye_health", "clinical evidence demonstrates why research-only is incomplete", correct="retain clinical health plus other supported activities", evidence=True),
         _case("fred_hollows", "indigenous-australia", "portfolio_scope", "organisational_scope", "scope_decomposition", "required", "Indigenous Australia scope", "fred_indigenous_scope", "official page names Indigenous Australia separately", relation="has_operating_scope", target="benchmark_candidate_ref:fred:indigenous-australia"),
-        _case("fred_hollows", "international", "portfolio_scope", "organisational_scope", "scope_decomposition", "required", "international operating scope", "fred_international_scope", "official page names international regions separately", relation="has_operating_scope", target="benchmark_candidate_ref:fred:international"),
         _case("fred_hollows", "sdg3", "sdg", "semantic_domain", "sdg_alignment", "required", "sdg:3", "fred_eye_health", "health alignment is evidence-bound"),
     ]
     return tuple(rows)
@@ -248,8 +250,45 @@ class ScopedBenchmarkV2:
 
     def to_dict(self, evidence_registry: Mapping[str, EvidenceRecord] | None = None) -> dict[str, object]:
         registry = evidence_registry or build_evidence_registry()
-        return {"benchmark_version": self.benchmark_version, "status": self.status, "provenance": PROVENANCE, "activity_vocabulary": {"version": self.activity_vocabulary_version, "concept_ids": list(ACTIVITY_CONCEPT_IDS)}, "classie": dict(self.classie), "evidence_registry": [record.to_dict() for record in registry.values()], "cases": [case.to_dict() for case in self.cases]}
+        return {"benchmark_version": self.benchmark_version, "status": self.status, "provenance": PROVENANCE, "activity_vocabulary": {"version": self.activity_vocabulary_version, "concept_ids": list(ACTIVITY_CONCEPT_IDS)}, "classie": dict(self.classie), "evidence_registry": [record.to_dict() for record in registry.values()], "cases": [case.to_dict() for case in self.cases], "completeness": benchmark_completeness(self)}
 
+
+def benchmark_completeness(benchmark: ScopedBenchmarkV2 | None = None) -> dict[str, object]:
+    """Report deterministic benchmark coverage before any paid execution."""
+    benchmark = benchmark or ScopedBenchmarkV2(build_benchmark_cases())
+    cases = benchmark.cases
+    development_subjects = set(SUBJECT_IDS.values())
+    identity_subjects = {c.subject_id for c in cases if c.expected_subject_kind == "organisation" and c.expected_disposition == "required"}
+    durable_program_subjects = {c.subject_id for c in cases if c.expected_subject_kind in {"program", "service"} and c.durability_expectation == "durable_subject" and c.expected_disposition != "prohibited"}
+    activity_subjects = {c.subject_id for c in cases if c.expected_subject_kind == "activity" and c.expected_disposition in {"required", "acceptable", "acceptable_secondary"} and c.concept_or_relation in ACTIVITY_CONCEPT_IDS}
+    sdg_subjects = {c.subject_id for c in cases if c.expected_subject_kind == "sdg" and c.expected_disposition in {"required", "acceptable", "acceptable_secondary"} and c.evidence_locator_ids}
+    scope_cases = [c for c in cases if c.task_family in {"scope_decomposition_v2", "relationship_v2"}]
+    unresolved_cases = [c for c in cases if c.expected_disposition == "unresolved"]
+    accepted_cases = [c for c in cases if c.expected_disposition not in {"unresolved", "prohibited"}]
+    program_adequate = len(durable_program_subjects) >= 2
+    result = {
+        "identity_evaluable": development_subjects <= identity_subjects,
+        "program_service_recall_precision_evaluable": program_adequate,
+        "program_benchmark_adequacy": "adequate" if program_adequate else "insufficient",
+        "scope_accuracy_evaluable": bool(scope_cases),
+        "operational_activity_evaluable": len(activity_subjects) >= 6,
+        "operational_activity_denominator": len(activity_subjects),
+        "operational_activity_subject_ids": sorted(activity_subjects),
+        "sdg_evaluable": len(sdg_subjects) >= 5,
+        "sdg_denominator": len(sdg_subjects),
+        "sdg_subject_ids": sorted(sdg_subjects),
+        "classie_rights_disabled_path_evaluable": benchmark.classie.get("status") == "blocked_pending_rights_review" and benchmark.classie.get("native_material_committed") is False,
+        "classie_semantic_assignment_evaluation": "blocked_until_rights_permit",
+        "abstention_insufficient_evidence_evaluable": bool(unresolved_cases),
+        "provenance_lineage_evaluable": all(c.evidence_locator_ids for c in accepted_cases),
+        "economics_replay_evaluable": True,
+        "blocked_task_families": ([] if program_adequate else ["program_service"]),
+    }
+    result["paid_execution_allowed"] = not result["blocked_task_families"]
+    return result
+
+
+check_benchmark_completeness = benchmark_completeness
 
 def build_scoped_benchmark_v2(evidence_registry: Mapping[str, EvidenceRecord] | None = None) -> ScopedBenchmarkV2:
     registry = evidence_registry or build_evidence_registry()

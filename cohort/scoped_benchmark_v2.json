@@ -115,6 +115,54 @@
       "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:smith_family:education-support",
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:smith_family:education-support:activity.education_support_delivery",
+      "concept_or_relation": "activity.education_support_delivery",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:a7f1589c2890b7bcba6134e76438be2502897ad3b33989dca20de5df7938f4d6"
+      ],
+      "expected_disposition": "required",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "smith_program_domains",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "Learning for Life and the named literacy/numeracy programs establish education-support delivery",
+      "relationship_type": null,
+      "review_status": "proposed",
+      "scope_kind": "activity",
+      "subject_id": "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c",
+      "subject_name": "The Smith Family",
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
+    },
+    {
+      "benchmark_scope_ref": "benchmark_scope_ref:smith_family:learning-for-life-sdg4",
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:smith_family:learning-for-life-sdg4:sdg:4",
+      "concept_or_relation": "sdg:4",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:a7f1589c2890b7bcba6134e76438be2502897ad3b33989dca20de5df7938f4d6"
+      ],
+      "expected_disposition": "required",
+      "expected_subject_kind": "sdg",
+      "parent_subject_id": null,
+      "proposition_key": "smith_sdg4",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "SDG 4 is scoped to the evidenced Learning for Life education-support scope, not mechanically to every organisation claim",
+      "relationship_type": null,
+      "review_status": "proposed",
+      "scope_kind": "sdg",
+      "subject_id": "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c",
+      "subject_name": "The Smith Family",
+      "target_ref": null,
+      "task_family": "sdg_alignment_v2"
+    },
+    {
       "benchmark_scope_ref": null,
       "benchmark_version": "2.0",
       "case_id": "sbv2:red_cross:organisation:Australian Red Cross Society",
@@ -185,6 +233,54 @@
       "subject_name": "Australian Red Cross Society",
       "target_ref": null,
       "task_family": "entity_decomposition_v2"
+    },
+    {
+      "benchmark_scope_ref": "benchmark_scope_ref:red_cross:humanitarian-service-activity",
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:red_cross:humanitarian-service-activity:activity.direct_service_delivery",
+      "concept_or_relation": "activity.direct_service_delivery",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:a69080c0e0dcde793aae15d728da2d3b1cd75075a5e0015fd5ae4fb0043a4682"
+      ],
+      "expected_disposition": "required",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "redcross_humanitarian_service",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "humanitarian and community service scope supports direct service delivery",
+      "relationship_type": null,
+      "review_status": "proposed",
+      "scope_kind": "activity",
+      "subject_id": "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
+      "subject_name": "Australian Red Cross Society",
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
+    },
+    {
+      "benchmark_scope_ref": "benchmark_scope_ref:red_cross:lifeblood-sdg3",
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:red_cross:lifeblood-sdg3:sdg:3",
+      "concept_or_relation": "sdg:3",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:a69080c0e0dcde793aae15d728da2d3b1cd75075a5e0015fd5ae4fb0043a4682"
+      ],
+      "expected_disposition": "required",
+      "expected_subject_kind": "sdg",
+      "parent_subject_id": null,
+      "proposition_key": "redcross_sdg3",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "SDG 3 is scoped specifically to Lifeblood, not asserted for all Red Cross activity",
+      "relationship_type": null,
+      "review_status": "proposed",
+      "scope_kind": "sdg",
+      "subject_id": "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
+      "subject_name": "Australian Red Cross Society",
+      "target_ref": null,
+      "task_family": "sdg_alignment_v2"
     },
     {
       "benchmark_scope_ref": "benchmark_scope_ref:red_cross:lifeblood-as-program",
@@ -427,144 +523,94 @@
       "task_family": "operational_activity_v2"
     },
     {
-      "benchmark_scope_ref": "benchmark_scope_ref:mission:housing",
+      "benchmark_scope_ref": "benchmark_scope_ref:conservation:sdg15",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:housing:housing/homelessness service family",
-      "concept_or_relation": "housing/homelessness service family",
+      "case_id": "sbv2:conservation:sdg15:sdg:15",
+      "concept_or_relation": "sdg:15",
       "correct_interpretation": null,
-      "durability_expectation": "benchmark_candidate_ref",
+      "durability_expectation": "semantic_domain",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:27dbb6e6de02cfb63f5c1862c88ef0df436ab7bf094aff27587761090b493671"
+      ],
+      "expected_disposition": "required",
+      "expected_subject_kind": "sdg",
+      "parent_subject_id": null,
+      "proposition_key": "acf_sdg15",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "the environmental campaign/investigation evidence supports a scoped Life on Land alignment",
+      "relationship_type": null,
+      "review_status": "proposed",
+      "scope_kind": "sdg",
+      "subject_id": "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
+      "subject_name": "Australian Conservation Foundation Incorporated",
+      "target_ref": null,
+      "task_family": "sdg_alignment_v2"
+    },
+    {
+      "benchmark_scope_ref": "benchmark_scope_ref:conservation:sdg13",
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:conservation:sdg13:sdg:13",
+      "concept_or_relation": "sdg:13",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:27dbb6e6de02cfb63f5c1862c88ef0df436ab7bf094aff27587761090b493671"
+      ],
+      "expected_disposition": "acceptable_secondary",
+      "expected_subject_kind": "sdg",
+      "parent_subject_id": null,
+      "proposition_key": "acf_sdg13",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "the environmental campaign/investigation evidence supports a secondary Climate Action alignment",
+      "relationship_type": null,
+      "review_status": "proposed",
+      "scope_kind": "sdg",
+      "subject_id": "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
+      "subject_name": "Australian Conservation Foundation Incorporated",
+      "target_ref": null,
+      "task_family": "sdg_alignment_v2"
+    },
+    {
+      "benchmark_scope_ref": null,
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:mission:organisation:Mission Australia",
+      "concept_or_relation": "Mission Australia",
+      "correct_interpretation": null,
+      "durability_expectation": "durable_subject",
       "evidence_locator_ids": [
         "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
       ],
-      "expected_disposition": "unresolved",
-      "expected_subject_kind": "candidate",
+      "expected_disposition": "required",
+      "expected_subject_kind": "organisation",
       "parent_subject_id": null,
-      "proposition_key": "identity_only",
+      "proposition_key": "organisation_identity",
       "provenance": "human-directed-design-machine-source-assisted-proposed",
-      "rationale": "the bounded preflight acquired only ABN identity evidence; service-family boundary remains unresolved",
+      "rationale": "governed organisation identity",
       "relationship_type": null,
       "review_status": "proposed",
-      "scope_kind": "candidate",
+      "scope_kind": "organisation",
       "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
       "subject_name": "Mission Australia",
       "target_ref": null,
-      "task_family": "scope_decomposition_v2"
+      "task_family": "entity_decomposition_v2"
     },
     {
-      "benchmark_scope_ref": "benchmark_scope_ref:mission:children-families",
+      "benchmark_scope_ref": "benchmark_scope_ref:mission:program-service-decomposition",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:children-families:children and families service family",
-      "concept_or_relation": "children and families service family",
+      "case_id": "sbv2:mission:program-service-decomposition:Mission Australia program/service decomposition",
+      "concept_or_relation": "Mission Australia program/service decomposition",
       "correct_interpretation": null,
-      "durability_expectation": "benchmark_candidate_ref",
-      "evidence_locator_ids": [
-        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
-      ],
+      "durability_expectation": "benchmark_coverage",
+      "evidence_locator_ids": [],
       "expected_disposition": "unresolved",
-      "expected_subject_kind": "candidate",
+      "expected_subject_kind": "coverage_gap",
       "parent_subject_id": null,
-      "proposition_key": "identity_only",
+      "proposition_key": "mission_service_decomposition_unavailable",
       "provenance": "human-directed-design-machine-source-assisted-proposed",
-      "rationale": "no proposition-specific service evidence was acquired",
+      "rationale": "bounded official-site attempt was blocked and acquired evidence establishes identity only; no specific service family is asserted; attempted homepage: https://www.missionaustralia.com.au",
       "relationship_type": null,
       "review_status": "proposed",
-      "scope_kind": "candidate",
-      "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
-      "subject_name": "Mission Australia",
-      "target_ref": null,
-      "task_family": "scope_decomposition_v2"
-    },
-    {
-      "benchmark_scope_ref": "benchmark_scope_ref:mission:employment",
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:employment:employment service family",
-      "concept_or_relation": "employment service family",
-      "correct_interpretation": null,
-      "durability_expectation": "benchmark_candidate_ref",
-      "evidence_locator_ids": [
-        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
-      ],
-      "expected_disposition": "unresolved",
-      "expected_subject_kind": "candidate",
-      "parent_subject_id": null,
-      "proposition_key": "identity_only",
-      "provenance": "human-directed-design-machine-source-assisted-proposed",
-      "rationale": "no proposition-specific service evidence was acquired",
-      "relationship_type": null,
-      "review_status": "proposed",
-      "scope_kind": "candidate",
-      "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
-      "subject_name": "Mission Australia",
-      "target_ref": null,
-      "task_family": "scope_decomposition_v2"
-    },
-    {
-      "benchmark_scope_ref": "benchmark_scope_ref:mission:mental-health",
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:mental-health:mental health service family",
-      "concept_or_relation": "mental health service family",
-      "correct_interpretation": null,
-      "durability_expectation": "benchmark_candidate_ref",
-      "evidence_locator_ids": [
-        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
-      ],
-      "expected_disposition": "unresolved",
-      "expected_subject_kind": "candidate",
-      "parent_subject_id": null,
-      "proposition_key": "identity_only",
-      "provenance": "human-directed-design-machine-source-assisted-proposed",
-      "rationale": "no proposition-specific service evidence was acquired",
-      "relationship_type": null,
-      "review_status": "proposed",
-      "scope_kind": "candidate",
-      "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
-      "subject_name": "Mission Australia",
-      "target_ref": null,
-      "task_family": "scope_decomposition_v2"
-    },
-    {
-      "benchmark_scope_ref": "benchmark_scope_ref:mission:disability",
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:disability:disability service family",
-      "concept_or_relation": "disability service family",
-      "correct_interpretation": null,
-      "durability_expectation": "benchmark_candidate_ref",
-      "evidence_locator_ids": [
-        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
-      ],
-      "expected_disposition": "unresolved",
-      "expected_subject_kind": "candidate",
-      "parent_subject_id": null,
-      "proposition_key": "identity_only",
-      "provenance": "human-directed-design-machine-source-assisted-proposed",
-      "rationale": "no proposition-specific service evidence was acquired",
-      "relationship_type": null,
-      "review_status": "proposed",
-      "scope_kind": "candidate",
-      "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
-      "subject_name": "Mission Australia",
-      "target_ref": null,
-      "task_family": "scope_decomposition_v2"
-    },
-    {
-      "benchmark_scope_ref": "benchmark_scope_ref:mission:alcohol-drugs",
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:alcohol-drugs:alcohol and other drug service family",
-      "concept_or_relation": "alcohol and other drug service family",
-      "correct_interpretation": null,
-      "durability_expectation": "benchmark_candidate_ref",
-      "evidence_locator_ids": [
-        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
-      ],
-      "expected_disposition": "unresolved",
-      "expected_subject_kind": "candidate",
-      "parent_subject_id": null,
-      "proposition_key": "identity_only",
-      "provenance": "human-directed-design-machine-source-assisted-proposed",
-      "rationale": "no proposition-specific service evidence was acquired",
-      "relationship_type": null,
-      "review_status": "proposed",
-      "scope_kind": "candidate",
+      "scope_kind": "coverage_gap",
       "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
       "subject_name": "Mission Australia",
       "target_ref": null,
@@ -713,6 +759,30 @@
       "subject_name": "World Vision Australia",
       "target_ref": null,
       "task_family": "operational_activity_v2"
+    },
+    {
+      "benchmark_scope_ref": "benchmark_scope_ref:world_vision:community-development-sdg4",
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:world_vision:community-development-sdg4:sdg:4",
+      "concept_or_relation": "sdg:4",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a"
+      ],
+      "expected_disposition": "acceptable",
+      "expected_subject_kind": "sdg",
+      "parent_subject_id": null,
+      "proposition_key": "worldvision_sdg4",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "education is scoped to the evidenced community work domain, not to the donor mechanism",
+      "relationship_type": null,
+      "review_status": "proposed",
+      "scope_kind": "sdg",
+      "subject_id": "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
+      "subject_name": "World Vision Australia",
+      "target_ref": null,
+      "task_family": "sdg_alignment_v2"
     },
     {
       "benchmark_scope_ref": null,
@@ -907,30 +977,6 @@
       "task_family": "scope_decomposition_v2"
     },
     {
-      "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:international",
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:fred_hollows:international:international operating scope",
-      "concept_or_relation": "international operating scope",
-      "correct_interpretation": null,
-      "durability_expectation": "organisational_scope",
-      "evidence_locator_ids": [
-        "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966"
-      ],
-      "expected_disposition": "required",
-      "expected_subject_kind": "portfolio_scope",
-      "parent_subject_id": null,
-      "proposition_key": "fred_international_scope",
-      "provenance": "human-directed-design-machine-source-assisted-proposed",
-      "rationale": "official page names international regions separately",
-      "relationship_type": "has_operating_scope",
-      "review_status": "proposed",
-      "scope_kind": "portfolio_scope",
-      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
-      "subject_name": "The Fred Hollows Foundation",
-      "target_ref": "benchmark_candidate_ref:fred:international",
-      "task_family": "scope_decomposition_v2"
-    },
-    {
       "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:sdg3",
       "benchmark_version": "2.0",
       "case_id": "sbv2:fred_hollows:sdg3:sdg:3",
@@ -966,6 +1012,40 @@
     "synthetic_ids_created": false,
     "version": "4.2"
   },
+  "completeness": {
+    "abstention_insufficient_evidence_evaluable": true,
+    "blocked_task_families": [
+      "program_service"
+    ],
+    "classie_rights_disabled_path_evaluable": true,
+    "classie_semantic_assignment_evaluation": "blocked_until_rights_permit",
+    "economics_replay_evaluable": true,
+    "identity_evaluable": true,
+    "operational_activity_denominator": 6,
+    "operational_activity_evaluable": true,
+    "operational_activity_subject_ids": [
+      "subject:11723c321bfbb575c2a13e93c18a310b52d760e305b44c2db9bdf9e62b1a0bc8",
+      "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
+      "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
+      "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
+      "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
+      "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c"
+    ],
+    "paid_execution_allowed": false,
+    "program_benchmark_adequacy": "insufficient",
+    "program_service_recall_precision_evaluable": false,
+    "provenance_lineage_evaluable": true,
+    "scope_accuracy_evaluable": true,
+    "sdg_denominator": 5,
+    "sdg_evaluable": true,
+    "sdg_subject_ids": [
+      "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
+      "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
+      "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
+      "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
+      "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c"
+    ]
+  },
   "evidence_registry": [
     {
       "content_hash": "5754a3314a6be6a3fae85902c20aae8fb25d4df9d0cc6376adc17ecb0fd055c8",
@@ -989,7 +1069,8 @@
       "source_record_id": "srcrec:a7f1589c2890b7bcba6134e76438be2502897ad3b33989dca20de5df7938f4d6",
       "supported_propositions": [
         "smith_learning_for_life",
-        "smith_program_domains"
+        "smith_program_domains",
+        "smith_sdg4"
       ]
     },
     {
@@ -1014,7 +1095,8 @@
       "source_record_id": "srcrec:a69080c0e0dcde793aae15d728da2d3b1cd75075a5e0015fd5ae4fb0043a4682",
       "supported_propositions": [
         "redcross_lifeblood_division",
-        "redcross_humanitarian_service"
+        "redcross_humanitarian_service",
+        "redcross_sdg3"
       ]
     },
     {
@@ -1065,7 +1147,9 @@
       "supported_propositions": [
         "acf_campaign",
         "acf_advocacy",
-        "acf_policy_change"
+        "acf_policy_change",
+        "acf_sdg13",
+        "acf_sdg15"
       ]
     },
     {
@@ -1104,7 +1188,8 @@
       "source_record_id": "srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a",
       "supported_propositions": [
         "worldvision_child_sponsorship",
-        "worldvision_activity_domains"
+        "worldvision_activity_domains",
+        "worldvision_sdg4"
       ]
     },
     {
@@ -1132,8 +1217,7 @@
         "fred_research",
         "fred_advocacy",
         "fred_training",
-        "fred_indigenous_scope",
-        "fred_international_scope"
+        "fred_indigenous_scope"
       ]
     }
   ],
