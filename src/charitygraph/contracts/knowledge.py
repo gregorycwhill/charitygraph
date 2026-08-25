@@ -393,6 +393,8 @@ class Observation(ArtifactRecord):
             edge = supersedes_edges[0]
             if edge.source_artifact_id != self.record_id or edge.target_artifact_id != self.supersedes_observation_id:
                 raise ValueError("supersedes edge must run from the new observation to supersedes_observation_id")
+            if self.lifecycle_status == "superseded":
+                raise ValueError("a superseding observation must remain accepted or edited")
         return self
 
 
@@ -469,6 +471,8 @@ class Assertion(ArtifactRecord):
             edge = supersedes_edges[0]
             if edge.source_artifact_id != self.record_id or edge.target_artifact_id != self.supersedes_assertion_id:
                 raise ValueError("supersedes edge must run from the new assertion to supersedes_assertion_id")
+            if self.lifecycle_status == "superseded":
+                raise ValueError("a superseding assertion must remain accepted or edited")
         return self
 
 

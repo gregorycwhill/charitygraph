@@ -163,7 +163,7 @@ def test_observation_assertion_history_preserves_edits_contradictions_and_withdr
     original = assertion("assertion:" + "8" * 32, (first.record_id,))
     edited = assertion(
         "assertion:" + "9" * 32, (second.record_id,), value="updated",
-        lifecycle="superseded", supersedes=original.record_id,
+        lifecycle="edited", supersedes=original.record_id,
     )
     catalog.record_assertion(original)
     catalog.record_assertion(edited)
@@ -176,12 +176,14 @@ def test_observation_assertion_history_preserves_edits_contradictions_and_withdr
     )
     catalog.record_assertion(contradiction)
     catalog.record_assertion(withdrawn)
-    catalog.record_lineage(original.record_id, edited.record_id, "supersedes")
     history = catalog.reconstruct_knowledge_history(SUBJECT_A)
     assert {item["assertion_id"] for item in history["assertions"]} == {
         original.record_id, edited.record_id, contradiction.record_id, withdrawn.record_id,
     }
     assert any(edge["edge_type"] == "supersedes" for edge in history["lineage"])
+    assert [item["assertion_id"] for item in history["current_assertions"]] == [edited.record_id]
+    assert catalog.record_assertion(edited)["assertion_id"] == edited.record_id
+    assert [item["assertion_id"] for item in catalog.reconstruct_knowledge_history(SUBJECT_A)["current_assertions"]] == [edited.record_id]
 
 
 def test_evidence_to_observation_to_assertion_to_decision_lineage_is_directed(tmp_path):

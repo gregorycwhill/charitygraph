@@ -1344,6 +1344,23 @@ class SQLiteCatalog:
             and target_record_id.startswith(("observation:", "assertion:"))
         ):
             raise ConflictError("supersedes lineage must connect observations or assertions")
+        if edge_type == "supersedes":
+            with self._connection() as check_conn:
+                source = None
+                if source_record_id.startswith("observation:"):
+                    source = check_conn.execute(
+                        "SELECT supersedes_observation_id FROM knowledge_observations WHERE observation_id=?",
+                        (source_record_id,),
+                    ).fetchone()
+                elif source_record_id.startswith("assertion:"):
+                    source = check_conn.execute(
+                        "SELECT supersedes_assertion_id FROM knowledge_assertions WHERE assertion_id=?",
+                        (source_record_id,),
+                    ).fetchone()
+                if source is None:
+                    raise CatalogError(f"unknown superseding record {source_record_id}")
+                if source[0] != target_record_id:
+                    raise ConflictError("supersedes lineage must match the successor's supersedes field")
         if edge_type in {"reviewed_by", "promoted_as", "supersedes"}:
             if target_record_id.startswith(("observation:", "assertion:", "relationship:", "adjudication:")):
                 with self._connection() as check_conn:
@@ -1431,10 +1448,27 @@ class SQLiteCatalog:
                         tuple(ids) + tuple(ids),
                     ).fetchall()
                 ]
+            superseded_ids = {
+                edge["target_record_id"] for edge in lineage if edge["edge_type"] == "supersedes"
+            }
+            current_observations = [
+                item for item in observations
+                if item.get("lifecycle_status") in {"accepted", "edited"}
+                and item.get("outcome_state") in {"resolved", "supported"}
+                and item.get("observation_id") not in superseded_ids
+            ]
+            current_assertions = [
+                item for item in assertions
+                if item.get("lifecycle_status") in {"accepted", "edited"}
+                and item.get("outcome_state") in {"resolved", "supported"}
+                and item.get("assertion_id") not in superseded_ids
+            ]
             return {
                 "subject_id": subject_id,
                 "observations": observations,
                 "assertions": assertions,
+                "current_observations": current_observations,
+                "current_assertions": current_assertions,
                 "relationships": relationships,
                 "lineage": lineage,
             }
