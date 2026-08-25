@@ -153,18 +153,6 @@ class CostProjection:
     cache_misses: int
 
 
-@dataclass(frozen=True)
-class ProposedReferenceEntry:
-    member_abn: str
-    subject_id: str
-    field: str
-    status: str
-    evidence_ids: tuple[str, ...]
-    note: str
-    expected_value: str | None = None
-    provenance: str = "independent_deterministic_draft"
-
-
 _DEVELOPMENT: tuple[CohortMember, ...] = (
     CohortMember("The Smith Family", "28000030179", "development", ("acnc", "abr", "ato-dgr", "official-website", "annual-report", "education-evaluation"), ("ordinary",), "eligible"),
     CohortMember("Australian Red Cross Society", "50169561394", "development", ("acnc", "abr", "ato-dgr", "official-website", "annual-report", "lifeblood-regulated"), ("group-scope", "high-consequence"), "eligible"),
@@ -437,15 +425,19 @@ def project_costs(members: Iterable[CohortMember], *, task_specs: Iterable[Froze
     reservations = [{"reservation_id": deterministic_id("reservation:", {"abn": row.member_abn, "phase": "reality-slice1-development"}), "member_abn": row.member_abn, "proposed_aud": str(row.estimated_aud), "status": "proposed_not_reserved"} for row in rows if row.task_count]
     return {"cap_aud": str(BUDGET_CAP_AUD), "pricing_input_usd_per_million": str(pricing_input_usd), "pricing_output_usd_per_million": str(pricing_output_usd), "fx_usd_aud": str(fx_usd_aud), "rows": [row.__dict__ | {"estimated_aud": str(row.estimated_aud)} for row in rows], "proposed_reservations": reservations, "total_estimated_aud": str(total), "within_cap": total <= BUDGET_CAP_AUD, "paid_calls_executed": False, "pricing_basis": "explicit_snapshot_parameters"}
 
-_REFERENCE_EXPECTATIONS: dict[str, tuple[tuple[str, str], ...]] = {
-    "28000030179": (("material_program", "Learning for Life education and mentoring"), ("charitygraph_activity", "education and support delivery"), ("sdg_alignment", "SDG 4 Quality Education")),
-    "50169561394": (("material_program", "Lifeblood blood and plasma donation"), ("charitygraph_activity", "direct service delivery"), ("sdg_alignment", "SDG 3 Good Health and Well-being")),
-    "20077830347": (("material_program", "Community-led grantmaking and philanthropy"), ("charitygraph_activity", "grantmaking"), ("sdg_alignment", "SDG 17 Partnerships for the Goals")),
-    "22007498482": (("material_program", "Environmental advocacy and conservation campaigns"), ("charitygraph_activity", "advocacy"), ("sdg_alignment", "SDG 13 Climate Action")),
-    "15000002522": (("material_program", "Homelessness, employment and community services"), ("charitygraph_activity", "direct service delivery"), ("sdg_alignment", "SDG 1 No Poverty")),
-    "28004778081": (("material_program", "Child sponsorship and international development"), ("charitygraph_activity", "community engagement"), ("sdg_alignment", "SDG 1 No Poverty")),
-    "46070556642": (("material_program", "Indigenous and international eye-health programs"), ("charitygraph_activity", "research and evaluation"), ("sdg_alignment", "SDG 3 Good Health and Well-being")),
-}
+def build_candidate_observations(outcomes: Iterable[AcquisitionOutcome]) -> tuple[dict[str, Any], ...]:
+    """Return source-explicit candidates, never semantic gold or durable subjects."""
+    rows: list[dict[str, Any]] = []
+    for item in outcomes:
+        if item.evidence_status != "usable_evidence" or not item.source_record_id:
+            continue
+        if item.source.family == "official-website":
+            path = urlsplit(item.resolved_locator or item.requested_locator).path.strip("/")
+            label = path.rsplit("/", 1)[-1].replace("-", " ").replace("_", " ") or "official program/service page"
+            rows.append({"candidate_id": deterministic_id("candidate:", {"member_abn": item.source.member_abn, "source_record_id": item.source_record_id, "label": label}), "member_abn": item.source.member_abn, "subject_id": deterministic_subject_id(identifier_scheme="abn", identifier_value=item.source.member_abn), "entity_kind": "program_or_service_candidate", "label": label, "source_record_ids": (item.source_record_id,), "status": "candidate", "semantic_outcome": None, "blockers": ("human_review_required",)})
+        elif item.source.family == "annual-report":
+            rows.append({"candidate_id": deterministic_id("candidate:", {"member_abn": item.source.member_abn, "source_record_id": item.source_record_id, "label": "annual-report"}), "member_abn": item.source.member_abn, "subject_id": deterministic_subject_id(identifier_scheme="abn", identifier_value=item.source.member_abn), "entity_kind": "reporting_source_candidate", "label": "annual-report", "source_record_ids": (item.source_record_id,), "status": "candidate", "semantic_outcome": None, "blockers": ("human_review_required",)})
+    return tuple(rows)
 
 
 def _snapshot_bytes(url: str, *, fetcher: Callable[[str], bytes] | None) -> tuple[str, bytes] | None:
@@ -499,28 +491,11 @@ def build_evidence_inventory(outcomes: Iterable[AcquisitionOutcome]) -> tuple[di
     } for item in outcomes)
 
 
-def build_proposed_reference_set(members: Iterable[CohortMember], outcomes: Iterable[AcquisitionOutcome]) -> tuple[ProposedReferenceEntry, ...]:
-    usable: dict[str, tuple[str, ...]] = {}
-    for outcome in outcomes:
-        if outcome.source_record_id and outcome.evidence_status == "usable_evidence":
-            usable[outcome.source.member_abn] = usable.get(outcome.source.member_abn, ()) + (outcome.source_record_id,)
-    rows: list[ProposedReferenceEntry] = []
-    for member in members:
-        evidence = usable.get(member.abn, ())
-        rows.extend(ProposedReferenceEntry(member.abn, member.subject_id, "material_organisation", "proposed" if evidence else "insufficient_evidence", evidence, "Independent deterministic draft; human approval required", member.legal_current_name) for _ in (0,))
-        for field, expected in _REFERENCE_EXPECTATIONS.get(member.abn, ()):
-            status = "proposed" if evidence else "insufficient_evidence"
-            rows.append(ProposedReferenceEntry(member.abn, member.subject_id, field, status, evidence, "Expected value is source-grounded draft; not model-derived gold", expected))
-        rows.append(ProposedReferenceEntry(member.abn, member.subject_id, "scope_boundary", "proposed" if evidence else "insufficient_evidence", evidence, "Legal organisation subject; group and program boundaries require human review", "legal organisation and named program scopes remain distinct"))
-        rows.append(ProposedReferenceEntry(member.abn, member.subject_id, "insufficient_evidence", "proposed", evidence, "Retain unresolved result when evidence is genuinely insufficient", "unresolved is valid and must not be auto-promoted"))
-    return tuple(rows)
-
-
-def build_frozen_task_plan(members: Iterable[CohortMember], outcomes: Iterable[AcquisitionOutcome], references: Iterable[ProposedReferenceEntry], *, model: str = "gpt-5-mini") -> tuple[FrozenTaskSpec, ...]:
+def build_frozen_task_plan(members: Iterable[CohortMember], outcomes: Iterable[AcquisitionOutcome], *, model: str = "gpt-5-mini") -> tuple[FrozenTaskSpec, ...]:
+    """Freeze only deterministic evidence-review tasks, never semantic gold tasks."""
     by_member: dict[str, list[AcquisitionOutcome]] = {}
     for outcome in outcomes:
         by_member.setdefault(outcome.source.member_abn, []).append(outcome)
-    refs = tuple(references)
     rows: list[FrozenTaskSpec] = []
     for member in members:
         available = tuple(item for item in by_member.get(member.abn, ()) if item.evidence_status == "usable_evidence" and item.source_record_id)
@@ -529,14 +504,29 @@ def build_frozen_task_plan(members: Iterable[CohortMember], outcomes: Iterable[A
         if not evidence_ids:
             continue
         rows.append(FrozenTaskSpec(member.abn, member.subject_id, "organisation", "source_evidence_validation", evidence_ids, evidence_hashes, "none", "reality-slice1-evidence-v1", "evidence-review-v1", "deterministic", "not_applicable", deterministic_id("modeltask:", {"abn": member.abn, "scope": "organisation", "task": "source_evidence_validation"}), "review_only", True))
-        for ref in refs:
-            if ref.member_abn == member.abn and ref.field == "material_program" and ref.status == "proposed":
-                rows.append(FrozenTaskSpec(member.abn, member.subject_id, "program", "program_evidence_validation", ref.evidence_ids, tuple(item.content_hash for item in available if item.content_hash), "none", "reality-slice1-evidence-v1", "evidence-review-v1", "deterministic", "not_applicable", deterministic_id("modeltask:", {"abn": member.abn, "program": ref.expected_value}), "review_only", True))
+        for item in available:
+            if item.source.family == "official-website":
+                rows.append(FrozenTaskSpec(member.abn, member.subject_id, "source-explicit-candidate", "candidate_evidence_validation", (item.source_record_id,), (item.content_hash,) if item.content_hash else (), "none", "reality-slice1-evidence-v1", "evidence-review-v1", "deterministic", "not_applicable", deterministic_id("modeltask:", {"abn": member.abn, "source_record": item.source_record_id, "task": "candidate_evidence_validation"}), "review_only", True))
     return tuple(rows)
 
+def write_human_review_packet(report: Mapping[str, Any], runtime_root: str | Path) -> Path:
+    root = Path(runtime_root).resolve() / "reality-slice1" / "review"; root.mkdir(parents=True, exist_ok=True)
+    lines = ["# CharityGraph Reality Slice 1 — acquisition and evidence preflight", "", "Private, review-only. Candidate observations are not semantic gold and no paid execution has occurred.", ""]
+    candidates = report.get("candidate_observations", ())
+    for member in report.get("development_members", ()):
+        abn = member["abn"]; lines.extend([f"## {member['legal_current_name']} (ABN {abn})", "", "Evidence coverage:"])
+        for item in report.get("evidence_inventory", ()):
+            if item["member_abn"] == abn:
+                lines.append(f"- {item['family']}: {item['evidence_status']} — {item.get('resolved_locator') or item['requested_locator']}")
+        lines.extend(["", "Source-explicit candidate observations:"])
+        for candidate in candidates:
+            if candidate["member_abn"] == abn:
+                lines.append(f"- {candidate['entity_kind']}: {candidate['label']} ({candidate['status']}; human review required)")
+        lines.extend(["", "Pending gates: proposition-specific reference design, CLASSIE rights, and human review.", ""])
+    path = root / "development-acquisition-evidence-review.md"; path.write_text("\n".join(lines), encoding="utf-8"); return path
 
 def demonstrate_sqlite_reservations(runtime_root: str | Path, task_specs: Iterable[FrozenTaskSpec], total_aud: Decimal) -> dict[str, Any]:
-    """Exercise the existing SQLite economics ledger without any provider call."""
+    """Exercise the existing SQLite economics ledger for deterministic review tasks only."""
     specs = tuple(task_specs)
     if not specs:
         return {"status": "not_applicable", "reason": "no evidence-frozen tasks"}
@@ -551,27 +541,9 @@ def demonstrate_sqlite_reservations(runtime_root: str | Path, task_specs: Iterab
         catalog.register_task({"record_id": spec.cache_key, "run_id": run_id, "subject_id": spec.subject_id, "scope_id": None, "cohort_id": cohort_id, "task_type": spec.task_type, "task_schema": {"schema_id": spec.output_schema}, "cache_key": spec.cache_key, "provider_id": spec.provider, "model_snapshot": spec.model, "created_at": now})
     reservation_id = deterministic_id("reservation:", {"run": run_id, "tasks": tuple(spec.cache_key for spec in specs)})
     catalog.reserve_cost({"record_id": reservation_id, "cohort_id": cohort_id, "run_id": run_id, "reserved_aud": {"amount": str(total_aud), "currency": "AUD"}, "model_task_ids": tuple(spec.cache_key for spec in specs)}, now=now)
-    position = catalog.budget_position(cohort_id)
-    result = {"status": "reserved", "database": str(catalog.path), "cohort_id": cohort_id, "run_id": run_id, "reservation_id": reservation_id, "task_count": len(specs), "reserved_aud": str(total_aud), "budget_position": position.as_dict()}
+    result = {"status": "reserved", "database": str(catalog.path), "cohort_id": cohort_id, "run_id": run_id, "reservation_id": reservation_id, "task_count": len(specs), "reserved_aud": str(total_aud), "budget_position": catalog.budget_position(cohort_id).as_dict()}
     catalog.close()
     return result
-
-def write_human_review_packet(report: Mapping[str, Any], runtime_root: str | Path) -> Path:
-    root = Path(runtime_root).resolve() / "reality-slice1" / "review"; root.mkdir(parents=True, exist_ok=True)
-    lines = ["# CharityGraph Reality Slice 1 — independent reference review", "", "Private, review-only; no paid semantic execution has occurred.", ""]
-    refs = report.get("proposed_reference_set", ())
-    for member in report.get("development_members", ()):
-        abn = member["abn"]; lines.extend([f"## {member['legal_current_name']} (ABN {abn})", "", "Source coverage:"])
-        coverage = [item for item in report.get("evidence_inventory", ()) if item["member_abn"] == abn]
-        for item in coverage:
-            lines.append(f"- {item['family']}: {item['evidence_status']} — {item.get('resolved_locator') or item['requested_locator']}")
-        lines.extend(("", "Proposed expected material:"))
-        for ref in refs:
-            if ref["member_abn"] == abn:
-                lines.append(f"- {ref['field']}: {ref.get('expected_value') or 'unresolved'} ({ref['status']})")
-        lines.extend(["", "Review sensitivities: identity/program boundary, CLASSIE Subject versus Population, unsupported SDG alignment, and insufficient evidence.", ""])
-    path = root / "development-reference-review.md"; path.write_text("\n".join(lines), encoding="utf-8"); return path
-
 
 def _source_cache_path(runtime_root: str | Path) -> Path:
     return Path(runtime_root).resolve() / "reality-slice1" / "source-outcomes.json"
@@ -602,8 +574,8 @@ def run_development_preflight(*, runtime_root: str | Path, catalog: SQLiteCatalo
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         cache_path.write_text(json.dumps([item.__dict__ | {"source": item.source.__dict__} for item in outcomes], sort_keys=True, default=str), encoding="utf-8")
         replay_mode = "fresh_bounded_acquisition"
-    references = build_proposed_reference_set(selected, outcomes)
-    task_specs = build_frozen_task_plan(selected, outcomes, references)
+    candidates = build_candidate_observations(outcomes)
+    task_specs = build_frozen_task_plan(selected, outcomes)
     snapshots = load_economics_snapshots(runtime_root, allow_network=allow_network)
     cost = project_costs(selected, task_specs=task_specs, pricing_input_usd=Decimal(snapshots["pricing"]["input_usd_per_million"]), pricing_output_usd=Decimal(snapshots["pricing"]["output_usd_per_million"]), fx_usd_aud=Decimal(snapshots["fx"]["rate"]))
     scopes = build_assessment_scopes(selected, outcomes)
@@ -614,7 +586,7 @@ def run_development_preflight(*, runtime_root: str | Path, catalog: SQLiteCatalo
     exact_join_status = [{"member_abn": member.abn, "status": "pending_national_backbone_input", "name_fallback": False, "subject_id": member.subject_id} for member in selected]
     acquired_families = {(item.source.member_abn, item.source.family) for item in outcomes if item.evidence_status == "usable_evidence"}
     source_resolution_gaps = [{"member_abn": member.abn, "family": family, "status": "unavailable", "reason": "case-specific independent locator was not discovered in the bounded pass; no homepage substitute used"} for member in selected for family in member.expected_source_families[5:] if (member.abn, family) not in acquired_families]
-    report: dict[str, Any] = {"manifest": str(manifest_path(manifest)), "development_members": [member.__dict__ | {"subject_id": member.subject_id} for member in selected], "organisation_subjects": subjects, "identity_joins": exact_join_status, "holdout_firewall": {"holdout_abns": sorted(_HOLDOUT_ABNS), "enforced": True, "acquisition_receipts_for_holdouts": 0, "model_tasks_for_holdouts": 0, "evidence_artefacts_for_holdouts": 0}, "source_opportunities": len(outcomes), "replay_mode": replay_mode, "source_resolution_gaps": source_resolution_gaps, "acquisition_telemetry": telemetry, "acquisition_outcomes": outcome_rows, "evidence_inventory": list(build_evidence_inventory(outcomes)), "assessment_scopes": scope_rows, "structured_program_candidates": [ref.__dict__ for ref in references if ref.field == "material_program"], "task_plan": [spec.__dict__ for spec in task_specs], "proposed_reference_set": [entry.__dict__ for entry in references], "taxonomy": {"classie": {"version": CLASSIE_VERSION, "status": "blocked_until_authoritative_private_reference", "rights_blocker": "authoritative CLASSIE 4.2 material and reuse disposition not supplied"}, "sdg": {"concept_count": 17, "titles_canonical": True}, "charitygraph_activity": {"version": ACTIVITY_VOCABULARY_VERSION, "concept_count": len(CHARITYGRAPH_ACTIVITY_VOCABULARY), "rationale": "bounded source-grounded development vocabulary"}}, "provider": {"provider_id": "openai", "model_snapshot": os.environ.get("CHARITYGRAPH_MODEL_SNAPSHOT", "gpt-5-mini"), "configuration_status": "explicit_candidate_pending_human_approval", "paid_execution_enabled": False, "credentials_present": bool(os.environ.get("OPENAI_API_KEY"))}, "economics": cost | {"pricing_snapshot": snapshots["pricing"], "fx_snapshot": snapshots["fx"], "snapshot_identity": snapshots["snapshot_identity"]}, "coverage": {"organisation_identity": "deterministic_candidate_pending_backbone_exact_join", "program_candidates": "source-grounded_review_candidates", "semantic_fields": "blocked_until_classie_and_reference_approval", "high_consequence_review": "human_review_required"}, "review_gate": "stop_before_paid_semantic_execution", "private": True}
+    report: dict[str, Any] = {"manifest": str(manifest_path(manifest)), "development_members": [member.__dict__ | {"subject_id": member.subject_id} for member in selected], "organisation_subjects": subjects, "identity_joins": exact_join_status, "holdout_firewall": {"holdout_abns": sorted(_HOLDOUT_ABNS), "enforced": True, "acquisition_receipts_for_holdouts": 0, "model_tasks_for_holdouts": 0, "evidence_artefacts_for_holdouts": 0}, "source_opportunities": len(outcomes), "replay_mode": replay_mode, "source_resolution_gaps": source_resolution_gaps, "acquisition_telemetry": telemetry, "acquisition_outcomes": outcome_rows, "evidence_inventory": list(build_evidence_inventory(outcomes)), "assessment_scopes": scope_rows, "candidate_observations": list(candidates), "task_plan": [spec.__dict__ for spec in task_specs], "taxonomy": {"classie": {"version": CLASSIE_VERSION, "status": "blocked_until_authoritative_private_reference", "rights_blocker": "authoritative CLASSIE 4.2 material and reuse disposition not supplied"}, "sdg": {"concept_count": 17, "titles_canonical": True}, "charitygraph_activity": {"version": ACTIVITY_VOCABULARY_VERSION, "concept_count": len(CHARITYGRAPH_ACTIVITY_VOCABULARY), "rationale": "bounded source-grounded development vocabulary"}}, "provider": {"provider_id": "openai", "model_snapshot": os.environ.get("CHARITYGRAPH_MODEL_SNAPSHOT", "gpt-5-mini"), "configuration_status": "explicit_candidate_pending_human_approval", "paid_execution_enabled": False, "credentials_present": bool(os.environ.get("OPENAI_API_KEY"))}, "economics_demo": cost | {"status": "deterministic_review_reservation_demo_not_semantic_forecast", "pricing_snapshot": snapshots["pricing"], "fx_snapshot": snapshots["fx"], "snapshot_identity": snapshots["snapshot_identity"]}, "coverage": {"organisation_identity": "deterministic_candidate_pending_backbone_exact_join", "program_candidates": "source-grounded_review_candidates", "semantic_fields": "blocked_until_classie_and_reference_approval", "high_consequence_review": "human_review_required"}, "review_gate": "stop_before_paid_semantic_execution", "private": True}
     report["reservation_demo"] = demonstrate_sqlite_reservations(runtime_root, task_specs, Decimal(cost["total_estimated_aud"]))
     packet = write_human_review_packet(report, runtime_root); report["human_review_packet"] = str(packet)
     return report
@@ -643,7 +615,7 @@ def write_private_preview(report: Mapping[str, Any], runtime_root: str | Path) -
     payload = json.dumps(report, indent=2, sort_keys=True, default=str).encode("utf-8")
     digest = hashlib.sha256(payload).hexdigest()
     json_path = root / f"development-preflight-{digest[:16]}.json"; json_path.write_bytes(payload)
-    md_path = root / f"development-preflight-{digest[:16]}.md"; md_path.write_text("# CharityGraph Reality Slice 1 development preflight\n\nPrivate, review-only preview. Paid semantic execution is disabled.\n\n" + "- development members: " + str(len(report.get("development_members", []))) + "\n- planned tasks: " + str(len(report.get("task_plan", []))) + "\n- projected AUD: " + str(report.get("economics", {}).get("total_estimated_aud")) + "\n- holdout firewall: enforced\n", encoding="utf-8")
+    md_path = root / f"development-preflight-{digest[:16]}.md"; md_path.write_text("# CharityGraph Reality Slice 1 development preflight\n\nPrivate, review-only preview. Paid semantic execution is disabled.\n\n" + "- development members: " + str(len(report.get("development_members", []))) + "\n- planned tasks: " + str(len(report.get("task_plan", []))) + "\n- projected AUD: " + str(report.get("economics_demo", {}).get("total_estimated_aud")) + "\n- holdout firewall: enforced\n", encoding="utf-8")
     return json_path, md_path
 
 

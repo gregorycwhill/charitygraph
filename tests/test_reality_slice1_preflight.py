@@ -55,22 +55,21 @@ def test_private_acquisition_stores_metadata_and_never_holdout(tmp_path):
             subject_binding="67649417658"), allow_network=True)
 
 
-def test_preflight_is_review_only_and_reference_values_are_not_placeholders(tmp_path):
+def test_preflight_is_acquisition_only_and_does_not_claim_semantic_gold(tmp_path):
     first = run_development_preflight(runtime_root=tmp_path / "runtime", allow_network=False)
     second = run_development_preflight(runtime_root=tmp_path / "runtime2", allow_network=False)
     assert len(first["development_members"]) == 7
     assert first["holdout_firewall"]["enforced"] is True
-    assert first["economics"]["within_cap"] is True
-    assert first["economics"]["paid_calls_executed"] is False
+    assert first["economics_demo"]["within_cap"] is True
+    assert first["economics_demo"]["paid_calls_executed"] is False
     assert first["taxonomy"]["classie"]["status"].startswith("blocked")
     assert first["source_opportunities"] == second["source_opportunities"] == 14
     assert first["task_plan"] == []
+    assert first["candidate_observations"] == []
+    assert "proposed_reference_set" not in first
     assert all(not scope["source_families_assessed"] for scope in first["assessment_scopes"])
     assert all(scope["semantic_outcome"] is None and scope["blockers"] for scope in first["assessment_scopes"])
-    values = [row["expected_value"] for row in first["proposed_reference_set"] if row["field"] == "material_program"]
-    assert len(values) == 7 and all(values)
     assert first["taxonomy"]["charitygraph_activity"]["concept_count"] == 8
-
 
 def test_classie_import_requires_native_ids_and_preserves_rights():
     imported = load_classie_reference(
