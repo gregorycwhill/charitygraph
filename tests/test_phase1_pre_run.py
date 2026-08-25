@@ -3,7 +3,8 @@ from datetime import date, datetime, timezone
 import pytest
 
 from charitygraph.contracts import (
-    ArtifactRef, EvidenceInput, EvidenceLocator, LineageEdge, ProgramCandidateOutput,
+    AcquisitionReceipt, ArtifactRef, EvidenceInput, EvidenceLocator, LineageEdge, ProgramCandidateOutput,
+    PropositionAuthorityRole, SourceDefinition,
     SchemaRef, SemanticConclusion, SemanticEvidence, SourceRecord, SubjectRecord,
     TaxonomyAssignmentOutput, TaxonomyScheme, TaxonomyConcept, TaxonomyVersion,
     TaxonomySelection,
@@ -151,9 +152,26 @@ def test_phase1_vertical_fake_provider_and_lineage(tmp_path):
     catalog = open_catalog(tmp_path)
     catalog.register_subject(make_subject())
     source = source_record()
+    definition = SourceDefinition(
+        record_id="srcdef:" + "6" * 32, created_at=NOW, producer={"kind": "human", "producer_id": "reviewer"},
+        publisher="Synthetic Register", source_class="register",
+        authority_roles=(PropositionAuthorityRole(proposition="program label", role="source-reported"),),
+        acquisition_locator="https://example.test/register/1", temporal_semantics="current",
+        publication_eligibility="private", steward="fixture steward",
+    )
+    catalog.register_source_definition(definition)
+    catalog.index_artifact(artifact_id=source.payload_ref, content_hash=source.payload_hash,
+                           schema_id=source.schema_ref.schema_id, schema_version=source.schema_ref.schema_version,
+                           storage_path="private://fixture/source", availability="available", created_at=NOW, indexed_at=NOW)
+    catalog.record_acquisition_receipt(AcquisitionReceipt(
+        record_id="acq:" + "7" * 32, created_at=NOW, producer={"kind": "code", "producer_id": "fixture"},
+        source_definition_id=definition.record_id, requested_locator=definition.acquisition_locator,
+        outcome="available", response_status=200, media_type="application/json", content_hash=source.payload_hash,
+        byte_size=128, artifact_id=source.payload_ref, retrieved_at=NOW,
+    ))
     catalog.register_source_record(source)
     locator_id = catalog.register_evidence_locator(
-        EvidenceLocator(kind="structured_field", source_record_id=source.record_id, field_path="programs[0]")
+        EvidenceLocator(kind="structured_field", artifact_id=source.payload_ref, source_record_id=source.record_id, field_path="programs[0]")
     )["evidence_locator_id"]
     engine = Phase1PreRunEngine(catalog)
     candidate = engine.create_structured_program_candidate(
@@ -163,6 +181,10 @@ def test_phase1_vertical_fake_provider_and_lineage(tmp_path):
         label="Reading program",
     )
     assert catalog.get_program_candidate(candidate.record_id)["label"] == "Reading program"
+    program_id = "subject:" + "8" * 32
+    catalog.register_subject(make_subject(program_id))
+    relationship = engine.create_program_relationship(organisation_id=SUBJECT, program_id=program_id, evidence_ids=(locator_id,))
+    assert relationship["relationship_type"] == "has_program"
     task = engine.create_task(
         subject_id=SUBJECT,
         evidence=(EvidenceInput(evidence_id=locator_id, content_hash="e" * 64, selection_hash="f" * 64),),
