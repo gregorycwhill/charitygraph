@@ -75,3 +75,12 @@ def test_private_packet_is_review_only(tmp_path: Path):
     assert "No paid calls" in text
     assert "Lifeblood" in text and "child sponsorship" in text
 
+
+
+def test_acquisition_preflight_economics_is_not_semantic_forecast():
+    from charitygraph.reality_slice1 import development_members, project_costs
+    demo = project_costs(development_members())
+    assert demo["status"] == "deterministic_evidence_review_reservation_demo"
+    assert demo["total_estimated_aud"] == "0.000000"
+    assert all(row["task_count"] == 0 for row in demo["rows"])
+
