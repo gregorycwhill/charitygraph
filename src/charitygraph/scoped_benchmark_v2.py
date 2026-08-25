@@ -18,8 +18,8 @@ BenchmarkVersion = Literal["2.0"]
 Disposition = Literal["required", "acceptable", "acceptable_secondary", "prohibited", "unresolved"]
 
 BENCHMARK_VERSION: BenchmarkVersion = "2.0"
-REVIEW_STATUS = "proposed"
-PROVENANCE = "human-directed-design-machine-source-assisted-proposed"
+REVIEW_STATUS = "approved_frozen"
+PROVENANCE = "human-approved-design-machine-source-assisted-frozen"
 ACTIVITY_VOCABULARY_VERSION = "charitygraph-activity-2026-dev-v2"
 ACTIVITY_CONCEPT_IDS = (
     "activity.direct_service_delivery", "activity.education_support_delivery",
@@ -188,7 +188,6 @@ def build_benchmark_cases() -> tuple[BenchmarkCase, ...]:
         _case("world_vision", "sponsorship-as-activity", "activity", "benchmark_candidate_ref", "operational_activity", "prohibited", "activity.community_engagement", "worldvision_child_sponsorship", "same evidence establishes the mechanism; it is not an operational activity", correct="child sponsorship is a fundraising/engagement mechanism", evidence=True),
         _case("world_vision", "community-development", "activity", "semantic_domain", "operational_activity", "acceptable", "activity.community_development", "worldvision_activity_domains", "source describes work in sponsorship communities; no durable program is asserted"),
         _case("world_vision", "education", "activity", "semantic_domain", "operational_activity", "acceptable_secondary", "activity.education_support_delivery", "worldvision_activity_domains", "source names education as a work domain, not a named durable program"),
-        _case("world_vision", "health", "activity", "semantic_domain", "operational_activity", "acceptable_secondary", "activity.health_clinical_service_delivery", "worldvision_activity_domains", "source names healthcare as a work domain, not a named durable program"),
         _case("world_vision", "community-development-sdg4", "sdg", "semantic_domain", "sdg_alignment", "acceptable", "sdg:4", "worldvision_sdg4", "education is scoped to the evidenced community work domain, not to the donor mechanism"),
         _case("fred_hollows", "organisation", "organisation", "durable_subject", "entity_decomposition", "required", "The Fred Hollows Foundation", "organisation_identity", "governed organisation identity"),
         _case("fred_hollows", "eye-health", "activity", "semantic_domain", "operational_activity", "required", "activity.health_clinical_service_delivery", "fred_eye_health", "Ending Avoidable Blindness and eye-care evidence require clinical health activity"),
@@ -218,7 +217,7 @@ class ScopedBenchmarkV2:
     def validate(self, evidence_registry: Mapping[str, EvidenceRecord] | None = None) -> None:
         registry = evidence_registry or build_evidence_registry()
         if self.status != REVIEW_STATUS or self.benchmark_version != BENCHMARK_VERSION:
-            raise ValueError("benchmark must remain proposed v2.0")
+            raise ValueError("benchmark must remain approved_frozen v2.0")
         ids: set[str] = set()
         for case in self.cases:
             if case.case_id in ids:
@@ -259,17 +258,35 @@ def benchmark_completeness(benchmark: ScopedBenchmarkV2 | None = None) -> dict[s
     cases = benchmark.cases
     development_subjects = set(SUBJECT_IDS.values())
     identity_subjects = {c.subject_id for c in cases if c.expected_subject_kind == "organisation" and c.expected_disposition == "required"}
-    durable_program_subjects = {c.subject_id for c in cases if c.expected_subject_kind in {"program", "service"} and c.durability_expectation == "durable_subject" and c.expected_disposition != "prohibited"}
+    durable_program_cases = [c for c in cases if c.expected_subject_kind in {"program", "service"} and c.durability_expectation == "durable_subject" and c.expected_disposition == "required"]
+    durable_program_subjects = {c.subject_id for c in durable_program_cases}
+    program_counts = {subject_id: sum(1 for c in durable_program_cases if c.subject_id == subject_id) for subject_id in durable_program_subjects}
+    program_count = len(durable_program_cases)
+    represented_charities = len(program_counts)
+    largest_share = max(program_counts.values(), default=0) / program_count if program_count else 0.0
     activity_subjects = {c.subject_id for c in cases if c.expected_subject_kind == "activity" and c.expected_disposition in {"required", "acceptable", "acceptable_secondary"} and c.concept_or_relation in ACTIVITY_CONCEPT_IDS}
     sdg_subjects = {c.subject_id for c in cases if c.expected_subject_kind == "sdg" and c.expected_disposition in {"required", "acceptable", "acceptable_secondary"} and c.evidence_locator_ids}
     scope_cases = [c for c in cases if c.task_family in {"scope_decomposition_v2", "relationship_v2"}]
     unresolved_cases = [c for c in cases if c.expected_disposition == "unresolved"]
     accepted_cases = [c for c in cases if c.expected_disposition not in {"unresolved", "prohibited"}]
-    program_adequate = len(durable_program_subjects) >= 2
+    program_minimum_count = 10
+    program_minimum_charities = 4
+    program_max_single_charity_share = 0.5
+    program_adequate = (
+        program_count >= program_minimum_count
+        and represented_charities >= program_minimum_charities
+        and largest_share <= program_max_single_charity_share
+    )
     result = {
         "identity_evaluable": development_subjects <= identity_subjects,
         "program_service_recall_precision_evaluable": program_adequate,
         "program_benchmark_adequacy": "adequate" if program_adequate else "insufficient",
+        "required_durable_program_service_count": program_count,
+        "program_service_charity_count": represented_charities,
+        "program_service_largest_charity_share": largest_share,
+        "program_service_minimum_count": program_minimum_count,
+        "program_service_minimum_charities": program_minimum_charities,
+        "program_service_max_single_charity_share": program_max_single_charity_share,
         "scope_accuracy_evaluable": bool(scope_cases),
         "operational_activity_evaluable": len(activity_subjects) >= 6,
         "operational_activity_denominator": len(activity_subjects),
@@ -309,7 +326,7 @@ def write_private_review_packet(runtime_root: str | Path) -> Path:
     registry = build_evidence_registry()
     destination = Path(runtime_root).resolve() / "reality-slice1-scoped-benchmark-v2" / "review" / "scoped-benchmark-v2-review.md"
     destination.parent.mkdir(parents=True, exist_ok=True)
-    lines = ["# Reality Slice 1 ? Scoped Benchmark v2", "", "Status: proposed (human approval required)", "", "No paid calls or holdout material were used.", ""]
+    lines = ["# Reality Slice 1 ? Scoped Benchmark v2", "", "Status: approved_frozen (human approved; benchmark frozen)", "", "No paid calls or holdout material were used.", ""]
     for name in NAMES.values():
         lines += [f"## {name}", ""]
         for case in (c for c in benchmark.cases if c.subject_name == name):

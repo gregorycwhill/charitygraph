@@ -119,6 +119,11 @@ def test_mission_identity_does_not_establish_named_service_propositions():
     assert all(c.proposition_key != "identity_only" for c in mission)
 
 
+def test_generic_world_vision_healthcare_does_not_imply_clinical_delivery():
+    cases = [c for c in build_scoped_benchmark_v2().cases if c.subject_name == "World Vision Australia"]
+    assert not any(c.concept_or_relation == "activity.health_clinical_service_delivery" for c in cases)
+    assert any(c.concept_or_relation == "activity.community_development" for c in cases)
+
 def test_frozen_scorecard_benchmark_completeness_gate():
     report = benchmark_completeness(build_scoped_benchmark_v2())
     assert report["identity_evaluable"] is True
@@ -127,6 +132,10 @@ def test_frozen_scorecard_benchmark_completeness_gate():
     assert report["sdg_evaluable"] is True
     assert report["sdg_denominator"] >= 5
     assert report["program_benchmark_adequacy"] == "insufficient"
+    assert report["required_durable_program_service_count"] == 1
+    assert report["program_service_charity_count"] == 1
+    assert report["program_service_minimum_count"] == 10
+    assert report["program_service_minimum_charities"] == 4
     assert report["program_service_recall_precision_evaluable"] is False
     assert "program_service" in report["blocked_task_families"]
     assert report["classie_rights_disabled_path_evaluable"] is True
@@ -144,10 +153,10 @@ def test_classie_rights_gate_and_holdout_firewall():
         assert_not_holdout(abn="67649417658")
 
 
-def test_private_packet_has_real_urls_selectors_and_proposed_status(tmp_path: Path):
+def test_private_packet_has_real_urls_selectors_and_frozen_status(tmp_path: Path):
     packet = write_private_review_packet(tmp_path)
     text = packet.read_text(encoding="utf-8")
-    assert "Status: proposed" in text
+    assert "Status: approved_frozen" in text
     assert "https://www.acf.org.au/our-work" in text
     assert "heading:Save our big backyard" in text
     assert "No paid calls" in text
