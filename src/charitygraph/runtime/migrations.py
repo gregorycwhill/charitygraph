@@ -224,9 +224,148 @@ CREATE INDEX evidence_locator_source_idx ON evidence_locators(source_record_id);
 CREATE INDEX artifact_index_content_idx ON artifact_index(content_hash);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V3 = """
+CREATE TABLE subjects (
+    subject_id TEXT PRIMARY KEY,
+    subject_kind TEXT NOT NULL,
+    lifecycle_status TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE external_identifiers (
+    external_identifier_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    scheme TEXT NOT NULL,
+    identifier_value TEXT NOT NULL,
+    issuing_authority TEXT NOT NULL DEFAULT '',
+    valid_from TEXT,
+    valid_to TEXT,
+    status TEXT NOT NULL CHECK(status IN ('active','inactive','superseded','withdrawn')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    UNIQUE(scheme, identifier_value, issuing_authority)
+);
+CREATE INDEX external_identifiers_subject_idx ON external_identifiers(subject_id);
+CREATE TABLE subject_scopes (
+    scope_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    scope_kind TEXT NOT NULL,
+    label TEXT,
+    parent_scope_id TEXT REFERENCES subject_scopes(scope_id),
+    valid_from TEXT,
+    valid_to TEXT,
+    lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('active','inactive','superseded','withdrawn')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX subject_scopes_subject_idx ON subject_scopes(subject_id);
+CREATE TABLE party_roles (
+    party_role_id TEXT PRIMARY KEY,
+    party_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    context_record_id TEXT,
+    scope_id TEXT REFERENCES subject_scopes(scope_id),
+    valid_from TEXT,
+    valid_to TEXT,
+    status TEXT NOT NULL CHECK(status IN ('active','inactive','withdrawn')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX party_roles_party_idx ON party_roles(party_id, role);
+CREATE TABLE knowledge_observations (
+    observation_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    scope_id TEXT REFERENCES subject_scopes(scope_id),
+    predicate TEXT NOT NULL,
+    value_json TEXT,
+    outcome_state TEXT NOT NULL CHECK(outcome_state IN ('resolved','supported','contradicted','unknown','insufficient_evidence','not_applicable','not_attempted','withheld','acquisition_failure','extraction_failure','model_failure')),
+    evidence_locator_ids_json TEXT NOT NULL,
+    source_record_ids_json TEXT NOT NULL,
+    observation_time_json TEXT NOT NULL,
+    method TEXT NOT NULL,
+    lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('candidate','accepted','edited','rejected','superseded','contradicted','withdrawn','held','unresolved')),
+    supersedes_observation_id TEXT REFERENCES knowledge_observations(observation_id),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX knowledge_observations_subject_idx ON knowledge_observations(subject_id, scope_id);
+CREATE INDEX knowledge_observations_predicate_idx ON knowledge_observations(predicate, lifecycle_status);
+CREATE TABLE knowledge_assertions (
+    assertion_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    scope_id TEXT REFERENCES subject_scopes(scope_id),
+    predicate TEXT NOT NULL,
+    value_json TEXT,
+    outcome_state TEXT NOT NULL CHECK(outcome_state IN ('resolved','supported','contradicted','unknown','insufficient_evidence','not_applicable','not_attempted','withheld','acquisition_failure','extraction_failure','model_failure')),
+    observation_ids_json TEXT NOT NULL,
+    evidence_locator_ids_json TEXT NOT NULL,
+    assertion_time_json TEXT NOT NULL,
+    method TEXT NOT NULL,
+    lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('candidate','accepted','edited','rejected','superseded','contradicted','withdrawn','held','unresolved')),
+    publication_eligibility TEXT NOT NULL CHECK(publication_eligibility IN ('eligible','ineligible','review_required','withheld')),
+    supersedes_assertion_id TEXT REFERENCES knowledge_assertions(assertion_id),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX knowledge_assertions_subject_idx ON knowledge_assertions(subject_id, scope_id);
+CREATE INDEX knowledge_assertions_predicate_idx ON knowledge_assertions(predicate, lifecycle_status);
+CREATE TABLE relationship_statements (
+    relationship_id TEXT PRIMARY KEY,
+    source_subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    target_subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    relationship_type TEXT NOT NULL,
+    scope_id TEXT REFERENCES subject_scopes(scope_id),
+    source_role TEXT,
+    target_role TEXT,
+    evidence_locator_ids_json TEXT NOT NULL,
+    observation_ids_json TEXT NOT NULL,
+    valid_from TEXT,
+    valid_to TEXT,
+    status TEXT NOT NULL CHECK(status IN ('candidate','accepted','rejected','withdrawn','superseded')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CHECK(source_subject_id <> target_subject_id)
+);
+CREATE INDEX relationship_statements_source_idx ON relationship_statements(source_subject_id, relationship_type);
+CREATE INDEX relationship_statements_target_idx ON relationship_statements(target_subject_id, relationship_type);
+CREATE TABLE adjudication_decisions (
+    adjudication_id TEXT PRIMARY KEY,
+    input_record_ids_json TEXT NOT NULL,
+    outcome TEXT NOT NULL CHECK(outcome IN ('accepted','edited','rejected','insufficient','withheld','identity_blocked','scope_blocked','deferred')),
+    rationale TEXT NOT NULL,
+    reviewer_id TEXT NOT NULL,
+    result_record_id TEXT,
+    decision_time TEXT NOT NULL,
+    review_policy_id TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX adjudication_result_idx ON adjudication_decisions(result_record_id);
+CREATE TABLE knowledge_lineage (
+    source_record_id TEXT NOT NULL,
+    target_record_id TEXT NOT NULL,
+    edge_type TEXT NOT NULL CHECK(edge_type IN ('proposed_from','reviewed_by','promoted_as','derived_from','supersedes','invalidates','contradicts','withdraws','adjudicates')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY(source_record_id, target_record_id, edge_type),
+    CHECK(source_record_id <> target_record_id)
+);
+CREATE INDEX knowledge_lineage_target_idx ON knowledge_lineage(target_record_id, edge_type);
+CREATE INDEX knowledge_lineage_source_idx ON knowledge_lineage(source_record_id, edge_type);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
+    Migration(3, "governed_knowledge_primitives", CATALOGUE_SQL_V3),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

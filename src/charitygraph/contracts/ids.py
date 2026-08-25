@@ -11,7 +11,8 @@ from .common import IdPrefix
 
 _PREFIXES: tuple[IdPrefix, ...] = (
     "subject:", "subjectrecord:", "srcrec:", "evidence:", "candidate:",
-    "decision:", "observation:", "derivative:", "modeltask:", "modelresult:",
+    "decision:", "observation:", "assertion:", "scope:", "partyrole:",
+    "relationship:", "adjudication:", "externalid:", "derivative:", "modeltask:", "modelresult:",
     "embedding:", "taskrun:", "cohort:", "pricing:", "fx:", "reservation:",
     "costledger:", "run:",
 )

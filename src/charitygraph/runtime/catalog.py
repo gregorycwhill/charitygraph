@@ -11,13 +11,17 @@ import json
 import sqlite3
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Iterator, Mapping
 
 from .migrations import MIGRATIONS, SUPPORTED_VERSION
 from ..contracts.economics import CostLedgerEntry
+from ..contracts.knowledge import (
+    AdjudicationDecision, Assertion, ExternalIdentifier, Observation, PartyRole,
+    RelationshipStatement, ScopeRecord, SubjectRecord,
+)
 from ..contracts.source import AcquisitionReceipt, EvidenceLocator, SourceDefinition
 
 
@@ -69,6 +73,8 @@ def _json_default(value: Any) -> Any:
         return str(value)
     if isinstance(value, datetime):
         return value.astimezone(timezone.utc).isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
     if hasattr(value, "model_dump"):
         return value.model_dump(mode="python", by_alias=True)
     if hasattr(value, "value") and not isinstance(value, (str, bytes)):
@@ -87,6 +93,8 @@ def _dump(value: Any) -> Any:
         return str(value)
     if isinstance(value, datetime):
         return value.astimezone(timezone.utc).isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
     if hasattr(value, "value") and not isinstance(value, (str, bytes)):
         return value.value
     return value
@@ -899,3 +907,570 @@ class SQLiteCatalog:
             return _row(conn.execute('SELECT * FROM evidence_locators WHERE evidence_locator_id=?', (evidence_locator_id,)).fetchone())
 
     register_evidence = register_evidence_locator
+
+    # PR B governed knowledge primitives
+    @staticmethod
+    def _decode_knowledge_row(row: sqlite3.Row | None) -> dict[str, Any] | None:
+        if row is None:
+            return None
+        result = dict(row)
+        for column in (
+            "material_json", "value_json", "observation_time_json", "assertion_time_json",
+            "evidence_locator_ids_json", "source_record_ids_json", "observation_ids_json",
+            "input_record_ids_json",
+        ):
+            if column in result and result[column] is not None:
+                key = column.removesuffix("_json")
+                try:
+                    result[key] = json.loads(result[column])
+                except (TypeError, json.JSONDecodeError):
+                    result[key] = result[column]
+        return result
+
+    @staticmethod
+    def _json(value: Any) -> str:
+        return json.dumps(_dump(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+    @staticmethod
+    def _record_exists(conn: sqlite3.Connection, record_id: str) -> bool:
+        tables = (
+            ("subjects", "subject_id"), ("subject_scopes", "scope_id"),
+            ("knowledge_observations", "observation_id"), ("knowledge_assertions", "assertion_id"),
+            ("relationship_statements", "relationship_id"), ("adjudication_decisions", "adjudication_id"),
+        )
+        return any(
+            conn.execute(f"SELECT 1 FROM {table} WHERE {column}=?", (record_id,)).fetchone()
+            for table, column in tables
+        )
+
+    @staticmethod
+    def _require_subject(conn: sqlite3.Connection, subject_id: str) -> None:
+        if conn.execute("SELECT 1 FROM subjects WHERE subject_id=?", (subject_id,)).fetchone() is None:
+            raise CatalogError(f"unknown subject {subject_id}")
+
+    @staticmethod
+    def _require_scope(conn: sqlite3.Connection, scope_id: str | None, subject_id: str | None = None) -> None:
+        if scope_id is None:
+            return
+        row = conn.execute("SELECT subject_id FROM subject_scopes WHERE scope_id=?", (scope_id,)).fetchone()
+        if row is None:
+            raise CatalogError(f"unknown scope {scope_id}")
+        if subject_id is not None and row["subject_id"] != subject_id:
+            raise ConflictError("scope subject does not match record subject")
+
+    @staticmethod
+    def _require_evidence(conn: sqlite3.Connection, locator_ids: tuple[str, ...]) -> None:
+        for locator_id in locator_ids:
+            if conn.execute("SELECT 1 FROM evidence_locators WHERE evidence_locator_id=?", (locator_id,)).fetchone() is None:
+                raise CatalogError(f"unknown evidence locator {locator_id}")
+
+    @staticmethod
+    def _insert_idempotent(
+        conn: sqlite3.Connection,
+        *,
+        table: str,
+        id_column: str,
+        record_id: str,
+        material_hash: str,
+        values: tuple[Any, ...],
+        columns: str,
+    ) -> dict[str, Any]:
+        existing = conn.execute(
+            f"SELECT * FROM {table} WHERE {id_column}=?", (record_id,)
+        ).fetchone()
+        if existing is not None:
+            if existing["material_hash"] != material_hash:
+                raise ConflictError(f"{record_id} is already registered with different material")
+            return SQLiteCatalog._decode_knowledge_row(existing) or {}
+        conn.execute(
+            f"INSERT INTO {table}({columns}) VALUES ({','.join('?' for _ in values)})",
+            values,
+        )
+        return SQLiteCatalog._decode_knowledge_row(
+            conn.execute(f"SELECT * FROM {table} WHERE {id_column}=?", (record_id,)).fetchone()
+        ) or {}
+
+    def register_subject(self, subject: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = subject if isinstance(subject, SubjectRecord) else SubjectRecord.model_validate(subject)
+        material_hash = _canonical_hash(model)
+        material_json = self._json(model)
+        created = _utc(model.created_at, "created_at")
+        with self._connection(immediate=True) as conn:
+            row = self._insert_idempotent(
+                conn, table="subjects", id_column="subject_id", record_id=model.subject_id,
+                material_hash=material_hash,
+                values=(model.subject_id, model.subject_kind, model.lifecycle_status, material_json, material_hash, created),
+                columns="subject_id, subject_kind, lifecycle_status, material_json, material_hash, created_at",
+            )
+            for identifier in model.external_identifiers:
+                self._register_external_identifier_conn(conn, model.subject_id, identifier)
+            self._commit(conn)
+            return self.get_subject(model.subject_id) or row
+
+    def get_subject(self, subject_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            row = self._decode_knowledge_row(
+                conn.execute("SELECT * FROM subjects WHERE subject_id=?", (subject_id,)).fetchone()
+            )
+            if row is not None:
+                row["external_identifiers"] = [
+                    self._decode_knowledge_row(item) or {}
+                    for item in conn.execute(
+                        "SELECT * FROM external_identifiers WHERE subject_id=? ORDER BY external_identifier_id",
+                        (subject_id,),
+                    ).fetchall()
+                ]
+            return row
+
+    def _register_external_identifier_conn(
+        self, conn: sqlite3.Connection, subject_id: str, identifier: ExternalIdentifier | Any,
+    ) -> dict[str, Any]:
+        self._require_subject(conn, subject_id)
+        model = identifier if isinstance(identifier, ExternalIdentifier) else ExternalIdentifier.model_validate(identifier)
+        authority = model.issuing_authority or ""
+        identity = {
+            "scheme": model.scheme, "value": model.value,
+            "issuing_authority": model.issuing_authority, "subject_id": subject_id,
+        }
+        external_id = "externalid:" + _canonical_hash(identity)
+        material = {"subject_id": subject_id, **_dump(model)}
+        material_hash = _canonical_hash(material)
+        existing_key = conn.execute(
+            "SELECT * FROM external_identifiers WHERE scheme=? AND identifier_value=? AND issuing_authority=?",
+            (model.scheme, model.value, authority),
+        ).fetchone()
+        if existing_key is not None:
+            if existing_key["subject_id"] != subject_id:
+                raise ConflictError("external identifier is already bound to another subject")
+            if existing_key["material_hash"] != material_hash:
+                raise ConflictError("external identifier is already registered with different material")
+            return self._decode_knowledge_row(existing_key) or {}
+        return self._insert_idempotent(
+            conn, table="external_identifiers", id_column="external_identifier_id",
+            record_id=external_id, material_hash=material_hash,
+            values=(
+                external_id, subject_id, model.scheme, model.value, authority,
+                model.valid_from.isoformat() if model.valid_from else None,
+                model.valid_to.isoformat() if model.valid_to else None,
+                "active", self._json(material), material_hash,
+            ),
+            columns="external_identifier_id, subject_id, scheme, identifier_value, issuing_authority, valid_from, valid_to, status, material_json, material_hash",
+        )
+
+    def register_external_identifier(self, subject_id: str, identifier: Any) -> dict[str, Any]:
+        self._require_migrated()
+        with self._connection(immediate=True) as conn:
+            result = self._register_external_identifier_conn(conn, subject_id, identifier)
+            self._commit(conn)
+            return result
+
+    def get_external_identifiers(self, subject_id: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            return [
+                self._decode_knowledge_row(row) or {}
+                for row in conn.execute(
+                    "SELECT * FROM external_identifiers WHERE subject_id=? ORDER BY external_identifier_id",
+                    (subject_id,),
+                ).fetchall()
+            ]
+
+    def register_scope(self, scope: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = scope if isinstance(scope, ScopeRecord) else ScopeRecord.model_validate(scope)
+        material_hash = _canonical_hash(model)
+        with self._connection(immediate=True) as conn:
+            self._require_subject(conn, model.subject_id)
+            if model.parent_scope_id is not None:
+                self._require_scope(conn, model.parent_scope_id, model.subject_id)
+            result = self._insert_idempotent(
+                conn, table="subject_scopes", id_column="scope_id", record_id=model.record_id,
+                material_hash=material_hash,
+                values=(
+                    model.record_id, model.subject_id, model.scope_kind, model.label, model.parent_scope_id,
+                    model.valid_from.isoformat() if model.valid_from else None,
+                    model.valid_to.isoformat() if model.valid_to else None,
+                    model.lifecycle_status, self._json(model), material_hash, _utc(model.created_at, "created_at"),
+                ),
+                columns="scope_id, subject_id, scope_kind, label, parent_scope_id, valid_from, valid_to, lifecycle_status, material_json, material_hash, created_at",
+            )
+            self._commit(conn)
+            return result
+
+    register_subject_scope = register_scope
+
+    def get_scope(self, scope_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(
+                conn.execute("SELECT * FROM subject_scopes WHERE scope_id=?", (scope_id,)).fetchone()
+            )
+
+    def register_party_role(self, party_role: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = party_role if isinstance(party_role, PartyRole) else PartyRole.model_validate(party_role)
+        material_hash = _canonical_hash(model)
+        with self._connection(immediate=True) as conn:
+            self._require_scope(conn, model.scope_id)
+            result = self._insert_idempotent(
+                conn, table="party_roles", id_column="party_role_id", record_id=model.record_id,
+                material_hash=material_hash,
+                values=(
+                    model.record_id, model.party_id, model.role, model.context_record_id, model.scope_id,
+                    model.valid_from.isoformat() if model.valid_from else None,
+                    model.valid_to.isoformat() if model.valid_to else None,
+                    model.status, self._json(model), material_hash, _utc(model.created_at, "created_at"),
+                ),
+                columns="party_role_id, party_id, role, context_record_id, scope_id, valid_from, valid_to, status, material_json, material_hash, created_at",
+            )
+            self._commit(conn)
+            return result
+
+    def get_party_role(self, party_role_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(
+                conn.execute("SELECT * FROM party_roles WHERE party_role_id=?", (party_role_id,)).fetchone()
+            )
+
+    def record_observation(self, observation: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = observation if isinstance(observation, Observation) else Observation.model_validate(observation)
+        material_hash = _canonical_hash(model)
+        with self._connection(immediate=True) as conn:
+            self._require_subject(conn, model.subject_id)
+            self._require_scope(conn, model.scope_id, model.subject_id)
+            self._require_evidence(conn, model.evidence_locator_ids)
+            if model.supersedes_observation_id is not None and conn.execute(
+                "SELECT 1 FROM knowledge_observations WHERE observation_id=?",
+                (model.supersedes_observation_id,),
+            ).fetchone() is None:
+                raise CatalogError(f"unknown superseded observation {model.supersedes_observation_id}")
+            result = self._insert_idempotent(
+                conn, table="knowledge_observations", id_column="observation_id", record_id=model.record_id,
+                material_hash=material_hash,
+                values=(
+                    model.record_id, model.subject_id, model.scope_id, model.predicate,
+                    self._json(model.value) if model.value is not None else None,
+                    model.outcome_state, self._json(model.evidence_locator_ids),
+                    self._json(model.source_record_ids), self._json(model.observation_time),
+                    model.method, model.lifecycle_status, model.supersedes_observation_id,
+                    self._json(model), material_hash,
+                    _utc(model.created_at, "created_at"),
+                ),
+                columns="observation_id, subject_id, scope_id, predicate, value_json, outcome_state, evidence_locator_ids_json, source_record_ids_json, observation_time_json, method, lifecycle_status, supersedes_observation_id, material_json, material_hash, created_at",
+            )
+            self._commit(conn)
+            for edge in model.lineage:
+                self.record_knowledge_lineage(
+                    edge.source_artifact_id, edge.target_artifact_id, edge.edge_type,
+                    material={"record_id": model.record_id},
+                    created_at=model.created_at,
+                )
+            return result
+
+    register_observation = record_observation
+
+    def get_observation(self, observation_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(
+                conn.execute("SELECT * FROM knowledge_observations WHERE observation_id=?", (observation_id,)).fetchone()
+            )
+
+    def record_assertion(self, assertion: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = assertion if isinstance(assertion, Assertion) else Assertion.model_validate(assertion)
+        material_hash = _canonical_hash(model)
+        with self._connection(immediate=True) as conn:
+            self._require_subject(conn, model.subject_id)
+            self._require_scope(conn, model.scope_id, model.subject_id)
+            self._require_evidence(conn, model.evidence_locator_ids)
+            for observation_id in model.observation_ids:
+                observation = conn.execute(
+                    "SELECT subject_id, scope_id FROM knowledge_observations WHERE observation_id=?",
+                    (observation_id,),
+                ).fetchone()
+                if observation is None:
+                    raise CatalogError(f"unknown observation {observation_id}")
+                if observation["subject_id"] != model.subject_id or observation["scope_id"] != model.scope_id:
+                    raise ConflictError("assertion observation scope does not match assertion")
+            if model.supersedes_assertion_id is not None and conn.execute(
+                "SELECT 1 FROM knowledge_assertions WHERE assertion_id=?",
+                (model.supersedes_assertion_id,),
+            ).fetchone() is None:
+                raise CatalogError(f"unknown superseded assertion {model.supersedes_assertion_id}")
+            result = self._insert_idempotent(
+                conn, table="knowledge_assertions", id_column="assertion_id", record_id=model.record_id,
+                material_hash=material_hash,
+                values=(
+                    model.record_id, model.subject_id, model.scope_id, model.predicate,
+                    self._json(model.value) if model.value is not None else None,
+                    model.outcome_state, self._json(model.observation_ids),
+                    self._json(model.evidence_locator_ids), self._json(model.assertion_time),
+                    model.method, model.lifecycle_status, model.publication_eligibility,
+                    model.supersedes_assertion_id,
+                    self._json(model), material_hash, _utc(model.created_at, "created_at"),
+                ),
+                columns="assertion_id, subject_id, scope_id, predicate, value_json, outcome_state, observation_ids_json, evidence_locator_ids_json, assertion_time_json, method, lifecycle_status, publication_eligibility, supersedes_assertion_id, material_json, material_hash, created_at",
+            )
+            self._commit(conn)
+            for edge in model.lineage:
+                self.record_knowledge_lineage(
+                    edge.source_artifact_id, edge.target_artifact_id, edge.edge_type,
+                    material={"record_id": model.record_id},
+                    created_at=model.created_at,
+                )
+            return result
+
+    register_assertion = record_assertion
+
+    def get_assertion(self, assertion_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(
+                conn.execute("SELECT * FROM knowledge_assertions WHERE assertion_id=?", (assertion_id,)).fetchone()
+            )
+
+    def record_relationship(self, relationship: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = relationship if isinstance(relationship, RelationshipStatement) else RelationshipStatement.model_validate(relationship)
+        material_hash = _canonical_hash(model)
+        with self._connection(immediate=True) as conn:
+            self._require_subject(conn, model.source_subject_id)
+            self._require_subject(conn, model.target_subject_id)
+            self._require_scope(conn, model.scope_id)
+            self._require_evidence(conn, model.evidence_locator_ids)
+            for observation_id in model.observation_ids:
+                if conn.execute(
+                    "SELECT 1 FROM knowledge_observations WHERE observation_id=?", (observation_id,)
+                ).fetchone() is None:
+                    raise CatalogError(f"unknown observation {observation_id}")
+            result = self._insert_idempotent(
+                conn, table="relationship_statements", id_column="relationship_id", record_id=model.record_id,
+                material_hash=material_hash,
+                values=(
+                    model.record_id, model.source_subject_id, model.target_subject_id, model.relationship_type,
+                    model.scope_id, model.source_role, model.target_role,
+                    self._json(model.evidence_locator_ids), self._json(model.observation_ids),
+                    model.valid_from.isoformat() if model.valid_from else None,
+                    model.valid_to.isoformat() if model.valid_to else None,
+                    model.status, self._json(model), material_hash, _utc(model.created_at, "created_at"),
+                ),
+                columns="relationship_id, source_subject_id, target_subject_id, relationship_type, scope_id, source_role, target_role, evidence_locator_ids_json, observation_ids_json, valid_from, valid_to, status, material_json, material_hash, created_at",
+            )
+            self._commit(conn)
+            for edge in model.lineage:
+                self.record_knowledge_lineage(
+                    edge.source_artifact_id, edge.target_artifact_id, edge.edge_type,
+                    material={"record_id": model.record_id},
+                    created_at=model.created_at,
+                )
+            return result
+
+    register_relationship = record_relationship
+
+    def get_relationship(self, relationship_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(
+                conn.execute("SELECT * FROM relationship_statements WHERE relationship_id=?", (relationship_id,)).fetchone()
+            )
+
+    def record_adjudication(self, decision: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = decision if isinstance(decision, AdjudicationDecision) else AdjudicationDecision.model_validate(decision)
+        material_hash = _canonical_hash(model)
+        with self._connection(immediate=True) as conn:
+            for record_id in model.input_record_ids:
+                if record_id.startswith(("observation:", "assertion:", "relationship:", "adjudication:")) and not self._record_exists(conn, record_id):
+                    raise CatalogError(f"unknown adjudication input {record_id}")
+            if (
+                model.result_record_id
+                and model.result_record_id.startswith(("observation:", "assertion:", "relationship:"))
+                and not self._record_exists(conn, model.result_record_id)
+            ):
+                raise CatalogError(f"unknown adjudication result {model.result_record_id}")
+            result = self._insert_idempotent(
+                conn, table="adjudication_decisions", id_column="adjudication_id", record_id=model.record_id,
+                material_hash=material_hash,
+                values=(
+                    model.record_id, self._json(model.input_record_ids), model.outcome, model.rationale,
+                    model.reviewer_id, model.result_record_id, _utc(model.decision_time, "decision_time"),
+                    model.review_policy_id, self._json(model), material_hash, _utc(model.created_at, "created_at"),
+                ),
+                columns="adjudication_id, input_record_ids_json, outcome, rationale, reviewer_id, result_record_id, decision_time, review_policy_id, material_json, material_hash, created_at",
+            )
+            self._commit(conn)
+            for edge in model.lineage:
+                self.record_knowledge_lineage(
+                    edge.source_artifact_id, edge.target_artifact_id, edge.edge_type,
+                    material={"record_id": model.record_id},
+                    created_at=model.created_at,
+                )
+            return result
+
+    register_adjudication = record_adjudication
+
+    def get_adjudication(self, adjudication_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(
+                conn.execute("SELECT * FROM adjudication_decisions WHERE adjudication_id=?", (adjudication_id,)).fetchone()
+            )
+
+    def record_knowledge_lineage(
+        self,
+        source_record_id: str,
+        target_record_id: str,
+        edge_type: str,
+        *,
+        material: Any | None = None,
+        created_at: datetime | str | None = None,
+    ) -> dict[str, Any]:
+        self._require_migrated()
+        if not source_record_id.strip() or not target_record_id.strip() or source_record_id == target_record_id:
+            raise CatalogError("lineage endpoints must be distinct and nonblank")
+        allowed = {
+            "proposed_from", "reviewed_by", "promoted_as", "derived_from", "supersedes",
+            "invalidates", "contradicts", "withdraws", "adjudicates",
+        }
+        if edge_type not in allowed:
+            raise CatalogError(f"unsupported knowledge lineage type {edge_type}")
+        if edge_type == "reviewed_by" and not (
+            source_record_id.startswith("candidate:") and target_record_id.startswith("decision:")
+        ):
+            raise ConflictError("reviewed_by lineage must run from candidate to decision")
+        if edge_type == "promoted_as" and not (
+            source_record_id.startswith("candidate:") and target_record_id.startswith("observation:")
+        ):
+            raise ConflictError("promoted_as lineage must run from candidate to observation")
+        if edge_type == "supersedes" and not (
+            source_record_id.startswith(("observation:", "assertion:"))
+            and target_record_id.startswith(("observation:", "assertion:"))
+        ):
+            raise ConflictError("supersedes lineage must connect observations or assertions")
+        if edge_type == "supersedes":
+            with self._connection() as check_conn:
+                source = None
+                if source_record_id.startswith("observation:"):
+                    source = check_conn.execute(
+                        "SELECT supersedes_observation_id FROM knowledge_observations WHERE observation_id=?",
+                        (source_record_id,),
+                    ).fetchone()
+                elif source_record_id.startswith("assertion:"):
+                    source = check_conn.execute(
+                        "SELECT supersedes_assertion_id FROM knowledge_assertions WHERE assertion_id=?",
+                        (source_record_id,),
+                    ).fetchone()
+                if source is None:
+                    raise CatalogError(f"unknown superseding record {source_record_id}")
+                if source[0] != target_record_id:
+                    raise ConflictError("supersedes lineage must match the successor's supersedes field")
+        if edge_type in {"reviewed_by", "promoted_as", "supersedes"}:
+            if target_record_id.startswith(("observation:", "assertion:", "relationship:", "adjudication:")):
+                with self._connection() as check_conn:
+                    if not self._record_exists(check_conn, target_record_id):
+                        raise CatalogError(f"unknown lineage target {target_record_id}")
+        created = _utc(created_at or datetime.now(timezone.utc), "created_at")
+        payload = {
+            "source_record_id": source_record_id, "target_record_id": target_record_id,
+            "edge_type": edge_type, "material": material,
+        }
+        material_hash = _canonical_hash(payload)
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute(
+                "SELECT * FROM knowledge_lineage WHERE source_record_id=? AND target_record_id=? AND edge_type=?",
+                (source_record_id, target_record_id, edge_type),
+            ).fetchone()
+            if existing is not None:
+                if existing["material_hash"] != material_hash:
+                    raise ConflictError("lineage edge was replayed with different material")
+                return dict(existing)
+            conn.execute(
+                "INSERT INTO knowledge_lineage(source_record_id, target_record_id, edge_type, material_json, material_hash, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (source_record_id, target_record_id, edge_type, self._json(payload), material_hash, created),
+            )
+            self._commit(conn)
+            return dict(conn.execute(
+                "SELECT * FROM knowledge_lineage WHERE source_record_id=? AND target_record_id=? AND edge_type=?",
+                (source_record_id, target_record_id, edge_type),
+            ).fetchone())
+
+    record_lineage = record_knowledge_lineage
+
+    def get_knowledge_lineage(
+        self, record_id: str | None = None, *, edge_type: str | None = None,
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if record_id is not None:
+            clauses.append("(source_record_id=? OR target_record_id=?)")
+            params.extend([record_id, record_id])
+        if edge_type is not None:
+            clauses.append("edge_type=?")
+            params.append(edge_type)
+        query = "SELECT * FROM knowledge_lineage"
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
+        query += " ORDER BY created_at, source_record_id, target_record_id"
+        with self._connection() as conn:
+            return [dict(row) for row in conn.execute(query, params).fetchall()]
+
+    lineage_for = get_knowledge_lineage
+
+    def reconstruct_knowledge_history(self, subject_id: str) -> dict[str, Any]:
+        with self._connection() as conn:
+            self._require_subject(conn, subject_id)
+            observations = [
+                self._decode_knowledge_row(row) or {}
+                for row in conn.execute(
+                    "SELECT * FROM knowledge_observations WHERE subject_id=? ORDER BY created_at, observation_id",
+                    (subject_id,),
+                ).fetchall()
+            ]
+            assertions = [
+                self._decode_knowledge_row(row) or {}
+                for row in conn.execute(
+                    "SELECT * FROM knowledge_assertions WHERE subject_id=? ORDER BY created_at, assertion_id",
+                    (subject_id,),
+                ).fetchall()
+            ]
+            relationships = [
+                self._decode_knowledge_row(row) or {}
+                for row in conn.execute(
+                    "SELECT * FROM relationship_statements WHERE source_subject_id=? OR target_subject_id=? ORDER BY created_at, relationship_id",
+                    (subject_id, subject_id),
+                ).fetchall()
+            ]
+            ids = {item["observation_id"] for item in observations} | {item["assertion_id"] for item in assertions}
+            lineage = []
+            if ids:
+                placeholders = ",".join("?" for _ in ids)
+                lineage = [
+                    dict(row)
+                    for row in conn.execute(
+                        f"SELECT * FROM knowledge_lineage WHERE source_record_id IN ({placeholders}) OR target_record_id IN ({placeholders}) ORDER BY created_at",
+                        tuple(ids) + tuple(ids),
+                    ).fetchall()
+                ]
+            superseded_ids = {
+                edge["target_record_id"] for edge in lineage if edge["edge_type"] == "supersedes"
+            }
+            current_observations = [
+                item for item in observations
+                if item.get("lifecycle_status") in {"accepted", "edited"}
+                and item.get("outcome_state") in {"resolved", "supported"}
+                and item.get("observation_id") not in superseded_ids
+            ]
+            current_assertions = [
+                item for item in assertions
+                if item.get("lifecycle_status") in {"accepted", "edited"}
+                and item.get("outcome_state") in {"resolved", "supported"}
+                and item.get("assertion_id") not in superseded_ids
+            ]
+            return {
+                "subject_id": subject_id,
+                "observations": observations,
+                "assertions": assertions,
+                "current_observations": current_observations,
+                "current_assertions": current_assertions,
+                "relationships": relationships,
+                "lineage": lineage,
+            }
+
+    knowledge_history = reconstruct_knowledge_history

@@ -13,7 +13,8 @@ from .ids import deterministic_id, new_opaque_id, validate_typed_id
 from .knowledge import (
     ArtifactRef as KnowledgeArtifactRef, AutomationAuthority, CandidateObservation, CanonicalObservation,
     DecisionAuthority, DecisionRecord, DerivativeArtifact, EvidenceFragment, ExternalIdentifier,
-    HumanAuthority, ObservationTime, SourceRecord, SubjectRecord, validate_promotion_chain,
+    HumanAuthority, Observation, ObservationTime, OutcomeState, Assertion, AdjudicationDecision,
+    PartyRole, RelationshipStatement, ScopeRecord, SourceRecord, SubjectRecord, validate_promotion_chain,
 )
 from .tasks import (
     EmbeddingResult, EvidenceInput, ModelResult, ModelTask, ModelTaskType, NamedUsage,
@@ -32,7 +33,8 @@ __all__ = [
     "CostLedgerEntry", "CostReservation", "DecisionAuthority", "DecisionRecord", "DerivativeArtifact",
     "EmbeddingResult", "EvidenceFragment", "EvidenceInput", "ExternalIdentifier", "FxRateSnapshot",
     "HumanAuthority", "IdPrefix", "JsonValue", "LineageEdge", "ModelResult", "ModelTask", "ModelTaskType",
-    "Money", "NamedUsage", "SignedMoney", "ObservationTime", "PaidOutputCategory", "PriceRate", "PricingSnapshot",
+    "Money", "NamedUsage", "SignedMoney", "Observation", "ObservationTime", "OutcomeState", "Assertion",
+    "AdjudicationDecision", "PartyRole", "RelationshipStatement", "ScopeRecord", "PaidOutputCategory", "PriceRate", "PricingSnapshot",
     "ProducerRef", "ProviderUsage", "ReservationReconciliation", "RunManifest", "SchemaRef", "Sha256", "SourceRecord", "StrictModel",
     "SubjectRecord", "TaskRun", "VersionedPolicy", "VersionedTool", "canonical_data", "canonical_json_bytes",
     "canonical_sha256", "deterministic_id", "model_task_cache_key", "new_opaque_id", "seal_record",
