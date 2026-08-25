@@ -473,7 +473,7 @@ def load_economics_snapshots(runtime_root: str | Path, *, allow_network: bool) -
     fx_status = "not_attempted"
     if fx:
         try:
-            fx_rate = str(Decimal(json.loads(fx[1].decode("utf-8"))["rates"]["AUD"]))
+            fx_rate = str(Decimal(str(json.loads(fx[1].decode("utf-8"))["rates"]["AUD"])))
             fx_status = "available"
         except (ValueError, KeyError, TypeError, json.JSONDecodeError):
             fx_status = "parse_failure"
