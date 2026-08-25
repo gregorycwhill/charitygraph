@@ -25,6 +25,7 @@ IdPrefix: TypeAlias = Literal[
     "relationship:", "adjudication:", "externalid:", "derivative:", "modeltask:", "modelresult:",
     "embedding:", "taskrun:", "cohort:", "pricing:", "fx:", "reservation:",
     "costledger:", "run:",
+    "scheme:", "schemever:", "concept:", "mapping:", "assignment:", "programcandidate:", "semtask:",
 ]
 
 LineageType = Literal[

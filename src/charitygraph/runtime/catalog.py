@@ -19,10 +19,12 @@ from typing import Any, Iterator, Mapping
 from .migrations import MIGRATIONS, SUPPORTED_VERSION
 from ..contracts.economics import CostLedgerEntry
 from ..contracts.knowledge import (
-    AdjudicationDecision, Assertion, ExternalIdentifier, Observation, PartyRole,
+    AdjudicationDecision, Assertion, ExternalIdentifier, Observation, PartyRole, SourceRecord,
     RelationshipStatement, ScopeRecord, SubjectRecord,
 )
 from ..contracts.source import AcquisitionReceipt, EvidenceLocator, SourceDefinition
+from ..contracts.program import ProgramCandidate
+from ..contracts.taxonomy import ConceptMapping, TaxonomyAssignment, TaxonomyConcept, TaxonomyScheme, TaxonomyVersion
 
 
 class CatalogError(RuntimeError):
@@ -908,6 +910,128 @@ class SQLiteCatalog:
 
     register_evidence = register_evidence_locator
 
+    # Phase 1 private taxonomy and program state
+    def register_source_record(self, source_record: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = source_record if isinstance(source_record, SourceRecord) else SourceRecord.model_validate(source_record)
+        material_hash = _canonical_hash(model)
+        created = _utc(model.created_at, "created_at")
+        with self._connection(immediate=True) as conn:
+            row = self._insert_idempotent(conn, table="source_records", id_column="source_record_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, None, model.source_family, model.source_role, model.source_version, model.source_locator, _utc(model.observed_at, "observed_at"), model.payload_ref, model.payload_hash, self._json(model), material_hash, created), columns="source_record_id, subject_id, source_family, source_role, source_version, source_locator, observed_at, payload_ref, payload_hash, material_json, material_hash, created_at")
+            self._commit(conn)
+            return row
+
+    def get_source_record(self, source_record_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(conn.execute("SELECT * FROM source_records WHERE source_record_id=?", (source_record_id,)).fetchone())
+
+    def register_taxonomy_scheme(self, scheme: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = scheme if isinstance(scheme, TaxonomyScheme) else TaxonomyScheme.model_validate(scheme)
+        material_hash = _canonical_hash(model)
+        created = _utc(model.created_at, "created_at")
+        values = (model.scheme_id, model.scheme_id, model.owner, model.purpose, model.jurisdiction, model.disposition, model.licence, model.reuse_policy, model.attribution, model.maintenance_policy, model.deprecation_policy, model.steward, model.review_status, self._json(model), material_hash, created)
+        with self._connection(immediate=True) as conn:
+            row = self._insert_idempotent(conn, table="taxonomy_schemes", id_column="scheme_id", record_id=model.record_id, material_hash=material_hash, values=values, columns="scheme_id, scheme_key, owner, purpose, jurisdiction, disposition, licence, reuse_policy, attribution, maintenance_policy, deprecation_policy, steward, review_status, material_json, material_hash, created_at")
+            self._commit(conn)
+            return row
+
+    def get_taxonomy_scheme(self, scheme_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(conn.execute("SELECT * FROM taxonomy_schemes WHERE scheme_id=?", (scheme_id,)).fetchone())
+
+    def register_taxonomy_version(self, version: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = version if isinstance(version, TaxonomyVersion) else TaxonomyVersion.model_validate(version)
+        material_hash = _canonical_hash(model)
+        created = _utc(model.created_at, "created_at")
+        with self._connection(immediate=True) as conn:
+            if conn.execute("SELECT 1 FROM taxonomy_schemes WHERE scheme_id=?", (model.scheme_id,)).fetchone() is None:
+                raise CatalogError(f"unknown taxonomy scheme {model.scheme_id}")
+            row = self._insert_idempotent(conn, table="taxonomy_versions", id_column="scheme_version_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.scheme_id, model.version, model.release_date.isoformat(), model.jurisdiction_scope, model.source_locator, model.status, model.licence, model.reuse_policy, model.attribution, self._json(model), material_hash, created), columns="scheme_version_id, scheme_id, version, release_date, jurisdiction_scope, source_locator, status, licence, reuse_policy, attribution, material_json, material_hash, created_at")
+            self._commit(conn)
+            return row
+
+    def get_taxonomy_version(self, scheme_version_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(conn.execute("SELECT * FROM taxonomy_versions WHERE scheme_version_id=?", (scheme_version_id,)).fetchone())
+
+    def register_taxonomy_concept(self, concept: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = concept if isinstance(concept, TaxonomyConcept) else TaxonomyConcept.model_validate(concept)
+        material_hash = _canonical_hash(model)
+        created = _utc(model.created_at, "created_at")
+        with self._connection(immediate=True) as conn:
+            if conn.execute("SELECT 1 FROM taxonomy_versions WHERE scheme_version_id=?", (model.scheme_version_id,)).fetchone() is None:
+                raise CatalogError(f"unknown taxonomy version {model.scheme_version_id}")
+            for concept_id in (*model.parent_concept_ids, *model.replacement_concept_ids):
+                if conn.execute("SELECT 1 FROM taxonomy_concepts WHERE concept_id=?", (concept_id,)).fetchone() is None:
+                    raise CatalogError(f"unknown concept reference {concept_id}")
+            row = self._insert_idempotent(conn, table="taxonomy_concepts", id_column="concept_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.scheme_version_id, model.external_concept_id, model.preferred_label, model.definition, self._json(model.parent_concept_ids), int(model.active), int(model.deprecated), self._json(model.replacement_concept_ids), self._json(model.notes), self._json(model), material_hash, created), columns="concept_id, scheme_version_id, external_concept_id, preferred_label, definition, parent_concept_ids_json, active, deprecated, replacement_concept_ids_json, notes_json, material_json, material_hash, created_at")
+            self._commit(conn)
+            return row
+
+    def get_taxonomy_concept(self, concept_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(conn.execute("SELECT * FROM taxonomy_concepts WHERE concept_id=?", (concept_id,)).fetchone())
+
+    def register_concept_mapping(self, mapping: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = mapping if isinstance(mapping, ConceptMapping) else ConceptMapping.model_validate(mapping)
+        material_hash = _canonical_hash(model)
+        created = _utc(model.created_at, "created_at")
+        with self._connection(immediate=True) as conn:
+            for concept_id in (model.source_concept_id, model.target_concept_id):
+                if conn.execute("SELECT 1 FROM taxonomy_concepts WHERE concept_id=?", (concept_id,)).fetchone() is None:
+                    raise CatalogError(f"unknown mapped concept {concept_id}")
+            self._require_evidence(conn, model.evidence_ids)
+            row = self._insert_idempotent(conn, table="taxonomy_mappings", id_column="mapping_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.source_concept_id, model.target_concept_id, model.predicate, model.method, self._json(model.evidence_ids), model.reason, model.review_state, self._json(model), material_hash, created), columns="mapping_id, source_concept_id, target_concept_id, predicate, method, evidence_ids_json, reason, review_state, material_json, material_hash, created_at")
+            self._commit(conn)
+            return row
+
+    def get_concept_mapping(self, mapping_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(conn.execute("SELECT * FROM taxonomy_mappings WHERE mapping_id=?", (mapping_id,)).fetchone())
+
+    def register_taxonomy_assignment(self, assignment: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = assignment if isinstance(assignment, TaxonomyAssignment) else TaxonomyAssignment.model_validate(assignment)
+        material_hash = _canonical_hash(model)
+        created = _utc(model.created_at, "created_at")
+        with self._connection(immediate=True) as conn:
+            self._require_subject(conn, model.subject_id)
+            self._require_scope(conn, model.scope_id, model.subject_id)
+            if conn.execute("SELECT 1 FROM taxonomy_versions WHERE scheme_version_id=?", (model.scheme_version_id,)).fetchone() is None:
+                raise CatalogError(f"unknown taxonomy version {model.scheme_version_id}")
+            concept = conn.execute("SELECT scheme_version_id FROM taxonomy_concepts WHERE concept_id=?", (model.concept_id,)).fetchone()
+            if concept is None:
+                raise CatalogError(f"unknown taxonomy concept {model.concept_id}")
+            if concept["scheme_version_id"] != model.scheme_version_id:
+                raise ConflictError("assignment concept must belong to its stated scheme version")
+            self._require_evidence(conn, model.evidence_ids)
+            row = self._insert_idempotent(conn, table="taxonomy_assignments", id_column="assignment_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.subject_id, model.scope_id, model.scheme_version_id, model.concept_id, model.role, model.assignment_method, self._json(model.evidence_ids), model.rationale, model.confidence, model.outcome_state, model.lifecycle_status, self._json(model), material_hash, created), columns="assignment_id, subject_id, scope_id, scheme_version_id, concept_id, role, assignment_method, evidence_ids_json, rationale, confidence, outcome_state, lifecycle_status, material_json, material_hash, created_at")
+            self._commit(conn)
+            return row
+
+    def get_taxonomy_assignment(self, assignment_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(conn.execute("SELECT * FROM taxonomy_assignments WHERE assignment_id=?", (assignment_id,)).fetchone())
+
+    def register_program_candidate(self, candidate: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = candidate if isinstance(candidate, ProgramCandidate) else ProgramCandidate.model_validate(candidate)
+        material_hash = _canonical_hash(model)
+        created = _utc(model.created_at, "created_at")
+        with self._connection(immediate=True) as conn:
+            self._require_subject(conn, model.subject_id)
+            self._require_evidence(conn, model.evidence_ids)
+            row = self._insert_idempotent(conn, table="program_candidates", id_column="program_candidate_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.subject_id, model.source_record_id, self._json(model.evidence_ids), model.label, model.candidate_kind, model.extraction_method, model.source_locator, model.status, self._json(model), material_hash, created), columns="program_candidate_id, subject_id, source_record_id, evidence_ids_json, label, candidate_kind, extraction_method, source_locator, status, material_json, material_hash, created_at")
+            self._commit(conn)
+            return row
+
+    def get_program_candidate(self, candidate_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._decode_knowledge_row(conn.execute("SELECT * FROM program_candidates WHERE program_candidate_id=?", (candidate_id,)).fetchone())
     # PR B governed knowledge primitives
     @staticmethod
     def _decode_knowledge_row(row: sqlite3.Row | None) -> dict[str, Any] | None:
