@@ -1,0 +1,20 @@
+﻿{
+  "manifest_id": "reality-slice1-development",
+  "version": "1.0",
+  "authority": {"data_repository": "charitygraph-data", "data_main": "f8fc0ea70de21e397d64bd8a3fd21f941a2ca395", "packet": "REALITY_SLICE_1_ACCEPTANCE_PACKET.md"},
+  "run_policy": {"mode": "private_preflight", "paid_semantic_execution": "human_approval_required", "budget_cap_aud": "25", "publication": "forbidden"},
+  "development": [
+    {"legal_current_name": "The Smith Family", "abn": "28000030179", "cohort_membership": "development", "expected_source_families": ["acnc", "abr", "ato-dgr", "official-website", "annual-report", "education-evaluation"], "acquisition_status": "planned", "review_sensitivity": ["ordinary"], "run_eligibility": "eligible"},
+    {"legal_current_name": "Australian Red Cross Society", "abn": "50169561394", "cohort_membership": "development", "expected_source_families": ["acnc", "abr", "ato-dgr", "official-website", "annual-report", "lifeblood-regulated"], "acquisition_status": "planned", "review_sensitivity": ["group-scope", "high-consequence"], "run_eligibility": "eligible"},
+    {"legal_current_name": "Australian Communities Foundation Limited", "abn": "20077830347", "cohort_membership": "development", "expected_source_families": ["acnc", "abr", "ato-dgr", "official-website", "annual-report", "grantmaking-research"], "acquisition_status": "planned", "review_sensitivity": ["grantmaking-scope"], "run_eligibility": "eligible"},
+    {"legal_current_name": "Australian Conservation Foundation Incorporated", "abn": "22007498482", "cohort_membership": "development", "expected_source_families": ["acnc", "abr", "ato-dgr", "official-website", "annual-report", "government-research"], "acquisition_status": "planned", "review_sensitivity": ["advocacy", "high-consequence"], "run_eligibility": "eligible"},
+    {"legal_current_name": "Mission Australia", "abn": "15000002522", "cohort_membership": "development", "expected_source_families": ["acnc", "abr", "ato-dgr", "official-website", "annual-report", "service-regulator"], "acquisition_status": "planned", "review_sensitivity": ["group-scope", "service-scope", "high-consequence"], "run_eligibility": "eligible"},
+    {"legal_current_name": "World Vision Australia", "abn": "28004778081", "cohort_membership": "development", "expected_source_families": ["acnc", "abr", "ato-dgr", "official-website", "annual-report", "dfat-acfid-evaluation"], "acquisition_status": "planned", "review_sensitivity": ["international-scope", "fundraising"], "run_eligibility": "eligible"},
+    {"legal_current_name": "The Fred Hollows Foundation", "abn": "46070556642", "cohort_membership": "development", "expected_source_families": ["acnc", "abr", "ato-dgr", "official-website", "annual-report", "dfat-eye-health-evaluation"], "acquisition_status": "planned", "review_sensitivity": ["international-scope", "evaluation", "fundraising"], "run_eligibility": "eligible"}
+  ],
+  "holdout": [
+    {"legal_current_name": "Landscape Recovery Foundation Ltd.", "abn": "67649417658", "cohort_membership": "holdout", "expected_source_families": ["acnc", "abr", "official-website"], "acquisition_status": "sealed", "review_sensitivity": ["holdout"], "run_eligibility": "forbidden"},
+    {"legal_current_name": "Indigenous Literacy Foundation Ltd.", "abn": "45146631843", "cohort_membership": "holdout", "expected_source_families": ["acnc", "abr", "official-website"], "acquisition_status": "sealed", "review_sensitivity": ["holdout", "cultural-governance"], "run_eligibility": "forbidden"},
+    {"legal_current_name": "Life Without Barriers", "abn": "15101252171", "cohort_membership": "holdout", "expected_source_families": ["acnc", "abr", "official-website"], "acquisition_status": "sealed", "review_sensitivity": ["holdout", "high-consequence"], "run_eligibility": "forbidden"}
+  ]
+}

@@ -10,7 +10,7 @@ from .common import IdPrefix
 
 
 _PREFIXES: tuple[IdPrefix, ...] = (
-    "subject:", "subjectrecord:", "srcrec:", "evidence:", "candidate:",
+    "subject:", "subjectrecord:", "srcrec:", "srcdef:", "acq:", "evidence:", "candidate:",
     "decision:", "observation:", "assertion:", "scope:", "partyrole:",
     "relationship:", "adjudication:", "externalid:", "derivative:", "modeltask:", "modelresult:",
     "embedding:", "taskrun:", "cohort:", "pricing:", "fx:", "reservation:",

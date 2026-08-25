@@ -20,7 +20,7 @@ CanonicalObject: TypeAlias = dict[str, CanonicalValue]
 Sha256 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 
 IdPrefix: TypeAlias = Literal[
-    "subject:", "subjectrecord:", "srcrec:", "evidence:", "candidate:",
+    "subject:", "subjectrecord:", "srcrec:", "srcdef:", "acq:", "evidence:", "candidate:",
     "decision:", "observation:", "assertion:", "scope:", "partyrole:",
     "relationship:", "adjudication:", "externalid:", "derivative:", "modeltask:", "modelresult:",
     "embedding:", "taskrun:", "cohort:", "pricing:", "fx:", "reservation:",
