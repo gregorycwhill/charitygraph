@@ -20,6 +20,15 @@ from .tasks import (
     EmbeddingResult, EvidenceInput, ModelResult, ModelTask, ModelTaskType, NamedUsage,
     PaidOutputCategory, ProviderUsage, TaskRun, model_task_cache_key, validate_task_run_tasks,
 )
+from .program import ProgramCandidate
+from .semantic import (
+    EvidenceSelectionOutput, ProgramCandidateOutput, SDGAlignmentOutput,
+    SemanticConclusion, SemanticEvidence, TaxonomyAssignmentOutput, TaxonomySelection,
+)
+from .taxonomy import (
+    ConceptMapping, MappingPredicate, SchemeDisposition, TaxonomyAssignment,
+    TaxonomyConcept, TaxonomyScheme, TaxonomyVersion,
+)
 from .source import (
     AcquisitionReceipt, DocumentLocator, EvidenceLocator, PropositionAuthorityRole,
     SourceDefinition, StructuredFieldLocator, TextSpanLocator,
@@ -39,4 +48,8 @@ __all__ = [
     "SubjectRecord", "TaskRun", "VersionedPolicy", "VersionedTool", "canonical_data", "canonical_json_bytes",
     "canonical_sha256", "deterministic_id", "model_task_cache_key", "new_opaque_id", "seal_record",
     "validate_promotion_chain", "validate_task_run_tasks", "validate_typed_id", "verify_record_hash",
+    "ConceptMapping", "MappingPredicate", "ProgramCandidate", "ProgramCandidateOutput",
+    "EvidenceSelectionOutput", "SDGAlignmentOutput", "SchemeDisposition", "SemanticConclusion",
+    "SemanticEvidence", "TaxonomyAssignment", "TaxonomyAssignmentOutput", "TaxonomyConcept",
+    "TaxonomyScheme", "TaxonomySelection", "TaxonomyVersion",
 ]

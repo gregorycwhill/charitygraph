@@ -362,10 +362,127 @@ CREATE INDEX knowledge_lineage_target_idx ON knowledge_lineage(target_record_id,
 CREATE INDEX knowledge_lineage_source_idx ON knowledge_lineage(source_record_id, edge_type);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V4 = """
+CREATE TABLE taxonomy_schemes (
+    scheme_id TEXT PRIMARY KEY,
+    scheme_key TEXT NOT NULL UNIQUE,
+    owner TEXT NOT NULL,
+    purpose TEXT NOT NULL,
+    jurisdiction TEXT,
+    disposition TEXT NOT NULL CHECK(disposition IN ('adopted','incorporated','adapted','mapped','reference_only','deferred','rejected','retired')),
+    licence TEXT NOT NULL,
+    reuse_policy TEXT NOT NULL,
+    attribution TEXT NOT NULL,
+    maintenance_policy TEXT,
+    deprecation_policy TEXT,
+    steward TEXT NOT NULL,
+    review_status TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE taxonomy_versions (
+    scheme_version_id TEXT PRIMARY KEY,
+    scheme_id TEXT NOT NULL REFERENCES taxonomy_schemes(scheme_id),
+    version TEXT NOT NULL,
+    release_date TEXT NOT NULL,
+    jurisdiction_scope TEXT,
+    source_locator TEXT,
+    status TEXT NOT NULL CHECK(status IN ('current','historical','deprecated','frozen')),
+    licence TEXT NOT NULL,
+    reuse_policy TEXT NOT NULL,
+    attribution TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(scheme_id, version)
+);
+CREATE TABLE taxonomy_concepts (
+    concept_id TEXT PRIMARY KEY,
+    scheme_version_id TEXT NOT NULL REFERENCES taxonomy_versions(scheme_version_id),
+    external_concept_id TEXT NOT NULL,
+    preferred_label TEXT NOT NULL,
+    definition TEXT,
+    parent_concept_ids_json TEXT NOT NULL,
+    active INTEGER NOT NULL CHECK(active IN (0,1)),
+    deprecated INTEGER NOT NULL CHECK(deprecated IN (0,1)),
+    replacement_concept_ids_json TEXT NOT NULL,
+    notes_json TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(scheme_version_id, external_concept_id)
+);
+CREATE INDEX taxonomy_concepts_scheme_idx ON taxonomy_concepts(scheme_version_id, active, deprecated);
+CREATE TABLE taxonomy_mappings (
+    mapping_id TEXT PRIMARY KEY,
+    source_concept_id TEXT NOT NULL REFERENCES taxonomy_concepts(concept_id),
+    target_concept_id TEXT NOT NULL REFERENCES taxonomy_concepts(concept_id),
+    predicate TEXT NOT NULL CHECK(predicate IN ('exact_match','close_match','broader_match','narrower_match','related_match','no_match')),
+    method TEXT NOT NULL,
+    evidence_ids_json TEXT NOT NULL,
+    reason TEXT,
+    review_state TEXT NOT NULL CHECK(review_state IN ('unreviewed','review_required','accepted','rejected','held')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CHECK(source_concept_id <> target_concept_id)
+);
+CREATE TABLE taxonomy_assignments (
+    assignment_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    scope_id TEXT REFERENCES subject_scopes(scope_id),
+    scheme_version_id TEXT NOT NULL REFERENCES taxonomy_versions(scheme_version_id),
+    concept_id TEXT NOT NULL REFERENCES taxonomy_concepts(concept_id),
+    role TEXT NOT NULL CHECK(role IN ('primary','secondary')),
+    assignment_method TEXT NOT NULL CHECK(assignment_method IN ('source-reported','deterministic','model-assessed','human-reviewed','community-proposed')),
+    evidence_ids_json TEXT NOT NULL,
+    rationale TEXT,
+    confidence TEXT,
+    outcome_state TEXT NOT NULL CHECK(outcome_state IN ('resolved','supported','unknown','insufficient_evidence','withheld')),
+    lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('candidate','accepted','edited','rejected','held')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX taxonomy_assignments_subject_idx ON taxonomy_assignments(subject_id, scope_id);
+CREATE TABLE source_records (
+    source_record_id TEXT PRIMARY KEY,
+    subject_id TEXT REFERENCES subjects(subject_id),
+    source_family TEXT NOT NULL,
+    source_role TEXT NOT NULL,
+    source_version TEXT,
+    source_locator TEXT NOT NULL,
+    observed_at TEXT NOT NULL,
+    payload_ref TEXT NOT NULL,
+    payload_hash TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX source_records_subject_idx ON source_records(subject_id, source_family);
+CREATE TABLE program_candidates (
+    program_candidate_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    source_record_id TEXT NOT NULL,
+    evidence_ids_json TEXT NOT NULL,
+    label TEXT NOT NULL,
+    candidate_kind TEXT NOT NULL CHECK(candidate_kind IN ('explicit_program','explicit_service','structured_segment','non_program','ambiguous')),
+    extraction_method TEXT NOT NULL CHECK(extraction_method IN ('structured','segmented','model_task')),
+    source_locator TEXT,
+    status TEXT NOT NULL CHECK(status IN ('candidate','accepted','rejected','held')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX program_candidates_subject_idx ON program_candidates(subject_id, status);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
     Migration(3, "governed_knowledge_primitives", CATALOGUE_SQL_V3),
+    Migration(4, "taxonomy_and_pre_run_engine", CATALOGUE_SQL_V4),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

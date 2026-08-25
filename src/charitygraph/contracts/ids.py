@@ -15,6 +15,7 @@ _PREFIXES: tuple[IdPrefix, ...] = (
     "relationship:", "adjudication:", "externalid:", "derivative:", "modeltask:", "modelresult:",
     "embedding:", "taskrun:", "cohort:", "pricing:", "fx:", "reservation:",
     "costledger:", "run:",
+    "scheme:", "schemever:", "concept:", "mapping:", "assignment:", "programcandidate:", "semtask:",
 )
 _ID_RE = re.compile(r"^(?P<prefix>[a-z][a-z0-9_]*:)(?P<body>[0-9a-f]{32}|[0-9a-f]{64})$")
 
