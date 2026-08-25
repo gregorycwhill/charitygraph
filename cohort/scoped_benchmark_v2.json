@@ -1,811 +1,1142 @@
 {
   "activity_vocabulary": {
-    "concepts": [
-      "direct_service_delivery",
-      "education_support_delivery",
-      "advocacy",
-      "research_evaluation",
-      "grantmaking",
-      "community_engagement",
-      "capacity_building",
-      "policy_change",
-      "housing_provision",
-      "health_clinical_service_delivery",
-      "workforce_training",
-      "community_development"
+    "concept_ids": [
+      "activity.direct_service_delivery",
+      "activity.education_support_delivery",
+      "activity.advocacy",
+      "activity.research_evaluation",
+      "activity.grantmaking",
+      "activity.community_engagement",
+      "activity.capacity_building",
+      "activity.policy_change",
+      "activity.housing_provision",
+      "activity.health_clinical_service_delivery",
+      "activity.workforce_training",
+      "activity.community_development"
     ],
-    "rationale": {
-      "community_development": "separates operational development programs from donor engagement mechanisms",
-      "health_clinical_service_delivery": "separates Fred Hollows and Red Cross health delivery from generic service language",
-      "housing_provision": "stable distinction demonstrated by Mission Australia service decomposition",
-      "workforce_training": "separates workforce/capacity interventions from direct services"
-    },
     "version": "charitygraph-activity-2026-dev-v2"
   },
   "benchmark_version": "2.0",
   "cases": [
     {
+      "benchmark_scope_ref": null,
       "benchmark_version": "2.0",
-      "case_id": "sbv2:smith_family:organisation:entity",
+      "case_id": "sbv2:smith_family:organisation:The Smith Family",
       "concept_or_relation": "The Smith Family",
-      "entity_or_relation": "entity",
+      "correct_interpretation": null,
+      "durability_expectation": "durable_subject",
       "evidence_locator_ids": [
-        "evidence:smith_family:organisation"
+        "evidence_locator:srcrec:4c6b1cf0478bfb09c5248e982d3ba830377dc4984681f126696d4d69ed03112e"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "organisation identity",
+      "expected_subject_kind": "organisation",
+      "parent_subject_id": null,
+      "proposition_key": "organisation_identity",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "governed organisation identity",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:smith_family:organisation",
       "scope_kind": "organisation",
-      "subject_id": "subject:abn:28000030179",
+      "subject_id": "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c",
       "subject_name": "The Smith Family",
-      "task_family": "entity_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:smith_family:learning-for-life",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:smith_family:learning-for-life:entity",
+      "case_id": "sbv2:smith_family:learning-for-life:Learning for Life",
       "concept_or_relation": "Learning for Life",
-      "entity_or_relation": "entity",
+      "correct_interpretation": null,
+      "durability_expectation": "durable_subject",
       "evidence_locator_ids": [
-        "evidence:smith_family:learning-for-life"
+        "evidence_locator:srcrec:a7f1589c2890b7bcba6134e76438be2502897ad3b33989dca20de5df7938f4d6"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "named program must be retained",
+      "expected_subject_kind": "program",
+      "parent_subject_id": null,
+      "proposition_key": "smith_learning_for_life",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "actual named program on the official programs page",
+      "relationship_type": "has_program",
       "review_status": "proposed",
-      "scope_id": "scope:smith_family:learning-for-life",
       "scope_kind": "program",
-      "subject_id": "subject:abn:28000030179",
+      "subject_id": "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c",
       "subject_name": "The Smith Family",
-      "task_family": "program_decomposition"
+      "target_ref": "benchmark_candidate_ref:smith:learning-for-life",
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:smith_family:literacy-programs",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:smith_family:student2student:entity",
-      "concept_or_relation": "student2student",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:smith_family:literacy-programs:Literacy programs",
+      "concept_or_relation": "Literacy programs",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:smith_family:student2student"
+        "evidence_locator:srcrec:a7f1589c2890b7bcba6134e76438be2502897ad3b33989dca20de5df7938f4d6"
       ],
       "expected_disposition": "acceptable",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "additional source-grounded service candidate",
+      "expected_subject_kind": "service_domain",
+      "parent_subject_id": null,
+      "proposition_key": "smith_program_domains",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "source names a program domain; no durable SubjectRecord is asserted",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:smith_family:student2student",
-      "scope_kind": "service",
-      "subject_id": "subject:abn:28000030179",
+      "scope_kind": "service_domain",
+      "subject_id": "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c",
       "subject_name": "The Smith Family",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:smith_family:numeracy-programs",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:smith_family:digital-inclusion:entity",
-      "concept_or_relation": "digital inclusion support",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:smith_family:numeracy-programs:Numeracy programs",
+      "concept_or_relation": "Numeracy programs",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:smith_family:digital-inclusion"
+        "evidence_locator:srcrec:a7f1589c2890b7bcba6134e76438be2502897ad3b33989dca20de5df7938f4d6"
       ],
       "expected_disposition": "acceptable_secondary",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "additional explicit service candidate",
+      "expected_subject_kind": "service_domain",
+      "parent_subject_id": null,
+      "proposition_key": "smith_program_domains",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "source names a program domain; no durable SubjectRecord is asserted",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:smith_family:digital-inclusion",
-      "scope_kind": "service",
-      "subject_id": "subject:abn:28000030179",
+      "scope_kind": "service_domain",
+      "subject_id": "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c",
       "subject_name": "The Smith Family",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": null,
       "benchmark_version": "2.0",
-      "case_id": "sbv2:smith_family:pathways:entity",
-      "concept_or_relation": "pathways to education/employment",
-      "entity_or_relation": "entity",
-      "evidence_locator_ids": [
-        "evidence:smith_family:pathways"
-      ],
-      "expected_disposition": "acceptable_secondary",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "separate material program candidate",
-      "review_status": "proposed",
-      "scope_id": "scope:smith_family:pathways",
-      "scope_kind": "program",
-      "subject_id": "subject:abn:28000030179",
-      "subject_name": "The Smith Family",
-      "task_family": "program_decomposition"
-    },
-    {
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:red_cross:organisation:entity",
+      "case_id": "sbv2:red_cross:organisation:Australian Red Cross Society",
       "concept_or_relation": "Australian Red Cross Society",
-      "entity_or_relation": "entity",
+      "correct_interpretation": null,
+      "durability_expectation": "durable_subject",
       "evidence_locator_ids": [
-        "evidence:red_cross:organisation"
+        "evidence_locator:srcrec:652ac6ee1dd850a78bdc97cefc5a7123a64d13856bbb3e1f2657017030bbfcd8"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "organisation identity",
+      "expected_subject_kind": "organisation",
+      "parent_subject_id": null,
+      "proposition_key": "organisation_identity",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "governed organisation identity",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:red_cross:organisation",
       "scope_kind": "organisation",
-      "subject_id": "subject:abn:50169561394",
+      "subject_id": "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
       "subject_name": "Australian Red Cross Society",
-      "task_family": "entity_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:red_cross:lifeblood",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:red_cross:lifeblood:entity",
+      "case_id": "sbv2:red_cross:lifeblood:Lifeblood",
       "concept_or_relation": "Lifeblood",
-      "entity_or_relation": "entity",
+      "correct_interpretation": null,
+      "durability_expectation": "organisational_scope",
       "evidence_locator_ids": [
-        "evidence:red_cross:lifeblood"
+        "evidence_locator:srcrec:a69080c0e0dcde793aae15d728da2d3b1cd75075a5e0015fd5ae4fb0043a4682"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "operating division, not ordinary program",
+      "expected_subject_kind": "division",
+      "parent_subject_id": null,
+      "proposition_key": "redcross_lifeblood_division",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official page names Lifeblood as an operating division",
+      "relationship_type": "has_division",
       "review_status": "proposed",
-      "scope_id": "scope:red_cross:lifeblood",
       "scope_kind": "division",
-      "subject_id": "subject:abn:50169561394",
+      "subject_id": "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
       "subject_name": "Australian Red Cross Society",
-      "task_family": "scope_decomposition"
+      "target_ref": "benchmark_candidate_ref:red-cross:lifeblood",
+      "task_family": "relationship_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:red_cross:humanitarian-services",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:red_cross:humanitarian-services:entity",
-      "concept_or_relation": "humanitarian and emergency services",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:red_cross:humanitarian-services:humanitarian and community services",
+      "concept_or_relation": "humanitarian and community services",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:red_cross:humanitarian-services"
+        "evidence_locator:srcrec:a69080c0e0dcde793aae15d728da2d3b1cd75075a5e0015fd5ae4fb0043a4682"
       ],
       "expected_disposition": "acceptable",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "separately scoped service activity",
+      "expected_subject_kind": "service_domain",
+      "parent_subject_id": null,
+      "proposition_key": "redcross_humanitarian_service",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official page supports separately scoped service domains",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:red_cross:humanitarian-services",
-      "scope_kind": "service",
-      "subject_id": "subject:abn:50169561394",
+      "scope_kind": "service_domain",
+      "subject_id": "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
       "subject_name": "Australian Red Cross Society",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:red_cross:lifeblood-as-program",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:red_cross:lifeblood-as-program:entity",
-      "concept_or_relation": "Lifeblood",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:red_cross:lifeblood-as-program:Lifeblood as ordinary program",
+      "concept_or_relation": "Lifeblood as ordinary program",
+      "correct_interpretation": "Lifeblood is a division/operating scope",
+      "durability_expectation": "benchmark_candidate_ref",
       "evidence_locator_ids": [
-        "evidence:red_cross:lifeblood-as-program"
+        "evidence_locator:srcrec:a69080c0e0dcde793aae15d728da2d3b1cd75075a5e0015fd5ae4fb0043a4682"
       ],
       "expected_disposition": "prohibited",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "division must not be promoted to program",
+      "expected_subject_kind": "program",
+      "parent_subject_id": null,
+      "proposition_key": "redcross_lifeblood_division",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "same evidence establishes division; ontology rule prohibits program promotion",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:red_cross:lifeblood-as-program",
       "scope_kind": "program",
-      "subject_id": "subject:abn:50169561394",
+      "subject_id": "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
       "subject_name": "Australian Red Cross Society",
-      "task_family": "scope_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": null,
       "benchmark_version": "2.0",
-      "case_id": "sbv2:acf:organisation:entity",
+      "case_id": "sbv2:acf:organisation:Australian Communities Foundation",
       "concept_or_relation": "Australian Communities Foundation",
-      "entity_or_relation": "entity",
+      "correct_interpretation": null,
+      "durability_expectation": "durable_subject",
       "evidence_locator_ids": [
-        "evidence:acf:organisation"
+        "evidence_locator:srcrec:662df54f07f918035ae3a3ebeec5be7e442ee4f4d77fd0fd3b1997a7a8f07135"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "organisation identity",
+      "expected_subject_kind": "organisation",
+      "parent_subject_id": null,
+      "proposition_key": "organisation_identity",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "governed organisation identity",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:acf:organisation",
       "scope_kind": "organisation",
-      "subject_id": "subject:abn:20077830347",
+      "subject_id": "subject:11723c321bfbb575c2a13e93c18a310b52d760e305b44c2db9bdf9e62b1a0bc8",
       "subject_name": "Australian Communities Foundation Limited",
-      "task_family": "entity_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:acf:philanthropic-services",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:acf:grantmaking:classification",
-      "concept_or_relation": "grantmaking",
-      "entity_or_relation": "classification",
+      "case_id": "sbv2:acf:philanthropic-services:Philanthropic Services",
+      "concept_or_relation": "Philanthropic Services",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:acf:grantmaking"
-      ],
-      "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "activity may be supported without inventing a program",
-      "review_status": "proposed",
-      "scope_id": "scope:acf:grantmaking",
-      "scope_kind": "activity",
-      "subject_id": "subject:abn:20077830347",
-      "subject_name": "Australian Communities Foundation Limited",
-      "task_family": "operational_activity"
-    },
-    {
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:acf:philanthropic-advisory:entity",
-      "concept_or_relation": "philanthropic/advisory services",
-      "entity_or_relation": "entity",
-      "evidence_locator_ids": [
-        "evidence:acf:philanthropic-advisory"
+        "evidence_locator:srcrec:486706d6577bdf9f85229b66a1cccbac2898bd713d24469d02e963d3f9ed5131"
       ],
       "expected_disposition": "acceptable",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "service line distinct from named program",
+      "expected_subject_kind": "service_domain",
+      "parent_subject_id": null,
+      "proposition_key": "acf_philanthropic_services",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official service page names a service line, not a durable program",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:acf:philanthropic-advisory",
-      "scope_kind": "service",
-      "subject_id": "subject:abn:20077830347",
+      "scope_kind": "service_domain",
+      "subject_id": "subject:11723c321bfbb575c2a13e93c18a310b52d760e305b44c2db9bdf9e62b1a0bc8",
       "subject_name": "Australian Communities Foundation Limited",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:acf:grantmaking",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:acf:generic-philanthropy-as-program:entity",
-      "concept_or_relation": "Community-led grantmaking and philanthropy",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:acf:grantmaking:activity.grantmaking",
+      "concept_or_relation": "activity.grantmaking",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:acf:generic-philanthropy-as-program"
+        "evidence_locator:srcrec:486706d6577bdf9f85229b66a1cccbac2898bd713d24469d02e963d3f9ed5131"
       ],
-      "expected_disposition": "prohibited",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "not a source-grounded named program",
+      "expected_disposition": "required",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "acf_philanthropic_services",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "grantmaking is an activity, not an invented umbrella program",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:acf:generic-philanthropy-as-program",
-      "scope_kind": "program",
-      "subject_id": "subject:abn:20077830347",
+      "scope_kind": "activity",
+      "subject_id": "subject:11723c321bfbb575c2a13e93c18a310b52d760e305b44c2db9bdf9e62b1a0bc8",
       "subject_name": "Australian Communities Foundation Limited",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:acf:corporate-fund",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:acf:fund-boundary:entity",
-      "concept_or_relation": "fund/vehicle boundary",
-      "entity_or_relation": "entity",
-      "evidence_locator_ids": [],
+      "case_id": "sbv2:acf:corporate-fund:Corporate Fund durable boundary",
+      "concept_or_relation": "Corporate Fund durable boundary",
+      "correct_interpretation": null,
+      "durability_expectation": "benchmark_candidate_ref",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:486706d6577bdf9f85229b66a1cccbac2898bd713d24469d02e963d3f9ed5131"
+      ],
       "expected_disposition": "unresolved",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "actual fund or program boundary requires proposition-specific evidence",
+      "expected_subject_kind": "candidate",
+      "parent_subject_id": null,
+      "proposition_key": "acf_fund_boundary",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "the service page names Corporate Fund but does not establish whether it is a durable subject, vehicle or service construct",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:acf:fund-boundary",
-      "scope_kind": "fund",
-      "subject_id": "subject:abn:20077830347",
+      "scope_kind": "candidate",
+      "subject_id": "subject:11723c321bfbb575c2a13e93c18a310b52d760e305b44c2db9bdf9e62b1a0bc8",
       "subject_name": "Australian Communities Foundation Limited",
-      "task_family": "scope_decomposition"
+      "target_ref": null,
+      "task_family": "scope_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": null,
       "benchmark_version": "2.0",
-      "case_id": "sbv2:conservation:organisation:entity",
+      "case_id": "sbv2:conservation:organisation:Australian Conservation Foundation",
       "concept_or_relation": "Australian Conservation Foundation",
-      "entity_or_relation": "entity",
+      "correct_interpretation": null,
+      "durability_expectation": "durable_subject",
       "evidence_locator_ids": [
-        "evidence:conservation:organisation"
+        "evidence_locator:srcrec:7adf694673e8cf471dc703c1f7359dbc4506ab91d87df87bbf0727a6d36c85d1"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "organisation identity",
+      "expected_subject_kind": "organisation",
+      "parent_subject_id": null,
+      "proposition_key": "organisation_identity",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "governed organisation identity",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:conservation:organisation",
       "scope_kind": "organisation",
-      "subject_id": "subject:abn:22007498482",
+      "subject_id": "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
       "subject_name": "Australian Conservation Foundation Incorporated",
-      "task_family": "entity_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:conservation:save-our-big-backyard",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:conservation:named-campaign:entity",
-      "concept_or_relation": "source-grounded campaign/initiative",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:conservation:save-our-big-backyard:Save our big backyard",
+      "concept_or_relation": "Save our big backyard",
+      "correct_interpretation": null,
+      "durability_expectation": "benchmark_candidate_ref",
       "evidence_locator_ids": [
-        "evidence:conservation:named-campaign"
+        "evidence_locator:srcrec:27dbb6e6de02cfb63f5c1862c88ef0df436ab7bf094aff27587761090b493671"
       ],
       "expected_disposition": "acceptable",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "campaign is retained as campaign",
+      "expected_subject_kind": "campaign",
+      "parent_subject_id": null,
+      "proposition_key": "acf_campaign",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "actual named campaign/initiative; not a program",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:conservation:named-campaign",
       "scope_kind": "campaign",
-      "subject_id": "subject:abn:22007498482",
+      "subject_id": "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
       "subject_name": "Australian Conservation Foundation Incorporated",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:conservation:campaign-as-program",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:conservation:campaign-as-program:entity",
+      "case_id": "sbv2:conservation:campaign-as-program:campaign promoted to program",
       "concept_or_relation": "campaign promoted to program",
-      "entity_or_relation": "entity",
+      "correct_interpretation": "retain campaign type",
+      "durability_expectation": "benchmark_candidate_ref",
       "evidence_locator_ids": [
-        "evidence:conservation:campaign-as-program"
+        "evidence_locator:srcrec:27dbb6e6de02cfb63f5c1862c88ef0df436ab7bf094aff27587761090b493671"
       ],
       "expected_disposition": "prohibited",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "campaign is not automatically a program",
+      "expected_subject_kind": "program",
+      "parent_subject_id": null,
+      "proposition_key": "acf_campaign",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "campaign evidence does not establish a durable program",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:conservation:campaign-as-program",
       "scope_kind": "program",
-      "subject_id": "subject:abn:22007498482",
+      "subject_id": "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
       "subject_name": "Australian Conservation Foundation Incorporated",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:conservation:advocacy",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:conservation:advocacy-policy:classification",
-      "concept_or_relation": "advocacy and policy/systems change",
-      "entity_or_relation": "classification",
+      "case_id": "sbv2:conservation:advocacy:activity.advocacy",
+      "concept_or_relation": "activity.advocacy",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:conservation:advocacy-policy"
+        "evidence_locator:srcrec:27dbb6e6de02cfb63f5c1862c88ef0df436ab7bf094aff27587761090b493671"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "advocacy is operational activity",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "acf_advocacy",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official work page supports advocacy",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:conservation:advocacy-policy",
       "scope_kind": "activity",
-      "subject_id": "subject:abn:22007498482",
+      "subject_id": "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
       "subject_name": "Australian Conservation Foundation Incorporated",
-      "task_family": "operational_activity"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:conservation:policy-change",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:conservation:sdg13:classification",
-      "concept_or_relation": "SDG 13",
-      "entity_or_relation": "classification",
+      "case_id": "sbv2:conservation:policy-change:activity.policy_change",
+      "concept_or_relation": "activity.policy_change",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:conservation:sdg13"
+        "evidence_locator:srcrec:27dbb6e6de02cfb63f5c1862c88ef0df436ab7bf094aff27587761090b493671"
       ],
       "expected_disposition": "acceptable",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "evidence-bound environmental alignment",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "acf_policy_change",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official work page supports policy/systems action",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:conservation:sdg13",
-      "scope_kind": "sdg",
-      "subject_id": "subject:abn:22007498482",
+      "scope_kind": "activity",
+      "subject_id": "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
       "subject_name": "Australian Conservation Foundation Incorporated",
-      "task_family": "sdg_alignment"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:mission:housing",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:conservation:sdg15:classification",
-      "concept_or_relation": "SDG 15",
-      "entity_or_relation": "classification",
+      "case_id": "sbv2:mission:housing:housing/homelessness service family",
+      "concept_or_relation": "housing/homelessness service family",
+      "correct_interpretation": null,
+      "durability_expectation": "benchmark_candidate_ref",
       "evidence_locator_ids": [
-        "evidence:conservation:sdg15"
+        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
       ],
-      "expected_disposition": "acceptable_secondary",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "multi-label SDG alignment is allowed",
+      "expected_disposition": "unresolved",
+      "expected_subject_kind": "candidate",
+      "parent_subject_id": null,
+      "proposition_key": "identity_only",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "the bounded preflight acquired only ABN identity evidence; service-family boundary remains unresolved",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:conservation:sdg15",
-      "scope_kind": "sdg",
-      "subject_id": "subject:abn:22007498482",
-      "subject_name": "Australian Conservation Foundation Incorporated",
-      "task_family": "sdg_alignment"
-    },
-    {
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:organisation:entity",
-      "concept_or_relation": "Mission Australia",
-      "entity_or_relation": "entity",
-      "evidence_locator_ids": [
-        "evidence:mission:organisation"
-      ],
-      "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "organisation identity",
-      "review_status": "proposed",
-      "scope_id": "scope:mission:organisation",
-      "scope_kind": "organisation",
-      "subject_id": "subject:abn:15000002522",
+      "scope_kind": "candidate",
+      "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
       "subject_name": "Mission Australia",
-      "task_family": "entity_decomposition"
+      "target_ref": null,
+      "task_family": "scope_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:mission:children-families",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:housing:entity",
-      "concept_or_relation": "housing/homelessness services",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:mission:children-families:children and families service family",
+      "concept_or_relation": "children and families service family",
+      "correct_interpretation": null,
+      "durability_expectation": "benchmark_candidate_ref",
       "evidence_locator_ids": [
-        "evidence:mission:housing"
+        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
       ],
-      "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "service-family decomposition",
+      "expected_disposition": "unresolved",
+      "expected_subject_kind": "candidate",
+      "parent_subject_id": null,
+      "proposition_key": "identity_only",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "no proposition-specific service evidence was acquired",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:mission:housing",
-      "scope_kind": "service",
-      "subject_id": "subject:abn:15000002522",
+      "scope_kind": "candidate",
+      "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
       "subject_name": "Mission Australia",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "scope_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:mission:employment",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:children-families:entity",
-      "concept_or_relation": "children and families services",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:mission:employment:employment service family",
+      "concept_or_relation": "employment service family",
+      "correct_interpretation": null,
+      "durability_expectation": "benchmark_candidate_ref",
       "evidence_locator_ids": [
-        "evidence:mission:children-families"
+        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
       ],
-      "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "service-family decomposition",
+      "expected_disposition": "unresolved",
+      "expected_subject_kind": "candidate",
+      "parent_subject_id": null,
+      "proposition_key": "identity_only",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "no proposition-specific service evidence was acquired",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:mission:children-families",
-      "scope_kind": "service",
-      "subject_id": "subject:abn:15000002522",
+      "scope_kind": "candidate",
+      "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
       "subject_name": "Mission Australia",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "scope_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:mission:mental-health",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:employment:entity",
-      "concept_or_relation": "employment services",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:mission:mental-health:mental health service family",
+      "concept_or_relation": "mental health service family",
+      "correct_interpretation": null,
+      "durability_expectation": "benchmark_candidate_ref",
       "evidence_locator_ids": [
-        "evidence:mission:employment"
+        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
       ],
-      "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "service-family decomposition",
+      "expected_disposition": "unresolved",
+      "expected_subject_kind": "candidate",
+      "parent_subject_id": null,
+      "proposition_key": "identity_only",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "no proposition-specific service evidence was acquired",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:mission:employment",
-      "scope_kind": "service",
-      "subject_id": "subject:abn:15000002522",
+      "scope_kind": "candidate",
+      "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
       "subject_name": "Mission Australia",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "scope_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:mission:disability",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:mental-health:entity",
-      "concept_or_relation": "mental health services",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:mission:disability:disability service family",
+      "concept_or_relation": "disability service family",
+      "correct_interpretation": null,
+      "durability_expectation": "benchmark_candidate_ref",
       "evidence_locator_ids": [
-        "evidence:mission:mental-health"
+        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
       ],
-      "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "service-family decomposition",
+      "expected_disposition": "unresolved",
+      "expected_subject_kind": "candidate",
+      "parent_subject_id": null,
+      "proposition_key": "identity_only",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "no proposition-specific service evidence was acquired",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:mission:mental-health",
-      "scope_kind": "service",
-      "subject_id": "subject:abn:15000002522",
+      "scope_kind": "candidate",
+      "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
       "subject_name": "Mission Australia",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "scope_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:mission:alcohol-drugs",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:disability:entity",
-      "concept_or_relation": "disability services",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:mission:alcohol-drugs:alcohol and other drug service family",
+      "concept_or_relation": "alcohol and other drug service family",
+      "correct_interpretation": null,
+      "durability_expectation": "benchmark_candidate_ref",
       "evidence_locator_ids": [
-        "evidence:mission:disability"
+        "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af"
       ],
-      "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "service-family decomposition",
+      "expected_disposition": "unresolved",
+      "expected_subject_kind": "candidate",
+      "parent_subject_id": null,
+      "proposition_key": "identity_only",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "no proposition-specific service evidence was acquired",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:mission:disability",
-      "scope_kind": "service",
-      "subject_id": "subject:abn:15000002522",
+      "scope_kind": "candidate",
+      "subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
       "subject_name": "Mission Australia",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "scope_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": null,
       "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:alcohol-drugs:entity",
-      "concept_or_relation": "alcohol and other drug services",
-      "entity_or_relation": "entity",
-      "evidence_locator_ids": [
-        "evidence:mission:alcohol-drugs"
-      ],
-      "expected_disposition": "acceptable_secondary",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "retain only where evidenced",
-      "review_status": "proposed",
-      "scope_id": "scope:mission:alcohol-drugs",
-      "scope_kind": "service",
-      "subject_id": "subject:abn:15000002522",
-      "subject_name": "Mission Australia",
-      "task_family": "program_decomposition"
-    },
-    {
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:mission:portfolio-as-program:entity",
-      "concept_or_relation": "Homelessness, employment and community services",
-      "entity_or_relation": "entity",
-      "evidence_locator_ids": [
-        "evidence:mission:portfolio-as-program"
-      ],
-      "expected_disposition": "prohibited",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "portfolio description is not a named program",
-      "review_status": "proposed",
-      "scope_id": "scope:mission:portfolio-as-program",
-      "scope_kind": "program",
-      "subject_id": "subject:abn:15000002522",
-      "subject_name": "Mission Australia",
-      "task_family": "program_decomposition"
-    },
-    {
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:world_vision:organisation:entity",
+      "case_id": "sbv2:world_vision:organisation:World Vision Australia",
       "concept_or_relation": "World Vision Australia",
-      "entity_or_relation": "entity",
+      "correct_interpretation": null,
+      "durability_expectation": "durable_subject",
       "evidence_locator_ids": [
-        "evidence:world_vision:organisation"
+        "evidence_locator:srcrec:805f0dc884bfc229ef31c66225a21980fa917a5703a0c3d4cf5bc5f31dde96a4"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "organisation identity",
+      "expected_subject_kind": "organisation",
+      "parent_subject_id": null,
+      "proposition_key": "organisation_identity",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "governed organisation identity",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:world_vision:organisation",
       "scope_kind": "organisation",
-      "subject_id": "subject:abn:28004778081",
+      "subject_id": "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
       "subject_name": "World Vision Australia",
-      "task_family": "entity_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:world_vision:child-sponsorship",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:world_vision:child-sponsorship:entity",
+      "case_id": "sbv2:world_vision:child-sponsorship:child sponsorship",
       "concept_or_relation": "child sponsorship",
-      "entity_or_relation": "entity",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:world_vision:child-sponsorship"
+        "evidence_locator:srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "fundraising/engagement mechanism",
+      "expected_subject_kind": "mechanism",
+      "parent_subject_id": null,
+      "proposition_key": "worldvision_child_sponsorship",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official page describes child sponsorship as donor engagement",
+      "relationship_type": "has_engagement_mechanism",
       "review_status": "proposed",
-      "scope_id": "scope:world_vision:child-sponsorship",
       "scope_kind": "mechanism",
-      "subject_id": "subject:abn:28004778081",
+      "subject_id": "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
       "subject_name": "World Vision Australia",
-      "task_family": "mechanism_decomposition"
+      "target_ref": "benchmark_candidate_ref:world-vision:child-sponsorship",
+      "task_family": "mechanism_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:world_vision:sponsorship-as-activity",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:world_vision:sponsorship-as-activity:classification",
-      "concept_or_relation": "child sponsorship as operational activity",
-      "entity_or_relation": "classification",
+      "case_id": "sbv2:world_vision:sponsorship-as-activity:activity.community_engagement",
+      "concept_or_relation": "activity.community_engagement",
+      "correct_interpretation": "child sponsorship is a fundraising/engagement mechanism",
+      "durability_expectation": "benchmark_candidate_ref",
       "evidence_locator_ids": [
-        "evidence:world_vision:sponsorship-as-activity"
+        "evidence_locator:srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a"
       ],
       "expected_disposition": "prohibited",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "donor mechanism is not operational activity",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "worldvision_child_sponsorship",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "same evidence establishes the mechanism; it is not an operational activity",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:world_vision:sponsorship-as-activity",
       "scope_kind": "activity",
-      "subject_id": "subject:abn:28004778081",
+      "subject_id": "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
       "subject_name": "World Vision Australia",
-      "task_family": "operational_activity"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:world_vision:community-development",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:world_vision:community-development:entity",
-      "concept_or_relation": "community development",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:world_vision:community-development:activity.community_development",
+      "concept_or_relation": "activity.community_development",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:world_vision:community-development"
+        "evidence_locator:srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a"
       ],
       "expected_disposition": "acceptable",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "operational program domain",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "worldvision_activity_domains",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "source describes work in sponsorship communities; no durable program is asserted",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:world_vision:community-development",
-      "scope_kind": "program",
-      "subject_id": "subject:abn:28004778081",
+      "scope_kind": "activity",
+      "subject_id": "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
       "subject_name": "World Vision Australia",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:world_vision:education",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:world_vision:education:entity",
-      "concept_or_relation": "education",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:world_vision:education:activity.education_support_delivery",
+      "concept_or_relation": "activity.education_support_delivery",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:world_vision:education"
+        "evidence_locator:srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a"
       ],
       "expected_disposition": "acceptable_secondary",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "distinct program domain",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "worldvision_activity_domains",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "source names education as a work domain, not a named durable program",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:world_vision:education",
-      "scope_kind": "program",
-      "subject_id": "subject:abn:28004778081",
+      "scope_kind": "activity",
+      "subject_id": "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
       "subject_name": "World Vision Australia",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:world_vision:health",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:world_vision:livelihoods-water-health:entity",
-      "concept_or_relation": "livelihoods, water and health",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:world_vision:health:activity.health_clinical_service_delivery",
+      "concept_or_relation": "activity.health_clinical_service_delivery",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:world_vision:livelihoods-water-health"
+        "evidence_locator:srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a"
       ],
       "expected_disposition": "acceptable_secondary",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "multiple program domains supported",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "worldvision_activity_domains",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "source names healthcare as a work domain, not a named durable program",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:world_vision:livelihoods-water-health",
-      "scope_kind": "program",
-      "subject_id": "subject:abn:28004778081",
+      "scope_kind": "activity",
+      "subject_id": "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
       "subject_name": "World Vision Australia",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": null,
       "benchmark_version": "2.0",
-      "case_id": "sbv2:fred_hollows:organisation:entity",
+      "case_id": "sbv2:fred_hollows:organisation:The Fred Hollows Foundation",
       "concept_or_relation": "The Fred Hollows Foundation",
-      "entity_or_relation": "entity",
+      "correct_interpretation": null,
+      "durability_expectation": "durable_subject",
       "evidence_locator_ids": [
-        "evidence:fred_hollows:organisation"
+        "evidence_locator:srcrec:919df45fbbc01fa5bc8738fa055c186afaa0cafee0492c4a89a7ce11cb8296b0"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "organisation identity",
+      "expected_subject_kind": "organisation",
+      "parent_subject_id": null,
+      "proposition_key": "organisation_identity",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "governed organisation identity",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:fred_hollows:organisation",
       "scope_kind": "organisation",
-      "subject_id": "subject:abn:46070556642",
+      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
       "subject_name": "The Fred Hollows Foundation",
-      "task_family": "entity_decomposition"
+      "target_ref": null,
+      "task_family": "entity_decomposition_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:eye-health",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:fred_hollows:eye-health:entity",
-      "concept_or_relation": "eye-health service delivery",
-      "entity_or_relation": "entity",
+      "case_id": "sbv2:fred_hollows:eye-health:activity.health_clinical_service_delivery",
+      "concept_or_relation": "activity.health_clinical_service_delivery",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:fred_hollows:eye-health"
+        "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "multi-activity health program",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "fred_eye_health",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "Ending Avoidable Blindness and eye-care evidence require clinical health activity",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:fred_hollows:eye-health",
-      "scope_kind": "program",
-      "subject_id": "subject:abn:46070556642",
+      "scope_kind": "activity",
+      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
       "subject_name": "The Fred Hollows Foundation",
-      "task_family": "program_decomposition"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:training",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:fred_hollows:indigenous-australia:relation",
-      "concept_or_relation": "Indigenous Australia scope",
-      "entity_or_relation": "relation",
+      "case_id": "sbv2:fred_hollows:training:activity.workforce_training",
+      "concept_or_relation": "activity.workforce_training",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:fred_hollows:indigenous-australia"
-      ],
-      "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "scope kept distinct from international work",
-      "review_status": "proposed",
-      "scope_id": "scope:fred_hollows:indigenous-australia",
-      "scope_kind": "portfolio",
-      "subject_id": "subject:abn:46070556642",
-      "subject_name": "The Fred Hollows Foundation",
-      "task_family": "scope_decomposition"
-    },
-    {
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:fred_hollows:international:relation",
-      "concept_or_relation": "international scope",
-      "entity_or_relation": "relation",
-      "evidence_locator_ids": [
-        "evidence:fred_hollows:international"
-      ],
-      "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "scope kept distinct from Indigenous work",
-      "review_status": "proposed",
-      "scope_id": "scope:fred_hollows:international",
-      "scope_kind": "portfolio",
-      "subject_id": "subject:abn:46070556642",
-      "subject_name": "The Fred Hollows Foundation",
-      "task_family": "scope_decomposition"
-    },
-    {
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:fred_hollows:capacity:classification",
-      "concept_or_relation": "workforce/capacity building",
-      "entity_or_relation": "classification",
-      "evidence_locator_ids": [
-        "evidence:fred_hollows:capacity"
+        "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966"
       ],
       "expected_disposition": "acceptable",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "multi-activity classification",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "fred_training",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official page names Training",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:fred_hollows:capacity",
       "scope_kind": "activity",
-      "subject_id": "subject:abn:46070556642",
+      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
       "subject_name": "The Fred Hollows Foundation",
-      "task_family": "operational_activity"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:capacity",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:fred_hollows:health-systems:classification",
-      "concept_or_relation": "health-system strengthening",
-      "entity_or_relation": "classification",
+      "case_id": "sbv2:fred_hollows:capacity:activity.capacity_building",
+      "concept_or_relation": "activity.capacity_building",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:fred_hollows:health-systems"
-      ],
-      "expected_disposition": "acceptable",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "multi-activity classification",
-      "review_status": "proposed",
-      "scope_id": "scope:fred_hollows:health-systems",
-      "scope_kind": "activity",
-      "subject_id": "subject:abn:46070556642",
-      "subject_name": "The Fred Hollows Foundation",
-      "task_family": "operational_activity"
-    },
-    {
-      "benchmark_version": "2.0",
-      "case_id": "sbv2:fred_hollows:advocacy:classification",
-      "concept_or_relation": "advocacy and policy",
-      "entity_or_relation": "classification",
-      "evidence_locator_ids": [
-        "evidence:fred_hollows:advocacy"
+        "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966"
       ],
       "expected_disposition": "acceptable_secondary",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "multi-activity classification",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "fred_training",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "training supports a capacity-building interpretation where evidence warrants it",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:fred_hollows:advocacy",
       "scope_kind": "activity",
-      "subject_id": "subject:abn:46070556642",
+      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
       "subject_name": "The Fred Hollows Foundation",
-      "task_family": "operational_activity"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:advocacy",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:fred_hollows:research-only:classification",
-      "concept_or_relation": "research/evaluation as sole activity",
-      "entity_or_relation": "classification",
+      "case_id": "sbv2:fred_hollows:advocacy:activity.advocacy",
+      "concept_or_relation": "activity.advocacy",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
       "evidence_locator_ids": [
-        "evidence:fred_hollows:research-only"
+        "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966"
+      ],
+      "expected_disposition": "acceptable",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "fred_advocacy",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official page names Advocacy",
+      "relationship_type": null,
+      "review_status": "proposed",
+      "scope_kind": "activity",
+      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
+      "subject_name": "The Fred Hollows Foundation",
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
+    },
+    {
+      "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:research",
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:fred_hollows:research:activity.research_evaluation",
+      "concept_or_relation": "activity.research_evaluation",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966"
+      ],
+      "expected_disposition": "acceptable_secondary",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "fred_research",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official page names Research and Technology",
+      "relationship_type": null,
+      "review_status": "proposed",
+      "scope_kind": "activity",
+      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
+      "subject_name": "The Fred Hollows Foundation",
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
+    },
+    {
+      "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:research-only",
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:fred_hollows:research-only:activity.research_evaluation",
+      "concept_or_relation": "activity.research_evaluation",
+      "correct_interpretation": "retain clinical health plus other supported activities",
+      "durability_expectation": "benchmark_candidate_ref",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966"
       ],
       "expected_disposition": "prohibited",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "research cannot be the singular operational description",
+      "expected_subject_kind": "activity",
+      "parent_subject_id": null,
+      "proposition_key": "fred_eye_health",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "clinical evidence demonstrates why research-only is incomplete",
+      "relationship_type": null,
       "review_status": "proposed",
-      "scope_id": "scope:fred_hollows:research-only",
       "scope_kind": "activity",
-      "subject_id": "subject:abn:46070556642",
+      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
       "subject_name": "The Fred Hollows Foundation",
-      "task_family": "operational_activity"
+      "target_ref": null,
+      "task_family": "operational_activity_v2"
     },
     {
+      "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:indigenous-australia",
       "benchmark_version": "2.0",
-      "case_id": "sbv2:fred_hollows:sdg3:classification",
-      "concept_or_relation": "SDG 3",
-      "entity_or_relation": "classification",
+      "case_id": "sbv2:fred_hollows:indigenous-australia:Indigenous Australia scope",
+      "concept_or_relation": "Indigenous Australia scope",
+      "correct_interpretation": null,
+      "durability_expectation": "organisational_scope",
       "evidence_locator_ids": [
-        "evidence:fred_hollows:sdg3"
+        "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966"
       ],
       "expected_disposition": "required",
-      "provenance": "human-governed-design-review-2026-08",
-      "rationale": "evidence-bound health alignment",
+      "expected_subject_kind": "portfolio_scope",
+      "parent_subject_id": null,
+      "proposition_key": "fred_indigenous_scope",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official page names Indigenous Australia separately",
+      "relationship_type": "has_operating_scope",
       "review_status": "proposed",
-      "scope_id": "scope:fred_hollows:sdg3",
-      "scope_kind": "sdg",
-      "subject_id": "subject:abn:46070556642",
+      "scope_kind": "portfolio_scope",
+      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
       "subject_name": "The Fred Hollows Foundation",
-      "task_family": "sdg_alignment"
+      "target_ref": "benchmark_candidate_ref:fred:indigenous-australia",
+      "task_family": "scope_decomposition_v2"
+    },
+    {
+      "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:international",
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:fred_hollows:international:international operating scope",
+      "concept_or_relation": "international operating scope",
+      "correct_interpretation": null,
+      "durability_expectation": "organisational_scope",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966"
+      ],
+      "expected_disposition": "required",
+      "expected_subject_kind": "portfolio_scope",
+      "parent_subject_id": null,
+      "proposition_key": "fred_international_scope",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "official page names international regions separately",
+      "relationship_type": "has_operating_scope",
+      "review_status": "proposed",
+      "scope_kind": "portfolio_scope",
+      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
+      "subject_name": "The Fred Hollows Foundation",
+      "target_ref": "benchmark_candidate_ref:fred:international",
+      "task_family": "scope_decomposition_v2"
+    },
+    {
+      "benchmark_scope_ref": "benchmark_scope_ref:fred_hollows:sdg3",
+      "benchmark_version": "2.0",
+      "case_id": "sbv2:fred_hollows:sdg3:sdg:3",
+      "concept_or_relation": "sdg:3",
+      "correct_interpretation": null,
+      "durability_expectation": "semantic_domain",
+      "evidence_locator_ids": [
+        "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966"
+      ],
+      "expected_disposition": "required",
+      "expected_subject_kind": "sdg",
+      "parent_subject_id": null,
+      "proposition_key": "fred_eye_health",
+      "provenance": "human-directed-design-machine-source-assisted-proposed",
+      "rationale": "health alignment is evidence-bound",
+      "relationship_type": null,
+      "review_status": "proposed",
+      "scope_kind": "sdg",
+      "subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
+      "subject_name": "The Fred Hollows Foundation",
+      "target_ref": null,
+      "task_family": "sdg_alignment_v2"
     }
   ],
   "classie": {
-    "blocker": "rights/permission for private processing and reuse is unresolved",
+    "blocker": "lawful private processing, reuse and redistribution permission is unresolved",
+    "material_discoverable": true,
     "native_material_committed": false,
+    "native_subject_population_files_exist": true,
     "population_url": "https://www.communitydirectors.com.au/classie",
     "status": "blocked_pending_rights_review",
     "subjects_url": "https://www.communitydirectors.com.au/classie",
     "synthetic_ids_created": false,
     "version": "4.2"
   },
-  "provenance": "human-governed-design-review-2026-08",
+  "evidence_registry": [
+    {
+      "content_hash": "5754a3314a6be6a3fae85902c20aae8fb25d4df9d0cc6376adc17ecb0fd055c8",
+      "evidence_locator_id": "evidence_locator:srcrec:4c6b1cf0478bfb09c5248e982d3ba830377dc4984681f126696d4d69ed03112e",
+      "member_abn": "28000030179",
+      "selector": "structured_field:display_name",
+      "source_family": "acnc",
+      "source_locator": "https://www.acnc.gov.au/charity/charities/charity-details?charity=28000030179",
+      "source_record_id": "srcrec:4c6b1cf0478bfb09c5248e982d3ba830377dc4984681f126696d4d69ed03112e",
+      "supported_propositions": [
+        "organisation_identity"
+      ]
+    },
+    {
+      "content_hash": "2a0f3d95d9e19b79dd5711bf26ac57e108dbf930e93224a83467b6bcb5f9fffd",
+      "evidence_locator_id": "evidence_locator:srcrec:a7f1589c2890b7bcba6134e76438be2502897ad3b33989dca20de5df7938f4d6",
+      "member_abn": "28000030179",
+      "selector": "text:Learning for Life;Literacy programs;Numeracy programs",
+      "source_family": "official-website",
+      "source_locator": "https://www.thesmithfamily.com.au/programs",
+      "source_record_id": "srcrec:a7f1589c2890b7bcba6134e76438be2502897ad3b33989dca20de5df7938f4d6",
+      "supported_propositions": [
+        "smith_learning_for_life",
+        "smith_program_domains"
+      ]
+    },
+    {
+      "content_hash": "b07e3f21ad53fb2789301d55cf6d2da3b43e5b6fc30561a7cbc69a6b695050f0",
+      "evidence_locator_id": "evidence_locator:srcrec:652ac6ee1dd850a78bdc97cefc5a7123a64d13856bbb3e1f2657017030bbfcd8",
+      "member_abn": "50169561394",
+      "selector": "structured_field:display_name",
+      "source_family": "acnc",
+      "source_locator": "https://www.acnc.gov.au/charity/charities/charity-details?charity=50169561394",
+      "source_record_id": "srcrec:652ac6ee1dd850a78bdc97cefc5a7123a64d13856bbb3e1f2657017030bbfcd8",
+      "supported_propositions": [
+        "organisation_identity"
+      ]
+    },
+    {
+      "content_hash": "8deaee2436e6f4fed462572d9f0a7e8acb6c3aa7e2e6bd4f1d7879255a6d7c36",
+      "evidence_locator_id": "evidence_locator:srcrec:a69080c0e0dcde793aae15d728da2d3b1cd75075a5e0015fd5ae4fb0043a4682",
+      "member_abn": "50169561394",
+      "selector": "heading:Australian Red Cross Lifeblood;heading:Community activities and programs",
+      "source_family": "official-website",
+      "source_locator": "https://www.redcross.org.au/about/what-we-do/",
+      "source_record_id": "srcrec:a69080c0e0dcde793aae15d728da2d3b1cd75075a5e0015fd5ae4fb0043a4682",
+      "supported_propositions": [
+        "redcross_lifeblood_division",
+        "redcross_humanitarian_service"
+      ]
+    },
+    {
+      "content_hash": "419b19d2297851f9b8c78aef0edcf2c6ff0c84879dd227c9df195f0ec18dc737",
+      "evidence_locator_id": "evidence_locator:srcrec:662df54f07f918035ae3a3ebeec5be7e442ee4f4d77fd0fd3b1997a7a8f07135",
+      "member_abn": "20077830347",
+      "selector": "structured_field:display_name",
+      "source_family": "acnc",
+      "source_locator": "https://www.acnc.gov.au/charity/charities/charity-details?charity=20077830347",
+      "source_record_id": "srcrec:662df54f07f918035ae3a3ebeec5be7e442ee4f4d77fd0fd3b1997a7a8f07135",
+      "supported_propositions": [
+        "organisation_identity"
+      ]
+    },
+    {
+      "content_hash": "9642000757f521cd9221622d4aa6441cbc43e76ea5b1da9d86e26276ada52a39",
+      "evidence_locator_id": "evidence_locator:srcrec:486706d6577bdf9f85229b66a1cccbac2898bd713d24469d02e963d3f9ed5131",
+      "member_abn": "20077830347",
+      "selector": "text:Corporate Fund;heading:Philanthropic Services",
+      "source_family": "official-website",
+      "source_locator": "https://communityfoundation.org.au/philanthropic-services/",
+      "source_record_id": "srcrec:486706d6577bdf9f85229b66a1cccbac2898bd713d24469d02e963d3f9ed5131",
+      "supported_propositions": [
+        "acf_philanthropic_services",
+        "acf_fund_boundary"
+      ]
+    },
+    {
+      "content_hash": "bad1d991f9322dbf4ea28b4236a0797c71766510bf667a6be2601069723bb55a",
+      "evidence_locator_id": "evidence_locator:srcrec:7adf694673e8cf471dc703c1f7359dbc4506ab91d87df87bbf0727a6d36c85d1",
+      "member_abn": "22007498482",
+      "selector": "structured_field:display_name",
+      "source_family": "acnc",
+      "source_locator": "https://www.acnc.gov.au/charity/charities/charity-details?charity=22007498482",
+      "source_record_id": "srcrec:7adf694673e8cf471dc703c1f7359dbc4506ab91d87df87bbf0727a6d36c85d1",
+      "supported_propositions": [
+        "organisation_identity"
+      ]
+    },
+    {
+      "content_hash": "72ae3653a7acbd1f66beec05970ec1bd030bb35a4cc8cfb59e048cb58e63c7be",
+      "evidence_locator_id": "evidence_locator:srcrec:27dbb6e6de02cfb63f5c1862c88ef0df436ab7bf094aff27587761090b493671",
+      "member_abn": "22007498482",
+      "selector": "heading:Save our big backyard;heading:Corporate campaigns;heading:Environmental investigations",
+      "source_family": "official-website",
+      "source_locator": "https://www.acf.org.au/our-work",
+      "source_record_id": "srcrec:27dbb6e6de02cfb63f5c1862c88ef0df436ab7bf094aff27587761090b493671",
+      "supported_propositions": [
+        "acf_campaign",
+        "acf_advocacy",
+        "acf_policy_change"
+      ]
+    },
+    {
+      "content_hash": "41ad91ea63e074c5d85cfbaaa368772a91d0bbd472c8dc774fa70277dfb8ccea",
+      "evidence_locator_id": "evidence_locator:srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af",
+      "member_abn": "15000002522",
+      "selector": "structured_field:display_name",
+      "source_family": "acnc",
+      "source_locator": "https://www.acnc.gov.au/charity/charities/charity-details?charity=15000002522",
+      "source_record_id": "srcrec:0a20a4a2251fa19e34c948c1fe07abf55533ddfae945cfef2bab0c94dee205af",
+      "supported_propositions": [
+        "organisation_identity",
+        "identity_only"
+      ]
+    },
+    {
+      "content_hash": "4250ef9627230fb2525801f8e508f756bfdc250946c65e085a3f894fc4a92c51",
+      "evidence_locator_id": "evidence_locator:srcrec:805f0dc884bfc229ef31c66225a21980fa917a5703a0c3d4cf5bc5f31dde96a4",
+      "member_abn": "28004778081",
+      "selector": "structured_field:display_name",
+      "source_family": "acnc",
+      "source_locator": "https://www.acnc.gov.au/charity/charities/charity-details?charity=28004778081",
+      "source_record_id": "srcrec:805f0dc884bfc229ef31c66225a21980fa917a5703a0c3d4cf5bc5f31dde96a4",
+      "supported_propositions": [
+        "organisation_identity",
+        "identity_only"
+      ]
+    },
+    {
+      "content_hash": "bf244653e878e289a43ce90333fbb4fb13771a4f217add5195a94fa27d757812",
+      "evidence_locator_id": "evidence_locator:srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a",
+      "member_abn": "28004778081",
+      "selector": "text:child sponsorship;text:healthcare, education, water, sanitation and food",
+      "source_family": "official-website",
+      "source_locator": "https://www.worldvision.com.au/about-child-sponsorship",
+      "source_record_id": "srcrec:af91b017da310fbd11b06e25290167dc8e93830d2a5fbcac448c0c6e80975b0a",
+      "supported_propositions": [
+        "worldvision_child_sponsorship",
+        "worldvision_activity_domains"
+      ]
+    },
+    {
+      "content_hash": "6d01ae40390c30ebd64e6068fe33623b4150abd9e4160e25d56eb0df2669baf4",
+      "evidence_locator_id": "evidence_locator:srcrec:919df45fbbc01fa5bc8738fa055c186afaa0cafee0492c4a89a7ce11cb8296b0",
+      "member_abn": "46070556642",
+      "selector": "structured_field:display_name",
+      "source_family": "acnc",
+      "source_locator": "https://www.acnc.gov.au/charity/charities/charity-details?charity=46070556642",
+      "source_record_id": "srcrec:919df45fbbc01fa5bc8738fa055c186afaa0cafee0492c4a89a7ce11cb8296b0",
+      "supported_propositions": [
+        "organisation_identity"
+      ]
+    },
+    {
+      "content_hash": "57103b0ceae5fd23f38293b2965e55bf02cd51ba4f0951c6a3c4972e57f54855",
+      "evidence_locator_id": "evidence_locator:srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966",
+      "member_abn": "46070556642",
+      "selector": "heading:Ending Avoidable Blindness;heading:Research and Technology;heading:Advocacy;heading:Training;heading:Indigenous Australia",
+      "source_family": "official-website",
+      "source_locator": "https://www.hollows.org/what-we-do/",
+      "source_record_id": "srcrec:d73bdb88fd4e2ac0b5ea416473b75ab1560915cc01c07c2dea061f0019157966",
+      "supported_propositions": [
+        "fred_eye_health",
+        "fred_research",
+        "fred_advocacy",
+        "fred_training",
+        "fred_indigenous_scope",
+        "fred_international_scope"
+      ]
+    }
+  ],
+  "provenance": "human-directed-design-machine-source-assisted-proposed",
   "status": "proposed"
 }
