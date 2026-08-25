@@ -111,12 +111,21 @@ def test_abn_checksum_and_exact_identifier_join():
     assert exact_identifier_join({"ABN": "51824753556"}, [{"ABN": "51824753556", "id": "acnc-1"}])["id"] == "acnc-1"
     assert exact_identifier_join({"name": "same"}, [{"name": "same"}, {"name": "same"}]) is None
 
+def test_exact_identifier_join_requires_consistent_governed_pairs():
+    abn = "51 824 753 556"
+    assert exact_identifier_join({"ABN": abn}, [{"ABN": "51824753556", "id": "one"}])["id"] == "one"
+    source = {"external_identifiers": [{"scheme": "abn", "value": abn}, {"scheme": "acn", "value": "123456789"}]}
+    assert exact_identifier_join(source, [{"external_identifiers": [{"scheme": "abn", "value": "51824753556"}, {"scheme": "acn", "value": "123456789"}], "id": "both"}])["id"] == "both"
+    assert exact_identifier_join(source, [{"external_identifiers": [{"scheme": "abn", "value": "51824753556"}, {"scheme": "acn", "value": "999999999"}], "id": "conflict"}]) is None
+    assert exact_identifier_join({"ABN": abn}, [{"ABN": "51824753556", "id": "a"}, {"ABN": "51824753556", "id": "b"}]) is None
+    assert exact_identifier_join({"name": "The Smith Family"}, [{"name": "The Smith Family", "id": "name-only"}]) is None
 def test_seed_portfolio_is_versioned_and_bounded(tmp_path):
     catalog = open_catalog(tmp_path)
     seeded = seed_phase1_taxonomies(catalog)
     assert set(seeded) == {"acnc", "ato-dgr", "classie", "sdg", "charitygraph-activity"}
     assert sum(item["kind"] == "concept" for item in seeded["sdg"]) == 17
-    assert any(item.get("external_id") == "SUBJECT-EDU" for item in seeded["classie"])
+    assert not any(item.get("kind") == "concept" for item in seeded["classie"])
+    assert any(item.get("external_id") == "SDG-4" and item.get("kind") == "concept" for item in seeded["sdg"])
     assert catalog.get_taxonomy_version(seeded["classie"][1]["id"])["version"] == "4.2"
 
 
@@ -232,4 +241,28 @@ def test_phase1_vertical_fake_provider_and_lineage(tmp_path):
         evidence_ids=(locator_id,),
     )
     assert rows[0]["concept_id"] == concept.record_id
-    assert catalog.integrity_check() == "ok"
+    program_rows = engine.persist_taxonomy_output(subject_id=program_id, scheme_version_id=version.record_id, output=taxonomy_output, evidence_ids=(locator_id,))
+    assert program_rows[0]["subject_id"] == program_id
+    # True cold replay: close and reopen the catalogue, then reconstruct the
+    # engine and repeat the same logical chain with a fresh provider object.
+    catalog.close()
+    reopened = open_catalog(tmp_path)
+    engine2 = Phase1PreRunEngine(reopened)
+    engine2.register_subject(make_subject())
+    candidate2 = engine2.create_structured_program_candidate(
+        subject_id=SUBJECT,
+        source_record_id=source.record_id,
+        evidence_ids=(locator_id,),
+        label="Reading program",
+    )
+    assert candidate2.record_id == candidate.record_id
+    task2 = engine2.create_task(
+        subject_id=SUBJECT,
+        evidence=(EvidenceInput(evidence_id=locator_id, content_hash="e" * 64, selection_hash="f" * 64),),
+        task_kind="program_decomposition",
+    )
+    execution2, _ = engine2.execute_task(task2, output)
+    assert task2.record_id == task.record_id
+    assert execution2.task_run.record_id == execution.task_run.record_id
+    assert execution2.logical_result.record_id == execution.logical_result.record_id
+    assert reopened.integrity_check() == "ok"

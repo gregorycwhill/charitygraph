@@ -25,6 +25,8 @@ from .providers.fake import DeterministicFakeProvider
 from .providers.base import ProviderExecution
 from .runtime import SQLiteCatalog
 
+DETERMINISTIC_CREATED_AT = datetime(2000, 1, 1, tzinfo=timezone.utc)
+
 
 def validate_abn(abn: str) -> bool:
     """Validate an Australian Business Number using the official modulo-89 rule."""
@@ -48,12 +50,54 @@ def exact_identifier_join(
     source_identifiers: Mapping[str, str],
     governed_identifiers: Iterable[Mapping[str, str]],
 ) -> dict[str, str] | None:
-    """Return one exact identifier match; conflicts remain unresolved."""
+    """Return one exact governed-identifier match, never a name/domain match.
 
-    matches = [
-        dict(item) for item in governed_identifiers
-        if any(str(item.get(key, "")) == str(value) for key, value in source_identifiers.items())
-    ]
+    Inputs may use the compact {"ABN": "..."} fixture form or the canonical
+    external_identifiers list. Only recognised identity schemes participate,
+    and all schemes shared by both records must agree.
+    """
+    identity_schemes = {
+        "abn", "acn", "acnc", "ato-dgr", "dgr", "charity-registration",
+        "charity_id", "charity-id", "lei", "ein", "registration",
+    }
+
+    def pairs(record: Mapping[str, Any]) -> dict[str, str]:
+        values: dict[str, str] = {}
+        listed = record.get("external_identifiers", ())
+        if isinstance(listed, Mapping):
+            listed = (listed,)
+        for item in listed or ():
+            if not isinstance(item, Mapping):
+                continue
+            scheme = str(item.get("scheme", "")).strip().casefold()
+            value = item.get("value")
+            if scheme in identity_schemes and value not in (None, ""):
+                values[scheme] = str(value)
+        for key, value in record.items():
+            scheme = str(key).strip().casefold()
+            if scheme in identity_schemes and value not in (None, ""):
+                values[scheme] = str(value)
+        normalised: dict[str, str] = {}
+        for scheme, value in values.items():
+            if scheme == "abn":
+                try:
+                    normalised[scheme] = normalise_abn(value)
+                except ValueError:
+                    continue
+            else:
+                normalised[scheme] = value.strip().casefold()
+        return normalised
+
+    source_pairs = pairs(source_identifiers)
+    if not source_pairs:
+        return None
+    matches: list[dict[str, str]] = []
+    for item in governed_identifiers:
+        candidate = dict(item)
+        candidate_pairs = pairs(candidate)
+        comparable = set(source_pairs) & set(candidate_pairs)
+        if comparable and all(source_pairs[scheme] == candidate_pairs[scheme] for scheme in comparable):
+            matches.append(candidate)
     if len(matches) != 1:
         return None
     return matches[0]
@@ -67,7 +111,11 @@ def deterministic_subject_id(*, identifier_scheme: str, identifier_value: str, i
     })
 
 
-def seed_phase1_taxonomies(catalog: SQLiteCatalog) -> dict[str, list[dict[str, Any]]]:
+def seed_phase1_taxonomies(
+    catalog: SQLiteCatalog,
+    *,
+    classie_concepts: Iterable[Mapping[str, Any]] = (),
+) -> dict[str, list[dict[str, Any]]]:
     """Register the bounded, versioned seed portfolio used by synthetic fixtures.
 
     CLASSIE's official page identifies 4.2 (released November 2022) and describes
@@ -109,9 +157,18 @@ def seed_phase1_taxonomies(catalog: SQLiteCatalog) -> dict[str, list[dict[str, A
         catalog.register_taxonomy_version(version)
         rows: list[dict[str, Any]] = [{"kind": "scheme", "id": scheme.record_id}, {"kind": "version", "id": version.record_id}]
         if key == "sdg":
-            concepts = [(f"SDG-{i}", f"UN Sustainable Development Goal {i}") for i in range(1, 18)]
+            sdg_titles = (
+                "No Poverty", "Zero Hunger", "Good Health and Well-being",
+                "Quality Education", "Gender Equality", "Clean Water and Sanitation",
+                "Affordable and Clean Energy", "Decent Work and Economic Growth",
+                "Industry, Innovation and Infrastructure", "Reduced Inequalities",
+                "Sustainable Cities and Communities", "Responsible Consumption and Production",
+                "Climate Action", "Life Below Water", "Life on Land",
+                "Peace, Justice and Strong Institutions", "Partnerships for the Goals",
+            )
+            concepts = [(f"SDG-{i}", title) for i, title in enumerate(sdg_titles, 1)]
         elif key == "classie":
-            concepts = [("SUBJECT-EDU", "Education"), ("SUBJECT-HEALTH", "Health"), ("POP-CHILDREN", "Children")]
+            concepts = [(str(item["external_concept_id"]), str(item["preferred_label"]), item) for item in classie_concepts]
         elif key == "charitygraph-activity":
             concepts = [("ACT-SERVICE", "Direct service delivery"), ("ACT-ADVOCACY", "Advocacy"), ("ACT-RESEARCH", "Research")]
         else:
@@ -164,7 +221,7 @@ class Phase1PreRunEngine:
         })
         candidate = ProgramCandidate(
             record_id=candidate_id,
-            created_at=datetime.now(timezone.utc),
+            created_at=DETERMINISTIC_CREATED_AT,
             producer={"kind": "code", "producer_id": "phase1-engine", "version": "1"},
             subject_id=subject_id,
             source_record_id=source_record_id,
@@ -207,7 +264,7 @@ class Phase1PreRunEngine:
         })
         return ModelTask(
             record_id=record_id,
-            created_at=datetime.now(timezone.utc),
+            created_at=DETERMINISTIC_CREATED_AT,
             producer={"kind": "code", "producer_id": "phase1-engine", "version": "1"},
             subject_id=subject_id,
             task_type="semantic_interpretation",
@@ -258,7 +315,7 @@ class Phase1PreRunEngine:
                     "concept_id": selection.concept_id, "role": selection.role,
                     "evidence_ids": evidence_ids,
                 }),
-                created_at=datetime.now(timezone.utc),
+                created_at=DETERMINISTIC_CREATED_AT,
                 producer={"kind": "model", "producer_id": "phase1-fake", "version": "1"},
                 subject_id=subject_id,
                 scheme_version_id=scheme_version_id,
@@ -282,7 +339,7 @@ class Phase1PreRunEngine:
                 "source": organisation_id, "target": program_id, "type": "has_program",
                 "evidence_ids": evidence_ids,
             }),
-            created_at=datetime.now(timezone.utc),
+            created_at=DETERMINISTIC_CREATED_AT,
             producer={"kind": "code", "producer_id": "phase1-engine", "version": "1"},
             source_subject_id=organisation_id,
             target_subject_id=program_id,
