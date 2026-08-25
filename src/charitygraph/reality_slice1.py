@@ -404,8 +404,12 @@ CHARITYGRAPH_ACTIVITY_VOCABULARY = (
     {"id": "activity.policy_change", "label": "Policy and systems change", "facet": "activity"},
 )
 
-def project_costs(members: Iterable[CohortMember], *, task_specs: Iterable[FrozenTaskSpec] | None = None, task_types: tuple[str, ...] = ("program_decomposition", "classie_subject", "classie_population", "activity", "sdg_alignment", "evidence_selection"), input_tokens: int = 2500, output_tokens: int = 900, cache_hits: Mapping[str, int] | None = None, pricing_input_usd: Decimal = Decimal("0.25"), pricing_output_usd: Decimal = Decimal("2.00"), fx_usd_aud: Decimal = Decimal("1.50")) -> dict[str, Any]:
-    """Calculate a private cost plan from actual task specs and pinned snapshots."""
+def project_costs(members: Iterable[CohortMember], *, task_specs: Iterable[FrozenTaskSpec] | None = None, task_types: tuple[str, ...] = (), input_tokens: int = 2500, output_tokens: int = 900, cache_hits: Mapping[str, int] | None = None, pricing_input_usd: Decimal = Decimal("0.25"), pricing_output_usd: Decimal = Decimal("2.00"), fx_usd_aud: Decimal = Decimal("1.50")) -> dict[str, Any]:
+    """Calculate only a deterministic private evidence-review reservation demo.
+
+    With no supplied task specs this returns zero work; it never invents a
+    future semantic task plan or semantic workload forecast.
+    """
     cache_hits = cache_hits or {}
     selected = tuple(members)
     by_abn: dict[str, int] = {member.abn: 0 for member in selected}
@@ -423,7 +427,7 @@ def project_costs(members: Iterable[CohortMember], *, task_specs: Iterable[Froze
         hit = int(cache_hits.get(member.abn, 0)); rows.append(CostProjection(member.abn, count, input_tokens * count, output_tokens * count, aud, hit, max(count - hit, 0)))
     total = sum((row.estimated_aud for row in rows), Decimal("0"))
     reservations = [{"reservation_id": deterministic_id("reservation:", {"abn": row.member_abn, "phase": "reality-slice1-development"}), "member_abn": row.member_abn, "proposed_aud": str(row.estimated_aud), "status": "proposed_not_reserved"} for row in rows if row.task_count]
-    return {"cap_aud": str(BUDGET_CAP_AUD), "pricing_input_usd_per_million": str(pricing_input_usd), "pricing_output_usd_per_million": str(pricing_output_usd), "fx_usd_aud": str(fx_usd_aud), "rows": [row.__dict__ | {"estimated_aud": str(row.estimated_aud)} for row in rows], "proposed_reservations": reservations, "total_estimated_aud": str(total), "within_cap": total <= BUDGET_CAP_AUD, "paid_calls_executed": False, "pricing_basis": "explicit_snapshot_parameters"}
+    return {"status": "deterministic_evidence_review_reservation_demo", "cap_aud": str(BUDGET_CAP_AUD), "pricing_input_usd_per_million": str(pricing_input_usd), "pricing_output_usd_per_million": str(pricing_output_usd), "fx_usd_aud": str(fx_usd_aud), "rows": [row.__dict__ | {"estimated_aud": str(row.estimated_aud)} for row in rows], "proposed_reservations": reservations, "total_estimated_aud": str(total), "within_cap": total <= BUDGET_CAP_AUD, "paid_calls_executed": False, "pricing_basis": "explicit_snapshot_parameters"}
 
 def build_candidate_observations(outcomes: Iterable[AcquisitionOutcome]) -> tuple[dict[str, Any], ...]:
     """Return source-explicit candidates, never semantic gold or durable subjects."""
@@ -615,7 +619,7 @@ def write_private_preview(report: Mapping[str, Any], runtime_root: str | Path) -
     payload = json.dumps(report, indent=2, sort_keys=True, default=str).encode("utf-8")
     digest = hashlib.sha256(payload).hexdigest()
     json_path = root / f"development-preflight-{digest[:16]}.json"; json_path.write_bytes(payload)
-    md_path = root / f"development-preflight-{digest[:16]}.md"; md_path.write_text("# CharityGraph Reality Slice 1 development preflight\n\nPrivate, review-only preview. Paid semantic execution is disabled.\n\n" + "- development members: " + str(len(report.get("development_members", []))) + "\n- planned tasks: " + str(len(report.get("task_plan", []))) + "\n- projected AUD: " + str(report.get("economics_demo", {}).get("total_estimated_aud")) + "\n- holdout firewall: enforced\n", encoding="utf-8")
+    md_path = root / f"development-preflight-{digest[:16]}.md"; md_path.write_text("# CharityGraph Reality Slice 1 development preflight\n\nPrivate, review-only preview. Paid semantic execution is disabled.\n\n" + "- development members: " + str(len(report.get("development_members", []))) + "\n- planned tasks: " + str(len(report.get("task_plan", []))) + "\n- reservation demo amount (not a semantic forecast): " + str(report.get("economics_demo", {}).get("total_estimated_aud")) + "\n- holdout firewall: enforced\n", encoding="utf-8")
     return json_path, md_path
 
 
