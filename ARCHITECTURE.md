@@ -160,7 +160,7 @@ Create bounded, attributable fragments suitable for mechanical rules or an LLM t
 
 ### 6.6 Generate candidates
 
-Mechanical parsers, rules and LLMs emit `CandidateObservation` records. Candidate generation is non-destructive and may be non-exclusive: the same passage can support candidates in several domains. Custom local NER, relevance, taxonomy or summarisation models are outside the initial build unless a later total-cost-of-ownership benchmark approves them.
+Source-native structured parsers may emit mechanically explicit `CandidateObservation` records. Unrestricted prose candidates come from typed LLM tasks. Candidate generation is non-destructive and may be non-exclusive: the same evidence can support candidates in several domains. Custom local NER, relevance, taxonomy or summarisation models require a benchmark, explicit failure boundary, owner and product approval.
 
 ### 6.7 Decide
 
@@ -251,7 +251,7 @@ Total donations is stored as `donor_decision_exposure_proxy`. It estimates proce
 
 Embeddings are part of the budget even when negligible. Generate them only from stable release-safe text and cache them by text hash, embedding model and material parameters.
 
-Custom local NLP is not a default tier. Simple parsing, regular expressions, vocabulary validation and off-the-shelf OCR remain. A custom NER, relevance, taxonomy or summarisation component requires a benchmark of total cost of ownership: API savings plus Codex implementation cost, labels/evals, maintenance, drift and operations.
+Custom local NLP is not a default tier. Simple parsing, exact source-native structure, vocabulary validation and off-the-shelf OCR remain. Deterministic semantic lexical heuristics (regexes, keyword/phrase lists, lexical scoring, capitalization/title-case, URL words/slugs, repetition/frequency, fuzzy lexical similarity or equivalents) require a registered Greg-approved CG-SH-* exception in the Data approval register. A custom NER, relevance, taxonomy or summarisation component also requires a benchmark of total cost of ownership, a failure boundary, an owner and explicit product approval.
 
 ## 8. Storage and local operation
 
@@ -407,3 +407,8 @@ They should be recorded in `CharityGraph\archaeology\tranche-4\` or a later dura
 ## 14. Immediate implementation boundary
 
 After the bounded knowledge-primitives tranche, the next implementation task is the private Phase 1 pre-run engine: versioned taxonomy registration, deterministic source/identity/program mechanics, typed semantic tasks and a fake-provider end-to-end fixture. It must be proven before the first private reality slice described by the canonical Data [IMPLEMENTATION_PLAN.md](https://github.com/gregorycwhill/charitygraph-data/blob/main/IMPLEMENTATION_PLAN.md). It remains synthetic/recorded, private and review-only. Do not alter public schemas, rebuild a release, move archive evidence, inspect holdout charities, or make unapproved provider/model calls.
+## Semantic heuristic gate
+
+Builder is Python-controlled and LLM-powered: LLMs are the routine semantic engine for unrestricted prose relevance, entity/program/service interpretation, extraction, classification, ambiguity and bounded rationale. Python may acquire, parse stable structure, assemble/select evidence, join, validate, schedule, account and compile releases; it must not teach Python English through deterministic lexical interpretation.
+
+Before coding any unrestricted natural-language semantic rule, ask: **Does this diff teach Python English?** If yes, stop unless the exact exception has a registered Greg-approved CG-SH-* entry in the sibling Data repository's SEMANTIC_HEURISTIC_APPROVALS.md. Mechanical parsing remains permitted only for stable syntax, IDs, URLs, dates, numbers, formats, markup, exact source-native structured fields, schema validation, arithmetic and joins.
