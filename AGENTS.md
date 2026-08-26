@@ -31,3 +31,7 @@ Former-brand compatibility identifiers remain isolated where code, tests or immu
 ## Completion
 
 Run relevant tests, inspect generated diagnostics where applicable, verify publication allowlists and representation consistency, and report private-material exclusion. Do not use broad add-all Git commands.
+
+## SEMANTIC HEURISTIC GATE -- STOP BEFORE CODING
+
+Before changing Builder logic that touches unrestricted natural-language semantics, ask: **Does this diff teach Python English?** If yes, stop. Do not add regexes, keyword/phrase lists, lexical scoring, capitalization/title-case, URL-word rules, repetition/frequency, fuzzy lexical similarity or equivalent semantic heuristics without a specific Greg-approved CG-SH-* entry in the sibling Data repository's SEMANTIC_HEURISTIC_APPROVALS.md. Custom/local NLP needs a benchmark, explicit failure boundary, owner and approval; total cost alone is not authorization. Mechanical code remains appropriate for stable syntax, identifiers, URLs, dates, arithmetic, exact joins and explicit source-native structured fields; unrestricted prose is an LLM task by default.
