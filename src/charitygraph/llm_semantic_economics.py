@@ -85,6 +85,7 @@ class EvidenceSegment(StrictModel):
     ordinal: int
     heading_path: tuple[str, ...] = ()
     text: str
+    links: tuple[str, ...] = ()
 
     @field_validator("evidence_id", "source_url", "source_artifact_id", "text")
     @classmethod
@@ -180,6 +181,8 @@ class SourceDocument(StrictModel):
     media_type: str
     byte_size: int
     text: str
+    headings: tuple[str, ...] = ()
+    links: tuple[str, ...] = ()
 
 
 class SpikeRunConfig(StrictModel):
@@ -211,9 +214,14 @@ class _TextParser(HTMLParser):
         self.headings: list[str] = []
         self._skip = 0
         self._heading: list[str] | None = None
+        self.links: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         tag = tag.casefold()
+        if tag == "a":
+            href = dict(attrs).get("href")
+            if href and not href.startswith(("mailto:", "tel:", "javascript:")):
+                self.links.append(href)
         if tag in {"script", "style", "noscript", "template", "svg"}:
             self._skip += 1
         elif tag in {"h1", "h2", "h3", "h4", "h5", "h6"} and not self._skip:
@@ -240,18 +248,19 @@ class _TextParser(HTMLParser):
             self._heading = None
 
 
-def parse_document(body: bytes) -> str:
-    """Strip markup mechanically and retain text in source order."""
+def _parse_structure(body: bytes) -> tuple[str, tuple[str, ...], tuple[str, ...]]:
     parser = _TextParser()
     parser.feed(body.decode("utf-8", errors="replace"))
-    # stable adjacent deduplication prevents template repetition without
-    # deciding whether any phrase is relevant.
     result: list[str] = []
     for part in parser.parts:
         if not result or result[-1] != part:
             result.append(part)
-    return "\n".join(result)
+    return "\n".join(result), tuple(dict.fromkeys(parser.headings)), tuple(dict.fromkeys(parser.links))
 
+
+def parse_document(body: bytes) -> str:
+    """Strip markup mechanically and retain text in source order."""
+    return _parse_structure(body)[0]
 
 def acquire_documents(runtime_root: str | Path, *, transport: Callable[[str], tuple[bytes, str]] | None = None) -> tuple[SourceDocument, ...]:
     """Acquire only the explicit seven-charity URL plan into private CAS."""
@@ -271,7 +280,8 @@ def acquire_documents(runtime_root: str | Path, *, transport: Callable[[str], tu
                 if len(body) > 20_000_000:
                     raise ValueError("source document exceeds bounded size")
                 stored = store.put(body, created_at=datetime.now(UTC))
-                documents.append(SourceDocument(url=url, retrieved_at=datetime.now(UTC), publisher=member.legal_current_name, content_hash=stored.content_hash, artifact_id=stored.artifact_id, media_type=media_type, byte_size=len(body), text=parse_document(body)))
+                text, headings, links = _parse_structure(body)
+                documents.append(SourceDocument(url=url, retrieved_at=datetime.now(UTC), publisher=member.legal_current_name, content_hash=stored.content_hash, artifact_id=stored.artifact_id, media_type=media_type, byte_size=len(body), text=text, headings=headings, links=links))
             except Exception:
                 # Denied/unavailable pages remain unacquired; no homepage or
                 # semantic fallback is substituted.
@@ -293,7 +303,7 @@ def build_evidence_bundle(subject_id: str, tier: str, documents: Iterable[Source
         if not text:
             continue
         evidence_id = deterministic_id("evidence:", {"subject_id": subject_id, "url": doc.url, "hash": doc.content_hash, "tier": tier, "ordinal": ordinal})
-        rows.append(EvidenceSegment(evidence_id=evidence_id, source_url=doc.url, source_artifact_id=doc.artifact_id, content_hash=doc.content_hash, ordinal=ordinal, text=text))
+        rows.append(EvidenceSegment(evidence_id=evidence_id, source_url=doc.url, source_artifact_id=doc.artifact_id, content_hash=doc.content_hash, ordinal=ordinal, heading_path=doc.headings[:6], text=text, links=doc.links))
         used += len(text)
     material = [segment.model_dump(mode="json") for segment in rows]
     bundle_hash = hashlib.sha256(json.dumps(material, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
