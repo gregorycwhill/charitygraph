@@ -191,7 +191,7 @@ def test_configured_private_classie_flows_through_spike_without_provider(tmp_pat
     loaded = load_private_classie_payload(path)
     from charitygraph.llm_semantic_economics import run_spike, SpikeRunConfig
     report = run_spike(SpikeRunConfig(runtime_root=str(tmp_path / "runtime"), classie_payload_path=str(path), classie_expected_version="4.2-private"), transport=lambda url: (b"<p>evidence</p>", "text/html"))
-    assert report["classie_runtime"] == {"status": "private_runtime_loaded", "scheme_id": "classie", "version": "4.2-private", "content_hash": loaded["content_hash"], "external_scheme_id": None, "publication_eligibility": "withheld"}
+    assert report["classie_runtime"] == {"status": "private_runtime_loaded", "scheme_id": "classie", "version": "4.2-private", "content_hash": loaded["content_hash"], "source_locator": "private://classie", "source_publisher": None, "source_release_date": None, "source_sheet": None, "original_file_hash": None, "transformation_version": None, "transformation_hash": None, "external_scheme_id": None, "rights_policy": "private_processing_approved", "publication_eligibility": "withheld"}
 
 def test_exact_reuse_identity_ignores_tier_but_changes_evidence():
     subject = "subject:" + "4" * 32

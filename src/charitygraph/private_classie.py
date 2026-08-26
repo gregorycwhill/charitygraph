@@ -51,12 +51,28 @@ def load_private_classie_payload(path: str | Path, *, expected_scheme_id: str = 
             "definition": row.get("definition"),
             "parent_external_concept_ids": tuple(str(item).strip() for item in row.get("parent_external_concept_ids", ()) if str(item).strip()),
         })
+    transformation_version = str(document.get("transformation_version", "")).strip() or None
+    supplied_transformation_hash = str(document.get("transformation_hash", "")).strip() or None
+    if supplied_transformation_hash:
+        transform_material = json.dumps(normalised, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+        expected_transformation_hash = hashlib.sha256(transform_material).hexdigest()
+        if supplied_transformation_hash != expected_transformation_hash:
+            raise PrivateClassieLoadError("private CLASSIE transformation hash does not match concepts")
+    original_file_hash = str(document.get("original_file_hash", "")).strip() or None
+    if original_file_hash is not None and len(original_file_hash) != 64:
+        raise PrivateClassieLoadError("private CLASSIE original file hash is invalid")
     return {
         "scheme_id": scheme_id,
         "version": version,
         "concepts": tuple(normalised),
         "source_locator": str(document.get("source_locator", "")).strip() or None,
         "external_scheme_id": str(document.get("external_scheme_id", "")).strip() or None,
+        "source_publisher": str(document.get("source_publisher", "")).strip() or None,
+        "source_release_date": str(document.get("source_release_date", "")).strip() or None,
+        "source_sheet": str(document.get("source_sheet", "")).strip() or None,
+        "original_file_hash": original_file_hash,
+        "transformation_version": transformation_version,
+        "transformation_hash": supplied_transformation_hash,
         "content_hash": content_hash,
         "rights_policy": str(document.get("rights_policy", "")).strip() or "private_processing_approved",
         "publication_eligibility": "withheld",
