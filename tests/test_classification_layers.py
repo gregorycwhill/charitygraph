@@ -15,6 +15,8 @@ from charitygraph.llm_semantic_economics import (
     build_evidence_bundle,
     parse_document,
     semantic_prompt,
+    build_model_task,
+    request_specific_rich_semantic_output_schema,
     validate_output,
 )
 from charitygraph.private_classie import PrivateClassieLoadError, load_private_classie_payload, public_classification_projection
@@ -97,7 +99,7 @@ def test_seed_profiles_keep_acnc_facets_and_classie_versions_distinct(tmp_path):
 
 def test_private_classie_loader_hashes_and_fails_closed(tmp_path):
     path = tmp_path / "classie.json"
-    payload = {"scheme_id": "charitygraph-classie", "version": "4.2-private", "source_locator": "private://classie", "concepts": [{"external_concept_id": "classie.program", "preferred_label": "Program", "definition": "Fixture"}]}
+    payload = {"scheme_id": "classie", "version": "4.2-private", "source_locator": "private://classie", "concepts": [{"external_concept_id": "classie.program", "preferred_label": "Program", "definition": "Fixture"}]}
     raw = json.dumps(payload, sort_keys=True).encode()
     path.write_bytes(raw)
     loaded = load_private_classie_payload(path)
@@ -130,7 +132,88 @@ def test_reporting_group_scope_does_not_propagate_to_member_or_program():
     assert program.scope_kind == "program"
     assert {group.record_id, legal.record_id, program.record_id} == {"scope:" + "1" * 32, "scope:" + "2" * 32, "scope:" + "3" * 32}
 
-def test_classie_public_projection_is_withheld_when_disabled():
-    rows = ({"scheme_id": "charitygraph-classie", "classie": True}, {"scheme_id": "ato-dgr", "status": "endorsed"})
+def test_public_projection_uses_explicit_metadata_not_scheme_names():
+    rows = (
+        {"scheme_id": "charitygraph-classie", "publication_eligibility": "withheld"},
+        {"scheme_id": "foo-classie-looking-name", "publication_eligibility": "eligible", "publication_policy_id": "release-vnext"},
+        {"scheme_id": "ato-dgr", "publication_eligibility": "ineligible"},
+        {"scheme_id": "native", "publication_eligibility": "review_required"},
+    )
     assert public_classification_projection(rows) == (rows[1],)
-    assert public_classification_projection(rows, classie_enabled=True) == rows
+    assert public_classification_projection(rows, publication_policy_id="other") == ()
+
+
+def test_public_projection_accepts_only_explicitly_eligible_assignments():
+    row = {"scheme_id": "arbitrary", "publication_eligibility": "eligible", "publication_policy_id": "release-vnext"}
+    assert public_classification_projection((row,), publication_policy_id="release-vnext") == (row,)
+
+def test_request_specific_schema_enumerates_evidence_and_private_concepts(tmp_path):
+    bundle = build_evidence_bundle("subject:" + "2" * 32, "lean", (_doc(),))
+    evidence_id = bundle.source_segments[0].evidence_id
+    schema = request_specific_rich_semantic_output_schema(
+        permitted_evidence_ids=(evidence_id,),
+        classie_concept_ids=("classie.program",),
+        classie_enabled=True,
+    )
+    for definition in ("SemanticProposal", "SemanticAssertion", "ClassieAssignment"):
+        assert schema["$defs"][definition]["properties"]["evidence_refs"]["items"]["enum"] == [evidence_id]
+    assert schema["$defs"]["ClassieAssignment"]["properties"]["external_concept_id"]["enum"] == ["classie.program"]
+    assert "classie.unknown" not in schema["$defs"]["ClassieAssignment"]["properties"]["external_concept_id"]["enum"]
+    disabled = request_specific_rich_semantic_output_schema(permitted_evidence_ids=(evidence_id,))
+    assert disabled["properties"]["classie_assignments"]["maxItems"] == 0
+
+
+def test_private_classie_wiring_changes_prompt_provenance_and_reuse_identity(tmp_path):
+    path = tmp_path / "classie.json"
+    payload = {"scheme_id": "classie", "version": "4.2-private", "source_locator": "private://classie", "concepts": [{"external_concept_id": "classie.program", "preferred_label": "Program", "definition": "Fixture"}]}
+    path.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+    loaded = load_private_classie_payload(path)
+    bundle = build_evidence_bundle("subject:" + "3" * 32, "lean", (_doc(),))
+    task = build_model_task(bundle.subject_id, bundle, provider_id="fake", model_snapshot="fake", classie_runtime=loaded)
+    prompt = semantic_prompt(bundle, "Fixture", classie_concepts=loaded["concepts"])
+    assert "classie.program" in prompt
+    assert loaded["version"] == task.parameters["classie_runtime"]["version"]
+    assert loaded["content_hash"] == task.parameters["classie_runtime"]["content_hash"]
+    assert task.parameters["classie_runtime"]["content_hash"] == loaded["content_hash"]
+    changed = dict(loaded, version="4.3-private", content_hash="f" * 64)
+    assert task.cache_key != build_model_task(bundle.subject_id, bundle, provider_id="fake", model_snapshot="fake", classie_runtime=changed).cache_key
+    disabled_prompt = semantic_prompt(bundle, "Fixture")
+    assert "disabled/not-configured" in disabled_prompt
+    assert "classie.program" not in disabled_prompt
+    assert build_model_task(bundle.subject_id, bundle, provider_id="fake", model_snapshot="fake").cache_key != task.cache_key
+
+
+def test_exact_reuse_identity_ignores_tier_but_changes_evidence():
+    subject = "subject:" + "4" * 32
+    docs = (_doc(),)
+    lean = build_evidence_bundle(subject, "lean", docs)
+    broad = build_evidence_bundle(subject, "broad", docs)
+    assert build_model_task(subject, lean, provider_id="fake", model_snapshot="fake").cache_key == build_model_task(subject, broad, provider_id="fake", model_snapshot="fake").cache_key
+    other = SourceDocument(**{**_doc().model_dump(), "text": "different evidence", "content_hash": hashlib.sha256(b"different evidence").hexdigest(), "artifact_id": "srcblob:" + hashlib.sha256(b"different evidence").hexdigest()})
+    changed = build_evidence_bundle(subject, "lean", (other,))
+    assert build_model_task(subject, lean, provider_id="fake", model_snapshot="fake").cache_key != build_model_task(subject, changed, provider_id="fake", model_snapshot="fake").cache_key
+
+def test_disabled_classie_output_is_rejected_and_run_reports_explicit_state(tmp_path):
+    bundle = build_evidence_bundle("subject:" + "5" * 32, "lean", (_doc(),))
+    with pytest.raises(ValueError, match="unknown CLASSIE concept"):
+        validate_output(_output(bundle.source_segments[0].evidence_id), bundle, classie_concept_ids=set())
+    from charitygraph.llm_semantic_economics import run_spike, SpikeRunConfig
+    report = run_spike(SpikeRunConfig(runtime_root=str(tmp_path / "runtime")), transport=lambda url: (b"<p>evidence</p>", "text/html"))
+    assert report["classie_runtime"]["status"] == "disabled_not_configured"
+
+
+def test_dynamic_schema_retains_recursive_strict_contract():
+    bundle = build_evidence_bundle("subject:" + "6" * 32, "lean", (_doc(),))
+    schema = request_specific_rich_semantic_output_schema(permitted_evidence_ids=(bundle.source_segments[0].evidence_id,), classie_concept_ids=("classie.program",), classie_enabled=True)
+    def walk(node):
+        if isinstance(node, dict):
+            yield node
+            for value in node.values():
+                yield from walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                yield from walk(value)
+    for node in walk(schema):
+        if node.get("type") == "object":
+            assert node["additionalProperties"] is False
+            assert set(node["required"]) == set(node["properties"])

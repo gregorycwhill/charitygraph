@@ -8,14 +8,14 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
 
 class PrivateClassieLoadError(ValueError):
     """Raised when a private CLASSIE payload is absent or malformed."""
 
 
-def load_private_classie_payload(path: str | Path, *, expected_scheme_id: str = "charitygraph-classie") -> dict[str, Any]:
+def load_private_classie_payload(path: str | Path, *, expected_scheme_id: str = "classie") -> dict[str, Any]:
     payload_path = Path(path)
     try:
         raw = payload_path.read_bytes()
@@ -56,6 +56,7 @@ def load_private_classie_payload(path: str | Path, *, expected_scheme_id: str = 
         "version": version,
         "concepts": tuple(normalised),
         "source_locator": str(document.get("source_locator", "")).strip() or None,
+        "external_scheme_id": str(document.get("external_scheme_id", "")).strip() or None,
         "content_hash": content_hash,
         "rights_policy": str(document.get("rights_policy", "")).strip() or "private_processing_approved",
         "publication_eligibility": "withheld",
@@ -63,13 +64,18 @@ def load_private_classie_payload(path: str | Path, *, expected_scheme_id: str = 
     }
 
 
-def public_classification_projection(assignments: Iterable[Mapping[str, Any]], *, classie_enabled: bool = False) -> tuple[dict[str, Any], ...]:
-    """Return a safe projection; CLASSIE content is withheld unless enabled."""
+def public_classification_projection(assignments: Iterable[Mapping[str, Any]], *, publication_policy_id: str | None = None) -> tuple[dict[str, Any], ...]:
+    """Project only assignments explicitly eligible under the requested policy.
+
+    Publication is governed by explicit metadata. Scheme names, labels and
+    lexical aliases never influence this decision.
+    """
     rows: list[dict[str, Any]] = []
     for item in assignments:
         row = dict(item)
-        scheme_id = str(row.get("scheme_id", "")).casefold()
-        if not classie_enabled and ("classie" in scheme_id or row.get("classie") is True):
+        if row.get("publication_eligibility") != "eligible":
+            continue
+        if publication_policy_id is not None and row.get("publication_policy_id") != publication_policy_id:
             continue
         rows.append(row)
     return tuple(rows)

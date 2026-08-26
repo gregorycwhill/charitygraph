@@ -17,6 +17,7 @@ import json
 import os
 import re
 import uuid
+from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
@@ -32,6 +33,7 @@ from .contracts.economics import CostLedgerEntry, Money, PricingSnapshot, PriceR
 from .contracts.ids import deterministic_id
 from .contracts.tasks import EvidenceInput, ModelTask, ProviderUsage, model_task_cache_key
 from .openai_client import ApiResult, ApiUsage, OpenAIRequestError, estimate_response_cost, responses_create
+from .private_classie import load_private_classie_payload
 from .reality_slice1 import BUDGET_CAP_AUD, development_members, assert_development_member
 from .runtime import SQLiteCatalog
 from .evidence_store import ContentAddressedArtifactStore
@@ -222,9 +224,32 @@ def rich_semantic_output_schema() -> dict[str, Any]:
     return RichSemanticOutput.model_json_schema()
 
 
-def rich_semantic_output_text_format() -> dict[str, Any]:
+def request_specific_rich_semantic_output_schema(*, permitted_evidence_ids: Iterable[str], classie_concept_ids: Iterable[str] = (), classie_enabled: bool = False) -> dict[str, Any]:
+    """Derive the strict provider schema for one exact evidence/runtime request."""
+    schema = deepcopy(rich_semantic_output_schema())
+    evidence_ids = tuple(dict.fromkeys(str(item) for item in permitted_evidence_ids if str(item)))
+    if not evidence_ids:
+        raise ValueError("request-specific schema requires permitted evidence IDs")
+    for definition_name in ("SemanticProposal", "SemanticAssertion", "ClassieAssignment"):
+        schema["$defs"][definition_name]["properties"]["evidence_refs"]["items"] = {
+            "type": "string", "enum": list(evidence_ids),
+        }
+    if classie_enabled:
+        concept_ids = tuple(dict.fromkeys(str(item) for item in classie_concept_ids if str(item)))
+        if not concept_ids:
+            raise ValueError("enabled private CLASSIE schema requires concept IDs")
+        schema["$defs"]["ClassieAssignment"]["properties"]["external_concept_id"] = {
+            "type": "string", "enum": list(concept_ids),
+        }
+    else:
+        schema["properties"]["classie_assignments"]["maxItems"] = 0
+    return schema
+
+
+def rich_semantic_output_text_format(*, permitted_evidence_ids: Iterable[str] | None = None, classie_concept_ids: Iterable[str] = (), classie_enabled: bool = False) -> dict[str, Any]:
     """Return the exact strict response format supplied to OpenAI."""
-    return {"type": "json_schema", "name": "rich_semantic_output", "strict": True, "schema": rich_semantic_output_schema()}
+    schema = rich_semantic_output_schema() if permitted_evidence_ids is None else request_specific_rich_semantic_output_schema(permitted_evidence_ids=permitted_evidence_ids, classie_concept_ids=classie_concept_ids, classie_enabled=classie_enabled)
+    return {"type": "json_schema", "name": "rich_semantic_output", "strict": True, "schema": schema}
 
 
 class SourceDocument(StrictModel):
@@ -247,6 +272,8 @@ class SpikeRunConfig(StrictModel):
     execute_paid: bool = False
     max_output_tokens: int = 8000
     budget_cap_aud: Decimal = BUDGET_CAP_AUD
+    classie_payload_path: str | None = None
+    classie_expected_version: str | None = None
 
     @field_validator("runtime_root", "provider_id", "model_snapshot")
     @classmethod
@@ -255,10 +282,22 @@ class SpikeRunConfig(StrictModel):
             raise ValueError("run configuration values must be nonblank")
         return value
 
+    @field_validator("classie_payload_path", "classie_expected_version")
+    @classmethod
+    def _optional_nonblank(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("optional CLASSIE configuration values must be nonblank")
+        return value
+
     @model_validator(mode="after")
     def _cap(self) -> "SpikeRunConfig":
         if self.budget_cap_aud <= 0:
             raise ValueError("budget cap must be positive")
+        if self.classie_expected_version and not self.classie_payload_path:
+            raise ValueError("classie_expected_version requires classie_payload_path")
         return self
 
 
@@ -387,19 +426,38 @@ def semantic_prompt(bundle: EvidenceBundle, charity_name: str, *, classie_concep
         classie_text = "\n\nPrivate CharityGraph CLASSIE concepts (independent assessment; do not use ACNC-reported classifications):\n" + "\n".join(
             f"- {item.get('external_concept_id')}: {item.get('preferred_label')} — {item.get('definition', '')}" for item in concepts
         )
+    else:
+        classie_text = "\n\nPrivate CharityGraph CLASSIE processing is disabled/not-configured for this request. Return classie_assignments as an empty array and do not make CLASSIE assignments."
     return f"""You are reviewing official source evidence for {charity_name}. Return JSON matching the supplied schema.\n\nDistinguish substantive delivered activity from mission or aspiration, promotional positioning, fundraising/campaign language, claimed outcome, and actual intervention. Propose programs/services/projects only when the evidence supports the distinction; otherwise abstain and record blockers. Include source labels, kind, durability, parent relation, description, aliases, confidence, competing interpretation, and evidence_refs for every proposal. Include operational activities, populations, geographies and scoped SDG alignments only when evidence-bound and link program/service assertions with subject_proposal_id plus scope_kind=proposal. Whole-organisation assertions must use scope_kind=organisation and null subject_proposal_id. CharityGraph CLASSIE is independent: use only supplied evidence and private CLASSIE concepts, never ACNC-reported CLASSIE selections. Adversarial rules: aspiration is not accomplishment; mission is not delivery; association is not identity; repeated wording is not proof; taxonomy-adjacent vocabulary is not assignment evidence.\n\nEvidence pack content hash {bundle.evidence_content_hash}:{classie_text}\n{evidence}"""
 
 
-def build_model_task(subject_id: str, bundle: EvidenceBundle, *, provider_id: str, model_snapshot: str) -> ModelTask[Any]:
+def build_model_task(subject_id: str, bundle: EvidenceBundle, *, provider_id: str, model_snapshot: str, classie_runtime: Mapping[str, Any] | None = None) -> ModelTask[Any]:
     task_schema = SchemaRef(schema_id="urn:charitygraph:builder:schema:semantic-rich-task:1.0", schema_version="1.0")
     output_schema = SchemaRef(schema_id="urn:charitygraph:builder:schema:semantic-rich-output:1.0", schema_version="1.0")
     inputs = tuple(EvidenceInput(evidence_id=s.evidence_id, content_hash=s.content_hash, selection_hash=bundle.selection_hash) for s in bundle.source_segments)
+    evidence_ids = tuple(s.evidence_id for s in bundle.source_segments)
+    classie_enabled = classie_runtime is not None
+    classie_ids = tuple(item["external_concept_id"] for item in (classie_runtime or {}).get("concepts", ()))
+    request_schema = request_specific_rich_semantic_output_schema(permitted_evidence_ids=evidence_ids, classie_concept_ids=classie_ids, classie_enabled=classie_enabled)
+    request_schema_hash = hashlib.sha256(json.dumps(request_schema, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    classie_material = {
+        "enabled": classie_enabled,
+        "scheme_id": None if classie_runtime is None else classie_runtime.get("scheme_id"),
+        "version": None if classie_runtime is None else classie_runtime.get("version"),
+        "content_hash": None if classie_runtime is None else classie_runtime.get("content_hash"),
+        "concept_ids": list(classie_ids),
+    }
     policy_refs = (VersionedPolicy(policy_id=POLICY_ID, version="1"),)
-    parameters = {"evidence_bundle_hash": bundle.bundle_hash, "evidence_content_hash": bundle.evidence_content_hash}
+    parameters = {
+        "evidence_bundle_hash": bundle.bundle_hash,
+        "evidence_content_hash": bundle.evidence_content_hash,
+        "evidence_reference_ids": list(evidence_ids),
+        "classie_runtime": classie_material,
+        "request_schema_hash": request_schema_hash,
+    }
     cache_key = model_task_cache_key(task_type="semantic_interpretation", task_schema=task_schema, output_schema=output_schema, evidence_inputs=inputs, prompt_template_id=PROMPT_TEMPLATE_ID, prompt_template_version="1", policy_refs=policy_refs, provider_id=provider_id, model_snapshot=model_snapshot, parameters=parameters, material_tool_versions=())
     task_id = deterministic_id("modeltask:", {"subject_id": subject_id, "scope_id": None, "task_type": "semantic_interpretation", "cache_key": cache_key, "output_schema": output_schema})
     return ModelTask(record_id=task_id, created_at=datetime.now(UTC), producer={"kind": "code", "producer_id": "charitygraph-llm-semantic-economics", "version": SPIKE_VERSION}, subject_id=subject_id, task_type="semantic_interpretation", task_schema=task_schema, output_schema=output_schema, evidence_inputs=inputs, prompt_template_id=PROMPT_TEMPLATE_ID, prompt_template_version="1", policy_refs=policy_refs, provider_id=provider_id, model_snapshot=model_snapshot, parameters=parameters, paid_output_categories=("semantic_judgement", "extraction"))
-
 def validate_output(output: RichSemanticOutput, bundle: EvidenceBundle, *, classie_concept_ids: set[str] | None = None) -> RichSemanticOutput:
     valid = {segment.evidence_id for segment in bundle.source_segments}
     collections = (output.programs, output.services, output.projects, output.campaigns, output.organisational_units, output.activities, output.populations, output.geographies, output.sdg_alignments, output.assertions, output.classie_assignments)
@@ -516,13 +574,19 @@ def _redacted_provider_error(error: BaseException) -> tuple[str, str]:
 
 
 def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes, str]] | None = None, pricing_snapshot: PricingSnapshot | None = None, fx_snapshot: FxRateSnapshot | None = None, provider_call: Callable[[ModelTask[Any], str], ApiResult] | None = None) -> dict[str, Any]:
+    classie_runtime: dict[str, Any] | None = None
+    if config.classie_payload_path:
+        classie_runtime = load_private_classie_payload(config.classie_payload_path, expected_scheme_id="classie")
+        if config.classie_expected_version and classie_runtime["version"] != config.classie_expected_version:
+            raise ValueError("private CLASSIE payload version does not match configured expected version")
     members = development_members()
     if {m.abn for m in members} != {"28000030179", "50169561394", "20077830347", "22007498482", "15000002522", "28004778081", "46070556642"}:
         raise RuntimeError("development cohort does not match the frozen seven")
     documents, failures = _acquire_documents(config.runtime_root, transport=transport)
     bundles = {(member.abn, tier): build_evidence_bundle(member.subject_id, tier, [doc for doc in documents if doc.publisher == member.legal_current_name]) for member in members for tier in TIERS}
-    tasks = {(abn, tier): build_model_task(next(m.subject_id for m in members if m.abn == abn), bundle, provider_id=config.provider_id, model_snapshot=config.model_snapshot) for (abn, tier), bundle in bundles.items() if bundle.source_segments}
-    prompts = {(abn, tier): semantic_prompt(bundle, next(m.legal_current_name for m in members if m.abn == abn)) for (abn, tier), bundle in bundles.items() if bundle.source_segments}
+    tasks = {(abn, tier): build_model_task(next(m.subject_id for m in members if m.abn == abn), bundle, provider_id=config.provider_id, model_snapshot=config.model_snapshot, classie_runtime=classie_runtime) for (abn, tier), bundle in bundles.items() if bundle.source_segments}
+    classie_concepts = () if classie_runtime is None else classie_runtime["concepts"]
+    prompts = {(abn, tier): semantic_prompt(bundle, next(m.legal_current_name for m in members if m.abn == abn), classie_concepts=classie_concepts) for (abn, tier), bundle in bundles.items() if bundle.source_segments}
     first_for_pack: dict[str, tuple[str, str]] = {}
     for key in prompts:
         first_for_pack.setdefault(bundles[key].evidence_content_hash, key)
@@ -546,6 +610,7 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
         source_counts[document.publisher] = source_counts.get(document.publisher, 0) + 1
     tier_counts = {tier: sum(1 for key in tasks if key[1] == tier) for tier in TIERS}
     report: dict[str, Any] = {"version": SPIKE_VERSION, "private": True, "development_abns": [m.abn for m in members], "holdout_firewall": {"enforced": True, "holdout_model_tasks": 0}, "tiers": list(TIERS), "task_count": len(tasks), "unique_semantic_evidence_pack_count": len(unique_keys), "source_document_count": len(documents), "source_documents_by_charity": source_counts, "task_count_by_tier": tier_counts, "acquisition_failures": [failure.model_dump(mode="json") for failure in failures], "evidence_bundles": {f"{key[0]}:{key[1]}": bundle.model_dump(mode="json") for key, bundle in bundles.items()}, "projected": {"input_tokens": sum(unique_estimates.values()), "output_tokens": len(unique_keys) * config.max_output_tokens, "max_reserved_output_tokens": len(unique_keys) * config.max_output_tokens, "aud": None if projected_aud is None else str(projected_aud), "within_cap": None if projected_aud is None else projected_aud <= config.budget_cap_aud, "status": "missing_bound_snapshots" if projected_aud is None else "projected_from_bound_snapshots"}, "paid_execution": config.execute_paid, "results": [], "human_review": {"denominator_current": 1, "proposed_durable_program_service_subjects": [], "model_output_is_not_gold": True}, "quality": {"status": "pending_human_review", "unsupported_claims": "not automatically adjudicated", "duplicates_or_overfragmentation": "not automatically adjudicated", "apparent_misses": "not automatically adjudicated", "evidence_limited_cases": [], "model_limited_cases": []}}
+    report["classie_runtime"] = {"status": "private_runtime_loaded", "scheme_id": classie_runtime["scheme_id"], "version": classie_runtime["version"], "content_hash": classie_runtime["content_hash"], "external_scheme_id": classie_runtime.get("external_scheme_id"), "publication_eligibility": classie_runtime["publication_eligibility"]} if classie_runtime is not None else {"status": "disabled_not_configured", "scheme_id": None, "version": None, "content_hash": None, "external_scheme_id": None, "publication_eligibility": "withheld"}
     report["pricing_snapshot"] = None if pricing_snapshot is None else pricing_snapshot.model_dump(mode="json")
     report["fx_snapshot"] = None if fx_snapshot is None else fx_snapshot.model_dump(mode="json")
     report["economics"] = {"by_charity_tier": [{"abn": key[0], "tier": key[1], "evidence_content_hash": bundles[key].evidence_content_hash, "exact_pack_reuse": key != first_for_pack[bundles[key].evidence_content_hash], "estimated_input_tokens": estimates[key], "estimated_output_tokens": config.max_output_tokens, "estimated_aud": None if _estimate_aud(estimates[key], config.max_output_tokens, pricing_snapshot, fx_snapshot) is None else str(_estimate_aud(estimates[key], config.max_output_tokens, pricing_snapshot, fx_snapshot))} for key in sorted(prompts)], "production_equivalent": {"status": "not_configured", "discount_assumed": False}, "aggregate": {"semantic_assertions": 0, "proposal_count": 0, "credible_proposals": 0, "grounded_propositions": 0, "unresolved_count": 0, "actual_cost_aud": "0", "useful_yield": {"grounded_propositions": 0}, "incremental_tier_yield": "pending_paid_run", "quality_effect": "pending_human_review", "human_review_burden": "pending_paid_run"}}
@@ -628,14 +693,14 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
                 if provider_call is not None:
                     api = provider_call(logical_task, prompts[key])
                 else:
-                    api = responses_create(model=config.model_snapshot, input_text=prompts[key], text_format=rich_semantic_output_text_format(), max_output_tokens=config.max_output_tokens, on_retry=on_retry)
+                    api = responses_create(model=config.model_snapshot, input_text=prompts[key], text_format=rich_semantic_output_text_format(permitted_evidence_ids=[segment.evidence_id for segment in bundles[key].source_segments], classie_concept_ids=() if classie_runtime is None else [item["external_concept_id"] for item in classie_runtime["concepts"]], classie_enabled=classie_runtime is not None), max_output_tokens=config.max_output_tokens, on_retry=on_retry)
             except Exception as error:
                 error_class, error_message = _redacted_provider_error(error)
                 catalog.finish_failed_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), retryable=False, error_class=error_class, error_message_redacted=error_message)
                 failure = {"abn": key[0], "tier": key[1], "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "error_class": error_class, "error_message_redacted": error_message}
                 break
             try:
-                output = validate_output(RichSemanticOutput.model_validate(json.loads(api.output_text)), bundles[key])
+                output = validate_output(RichSemanticOutput.model_validate(json.loads(api.output_text)), bundles[key], classie_concept_ids=set() if classie_runtime is None else {item["external_concept_id"] for item in classie_runtime["concepts"]})
             except Exception as error:
                 error_class, error_message = "output_validation", str(error)[:512]
                 catalog.finish_failed_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), retryable=False, error_class=error_class, error_message_redacted=error_message)
@@ -670,7 +735,7 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
         catalog.transition_run(run_id, final_status, now=datetime.now(UTC))
         budget = catalog.budget_position(cohort_id).as_dict()
         report["run_lifecycle"] = {"cohort_id": cohort_id, "cohort_registered_once": True, "run_id": run_id, "run_instance_id": run_instance_id, "run_status": final_status, "reservation_id": reservation_id, "logical_task_count": len(unique_tasks), "execution_task_count": len(unique_tasks), "logical_task_ids": sorted(unique_tasks), "execution_task_ids": sorted(execution_ids.values()), "historical_failed_run": historical_report, "failure": failure, "provider_attempts_recorded": sum(1 for row in report["results"] if row["validation_status"] == "valid") + (0 if failure is None else 1)}
-        report["ledger"] = {"database": str(catalog.path), "cohort_id": cohort_id, "run_id": run_id, "reservation_id": reservation_id, "budget_position": budget, "new_reservation_position": {key: str(value) for key, value in catalog.reservation_position(reservation_id).items()}}
+        report["ledger"] = {"database": str(catalog.path), "cohort_id": cohort_id, "run_id": run_id, "reservation_id": reservation_id, "budget_position": budget, "new_reservation_position": {key: str(Decimal("0.000000") if value == 0 else value) for key, value in catalog.reservation_position(reservation_id).items()}}
         report["human_review"]["proposed_durable_program_service_subjects"] = review_rows
         catalog.close()
     (root / "spike-report.json").write_text(json.dumps(report, indent=2, sort_keys=True, default=str), encoding="utf-8")
@@ -682,8 +747,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--runtime-root", default=os.environ.get("CHARITYGRAPH_RUNTIME_ROOT", r"C:\CharityGraph-runtime"))
     parser.add_argument("--execute-paid", action="store_true")
     parser.add_argument("--model", default=os.environ.get("CHARITYGRAPH_MODEL_SNAPSHOT", "gpt-5.6-luna"))
+    parser.add_argument("--classie-payload-path", default=os.environ.get("CHARITYGRAPH_CLASSIE_PAYLOAD_PATH"))
+    parser.add_argument("--classie-expected-version", default=os.environ.get("CHARITYGRAPH_CLASSIE_EXPECTED_VERSION"))
     args = parser.parse_args(argv)
-    report = run_spike(SpikeRunConfig(runtime_root=args.runtime_root, execute_paid=args.execute_paid, model_snapshot=args.model))
+    report = run_spike(SpikeRunConfig(runtime_root=args.runtime_root, execute_paid=args.execute_paid, model_snapshot=args.model, classie_payload_path=args.classie_payload_path, classie_expected_version=args.classie_expected_version))
     print(json.dumps({"task_count": report["task_count"], "source_document_count": report["source_document_count"], "projected": report["projected"], "paid_execution": report["paid_execution"]}, sort_keys=True))
     return 0
 
