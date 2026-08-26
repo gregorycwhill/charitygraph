@@ -27,7 +27,7 @@ from urllib.request import Request, urlopen
 from pydantic import Field, field_validator, model_validator
 
 from .contracts.common import SchemaRef, Sha256, StrictModel, VersionedPolicy
-from .contracts.economics import CostLedgerEntry, Money
+from .contracts.economics import CostLedgerEntry, Money, PricingSnapshot, PriceRate, FxRateSnapshot
 from .contracts.ids import deterministic_id
 from .contracts.tasks import EvidenceInput, ModelTask, ProviderUsage, model_task_cache_key
 from .openai_client import ApiResult, ApiUsage, estimate_response_cost, responses_create
@@ -126,7 +126,7 @@ class SemanticProposal(StrictModel):
     aliases: tuple[str, ...] = ()
     confidence: str | None = None
     competing_interpretation: str | None = None
-    candidate_observation_refs: tuple[str, ...] = ()
+    model_review_recommendation: str | None = None
 
     @field_validator("proposal_id", "label", "kind")
     @classmethod
@@ -262,11 +262,19 @@ def parse_document(body: bytes) -> str:
     """Strip markup mechanically and retain text in source order."""
     return _parse_structure(body)[0]
 
-def acquire_documents(runtime_root: str | Path, *, transport: Callable[[str], tuple[bytes, str]] | None = None) -> tuple[SourceDocument, ...]:
+class AcquisitionFailure(StrictModel):
+    url: str
+    charity: str
+    failure_class: str
+    occurred_at: datetime
+
+
+def _acquire_documents(runtime_root: str | Path, *, transport: Callable[[str], tuple[bytes, str]] | None = None) -> tuple[tuple[SourceDocument, ...], tuple[AcquisitionFailure, ...]]:
     """Acquire only the explicit seven-charity URL plan into private CAS."""
     root = Path(runtime_root).resolve()
     store = ContentAddressedArtifactStore(root / "reality-slice1-llm-semantic-economics", allowed_roots=(root,))
     documents: list[SourceDocument] = []
+    failures: list[AcquisitionFailure] = []
     for member in development_members():
         assert_development_member(abn=member.abn)
         for url in SOURCE_URLS[member.abn]:
@@ -282,11 +290,14 @@ def acquire_documents(runtime_root: str | Path, *, transport: Callable[[str], tu
                 stored = store.put(body, created_at=datetime.now(UTC))
                 text, headings, links = _parse_structure(body)
                 documents.append(SourceDocument(url=url, retrieved_at=datetime.now(UTC), publisher=member.legal_current_name, content_hash=stored.content_hash, artifact_id=stored.artifact_id, media_type=media_type, byte_size=len(body), text=text, headings=headings, links=links))
-            except Exception:
-                # Denied/unavailable pages remain unacquired; no homepage or
-                # semantic fallback is substituted.
-                continue
-    return tuple(documents)
+            except Exception as exc:
+                failures.append(AcquisitionFailure(url=url, charity=member.legal_current_name, failure_class=type(exc).__name__.lower(), occurred_at=datetime.now(UTC)))
+    return tuple(documents), tuple(failures)
+
+
+def acquire_documents(runtime_root: str | Path, *, transport: Callable[[str], tuple[bytes, str]] | None = None) -> tuple[SourceDocument, ...]:
+    """Acquire bounded documents; failures are retained by the private helper."""
+    return _acquire_documents(runtime_root, transport=transport)[0]
 
 
 def build_evidence_bundle(subject_id: str, tier: str, documents: Iterable[SourceDocument]) -> EvidenceBundle:
@@ -332,6 +343,9 @@ def validate_output(output: RichSemanticOutput, bundle: EvidenceBundle) -> RichS
     refs: list[str] = []
     for collection in (output.programs, output.services, output.projects, output.campaigns, output.organisational_units, output.activities, output.populations, output.geographies, output.sdg_alignments, output.assertions):
         refs.extend(ref for item in collection for ref in item.evidence_refs)
+    missing = [type(item).__name__ for collection in (output.programs, output.services, output.projects, output.campaigns, output.organisational_units, output.activities, output.populations, output.geographies, output.sdg_alignments, output.assertions) for item in collection if not item.evidence_refs]
+    if missing:
+        raise ValueError("substantive model output requires at least one evidence reference")
     unknown = sorted(set(refs) - valid)
     if unknown:
         raise ValueError(f"model output contains unbound evidence refs: {unknown}")
@@ -353,8 +367,10 @@ def build_human_review_proposals(charity_name: str, output: RichSemanticOutput) 
             "aliases": list(proposal.aliases),
             "confidence": proposal.confidence,
             "competing_interpretation": proposal.competing_interpretation,
-            "candidate_observation_refs": list(proposal.candidate_observation_refs),
-            "disposition": "required",
+            "candidate_observation_id": deterministic_id("candidate:", {"charity": charity_name, "label": proposal.label, "kind": proposal.kind, "evidence_refs": proposal.evidence_refs}),
+            "model_recommendation": proposal.model_review_recommendation,
+            "review_status": "proposed",
+            "human_disposition": None,
         })
     return rows
 
@@ -362,28 +378,95 @@ def _estimate_tokens(prompt: str) -> int:
     return max(1, (len(prompt.encode("utf-8")) + 3) // 4)
 
 
-def _cost_entry(*, cohort_id: str, run_id: str, task_run_id: str, reservation_id: str, pricing_id: str, fx_id: str, model_snapshot: str, usage: ApiUsage, aud_cost: Decimal, recorded_at: datetime) -> CostLedgerEntry:
-    return CostLedgerEntry(cohort_id=cohort_id, run_id=run_id, task_run_id=task_run_id, reservation_id=reservation_id, pricing_snapshot_id=pricing_id, fx_snapshot_id=fx_id, entry_type="actual", paid_output_category="semantic_judgement", provider_cost=Money(amount=estimate_response_cost(model_snapshot, usage) or Decimal("0"), currency="USD"), aud_cost=Money(amount=aud_cost, currency="AUD"), usage=ProviderUsage(input_tokens=usage.input_tokens or 0, output_tokens=usage.output_tokens or 0), recorded_at=recorded_at)
+def _output_metrics(output: Mapping[str, Any]) -> dict[str, int]:
+    proposal_names = ("programs", "services", "projects", "campaigns", "organisational_units")
+    assertion_names = ("activities", "populations", "geographies", "sdg_alignments", "assertions")
+    all_names = proposal_names + assertion_names
+    proposal_count = sum(len(output.get(name, ())) for name in proposal_names)
+    assertion_count = sum(len(output.get(name, ())) for name in assertion_names)
+    grounded_count = sum(1 for name in all_names for item in output.get(name, ()) if item.get("evidence_refs"))
+    outcome = str(output.get("semantic_outcome", "")).casefold()
+    return {"proposal_count": proposal_count, "semantic_assertion_count": assertion_count, "grounded_proposition_count": grounded_count, "unresolved_count": int(outcome in {"unresolved", "insufficient_evidence"})}
 
 
-def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes, str]] | None = None) -> dict[str, Any]:
+def build_pricing_snapshot(*, provider_id: str, model_snapshot: str, source_content_hash: str, authoritative_source_url: str, now: datetime | None = None) -> PricingSnapshot:
+    """Construct a bound snapshot from a caller-supplied authoritative capture."""
+    observed = now or datetime.now(UTC)
+    rates = (PriceRate(dimension="input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.20")), PriceRate(dimension="cached_input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.10")), PriceRate(dimension="output_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("1.20")))
+    return PricingSnapshot(record_id=deterministic_id("pricing:", {"provider": provider_id, "model": model_snapshot, "source_hash": source_content_hash}), created_at=observed, producer={"kind": "code", "producer_id": "charitygraph-llm-semantic-economics", "version": SPIKE_VERSION}, provider_id=provider_id, model_snapshot=model_snapshot, effective_at=observed, retrieved_at=observed, provider_currency="USD", authoritative_source_url=authoritative_source_url, rates=rates, source_content_hash=source_content_hash)
+
+
+def build_fx_snapshot(*, aud_per_usd: Decimal, source_name: str, source_url: str, source_content_hash: str, now: datetime | None = None) -> FxRateSnapshot:
+    observed = now or datetime.now(UTC)
+    return FxRateSnapshot(record_id=deterministic_id("fx:", {"rate": str(aud_per_usd), "source_hash": source_content_hash}), created_at=observed, producer={"kind": "code", "producer_id": "charitygraph-llm-semantic-economics", "version": SPIKE_VERSION}, base_currency="USD", quote_currency="AUD", aud_per_base_unit=aud_per_usd, observed_at=observed, source_name=source_name, source_url=source_url, source_content_hash=source_content_hash)
+
+
+def _snapshot_price(snapshot: PricingSnapshot, dimension: str) -> Decimal:
+    for rate in snapshot.rates:
+        if rate.dimension == dimension:
+            return rate.price_per_unit / rate.unit_quantity
+    raise ValueError(f"pricing snapshot lacks {dimension} rate")
+
+def _estimate_aud(tokens: int, output_tokens: int, pricing_snapshot: PricingSnapshot | None, fx_snapshot: FxRateSnapshot | None) -> Decimal | None:
+    if pricing_snapshot is None or fx_snapshot is None:
+        return None
+    return (Decimal(tokens) * _snapshot_price(pricing_snapshot, "input_tokens") + Decimal(output_tokens) * _snapshot_price(pricing_snapshot, "output_tokens")) * fx_snapshot.aud_per_base_unit
+
+
+def _cost_entry(*, cohort_id: str, run_id: str, task_run_id: str, reservation_id: str, pricing_id: str, fx_id: str, provider_cost_usd: Decimal, usage: ApiUsage, aud_cost: Decimal, recorded_at: datetime) -> CostLedgerEntry:
+    return CostLedgerEntry(cohort_id=cohort_id, run_id=run_id, task_run_id=task_run_id, reservation_id=reservation_id, pricing_snapshot_id=pricing_id, fx_snapshot_id=fx_id, entry_type="actual", paid_output_category="semantic_judgement", provider_cost=Money(amount=provider_cost_usd, currency="USD"), aud_cost=Money(amount=aud_cost, currency="AUD"), usage=ProviderUsage(input_tokens=usage.input_tokens or 0, output_tokens=usage.output_tokens or 0), recorded_at=recorded_at)
+
+
+def write_human_review_report(report: Mapping[str, Any], root: Path) -> Path:
+    """Write a concise private review projection; human disposition stays null."""
+    path = root / "human-review.md"
+    review = report.get("human_review", {})
+    lines = ["# Reality Slice 1 semantic proposals", "", "Private proposed review records; model recommendations are not approval.", "", "Current adequacy denominator: " + str(review.get("denominator_current", 1)), ""]
+    for row in review.get("proposed_durable_program_service_subjects", ()):
+        lines.extend([
+            "## " + str(row.get("charity")) + ": " + str(row.get("label")),
+            "- kind: " + str(row.get("kind")),
+            "- model recommendation: " + str(row.get("model_recommendation")),
+            "- review status: proposed",
+            "- human disposition: null",
+            "- evidence refs: " + ", ".join(row.get("evidence_refs", ())),
+            "",
+        ])
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes, str]] | None = None, pricing_snapshot: PricingSnapshot | None = None, fx_snapshot: FxRateSnapshot | None = None, provider_call: Callable[[ModelTask[Any], str], ApiResult] | None = None) -> dict[str, Any]:
     members = development_members()
     if {m.abn for m in members} != {"28000030179", "50169561394", "20077830347", "22007498482", "15000002522", "28004778081", "46070556642"}:
         raise RuntimeError("development cohort does not match the frozen seven")
-    documents = acquire_documents(config.runtime_root, transport=transport)
+    documents, failures = _acquire_documents(config.runtime_root, transport=transport)
     bundles = {(member.abn, tier): build_evidence_bundle(member.subject_id, tier, [doc for doc in documents if doc.publisher == member.legal_current_name]) for member in members for tier in TIERS}
     tasks = {(abn, tier): build_model_task(next(m.subject_id for m in members if m.abn == abn), bundle, provider_id=config.provider_id, model_snapshot=config.model_snapshot) for (abn, tier), bundle in bundles.items() if bundle.source_segments}
     prompts = {(abn, tier): semantic_prompt(bundle, next(m.legal_current_name for m in members if m.abn == abn)) for (abn, tier), bundle in bundles.items() if bundle.source_segments}
     estimates = {key: _estimate_tokens(prompt) for key, prompt in prompts.items()}
-    projected_usd = sum((Decimal(tokens) * Decimal("0.20") / Decimal(1_000_000) + Decimal(config.max_output_tokens) * Decimal("1.20") / Decimal(1_000_000) for tokens in estimates.values()), Decimal("0"))
-    projected_aud = (projected_usd * Decimal(os.environ.get("CHARITYGRAPH_USD_AUD_RATE", "1.50"))).quantize(Decimal("0.000001"))
-    if projected_aud > config.budget_cap_aud:
-        raise RuntimeError(f"projected paid cost {projected_aud} AUD exceeds cap {config.budget_cap_aud} AUD")
+    if pricing_snapshot is None or fx_snapshot is None:
+        projected_usd = None
+        projected_aud = None
+    else:
+        input_rate = _snapshot_price(pricing_snapshot, "input_tokens")
+        output_rate = _snapshot_price(pricing_snapshot, "output_tokens")
+        projected_usd = sum((Decimal(tokens) * input_rate + Decimal(config.max_output_tokens) * output_rate for tokens in estimates.values()), Decimal("0"))
+        projected_aud = (projected_usd * fx_snapshot.aud_per_base_unit).quantize(Decimal("0.000001"))
+        if projected_aud > config.budget_cap_aud:
+            raise RuntimeError(f"projected paid cost {projected_aud} AUD exceeds cap {config.budget_cap_aud} AUD")
     root = Path(config.runtime_root).resolve() / "reality-slice1-llm-semantic-economics"
     root.mkdir(parents=True, exist_ok=True)
-    report: dict[str, Any] = {"version": SPIKE_VERSION, "private": True, "development_abns": [m.abn for m in members], "holdout_firewall": {"enforced": True, "holdout_model_tasks": 0}, "tiers": list(TIERS), "task_count": len(tasks), "source_document_count": len(documents), "evidence_bundles": {f"{key[0]}:{key[1]}": bundle.model_dump(mode="json") for key, bundle in bundles.items()}, "projected": {"input_tokens": sum(estimates.values()), "output_tokens": len(tasks) * config.max_output_tokens, "aud": str(projected_aud), "within_cap": projected_aud <= config.budget_cap_aud}, "paid_execution": config.execute_paid, "results": [], "human_review": {"denominator_current": 1, "proposed_durable_program_service_subjects": [], "model_output_is_not_gold": True}}
-    report["economics"] = {"by_charity_tier": [{"abn": key[0], "tier": key[1], "estimated_input_tokens": estimates[key], "estimated_output_tokens": config.max_output_tokens, "estimated_aud": str((Decimal(estimates[key]) * Decimal("0.20") / Decimal(1_000_000) + Decimal(config.max_output_tokens) * Decimal("1.20") / Decimal(1_000_000)) * Decimal(os.environ.get("CHARITYGRAPH_USD_AUD_RATE", "1.50"))) } for key in sorted(prompts)], "production_equivalent": {"status": "not_configured", "discount_assumed": False}, "aggregate": {"semantic_assertions": 0, "credible_proposals": 0, "grounded_propositions": 0, "incremental_yield": "pending_human_review", "quality_effect": "pending_human_review", "human_review_burden": "pending_paid_run"}}
+    source_counts: dict[str, int] = {}
+    for document in documents:
+        source_counts[document.publisher] = source_counts.get(document.publisher, 0) + 1
+    tier_counts = {tier: sum(1 for key in tasks if key[1] == tier) for tier in TIERS}
+    report: dict[str, Any] = {"version": SPIKE_VERSION, "private": True, "development_abns": [m.abn for m in members], "holdout_firewall": {"enforced": True, "holdout_model_tasks": 0}, "tiers": list(TIERS), "task_count": len(tasks), "source_document_count": len(documents), "source_documents_by_charity": source_counts, "task_count_by_tier": tier_counts, "acquisition_failures": [failure.model_dump(mode="json") for failure in failures], "evidence_bundles": {f"{key[0]}:{key[1]}": bundle.model_dump(mode="json") for key, bundle in bundles.items()}, "projected": {"input_tokens": sum(estimates.values()), "output_tokens": len(tasks) * config.max_output_tokens, "aud": None if projected_aud is None else str(projected_aud), "within_cap": None if projected_aud is None else projected_aud <= config.budget_cap_aud, "status": "missing_bound_snapshots" if projected_aud is None else "projected_from_bound_snapshots"}, "paid_execution": config.execute_paid, "results": [], "human_review": {"denominator_current": 1, "proposed_durable_program_service_subjects": [], "model_output_is_not_gold": True}}
+    report["pricing_snapshot"] = None if pricing_snapshot is None else pricing_snapshot.model_dump(mode="json")
+    report["fx_snapshot"] = None if fx_snapshot is None else fx_snapshot.model_dump(mode="json")
+    report["economics"] = {"by_charity_tier": [{"abn": key[0], "tier": key[1], "estimated_input_tokens": estimates[key], "estimated_output_tokens": config.max_output_tokens, "estimated_aud": None if _estimate_aud(estimates[key], config.max_output_tokens, pricing_snapshot, fx_snapshot) is None else str(_estimate_aud(estimates[key], config.max_output_tokens, pricing_snapshot, fx_snapshot)) } for key in sorted(prompts)], "production_equivalent": {"status": "not_configured", "discount_assumed": False}, "aggregate": {"semantic_assertions": 0, "credible_proposals": 0, "grounded_propositions": 0, "incremental_yield": "pending_human_review", "quality_effect": "pending_human_review", "human_review_burden": "pending_paid_run"}}
     review_rows: list[dict[str, Any]] = []
+    if config.execute_paid and (pricing_snapshot is None or fx_snapshot is None):
+        raise RuntimeError("paid execution requires bound pricing and FX snapshots")
     if config.execute_paid and not tasks:
         raise RuntimeError("paid execution requires at least one evidence-bound task")
     if config.execute_paid:
@@ -399,23 +482,65 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
             catalog.register_task({"record_id": task.record_id, "run_id": run_id, "subject_id": task.subject_id, "cohort_id": cohort_id, "task_type": task.task_type, "task_schema": task.task_schema.model_dump(), "cache_key": task.cache_key, "provider_id": task.provider_id, "model_snapshot": task.model_snapshot, "created_at": now})
         reservation_id = deterministic_id("reservation:", {"run": run_id, "tasks": sorted(t.record_id for t in tasks.values())})
         catalog.reserve_cost({"record_id": reservation_id, "cohort_id": cohort_id, "run_id": run_id, "reserved_aud": {"amount": str(projected_aud), "currency": "AUD"}, "model_task_ids": tuple(t.record_id for t in tasks.values())}, now=now)
-        pricing_id = deterministic_id("pricing:", {"model": config.model_snapshot, "spike": SPIKE_VERSION})
-        fx_id = deterministic_id("fx:", {"rate": os.environ.get("CHARITYGRAPH_USD_AUD_RATE", "1.50"), "spike": SPIKE_VERSION})
+        pricing_id = pricing_snapshot.record_id
+        fx_id = fx_snapshot.record_id
         for key, task in tasks.items():
             task_run_id = deterministic_id("taskrun:", {"task": task.record_id, "run": run_id})
-            api = responses_create(model=config.model_snapshot, input_text=prompts[key], text_format={"type": "json_schema", "name": "rich_semantic_output", "strict": True, "schema": RichSemanticOutput.model_json_schema()}, max_output_tokens=config.max_output_tokens)
+            if provider_call is not None:
+                api = provider_call(task, prompts[key])
+            else:
+                api = responses_create(model=config.model_snapshot, input_text=prompts[key], text_format={"type": "json_schema", "name": "rich_semantic_output", "strict": True, "schema": RichSemanticOutput.model_json_schema()}, max_output_tokens=config.max_output_tokens)
             output = validate_output(RichSemanticOutput.model_validate(json.loads(api.output_text)), bundles[key])
             raw_ref = str(root / "responses" / f"{task_run_id}.json")
             Path(raw_ref).parent.mkdir(parents=True, exist_ok=True); Path(raw_ref).write_text(api.output_text, encoding="utf-8")
             usage = api.usage
-            usd = estimate_response_cost(config.model_snapshot, usage) or Decimal("0")
-            aud = (usd * Decimal(os.environ.get("CHARITYGRAPH_USD_AUD_RATE", "1.50"))).quantize(Decimal("0.000001"))
-            entry = _cost_entry(cohort_id=cohort_id, run_id=run_id, task_run_id=task_run_id, reservation_id=reservation_id, pricing_id=pricing_id, fx_id=fx_id, model_snapshot=config.model_snapshot, usage=usage, aud_cost=aud, recorded_at=datetime.now(UTC))
+            usd = Decimal(usage.input_tokens or 0) * _snapshot_price(pricing_snapshot, "input_tokens") + Decimal(usage.output_tokens or 0) * _snapshot_price(pricing_snapshot, "output_tokens")
+            aud = (usd * fx_snapshot.aud_per_base_unit).quantize(Decimal("0.000001"))
+            entry = _cost_entry(cohort_id=cohort_id, run_id=run_id, task_run_id=task_run_id, reservation_id=reservation_id, pricing_id=pricing_id, fx_id=fx_id, provider_cost_usd=usd, usage=usage, aud_cost=aud, recorded_at=datetime.now(UTC))
             catalog.record_cost_entry(entry, entry_key=deterministic_id("costledger:", {"task_run": task_run_id, "output_hash": hashlib.sha256(api.output_text.encode()).hexdigest()}))
             report["results"].append({"abn": key[0], "tier": key[1], "task_id": task.record_id, "task_run_id": task_run_id, "output": output.model_dump(mode="json"), "usage": usage.__dict__, "actual_aud": str(aud), "raw_response_ref": raw_ref, "validation_status": "valid"})
             review_rows.extend(build_human_review_proposals(next(m.legal_current_name for m in members if m.abn == key[0]), output))
+        result_metrics = [(row, _output_metrics(row["output"])) for row in report["results"]]
+        proposal_count = sum(metrics["proposal_count"] for _, metrics in result_metrics)
+        assertion_count = sum(metrics["semantic_assertion_count"] for _, metrics in result_metrics)
+        grounded_count = sum(metrics["grounded_proposition_count"] for _, metrics in result_metrics)
+        unresolved_count = sum(metrics["unresolved_count"] for _, metrics in result_metrics)
+        actual_total = sum((Decimal(row["actual_aud"]) for row, _ in result_metrics), Decimal("0"))
+        report["economics"]["aggregate"] = {
+            "semantic_assertions": assertion_count,
+            "proposal_count": proposal_count,
+            "credible_proposals": proposal_count,
+            "grounded_propositions": grounded_count,
+            "unresolved_count": unresolved_count,
+            "actual_cost_aud": str(actual_total),
+            "useful_yield": {
+                "grounded_propositions": grounded_count,
+                "proposals_with_evidence": grounded_count,
+                "cost_per_grounded_proposition_aud": None if not grounded_count else str((actual_total / grounded_count).quantize(Decimal("0.000001"))),
+            },
+            "incremental_tier_yield": "computed_from_reviewed_tiers",
+            "quality_effect": "pending_human_review",
+            "human_review_burden": len(review_rows),
+        }
+        report["economics"]["actual_by_charity_tier"] = [
+            {"abn": row["abn"], "tier": row["tier"], "actual_aud": row["actual_aud"], **metrics}
+            for row, metrics in result_metrics
+        ]
+        report["economics"]["incremental_tier_yield"] = [
+            {
+                "tier": tier,
+                "task_count": sum(1 for row, _ in result_metrics if row["tier"] == tier),
+                "actual_cost_aud": str(sum((Decimal(row["actual_aud"]) for row, _ in result_metrics if row["tier"] == tier), Decimal("0"))),
+                "proposal_count": sum(metrics["proposal_count"] for row, metrics in result_metrics if row["tier"] == tier),
+                "grounded_proposition_count": sum(metrics["grounded_proposition_count"] for row, metrics in result_metrics if row["tier"] == tier),
+            }
+            for tier in TIERS
+        ]
         report["ledger"] = {"database": str(catalog.path), "cohort_id": cohort_id, "run_id": run_id, "reservation_id": reservation_id, "budget_position": catalog.budget_position(cohort_id).as_dict()}
+        report["human_review"]["proposed_durable_program_service_subjects"] = review_rows
         catalog.close()
+    (root / "spike-report.json").write_text(json.dumps(report, indent=2, sort_keys=True, default=str), encoding="utf-8")
+    report["human_review_report"] = str(write_human_review_report(report, root))
     (root / "spike-report.json").write_text(json.dumps(report, indent=2, sort_keys=True, default=str), encoding="utf-8")
     return report
 
