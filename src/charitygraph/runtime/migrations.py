@@ -478,11 +478,17 @@ CREATE TABLE program_candidates (
 CREATE INDEX program_candidates_subject_idx ON program_candidates(subject_id, status);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V5 = """
+ALTER TABLE taxonomy_assignments ADD COLUMN publication_eligibility TEXT NOT NULL DEFAULT 'withheld' CHECK(publication_eligibility IN ('eligible','ineligible','review_required','withheld'));
+ALTER TABLE taxonomy_assignments ADD COLUMN publication_policy_id TEXT;
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
     Migration(3, "governed_knowledge_primitives", CATALOGUE_SQL_V3),
     Migration(4, "taxonomy_and_pre_run_engine", CATALOGUE_SQL_V4),
+    Migration(5, "taxonomy_assignment_publication_control", CATALOGUE_SQL_V5),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

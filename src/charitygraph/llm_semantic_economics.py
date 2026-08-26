@@ -143,6 +143,8 @@ class SemanticProposal(StrictModel):
 
 class SemanticAssertion(StrictModel):
     proposition: str
+    subject_proposal_id: str | None
+    scope_kind: Literal["organisation", "proposal"]
     evidence_refs: tuple[str, ...]
     confidence: str | None
     competing_interpretation: str | None
@@ -153,6 +155,41 @@ class SemanticAssertion(StrictModel):
         if not value.strip():
             raise ValueError("proposition must be nonblank")
         return value
+
+    @model_validator(mode="after")
+    def _scope(self) -> "SemanticAssertion":
+        if self.scope_kind == "proposal" and not self.subject_proposal_id:
+            raise ValueError("proposal-scoped assertions require subject_proposal_id")
+        if self.scope_kind == "organisation" and self.subject_proposal_id is not None:
+            raise ValueError("organisation-scoped assertions cannot carry subject_proposal_id")
+        return self
+
+
+class ClassieAssignment(StrictModel):
+    subject_proposal_id: str | None
+    scope_kind: Literal["organisation", "proposal"]
+    external_concept_id: str
+    role: Literal["primary", "secondary"]
+    evidence_refs: tuple[str, ...]
+    confidence: str | None
+    rationale: str | None
+    competing_interpretation: str | None
+    model_review_recommendation: Literal["required", "acceptable", "unresolved", "exclude"] | None
+
+    @field_validator("external_concept_id")
+    @classmethod
+    def _concept(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("CLASSIE concept IDs must be nonblank")
+        return value
+
+    @model_validator(mode="after")
+    def _scope(self) -> "ClassieAssignment":
+        if self.scope_kind == "proposal" and not self.subject_proposal_id:
+            raise ValueError("proposal-scoped CLASSIE assignments require subject_proposal_id")
+        if self.scope_kind == "organisation" and self.subject_proposal_id is not None:
+            raise ValueError("organisation-scoped CLASSIE assignments cannot carry subject_proposal_id")
+        return self
 
 
 class RichSemanticOutput(StrictModel):
@@ -167,13 +204,16 @@ class RichSemanticOutput(StrictModel):
     geographies: tuple[SemanticAssertion, ...]
     sdg_alignments: tuple[SemanticAssertion, ...]
     assertions: tuple[SemanticAssertion, ...]
+    classie_assignments: tuple[ClassieAssignment, ...]
     semantic_outcome: str
     blockers: tuple[str, ...]
 
     @model_validator(mode="after")
-    def _no_unbound_refs(self) -> "RichSemanticOutput":
-        # Evidence binding is checked against the bundle by validate_output;
-        # this model intentionally carries no source text or hidden rationale.
+    def _proposal_refs(self) -> "RichSemanticOutput":
+        proposal_ids = {item.proposal_id for item in (*self.programs, *self.services, *self.projects, *self.campaigns, *self.organisational_units)}
+        for item in (*self.activities, *self.populations, *self.geographies, *self.sdg_alignments, *self.assertions, *self.classie_assignments):
+            if item.subject_proposal_id is not None and item.subject_proposal_id not in proposal_ids:
+                raise ValueError(f"unknown subject_proposal_id {item.subject_proposal_id}")
         return self
 
 
@@ -339,9 +379,15 @@ def build_evidence_bundle(subject_id: str, tier: str, documents: Iterable[Source
     bundle_id = deterministic_id("derivative:", {"subject_id": subject_id, "tier": tier, "bundle_hash": bundle_hash})
     return EvidenceBundle(bundle_id=bundle_id, subject_id=subject_id, tier=tier, source_segments=tuple(rows), bundle_hash=bundle_hash, selection_hash=selection_hash, evidence_content_hash=evidence_content_hash)
 
-def semantic_prompt(bundle: EvidenceBundle, charity_name: str) -> str:
+def semantic_prompt(bundle: EvidenceBundle, charity_name: str, *, classie_concepts: Iterable[Mapping[str, str]] = ()) -> str:
     evidence = "\n\n".join(f"[{segment.evidence_id}] SOURCE {segment.source_url}\n{segment.text}" for segment in bundle.source_segments)
-    return f"""You are reviewing official source evidence for {charity_name}. Return JSON matching the supplied schema.\n\nDistinguish substantive delivered activity from mission or aspiration, promotional positioning, fundraising/campaign language, claimed outcome, and actual intervention. Propose programs/services/projects only when the evidence supports the distinction; otherwise abstain and record blockers. Include source labels, kind, durability, parent relation, description, aliases, confidence, competing interpretation, and evidence_refs for every proposal. Include operational activities, populations, geographies and scoped SDG alignments only when evidence-bound. Adversarial rules: aspiration is not accomplishment; mission is not delivery; association is not identity; repeated wording is not proof; taxonomy-adjacent vocabulary is not assignment evidence.\n\nEvidence pack content hash {bundle.evidence_content_hash}:\n{evidence}"""
+    concepts = tuple(classie_concepts)
+    classie_text = ""
+    if concepts:
+        classie_text = "\n\nPrivate CharityGraph CLASSIE concepts (independent assessment; do not use ACNC-reported classifications):\n" + "\n".join(
+            f"- {item.get('external_concept_id')}: {item.get('preferred_label')} — {item.get('definition', '')}" for item in concepts
+        )
+    return f"""You are reviewing official source evidence for {charity_name}. Return JSON matching the supplied schema.\n\nDistinguish substantive delivered activity from mission or aspiration, promotional positioning, fundraising/campaign language, claimed outcome, and actual intervention. Propose programs/services/projects only when the evidence supports the distinction; otherwise abstain and record blockers. Include source labels, kind, durability, parent relation, description, aliases, confidence, competing interpretation, and evidence_refs for every proposal. Include operational activities, populations, geographies and scoped SDG alignments only when evidence-bound and link program/service assertions with subject_proposal_id plus scope_kind=proposal. Whole-organisation assertions must use scope_kind=organisation and null subject_proposal_id. CharityGraph CLASSIE is independent: use only supplied evidence and private CLASSIE concepts, never ACNC-reported CLASSIE selections. Adversarial rules: aspiration is not accomplishment; mission is not delivery; association is not identity; repeated wording is not proof; taxonomy-adjacent vocabulary is not assignment evidence.\n\nEvidence pack content hash {bundle.evidence_content_hash}:{classie_text}\n{evidence}"""
 
 
 def build_model_task(subject_id: str, bundle: EvidenceBundle, *, provider_id: str, model_snapshot: str) -> ModelTask[Any]:
@@ -354,17 +400,22 @@ def build_model_task(subject_id: str, bundle: EvidenceBundle, *, provider_id: st
     task_id = deterministic_id("modeltask:", {"subject_id": subject_id, "scope_id": None, "task_type": "semantic_interpretation", "cache_key": cache_key, "output_schema": output_schema})
     return ModelTask(record_id=task_id, created_at=datetime.now(UTC), producer={"kind": "code", "producer_id": "charitygraph-llm-semantic-economics", "version": SPIKE_VERSION}, subject_id=subject_id, task_type="semantic_interpretation", task_schema=task_schema, output_schema=output_schema, evidence_inputs=inputs, prompt_template_id=PROMPT_TEMPLATE_ID, prompt_template_version="1", policy_refs=policy_refs, provider_id=provider_id, model_snapshot=model_snapshot, parameters=parameters, paid_output_categories=("semantic_judgement", "extraction"))
 
-def validate_output(output: RichSemanticOutput, bundle: EvidenceBundle) -> RichSemanticOutput:
+def validate_output(output: RichSemanticOutput, bundle: EvidenceBundle, *, classie_concept_ids: set[str] | None = None) -> RichSemanticOutput:
     valid = {segment.evidence_id for segment in bundle.source_segments}
-    refs: list[str] = []
-    for collection in (output.programs, output.services, output.projects, output.campaigns, output.organisational_units, output.activities, output.populations, output.geographies, output.sdg_alignments, output.assertions):
-        refs.extend(ref for item in collection for ref in item.evidence_refs)
-    missing = [type(item).__name__ for collection in (output.programs, output.services, output.projects, output.campaigns, output.organisational_units, output.activities, output.populations, output.geographies, output.sdg_alignments, output.assertions) for item in collection if not item.evidence_refs]
+    collections = (output.programs, output.services, output.projects, output.campaigns, output.organisational_units, output.activities, output.populations, output.geographies, output.sdg_alignments, output.assertions, output.classie_assignments)
+    refs: list[str] = [ref for collection in collections for item in collection for ref in item.evidence_refs]
+    missing = [type(item).__name__ for collection in collections for item in collection if not item.evidence_refs]
     if missing:
         raise ValueError("substantive model output requires at least one evidence reference")
     unknown = sorted(set(refs) - valid)
     if unknown:
         raise ValueError(f"model output contains unbound evidence refs: {unknown}")
+    if output.classie_assignments:
+        if classie_concept_ids is None:
+            raise ValueError("CLASSIE assignments require a loaded private CLASSIE scheme")
+        unknown_concepts = sorted({item.external_concept_id for item in output.classie_assignments} - set(classie_concept_ids))
+        if unknown_concepts:
+            raise ValueError(f"model output contains unknown CLASSIE concept IDs: {unknown_concepts}")
     return output
 
 
@@ -397,12 +448,13 @@ def _estimate_tokens(prompt: str) -> int:
 def _output_metrics(output: Mapping[str, Any]) -> dict[str, int]:
     proposal_names = ("programs", "services", "projects", "campaigns", "organisational_units")
     assertion_names = ("activities", "populations", "geographies", "sdg_alignments", "assertions")
-    all_names = proposal_names + assertion_names
+    all_names = proposal_names + assertion_names + ("classie_assignments",)
     proposal_count = sum(len(output.get(name, ())) for name in proposal_names)
     assertion_count = sum(len(output.get(name, ())) for name in assertion_names)
+    classie_assignment_count = len(output.get("classie_assignments", ()))
     grounded_count = sum(1 for name in all_names for item in output.get(name, ()) if item.get("evidence_refs"))
     outcome = str(output.get("semantic_outcome", "")).casefold()
-    return {"proposal_count": proposal_count, "semantic_assertion_count": assertion_count, "grounded_proposition_count": grounded_count, "unresolved_count": int(outcome in {"unresolved", "insufficient_evidence"})}
+    return {"proposal_count": proposal_count, "semantic_assertion_count": assertion_count, "classie_assignment_count": classie_assignment_count, "grounded_proposition_count": grounded_count, "unresolved_count": int(outcome in {"unresolved", "insufficient_evidence"})}
 
 
 def build_pricing_snapshot(*, provider_id: str, model_snapshot: str, rates: Iterable[PriceRate], source_content_hash: str, authoritative_source_url: str, now: datetime | None = None) -> PricingSnapshot:

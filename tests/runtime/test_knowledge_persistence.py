@@ -97,11 +97,11 @@ def assertion(record_id: str, observation_ids=(), *, value="yes", state="resolve
 
 def test_clean_v2_to_v3_migration_and_integrity(tmp_path):
     catalog = open_catalog(tmp_path)
-    assert catalog.migrate() == 4
+    assert catalog.migrate() == 5
     assert catalog.integrity_check() == "ok"
     catalog.close()
     reopened = SQLiteCatalog(tmp_path / "knowledge.sqlite3").open()
-    assert reopened.migrate() == 4
+    assert reopened.migrate() == 5
     assert reopened.integrity_check() == "ok"
 
 
@@ -121,7 +121,7 @@ def test_existing_catalogue_v2_migrates_append_only_to_v3(tmp_path):
             )
         conn.commit()
     catalog = SQLiteCatalog(path).open()
-    assert catalog.migrate() == 4
+    assert catalog.migrate() == 5
     assert catalog.get_subject(SUBJECT_A) is None
     assert catalog.integrity_check() == "ok"
 

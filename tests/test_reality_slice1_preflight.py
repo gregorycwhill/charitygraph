@@ -62,7 +62,7 @@ def test_preflight_is_acquisition_only_and_does_not_claim_semantic_gold(tmp_path
     assert first["holdout_firewall"]["enforced"] is True
     assert first["economics_demo"]["within_cap"] is True
     assert first["economics_demo"]["paid_calls_executed"] is False
-    assert first["taxonomy"]["classie"]["status"].startswith("blocked")
+    assert first["taxonomy"]["classie"]["status"] == "private_processing_approved_public_withheld"
     assert first["source_opportunities"] == second["source_opportunities"] == 14
     assert first["task_plan"] == []
     assert first["candidate_observations"] == []

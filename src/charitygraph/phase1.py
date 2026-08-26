@@ -116,38 +116,38 @@ def seed_phase1_taxonomies(
     *,
     classie_concepts: Iterable[Mapping[str, Any]] = (),
 ) -> dict[str, list[dict[str, Any]]]:
-    """Register the bounded, versioned seed portfolio used by synthetic fixtures.
+    """Register separated classification/regulatory profiles for private fixtures.
 
-    CLASSIE's official page identifies 4.2 (released November 2022) and describes
-    use under a modified Creative Commons licence with separate terms-of-use
-    instructions. The registry deliberately preserves that disposition rather
-    than assuming CC BY.
+    ACNC Registration facets, ATO DGR, ACNC AIS CLASSIE and Our Community
+    CLASSIE are distinct versioned profiles. No label equality creates a
+    mapping between profiles.
     """
     now = datetime(2026, 8, 1, tzinfo=timezone.utc)
     definitions = (
-        ("acnc", "Australian Charities and Not-for-profits Commission", "source-reported classifications", "Australia", "adopted", "ACNC source terms", "preserve source attribution"),
-        ("ato-dgr", "Australian Taxation Office", "source-reported DGR facts", "Australia", "adopted", "ATO source terms", "preserve source attribution"),
-        ("classie", "Our Community", "subject and population classification", "Australia and New Zealand", "incorporated", "Modified Creative Commons; Our Community terms of use", "attribution and rights review required"),
-        ("sdg", "United Nations", "alignment reference only", "global", "reference_only", "UN terms", "attribution; no endorsement implied"),
-        ("charitygraph-activity", "CharityGraph", "bounded native operational activity fixture", "Australia", "adapted", "CharityGraph private fixture", "internal fixture until vocabulary is frozen"),
+        ("acnc-registration-purpose", "Australian Charities and Not-for-profits Commission", "charitable purpose and subtype regulatory facet", "Australia", "adopted", "ACNC source terms", "preserve source attribution", "2026-fixture"),
+        ("acnc-registration-beneficiary", "Australian Charities and Not-for-profits Commission", "beneficiary classification regulatory facet", "Australia", "adopted", "ACNC source terms", "preserve source attribution", "2026-fixture"),
+        ("ato-dgr", "Australian Taxation Office", "DGR entitlement, item and scoped endorsement profile", "Australia", "adopted", "ATO source terms", "preserve source attribution", "2026-fixture"),
+        ("acnc-ais-classie", "Australian Charities and Not-for-profits Commission", "AIS-year/profile-specific source-reported program classification", "Australia", "adopted", "ACNC source terms", "preserve source attribution", "AIS-2025"),
+        ("classie", "Our Community", "independent CharityGraph CLASSIE assessment profile", "Australia and New Zealand", "incorporated", "Modified Creative Commons; Our Community terms of use", "private processing; publication permission required", "4.2"),
+        ("sdg", "United Nations", "program/service alignment reference", "global", "reference_only", "UN terms", "attribution; no endorsement implied", "2026-goals"),
+        ("charitygraph-activity", "CharityGraph", "bounded native operational activity profile", "Australia", "adapted", "CharityGraph private fixture", "internal fixture until vocabulary is frozen", "2026-fixture"),
     )
     result: dict[str, list[dict[str, Any]]] = {}
-    for key, owner, purpose, jurisdiction, disposition, licence, reuse in definitions:
+    for key, owner, purpose, jurisdiction, disposition, licence, reuse, version_label in definitions:
         scheme = TaxonomyScheme(
             record_id=deterministic_id("scheme:", {"scheme_id": key}),
             created_at=now,
-            producer={"kind": "code", "producer_id": "phase1-seed", "version": "1"},
+            producer={"kind": "code", "producer_id": "phase1-seed", "version": "2"},
             scheme_id=key, owner=owner, purpose=purpose, jurisdiction=jurisdiction,
             disposition=disposition, licence=licence, reuse_policy=reuse,
             attribution=owner, steward="CharityGraph taxonomy steward",
             review_status="frozen-fixture",
         )
         catalog.register_taxonomy_scheme(scheme)
-        version_label = "4.2" if key == "classie" else ("2026-fixture" if key != "sdg" else "2026-goals")
         version = TaxonomyVersion(
             record_id=deterministic_id("schemever:", {"scheme_id": key, "version": version_label}),
             created_at=now,
-            producer={"kind": "code", "producer_id": "phase1-seed", "version": "1"},
+            producer={"kind": "code", "producer_id": "phase1-seed", "version": "2"},
             scheme_id=key, version=version_label,
             release_date=date(2022, 11, 16) if key == "classie" else date(2026, 1, 1),
             jurisdiction_scope=jurisdiction,
@@ -156,7 +156,19 @@ def seed_phase1_taxonomies(
         )
         catalog.register_taxonomy_version(version)
         rows: list[dict[str, Any]] = [{"kind": "scheme", "id": scheme.record_id}, {"kind": "version", "id": version.record_id}]
-        if key == "sdg":
+        if key == "acnc-registration-purpose":
+            concepts = (("Advancing religion", "Advancing religion"), ("Advancing education", "Advancing education"))
+        elif key == "acnc-registration-beneficiary":
+            concepts = (("Youth 15-under 25", "Youth 15-under 25"), ("Older people", "Older people"))
+        elif key == "ato-dgr":
+            concepts = (("DGR-Item-1", "DGR Item 1"),)
+        elif key == "acnc-ais-classie":
+            concepts = (("AIS-PROGRAM-EXAMPLE", "AIS program classification example"),)
+        elif key == "classie":
+            concepts = tuple((str(item["external_concept_id"]), str(item["preferred_label"])) for item in classie_concepts)
+        elif key == "charitygraph-activity":
+            concepts = (("ACT-SERVICE", "Direct service delivery"), ("ACT-ADVOCACY", "Advocacy"), ("ACT-RESEARCH", "Research"))
+        elif key == "sdg":
             sdg_titles = (
                 "No Poverty", "Zero Hunger", "Good Health and Well-being",
                 "Quality Education", "Gender Equality", "Clean Water and Sanitation",
@@ -166,18 +178,14 @@ def seed_phase1_taxonomies(
                 "Climate Action", "Life Below Water", "Life on Land",
                 "Peace, Justice and Strong Institutions", "Partnerships for the Goals",
             )
-            concepts = [(f"SDG-{i}", title) for i, title in enumerate(sdg_titles, 1)]
-        elif key == "classie":
-            concepts = [(str(item["external_concept_id"]), str(item["preferred_label"]), item) for item in classie_concepts]
-        elif key == "charitygraph-activity":
-            concepts = [("ACT-SERVICE", "Direct service delivery"), ("ACT-ADVOCACY", "Advocacy"), ("ACT-RESEARCH", "Research")]
+            concepts = tuple((f"SDG-{i}", title) for i, title in enumerate(sdg_titles, 1))
         else:
-            concepts = []
+            concepts = ()
         for external_id, label in concepts:
             concept = TaxonomyConcept(
                 record_id=deterministic_id("concept:", {"scheme_version_id": version.record_id, "external_id": external_id}),
                 created_at=now,
-                producer={"kind": "code", "producer_id": "phase1-seed", "version": "1"},
+                producer={"kind": "code", "producer_id": "phase1-seed", "version": "2"},
                 scheme_version_id=version.record_id, external_concept_id=external_id,
                 preferred_label=label,
             )

@@ -99,7 +99,7 @@ def test_unbound_model_evidence_is_rejected():
     bundle = build_evidence_bundle(member.subject_id, "lean", (_doc("https://example.test", "evidence"),))
     output = RichSemanticOutput(
         programs=(SemanticProposal(proposal_id="p1", label="Example", kind="program", durable=None, parent_proposal_id=None, description=None, evidence_refs=("evidence:unknown",), aliases=(), confidence=None, competing_interpretation=None, model_review_recommendation=None),),
-        services=(), projects=(), campaigns=(), organisational_units=(), activities=(), populations=(), geographies=(), sdg_alignments=(), assertions=(), semantic_outcome="insufficient_evidence", blockers=(),
+        services=(), projects=(), campaigns=(), organisational_units=(), activities=(), populations=(), geographies=(), sdg_alignments=(), assertions=(), classie_assignments=(), semantic_outcome="insufficient_evidence", blockers=(),
     )
     with pytest.raises(ValueError, match="unbound evidence"):
         validate_output(output, bundle)
@@ -110,7 +110,7 @@ def test_missing_evidence_refs_are_rejected():
     bundle = build_evidence_bundle(member.subject_id, "lean", (_doc("https://example.test", "evidence"),))
     output = RichSemanticOutput(
         programs=(SemanticProposal(proposal_id="p1", label="Example", kind="program", durable=None, parent_proposal_id=None, description=None, evidence_refs=(), aliases=(), confidence=None, competing_interpretation=None, model_review_recommendation=None),),
-        services=(), projects=(), campaigns=(), organisational_units=(), activities=(), populations=(), geographies=(), sdg_alignments=(), assertions=(), semantic_outcome="insufficient_evidence", blockers=(),
+        services=(), projects=(), campaigns=(), organisational_units=(), activities=(), populations=(), geographies=(), sdg_alignments=(), assertions=(), classie_assignments=(), semantic_outcome="insufficient_evidence", blockers=(),
     )
     with pytest.raises(ValueError, match="at least one evidence reference"):
         validate_output(output, bundle)
@@ -140,7 +140,7 @@ def test_fake_paid_path_reserves_before_call_and_reports_proposals(tmp_path: Pat
         assert (tmp_path / "runtime" / "reality-slice1-llm-semantic-economics" / "ledger.sqlite3").is_file()
         calls.append(task.record_id)
         evidence_id = re.search(r"\[(evidence:[0-9a-f]+)\]", prompt).group(1)
-        payload = {"programs": [{"proposal_id": "p1", "label": "Example service", "kind": "service", "durable": True, "parent_proposal_id": None, "description": None, "evidence_refs": [evidence_id], "model_review_recommendation": "required", "aliases": [], "confidence": None, "competing_interpretation": None}], "services": [], "projects": [], "campaigns": [], "organisational_units": [], "activities": [{"proposition": "delivered activity", "evidence_refs": [evidence_id], "confidence": None, "competing_interpretation": None}], "populations": [], "geographies": [], "sdg_alignments": [], "assertions": [], "semantic_outcome": "supported", "blockers": []}
+        payload = {"programs": [{"proposal_id": "p1", "label": "Example service", "kind": "service", "durable": True, "parent_proposal_id": None, "description": None, "evidence_refs": [evidence_id], "model_review_recommendation": "required", "aliases": [], "confidence": None, "competing_interpretation": None}], "services": [], "projects": [], "campaigns": [], "organisational_units": [], "activities": [{"proposition": "delivered activity", "subject_proposal_id": None, "scope_kind": "organisation", "evidence_refs": [evidence_id], "confidence": None, "competing_interpretation": None}], "populations": [], "geographies": [], "sdg_alignments": [], "assertions": [], "classie_assignments": [], "semantic_outcome": "supported", "blockers": []}
         return ApiResult(response_id="fixture-response", model="fake-model", status="completed", output_text=json.dumps(payload), usage=ApiUsage(input_tokens=100, output_tokens=100, total_tokens=200))
 
     report = run_spike(SpikeRunConfig(runtime_root=str(tmp_path / "runtime"), provider_id="fake", model_snapshot="fake-model", execute_paid=True), transport=transport, pricing_snapshot=pricing, fx_snapshot=fx, provider_call=provider)
@@ -217,7 +217,7 @@ def test_larger_evidence_packs_are_independent_paid_calls(tmp_path: Path):
     def provider(task, prompt):
         calls.append(task.record_id)
         evidence_id = re.search(r"\[(evidence:[0-9a-f]+)\]", prompt).group(1)
-        payload = {"programs": [], "services": [], "projects": [], "campaigns": [], "organisational_units": [], "activities": [{"proposition": "activity", "evidence_refs": [evidence_id], "confidence": None, "competing_interpretation": None}], "populations": [], "geographies": [], "sdg_alignments": [], "assertions": [], "semantic_outcome": "supported", "blockers": []}
+        payload = {"programs": [], "services": [], "projects": [], "campaigns": [], "organisational_units": [], "activities": [{"proposition": "activity", "subject_proposal_id": None, "scope_kind": "organisation", "evidence_refs": [evidence_id], "confidence": None, "competing_interpretation": None}], "populations": [], "geographies": [], "sdg_alignments": [], "assertions": [], "classie_assignments": [], "semantic_outcome": "supported", "blockers": []}
         return ApiResult(response_id="fixture-response", model="fake-model", status="completed", output_text=json.dumps(payload), usage=ApiUsage(input_tokens=100, output_tokens=100, total_tokens=200))
 
     report = run_spike(SpikeRunConfig(runtime_root=str(tmp_path / "runtime"), provider_id="fake", model_snapshot="fake-model", execute_paid=True), transport=transport, pricing_snapshot=pricing, fx_snapshot=fx, provider_call=provider)
@@ -260,11 +260,11 @@ def test_paid_run_twice_uses_distinct_execution_identity_and_preserves_history(t
             "projects": [],
             "campaigns": [],
             "organisational_units": [],
-            "activities": [{"proposition": "delivered activity", "evidence_refs": [evidence_id], "confidence": None, "competing_interpretation": None}],
+            "activities": [{"proposition": "delivered activity", "subject_proposal_id": None, "scope_kind": "organisation", "evidence_refs": [evidence_id], "confidence": None, "competing_interpretation": None}],
             "populations": [],
             "geographies": [],
             "sdg_alignments": [],
-            "assertions": [],
+            "assertions": [], "classie_assignments": [],
             "semantic_outcome": "supported",
             "blockers": [],
         }

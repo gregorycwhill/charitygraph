@@ -1056,7 +1056,7 @@ class SQLiteCatalog:
             if concept["scheme_version_id"] != model.scheme_version_id:
                 raise ConflictError("assignment concept must belong to its stated scheme version")
             self._require_evidence(conn, model.evidence_ids)
-            row = self._insert_idempotent(conn, table="taxonomy_assignments", id_column="assignment_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.subject_id, model.scope_id, model.scheme_version_id, model.concept_id, model.role, model.assignment_method, self._json(model.evidence_ids), model.rationale, model.confidence, model.outcome_state, model.lifecycle_status, self._json(model), material_hash, created), columns="assignment_id, subject_id, scope_id, scheme_version_id, concept_id, role, assignment_method, evidence_ids_json, rationale, confidence, outcome_state, lifecycle_status, material_json, material_hash, created_at")
+            row = self._insert_idempotent(conn, table="taxonomy_assignments", id_column="assignment_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.subject_id, model.scope_id, model.scheme_version_id, model.concept_id, model.role, model.assignment_method, self._json(model.evidence_ids), model.rationale, model.confidence, model.outcome_state, model.lifecycle_status, model.publication_eligibility, model.publication_policy_id, self._json(model), material_hash, created), columns="assignment_id, subject_id, scope_id, scheme_version_id, concept_id, role, assignment_method, evidence_ids_json, rationale, confidence, outcome_state, lifecycle_status, publication_eligibility, publication_policy_id, material_json, material_hash, created_at")
             self._commit(conn)
             return row
 
