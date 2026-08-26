@@ -24,6 +24,7 @@ from charitygraph.llm_semantic_economics import (
     validate_output,
 )
 from charitygraph.reality_slice1 import development_members
+from charitygraph.contracts.economics import PriceRate
 
 
 def _doc(url: str, text: str, digest: str = "a" * 64) -> SourceDocument:
@@ -63,7 +64,7 @@ def test_model_task_binds_every_input_to_bundle_hash_and_prompt_policy():
     assert task.cache_key
     assert task.policy_refs[0].policy_id == "CG-D027"
     assert task.evidence_inputs[0].selection_hash == bundle.selection_hash
-    assert bundle.bundle_hash in semantic_prompt(bundle, member.legal_current_name)
+    assert bundle.evidence_content_hash in semantic_prompt(bundle, member.legal_current_name)
 
 
 def test_unbound_model_evidence_is_rejected():
@@ -100,7 +101,7 @@ def test_fixture_run_is_seven_only_three_tiers_and_private(tmp_path: Path):
 
 def test_fake_paid_path_reserves_before_call_and_reports_proposals(tmp_path: Path):
     calls = []
-    pricing = build_pricing_snapshot(provider_id="fake", model_snapshot="fake-model", source_content_hash="c" * 64, authoritative_source_url="https://pricing.example.test")
+    pricing = build_pricing_snapshot(provider_id="fake", model_snapshot="fake-model", rates=(PriceRate(dimension="input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.20")), PriceRate(dimension="cached_input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.02")), PriceRate(dimension="output_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("1.20"))), source_content_hash="c" * 64, authoritative_source_url="https://pricing.example.test")
     fx = build_fx_snapshot(aud_per_usd=Decimal("1.50"), source_name="fixture", source_url="https://fx.example.test", source_content_hash="d" * 64)
 
     def transport(url: str):
@@ -114,7 +115,9 @@ def test_fake_paid_path_reserves_before_call_and_reports_proposals(tmp_path: Pat
         return ApiResult(response_id="fixture-response", model="fake-model", status="completed", output_text=json.dumps(payload), usage=ApiUsage(input_tokens=100, output_tokens=100, total_tokens=200))
 
     report = run_spike(SpikeRunConfig(runtime_root=str(tmp_path / "runtime"), provider_id="fake", model_snapshot="fake-model", execute_paid=True), transport=transport, pricing_snapshot=pricing, fx_snapshot=fx, provider_call=provider)
-    assert len(calls) == report["task_count"] == 21
+    assert len(calls) == report["unique_semantic_evidence_pack_count"] == 7
+    assert report["task_count"] == 21
+    assert sum(item["validation_status"] == "reused_exact_evidence_pack" for item in report["results"]) == 14
     assert report["human_review"]["proposed_durable_program_service_subjects"]
     row = report["human_review"]["proposed_durable_program_service_subjects"][0]
     assert row["model_recommendation"] == "required"
@@ -124,9 +127,36 @@ def test_fake_paid_path_reserves_before_call_and_reports_proposals(tmp_path: Pat
     assert report["ledger"]["budget_position"]["actual_spend_aud"] != "0"
     assert report["economics"]["aggregate"]["actual_cost_aud"] != "0"
     assert report["economics"]["aggregate"]["grounded_propositions"] > 0
+    assert report["projected"]["max_reserved_output_tokens"] == 7 * 8000
     assert report["economics"]["aggregate"]["unresolved_count"] == 0
     assert report["economics"]["incremental_tier_yield"]
     assert report["pricing_snapshot"]["record_id"] == pricing.record_id
     assert report["fx_snapshot"]["record_id"] == fx.record_id
     assert report["holdout_firewall"]["holdout_model_tasks"] == 0
     assert Path(report["human_review_report"]).is_file()
+
+
+def test_output_ceiling_and_model_prompt_hide_operational_tier():
+    assert SpikeRunConfig(runtime_root="runtime").max_output_tokens == 8000
+    member = development_members()[0]
+    bundle = build_evidence_bundle(member.subject_id, "lean", (_doc("https://example.test", "evidence"),))
+    prompt = semantic_prompt(bundle, member.legal_current_name)
+    assert all(tier not in prompt for tier in ("lean", "broad", "very_broad"))
+
+
+def test_identical_evidence_content_hash_is_tier_independent():
+    member = development_members()[0]
+    docs = (_doc("https://example.test", "same evidence"),)
+    lean = build_evidence_bundle(member.subject_id, "lean", docs)
+    broad = build_evidence_bundle(member.subject_id, "broad", docs)
+    assert lean.evidence_content_hash == broad.evidence_content_hash
+    assert lean.bundle_id != broad.bundle_id
+
+
+def test_genuinely_larger_evidence_pack_has_distinct_content_hash():
+    member = development_members()[0]
+    docs = (_doc("https://example.test", "x" * 17000),)
+    lean = build_evidence_bundle(member.subject_id, "lean", docs)
+    broad = build_evidence_bundle(member.subject_id, "broad", docs)
+    assert len(lean.source_segments[0].text) < len(broad.source_segments[0].text)
+    assert lean.evidence_content_hash != broad.evidence_content_hash
