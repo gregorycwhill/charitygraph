@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any, Callable, Iterable, Mapping
+from typing import Any, Callable, Iterable, Literal, Mapping
 from urllib.request import Request, urlopen
 
 from pydantic import Field, field_validator, model_validator
@@ -123,14 +123,14 @@ class SemanticProposal(StrictModel):
     proposal_id: str
     label: str
     kind: str
-    durable: bool | None = None
-    parent_proposal_id: str | None = None
-    description: str | None = None
-    evidence_refs: tuple[str, ...] = ()
-    aliases: tuple[str, ...] = ()
-    confidence: str | None = None
-    competing_interpretation: str | None = None
-    model_review_recommendation: str | None = None
+    durable: bool | None
+    parent_proposal_id: str | None
+    description: str | None
+    evidence_refs: tuple[str, ...]
+    aliases: tuple[str, ...]
+    confidence: str | None
+    competing_interpretation: str | None
+    model_review_recommendation: Literal["required", "acceptable", "unresolved", "exclude"] | None
 
     @field_validator("proposal_id", "label", "kind")
     @classmethod
@@ -142,9 +142,9 @@ class SemanticProposal(StrictModel):
 
 class SemanticAssertion(StrictModel):
     proposition: str
-    evidence_refs: tuple[str, ...] = ()
-    confidence: str | None = None
-    competing_interpretation: str | None = None
+    evidence_refs: tuple[str, ...]
+    confidence: str | None
+    competing_interpretation: str | None
 
     @field_validator("proposition")
     @classmethod
@@ -156,24 +156,34 @@ class SemanticAssertion(StrictModel):
 
 class RichSemanticOutput(StrictModel):
     """One model response containing independently reviewable logical outputs."""
-    programs: tuple[SemanticProposal, ...] = ()
-    services: tuple[SemanticProposal, ...] = ()
-    projects: tuple[SemanticProposal, ...] = ()
-    campaigns: tuple[SemanticProposal, ...] = ()
-    organisational_units: tuple[SemanticProposal, ...] = ()
-    activities: tuple[SemanticAssertion, ...] = ()
-    populations: tuple[SemanticAssertion, ...] = ()
-    geographies: tuple[SemanticAssertion, ...] = ()
-    sdg_alignments: tuple[SemanticAssertion, ...] = ()
-    assertions: tuple[SemanticAssertion, ...] = ()
-    semantic_outcome: str = "insufficient_evidence"
-    blockers: tuple[str, ...] = ()
+    programs: tuple[SemanticProposal, ...]
+    services: tuple[SemanticProposal, ...]
+    projects: tuple[SemanticProposal, ...]
+    campaigns: tuple[SemanticProposal, ...]
+    organisational_units: tuple[SemanticProposal, ...]
+    activities: tuple[SemanticAssertion, ...]
+    populations: tuple[SemanticAssertion, ...]
+    geographies: tuple[SemanticAssertion, ...]
+    sdg_alignments: tuple[SemanticAssertion, ...]
+    assertions: tuple[SemanticAssertion, ...]
+    semantic_outcome: str
+    blockers: tuple[str, ...]
 
     @model_validator(mode="after")
     def _no_unbound_refs(self) -> "RichSemanticOutput":
         # Evidence binding is checked against the bundle by validate_output;
         # this model intentionally carries no source text or hidden rationale.
         return self
+
+
+def rich_semantic_output_schema() -> dict[str, Any]:
+    """Return the exact strict wire schema sent to the Responses API."""
+    return RichSemanticOutput.model_json_schema()
+
+
+def rich_semantic_output_text_format() -> dict[str, Any]:
+    """Return the exact strict response format supplied to OpenAI."""
+    return {"type": "json_schema", "name": "rich_semantic_output", "strict": True, "schema": rich_semantic_output_schema()}
 
 
 class SourceDocument(StrictModel):
@@ -506,7 +516,7 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
                 results_by_key[key] = reused
                 continue
             task_run_id = deterministic_id("taskrun:", {"task": task.record_id, "run": run_id})
-            api = provider_call(task, prompts[key]) if provider_call is not None else responses_create(model=config.model_snapshot, input_text=prompts[key], text_format={"type": "json_schema", "name": "rich_semantic_output", "strict": True, "schema": RichSemanticOutput.model_json_schema()}, max_output_tokens=config.max_output_tokens)
+            api = provider_call(task, prompts[key]) if provider_call is not None else responses_create(model=config.model_snapshot, input_text=prompts[key], text_format=rich_semantic_output_text_format(), max_output_tokens=config.max_output_tokens)
             output = validate_output(RichSemanticOutput.model_validate(json.loads(api.output_text)), bundles[key])
             raw_ref = str(root / "responses" / f"{task_run_id}.json")
             Path(raw_ref).parent.mkdir(parents=True, exist_ok=True)

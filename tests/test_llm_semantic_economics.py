@@ -22,10 +22,37 @@ from charitygraph.llm_semantic_economics import (
     ApiUsage,
     semantic_prompt,
     validate_output,
+    rich_semantic_output_schema,
+    rich_semantic_output_text_format,
 )
 from charitygraph.reality_slice1 import development_members
 from charitygraph.contracts.economics import PriceRate
 
+
+def _walk_schema(node):
+    if isinstance(node, dict):
+        yield node
+        for value in node.values():
+            yield from _walk_schema(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from _walk_schema(value)
+
+
+def test_strict_wire_schema_is_exact_provider_schema():
+    schema = rich_semantic_output_schema()
+    assert rich_semantic_output_text_format()["schema"] == schema
+    assert schema["type"] == "object"
+    for node in _walk_schema(schema):
+        if node.get("type") == "object":
+            assert node["additionalProperties"] is False
+            assert set(node["required"]) == set(node["properties"])
+        if node.get("type") == "array":
+            assert node["type"] == "array"
+    proposal = schema["$defs"]["SemanticProposal"]
+    for field in ("durable", "parent_proposal_id", "description", "confidence", "competing_interpretation", "model_review_recommendation"):
+        assert any(option.get("type") == "null" for option in proposal["properties"][field]["anyOf"])
+    assert set(schema["required"]) == set(schema["properties"])
 
 def _doc(url: str, text: str, digest: str = "a" * 64) -> SourceDocument:
     return SourceDocument(
@@ -71,7 +98,8 @@ def test_unbound_model_evidence_is_rejected():
     member = development_members()[0]
     bundle = build_evidence_bundle(member.subject_id, "lean", (_doc("https://example.test", "evidence"),))
     output = RichSemanticOutput(
-        programs=(SemanticProposal(proposal_id="p1", label="Example", kind="program", evidence_refs=("evidence:unknown",)),),
+        programs=(SemanticProposal(proposal_id="p1", label="Example", kind="program", durable=None, parent_proposal_id=None, description=None, evidence_refs=("evidence:unknown",), aliases=(), confidence=None, competing_interpretation=None, model_review_recommendation=None),),
+        services=(), projects=(), campaigns=(), organisational_units=(), activities=(), populations=(), geographies=(), sdg_alignments=(), assertions=(), semantic_outcome="insufficient_evidence", blockers=(),
     )
     with pytest.raises(ValueError, match="unbound evidence"):
         validate_output(output, bundle)
@@ -81,7 +109,8 @@ def test_missing_evidence_refs_are_rejected():
     member = development_members()[0]
     bundle = build_evidence_bundle(member.subject_id, "lean", (_doc("https://example.test", "evidence"),))
     output = RichSemanticOutput(
-        programs=(SemanticProposal(proposal_id="p1", label="Example", kind="program"),),
+        programs=(SemanticProposal(proposal_id="p1", label="Example", kind="program", durable=None, parent_proposal_id=None, description=None, evidence_refs=(), aliases=(), confidence=None, competing_interpretation=None, model_review_recommendation=None),),
+        services=(), projects=(), campaigns=(), organisational_units=(), activities=(), populations=(), geographies=(), sdg_alignments=(), assertions=(), semantic_outcome="insufficient_evidence", blockers=(),
     )
     with pytest.raises(ValueError, match="at least one evidence reference"):
         validate_output(output, bundle)
@@ -111,7 +140,7 @@ def test_fake_paid_path_reserves_before_call_and_reports_proposals(tmp_path: Pat
         assert (tmp_path / "runtime" / "reality-slice1-llm-semantic-economics" / "ledger.sqlite3").is_file()
         calls.append(task.record_id)
         evidence_id = re.search(r"\[(evidence:[0-9a-f]+)\]", prompt).group(1)
-        payload = {"programs": [{"proposal_id": "p1", "label": "Example service", "kind": "service", "durable": True, "evidence_refs": [evidence_id], "model_review_recommendation": "required"}], "services": [], "projects": [], "campaigns": [], "organisational_units": [], "activities": [{"proposition": "delivered activity", "evidence_refs": [evidence_id]}], "populations": [], "geographies": [], "sdg_alignments": [], "assertions": [], "semantic_outcome": "supported", "blockers": []}
+        payload = {"programs": [{"proposal_id": "p1", "label": "Example service", "kind": "service", "durable": True, "parent_proposal_id": None, "description": None, "evidence_refs": [evidence_id], "model_review_recommendation": "required", "aliases": [], "confidence": None, "competing_interpretation": None}], "services": [], "projects": [], "campaigns": [], "organisational_units": [], "activities": [{"proposition": "delivered activity", "evidence_refs": [evidence_id], "confidence": None, "competing_interpretation": None}], "populations": [], "geographies": [], "sdg_alignments": [], "assertions": [], "semantic_outcome": "supported", "blockers": []}
         return ApiResult(response_id="fixture-response", model="fake-model", status="completed", output_text=json.dumps(payload), usage=ApiUsage(input_tokens=100, output_tokens=100, total_tokens=200))
 
     report = run_spike(SpikeRunConfig(runtime_root=str(tmp_path / "runtime"), provider_id="fake", model_snapshot="fake-model", execute_paid=True), transport=transport, pricing_snapshot=pricing, fx_snapshot=fx, provider_call=provider)
@@ -188,7 +217,7 @@ def test_larger_evidence_packs_are_independent_paid_calls(tmp_path: Path):
     def provider(task, prompt):
         calls.append(task.record_id)
         evidence_id = re.search(r"\[(evidence:[0-9a-f]+)\]", prompt).group(1)
-        payload = {"programs": [], "services": [], "projects": [], "campaigns": [], "organisational_units": [], "activities": [{"proposition": "activity", "evidence_refs": [evidence_id]}], "populations": [], "geographies": [], "sdg_alignments": [], "assertions": [], "semantic_outcome": "supported", "blockers": []}
+        payload = {"programs": [], "services": [], "projects": [], "campaigns": [], "organisational_units": [], "activities": [{"proposition": "activity", "evidence_refs": [evidence_id], "confidence": None, "competing_interpretation": None}], "populations": [], "geographies": [], "sdg_alignments": [], "assertions": [], "semantic_outcome": "supported", "blockers": []}
         return ApiResult(response_id="fixture-response", model="fake-model", status="completed", output_text=json.dumps(payload), usage=ApiUsage(input_tokens=100, output_tokens=100, total_tokens=200))
 
     report = run_spike(SpikeRunConfig(runtime_root=str(tmp_path / "runtime"), provider_id="fake", model_snapshot="fake-model", execute_paid=True), transport=transport, pricing_snapshot=pricing, fx_snapshot=fx, provider_call=provider)
