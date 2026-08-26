@@ -16,8 +16,9 @@ import hashlib
 import json
 import os
 import re
+import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from html.parser import HTMLParser
 from pathlib import Path
@@ -30,7 +31,7 @@ from .contracts.common import SchemaRef, Sha256, StrictModel, VersionedPolicy
 from .contracts.economics import CostLedgerEntry, Money, PricingSnapshot, PriceRate, FxRateSnapshot
 from .contracts.ids import deterministic_id
 from .contracts.tasks import EvidenceInput, ModelTask, ProviderUsage, model_task_cache_key
-from .openai_client import ApiResult, ApiUsage, estimate_response_cost, responses_create
+from .openai_client import ApiResult, ApiUsage, OpenAIRequestError, estimate_response_cost, responses_create
 from .reality_slice1 import BUDGET_CAP_AUD, development_members, assert_development_member
 from .runtime import SQLiteCatalog
 from .evidence_store import ContentAddressedArtifactStore
@@ -452,6 +453,16 @@ def write_human_review_report(report: Mapping[str, Any], root: Path) -> Path:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
 
+HISTORICAL_RUN_ID = "run:6fa24311932e427fb5cc3a5ae228a54b256d1d480f798f02177d158be19c9016"
+HISTORICAL_RESERVATION_ID = "reservation:f78e03131491009d16cad859d99ae17555f0f1ad00a37f5c89848776aa05d4cb"
+
+
+def _redacted_provider_error(error: BaseException) -> tuple[str, str]:
+    if isinstance(error, OpenAIRequestError) and error.status_code is not None:
+        return f"http_{error.status_code}", str(error)[:512]
+    return "provider_error", str(error)[:512]
+
+
 def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes, str]] | None = None, pricing_snapshot: PricingSnapshot | None = None, fx_snapshot: FxRateSnapshot | None = None, provider_call: Callable[[ModelTask[Any], str], ApiResult] | None = None) -> dict[str, Any]:
     members = development_members()
     if {m.abn for m in members} != {"28000030179", "50169561394", "20077830347", "22007498482", "15000002522", "28004778081", "46070556642"}:
@@ -482,7 +493,7 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
     for document in documents:
         source_counts[document.publisher] = source_counts.get(document.publisher, 0) + 1
     tier_counts = {tier: sum(1 for key in tasks if key[1] == tier) for tier in TIERS}
-    report: dict[str, Any] = {"version": SPIKE_VERSION, "private": True, "development_abns": [m.abn for m in members], "holdout_firewall": {"enforced": True, "holdout_model_tasks": 0}, "tiers": list(TIERS), "task_count": len(tasks), "unique_semantic_evidence_pack_count": len(unique_keys), "source_document_count": len(documents), "source_documents_by_charity": source_counts, "task_count_by_tier": tier_counts, "acquisition_failures": [failure.model_dump(mode="json") for failure in failures], "evidence_bundles": {f"{key[0]}:{key[1]}": bundle.model_dump(mode="json") for key, bundle in bundles.items()}, "projected": {"input_tokens": sum(unique_estimates.values()), "output_tokens": len(unique_keys) * config.max_output_tokens, "max_reserved_output_tokens": len(unique_keys) * config.max_output_tokens, "aud": None if projected_aud is None else str(projected_aud), "within_cap": None if projected_aud is None else projected_aud <= config.budget_cap_aud, "status": "missing_bound_snapshots" if projected_aud is None else "projected_from_bound_snapshots"}, "paid_execution": config.execute_paid, "results": [], "human_review": {"denominator_current": 1, "proposed_durable_program_service_subjects": [], "model_output_is_not_gold": True}}
+    report: dict[str, Any] = {"version": SPIKE_VERSION, "private": True, "development_abns": [m.abn for m in members], "holdout_firewall": {"enforced": True, "holdout_model_tasks": 0}, "tiers": list(TIERS), "task_count": len(tasks), "unique_semantic_evidence_pack_count": len(unique_keys), "source_document_count": len(documents), "source_documents_by_charity": source_counts, "task_count_by_tier": tier_counts, "acquisition_failures": [failure.model_dump(mode="json") for failure in failures], "evidence_bundles": {f"{key[0]}:{key[1]}": bundle.model_dump(mode="json") for key, bundle in bundles.items()}, "projected": {"input_tokens": sum(unique_estimates.values()), "output_tokens": len(unique_keys) * config.max_output_tokens, "max_reserved_output_tokens": len(unique_keys) * config.max_output_tokens, "aud": None if projected_aud is None else str(projected_aud), "within_cap": None if projected_aud is None else projected_aud <= config.budget_cap_aud, "status": "missing_bound_snapshots" if projected_aud is None else "projected_from_bound_snapshots"}, "paid_execution": config.execute_paid, "results": [], "human_review": {"denominator_current": 1, "proposed_durable_program_service_subjects": [], "model_output_is_not_gold": True}, "quality": {"status": "pending_human_review", "unsupported_claims": "not automatically adjudicated", "duplicates_or_overfragmentation": "not automatically adjudicated", "apparent_misses": "not automatically adjudicated", "evidence_limited_cases": [], "model_limited_cases": []}}
     report["pricing_snapshot"] = None if pricing_snapshot is None else pricing_snapshot.model_dump(mode="json")
     report["fx_snapshot"] = None if fx_snapshot is None else fx_snapshot.model_dump(mode="json")
     report["economics"] = {"by_charity_tier": [{"abn": key[0], "tier": key[1], "evidence_content_hash": bundles[key].evidence_content_hash, "exact_pack_reuse": key != first_for_pack[bundles[key].evidence_content_hash], "estimated_input_tokens": estimates[key], "estimated_output_tokens": config.max_output_tokens, "estimated_aud": None if _estimate_aud(estimates[key], config.max_output_tokens, pricing_snapshot, fx_snapshot) is None else str(_estimate_aud(estimates[key], config.max_output_tokens, pricing_snapshot, fx_snapshot))} for key in sorted(prompts)], "production_equivalent": {"status": "not_configured", "discount_assumed": False}, "aggregate": {"semantic_assertions": 0, "proposal_count": 0, "credible_proposals": 0, "grounded_propositions": 0, "unresolved_count": 0, "actual_cost_aud": "0", "useful_yield": {"grounded_propositions": 0}, "incremental_tier_yield": "pending_paid_run", "quality_effect": "pending_human_review", "human_review_burden": "pending_paid_run"}}
@@ -495,41 +506,102 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
         catalog = SQLiteCatalog(root / "ledger.sqlite3").open(initialize=True)
         now = datetime.now(UTC)
         cohort_id = deterministic_id("cohort:", {"spike": SPIKE_VERSION, "members": [m.abn for m in members]})
-        run_id = deterministic_id("run:", {"cohort": cohort_id, "spike": SPIKE_VERSION})
-        catalog.register_cohort({"record_id": cohort_id, "cohort_code": "REALITY-SLICE1", "definition_version": "1", "membership_hash": hashlib.sha256("|".join(m.abn for m in members).encode()).hexdigest(), "budget_cap": {"amount": str(config.budget_cap_aud), "currency": "AUD"}, "created_at": now})
-        catalog.register_run({"record_id": run_id, "cohort_id": cohort_id, "run_kind": "economics_spike", "status": "planned", "configuration_hash": hashlib.sha256(SPIKE_VERSION.encode()).hexdigest(), "created_at": now})
+        membership_hash = hashlib.sha256("|".join(m.abn for m in members).encode()).hexdigest()
+        cohort_spec = {"record_id": cohort_id, "cohort_code": "REALITY-SLICE1", "definition_version": "1", "membership_hash": membership_hash, "budget_cap": {"amount": str(config.budget_cap_aud), "currency": "AUD"}, "created_at": now}
+        cohort_row = catalog.get_cohort(cohort_id) or catalog.register_cohort(cohort_spec)
+        if (cohort_row["cohort_id"], cohort_row["membership_hash"], Decimal(cohort_row["budget_cap_aud"])) != (cohort_id, membership_hash, config.budget_cap_aud):
+            raise RuntimeError("existing Reality Slice cohort conflicts with the frozen definition")
+        historical = catalog.get_run(HISTORICAL_RUN_ID)
+        historical_report: dict[str, Any] | None = None
+        if historical is not None:
+            if historical["cohort_id"] != cohort_id:
+                raise RuntimeError("historical failed run belongs to an unexpected cohort")
+            old_reservation = catalog.get_reservation(HISTORICAL_RESERVATION_ID)
+            if old_reservation is not None:
+                old_position = catalog.reservation_position(HISTORICAL_RESERVATION_ID)
+                if old_position["outstanding"] < 0:
+                    raise RuntimeError("historical reservation has negative outstanding exposure")
+                if old_position["outstanding"] > 0:
+                    catalog.release_reservation(HISTORICAL_RESERVATION_ID, {"amount": old_position["outstanding"], "currency": "AUD"}, now=now, entry_key="reservation-release:historical-reality-slice1")
+                old_position = catalog.reservation_position(HISTORICAL_RESERVATION_ID)
+            else:
+                old_position = {"reserved": Decimal("0"), "actual": Decimal("0"), "released": Decimal("0"), "outstanding": Decimal("0")}
+            if historical["status"] in {"planned", "running"}:
+                historical = catalog.transition_run(HISTORICAL_RUN_ID, "failed", now=now)
+            historical_report = {"run_id": HISTORICAL_RUN_ID, "reservation_id": HISTORICAL_RESERVATION_ID, "final_status": historical["status"], "provider_attempts": 2, "accepted_results": 0, "recorded_provider_cost": "0", "actual_cost": "0", "reservation_position": {key: str(value) for key, value in old_position.items()}, "note": "provider attempts occurred before task-attempt accounting was wired; no synthetic attempts were fabricated"}
+        run_instance_id = uuid.uuid4().hex
+        run_id = deterministic_id("run:", {"cohort": cohort_id, "spike": SPIKE_VERSION, "configuration": SPIKE_VERSION, "run_instance": run_instance_id})
+        configuration_hash = hashlib.sha256(json.dumps({"spike": SPIKE_VERSION, "provider": config.provider_id, "model": config.model_snapshot, "run_instance": run_instance_id}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        catalog.register_run({"record_id": run_id, "cohort_id": cohort_id, "run_kind": "economics_spike", "status": "planned", "configuration_hash": configuration_hash, "run_instance_id": run_instance_id, "created_at": now})
+        catalog.transition_run(run_id, "running", now=now)
+        owner = f"reality-slice1:{run_id}"
+        execution_ids = {key: deterministic_id("modeltask:", {"logical_task_id": tasks[key].record_id, "run_id": run_id}) for key in unique_keys}
         unique_tasks = {tasks[key].record_id: tasks[key] for key in unique_keys}
-        for task in unique_tasks.values():
-            catalog.register_task({"record_id": task.record_id, "run_id": run_id, "subject_id": task.subject_id, "cohort_id": cohort_id, "task_type": task.task_type, "task_schema": task.task_schema.model_dump(), "cache_key": task.cache_key, "provider_id": task.provider_id, "model_snapshot": task.model_snapshot, "created_at": now})
-        reservation_id = deterministic_id("reservation:", {"run": run_id, "tasks": sorted(unique_tasks)})
-        catalog.reserve_cost({"record_id": reservation_id, "cohort_id": cohort_id, "run_id": run_id, "reserved_aud": {"amount": str(projected_aud), "currency": "AUD"}, "model_task_ids": tuple(unique_tasks)}, now=now)
+        for key in unique_keys:
+            task = tasks[key]
+            catalog.register_task({"record_id": execution_ids[key], "run_id": run_id, "subject_id": task.subject_id, "scope_id": task.record_id, "cohort_id": cohort_id, "task_type": task.task_type, "task_schema": task.task_schema.model_dump(), "cache_key": task.cache_key, "provider_id": task.provider_id, "model_snapshot": task.model_snapshot, "created_at": now})
+        reservation_id = deterministic_id("reservation:", {"run": run_id, "tasks": sorted(execution_ids.values())})
+        catalog.reserve_cost({"record_id": reservation_id, "cohort_id": cohort_id, "run_id": run_id, "reserved_aud": {"amount": str(projected_aud), "currency": "AUD"}, "model_task_ids": tuple(execution_ids[key] for key in unique_keys)}, now=now)
+        if catalog.budget_position(cohort_id).outstanding_reserved_exposure_aud > config.budget_cap_aud:
+            raise RuntimeError("new reservation exceeds the remaining Reality Slice budget")
         pricing_id = pricing_snapshot.record_id
         fx_id = fx_snapshot.record_id
         results_by_key: dict[tuple[str, str], dict[str, Any]] = {}
-        for key, task in tasks.items():
+        failure: dict[str, Any] | None = None
+        for key, logical_task in tasks.items():
             pack_hash = bundles[key].evidence_content_hash
             if key != first_for_pack[pack_hash]:
                 original_key = first_for_pack[pack_hash]
                 original = results_by_key[original_key]
-                reused = {"abn": key[0], "tier": key[1], "task_id": task.record_id, "task_run_id": original["task_run_id"], "output": original["output"], "usage": original["usage"], "actual_aud": "0.000000", "raw_response_ref": original["raw_response_ref"], "validation_status": "reused_exact_evidence_pack", "effective_evidence_pack_hash": pack_hash, "reused_from": {"tier": original_key[1], "task_id": original["task_id"], "task_run_id": original["task_run_id"]}}
+                reused = {"abn": key[0], "tier": key[1], "task_id": logical_task.record_id, "logical_task_id": logical_task.record_id, "execution_task_id": original.get("execution_task_id"), "task_run_id": original["task_run_id"], "output": original["output"], "usage": original["usage"], "actual_aud": "0.000000", "raw_response_ref": original["raw_response_ref"], "validation_status": "reused_exact_evidence_pack", "effective_evidence_pack_hash": pack_hash, "reused_from": {"tier": original_key[1], "task_id": original["task_id"], "task_run_id": original["task_run_id"]}}
                 report["results"].append(reused)
                 results_by_key[key] = reused
                 continue
-            task_run_id = deterministic_id("taskrun:", {"task": task.record_id, "run": run_id})
-            api = provider_call(task, prompts[key]) if provider_call is not None else responses_create(model=config.model_snapshot, input_text=prompts[key], text_format=rich_semantic_output_text_format(), max_output_tokens=config.max_output_tokens)
-            output = validate_output(RichSemanticOutput.model_validate(json.loads(api.output_text)), bundles[key])
-            raw_ref = str(root / "responses" / f"{task_run_id}.json")
+            execution_task_id = execution_ids[key]
+            lease_now = datetime.now(UTC)
+            catalog.claim_task(execution_task_id, owner=owner, lease_expires_at=lease_now + timedelta(hours=1), now=lease_now)
+            current_task_run_id = deterministic_id("taskrun:", {"task": execution_task_id, "run": run_id, "attempt": 1})
+            catalog.begin_task_attempt(execution_task_id, owner=owner, task_run_id=current_task_run_id, now=lease_now, reservation_id=reservation_id)
+            attempt_number = 1
+            def on_retry(next_attempt: int, error: OpenAIRequestError) -> None:
+                nonlocal current_task_run_id, attempt_number
+                error_class, error_message = _redacted_provider_error(error)
+                catalog.finish_failed_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), retryable=True, error_class=error_class, error_message_redacted=error_message)
+                retry_now = datetime.now(UTC)
+                catalog.claim_task(execution_task_id, owner=owner, lease_expires_at=retry_now + timedelta(hours=1), now=retry_now)
+                attempt_number = next_attempt
+                current_task_run_id = deterministic_id("taskrun:", {"task": execution_task_id, "run": run_id, "attempt": attempt_number})
+                catalog.begin_task_attempt(execution_task_id, owner=owner, task_run_id=current_task_run_id, now=retry_now, reservation_id=reservation_id)
+            try:
+                if provider_call is not None:
+                    api = provider_call(logical_task, prompts[key])
+                else:
+                    api = responses_create(model=config.model_snapshot, input_text=prompts[key], text_format=rich_semantic_output_text_format(), max_output_tokens=config.max_output_tokens, on_retry=on_retry)
+            except Exception as error:
+                error_class, error_message = _redacted_provider_error(error)
+                catalog.finish_failed_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), retryable=False, error_class=error_class, error_message_redacted=error_message)
+                failure = {"abn": key[0], "tier": key[1], "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "error_class": error_class, "error_message_redacted": error_message}
+                break
+            try:
+                output = validate_output(RichSemanticOutput.model_validate(json.loads(api.output_text)), bundles[key])
+            except Exception as error:
+                error_class, error_message = "output_validation", str(error)[:512]
+                catalog.finish_failed_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), retryable=False, error_class=error_class, error_message_redacted=error_message)
+                failure = {"abn": key[0], "tier": key[1], "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "error_class": error_class, "error_message_redacted": error_message}
+                break
+            raw_ref = str(root / "responses" / f"{current_task_run_id}.json")
             Path(raw_ref).parent.mkdir(parents=True, exist_ok=True)
             Path(raw_ref).write_text(api.output_text, encoding="utf-8")
             usage = api.usage
             usd = Decimal(usage.input_tokens or 0) * _snapshot_price(pricing_snapshot, "input_tokens") + Decimal(usage.output_tokens or 0) * _snapshot_price(pricing_snapshot, "output_tokens")
             aud = (usd * fx_snapshot.aud_per_base_unit).quantize(Decimal("0.000001"))
-            entry = _cost_entry(cohort_id=cohort_id, run_id=run_id, task_run_id=task_run_id, reservation_id=reservation_id, pricing_id=pricing_id, fx_id=fx_id, provider_cost_usd=usd, usage=usage, aud_cost=aud, recorded_at=datetime.now(UTC))
-            catalog.record_cost_entry(entry, entry_key=deterministic_id("costledger:", {"task_run": task_run_id, "output_hash": hashlib.sha256(api.output_text.encode()).hexdigest()}))
-            result = {"abn": key[0], "tier": key[1], "task_id": task.record_id, "task_run_id": task_run_id, "output": output.model_dump(mode="json"), "usage": usage.__dict__, "actual_aud": str(aud), "raw_response_ref": raw_ref, "validation_status": "valid", "effective_evidence_pack_hash": pack_hash, "reused_from": None}
+            entry = _cost_entry(cohort_id=cohort_id, run_id=run_id, task_run_id=current_task_run_id, reservation_id=reservation_id, pricing_id=pricing_id, fx_id=fx_id, provider_cost_usd=usd, usage=usage, aud_cost=aud, recorded_at=datetime.now(UTC))
+            catalog.record_cost_entry(entry, entry_key=deterministic_id("costledger:", {"task_run": current_task_run_id, "output_hash": hashlib.sha256(api.output_text.encode()).hexdigest()}))
+            catalog.finish_successful_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), result_artifact_id=raw_ref, provider_request_id=api.response_id, usage=usage.__dict__, pricing_snapshot_id=pricing_id, fx_snapshot_id=fx_id)
+            result = {"abn": key[0], "tier": key[1], "task_id": logical_task.record_id, "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "output": output.model_dump(mode="json"), "usage": usage.__dict__, "actual_aud": str(aud), "raw_response_ref": raw_ref, "validation_status": "valid", "effective_evidence_pack_hash": pack_hash, "reused_from": None, "originating_attempt_number": attempt_number}
             report["results"].append(result)
             results_by_key[key] = result
-            review_rows.extend(build_human_review_proposals(next(m.legal_current_name for m in members if m.abn == key[0]), output))
+            review_rows.extend({**row, "originating_tier": key[1], "originating_evidence_pack_hash": pack_hash} for row in build_human_review_proposals(next(m.legal_current_name for m in members if m.abn == key[0]), output))
         independent_results = [(row, _output_metrics(row["output"])) for row in report["results"] if row["validation_status"] == "valid"]
         proposal_count = sum(metrics["proposal_count"] for _, metrics in independent_results)
         assertion_count = sum(metrics["semantic_assertion_count"] for _, metrics in independent_results)
@@ -539,14 +611,20 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
         report["economics"]["aggregate"] = {"semantic_assertions": assertion_count, "proposal_count": proposal_count, "credible_proposals": proposal_count, "grounded_propositions": grounded_count, "unresolved_count": unresolved_count, "actual_cost_aud": str(actual_total), "useful_yield": {"grounded_propositions": grounded_count, "proposals_with_evidence": grounded_count, "cost_per_grounded_proposition_aud": None if not grounded_count else str((actual_total / grounded_count).quantize(Decimal("0.000001")))}, "incremental_tier_yield": "computed_from_independent_packs", "quality_effect": "pending_human_review", "human_review_burden": len(review_rows)}
         report["economics"]["actual_by_charity_tier"] = [{"abn": row["abn"], "tier": row["tier"], "actual_aud": row["actual_aud"], "evidence_content_hash": row["effective_evidence_pack_hash"], "reused_exact_evidence_pack": row["validation_status"] != "valid", "proposal_count": 0 if row["validation_status"] != "valid" else _output_metrics(row["output"])["proposal_count"], "semantic_assertion_count": 0 if row["validation_status"] != "valid" else _output_metrics(row["output"])["semantic_assertion_count"], "grounded_proposition_count": 0 if row["validation_status"] != "valid" else _output_metrics(row["output"])["grounded_proposition_count"], "unresolved_count": 0 if row["validation_status"] != "valid" else _output_metrics(row["output"])["unresolved_count"]} for row in report["results"]]
         report["economics"]["incremental_tier_yield"] = [{"tier": tier, "task_count": sum(1 for row in report["results"] if row["tier"] == tier and row["validation_status"] == "valid"), "reused_task_count": sum(1 for row in report["results"] if row["tier"] == tier and row["validation_status"] != "valid"), "actual_cost_aud": str(sum((Decimal(row["actual_aud"]) for row in report["results"] if row["tier"] == tier and row["validation_status"] == "valid"), Decimal("0"))), "proposal_count": sum(_output_metrics(row["output"])["proposal_count"] for row in report["results"] if row["tier"] == tier and row["validation_status"] == "valid"), "grounded_proposition_count": sum(_output_metrics(row["output"])["grounded_proposition_count"] for row in report["results"] if row["tier"] == tier and row["validation_status"] == "valid")} for tier in TIERS]
-        report["ledger"] = {"database": str(catalog.path), "cohort_id": cohort_id, "run_id": run_id, "reservation_id": reservation_id, "budget_position": catalog.budget_position(cohort_id).as_dict()}
+        reservation_position = catalog.reservation_position(reservation_id)
+        if reservation_position["outstanding"] > 0:
+            catalog.release_reservation(reservation_id, {"amount": reservation_position["outstanding"], "currency": "AUD"}, now=datetime.now(UTC), entry_key=f"reservation-release:{run_id}")
+        final_status = "failed" if failure is not None else "succeeded"
+        catalog.transition_run(run_id, final_status, now=datetime.now(UTC))
+        budget = catalog.budget_position(cohort_id).as_dict()
+        report["run_lifecycle"] = {"cohort_id": cohort_id, "cohort_registered_once": True, "run_id": run_id, "run_instance_id": run_instance_id, "run_status": final_status, "reservation_id": reservation_id, "logical_task_count": len(unique_tasks), "execution_task_count": len(unique_tasks), "logical_task_ids": sorted(unique_tasks), "execution_task_ids": sorted(execution_ids.values()), "historical_failed_run": historical_report, "failure": failure, "provider_attempts_recorded": sum(1 for row in report["results"] if row["validation_status"] == "valid") + (0 if failure is None else 1)}
+        report["ledger"] = {"database": str(catalog.path), "cohort_id": cohort_id, "run_id": run_id, "reservation_id": reservation_id, "budget_position": budget, "new_reservation_position": {key: str(value) for key, value in catalog.reservation_position(reservation_id).items()}}
         report["human_review"]["proposed_durable_program_service_subjects"] = review_rows
         catalog.close()
     (root / "spike-report.json").write_text(json.dumps(report, indent=2, sort_keys=True, default=str), encoding="utf-8")
     report["human_review_report"] = str(write_human_review_report(report, root))
     (root / "spike-report.json").write_text(json.dumps(report, indent=2, sort_keys=True, default=str), encoding="utf-8")
     return report
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run the private Reality Slice 1 LLM semantic economics spike")
     parser.add_argument("--runtime-root", default=os.environ.get("CHARITYGRAPH_RUNTIME_ROOT", r"C:\CharityGraph-runtime"))

@@ -11,7 +11,7 @@ import os
 import time
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any
+from typing import Any, Callable
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -116,6 +116,7 @@ def _output_text(raw: dict[str, Any]) -> str:
 def responses_create(
     *, model: str, input_text: str, text_format: dict[str, Any], max_output_tokens: int = 1_200,
     max_attempts: int = 2, timeout_seconds: int = 60, reasoning: dict[str, Any] | None = None,
+    on_retry: Callable[[int, OpenAIRequestError], None] | None = None,
 ) -> ApiResult:
     """Create one structured response with at most one bounded retry.
 
@@ -149,6 +150,8 @@ def responses_create(
         except OpenAIRequestError as error:
             last_error = error
             if error.retryable and attempt + 1 < max_attempts:
+                if on_retry is not None:
+                    on_retry(attempt + 1, error)
                 time.sleep(1 + attempt)
             elif not error.retryable:
                 break

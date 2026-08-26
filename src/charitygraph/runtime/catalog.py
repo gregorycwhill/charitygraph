@@ -55,6 +55,9 @@ TASK_STATES = {
     "ready", "leased", "running", "succeeded", "failed_retryable", "failed_terminal", "held", "cancelled",
 }
 TERMINAL_TASK_STATES = {"succeeded", "failed_terminal", "cancelled"}
+RUN_STATES = {"planned", "running", "succeeded", "failed", "cancelled", "held"}
+RUN_TRANSITIONS = {"planned": {"running", "failed", "cancelled", "held"}, "running": {"succeeded", "failed", "cancelled", "held"}, "succeeded": set(), "failed": set(), "cancelled": set(), "held": set()}
+
 TASK_TRANSITIONS = {
     "ready": {"leased", "held", "cancelled"},
     "leased": {"running", "ready", "failed_retryable", "failed_terminal"},
@@ -327,6 +330,11 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM cohorts WHERE cohort_id = ?", (cohort_id,)).fetchone())
 
+    def get_cohort(self, cohort_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM cohorts WHERE cohort_id=?", (cohort_id,)).fetchone())
+
     def register_run(self, run: Any) -> dict[str, Any]:
         self._require_migrated()
         run_id = _text(_get(run, "record_id", "run_id"), "run_id")
@@ -349,6 +357,45 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM runs WHERE run_id = ?", (run_id,)).fetchone())
 
+    def get_run(self, run_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM runs WHERE run_id=?", (run_id,)).fetchone())
+
+    def transition_run(self, run_id: str, target_status: str, *, now: datetime | str, error_class: str | None = None, error_message_redacted: str | None = None) -> dict[str, Any]:
+        if target_status not in RUN_STATES:
+            raise InvalidTransitionError(f"unknown run state {target_status}")
+        now_s = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM runs WHERE run_id=?", (run_id,)).fetchone()
+            if row is None:
+                raise CatalogError(f"unknown run {run_id}")
+            if row["status"] == target_status:
+                return dict(row)
+            if target_status not in RUN_TRANSITIONS.get(row["status"], set()):
+                raise InvalidTransitionError(f"cannot transition run {row["status"]} to {target_status}")
+            started = row["started_at"] or (now_s if target_status == "running" else None)
+            completed = now_s if target_status in {"succeeded", "failed", "cancelled", "held"} else row["completed_at"]
+            conn.execute("UPDATE runs SET status=?, started_at=?, completed_at=?, updated_at=? WHERE run_id=?", (target_status, started, completed, now_s, run_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM runs WHERE run_id=?", (run_id,)).fetchone())
+
+    def get_reservation(self, reservation_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone())
+
+    def reservation_position(self, reservation_id: str) -> dict[str, Decimal]:
+        self._require_migrated()
+        with self._connection() as conn:
+            row = conn.execute("SELECT reserved_aud FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
+            if row is None:
+                raise CatalogError(f"unknown reservation {reservation_id}")
+            reserved = Decimal(row["reserved_aud"])
+            actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
+            released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+            outstanding = (reserved - min(actual, reserved) - released).quantize(Decimal("0.000001"))
+            return {"reserved": reserved, "actual": actual, "released": released, "outstanding": outstanding}
     def register_task(self, task: Any, *, run_id: str | None = None, now: datetime | str | None = None) -> dict[str, Any]:
         self._require_migrated()
         task_id = _text(_get(task, "record_id", "model_task_id"), "model_task_id")
@@ -459,7 +506,7 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM task_attempts WHERE task_run_id = ?", (task_run_id,)).fetchone())
 
-    def _finish_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, status: str, result_artifact_id: str | None = None, retryable: bool | None = None, error_class: str | None = None, error_message_redacted: str | None = None, next_eligible_at: datetime | str | None = None) -> dict[str, Any]:
+    def _finish_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, status: str, result_artifact_id: str | None = None, retryable: bool | None = None, error_class: str | None = None, error_message_redacted: str | None = None, next_eligible_at: datetime | str | None = None, provider_request_id: str | None = None, usage: Any | None = None, pricing_snapshot_id: str | None = None, fx_snapshot_id: str | None = None) -> dict[str, Any]:
         completed_s = _utc(completed_at, "completed_at")
         with self._connection(immediate=True) as conn:
             attempt = conn.execute("SELECT * FROM task_attempts WHERE task_run_id = ?", (task_run_id,)).fetchone()
@@ -481,14 +528,14 @@ class SQLiteCatalog:
                 next_state = "failed_retryable"
             else:
                 next_state = "failed_terminal"
-            conn.execute("UPDATE task_attempts SET status=?, completed_at=?, retryable=?, result_artifact_id=?, error_class=?, error_message_redacted=? WHERE task_run_id=?", (status, completed_s, retryable, result_artifact_id, error_class, error_message_redacted, task_run_id))
+            conn.execute("UPDATE task_attempts SET status=?, completed_at=?, retryable=?, result_artifact_id=?, provider_request_id=COALESCE(?, provider_request_id), usage_json=?, pricing_snapshot_id=?, fx_snapshot_id=?, error_class=?, error_message_redacted=? WHERE task_run_id=?", (status, completed_s, retryable, result_artifact_id, provider_request_id, json.dumps(_dump(usage), sort_keys=True, separators=(",", ":")) if usage is not None else None, pricing_snapshot_id, fx_snapshot_id, error_class, error_message_redacted, task_run_id))
             next_eligible_s = _utc(next_eligible_at, "next_eligible_at") if next_eligible_at is not None else None
             conn.execute("UPDATE tasks SET status=?, lease_owner=NULL, lease_expires_at=NULL, next_eligible_at=?, result_artifact_id=?, error_class=?, error_message_redacted=?, updated_at=? WHERE model_task_id=?", (next_state, next_eligible_s, result_artifact_id, error_class, error_message_redacted, completed_s, task["model_task_id"]))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM tasks WHERE model_task_id = ?", (task["model_task_id"],)).fetchone())
 
-    def finish_successful_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, result_artifact_id: str) -> dict[str, Any]:
-        return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="succeeded", result_artifact_id=result_artifact_id, retryable=False)
+    def finish_successful_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, result_artifact_id: str, provider_request_id: str | None = None, usage: Any | None = None, pricing_snapshot_id: str | None = None, fx_snapshot_id: str | None = None) -> dict[str, Any]:
+        return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="succeeded", result_artifact_id=result_artifact_id, retryable=False, provider_request_id=provider_request_id, usage=usage, pricing_snapshot_id=pricing_snapshot_id, fx_snapshot_id=fx_snapshot_id)
 
     def finish_failed_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, retryable: bool, error_class: str, error_message_redacted: str, next_eligible_at: datetime | str | None = None) -> dict[str, Any]:
         return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="failed_retryable" if retryable else "failed_terminal", retryable=retryable, error_class=error_class, error_message_redacted=error_message_redacted, next_eligible_at=next_eligible_at)
@@ -585,7 +632,7 @@ class SQLiteCatalog:
             rid, reserved = reservation["reservation_id"], Decimal(reservation["reserved_aud"])
             actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='actual'", (cohort_id, rid)).fetchone()[0])
             released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='reservation_release'", (cohort_id, rid)).fetchone()[0])
-            remaining = reserved - min(actual, reserved) - released
+            remaining = (reserved - min(actual, reserved) - released).quantize(Decimal("0.000001"))
             if remaining < 0:
                 raise ConflictError("reservation releases cannot exceed the unused portion of their own reservation")
             outstanding += remaining

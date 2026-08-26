@@ -224,3 +224,86 @@ def test_larger_evidence_packs_are_independent_paid_calls(tmp_path: Path):
     assert 7 < report["unique_semantic_evidence_pack_count"] <= report["task_count"] == 21
     assert len(calls) == report["unique_semantic_evidence_pack_count"]
     assert sum(item["validation_status"] == "reused_exact_evidence_pack" for item in report["results"]) == report["task_count"] - report["unique_semantic_evidence_pack_count"]
+
+import sqlite3
+
+from charitygraph.openai_client import OpenAIRequestError
+
+
+def test_paid_run_twice_uses_distinct_execution_identity_and_preserves_history(tmp_path: Path):
+    pricing = build_pricing_snapshot(
+        provider_id="fake",
+        model_snapshot="fake-model",
+        rates=(
+            PriceRate(dimension="input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.20")),
+            PriceRate(dimension="cached_input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.02")),
+            PriceRate(dimension="output_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("1.20")),
+        ),
+        source_content_hash="e" * 64,
+        authoritative_source_url="https://pricing.example.test",
+    )
+    fx = build_fx_snapshot(
+        aud_per_usd=Decimal("1.50"),
+        source_name="fixture",
+        source_url="https://fx.example.test",
+        source_content_hash="f" * 64,
+    )
+
+    def transport(url: str):
+        return (f"<html><h1>Official</h1><p>Evidence for {url}</p></html>".encode(), "text/html")
+
+    def successful_provider(task, prompt):
+        evidence_id = re.search(r"\[(evidence:[0-9a-f]+)\]", prompt).group(1)
+        payload = {
+            "programs": [],
+            "services": [],
+            "projects": [],
+            "campaigns": [],
+            "organisational_units": [],
+            "activities": [{"proposition": "delivered activity", "evidence_refs": [evidence_id], "confidence": None, "competing_interpretation": None}],
+            "populations": [],
+            "geographies": [],
+            "sdg_alignments": [],
+            "assertions": [],
+            "semantic_outcome": "supported",
+            "blockers": [],
+        }
+        return ApiResult(response_id="run-twice-response", model="fake-model", status="completed", output_text=json.dumps(payload), usage=ApiUsage(input_tokens=100, output_tokens=100, total_tokens=200))
+
+    root = tmp_path / "runtime"
+    first = run_spike(
+        SpikeRunConfig(runtime_root=str(root), provider_id="fake", model_snapshot="fake-model", execute_paid=True),
+        transport=transport,
+        pricing_snapshot=pricing,
+        fx_snapshot=fx,
+        provider_call=lambda task, prompt: (_ for _ in ()).throw(OpenAIRequestError("synthetic terminal failure", status_code=400, retryable=False)),
+    )
+    second = run_spike(
+        SpikeRunConfig(runtime_root=str(root), provider_id="fake", model_snapshot="fake-model", execute_paid=True),
+        transport=transport,
+        pricing_snapshot=pricing,
+        fx_snapshot=fx,
+        provider_call=successful_provider,
+    )
+
+    first_lifecycle = first["run_lifecycle"]
+    second_lifecycle = second["run_lifecycle"]
+    assert first_lifecycle["run_status"] == "failed"
+    assert second_lifecycle["run_status"] == "succeeded"
+    assert first_lifecycle["run_id"] != second_lifecycle["run_id"]
+    assert first_lifecycle["run_instance_id"] != second_lifecycle["run_instance_id"]
+    assert first_lifecycle["logical_task_ids"] == second_lifecycle["logical_task_ids"]
+    assert set(first_lifecycle["execution_task_ids"]).isdisjoint(second_lifecycle["execution_task_ids"])
+    assert first_lifecycle["reservation_id"] != second_lifecycle["reservation_id"]
+    assert Decimal(first["ledger"]["budget_position"]["actual_spend_aud"]) == 0
+    assert Decimal(second["ledger"]["budget_position"]["actual_spend_aud"]) > 0
+    assert first["ledger"]["new_reservation_position"]["outstanding"] == "0.000000"
+    assert second["ledger"]["new_reservation_position"]["outstanding"] == "0.000000"
+
+    db = root / "reality-slice1-llm-semantic-economics" / "ledger.sqlite3"
+    with sqlite3.connect(db) as conn:
+        assert conn.execute("SELECT COUNT(*) FROM cohorts").fetchone()[0] == 1
+        assert conn.execute("SELECT COUNT(*) FROM runs").fetchone()[0] == 2
+        assert conn.execute("SELECT COUNT(*) FROM cost_entries WHERE entry_type='actual'").fetchone()[0] > 0
+        assert conn.execute("SELECT COUNT(*) FROM task_attempts WHERE status='failed_terminal'").fetchone()[0] >= 1
+        assert conn.execute("SELECT COUNT(*) FROM task_attempts WHERE status='succeeded'").fetchone()[0] == second_lifecycle["logical_task_count"]
