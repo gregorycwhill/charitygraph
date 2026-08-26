@@ -183,6 +183,15 @@ def test_private_classie_wiring_changes_prompt_provenance_and_reuse_identity(tmp
     assert build_model_task(bundle.subject_id, bundle, provider_id="fake", model_snapshot="fake").cache_key != task.cache_key
 
 
+def test_configured_private_classie_flows_through_spike_without_provider(tmp_path):
+    path = tmp_path / "classie.json"
+    payload = {"scheme_id": "classie", "version": "4.2-private", "source_locator": "private://classie", "concepts": [{"external_concept_id": "classie.program", "preferred_label": "Program", "definition": "Fixture"}]}
+    path.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+    loaded = load_private_classie_payload(path)
+    from charitygraph.llm_semantic_economics import run_spike, SpikeRunConfig
+    report = run_spike(SpikeRunConfig(runtime_root=str(tmp_path / "runtime"), classie_payload_path=str(path), classie_expected_version="4.2-private"), transport=lambda url: (b"<p>evidence</p>", "text/html"))
+    assert report["classie_runtime"] == {"status": "private_runtime_loaded", "scheme_id": "classie", "version": "4.2-private", "content_hash": loaded["content_hash"], "external_scheme_id": None, "publication_eligibility": "withheld"}
+
 def test_exact_reuse_identity_ignores_tier_but_changes_evidence():
     subject = "subject:" + "4" * 32
     docs = (_doc(),)
