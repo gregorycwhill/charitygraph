@@ -64,11 +64,12 @@ def load_private_classie_payload(path: str | Path, *, expected_scheme_id: str = 
     }
 
 
-def public_classification_projection(assignments: Iterable[Mapping[str, Any]], *, publication_policy_id: str | None = None) -> tuple[dict[str, Any], ...]:
+def public_classification_projection(assignments: Iterable[Mapping[str, Any]], *, publication_policy_id: str | None = None, classie_enabled: bool | None = None) -> tuple[dict[str, Any], ...]:
     """Project only assignments explicitly eligible under the requested policy.
 
     Publication is governed by explicit metadata. Scheme names, labels and
     lexical aliases never influence this decision.
+    ``classie_enabled`` is retained as a compatibility parameter but cannot override publication metadata.
     """
     rows: list[dict[str, Any]] = []
     for item in assignments:

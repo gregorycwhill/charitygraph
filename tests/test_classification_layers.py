@@ -140,6 +140,7 @@ def test_public_projection_uses_explicit_metadata_not_scheme_names():
         {"scheme_id": "native", "publication_eligibility": "review_required"},
     )
     assert public_classification_projection(rows) == (rows[1],)
+    assert public_classification_projection(rows, classie_enabled=True) == (rows[1],)
     assert public_classification_projection(rows, publication_policy_id="other") == ()
 
 
