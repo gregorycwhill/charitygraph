@@ -39,11 +39,86 @@ from .runtime import SQLiteCatalog
 from .evidence_store import ContentAddressedArtifactStore
 
 UTC = timezone.utc
-SPIKE_VERSION = "reality-slice1-llm-semantic-economics-v1"
+SPIKE_VERSION = "reality-slice1-llm-semantic-economics-v2"
 PROMPT_TEMPLATE_ID = "charitygraph-reality-slice1-semantic-rich-v1"
+PROMPT_TEMPLATE_VERSION = "2"
 POLICY_ID = "CG-D027"
 TIERS: tuple[str, ...] = ("lean", "broad", "very_broad")
 TIER_LIMITS = {"lean": 16_000, "broad": 42_000, "very_broad": 90_000}
+
+# Human-governed gold dispositions for the development review packet. These
+# are review data, not semantic rules and never alter raw provider output.
+HUMAN_GOLD_DISPOSITIONS = {
+    "The Smith Family": {
+        "program:learning-for-life": "REQUIRED", "learning-for-life": "REQUIRED",
+        "learning-clubs": "REQUIRED", "program:lets-read": "REQUIRED", "program:passport": "REQUIRED",
+        "the-connection": "UNRESOLVED", "literacy-programs": "EXCLUDE", "technology-programs": "EXCLUDE",
+        "numeracy-programs": "EXCLUDE", "mentoring-programs": "EXCLUDE",
+        "aboriginal-and-torres-strait-islander-programs": "EXCLUDE", "arts-programs": "EXCLUDE",
+        "community-programs": "EXCLUDE", "financial-programs": "EXCLUDE",
+        "school-transition-programs": "EXCLUDE", "work-experience-programs": "EXCLUDE",
+    },
+    "Australian Red Cross Society": {
+        "service:disaster-support": "REQUIRED", "service:first-aid-training": "REQUIRED",
+        "program:migration-support-australia": "ACCEPTABLE", "program:telecross-telechat": "UNRESOLVED",
+        "service:community-services-vulnerable-people": "EXCLUDE",
+    },
+    "Australian Communities Foundation Limited": {
+        "proposal:impact-fund": "REQUIRED", "service:acf-advisory": "REQUIRED",
+        "service:scholarship-funds": "REQUIRED", "service:structured-giving": "EXCLUDE",
+        "service:responsible-investing": "EXCLUDE",
+    },
+    "The Fred Hollows Foundation": {
+        "program:eye-health-workforce-training": "REQUIRED", "program:training-and-empowerment": "REQUIRED",
+        "program:eye-health-advocacy-for-change": "REQUIRED", "program:eye-health-advocacy": "REQUIRED",
+        "program:advocacy-for-change": "REQUIRED", "program:research-and-technology": "REQUIRED",
+        "program:global-eye-health-and-avoidable-blindness": "UNRESOLVED", "program:ending-avoidable-blindness": "UNRESOLVED",
+        "service:sight-saving-eye-care-delivery": "EXCLUDE", "service:eye-health-care": "EXCLUDE",
+    },
+}
+REQUIRED_GOLD_COUNT = 12
+HUMAN_GOLD_REQUIRED_VARIANTS = {
+    ("The Smith Family", "learning-for-life"): ("learning-for-life", "program:learning-for-life"),
+    ("The Smith Family", "learning-clubs"): ("learning-clubs",),
+    ("The Smith Family", "program:lets-read"): ("program:lets-read",),
+    ("The Smith Family", "program:passport"): ("program:passport",),
+    ("Australian Red Cross Society", "service:disaster-support"): ("service:disaster-support",),
+    ("Australian Red Cross Society", "service:first-aid-training"): ("service:first-aid-training",),
+    ("Australian Communities Foundation Limited", "proposal:impact-fund"): ("proposal:impact-fund",),
+    ("Australian Communities Foundation Limited", "service:acf-advisory"): ("service:acf-advisory",),
+    ("Australian Communities Foundation Limited", "service:scholarship-funds"): ("service:scholarship-funds",),
+    ("The Fred Hollows Foundation", "program:eye-health-workforce-training"): ("program:eye-health-workforce-training", "program:training-and-empowerment"),
+    ("The Fred Hollows Foundation", "program:eye-health-advocacy-for-change"): ("program:eye-health-advocacy-for-change", "program:eye-health-advocacy", "program:advocacy-for-change"),
+    ("The Fred Hollows Foundation", "program:research-and-technology"): ("program:research-and-technology",),
+}
+
+
+def score_human_gold(results):
+    """Score deduplicated program/service proposals against human dispositions."""
+    observed = set()
+    for result in results:
+        output = result.get("output") or {}
+        charity = str(result.get("charity") or result.get("subject_name") or result.get("legal_current_name") or "")
+        for collection in (output.get("programs", ()), output.get("services", ())):
+            for proposal in collection:
+                observed.add((charity, str(proposal.get("proposal_id", ""))))
+    found = set()
+    for family_key, variants in HUMAN_GOLD_REQUIRED_VARIANTS.items():
+        if any((family_key[0], variant) in observed for variant in variants):
+            found.add(family_key)
+    excludes = {(charity, proposal_id) for charity, mapping in HUMAN_GOLD_DISPOSITIONS.items() for proposal_id, disposition in mapping.items() if disposition == "EXCLUDE"}
+    prohibited = excludes & observed
+    recall = len(found) / REQUIRED_GOLD_COUNT if REQUIRED_GOLD_COUNT else None
+    precision = len(found) / len(observed) if observed else None
+    return {
+        "required_denominator": REQUIRED_GOLD_COUNT, "required_found": len(found),
+        "required_missed": sorted(f"{charity}:{proposal_id}" for charity, proposal_id in HUMAN_GOLD_REQUIRED_VARIANTS if (charity, proposal_id) not in found),
+        "recall": recall, "proposed_program_service_count": len(observed),
+        "non_required_proposals": len(observed - {(c, v) for (c, _), variants in HUMAN_GOLD_REQUIRED_VARIANTS.items() for v in variants}), "precision": precision,
+        "explicit_exclude_proposals": sorted(f"{charity}:{proposal_id}" for charity, proposal_id in prohibited),
+        "zero_critical_scope_errors": not prohibited,
+        "thresholds": {"recall_at_least_0_90": recall is not None and recall >= 0.90, "precision_at_least_0_80": precision is not None and precision >= 0.80, "zero_critical_scope_errors": not prohibited},
+    }
 
 # Explicitly selected bounded pages.  This is source navigation, never a
 # semantic URL filter; the seven rows are the only permitted development scope.
@@ -428,7 +503,7 @@ def semantic_prompt(bundle: EvidenceBundle, charity_name: str, *, classie_concep
         )
     else:
         classie_text = "\n\nPrivate CharityGraph CLASSIE processing is disabled/not-configured for this request. Return classie_assignments as an empty array and do not make CLASSIE assignments."
-    return f"""You are reviewing official source evidence for {charity_name}. Return JSON matching the supplied schema.\n\nDistinguish substantive delivered activity from mission or aspiration, promotional positioning, fundraising/campaign language, claimed outcome, and actual intervention. Propose programs/services/projects only when the evidence supports the distinction; otherwise abstain and record blockers. Include source labels, kind, durability, parent relation, description, aliases, confidence, competing interpretation, and evidence_refs for every proposal. Include operational activities, populations, geographies and scoped SDG alignments only when evidence-bound and link program/service assertions with subject_proposal_id plus scope_kind=proposal. Whole-organisation assertions must use scope_kind=organisation and null subject_proposal_id. CharityGraph CLASSIE is independent: use only supplied evidence and private CLASSIE concepts, never ACNC-reported CLASSIE selections. Adversarial rules: aspiration is not accomplishment; mission is not delivery; association is not identity; repeated wording is not proof; taxonomy-adjacent vocabulary is not assignment evidence.\n\nEvidence pack content hash {bundle.evidence_content_hash}:{classie_text}\n{evidence}"""
+    return f"""You are reviewing official source evidence for {charity_name}. Return JSON matching the supplied schema.\n\nDistinguish substantive delivered activity from mission or aspiration, promotional positioning, fundraising/campaign language, claimed outcome, and actual intervention. A page heading, navigation heading, plural category, thematic portfolio, activity family, capability or partnership model is not by itself a durable program/service subject. Propose a program/service subject when evidence supports a stable identifiable offering or operating entity that can reasonably be referred to again as the same thing; a proper name is not required, and descriptive services may qualify when stable delivery is evidenced. When a broad category contains a specific named program, prefer the specific durable subject and represent the category in the appropriate activity/assertion layer. Do not use keyword, regex or other lexical rules to make this judgment. Otherwise abstain and record blockers. Include source labels, kind, durability, parent relation, description, aliases, confidence, competing interpretation, and evidence_refs for every proposal. Include operational activities, populations, geographies and scoped SDG alignments only when evidence-bound and link program/service assertions with subject_proposal_id plus scope_kind=proposal. UN Sustainable Development Goal alignment is CharityGraph model-assessed: the evidence must support the substantive activity/intervention, but need not mention SDGs or use UN terminology. Keep alignment distinct from impact, outcome achievement, causation and UN endorsement; assess it independently, evidence-bound, scoped and confidence-bearing, and do not infer it from generic mission language. Whole-organisation assertions must use scope_kind=organisation and null subject_proposal_id. CharityGraph CLASSIE is independent: use only supplied evidence and private CLASSIE concepts, never ACNC-reported CLASSIE selections. Adversarial rules: aspiration is not accomplishment; mission is not delivery; association is not identity; repeated wording is not proof; taxonomy-adjacent vocabulary is not assignment evidence.\n\nEvidence pack content hash {bundle.evidence_content_hash}:{classie_text}\n{evidence}"""
 
 
 def build_model_task(subject_id: str, bundle: EvidenceBundle, *, provider_id: str, model_snapshot: str, classie_runtime: Mapping[str, Any] | None = None) -> ModelTask[Any]:
@@ -455,9 +530,9 @@ def build_model_task(subject_id: str, bundle: EvidenceBundle, *, provider_id: st
         "classie_runtime": classie_material,
         "request_schema_hash": request_schema_hash,
     }
-    cache_key = model_task_cache_key(task_type="semantic_interpretation", task_schema=task_schema, output_schema=output_schema, evidence_inputs=inputs, prompt_template_id=PROMPT_TEMPLATE_ID, prompt_template_version="1", policy_refs=policy_refs, provider_id=provider_id, model_snapshot=model_snapshot, parameters=parameters, material_tool_versions=())
+    cache_key = model_task_cache_key(task_type="semantic_interpretation", task_schema=task_schema, output_schema=output_schema, evidence_inputs=inputs, prompt_template_id=PROMPT_TEMPLATE_ID, prompt_template_version=PROMPT_TEMPLATE_VERSION, policy_refs=policy_refs, provider_id=provider_id, model_snapshot=model_snapshot, parameters=parameters, material_tool_versions=())
     task_id = deterministic_id("modeltask:", {"subject_id": subject_id, "scope_id": None, "task_type": "semantic_interpretation", "cache_key": cache_key, "output_schema": output_schema})
-    return ModelTask(record_id=task_id, created_at=datetime.now(UTC), producer={"kind": "code", "producer_id": "charitygraph-llm-semantic-economics", "version": SPIKE_VERSION}, subject_id=subject_id, task_type="semantic_interpretation", task_schema=task_schema, output_schema=output_schema, evidence_inputs=inputs, prompt_template_id=PROMPT_TEMPLATE_ID, prompt_template_version="1", policy_refs=policy_refs, provider_id=provider_id, model_snapshot=model_snapshot, parameters=parameters, paid_output_categories=("semantic_judgement", "extraction"))
+    return ModelTask(record_id=task_id, created_at=datetime.now(UTC), producer={"kind": "code", "producer_id": "charitygraph-llm-semantic-economics", "version": SPIKE_VERSION}, subject_id=subject_id, task_type="semantic_interpretation", task_schema=task_schema, output_schema=output_schema, evidence_inputs=inputs, prompt_template_id=PROMPT_TEMPLATE_ID, prompt_template_version=PROMPT_TEMPLATE_VERSION, policy_refs=policy_refs, provider_id=provider_id, model_snapshot=model_snapshot, parameters=parameters, paid_output_categories=("semantic_judgement", "extraction"))
 def validate_output(output: RichSemanticOutput, bundle: EvidenceBundle, *, classie_concept_ids: set[str] | None = None) -> RichSemanticOutput:
     valid = {segment.evidence_id for segment in bundle.source_segments}
     collections = (output.programs, output.services, output.projects, output.campaigns, output.organisational_units, output.activities, output.populations, output.geographies, output.sdg_alignments, output.assertions, output.classie_assignments)
@@ -492,10 +567,11 @@ def build_human_review_proposals(charity_name: str, output: RichSemanticOutput) 
             "aliases": list(proposal.aliases),
             "confidence": proposal.confidence,
             "competing_interpretation": proposal.competing_interpretation,
+            "proposal_id": proposal.proposal_id,
             "candidate_observation_id": deterministic_id("candidate:", {"charity": charity_name, "label": proposal.label, "kind": proposal.kind, "evidence_refs": proposal.evidence_refs}),
             "model_recommendation": proposal.model_review_recommendation,
-            "review_status": "proposed",
-            "human_disposition": None,
+            "review_status": "human_reviewed" if proposal.proposal_id in HUMAN_GOLD_DISPOSITIONS.get(charity_name, {}) else "proposed",
+            "human_disposition": HUMAN_GOLD_DISPOSITIONS.get(charity_name, {}).get(proposal.proposal_id),
         })
     return rows
 
@@ -546,7 +622,7 @@ def _cost_entry(*, cohort_id: str, run_id: str, task_run_id: str, reservation_id
 
 
 def write_human_review_report(report: Mapping[str, Any], root: Path) -> Path:
-    """Write a concise private review projection; human disposition stays null."""
+    """Write a concise private review projection with governed dispositions."""
     path = root / "human-review.md"
     review = report.get("human_review", {})
     lines = ["# Reality Slice 1 semantic proposals", "", "Private proposed review records; model recommendations are not approval.", "", "Current adequacy denominator: " + str(review.get("denominator_current", 1)), ""]
@@ -555,8 +631,8 @@ def write_human_review_report(report: Mapping[str, Any], root: Path) -> Path:
             "## " + str(row.get("charity")) + ": " + str(row.get("label")),
             "- kind: " + str(row.get("kind")),
             "- model recommendation: " + str(row.get("model_recommendation")),
-            "- review status: proposed",
-            "- human disposition: null",
+            "- review status: " + str(row.get("review_status", "proposed")),
+            "- human disposition: " + str(row.get("human_disposition")),
             "- evidence refs: " + ", ".join(row.get("evidence_refs", ())),
             "",
         ])
@@ -609,7 +685,7 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
     for document in documents:
         source_counts[document.publisher] = source_counts.get(document.publisher, 0) + 1
     tier_counts = {tier: sum(1 for key in tasks if key[1] == tier) for tier in TIERS}
-    report: dict[str, Any] = {"version": SPIKE_VERSION, "private": True, "development_abns": [m.abn for m in members], "holdout_firewall": {"enforced": True, "holdout_model_tasks": 0}, "tiers": list(TIERS), "task_count": len(tasks), "unique_semantic_evidence_pack_count": len(unique_keys), "source_document_count": len(documents), "source_documents_by_charity": source_counts, "task_count_by_tier": tier_counts, "acquisition_failures": [failure.model_dump(mode="json") for failure in failures], "evidence_bundles": {f"{key[0]}:{key[1]}": bundle.model_dump(mode="json") for key, bundle in bundles.items()}, "projected": {"input_tokens": sum(unique_estimates.values()), "output_tokens": len(unique_keys) * config.max_output_tokens, "max_reserved_output_tokens": len(unique_keys) * config.max_output_tokens, "aud": None if projected_aud is None else str(projected_aud), "within_cap": None if projected_aud is None else projected_aud <= config.budget_cap_aud, "status": "missing_bound_snapshots" if projected_aud is None else "projected_from_bound_snapshots"}, "paid_execution": config.execute_paid, "results": [], "human_review": {"denominator_current": 1, "proposed_durable_program_service_subjects": [], "model_output_is_not_gold": True}, "quality": {"status": "pending_human_review", "unsupported_claims": "not automatically adjudicated", "duplicates_or_overfragmentation": "not automatically adjudicated", "apparent_misses": "not automatically adjudicated", "evidence_limited_cases": [], "model_limited_cases": []}}
+    report: dict[str, Any] = {"version": SPIKE_VERSION, "private": True, "development_abns": [m.abn for m in members], "holdout_firewall": {"enforced": True, "holdout_model_tasks": 0}, "tiers": list(TIERS), "task_count": len(tasks), "unique_semantic_evidence_pack_count": len(unique_keys), "source_document_count": len(documents), "source_documents_by_charity": source_counts, "task_count_by_tier": tier_counts, "acquisition_failures": [failure.model_dump(mode="json") for failure in failures], "evidence_bundles": {f"{key[0]}:{key[1]}": bundle.model_dump(mode="json") for key, bundle in bundles.items()}, "projected": {"input_tokens": sum(unique_estimates.values()), "output_tokens": len(unique_keys) * config.max_output_tokens, "max_reserved_output_tokens": len(unique_keys) * config.max_output_tokens, "aud": None if projected_aud is None else str(projected_aud), "within_cap": None if projected_aud is None else projected_aud <= config.budget_cap_aud, "status": "missing_bound_snapshots" if projected_aud is None else "projected_from_bound_snapshots"}, "paid_execution": config.execute_paid, "results": [], "human_review": {"denominator_current": REQUIRED_GOLD_COUNT, "required_distribution": {"The Smith Family": 4, "Australian Red Cross Society": 2, "Australian Communities Foundation Limited": 3, "The Fred Hollows Foundation": 3}, "governed_dispositions": HUMAN_GOLD_DISPOSITIONS, "proposed_durable_program_service_subjects": [], "model_output_is_not_gold": True}, "quality": {"status": "pending_human_review", "unsupported_claims": "not automatically adjudicated", "duplicates_or_overfragmentation": "not automatically adjudicated", "apparent_misses": "not automatically adjudicated", "evidence_limited_cases": [], "model_limited_cases": []}}
     report["classie_runtime"] = ({"status": "private_runtime_loaded", "scheme_id": classie_runtime["scheme_id"], "version": classie_runtime["version"], "content_hash": classie_runtime["content_hash"], "source_locator": classie_runtime.get("source_locator"), "source_publisher": classie_runtime.get("source_publisher"), "source_release_date": classie_runtime.get("source_release_date"), "source_sheet": classie_runtime.get("source_sheet"), "original_file_hash": classie_runtime.get("original_file_hash"), "transformation_version": classie_runtime.get("transformation_version"), "transformation_hash": classie_runtime.get("transformation_hash"), "external_scheme_id": classie_runtime.get("external_scheme_id"), "rights_policy": classie_runtime.get("rights_policy"), "publication_eligibility": classie_runtime["publication_eligibility"]} if classie_runtime is not None else {"status": "disabled_not_configured", "scheme_id": None, "version": None, "content_hash": None, "source_locator": None, "source_publisher": None, "source_release_date": None, "source_sheet": None, "original_file_hash": None, "transformation_version": None, "transformation_hash": None, "external_scheme_id": None, "rights_policy": None, "publication_eligibility": "withheld"})
     report["pricing_snapshot"] = None if pricing_snapshot is None else pricing_snapshot.model_dump(mode="json")
     report["fx_snapshot"] = None if fx_snapshot is None else fx_snapshot.model_dump(mode="json")
@@ -741,6 +817,11 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
         report["run_lifecycle"] = {"cohort_id": cohort_id, "cohort_registered_once": True, "run_id": run_id, "run_instance_id": run_instance_id, "run_status": final_status, "reservation_id": reservation_id, "logical_task_count": len(unique_tasks), "execution_task_count": len(unique_tasks), "logical_task_ids": sorted(unique_tasks), "execution_task_ids": sorted(execution_ids.values()), "historical_failed_run": historical_report, "failure": failure, "provider_attempts_recorded": sum(1 for row in report["results"] if row["validation_status"] == "valid") + (0 if failure is None else 1)}
         report["ledger"] = {"database": str(catalog.path), "cohort_id": cohort_id, "run_id": run_id, "reservation_id": reservation_id, "budget_position": budget, "new_reservation_position": {key: str(Decimal("0.000000") if value == 0 else value) for key, value in catalog.reservation_position(reservation_id).items()}}
         report["human_review"]["proposed_durable_program_service_subjects"] = review_rows
+        scored_rows = []
+        for result in report["results"]:
+            if result.get("validation_status") == "valid":
+                scored_rows.append({"charity": next(m.legal_current_name for m in members if m.abn == result["abn"]), "output": result.get("output") or {}})
+        report["human_review"]["score"] = score_human_gold(scored_rows)
         catalog.close()
     (root / "spike-report.json").write_text(json.dumps(report, indent=2, sort_keys=True, default=str), encoding="utf-8")
     report["human_review_report"] = str(write_human_review_report(report, root))

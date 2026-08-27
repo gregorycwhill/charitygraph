@@ -24,6 +24,8 @@ from charitygraph.llm_semantic_economics import (
     validate_output,
     rich_semantic_output_schema,
     rich_semantic_output_text_format,
+    HUMAN_GOLD_DISPOSITIONS,
+    score_human_gold,
 )
 from charitygraph.reality_slice1 import development_members
 from charitygraph.contracts.economics import PriceRate
@@ -125,8 +127,9 @@ def test_fixture_run_is_seven_only_three_tiers_and_private(tmp_path: Path):
     assert report["task_count"] == 21
     assert report["tiers"] == ["lean", "broad", "very_broad"]
     assert report["paid_execution"] is False
-    assert report["human_review"]["denominator_current"] == 1
+    assert report["human_review"]["denominator_current"] == 12
     assert report["human_review"]["model_output_is_not_gold"] is True
+    assert report["human_review"]["required_distribution"] == {"The Smith Family": 4, "Australian Red Cross Society": 2, "Australian Communities Foundation Limited": 3, "The Fred Hollows Foundation": 3}
 
 def test_fake_paid_path_reserves_before_call_and_reports_proposals(tmp_path: Path):
     calls = []
@@ -152,7 +155,7 @@ def test_fake_paid_path_reserves_before_call_and_reports_proposals(tmp_path: Pat
     assert row["model_recommendation"] == "required"
     assert row["review_status"] == "proposed"
     assert row["human_disposition"] is None
-    assert report["human_review"]["denominator_current"] == 1
+    assert report["human_review"]["denominator_current"] == 12
     assert report["ledger"]["budget_position"]["actual_spend_aud"] != "0"
     assert report["economics"]["aggregate"]["actual_cost_aud"] != "0"
     assert report["economics"]["aggregate"]["grounded_propositions"] > 0
@@ -170,7 +173,10 @@ def test_output_ceiling_and_model_prompt_hide_operational_tier():
     member = development_members()[0]
     bundle = build_evidence_bundle(member.subject_id, "lean", (_doc("https://example.test", "evidence"),))
     prompt = semantic_prompt(bundle, member.legal_current_name)
-    assert all(tier not in prompt for tier in ("lean", "broad", "very_broad"))
+    assert "evidence tier" not in prompt
+    assert "lean evidence pack" not in prompt
+    assert "broad evidence pack" not in prompt
+    assert "very_broad evidence pack" not in prompt
 
 
 def test_identical_evidence_content_hash_is_tier_independent():
@@ -384,3 +390,24 @@ def test_paid_run_twice_uses_distinct_execution_identity_and_preserves_history(t
         assert conn.execute("SELECT COUNT(*) FROM cost_entries WHERE entry_type='actual'").fetchone()[0] > 0
         assert conn.execute("SELECT COUNT(*) FROM task_attempts WHERE status='failed_terminal'").fetchone()[0] >= 1
         assert conn.execute("SELECT COUNT(*) FROM task_attempts WHERE status='succeeded'").fetchone()[0] == second_lifecycle["logical_task_count"]
+
+
+def test_correction_prompt_contains_model_boundary_and_sdg_policy():
+    member = development_members()[0]
+    bundle = build_evidence_bundle(member.subject_id, "lean", (_doc("https://example.test", "evidence"),))
+    prompt = semantic_prompt(bundle, member.legal_current_name)
+    assert "plural category" in prompt
+    assert "proper name is not required" in prompt
+    assert "need not mention SDGs" in prompt
+    assert "Do not use keyword, regex or other lexical rules" in prompt
+    assert "alignment distinct from impact" in prompt
+
+
+def test_human_gold_dispositions_are_governed_and_scored():
+    assert sum(value == "REQUIRED" for mapping in HUMAN_GOLD_DISPOSITIONS.values() for value in mapping.values()) >= 12
+    result = {"charity": "The Smith Family", "output": {"programs": [{"proposal_id": "program:learning-for-life"}, {"proposal_id": "literacy-programs"}], "services": []}}
+    score = score_human_gold([result])
+    assert score["required_denominator"] == 12
+    assert score["required_found"] == 1
+    assert "The Smith Family:literacy-programs" in score["explicit_exclude_proposals"]
+    assert score["zero_critical_scope_errors"] is False
