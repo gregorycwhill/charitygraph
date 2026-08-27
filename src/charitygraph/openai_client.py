@@ -22,6 +22,11 @@ API_URL = "https://api.openai.com/v1"
 class OpenAIRequestError(RuntimeError):
     """A deliberately sanitised API error suitable for private run metadata."""
 
+    def __init__(self, message: str, *, attempts_made: int = 0) -> None:
+        super().__init__(message)
+        self.attempts_made = attempts_made
+
+
 
 @dataclass(frozen=True)
 class ApiUsage:
@@ -37,6 +42,7 @@ class ApiResult:
     status: str | None
     output_text: str
     usage: ApiUsage
+    transport_requests: int = 1
 
 
 def _credential() -> str:
@@ -116,9 +122,10 @@ def responses_create(
                     output_tokens=usage.get("output_tokens"),
                     total_tokens=usage.get("total_tokens"),
                 ),
+                transport_requests=attempt + 1,
             )
         except OpenAIRequestError as error:
-            last_error = error
+            last_error = OpenAIRequestError(str(error), attempts_made=attempt + 1)
             if attempt + 1 < max_attempts:
                 time.sleep(1 + attempt)
     assert last_error is not None

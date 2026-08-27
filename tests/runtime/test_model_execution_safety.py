@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 import sqlite3
 from decimal import Decimal
 
@@ -152,3 +152,15 @@ def test_fresh_and_v4_databases_reach_execution_safety_v5(tmp_path):
         assert conn.execute("SELECT version FROM schema_migrations ORDER BY version DESC LIMIT 1").fetchone()[0] == SUPPORTED_VERSION
         assert conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
         assert conn.execute("PRAGMA foreign_key_check").fetchall() == []
+
+
+def test_send_boundary_is_terminal_and_not_resettable(tmp_path):
+    catalog = claim_catalog(tmp_path)
+    slot = claim(catalog)
+    marked = catalog.mark_authorized_call_transmitted(slot["slot_key"], now=NOW)
+    assert marked["provider_transmitted"] == 1
+    catalog.abandon_authorized_call(slot["slot_key"], now=NOW, provider_transmitted=True, reason="transport_exhausted")
+    with pytest.raises(ConflictError):
+        catalog.reset_abandoned_authorized_call(slot["slot_key"], now=NOW, review_ref="review:no-retry")
+    with pytest.raises(ConflictError):
+        claim(catalog, owner="second-worker")
