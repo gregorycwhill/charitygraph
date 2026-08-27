@@ -5,7 +5,7 @@ from decimal import Decimal
 import pytest
 
 from charitygraph.runtime import CatalogError, ConflictError, InvalidTransitionError, SQLiteCatalog
-from charitygraph.runtime.migrations import MIGRATIONS
+from charitygraph.runtime.migrations import MIGRATIONS, SUPPORTED_VERSION
 from .test_budget_ledger import BASE_COHORT, BASE_RUN, COHORT_ID, NOW, RES_A, reservation
 
 
@@ -130,7 +130,7 @@ def test_run_and_reservation_read_models_are_queryable(tmp_path):
 
 def test_fresh_and_v4_databases_reach_execution_safety_v5(tmp_path):
     fresh = SQLiteCatalog(tmp_path / "fresh.sqlite3").open(initialize=True)
-    assert fresh.migrate() == 5
+    assert fresh.migrate() == SUPPORTED_VERSION
     with sqlite3.connect(tmp_path / "fresh.sqlite3") as conn:
         columns = {row[1] for row in conn.execute("PRAGMA table_info(authorized_call_slots)")}
         assert {"slot_key", "authorization_scope_hash", "subject_id", "task_family", "material_hash", "status", "provider_transmitted", "review_ref", "result_ref"} <= columns
@@ -147,8 +147,8 @@ def test_fresh_and_v4_databases_reach_execution_safety_v5(tmp_path):
             conn.execute("INSERT INTO schema_migrations(version, name, checksum, applied_at) VALUES (?, ?, ?, ?)", (migration.version, migration.name, migration.checksum, NOW.isoformat()))
         conn.commit()
     upgraded = SQLiteCatalog(legacy).open()
-    assert upgraded.migrate() == 5
+    assert upgraded.migrate() == SUPPORTED_VERSION
     with sqlite3.connect(legacy) as conn:
-        assert conn.execute("SELECT version FROM schema_migrations ORDER BY version DESC LIMIT 1").fetchone()[0] == 5
+        assert conn.execute("SELECT version FROM schema_migrations ORDER BY version DESC LIMIT 1").fetchone()[0] == SUPPORTED_VERSION
         assert conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
         assert conn.execute("PRAGMA foreign_key_check").fetchall() == []

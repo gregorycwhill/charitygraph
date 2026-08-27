@@ -500,12 +500,76 @@ CREATE TABLE authorized_call_slots (
 CREATE INDEX authorized_call_slots_status_idx ON authorized_call_slots(status, lease_expires_at);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V6 = """
+ALTER TABLE tasks ADD COLUMN output_schema_id TEXT;
+ALTER TABLE tasks ADD COLUMN output_schema_version TEXT;
+ALTER TABLE tasks ADD COLUMN task_material_json TEXT;
+
+CREATE TABLE model_task_evidence (
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+    evidence_id TEXT NOT NULL REFERENCES evidence_locators(evidence_locator_id),
+    content_hash TEXT NOT NULL,
+    selection_hash TEXT NOT NULL,
+    PRIMARY KEY(model_task_id, ordinal),
+    UNIQUE(model_task_id, evidence_id)
+);
+CREATE INDEX model_task_evidence_evidence_idx ON model_task_evidence(evidence_id);
+
+CREATE TABLE model_results (
+    model_result_id TEXT PRIMARY KEY,
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    task_run_id TEXT NOT NULL REFERENCES task_attempts(task_run_id),
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    output_schema_id TEXT NOT NULL,
+    output_schema_version TEXT NOT NULL,
+    output_json TEXT NOT NULL,
+    output_hash TEXT NOT NULL,
+    validation_status TEXT NOT NULL CHECK(validation_status IN ('valid','invalid','held')),
+    validation_errors_json TEXT NOT NULL,
+    raw_response_ref TEXT NOT NULL,
+    provider_id TEXT NOT NULL,
+    model_snapshot TEXT NOT NULL,
+    completed_at TEXT NOT NULL,
+    evidence_ids_json TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX model_results_task_idx ON model_results(model_task_id, task_run_id);
+CREATE INDEX model_results_subject_idx ON model_results(subject_id, validation_status);
+
+ALTER TABLE program_candidates RENAME TO program_candidates_v5;
+CREATE TABLE program_candidates (
+    program_candidate_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    source_record_id TEXT,
+    model_result_id TEXT REFERENCES model_results(model_result_id),
+    evidence_ids_json TEXT NOT NULL,
+    label TEXT NOT NULL,
+    candidate_kind TEXT NOT NULL CHECK(candidate_kind IN ('explicit_program','explicit_service','structured_segment','non_program','ambiguous')),
+    extraction_method TEXT NOT NULL CHECK(extraction_method IN ('structured','segmented','model_task')),
+    source_locator TEXT,
+    status TEXT NOT NULL CHECK(status IN ('candidate','accepted','rejected','held')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CHECK ((extraction_method IN ('structured','segmented') AND source_record_id IS NOT NULL AND model_result_id IS NULL) OR (extraction_method = 'model_task' AND source_record_id IS NULL AND model_result_id IS NOT NULL))
+);
+INSERT INTO program_candidates(program_candidate_id, subject_id, source_record_id, model_result_id, evidence_ids_json, label, candidate_kind, extraction_method, source_locator, status, material_json, material_hash, created_at)
+SELECT program_candidate_id, subject_id, source_record_id, NULL, evidence_ids_json, label, candidate_kind, extraction_method, source_locator, status, material_json, material_hash, created_at FROM program_candidates_v5;
+DROP TABLE program_candidates_v5;
+CREATE INDEX program_candidates_subject_idx ON program_candidates(subject_id, status);
+CREATE INDEX program_candidates_model_result_idx ON program_candidates(model_result_id);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
     Migration(3, "governed_knowledge_primitives", CATALOGUE_SQL_V3),
     Migration(4, "taxonomy_and_pre_run_engine", CATALOGUE_SQL_V4),
     Migration(5, "authorized_call_slots", CATALOGUE_SQL_V5),
+    Migration(6, "model_results_and_candidate_lineage", CATALOGUE_SQL_V6),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

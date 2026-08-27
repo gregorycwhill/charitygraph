@@ -24,6 +24,8 @@ from ..contracts.knowledge import (
 )
 from ..contracts.source import AcquisitionReceipt, EvidenceLocator, SourceDefinition
 from ..contracts.program import ProgramCandidate
+from ..contracts.semantic import ProgramCandidateOutput
+from ..contracts.tasks import ModelResult, ModelTask
 from ..contracts.taxonomy import ConceptMapping, TaxonomyAssignment, TaxonomyConcept, TaxonomyScheme, TaxonomyVersion
 
 
@@ -396,20 +398,54 @@ class SQLiteCatalog:
             outstanding = (reserved - min(actual, reserved) - released).quantize(Decimal("0.000001"))
             return {"reserved": reserved, "actual": actual, "released": released, "outstanding": outstanding}
 
+    @staticmethod
+    def _evidence_content_hash(conn: sqlite3.Connection, row: sqlite3.Row) -> str | None:
+        if row["artifact_id"] is not None:
+            artifact = conn.execute("SELECT content_hash FROM artifact_index WHERE artifact_id=?", (row["artifact_id"],)).fetchone()
+            return None if artifact is None else str(artifact["content_hash"])
+        if row["source_record_id"] is not None:
+            source = conn.execute("SELECT payload_hash FROM source_records WHERE source_record_id=?", (row["source_record_id"],)).fetchone()
+            return None if source is None or source["payload_hash"] is None else str(source["payload_hash"])
+        return None
+
+    @classmethod
+    def _validate_model_task_evidence(cls, conn: sqlite3.Connection, model: ModelTask[Any]) -> None:
+        evidence_ids = [item.evidence_id for item in model.evidence_inputs]
+        if len(set(evidence_ids)) != len(evidence_ids):
+            raise ConflictError("ModelTask evidence IDs must be unique")
+        for ordinal, item in enumerate(model.evidence_inputs):
+            row = conn.execute("SELECT * FROM evidence_locators WHERE evidence_locator_id=?", (item.evidence_id,)).fetchone()
+            if row is None:
+                raise CatalogError(f"ModelTask references unknown evidence {item.evidence_id}")
+            content_hash = cls._evidence_content_hash(conn, row)
+            if content_hash is None or content_hash != str(item.content_hash):
+                raise ConflictError(f"ModelTask content_hash does not match evidence {item.evidence_id}")
+            if str(row["material_hash"]) != str(item.selection_hash):
+                raise ConflictError(f"ModelTask selection_hash does not match evidence {item.evidence_id}")
+            conn.execute(
+                "INSERT INTO model_task_evidence(model_task_id, ordinal, evidence_id, content_hash, selection_hash) VALUES (?, ?, ?, ?, ?)",
+                (model.record_id, ordinal, item.evidence_id, str(item.content_hash), str(item.selection_hash)),
+            )
+
     def register_task(self, task: Any, *, run_id: str | None = None, now: datetime | str | None = None) -> dict[str, Any]:
         self._require_migrated()
-        task_id = _text(_get(task, "record_id", "model_task_id"), "model_task_id")
+        typed = task if isinstance(task, ModelTask) else None
+        task_id = typed.record_id if typed is not None else _text(_get(task, "record_id", "model_task_id"), "model_task_id")
         resolved_run_id = run_id or _get(task, "run_id")
         if resolved_run_id is None:
             raise CatalogError("register_task requires run_id")
         timestamp = _utc(now or _get(task, "created_at"), "created_at")
         material_hash = _canonical_hash({"task": task, "run_id": resolved_run_id})
-        schema = _get(task, "task_schema")
+        schema = typed.task_schema if typed is not None else _get(task, "task_schema")
         schema_id = _text(_get(schema, "schema_id", default=schema), "task_schema_id")
+        output_schema = typed.output_schema if typed is not None else None
+        output_schema_id = None if output_schema is None else output_schema.schema_id
+        output_schema_version = None if output_schema is None else output_schema.schema_version
+        task_material_json = None if typed is None else self._json(typed)
         values = (
             task_id, resolved_run_id, _text(_get(task, "subject_id"), "subject_id"), _get(task, "scope_id"), _get(task, "cohort_id"),
-            _text(_get(task, "task_type"), "task_type"), schema_id, _text(_get(task, "cache_key"), "cache_key"),
-            _text(_get(task, "provider_id"), "provider_id"), _text(_get(task, "model_snapshot"), "model_snapshot"), "ready", 0,
+            _text(_get(task, "task_type"), "task_type"), schema_id, output_schema_id, output_schema_version, task_material_json,
+            _text(_get(task, "cache_key"), "cache_key"), _text(_get(task, "provider_id"), "provider_id"), _text(_get(task, "model_snapshot"), "model_snapshot"), "ready", 0,
             None, None, None, None, None, None, timestamp, timestamp, material_hash,
         )
         with self._connection(immediate=True) as conn:
@@ -424,10 +460,13 @@ class SQLiteCatalog:
                 if existing["material_hash"] != material_hash:
                     raise ConflictError(f"task {task_id} is already registered with different material")
                 return dict(existing)
-            conn.execute("INSERT INTO tasks(model_task_id, run_id, subject_id, scope_id, cohort_id, task_type, task_schema_id, cache_key, provider_id, model_snapshot, status, attempt_count, lease_owner, lease_expires_at, next_eligible_at, result_artifact_id, error_class, error_message_redacted, created_at, updated_at, material_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
+            if typed is not None:
+                self._require_subject(conn, typed.subject_id)
+            conn.execute("INSERT INTO tasks(model_task_id, run_id, subject_id, scope_id, cohort_id, task_type, task_schema_id, output_schema_id, output_schema_version, task_material_json, cache_key, provider_id, model_snapshot, status, attempt_count, lease_owner, lease_expires_at, next_eligible_at, result_artifact_id, error_class, error_message_redacted, created_at, updated_at, material_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
+            if typed is not None:
+                self._validate_model_task_evidence(conn, typed)
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM tasks WHERE model_task_id = ?", (task_id,)).fetchone())
-
     def get_task(self, model_task_id: str) -> dict[str, Any] | None:
         with self._connection() as conn:
             return _row(conn.execute("SELECT * FROM tasks WHERE model_task_id = ?", (model_task_id,)).fetchone())
@@ -1142,6 +1181,84 @@ class SQLiteCatalog:
         with self._connection() as conn:
             return self._decode_knowledge_row(conn.execute("SELECT * FROM taxonomy_assignments WHERE assignment_id=?", (assignment_id,)).fetchone())
 
+    @staticmethod
+    def _model_result_evidence_ids(model: ModelResult[Any]) -> tuple[str, ...]:
+        output = _dump(model.output)
+        conclusion = output.get("conclusion") if isinstance(output, dict) else None
+        evidence = conclusion.get("evidence", ()) if isinstance(conclusion, dict) else ()
+        return tuple(str(item["evidence_id"]) for item in evidence if isinstance(item, dict) and item.get("evidence_id"))
+
+    def register_model_result(self, result: Any) -> dict[str, Any]:
+        self._require_migrated()
+        model = result if isinstance(result, ModelResult) else ModelResult.model_validate(result)
+        material_hash = _canonical_hash(model)
+        created = _utc(model.created_at, "created_at")
+        completed = _utc(model.completed_at, "completed_at")
+        output_json = self._json(model.output)
+        evidence_ids = self._model_result_evidence_ids(model)
+        with self._connection(immediate=True) as conn:
+            task = conn.execute("SELECT * FROM tasks WHERE model_task_id=?", (model.model_task_id,)).fetchone()
+            if task is None:
+                raise CatalogError(f"model result references unknown model task {model.model_task_id}")
+            bound_task = task["task_material_json"] is not None
+            if bound_task:
+                if model.provider_id != task["provider_id"]:
+                    raise ConflictError("model result provider_id must match its ModelTask")
+                if model.model_snapshot != task["model_snapshot"]:
+                    raise ConflictError("model result model_snapshot must match its ModelTask")
+                if model.output_schema.schema_id != task["output_schema_id"] or model.output_schema.schema_version != task["output_schema_version"]:
+                    raise ConflictError("model result output schema must match its ModelTask")
+            attempt = conn.execute("SELECT model_task_id FROM task_attempts WHERE task_run_id=?", (model.task_run_id,)).fetchone()
+            if attempt is None or attempt["model_task_id"] != model.model_task_id:
+                raise ConflictError("model result task_run_id must belong to its model_task_id")
+            if bound_task:
+                bound_ids = {row["evidence_id"] for row in conn.execute("SELECT evidence_id FROM model_task_evidence WHERE model_task_id=?", (model.model_task_id,)).fetchall()}
+                if not set(evidence_ids).issubset(bound_ids):
+                    raise ConflictError("model result evidence must be drawn from its ModelTask bindings")
+            else:
+                self._require_evidence(conn, evidence_ids)
+            row = self._insert_idempotent(
+                conn, table="model_results", id_column="model_result_id", record_id=model.record_id,
+                material_hash=material_hash,
+                values=(model.record_id, model.model_task_id, model.task_run_id, task["subject_id"], model.output_schema.schema_id, model.output_schema.schema_version, output_json, str(model.output_hash), model.validation_status, self._json(model.validation_errors), model.raw_response_ref, model.provider_id, model.model_snapshot, completed, self._json(evidence_ids), self._json(model), material_hash, created),
+                columns="model_result_id, model_task_id, task_run_id, subject_id, output_schema_id, output_schema_version, output_json, output_hash, validation_status, validation_errors_json, raw_response_ref, provider_id, model_snapshot, completed_at, evidence_ids_json, material_json, material_hash, created_at",
+            )
+            self._commit(conn)
+            return row
+
+    def get_model_result(self, model_result_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            return self._decode_knowledge_row(conn.execute("SELECT * FROM model_results WHERE model_result_id=?", (model_result_id,)).fetchone())
+
+    def project_program_candidate(self, model_result_id: str, *, now: datetime | str, producer_id: str = "semantic-result-projector") -> dict[str, Any] | None:
+        result = self.get_model_result(model_result_id)
+        if result is None:
+            raise CatalogError(f"unknown model result {model_result_id}")
+        if result["validation_status"] != "valid":
+            return None
+        try:
+            output = ProgramCandidateOutput.model_validate(result["output"])
+        except Exception as exc:
+            raise CatalogError("valid model result is not a ProgramCandidateOutput") from exc
+        if output.decision not in {"material_program", "material_service"}:
+            return None
+        candidate_id = "programcandidate:" + hashlib.sha256(json.dumps({"model_result_id": model_result_id, "label": output.label, "decision": output.decision}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        candidate = ProgramCandidate(
+            record_id=candidate_id,
+            created_at=_utc(now, "created_at"),
+            producer={"kind": "model", "producer_id": producer_id},
+            about_subject_ids=(result["subject_id"],),
+            subject_id=result["subject_id"],
+            model_result_id=model_result_id,
+            evidence_ids=tuple(item.evidence_id for item in output.conclusion.evidence),
+            label=output.label,
+            candidate_kind="explicit_program" if output.decision == "material_program" else "explicit_service",
+            extraction_method="model_task",
+            status="candidate",
+        )
+        return self.register_program_candidate(candidate)
+
     def register_program_candidate(self, candidate: Any) -> dict[str, Any]:
         self._require_migrated()
         model = candidate if isinstance(candidate, ProgramCandidate) else ProgramCandidate.model_validate(candidate)
@@ -1150,7 +1267,28 @@ class SQLiteCatalog:
         with self._connection(immediate=True) as conn:
             self._require_subject(conn, model.subject_id)
             self._require_evidence(conn, model.evidence_ids)
-            row = self._insert_idempotent(conn, table="program_candidates", id_column="program_candidate_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.subject_id, model.source_record_id, self._json(model.evidence_ids), model.label, model.candidate_kind, model.extraction_method, model.source_locator, model.status, self._json(model), material_hash, created), columns="program_candidate_id, subject_id, source_record_id, evidence_ids_json, label, candidate_kind, extraction_method, source_locator, status, material_json, material_hash, created_at")
+            if model.extraction_method in {"structured", "segmented"}:
+                if conn.execute("SELECT 1 FROM source_records WHERE source_record_id=?", (model.source_record_id,)).fetchone() is None:
+                    raise CatalogError(f"unknown source record {model.source_record_id}")
+            else:
+                result = conn.execute("SELECT * FROM model_results WHERE model_result_id=?", (model.model_result_id,)).fetchone()
+                if result is None:
+                    raise CatalogError(f"unknown model result {model.model_result_id}")
+                if result["validation_status"] != "valid":
+                    raise ConflictError("model-task candidates require a valid model result")
+                if result["subject_id"] != model.subject_id:
+                    raise ConflictError("candidate subject must match model result subject")
+                result_evidence = set(json.loads(result["evidence_ids_json"]))
+                if not set(model.evidence_ids).issubset(result_evidence):
+                    raise ConflictError("candidate evidence must be drawn from the originating model result")
+                try:
+                    output = ProgramCandidateOutput.model_validate(json.loads(result["output_json"]))
+                except Exception as exc:
+                    raise ConflictError("model result output is not a ProgramCandidateOutput") from exc
+                expected_kind = {"material_program": "explicit_program", "material_service": "explicit_service"}.get(output.decision)
+                if expected_kind != model.candidate_kind or output.label != model.label:
+                    raise ConflictError("candidate kind and label must follow the validated model result")
+            row = self._insert_idempotent(conn, table="program_candidates", id_column="program_candidate_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.subject_id, model.source_record_id, model.model_result_id, self._json(model.evidence_ids), model.label, model.candidate_kind, model.extraction_method, model.source_locator, model.status, self._json(model), material_hash, created), columns="program_candidate_id, subject_id, source_record_id, model_result_id, evidence_ids_json, label, candidate_kind, extraction_method, source_locator, status, material_json, material_hash, created_at")
             self._commit(conn)
             return row
 
@@ -1166,7 +1304,7 @@ class SQLiteCatalog:
         for column in (
             "material_json", "value_json", "observation_time_json", "assertion_time_json",
             "evidence_locator_ids_json", "source_record_ids_json", "observation_ids_json",
-            "input_record_ids_json",
+            "input_record_ids_json", "output_json", "validation_errors_json", "evidence_ids_json",
         ):
             if column in result and result[column] is not None:
                 key = column.removesuffix("_json")
