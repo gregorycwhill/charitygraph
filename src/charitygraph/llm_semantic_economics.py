@@ -486,6 +486,7 @@ class SpikeRunConfig(StrictModel):
     budget_cap_aud: Decimal = BUDGET_CAP_AUD
     classie_payload_path: str | None = None
     classie_expected_version: str | None = None
+    authorization_scope_hash: str | None = None
 
     @field_validator("runtime_root", "provider_id", "model_snapshot")
     @classmethod
@@ -494,7 +495,7 @@ class SpikeRunConfig(StrictModel):
             raise ValueError("run configuration values must be nonblank")
         return value
 
-    @field_validator("classie_payload_path", "classie_expected_version")
+    @field_validator("classie_payload_path", "classie_expected_version", "authorization_scope_hash")
     @classmethod
     def _optional_nonblank(cls, value: str | None) -> str | None:
         if value is None:
@@ -892,6 +893,11 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
             catalog.claim_task(execution_task_id, owner=owner, lease_expires_at=lease_now + timedelta(hours=1), now=lease_now)
             current_task_run_id = deterministic_id("taskrun:", {"task": execution_task_id, "run": run_id, "attempt": 1})
             catalog.begin_task_attempt(execution_task_id, owner=owner, task_run_id=current_task_run_id, now=lease_now, reservation_id=reservation_id)
+            authorization_slot_key = None
+            if config.authorization_scope_hash is not None:
+                authorization_material_hash = hashlib.sha256(json.dumps({"task_cache_key": logical_task.cache_key, "prompt": prompts[key], "model": config.model_snapshot, "request_schema_hash": logical_task.parameters.get("request_schema_hash")}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+                authorization_slot = catalog.claim_authorized_call(authorization_scope_hash=config.authorization_scope_hash, subject_id=logical_task.subject_id, task_family=logical_task.task_type, material_hash=authorization_material_hash, owner=owner, now=lease_now, lease_expires_at=lease_now + timedelta(hours=1))
+                authorization_slot_key = authorization_slot["slot_key"]
             attempt_number = 1
             def on_retry(next_attempt: int, error: OpenAIRequestError) -> None:
                 nonlocal current_task_run_id, attempt_number
@@ -909,6 +915,8 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
                     api = responses_create(model=config.model_snapshot, input_text=prompts[key], text_format=rich_semantic_output_text_format(permitted_evidence_ids=[segment.evidence_id for segment in bundles[key].source_segments], classie_concept_ids=() if classie_runtime is None else [item["external_concept_id"] for item in classie_runtime["concepts"]], classie_enabled=classie_runtime is not None), max_output_tokens=config.max_output_tokens, on_retry=on_retry)
             except Exception as error:
                 error_class, error_message = _redacted_provider_error(error)
+                if authorization_slot_key is not None:
+                    catalog.abandon_authorized_call(authorization_slot_key, now=datetime.now(UTC), provider_transmitted=False, reason=error_class)
                 catalog.finish_failed_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), retryable=False, error_class=error_class, error_message_redacted=error_message)
                 failure = {"abn": key[0], "tier": key[1], "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "error_class": error_class, "error_message_redacted": error_message}
                 break
@@ -925,12 +933,16 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
                 output = validate_output(RichSemanticOutput.model_validate(json.loads(api.output_text)), bundles[key], classie_concept_ids=set() if classie_runtime is None else {item["external_concept_id"] for item in classie_runtime["concepts"]})
             except Exception as error:
                 error_class, error_message = "output_validation", str(error)[:512]
+                if authorization_slot_key is not None:
+                    catalog.complete_authorized_call(authorization_slot_key, now=datetime.now(UTC), result_ref=f"provider:{api.response_id or current_task_run_id}", terminal_failure=True)
                 catalog.finish_failed_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), retryable=False, error_class=error_class, error_message_redacted=error_message, result_artifact_id=raw_ref, provider_request_id=api.response_id, usage=usage.__dict__, pricing_snapshot_id=pricing_id, fx_snapshot_id=fx_id)
                 failure = {"abn": key[0], "tier": key[1], "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "error_class": error_class, "error_message_redacted": error_message}
                 invalid_result = {"abn": key[0], "tier": key[1], "task_id": logical_task.record_id, "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "output": None, "usage": usage.__dict__, "actual_aud": str(aud), "raw_response_ref": raw_ref, "validation_status": "invalid_output", "effective_evidence_pack_hash": pack_hash, "reused_from": None, "originating_attempt_number": attempt_number, "error_class": error_class, "error_message_redacted": error_message}
                 report["results"].append(invalid_result)
                 results_by_key[key] = invalid_result
                 break
+            if authorization_slot_key is not None:
+                catalog.complete_authorized_call(authorization_slot_key, now=datetime.now(UTC), result_ref=f"provider:{api.response_id or current_task_run_id}")
             catalog.finish_successful_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), result_artifact_id=raw_ref, provider_request_id=api.response_id, usage=usage.__dict__, pricing_snapshot_id=pricing_id, fx_snapshot_id=fx_id)
             result = {"abn": key[0], "tier": key[1], "task_id": logical_task.record_id, "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "output": output.model_dump(mode="json"), "usage": usage.__dict__, "actual_aud": str(aud), "raw_response_ref": raw_ref, "validation_status": "valid", "effective_evidence_pack_hash": pack_hash, "reused_from": None, "originating_attempt_number": attempt_number}
             report["results"].append(result)

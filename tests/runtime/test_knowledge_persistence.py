@@ -17,7 +17,7 @@ from charitygraph.contracts import (
     SubjectRecord,
 )
 from charitygraph.runtime import ConflictError, SQLiteCatalog
-from charitygraph.runtime.migrations import MIGRATIONS
+from charitygraph.runtime.migrations import MIGRATIONS, SUPPORTED_VERSION
 
 
 NOW = datetime(2026, 1, 1, tzinfo=timezone.utc)
@@ -97,11 +97,11 @@ def assertion(record_id: str, observation_ids=(), *, value="yes", state="resolve
 
 def test_clean_v2_to_v3_migration_and_integrity(tmp_path):
     catalog = open_catalog(tmp_path)
-    assert catalog.migrate() == 5
+    assert catalog.migrate() == SUPPORTED_VERSION
     assert catalog.integrity_check() == "ok"
     catalog.close()
     reopened = SQLiteCatalog(tmp_path / "knowledge.sqlite3").open()
-    assert reopened.migrate() == 5
+    assert reopened.migrate() == SUPPORTED_VERSION
     assert reopened.integrity_check() == "ok"
 
 
@@ -121,7 +121,7 @@ def test_existing_catalogue_v2_migrates_append_only_to_v3(tmp_path):
             )
         conn.commit()
     catalog = SQLiteCatalog(path).open()
-    assert catalog.migrate() == 5
+    assert catalog.migrate() == SUPPORTED_VERSION
     assert catalog.get_subject(SUBJECT_A) is None
     assert catalog.integrity_check() == "ok"
 

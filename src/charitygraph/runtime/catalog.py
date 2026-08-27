@@ -11,7 +11,7 @@ import json
 import sqlite3
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Iterator, Mapping
@@ -587,6 +587,84 @@ class SQLiteCatalog:
             conn.execute("UPDATE operation_receipts SET state=?, result_ref=?, updated_at=? WHERE operation_key=?", (state, result_ref, now_s, operation_key))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM operation_receipts WHERE operation_key=?", (operation_key,)).fetchone())
+
+    def _authorized_slot_key(self, authorization_scope_hash: str, subject_id: str, task_family: str, material_hash: str) -> str:
+        return "callslot:" + _canonical_hash({"authorization_scope_hash": authorization_scope_hash, "subject_id": subject_id, "task_family": task_family, "material_hash": material_hash})
+
+    def get_authorized_call(self, slot_key: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
+
+    def claim_authorized_call(
+        self, *, authorization_scope_hash: str, subject_id: str, task_family: str, material_hash: str,
+        owner: str, now: datetime | str, lease_expires_at: datetime | str | None = None,
+    ) -> dict[str, Any]:
+        """Atomically consume one bounded provider-call authorization.
+
+        The material identity is unique across processes. Existing claimed,
+        completed, failed or abandoned slots fail closed; only an explicit
+        reviewed reset of an abandoned pre-transmission slot is reclaimable.
+        """
+        self._require_migrated()
+        now_s = _utc(now, "now")
+        expiry = _utc(lease_expires_at, "lease_expires_at") if lease_expires_at is not None else (datetime.fromisoformat(now_s) + timedelta(hours=1)).isoformat()
+        if not str(owner).strip():
+            raise CatalogError("authorized call owner is required")
+        slot_key = self._authorized_slot_key(authorization_scope_hash, subject_id, task_family, material_hash)
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone()
+            if row is not None:
+                if row["status"] == "reviewed_reset" and int(row["provider_transmitted"]) == 0:
+                    conn.execute("UPDATE authorized_call_slots SET status='claimed', lease_owner=?, lease_expires_at=?, claimed_at=?, updated_at=?, review_ref=NULL WHERE slot_key=?", (owner, expiry, now_s, now_s, slot_key))
+                    self._commit(conn)
+                    return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
+                raise ConflictError("authorized provider call slot has already been consumed or is active")
+            conn.execute("INSERT INTO authorized_call_slots(slot_key, authorization_scope_hash, subject_id, task_family, material_hash, status, lease_owner, lease_expires_at, provider_transmitted, claimed_at, updated_at) VALUES (?, ?, ?, ?, ?, 'claimed', ?, ?, 0, ?, ?)", (slot_key, authorization_scope_hash, subject_id, task_family, material_hash, owner, expiry, now_s, now_s))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
+
+    def complete_authorized_call(self, slot_key: str, *, now: datetime | str, result_ref: str | None = None, terminal_failure: bool = False) -> dict[str, Any]:
+        self._require_migrated()
+        now_s = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone()
+            if row is None:
+                raise CatalogError("authorized call slot does not exist")
+            if row["status"] != "claimed":
+                raise ConflictError("authorized call slot is not currently claimed")
+            status = "failed_terminal" if terminal_failure else "completed"
+            conn.execute("UPDATE authorized_call_slots SET status=?, provider_transmitted=1, completed_at=?, updated_at=?, result_ref=COALESCE(?, result_ref) WHERE slot_key=?", (status, now_s, now_s, result_ref, slot_key))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
+
+    def abandon_authorized_call(self, slot_key: str, *, now: datetime | str, provider_transmitted: bool = False, reason: str | None = None) -> dict[str, Any]:
+        self._require_migrated()
+        now_s = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone()
+            if row is None:
+                raise CatalogError("authorized call slot does not exist")
+            if row["status"] != "claimed":
+                raise ConflictError("authorized call slot is not currently claimed")
+            conn.execute("UPDATE authorized_call_slots SET status='abandoned', provider_transmitted=?, updated_at=?, review_ref=COALESCE(?, review_ref) WHERE slot_key=?", (1 if provider_transmitted else 0, now_s, reason, slot_key))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
+
+    def reset_abandoned_authorized_call(self, slot_key: str, *, now: datetime | str, review_ref: str) -> dict[str, Any]:
+        self._require_migrated()
+        if not str(review_ref).strip():
+            raise CatalogError("review_ref is required to reset an abandoned call")
+        now_s = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone()
+            if row is None:
+                raise CatalogError("authorized call slot does not exist")
+            if row["status"] != "abandoned" or int(row["provider_transmitted"]) != 0:
+                raise ConflictError("only abandoned pre-transmission slots may be reviewed and reset")
+            conn.execute("UPDATE authorized_call_slots SET status='reviewed_reset', reviewed_reset_at=?, review_ref=?, updated_at=? WHERE slot_key=?", (now_s, review_ref, now_s, slot_key))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
 
     def _update_reservation_status(self, conn: sqlite3.Connection, reservation_id: str, now_s: str) -> None:
         row = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
