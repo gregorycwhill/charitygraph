@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 from charitygraph.native_discovery_executor import DISCOVERY_PROMPT, build_prompt
@@ -17,3 +17,10 @@ def test_build_prompt_preserves_task_evidence_order():
     rendered = build_prompt(model_task, {first: "bounded evidence"})
     assert rendered.index(f"[{first}]") < rendered.index("bounded evidence")
 
+
+
+def test_v2_prompt_dispatch_uses_v2_identity_and_guidance():
+    model_task = task()
+    rendered = build_prompt(model_task, {model_task.evidence_inputs[0].evidence_id: "bounded evidence"}, v2=True)
+    assert "Current availability is not subject identity" in rendered
+    assert "Current availability is not subject identity" not in DISCOVERY_PROMPT
