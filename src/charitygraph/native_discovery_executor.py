@@ -71,6 +71,20 @@ def build_prompt(task: ModelTask, evidence_content: Mapping[str, str], *, v2: bo
     return prompt.format(subject_id=task.subject_id, evidence="\n\n".join(chunks))
 
 
+def _parse_discovery_output(
+    task: ModelTask, output_text: str,
+) -> tuple[ProgramServiceDiscoveryOutput | ProgramServiceDiscoveryOutputV2, tuple[str, ...]]:
+    """Validate a response with the output model selected by the task version."""
+    task_v2 = task.task_schema.schema_id == "urn:charitygraph:builder:schema:program-service-discovery-task:2.0"
+    output_v2 = task.output_schema.schema_id == DISCOVERY_OUTPUT_SCHEMA_V2.schema_id
+    if task_v2 != output_v2:
+        raise ValueError("v2 discovery requires matching task and output schema identities")
+    output_type = ProgramServiceDiscoveryOutputV2 if task_v2 else ProgramServiceDiscoveryOutput
+    try:
+        return output_type.model_validate_json(output_text), ()
+    except Exception as exc:
+        return output_type(proposals=()), (str(exc)[:500],)
+
 def execute_native_discovery(
     catalog: SQLiteCatalog,
     *,
@@ -134,15 +148,11 @@ def execute_native_discovery(
         usage = {"input_tokens": response.usage.input_tokens or 0, "output_tokens": response.usage.output_tokens or 0, "cached_input_tokens": 0, "embedding_input_tokens": 0, "image_units": 0, "tool_calls": 0, "other_billable_units": []}
         cost = {"cohort_id": cohort_id, "run_id": run_id, "task_run_id": task_run_id, "reservation_id": reservation_id, "pricing_snapshot_id": pricing_snapshot_id, "fx_snapshot_id": fx_snapshot_id, "entry_type": "actual", "paid_output_category": "semantic_judgement", "provider_cost": {"amount": str(actual_usd or Decimal("0")), "currency": "USD"}, "aud_cost": {"amount": str(actual_aud or Decimal("0")), "currency": "AUD"}, "usage": usage, "recorded_at": now}
         catalog.record_cost_entry(cost, entry_key=f"actual:{task_run_id}")
-        errors: list[str] = []
-        output: ProgramServiceDiscoveryOutput | ProgramServiceDiscoveryOutputV2 | None = None
-        try:
-            output = ProgramServiceDiscoveryOutput.model_validate_json(response.output_text)
-        except Exception as exc:
-            errors.append(str(exc)[:500])
+        parsed_output, parse_errors = _parse_discovery_output(task, response.output_text)
+        errors: list[str] = list(parse_errors)
+        output: ProgramServiceDiscoveryOutput | ProgramServiceDiscoveryOutputV2 | None = parsed_output
         result_id = deterministic_id("modelresult:", {"task_run_id": task_run_id, "response_id": response.response_id, "output_hash": hashlib.sha256(response.output_text.encode()).hexdigest()})
-        if output is None:
-            output = output_type(proposals=())
+        if errors:
             validation_status = "invalid"
         else:
             validation_status = "valid"
