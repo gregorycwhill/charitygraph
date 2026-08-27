@@ -48,51 +48,64 @@ TIER_LIMITS = {"lean": 16_000, "broad": 42_000, "very_broad": 90_000}
 
 # Human-governed gold dispositions for the development review packet. These
 # are review data, not semantic rules and never alter raw provider output.
-HUMAN_GOLD_DISPOSITIONS = {
-    "The Smith Family": {
-        "program:learning-for-life": "REQUIRED", "learning-for-life": "REQUIRED",
-        "learning-clubs": "REQUIRED", "program:lets-read": "REQUIRED", "program:passport": "REQUIRED",
-        "the-connection": "UNRESOLVED", "program:the-connection": "UNRESOLVED", "proposal:the-connection": "UNRESOLVED", "literacy-programs": "EXCLUDE", "technology-programs": "EXCLUDE",
-        "numeracy-programs": "EXCLUDE", "mentoring-programs": "EXCLUDE",
-        "aboriginal-and-torres-strait-islander-programs": "EXCLUDE", "arts-programs": "EXCLUDE",
-        "community-programs": "EXCLUDE", "financial-programs": "EXCLUDE",
-        "school-transition-programs": "EXCLUDE", "work-experience-programs": "EXCLUDE",
-    },
-    "Australian Red Cross Society": {
-        "service:disaster-support": "REQUIRED", "service:first-aid-training": "REQUIRED",
-        "program:migration-support-australia": "ACCEPTABLE", "service_migration_support": "ACCEPTABLE", "program_telecross": "UNRESOLVED", "program_telechat": "UNRESOLVED", "program:telecross-telechat": "UNRESOLVED",
-        "service:community-services-vulnerable-people": "EXCLUDE",
-    },
-    "Australian Communities Foundation Limited": {
-        "proposal:impact-fund": "REQUIRED", "service:acf-advisory": "REQUIRED",
-        "service:scholarship-funds": "REQUIRED", "service:structured-giving": "EXCLUDE",
-        "service:responsible-investing": "EXCLUDE",
-    },
-    "The Fred Hollows Foundation": {
-        "program:eye-health-workforce-training": "REQUIRED", "program:training-and-empowerment": "REQUIRED",
-        "program:eye-health-advocacy-for-change": "REQUIRED", "program:eye-health-advocacy": "REQUIRED",
-        "program:advocacy-for-change": "REQUIRED", "program:research-and-technology": "REQUIRED",
-        "program:global-eye-health-and-avoidable-blindness": "UNRESOLVED", "program:ending-avoidable-blindness": "UNRESOLVED",
-        "service:sight-saving-eye-care-delivery": "EXCLUDE", "service:eye-health-care": "EXCLUDE",
-        "proposal-eye-care-delivery": "EXCLUDE", "service:eye-health-care-delivery": "EXCLUDE",
-    },
-}
-REQUIRED_GOLD_COUNT = 12
-DEVELOPMENT_GOLD_PROVENANCE = "post-run human development calibration gold"
+# Human-governed review families for the private development calibration set.
+# These are review metadata, not semantic rules and never alter provider output.
+GOVERNED_REVIEW_FAMILIES = (
+    {"charity": "The Smith Family", "family_id": "learning-for-life", "disposition": "REQUIRED", "aliases": ("learning-for-life", "program:learning-for-life")},
+    {"charity": "The Smith Family", "family_id": "learning-clubs", "disposition": "REQUIRED", "aliases": ("learning-clubs", "program:learning-clubs", "proposal:learning-clubs")},
+    {"charity": "The Smith Family", "family_id": "lets-read", "disposition": "REQUIRED", "aliases": ("program:lets-read",)},
+    {"charity": "The Smith Family", "family_id": "passport", "disposition": "REQUIRED", "aliases": ("program:passport",)},
+    {"charity": "The Smith Family", "family_id": "the-connection", "disposition": "UNRESOLVED", "aliases": ("the-connection", "program:the-connection", "proposal:the-connection")},
+    {"charity": "The Smith Family", "family_id": "literacy-programs", "disposition": "EXCLUDE", "aliases": ("literacy-programs",)},
+    {"charity": "The Smith Family", "family_id": "technology-programs", "disposition": "EXCLUDE", "aliases": ("technology-programs",)},
+    {"charity": "The Smith Family", "family_id": "numeracy-programs", "disposition": "EXCLUDE", "aliases": ("numeracy-programs",)},
+    {"charity": "The Smith Family", "family_id": "mentoring-programs", "disposition": "EXCLUDE", "aliases": ("mentoring-programs",)},
+    {"charity": "The Smith Family", "family_id": "aboriginal-and-torres-strait-islander-programs", "disposition": "EXCLUDE", "aliases": ("aboriginal-and-torres-strait-islander-programs",)},
+    {"charity": "The Smith Family", "family_id": "arts-programs", "disposition": "EXCLUDE", "aliases": ("arts-programs",)},
+    {"charity": "The Smith Family", "family_id": "community-programs", "disposition": "EXCLUDE", "aliases": ("community-programs",)},
+    {"charity": "The Smith Family", "family_id": "financial-programs", "disposition": "EXCLUDE", "aliases": ("financial-programs",)},
+    {"charity": "The Smith Family", "family_id": "school-transition-programs", "disposition": "EXCLUDE", "aliases": ("school-transition-programs",)},
+    {"charity": "The Smith Family", "family_id": "work-experience-programs", "disposition": "EXCLUDE", "aliases": ("work-experience-programs",)},
+    {"charity": "Australian Red Cross Society", "family_id": "disaster-support", "disposition": "REQUIRED", "aliases": ("service:disaster-support", "service_disaster_support")},
+    {"charity": "Australian Red Cross Society", "family_id": "first-aid-training", "disposition": "REQUIRED", "aliases": ("service:first-aid-training", "service_first_aid_training")},
+    {"charity": "Australian Red Cross Society", "family_id": "migration-support", "disposition": "ACCEPTABLE", "aliases": ("program:migration-support-australia", "service_migration_support")},
+    {"charity": "Australian Red Cross Society", "family_id": "telecross-telechat", "disposition": "UNRESOLVED", "aliases": ("program:telecross-telechat", "program_telecross", "program_telechat")},
+    {"charity": "Australian Red Cross Society", "family_id": "community-services-vulnerable-people", "disposition": "EXCLUDE", "aliases": ("service:community-services-vulnerable-people",)},
+    {"charity": "Australian Communities Foundation Limited", "family_id": "impact-fund", "disposition": "REQUIRED", "aliases": ("proposal:impact-fund", "program:impact-fund")},
+    {"charity": "Australian Communities Foundation Limited", "family_id": "acf-advisory", "disposition": "REQUIRED", "aliases": ("service:acf-advisory",)},
+    {"charity": "Australian Communities Foundation Limited", "family_id": "scholarship-funds", "disposition": "REQUIRED", "aliases": ("service:scholarship-funds",)},
+    {"charity": "Australian Communities Foundation Limited", "family_id": "structured-giving", "disposition": "EXCLUDE", "aliases": ("service:structured-giving",)},
+    {"charity": "Australian Communities Foundation Limited", "family_id": "responsible-investing", "disposition": "EXCLUDE", "aliases": ("service:responsible-investing",)},
+    {"charity": "The Fred Hollows Foundation", "family_id": "eye-health-workforce-training", "disposition": "REQUIRED", "aliases": ("program:eye-health-workforce-training", "program:training-and-empowerment", "proposal:eye-health-workforce-training", "service:eye-health-workforce-training")},
+    {"charity": "The Fred Hollows Foundation", "family_id": "eye-health-advocacy-for-change", "disposition": "REQUIRED", "aliases": ("program:eye-health-advocacy-for-change", "program:eye-health-advocacy", "program:advocacy-for-change")},
+    {"charity": "The Fred Hollows Foundation", "family_id": "research-and-technology", "disposition": "REQUIRED", "aliases": ("program:research-and-technology", "program:eye-health-research-technology")},
+    {"charity": "The Fred Hollows Foundation", "family_id": "ending-avoidable-blindness", "disposition": "UNRESOLVED", "aliases": ("program:global-eye-health-and-avoidable-blindness", "program:ending-avoidable-blindness")},
+    {"charity": "The Fred Hollows Foundation", "family_id": "eye-care-delivery", "disposition": "EXCLUDE", "aliases": ("service:sight-saving-eye-care-delivery", "service:eye-health-care", "proposal-eye-care-delivery", "service:eye-health-care-delivery")},
+)
+
+
+def _family_maps():
+    by_alias = {}
+    by_key = {}
+    for family in GOVERNED_REVIEW_FAMILIES:
+        key = (family["charity"], family["family_id"])
+        by_key[key] = family
+        for alias in family["aliases"]:
+            by_alias[(family["charity"], alias)] = key
+    return by_alias, by_key
+
+
+_REVIEW_FAMILY_BY_ALIAS, _REVIEW_FAMILY_BY_KEY = _family_maps()
+HUMAN_GOLD_DISPOSITIONS = {}
+for _family in GOVERNED_REVIEW_FAMILIES:
+    HUMAN_GOLD_DISPOSITIONS.setdefault(_family["charity"], {}).update({alias: _family["disposition"] for alias in _family["aliases"]})
+REQUIRED_GOLD_COUNT = sum(item["disposition"] == "REQUIRED" for item in GOVERNED_REVIEW_FAMILIES)
 HUMAN_GOLD_REQUIRED_VARIANTS = {
-    ("The Smith Family", "learning-for-life"): ("learning-for-life", "program:learning-for-life"),
-    ("The Smith Family", "learning-clubs"): ("learning-clubs", "program:learning-clubs", "proposal:learning-clubs"),
-    ("The Smith Family", "program:lets-read"): ("program:lets-read",),
-    ("The Smith Family", "program:passport"): ("program:passport",),
-    ("Australian Red Cross Society", "service:disaster-support"): ("service:disaster-support", "service_disaster_support"),
-    ("Australian Red Cross Society", "service:first-aid-training"): ("service:first-aid-training", "service_first_aid_training"),
-    ("Australian Communities Foundation Limited", "proposal:impact-fund"): ("proposal:impact-fund", "program:impact-fund"),
-    ("Australian Communities Foundation Limited", "service:acf-advisory"): ("service:acf-advisory",),
-    ("Australian Communities Foundation Limited", "service:scholarship-funds"): ("service:scholarship-funds",),
-    ("The Fred Hollows Foundation", "program:eye-health-workforce-training"): ("program:eye-health-workforce-training", "program:training-and-empowerment", "proposal:eye-health-workforce-training", "service:eye-health-workforce-training"),
-    ("The Fred Hollows Foundation", "program:eye-health-advocacy-for-change"): ("program:eye-health-advocacy-for-change", "program:eye-health-advocacy", "program:advocacy-for-change"),
-    ("The Fred Hollows Foundation", "program:research-and-technology"): ("program:research-and-technology", "program:eye-health-research-technology"),
+    (item["charity"], item["family_id"]): item["aliases"]
+    for item in GOVERNED_REVIEW_FAMILIES
+    if item["disposition"] == "REQUIRED"
 }
+DEVELOPMENT_GOLD_PROVENANCE = "post-run human development calibration gold"
 
 
 def _stage_a_observed(results):
@@ -106,95 +119,119 @@ def _stage_a_observed(results):
     return observed
 
 
+def _value(item, key):
+    return getattr(item, key) if hasattr(item, key) else item[key]
+
+
 def score_human_gold(results, *, stage_b_cases=None):
-    """Score resolved Stage-B families; raw Stage-A IDs cannot yield precision."""
+    """Score explicit Stage-B resolved families, never raw Stage-A IDs."""
     observed = _stage_a_observed(results)
     required_families = set(HUMAN_GOLD_REQUIRED_VARIANTS)
     if stage_b_cases is None:
-        available = {family for family, variants in HUMAN_GOLD_REQUIRED_VARIANTS.items() if any((family[0], variant) in observed for variant in variants)}
+        available = {family for family, aliases in HUMAN_GOLD_REQUIRED_VARIANTS.items() if any((family[0], alias) in observed for alias in aliases)}
         return {
             "status": "stage_b_required", "required_denominator": REQUIRED_GOLD_COUNT,
             "stage_a_required_available": len(available), "stage_a_proposal_count": len(observed),
             "precision": None, "required_found": None, "required_missed": None,
             "false_program_creation_count": None, "duplicate_overfragmentation": None,
+            "undermerge_count": None, "critical_scope_error_count": None,
             "zero_critical_scope_errors": None,
-            "thresholds": {"recall_at_least_0_90": None, "precision_at_least_0_80": None, "zero_critical_scope_errors": None},
+            "thresholds": {"recall_at_least_0_90": None, "precision_at_least_0_80": None, "false_program_creation_at_most_1": None, "duplicate_overfragmentation_at_most_0_10": None, "zero_critical_scope_errors": None},
         }
-    family_variants = {}
-    for charity, mapping in HUMAN_GOLD_DISPOSITIONS.items():
-        for proposal_id, disposition in mapping.items():
-            family_variants[(charity, proposal_id)] = (proposal_id, disposition)
-    for (charity, family), variants in HUMAN_GOLD_REQUIRED_VARIANTS.items():
-        for proposal_id in variants:
-            family_variants[(charity, proposal_id)] = (family, "REQUIRED")
+
     required_found = set()
+    case_family_counts = []
     positive = 0
-    false_programs = 0
     acceptable = 0
     unresolved = 0
+    false_programs = 0
+    undermerge_count = 0
     unreviewed = []
-    duplicate_numerator = 0
-    duplicate_denominator = 0
+    scope_review_required = []
+    parent_child_violations = []
+    classification_violations = []
+
     for raw_case in stage_b_cases:
-        case = raw_case if hasattr(raw_case, "charity_name") else raw_case
-        charity = case.charity_name if hasattr(case, "charity_name") else case["charity_name"]
-        stage_b = case.stage_b if hasattr(case, "stage_b") else case["stage_b"]
-        seen_family = {}
-        for decision in stage_b.resolutions if hasattr(stage_b, "resolutions") else stage_b["resolutions"]:
-            resolution_class = decision.resolution_class if hasattr(decision, "resolution_class") else decision["resolution_class"]
-            if resolution_class not in {"durable_program", "durable_service"}:
+        charity = _value(raw_case, "charity_name")
+        stage_b = _value(raw_case, "stage_b")
+        resolutions = _value(stage_b, "proposal_resolutions")
+        candidates = _value(stage_b, "resolved_candidates")
+        candidate_by_id = {_value(candidate, "resolved_candidate_id"): candidate for candidate in candidates}
+        proposal_to_families = {}
+        for resolution in resolutions:
+            proposal_id = _value(resolution, "stage_a_proposal_id")
+            proposal_to_families[proposal_id] = _REVIEW_FAMILY_BY_ALIAS.get((charity, proposal_id))
+        per_case_family_counts = {}
+        for candidate_id, candidate in candidate_by_id.items():
+            resolution_class = _value(candidate, "resolution_class")
+            durable = _value(candidate, "durable")
+            if resolution_class not in {"durable_program", "durable_service"} or durable is not True:
                 continue
-            ids = decision.stage_a_proposal_ids if hasattr(decision, "stage_a_proposal_ids") else decision["stage_a_proposal_ids"]
-            mapped = [family_variants.get((charity, proposal_id)) for proposal_id in ids]
-            mapped = [item for item in mapped if item is not None]
-            dispositions = {item[1] for item in mapped}
-            families = {item[0] for item in mapped}
-            duplicate_denominator += 1
-            if len(families) == 1:
-                family = next(iter(families))
-            else:
-                family = None
-            candidate_key = family or (decision.resolved_candidate_id if hasattr(decision, "resolved_candidate_id") else decision.get("resolved_candidate_id"))
-            if candidate_key:
-                seen_family[candidate_key] = seen_family.get(candidate_key, 0) + 1
-            if not mapped or len(dispositions) != 1:
-                unreviewed.append(f"{charity}:{','.join(ids)}")
+            family_keys = set()
+            for resolution in resolutions:
+                if candidate_id in _value(resolution, "resolved_candidate_ids"):
+                    key = proposal_to_families.get(_value(resolution, "stage_a_proposal_id"))
+                    if key is not None:
+                        family_keys.add(key)
+            if len(family_keys) > 1:
+                undermerge_count += 1
+                scope_review_required.append(f"{charity}:{candidate_id}:undermerge")
+            if not family_keys:
+                unreviewed.append(f"{charity}:{candidate_id}")
+                scope_review_required.append(f"{charity}:{candidate_id}:unreviewed")
                 continue
-            disposition = next(iter(dispositions))
+            if len(family_keys) != 1:
+                continue
+            family_key = next(iter(family_keys))
+            family = _REVIEW_FAMILY_BY_KEY[family_key]
+            disposition = family["disposition"]
+            per_case_family_counts[family_key] = per_case_family_counts.get(family_key, 0) + 1
             if disposition == "REQUIRED":
                 positive += 1
-                for required_family, variants in HUMAN_GOLD_REQUIRED_VARIANTS.items():
-                    if required_family[0] == charity and any(item[0] in variants for item in mapped):
-                        required_found.add(required_family)
+                required_found.add(family_key)
             elif disposition == "ACCEPTABLE":
                 positive += 1
                 acceptable += 1
-            elif disposition == "EXCLUDE":
-                false_programs += 1
             elif disposition == "UNRESOLVED":
                 unresolved += 1
-        for count in seen_family.values():
-            if count > 1:
-                duplicate_numerator += count - 1
-    recall = len(required_found) / REQUIRED_GOLD_COUNT if REQUIRED_GOLD_COUNT else None
-    precision = None if unreviewed else (positive / (positive + false_programs) if positive + false_programs else None)
+            elif disposition == "EXCLUDE":
+                false_programs += 1
+        case_family_counts.append(per_case_family_counts)
+
+    duplicate_denominator = sum(max(count, 0) for counts in case_family_counts for count in counts.values())
+    duplicate_numerator = sum(max(count - 1, 0) for counts in case_family_counts for count in counts.values())
     duplicate_rate = duplicate_numerator / duplicate_denominator if duplicate_denominator else 0.0
+    critical_scope_error_count = false_programs + undermerge_count + len(parent_child_violations) + len(classification_violations)
+    scope_review_required_count = len(scope_review_required)
+    recall = len(required_found) / REQUIRED_GOLD_COUNT if REQUIRED_GOLD_COUNT else None
+    precision = None if scope_review_required_count else (positive / (positive + false_programs) if positive + false_programs else None)
+    status = "blocked_review_required" if scope_review_required_count or critical_scope_error_count else "scored"
     return {
-        "status": "blocked_review_required" if unreviewed else "scored",
-        "required_denominator": REQUIRED_GOLD_COUNT, "required_found": len(required_found),
+        "status": status,
+        "required_denominator": REQUIRED_GOLD_COUNT,
+        "required_found": len(required_found),
         "required_missed": sorted(f"{charity}:{family}" for charity, family in required_families if (charity, family) not in required_found),
-        "recall": recall, "precision": precision, "positive_family_count": positive,
-        "acceptable_positive_count": acceptable, "unresolved_excluded_count": unresolved,
+        "recall": recall,
+        "precision": precision,
+        "positive_family_count": positive,
+        "acceptable_positive_count": acceptable,
+        "unresolved_excluded_count": unresolved,
         "false_program_creation_count": false_programs,
-        "unreviewed_durable_families": sorted(unreviewed),
         "duplicate_overfragmentation": {"numerator": duplicate_numerator, "denominator": duplicate_denominator, "rate": duplicate_rate},
-        "zero_critical_scope_errors": false_programs == 0,
+        "undermerge_count": undermerge_count,
+        "parent_child_scope_violations": parent_child_violations,
+        "classification_scope_violations": classification_violations,
+        "critical_scope_error_count": critical_scope_error_count,
+        "scope_review_required": sorted(scope_review_required),
+        "scope_review_required_count": scope_review_required_count,
+        "unreviewed_durable_families": sorted(unreviewed),
+        "zero_critical_scope_errors": critical_scope_error_count == 0 and scope_review_required_count == 0,
         "thresholds": {
             "recall_at_least_0_90": recall is not None and recall >= 0.90,
             "precision_at_least_0_80": precision is not None and precision >= 0.80,
             "false_program_creation_at_most_1": false_programs <= 1,
             "duplicate_overfragmentation_at_most_0_10": duplicate_rate <= 0.10,
-            "zero_critical_scope_errors": false_programs == 0,
+            "zero_critical_scope_errors": critical_scope_error_count == 0 and scope_review_required_count == 0,
         },
     }
 
@@ -204,21 +241,18 @@ def describe_stage_a_by_tier(results):
     summary = {}
     for result in results:
         tier = str(result.get("tier") or "unknown")
-        charity = str(result.get("charity") or result.get("legal_current_name") or "")
+        charity = str(result.get("charity") or result.get("legal_current_name") or result.get("subject_name") or "")
         row = summary.setdefault(tier, {"charities": set(), "raw_stage_a_proposal_count": 0, "required": [], "acceptable": [], "unresolved": [], "exclude": [], "unreviewed": []})
         row["charities"].add(charity)
         output = result.get("output") or {}
         for collection in (output.get("programs", ()), output.get("services", ())):
             for proposal in collection:
                 row["raw_stage_a_proposal_count"] += 1
-                pid = str(proposal.get("proposal_id", ""))
-                disposition = HUMAN_GOLD_DISPOSITIONS.get(charity, {}).get(pid)
-                if disposition is None and (charity, pid) in {(c, variant) for (c, _), variants in HUMAN_GOLD_REQUIRED_VARIANTS.items() for variant in variants}:
-                    disposition = "REQUIRED"
-                if disposition:
-                    row[disposition.lower()].append(pid)
+                key = _REVIEW_FAMILY_BY_ALIAS.get((charity, str(proposal.get("proposal_id", ""))))
+                if key is None:
+                    row["unreviewed"].append(str(proposal.get("proposal_id", "")))
                 else:
-                    row["unreviewed"].append(pid)
+                    row[_REVIEW_FAMILY_BY_KEY[key]["disposition"].lower()].append(str(proposal.get("proposal_id", "")))
     for row in summary.values():
         row["charities"] = sorted(row["charities"])
     return summary
