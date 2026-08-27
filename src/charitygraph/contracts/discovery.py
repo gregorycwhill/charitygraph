@@ -26,6 +26,9 @@ DiscoveryDisposition = Literal[
 ]
 
 
+OperationalStatus = Literal["current", "closing_or_winding_down", "historical", "unknown"]
+
+
 class ProgramServiceProposal(StrictModel):
     proposal_key: str = Field(min_length=1, max_length=128)
     label: str
@@ -55,6 +58,39 @@ class ProgramServiceDiscoveryOutput(StrictModel):
 
     @model_validator(mode="after")
     def _unique_keys(self) -> "ProgramServiceDiscoveryOutput":
+        keys = [item.proposal_key for item in self.proposals]
+        if len(set(keys)) != len(keys):
+            raise ValueError("discovery proposal_key values must be unique")
+        return self
+
+
+class ProgramServiceProposalV2(StrictModel):
+    proposal_key: str = Field(min_length=1, max_length=128)
+    label: str
+    disposition: DiscoveryDisposition
+    operational_status: OperationalStatus
+    evidence: tuple[SemanticEvidence, ...]
+    rationale: str
+    confidence: Literal["low", "medium", "high"] | None = None
+    competing_interpretation: str | None = None
+
+    _label = field_validator("label")(lambda value: require_nonblank(value, "label"))
+    _rationale = field_validator("rationale")(lambda value: require_nonblank(value, "rationale"))
+    _competing = field_validator("competing_interpretation")(lambda value: None if value is None else require_nonblank(value, "competing_interpretation"))
+
+    @field_validator("evidence")
+    @classmethod
+    def _evidence(cls, value: tuple[SemanticEvidence, ...]) -> tuple[SemanticEvidence, ...]:
+        if not value or len({item.evidence_id for item in value}) != len(value):
+            raise ValueError("every discovery proposal requires unique evidence references")
+        return value
+
+
+class ProgramServiceDiscoveryOutputV2(StrictModel):
+    proposals: tuple[ProgramServiceProposalV2, ...] = ()
+
+    @model_validator(mode="after")
+    def _unique_keys(self) -> "ProgramServiceDiscoveryOutputV2":
         keys = [item.proposal_key for item in self.proposals]
         if len(set(keys)) != len(keys):
             raise ValueError("discovery proposal_key values must be unique")
@@ -101,6 +137,18 @@ def discovery_schema(evidence_ids: tuple[str, ...] | list[str]) -> dict:
 def discovery_schema_hash(evidence_ids: tuple[str, ...] | list[str]) -> str:
     return canonical_sha256(discovery_schema(evidence_ids))
 
+def discovery_schema_v2(evidence_ids: tuple[str, ...] | list[str]) -> dict:
+    ids = list(evidence_ids)
+    evidence_item = {"type": "object", "additionalProperties": False, "properties": {"evidence_id": {"type": "string", "enum": ids}, "role": {"type": "string", "enum": ["supporting", "competing", "context"]}, "note": {"type": ["string", "null"]}}, "required": ["evidence_id", "role", "note"]}
+    proposal = {"type": "object", "additionalProperties": False, "properties": {"proposal_key": {"type": "string", "minLength": 1, "maxLength": 128}, "label": {"type": "string", "minLength": 1}, "disposition": {"type": "string", "enum": list(DiscoveryDisposition.__args__)}, "operational_status": {"type": "string", "enum": list(OperationalStatus.__args__)}, "evidence": {"type": "array", "items": evidence_item, "minItems": 1}, "rationale": {"type": "string", "minLength": 1}, "confidence": {"type": ["string", "null"], "enum": ["low", "medium", "high", None]}, "competing_interpretation": {"type": ["string", "null"]}}, "required": ["proposal_key", "label", "disposition", "operational_status", "evidence", "rationale", "confidence", "competing_interpretation"]}
+    return {"type": "object", "additionalProperties": False, "properties": {"proposals": {"type": "array", "items": proposal, "minItems": 0}}, "required": ["proposals"]}
+
+
+def discovery_schema_v2_hash(evidence_ids: tuple[str, ...] | list[str]) -> str:
+    return canonical_sha256(discovery_schema_v2(evidence_ids))
+
+
+
 
 DISCOVERY_OUTPUT_SCHEMA = SchemaRef(
     schema_id="urn:charitygraph:builder:schema:program-service-discovery-output:1.0",
@@ -109,3 +157,13 @@ DISCOVERY_OUTPUT_SCHEMA = SchemaRef(
 
 def discovery_output_schema_ref(evidence_ids: tuple[str, ...] | list[str]) -> SchemaRef:
     return SchemaRef(schema_id=DISCOVERY_OUTPUT_SCHEMA.schema_id, schema_version="1.0-" + discovery_schema_hash(evidence_ids)[:16])
+
+
+DISCOVERY_OUTPUT_SCHEMA_V2 = SchemaRef(
+    schema_id="urn:charitygraph:builder:schema:program-service-discovery-output:2.0",
+    schema_version="2.0",
+)
+
+
+def discovery_output_schema_ref_v2(evidence_ids: tuple[str, ...] | list[str]) -> SchemaRef:
+    return SchemaRef(schema_id=DISCOVERY_OUTPUT_SCHEMA_V2.schema_id, schema_version="2.0-" + discovery_schema_v2_hash(evidence_ids)[:16])

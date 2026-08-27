@@ -25,7 +25,7 @@ from ..contracts.knowledge import (
 from ..contracts.source import AcquisitionReceipt, EvidenceLocator, SourceDefinition
 from ..contracts.program import ProgramCandidate
 from ..contracts.semantic import ProgramCandidateOutput
-from ..contracts.discovery import ProgramServiceDiscoveryOutput
+from ..contracts.discovery import ProgramServiceDiscoveryOutput, ProgramServiceDiscoveryOutputV2
 from ..contracts.tasks import ModelResult, ModelTask
 from ..contracts.taxonomy import ConceptMapping, TaxonomyAssignment, TaxonomyConcept, TaxonomyScheme, TaxonomyVersion
 
@@ -1257,9 +1257,14 @@ class SQLiteCatalog:
         raw_output = result["output"]
         try:
             discovery = ProgramServiceDiscoveryOutput.model_validate(raw_output)
+            discovery_v2 = None
         except Exception:
             discovery = None
-        if discovery is None:
+            try:
+                discovery_v2 = ProgramServiceDiscoveryOutputV2.model_validate(raw_output)
+            except Exception:
+                discovery_v2 = None
+        if discovery is None and discovery_v2 is None:
             try:
                 output = ProgramCandidateOutput.model_validate(raw_output)
             except Exception as exc:
@@ -1273,11 +1278,15 @@ class SQLiteCatalog:
                 "durable": True,
                 "evidence": output.conclusion.evidence,
             }]
-        else:
+        elif discovery is not None:
             proposals = [proposal.model_dump(mode="python") for proposal in discovery.proposals]
+        else:
+            proposals = [proposal.model_dump(mode="python") for proposal in discovery_v2.proposals]
         candidates: list[dict[str, Any]] = []
         for proposal in proposals:
-            if proposal["disposition"] not in {"program", "service"} or proposal["durable"] is not True:
+            if proposal["disposition"] not in {"program", "service"}:
+                continue
+            if discovery is not None and proposal["durable"] is not True:
                 continue
             evidence = tuple(item["evidence_id"] if isinstance(item, dict) else item.evidence_id for item in proposal["evidence"])
             candidate_id = "programcandidate:" + hashlib.sha256(json.dumps({"model_result_id": model_result_id, "proposal_key": proposal["proposal_key"]}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
@@ -1327,13 +1336,21 @@ class SQLiteCatalog:
                 raw_output = json.loads(result["output_json"])
                 try:
                     discovery = ProgramServiceDiscoveryOutput.model_validate(raw_output)
+                    discovery_v2 = None
                 except Exception:
                     discovery = None
-                if discovery is not None:
-                    proposal = next((item for item in discovery.proposals if item.proposal_key == model.model_result_item_key), None)
+                    try:
+                        discovery_v2 = ProgramServiceDiscoveryOutputV2.model_validate(raw_output)
+                    except Exception:
+                        discovery_v2 = None
+                if discovery is not None or discovery_v2 is not None:
+                    proposals = discovery.proposals if discovery is not None else discovery_v2.proposals
+                    proposal = next((item for item in proposals if item.proposal_key == model.model_result_item_key), None)
                     if proposal is None:
                         raise ConflictError("model result item key does not identify a proposal")
-                    expected_kind = {"program": "explicit_program", "service": "explicit_service"}.get(proposal.disposition) if proposal.durable is True else None
+                    expected_kind = {"program": "explicit_program", "service": "explicit_service"}.get(proposal.disposition)
+                    if discovery is not None and proposal.durable is not True:
+                        expected_kind = None
                     proposal_evidence = {item.evidence_id for item in proposal.evidence}
                     if expected_kind != model.candidate_kind or proposal.label != model.label:
                         raise ConflictError("candidate kind and label must follow the originating proposal")
