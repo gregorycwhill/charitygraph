@@ -1,4 +1,4 @@
-"""Small production executor for one evidence-bound native discovery task.
+﻿"""Small production executor for one evidence-bound native discovery task.
 
 The executor deliberately accepts evidence content from the private runtime and
 keeps all response/input bodies outside the repository.  It owns only the
@@ -133,7 +133,7 @@ def execute_native_discovery(
         result = ModelResult(record_id=result_id, created_at=now, producer={"kind": "code", "producer_id": "native-discovery-executor", "version": "1"}, model_task_id=task.record_id, task_run_id=task_run_id, output_schema=task.output_schema, output=output, validation_status=validation_status, validation_errors=tuple(errors), raw_response_ref=str(raw_response_path), completed_at=now, provider_id=response.model and task.provider_id or task.provider_id, model_snapshot=response.model)
         catalog.register_model_result(result)
         if errors:
-            catalog.finish_failed_attempt(task_run_id, owner=owner, completed_at=now, retryable=False, error_class="output_validation", error_message_redacted="strict discovery output validation failed", result_artifact_id=str(raw_response_path), provider_request_id=response.response_id, usage=usage, pricing_snapshot_id=pricing_snapshot_id, fx_snapshot_id=fx_snapshot_id)
+            catalog.finish_failed_attempt(task_run_id, owner=owner, completed_at=now, retryable=False, error_class="output_validation", error_message_redacted="strict discovery output validation failed", result_artifact_id=response_artifact_id, provider_request_id=response.response_id, usage=usage, pricing_snapshot_id=pricing_snapshot_id, fx_snapshot_id=fx_snapshot_id)
             catalog.complete_authorized_call(slot["slot_key"], now=now, result_ref=result_id, terminal_failure=True)
             status = "failed_terminal"
             projected: tuple[dict[str, Any], ...] = ()
@@ -153,4 +153,5 @@ def execute_native_discovery(
             catalog.abandon_authorized_call(slot["slot_key"], now=now, provider_transmitted=False, reason="pre-transmission failure")
             catalog.finish_failed_attempt(task_run_id, owner=owner, completed_at=now, retryable=False, error_class="provider_request", error_message_redacted="provider request failed")
         raise
+
 
