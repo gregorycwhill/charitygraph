@@ -225,6 +225,83 @@ def test_larger_evidence_packs_are_independent_paid_calls(tmp_path: Path):
     assert len(calls) == report["unique_semantic_evidence_pack_count"]
     assert sum(item["validation_status"] == "reused_exact_evidence_pack" for item in report["results"]) == report["task_count"] - report["unique_semantic_evidence_pack_count"]
 
+
+def test_paid_invalid_response_records_provider_cost_before_validation(tmp_path: Path):
+    import sqlite3
+    pricing = build_pricing_snapshot(
+        provider_id="fake", model_snapshot="fake-model",
+        rates=(
+            PriceRate(dimension="input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.20")),
+            PriceRate(dimension="cached_input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.02")),
+            PriceRate(dimension="output_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("1.20")),
+        ), source_content_hash="a" * 64, authoritative_source_url="https://pricing.example.test",
+    )
+    fx = build_fx_snapshot(aud_per_usd=Decimal("1.50"), source_name="fixture", source_url="https://fx.example.test", source_content_hash="b" * 64)
+
+    def transport(url: str):
+        return (f"<html><h1>Official</h1><p>Evidence for {url}</p></html>".encode(), "text/html")
+
+    def invalid_provider(task, prompt):
+        evidence_id = re.search(r"\[(evidence:[0-9a-f]+)\]", prompt).group(1)
+        payload = {
+            "programs": [{"proposal_id": "p1", "label": "Example", "kind": "program", "durable": True, "parent_proposal_id": None, "description": "x", "evidence_refs": [evidence_id], "aliases": [], "confidence": "high", "competing_interpretation": None, "model_review_recommendation": "required"}],
+            "services": [], "projects": [], "campaigns": [], "organisational_units": [],
+            "activities": [{"proposition": "activity", "subject_proposal_id": "missing-proposal", "scope_kind": "proposal", "evidence_refs": [evidence_id], "confidence": "high", "competing_interpretation": None}],
+            "populations": [], "geographies": [], "sdg_alignments": [], "assertions": [], "classie_assignments": [],
+            "semantic_outcome": "supported", "blockers": [],
+        }
+        return ApiResult(response_id="invalid-response", model="fake-model", status="completed", output_text=json.dumps(payload), usage=ApiUsage(input_tokens=123, output_tokens=45, total_tokens=168))
+
+    report = run_spike(
+        SpikeRunConfig(runtime_root=str(tmp_path / "runtime"), provider_id="fake", model_snapshot="fake-model", execute_paid=True),
+        transport=transport, pricing_snapshot=pricing, fx_snapshot=fx, provider_call=invalid_provider,
+    )
+    assert report["run_lifecycle"]["run_status"] == "failed"
+    assert report["results"][0]["validation_status"] == "invalid_output"
+    assert report["results"][0]["usage"]["input_tokens"] == 123
+    assert Decimal(report["ledger"]["budget_position"]["actual_spend_aud"]) > 0
+    raw_ref = Path(report["results"][0]["raw_response_ref"])
+    assert raw_ref.is_file()
+    with sqlite3.connect(report["ledger"]["database"]) as conn:
+        row = conn.execute("SELECT status, provider_request_id, usage_json, pricing_snapshot_id, fx_snapshot_id, result_artifact_id FROM task_attempts WHERE task_run_id=?", (report["results"][0]["task_run_id"],)).fetchone()
+    assert row[0] == "failed_terminal"
+    assert row[1] == "invalid-response"
+    assert json.loads(row[2])["input_tokens"] == 123
+    assert row[3] == pricing.record_id
+    assert row[4] == fx.record_id
+    assert row[5] == str(raw_ref)
+
+
+def test_transient_retry_records_each_attempt_and_only_paid_response_cost(monkeypatch, tmp_path: Path):
+    import sqlite3
+    pricing = build_pricing_snapshot(
+        provider_id="fake", model_snapshot="fake-model",
+        rates=(
+            PriceRate(dimension="input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.20")),
+            PriceRate(dimension="cached_input_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("0.02")),
+            PriceRate(dimension="output_tokens", unit_quantity=Decimal("1000000"), price_per_unit=Decimal("1.20")),
+        ), source_content_hash="c" * 64, authoritative_source_url="https://pricing.example.test",
+    )
+    fx = build_fx_snapshot(aud_per_usd=Decimal("1.50"), source_name="fixture", source_url="https://fx.example.test", source_content_hash="d" * 64)
+
+    def transport(url: str):
+        return (f"<html><h1>Official</h1><p>Evidence for {url}</p></html>".encode(), "text/html")
+
+    def retried_response(*, model, input_text, text_format, max_output_tokens, on_retry):
+        on_retry(2, OpenAIRequestError("synthetic retry", status_code=429, retryable=True))
+        evidence_id = re.search(r"\[(evidence:[0-9a-f]+)\]", input_text).group(1)
+        payload = {"programs": [], "services": [], "projects": [], "campaigns": [], "organisational_units": [], "activities": [{"proposition": "activity", "subject_proposal_id": None, "scope_kind": "organisation", "evidence_refs": [evidence_id], "confidence": None, "competing_interpretation": None}], "populations": [], "geographies": [], "sdg_alignments": [], "assertions": [], "classie_assignments": [], "semantic_outcome": "supported", "blockers": []}
+        return ApiResult(response_id="retry-response", model=model, status="completed", output_text=json.dumps(payload), usage=ApiUsage(input_tokens=100, output_tokens=20, total_tokens=120))
+
+    monkeypatch.setattr("charitygraph.llm_semantic_economics.responses_create", retried_response)
+    report = run_spike(SpikeRunConfig(runtime_root=str(tmp_path / "runtime"), provider_id="fake", model_snapshot="fake-model", execute_paid=True), transport=transport, pricing_snapshot=pricing, fx_snapshot=fx)
+    assert report["run_lifecycle"]["run_status"] == "succeeded"
+    with sqlite3.connect(report["ledger"]["database"]) as conn:
+        assert conn.execute("SELECT COUNT(*) FROM task_attempts WHERE status='failed_retryable'").fetchone()[0] == report["unique_semantic_evidence_pack_count"]
+        assert conn.execute("SELECT COUNT(*) FROM task_attempts WHERE status='succeeded'").fetchone()[0] == report["unique_semantic_evidence_pack_count"]
+        assert conn.execute("SELECT COUNT(*) FROM cost_entries WHERE entry_type='actual'").fetchone()[0] == report["unique_semantic_evidence_pack_count"]
+        assert conn.execute("SELECT COUNT(*) FROM task_attempts WHERE provider_request_id='retry-response' AND usage_json IS NOT NULL").fetchone()[0] == report["unique_semantic_evidence_pack_count"]
+
 import sqlite3
 
 from charitygraph.openai_client import OpenAIRequestError

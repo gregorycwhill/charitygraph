@@ -392,8 +392,8 @@ class SQLiteCatalog:
             if row is None:
                 raise CatalogError(f"unknown reservation {reservation_id}")
             reserved = Decimal(row["reserved_aud"])
-            actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
-            released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+            actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
+            released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
             outstanding = (reserved - min(actual, reserved) - released).quantize(Decimal("0.000001"))
             return {"reserved": reserved, "actual": actual, "released": released, "outstanding": outstanding}
     def register_task(self, task: Any, *, run_id: str | None = None, now: datetime | str | None = None) -> dict[str, Any]:
@@ -537,8 +537,8 @@ class SQLiteCatalog:
     def finish_successful_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, result_artifact_id: str, provider_request_id: str | None = None, usage: Any | None = None, pricing_snapshot_id: str | None = None, fx_snapshot_id: str | None = None) -> dict[str, Any]:
         return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="succeeded", result_artifact_id=result_artifact_id, retryable=False, provider_request_id=provider_request_id, usage=usage, pricing_snapshot_id=pricing_snapshot_id, fx_snapshot_id=fx_snapshot_id)
 
-    def finish_failed_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, retryable: bool, error_class: str, error_message_redacted: str, next_eligible_at: datetime | str | None = None) -> dict[str, Any]:
-        return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="failed_retryable" if retryable else "failed_terminal", retryable=retryable, error_class=error_class, error_message_redacted=error_message_redacted, next_eligible_at=next_eligible_at)
+    def finish_failed_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, retryable: bool, error_class: str, error_message_redacted: str, next_eligible_at: datetime | str | None = None, result_artifact_id: str | None = None, provider_request_id: str | None = None, usage: Any | None = None, pricing_snapshot_id: str | None = None, fx_snapshot_id: str | None = None) -> dict[str, Any]:
+        return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="failed_retryable" if retryable else "failed_terminal", retryable=retryable, error_class=error_class, error_message_redacted=error_message_redacted, next_eligible_at=next_eligible_at, result_artifact_id=result_artifact_id, provider_request_id=provider_request_id, usage=usage, pricing_snapshot_id=pricing_snapshot_id, fx_snapshot_id=fx_snapshot_id)
 
     def finish_held_attempt(self, task_run_id: str, *, owner: str, completed_at: datetime | str, error_class: str, error_message_redacted: str) -> dict[str, Any]:
         return self._finish_attempt(task_run_id, owner=owner, completed_at=completed_at, status="held", retryable=False, error_class=error_class, error_message_redacted=error_message_redacted)
@@ -596,8 +596,8 @@ class SQLiteCatalog:
             conn.execute("UPDATE budget_reservations SET status='expired', updated_at=? WHERE reservation_id=?", (now_s, reservation_id))
             return
         reserved = Decimal(row["reserved_aud"])
-        actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
-        released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+        actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
+        released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
         unused = reserved - min(actual, reserved) - released
         if actual >= reserved:
             status = "released" if released > 0 else "consumed"
@@ -630,19 +630,19 @@ class SQLiteCatalog:
             if reservation["status"] == "expired":
                 continue
             rid, reserved = reservation["reservation_id"], Decimal(reservation["reserved_aud"])
-            actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='actual'", (cohort_id, rid)).fetchone()[0])
-            released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='reservation_release'", (cohort_id, rid)).fetchone()[0])
+            actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='actual'", (cohort_id, rid)).fetchone()[0])
+            released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='reservation_release'", (cohort_id, rid)).fetchone()[0])
             remaining = (reserved - min(actual, reserved) - released).quantize(Decimal("0.000001"))
             if remaining < 0:
                 raise ConflictError("reservation releases cannot exceed the unused portion of their own reservation")
             outstanding += remaining
             overrun += max(actual - reserved, Decimal("0"))
-        actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND entry_type='actual'", (cohort_id,)).fetchone()[0])
-        released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND entry_type='reservation_release'", (cohort_id,)).fetchone()[0])
-        credits = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND entry_type='credit'", (cohort_id,)).fetchone()[0])
-        debits = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND entry_type='adjustment' AND adjustment_direction='debit'", (cohort_id,)).fetchone()[0])
-        adjustment_credits = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND entry_type='adjustment' AND adjustment_direction='credit'", (cohort_id,)).fetchone()[0])
-        unreserved = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE cohort_id=? AND entry_type='actual' AND reservation_id NOT IN (SELECT reservation_id FROM budget_reservations WHERE cohort_id=?)", (cohort_id, cohort_id)).fetchone()[0])
+        actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='actual'", (cohort_id,)).fetchone()[0])
+        released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='reservation_release'", (cohort_id,)).fetchone()[0])
+        credits = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='credit'", (cohort_id,)).fetchone()[0])
+        debits = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='adjustment' AND adjustment_direction='debit'", (cohort_id,)).fetchone()[0])
+        adjustment_credits = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='adjustment' AND adjustment_direction='credit'", (cohort_id,)).fetchone()[0])
+        unreserved = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='actual' AND reservation_id NOT IN (SELECT reservation_id FROM budget_reservations WHERE cohort_id=?)", (cohort_id, cohort_id)).fetchone()[0])
         cap = Decimal(cohort["budget_cap_aud"])
         net = actual + debits - credits - adjustment_credits
         committed = net + outstanding
@@ -707,8 +707,8 @@ class SQLiteCatalog:
                     raise ConflictError("cost entry key was reused with different material")
                 return dict(existing)
             reserved = Decimal(reservation["reserved_aud"])
-            actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
-            released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+            actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
+            released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
             if amount_decimal > reserved - min(actual, reserved) - released:
                 raise ConflictError("reservation release exceeds its own unused amount")
             conn.execute("INSERT INTO cost_entries(entry_key, entry_hash, cohort_id, run_id, task_run_id, reservation_id, entry_type, paid_output_category, provider_amount, provider_currency, aud_amount, adjustment_direction, pricing_snapshot_id, fx_snapshot_id, usage_json, recorded_at) VALUES (?, ?, ?, ?, NULL, ?, 'reservation_release', NULL, NULL, NULL, ?, NULL, NULL, NULL, NULL, ?)", (entry_key, entry_hash, reservation["cohort_id"], reservation["run_id"], reservation_id, str(amount_decimal), timestamp))
@@ -754,8 +754,8 @@ class SQLiteCatalog:
             if reservation is not None and (reservation["cohort_id"] != cohort_id or reservation["run_id"] != normalized.get("run_id")):
                 raise ConflictError("cost entry cohort_id and run_id must match its reservation")
             if entry_type == "actual" and reservation is not None:
-                existing_actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
-                released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+                existing_actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
+                released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
                 projected_actual = existing_actual + amount
                 unused_after_actual = Decimal(reservation["reserved_aud"]) - min(projected_actual, Decimal(reservation["reserved_aud"])) - released
                 if unused_after_actual < 0:
@@ -763,8 +763,8 @@ class SQLiteCatalog:
             if entry_type == "reservation_release":
                 if reservation is None:
                     raise ConflictError("reservation release requires a matching reservation")
-                actual = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
-                released = Decimal(conn.execute("SELECT COALESCE(SUM(aud_amount), '0') FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+                actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
+                released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
                 if amount > Decimal(reservation["reserved_aud"]) - min(actual, Decimal(reservation["reserved_aud"])) - released:
                     raise ConflictError("reservation release exceeds its own unused amount")
             usage = normalized.get("usage")

@@ -699,14 +699,8 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
                 catalog.finish_failed_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), retryable=False, error_class=error_class, error_message_redacted=error_message)
                 failure = {"abn": key[0], "tier": key[1], "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "error_class": error_class, "error_message_redacted": error_message}
                 break
-            try:
-                output = validate_output(RichSemanticOutput.model_validate(json.loads(api.output_text)), bundles[key], classie_concept_ids=set() if classie_runtime is None else {item["external_concept_id"] for item in classie_runtime["concepts"]})
-            except Exception as error:
-                error_class, error_message = "output_validation", str(error)[:512]
-                catalog.finish_failed_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), retryable=False, error_class=error_class, error_message_redacted=error_message)
-                failure = {"abn": key[0], "tier": key[1], "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "error_class": error_class, "error_message_redacted": error_message}
-                break
-            raw_ref = str(root / "responses" / f"{current_task_run_id}.json")
+            safe_task_run_id = current_task_run_id.replace(":", "_")
+            raw_ref = str(root / "responses" / f"{safe_task_run_id}.json")
             Path(raw_ref).parent.mkdir(parents=True, exist_ok=True)
             Path(raw_ref).write_text(api.output_text, encoding="utf-8")
             usage = api.usage
@@ -714,6 +708,16 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
             aud = (usd * fx_snapshot.aud_per_base_unit).quantize(Decimal("0.000001"))
             entry = _cost_entry(cohort_id=cohort_id, run_id=run_id, task_run_id=current_task_run_id, reservation_id=reservation_id, pricing_id=pricing_id, fx_id=fx_id, provider_cost_usd=usd, usage=usage, aud_cost=aud, recorded_at=datetime.now(UTC))
             catalog.record_cost_entry(entry, entry_key=deterministic_id("costledger:", {"task_run": current_task_run_id, "output_hash": hashlib.sha256(api.output_text.encode()).hexdigest()}))
+            try:
+                output = validate_output(RichSemanticOutput.model_validate(json.loads(api.output_text)), bundles[key], classie_concept_ids=set() if classie_runtime is None else {item["external_concept_id"] for item in classie_runtime["concepts"]})
+            except Exception as error:
+                error_class, error_message = "output_validation", str(error)[:512]
+                catalog.finish_failed_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), retryable=False, error_class=error_class, error_message_redacted=error_message, result_artifact_id=raw_ref, provider_request_id=api.response_id, usage=usage.__dict__, pricing_snapshot_id=pricing_id, fx_snapshot_id=fx_id)
+                failure = {"abn": key[0], "tier": key[1], "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "error_class": error_class, "error_message_redacted": error_message}
+                invalid_result = {"abn": key[0], "tier": key[1], "task_id": logical_task.record_id, "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "output": None, "usage": usage.__dict__, "actual_aud": str(aud), "raw_response_ref": raw_ref, "validation_status": "invalid_output", "effective_evidence_pack_hash": pack_hash, "reused_from": None, "originating_attempt_number": attempt_number, "error_class": error_class, "error_message_redacted": error_message}
+                report["results"].append(invalid_result)
+                results_by_key[key] = invalid_result
+                break
             catalog.finish_successful_attempt(current_task_run_id, owner=owner, completed_at=datetime.now(UTC), result_artifact_id=raw_ref, provider_request_id=api.response_id, usage=usage.__dict__, pricing_snapshot_id=pricing_id, fx_snapshot_id=fx_id)
             result = {"abn": key[0], "tier": key[1], "task_id": logical_task.record_id, "logical_task_id": logical_task.record_id, "execution_task_id": execution_task_id, "task_run_id": current_task_run_id, "output": output.model_dump(mode="json"), "usage": usage.__dict__, "actual_aud": str(aud), "raw_response_ref": raw_ref, "validation_status": "valid", "effective_evidence_pack_hash": pack_hash, "reused_from": None, "originating_attempt_number": attempt_number}
             report["results"].append(result)
@@ -724,7 +728,7 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
         assertion_count = sum(metrics["semantic_assertion_count"] for _, metrics in independent_results)
         grounded_count = sum(metrics["grounded_proposition_count"] for _, metrics in independent_results)
         unresolved_count = sum(metrics["unresolved_count"] for _, metrics in independent_results)
-        actual_total = sum((Decimal(row["actual_aud"]) for row, _ in independent_results), Decimal("0"))
+        actual_total = sum((Decimal(row["actual_aud"]) for row in report["results"]), Decimal("0"))
         report["economics"]["aggregate"] = {"semantic_assertions": assertion_count, "proposal_count": proposal_count, "credible_proposals": proposal_count, "grounded_propositions": grounded_count, "unresolved_count": unresolved_count, "actual_cost_aud": str(actual_total), "useful_yield": {"grounded_propositions": grounded_count, "proposals_with_evidence": grounded_count, "cost_per_grounded_proposition_aud": None if not grounded_count else str((actual_total / grounded_count).quantize(Decimal("0.000001")))}, "incremental_tier_yield": "computed_from_independent_packs", "quality_effect": "pending_human_review", "human_review_burden": len(review_rows)}
         report["economics"]["actual_by_charity_tier"] = [{"abn": row["abn"], "tier": row["tier"], "actual_aud": row["actual_aud"], "evidence_content_hash": row["effective_evidence_pack_hash"], "reused_exact_evidence_pack": row["validation_status"] != "valid", "proposal_count": 0 if row["validation_status"] != "valid" else _output_metrics(row["output"])["proposal_count"], "semantic_assertion_count": 0 if row["validation_status"] != "valid" else _output_metrics(row["output"])["semantic_assertion_count"], "grounded_proposition_count": 0 if row["validation_status"] != "valid" else _output_metrics(row["output"])["grounded_proposition_count"], "unresolved_count": 0 if row["validation_status"] != "valid" else _output_metrics(row["output"])["unresolved_count"]} for row in report["results"]]
         report["economics"]["incremental_tier_yield"] = [{"tier": tier, "task_count": sum(1 for row in report["results"] if row["tier"] == tier and row["validation_status"] == "valid"), "reused_task_count": sum(1 for row in report["results"] if row["tier"] == tier and row["validation_status"] != "valid"), "actual_cost_aud": str(sum((Decimal(row["actual_aud"]) for row in report["results"] if row["tier"] == tier and row["validation_status"] == "valid"), Decimal("0"))), "proposal_count": sum(_output_metrics(row["output"])["proposal_count"] for row in report["results"] if row["tier"] == tier and row["validation_status"] == "valid"), "grounded_proposition_count": sum(_output_metrics(row["output"])["grounded_proposition_count"] for row in report["results"] if row["tier"] == tier and row["validation_status"] == "valid")} for tier in TIERS]
