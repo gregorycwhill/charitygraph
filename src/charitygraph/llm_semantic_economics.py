@@ -52,7 +52,7 @@ HUMAN_GOLD_DISPOSITIONS = {
     "The Smith Family": {
         "program:learning-for-life": "REQUIRED", "learning-for-life": "REQUIRED",
         "learning-clubs": "REQUIRED", "program:lets-read": "REQUIRED", "program:passport": "REQUIRED",
-        "the-connection": "UNRESOLVED", "literacy-programs": "EXCLUDE", "technology-programs": "EXCLUDE",
+        "the-connection": "UNRESOLVED", "program:the-connection": "UNRESOLVED", "proposal:the-connection": "UNRESOLVED", "literacy-programs": "EXCLUDE", "technology-programs": "EXCLUDE",
         "numeracy-programs": "EXCLUDE", "mentoring-programs": "EXCLUDE",
         "aboriginal-and-torres-strait-islander-programs": "EXCLUDE", "arts-programs": "EXCLUDE",
         "community-programs": "EXCLUDE", "financial-programs": "EXCLUDE",
@@ -60,7 +60,7 @@ HUMAN_GOLD_DISPOSITIONS = {
     },
     "Australian Red Cross Society": {
         "service:disaster-support": "REQUIRED", "service:first-aid-training": "REQUIRED",
-        "program:migration-support-australia": "ACCEPTABLE", "program:telecross-telechat": "UNRESOLVED",
+        "program:migration-support-australia": "ACCEPTABLE", "service_migration_support": "ACCEPTABLE", "program_telecross": "UNRESOLVED", "program_telechat": "UNRESOLVED", "program:telecross-telechat": "UNRESOLVED",
         "service:community-services-vulnerable-people": "EXCLUDE",
     },
     "Australian Communities Foundation Limited": {
@@ -78,6 +78,7 @@ HUMAN_GOLD_DISPOSITIONS = {
     },
 }
 REQUIRED_GOLD_COUNT = 12
+DEVELOPMENT_GOLD_PROVENANCE = "post-run human development calibration gold"
 HUMAN_GOLD_REQUIRED_VARIANTS = {
     ("The Smith Family", "learning-for-life"): ("learning-for-life", "program:learning-for-life"),
     ("The Smith Family", "learning-clubs"): ("learning-clubs", "program:learning-clubs", "proposal:learning-clubs"),
@@ -94,8 +95,7 @@ HUMAN_GOLD_REQUIRED_VARIANTS = {
 }
 
 
-def score_human_gold(results):
-    """Score deduplicated program/service proposals against human dispositions."""
+def _stage_a_observed(results):
     observed = set()
     for result in results:
         output = result.get("output") or {}
@@ -103,23 +103,125 @@ def score_human_gold(results):
         for collection in (output.get("programs", ()), output.get("services", ())):
             for proposal in collection:
                 observed.add((charity, str(proposal.get("proposal_id", ""))))
-    found = set()
-    for family_key, variants in HUMAN_GOLD_REQUIRED_VARIANTS.items():
-        if any((family_key[0], variant) in observed for variant in variants):
-            found.add(family_key)
-    excludes = {(charity, proposal_id) for charity, mapping in HUMAN_GOLD_DISPOSITIONS.items() for proposal_id, disposition in mapping.items() if disposition == "EXCLUDE"}
-    prohibited = excludes & observed
-    recall = len(found) / REQUIRED_GOLD_COUNT if REQUIRED_GOLD_COUNT else None
-    precision = len(found) / len(observed) if observed else None
+    return observed
+
+
+def score_human_gold(results, *, stage_b_cases=None):
+    """Score resolved Stage-B families; raw Stage-A IDs cannot yield precision."""
+    observed = _stage_a_observed(results)
+    required_families = set(HUMAN_GOLD_REQUIRED_VARIANTS)
+    if stage_b_cases is None:
+        available = {family for family, variants in HUMAN_GOLD_REQUIRED_VARIANTS.items() if any((family[0], variant) in observed for variant in variants)}
+        return {
+            "status": "stage_b_required", "required_denominator": REQUIRED_GOLD_COUNT,
+            "stage_a_required_available": len(available), "stage_a_proposal_count": len(observed),
+            "precision": None, "required_found": None, "required_missed": None,
+            "false_program_creation_count": None, "duplicate_overfragmentation": None,
+            "zero_critical_scope_errors": None,
+            "thresholds": {"recall_at_least_0_90": None, "precision_at_least_0_80": None, "zero_critical_scope_errors": None},
+        }
+    family_variants = {}
+    for charity, mapping in HUMAN_GOLD_DISPOSITIONS.items():
+        for proposal_id, disposition in mapping.items():
+            family_variants[(charity, proposal_id)] = (proposal_id, disposition)
+    for (charity, family), variants in HUMAN_GOLD_REQUIRED_VARIANTS.items():
+        for proposal_id in variants:
+            family_variants[(charity, proposal_id)] = (family, "REQUIRED")
+    required_found = set()
+    positive = 0
+    false_programs = 0
+    acceptable = 0
+    unresolved = 0
+    unreviewed = []
+    duplicate_numerator = 0
+    duplicate_denominator = 0
+    for raw_case in stage_b_cases:
+        case = raw_case if hasattr(raw_case, "charity_name") else raw_case
+        charity = case.charity_name if hasattr(case, "charity_name") else case["charity_name"]
+        stage_b = case.stage_b if hasattr(case, "stage_b") else case["stage_b"]
+        seen_family = {}
+        for decision in stage_b.resolutions if hasattr(stage_b, "resolutions") else stage_b["resolutions"]:
+            resolution_class = decision.resolution_class if hasattr(decision, "resolution_class") else decision["resolution_class"]
+            if resolution_class not in {"durable_program", "durable_service"}:
+                continue
+            ids = decision.stage_a_proposal_ids if hasattr(decision, "stage_a_proposal_ids") else decision["stage_a_proposal_ids"]
+            mapped = [family_variants.get((charity, proposal_id)) for proposal_id in ids]
+            mapped = [item for item in mapped if item is not None]
+            dispositions = {item[1] for item in mapped}
+            families = {item[0] for item in mapped}
+            duplicate_denominator += 1
+            if len(families) == 1:
+                family = next(iter(families))
+            else:
+                family = None
+            candidate_key = family or (decision.resolved_candidate_id if hasattr(decision, "resolved_candidate_id") else decision.get("resolved_candidate_id"))
+            if candidate_key:
+                seen_family[candidate_key] = seen_family.get(candidate_key, 0) + 1
+            if not mapped or len(dispositions) != 1:
+                unreviewed.append(f"{charity}:{','.join(ids)}")
+                continue
+            disposition = next(iter(dispositions))
+            if disposition == "REQUIRED":
+                positive += 1
+                for required_family, variants in HUMAN_GOLD_REQUIRED_VARIANTS.items():
+                    if required_family[0] == charity and any(item[0] in variants for item in mapped):
+                        required_found.add(required_family)
+            elif disposition == "ACCEPTABLE":
+                positive += 1
+                acceptable += 1
+            elif disposition == "EXCLUDE":
+                false_programs += 1
+            elif disposition == "UNRESOLVED":
+                unresolved += 1
+        for count in seen_family.values():
+            if count > 1:
+                duplicate_numerator += count - 1
+    recall = len(required_found) / REQUIRED_GOLD_COUNT if REQUIRED_GOLD_COUNT else None
+    precision = None if unreviewed else (positive / (positive + false_programs) if positive + false_programs else None)
+    duplicate_rate = duplicate_numerator / duplicate_denominator if duplicate_denominator else 0.0
     return {
-        "required_denominator": REQUIRED_GOLD_COUNT, "required_found": len(found),
-        "required_missed": sorted(f"{charity}:{proposal_id}" for charity, proposal_id in HUMAN_GOLD_REQUIRED_VARIANTS if (charity, proposal_id) not in found),
-        "recall": recall, "proposed_program_service_count": len(observed),
-        "non_required_proposals": len(observed - {(c, v) for (c, _), variants in HUMAN_GOLD_REQUIRED_VARIANTS.items() for v in variants}), "precision": precision,
-        "explicit_exclude_proposals": sorted(f"{charity}:{proposal_id}" for charity, proposal_id in prohibited),
-        "zero_critical_scope_errors": not prohibited,
-        "thresholds": {"recall_at_least_0_90": recall is not None and recall >= 0.90, "precision_at_least_0_80": precision is not None and precision >= 0.80, "zero_critical_scope_errors": not prohibited},
+        "status": "blocked_review_required" if unreviewed else "scored",
+        "required_denominator": REQUIRED_GOLD_COUNT, "required_found": len(required_found),
+        "required_missed": sorted(f"{charity}:{family}" for charity, family in required_families if (charity, family) not in required_found),
+        "recall": recall, "precision": precision, "positive_family_count": positive,
+        "acceptable_positive_count": acceptable, "unresolved_excluded_count": unresolved,
+        "false_program_creation_count": false_programs,
+        "unreviewed_durable_families": sorted(unreviewed),
+        "duplicate_overfragmentation": {"numerator": duplicate_numerator, "denominator": duplicate_denominator, "rate": duplicate_rate},
+        "zero_critical_scope_errors": false_programs == 0,
+        "thresholds": {
+            "recall_at_least_0_90": recall is not None and recall >= 0.90,
+            "precision_at_least_0_80": precision is not None and precision >= 0.80,
+            "false_program_creation_at_most_1": false_programs <= 1,
+            "duplicate_overfragmentation_at_most_0_10": duplicate_rate <= 0.10,
+            "zero_critical_scope_errors": false_programs == 0,
+        },
     }
+
+
+def describe_stage_a_by_tier(results):
+    """Descriptive Stage-A inventory; it is not a precision score."""
+    summary = {}
+    for result in results:
+        tier = str(result.get("tier") or "unknown")
+        charity = str(result.get("charity") or result.get("legal_current_name") or "")
+        row = summary.setdefault(tier, {"charities": set(), "raw_stage_a_proposal_count": 0, "required": [], "acceptable": [], "unresolved": [], "exclude": [], "unreviewed": []})
+        row["charities"].add(charity)
+        output = result.get("output") or {}
+        for collection in (output.get("programs", ()), output.get("services", ())):
+            for proposal in collection:
+                row["raw_stage_a_proposal_count"] += 1
+                pid = str(proposal.get("proposal_id", ""))
+                disposition = HUMAN_GOLD_DISPOSITIONS.get(charity, {}).get(pid)
+                if disposition is None and (charity, pid) in {(c, variant) for (c, _), variants in HUMAN_GOLD_REQUIRED_VARIANTS.items() for variant in variants}:
+                    disposition = "REQUIRED"
+                if disposition:
+                    row[disposition.lower()].append(pid)
+                else:
+                    row["unreviewed"].append(pid)
+    for row in summary.values():
+        row["charities"] = sorted(row["charities"])
+    return summary
 
 # Explicitly selected bounded pages.  This is source navigation, never a
 # semantic URL filter; the seven rows are the only permitted development scope.
@@ -686,7 +788,7 @@ def run_spike(config: SpikeRunConfig, *, transport: Callable[[str], tuple[bytes,
     for document in documents:
         source_counts[document.publisher] = source_counts.get(document.publisher, 0) + 1
     tier_counts = {tier: sum(1 for key in tasks if key[1] == tier) for tier in TIERS}
-    report: dict[str, Any] = {"version": SPIKE_VERSION, "private": True, "development_abns": [m.abn for m in members], "holdout_firewall": {"enforced": True, "holdout_model_tasks": 0}, "tiers": list(TIERS), "task_count": len(tasks), "unique_semantic_evidence_pack_count": len(unique_keys), "source_document_count": len(documents), "source_documents_by_charity": source_counts, "task_count_by_tier": tier_counts, "acquisition_failures": [failure.model_dump(mode="json") for failure in failures], "evidence_bundles": {f"{key[0]}:{key[1]}": bundle.model_dump(mode="json") for key, bundle in bundles.items()}, "projected": {"input_tokens": sum(unique_estimates.values()), "output_tokens": len(unique_keys) * config.max_output_tokens, "max_reserved_output_tokens": len(unique_keys) * config.max_output_tokens, "aud": None if projected_aud is None else str(projected_aud), "within_cap": None if projected_aud is None else projected_aud <= config.budget_cap_aud, "status": "missing_bound_snapshots" if projected_aud is None else "projected_from_bound_snapshots"}, "paid_execution": config.execute_paid, "results": [], "human_review": {"denominator_current": REQUIRED_GOLD_COUNT, "required_distribution": {"The Smith Family": 4, "Australian Red Cross Society": 2, "Australian Communities Foundation Limited": 3, "The Fred Hollows Foundation": 3}, "governed_dispositions": HUMAN_GOLD_DISPOSITIONS, "proposed_durable_program_service_subjects": [], "model_output_is_not_gold": True}, "quality": {"status": "pending_human_review", "unsupported_claims": "not automatically adjudicated", "duplicates_or_overfragmentation": "not automatically adjudicated", "apparent_misses": "not automatically adjudicated", "evidence_limited_cases": [], "model_limited_cases": []}}
+    report: dict[str, Any] = {"version": SPIKE_VERSION, "private": True, "development_abns": [m.abn for m in members], "holdout_firewall": {"enforced": True, "holdout_model_tasks": 0}, "tiers": list(TIERS), "task_count": len(tasks), "unique_semantic_evidence_pack_count": len(unique_keys), "source_document_count": len(documents), "source_documents_by_charity": source_counts, "task_count_by_tier": tier_counts, "acquisition_failures": [failure.model_dump(mode="json") for failure in failures], "evidence_bundles": {f"{key[0]}:{key[1]}": bundle.model_dump(mode="json") for key, bundle in bundles.items()}, "projected": {"input_tokens": sum(unique_estimates.values()), "output_tokens": len(unique_keys) * config.max_output_tokens, "max_reserved_output_tokens": len(unique_keys) * config.max_output_tokens, "aud": None if projected_aud is None else str(projected_aud), "within_cap": None if projected_aud is None else projected_aud <= config.budget_cap_aud, "status": "missing_bound_snapshots" if projected_aud is None else "projected_from_bound_snapshots"}, "paid_execution": config.execute_paid, "results": [], "human_review": {"denominator_current": REQUIRED_GOLD_COUNT, "required_distribution": {"The Smith Family": 4, "Australian Red Cross Society": 2, "Australian Communities Foundation Limited": 3, "The Fred Hollows Foundation": 3}, "gold_provenance": DEVELOPMENT_GOLD_PROVENANCE, "governed_dispositions": HUMAN_GOLD_DISPOSITIONS, "proposed_durable_program_service_subjects": [], "model_output_is_not_gold": True}, "quality": {"status": "pending_human_review", "unsupported_claims": "not automatically adjudicated", "duplicates_or_overfragmentation": "not automatically adjudicated", "apparent_misses": "not automatically adjudicated", "evidence_limited_cases": [], "model_limited_cases": []}}
     report["classie_runtime"] = ({"status": "private_runtime_loaded", "scheme_id": classie_runtime["scheme_id"], "version": classie_runtime["version"], "content_hash": classie_runtime["content_hash"], "source_locator": classie_runtime.get("source_locator"), "source_publisher": classie_runtime.get("source_publisher"), "source_release_date": classie_runtime.get("source_release_date"), "source_sheet": classie_runtime.get("source_sheet"), "original_file_hash": classie_runtime.get("original_file_hash"), "transformation_version": classie_runtime.get("transformation_version"), "transformation_hash": classie_runtime.get("transformation_hash"), "external_scheme_id": classie_runtime.get("external_scheme_id"), "rights_policy": classie_runtime.get("rights_policy"), "publication_eligibility": classie_runtime["publication_eligibility"]} if classie_runtime is not None else {"status": "disabled_not_configured", "scheme_id": None, "version": None, "content_hash": None, "source_locator": None, "source_publisher": None, "source_release_date": None, "source_sheet": None, "original_file_hash": None, "transformation_version": None, "transformation_hash": None, "external_scheme_id": None, "rights_policy": None, "publication_eligibility": "withheld"})
     report["pricing_snapshot"] = None if pricing_snapshot is None else pricing_snapshot.model_dump(mode="json")
     report["fx_snapshot"] = None if fx_snapshot is None else fx_snapshot.model_dump(mode="json")

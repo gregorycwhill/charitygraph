@@ -28,7 +28,7 @@ def _prefix(value: str, prefix: str, field_name: str) -> str:
 
 ModelTaskType = Literal[
     "page_text_recovery", "relevance_screening", "structured_extraction",
-    "semantic_interpretation", "taxonomy_mapping", "adjudication",
+    "semantic_interpretation", "program_subject_normalisation", "taxonomy_mapping", "adjudication",
     "editorial_synthesis", "embedding",
 ]
 PaidOutputCategory = Literal[

@@ -408,10 +408,5 @@ def test_human_gold_dispositions_are_governed_and_scored():
     result = {"charity": "The Smith Family", "output": {"programs": [{"proposal_id": "program:learning-for-life"}, {"proposal_id": "literacy-programs"}], "services": []}}
     score = score_human_gold([result])
     assert score["required_denominator"] == 12
-    assert score["required_found"] == 1
-    alias_score = score_human_gold([{"charity": "The Smith Family", "output": {"programs": [{"proposal_id": "program:learning-clubs"}], "services": []}}])
-    assert alias_score["required_found"] == 1
-    exclude_alias_score = score_human_gold([{"charity": "The Fred Hollows Foundation", "output": {"programs": [], "services": [{"proposal_id": "service:eye-health-care-delivery"}]}}])
-    assert "The Fred Hollows Foundation:service:eye-health-care-delivery" in exclude_alias_score["explicit_exclude_proposals"]
-    assert "The Smith Family:literacy-programs" in score["explicit_exclude_proposals"]
-    assert score["zero_critical_scope_errors"] is False
+    assert score["status"] == "stage_b_required"
+    assert score["precision"] is None
