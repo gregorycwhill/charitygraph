@@ -1797,7 +1797,7 @@ class SQLiteCatalog:
         if edge_type not in allowed:
             raise CatalogError(f"unsupported knowledge lineage type {edge_type}")
         if edge_type == "reviewed_by" and not (
-            source_record_id.startswith("candidate:") and target_record_id.startswith("decision:")
+            source_record_id.startswith(("candidate:", "programcandidate:")) and target_record_id.startswith(("decision:", "adjudication:"))
         ):
             raise ConflictError("reviewed_by lineage must run from candidate to decision")
         if edge_type == "promoted_as" and not (
