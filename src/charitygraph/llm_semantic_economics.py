@@ -74,6 +74,7 @@ HUMAN_GOLD_DISPOSITIONS = {
         "program:advocacy-for-change": "REQUIRED", "program:research-and-technology": "REQUIRED",
         "program:global-eye-health-and-avoidable-blindness": "UNRESOLVED", "program:ending-avoidable-blindness": "UNRESOLVED",
         "service:sight-saving-eye-care-delivery": "EXCLUDE", "service:eye-health-care": "EXCLUDE",
+        "proposal-eye-care-delivery": "EXCLUDE", "service:eye-health-care-delivery": "EXCLUDE",
     },
 }
 REQUIRED_GOLD_COUNT = 12
