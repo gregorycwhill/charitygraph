@@ -16,7 +16,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
-from .contracts import ModelResult, ModelTask, ProgramServiceDiscoveryOutput, discovery_schema
+from .contracts import (DISCOVERY_OUTPUT_SCHEMA_V2, ModelResult, ModelTask, ProgramServiceDiscoveryOutput, ProgramServiceDiscoveryOutputV2, discovery_schema, discovery_schema_v2)
 from .contracts.ids import deterministic_id
 from .openai_client import ApiResult, estimate_response_cost, responses_create
 from .runtime import SQLiteCatalog
@@ -44,7 +44,7 @@ class NativeDiscoveryExecution:
     slot_key: str
     provider_response_id: str | None
     model_result_id: str | None
-    output: ProgramServiceDiscoveryOutput | None
+    output: ProgramServiceDiscoveryOutput | ProgramServiceDiscoveryOutputV2 | None
     proposals: tuple[dict[str, Any], ...]
     projected_candidates: tuple[dict[str, Any], ...]
     actual_usd: Decimal | None
@@ -60,14 +60,15 @@ def _json_text(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
-def build_prompt(task: ModelTask, evidence_content: Mapping[str, str]) -> str:
-    """Render the frozen prompt with evidence in task order only."""
+def build_prompt(task: ModelTask, evidence_content: Mapping[str, str], *, v2: bool = False) -> str:
+    """Render the versioned frozen prompt with evidence in task order only."""
     chunks = []
     for item in task.evidence_inputs:
         if item.evidence_id not in evidence_content:
             raise ValueError(f"missing private evidence content for {item.evidence_id}")
         chunks.append(f"[{item.evidence_id}]\n{evidence_content[item.evidence_id]}")
-    return DISCOVERY_PROMPT.format(subject_id=task.subject_id, evidence="\n\n".join(chunks))
+    prompt = DISCOVERY_PROMPT_V2 if v2 else DISCOVERY_PROMPT
+    return prompt.format(subject_id=task.subject_id, evidence="\n\n".join(chunks))
 
 
 def execute_native_discovery(
@@ -102,7 +103,11 @@ def execute_native_discovery(
     catalog.claim_task(task.record_id, owner=owner, lease_expires_at=now + timedelta(hours=1), now=now)
     task_run_id = deterministic_id("taskrun:", {"task_id": task.record_id, "run_id": run_id, "attempt": 1})
     attempt = catalog.begin_task_attempt(task.record_id, owner=owner, task_run_id=task_run_id, now=now, reservation_id=reservation_id)
-    prompt = build_prompt(task, evidence_content)
+    task_v2 = task.task_schema.schema_id == "urn:charitygraph:builder:schema:program-service-discovery-task:2.0"
+    output_v2 = task.output_schema.schema_id == DISCOVERY_OUTPUT_SCHEMA_V2.schema_id
+    if task_v2 != output_v2:
+        raise ValueError("v2 discovery requires matching task and output schema identities")
+    prompt = build_prompt(task, evidence_content, v2=task_v2)
     runtime = Path(runtime_root).resolve()
     input_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
     io_dir = runtime / "input-output"
@@ -115,7 +120,7 @@ def execute_native_discovery(
     raw_response_path: Path | None = None
     transmitted = False
     try:
-        schema = discovery_schema(tuple(item.evidence_id for item in task.evidence_inputs))
+        schema = (discovery_schema_v2 if task_v2 else discovery_schema)(tuple(item.evidence_id for item in task.evidence_inputs))
         catalog.mark_authorized_call_transmitted(slot["slot_key"], now=now)
         transmitted = True
         response = request_fn(model=task.model_snapshot, input_text=prompt, text_format={"type": "json_schema", "name": "program_service_discovery", "schema": schema}, max_output_tokens=MAX_OUTPUT_TOKENS, max_attempts=2)
@@ -130,14 +135,14 @@ def execute_native_discovery(
         cost = {"cohort_id": cohort_id, "run_id": run_id, "task_run_id": task_run_id, "reservation_id": reservation_id, "pricing_snapshot_id": pricing_snapshot_id, "fx_snapshot_id": fx_snapshot_id, "entry_type": "actual", "paid_output_category": "semantic_judgement", "provider_cost": {"amount": str(actual_usd or Decimal("0")), "currency": "USD"}, "aud_cost": {"amount": str(actual_aud or Decimal("0")), "currency": "AUD"}, "usage": usage, "recorded_at": now}
         catalog.record_cost_entry(cost, entry_key=f"actual:{task_run_id}")
         errors: list[str] = []
-        output: ProgramServiceDiscoveryOutput | None = None
+        output: ProgramServiceDiscoveryOutput | ProgramServiceDiscoveryOutputV2 | None = None
         try:
             output = ProgramServiceDiscoveryOutput.model_validate_json(response.output_text)
         except Exception as exc:
             errors.append(str(exc)[:500])
         result_id = deterministic_id("modelresult:", {"task_run_id": task_run_id, "response_id": response.response_id, "output_hash": hashlib.sha256(response.output_text.encode()).hexdigest()})
         if output is None:
-            output = ProgramServiceDiscoveryOutput(proposals=())
+            output = output_type(proposals=())
             validation_status = "invalid"
         else:
             validation_status = "valid"
