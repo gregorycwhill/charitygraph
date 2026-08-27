@@ -11,7 +11,7 @@ import os
 import time
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any
+from typing import Any, Callable
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -21,6 +21,12 @@ API_URL = "https://api.openai.com/v1"
 
 class OpenAIRequestError(RuntimeError):
     """A deliberately sanitised API error suitable for private run metadata."""
+
+    def __init__(self, message: str, *, status_code: int | None = None, diagnostics: dict[str, Any] | None = None, retryable: bool = False) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.diagnostics = diagnostics or ({"status": status_code} if status_code is not None else {})
+        self.retryable = retryable
 
 
 @dataclass(frozen=True)
@@ -46,13 +52,36 @@ def _credential() -> str:
     return value
 
 
-def _safe_error(error: HTTPError | URLError) -> str:
-    if isinstance(error, HTTPError):
-        # Do not include an HTTP body: although it should not contain a secret,
-        # it is not needed for the deterministic failure classification.
-        return f"OpenAI API request failed with HTTP {error.code}"
-    return "OpenAI API request could not connect"
+def _bounded(value: object, limit: int) -> str | None:
+    if not isinstance(value, str):
+        return None
+    return value[:limit]
 
+
+def _safe_error(error: BaseException) -> OpenAIRequestError:
+    if isinstance(error, HTTPError):
+        diagnostics: dict[str, Any] = {"status": error.code}
+        try:
+            raw = error.read(4096)
+            parsed = json.loads(raw.decode("utf-8", errors="replace"))
+            detail = parsed.get("error") if isinstance(parsed, dict) else None
+            if isinstance(detail, dict):
+                for key, limit in (("type", 128), ("code", 128), ("param", 256), ("message", 512)):
+                    value = _bounded(detail.get(key), limit)
+                    if value is not None:
+                        diagnostics[key] = value
+        except (OSError, UnicodeError, json.JSONDecodeError, AttributeError):
+            pass
+        parts = [f"OpenAI API request failed with HTTP {error.code}"]
+        for key in ("type", "code", "param", "message"):
+            if key in diagnostics:
+                parts.append(f"{key}={diagnostics[key]}")
+        return OpenAIRequestError("; ".join(parts), status_code=error.code, diagnostics=diagnostics, retryable=error.code == 429 or error.code >= 500)
+    if isinstance(error, TimeoutError):
+        return OpenAIRequestError("OpenAI API request timed out", retryable=True)
+    if isinstance(error, URLError):
+        return OpenAIRequestError("OpenAI API request could not connect", retryable=True)
+    return OpenAIRequestError("OpenAI API request failed", retryable=False)
 
 def _post(path: str, payload: dict[str, Any], *, timeout_seconds: int = 60) -> dict[str, Any]:
     data = json.dumps(payload, separators=(",", ":")).encode("utf-8")
@@ -69,7 +98,7 @@ def _post(path: str, payload: dict[str, Any], *, timeout_seconds: int = 60) -> d
         with urlopen(request, timeout=timeout_seconds) as response:
             return json.loads(response.read().decode("utf-8"))
     except (HTTPError, URLError, TimeoutError) as error:
-        raise OpenAIRequestError(_safe_error(error)) from None
+        raise _safe_error(error) from None
 
 
 def _output_text(raw: dict[str, Any]) -> str:
@@ -87,6 +116,7 @@ def _output_text(raw: dict[str, Any]) -> str:
 def responses_create(
     *, model: str, input_text: str, text_format: dict[str, Any], max_output_tokens: int = 1_200,
     max_attempts: int = 2, timeout_seconds: int = 60, reasoning: dict[str, Any] | None = None,
+    on_retry: Callable[[int, OpenAIRequestError], None] | None = None,
 ) -> ApiResult:
     """Create one structured response with at most one bounded retry.
 
@@ -119,8 +149,12 @@ def responses_create(
             )
         except OpenAIRequestError as error:
             last_error = error
-            if attempt + 1 < max_attempts:
+            if error.retryable and attempt + 1 < max_attempts:
+                if on_retry is not None:
+                    on_retry(attempt + 1, error)
                 time.sleep(1 + attempt)
+            elif not error.retryable:
+                break
     assert last_error is not None
     raise last_error
 

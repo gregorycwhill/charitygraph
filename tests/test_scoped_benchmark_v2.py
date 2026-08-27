@@ -139,14 +139,14 @@ def test_frozen_scorecard_benchmark_completeness_gate():
     assert report["program_service_recall_precision_evaluable"] is False
     assert "program_service" in report["blocked_task_families"]
     assert report["classie_rights_disabled_path_evaluable"] is True
-    assert report["classie_semantic_assignment_evaluation"] == "blocked_until_rights_permit"
+    assert report["classie_semantic_assignment_evaluation"] == "private_processing_allowed_public_withheld"
     assert report["abstention_insufficient_evidence_evaluable"] is True
     assert report["paid_execution_allowed"] is False
 
 def test_classie_rights_gate_and_holdout_firewall():
     assert CLASSIE_RIGHTS_GATE["material_discoverable"] is True
     assert CLASSIE_RIGHTS_GATE["native_subject_population_files_exist"] is True
-    assert CLASSIE_RIGHTS_GATE["status"] == "blocked_pending_rights_review"
+    assert CLASSIE_RIGHTS_GATE["status"] == "private_processing_approved_public_withheld"
     assert CLASSIE_RIGHTS_GATE["native_material_committed"] is False
     assert not HOLDOUT_ABNS.intersection(ABNS.values())
     with pytest.raises(RuntimeError, match="holdout firewall"):

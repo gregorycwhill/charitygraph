@@ -198,6 +198,8 @@ class TaxonomyAssignment(ArtifactRecord):
     confidence: str | None = None
     outcome_state: Literal["resolved", "supported", "unknown", "insufficient_evidence", "withheld"] = "resolved"
     lifecycle_status: Literal["candidate", "accepted", "edited", "rejected", "held"] = "candidate"
+    publication_eligibility: Literal["eligible", "ineligible", "review_required", "withheld"] = "withheld"
+    publication_policy_id: str | None = None
 
     @field_validator("record_id")
     @classmethod

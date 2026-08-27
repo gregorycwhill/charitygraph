@@ -122,7 +122,7 @@ def test_exact_identifier_join_requires_consistent_governed_pairs():
 def test_seed_portfolio_is_versioned_and_bounded(tmp_path):
     catalog = open_catalog(tmp_path)
     seeded = seed_phase1_taxonomies(catalog)
-    assert set(seeded) == {"acnc", "ato-dgr", "classie", "sdg", "charitygraph-activity"}
+    assert set(seeded) == {"acnc-registration-purpose", "acnc-registration-beneficiary", "ato-dgr", "acnc-ais-classie", "classie", "sdg", "charitygraph-activity"}
     assert sum(item["kind"] == "concept" for item in seeded["sdg"]) == 17
     assert not any(item.get("kind") == "concept" for item in seeded["classie"])
     assert any(item.get("external_id") == "SDG-4" and item.get("kind") == "concept" for item in seeded["sdg"])
@@ -152,6 +152,7 @@ def test_taxonomy_versions_concepts_assignments_are_idempotent_and_bound(tmp_pat
     }
     first = catalog.register_taxonomy_assignment(assignment)
     assert catalog.register_taxonomy_assignment(assignment)["material_hash"] == first["material_hash"]
+    assert first["publication_eligibility"] == "withheld"
     with pytest.raises(ConflictError):
         catalog.register_taxonomy_assignment({**assignment, "confidence": "high"})
     catalog.close()

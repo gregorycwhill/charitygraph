@@ -31,14 +31,14 @@ ACTIVITY_CONCEPT_IDS = (
 NON_ACTIVITY_FACETS = frozenset({"population", "purpose", "fundraising_method", "campaign", "delivery_channel", "donor_mechanism"})
 CLASSIE_RIGHTS_GATE = {
     "version": "4.2",
-    "status": "blocked_pending_rights_review",
+    "status": "private_processing_approved_public_withheld",
     "subjects_url": "https://www.communitydirectors.com.au/classie",
     "population_url": "https://www.communitydirectors.com.au/classie",
     "material_discoverable": True,
     "native_subject_population_files_exist": True,
     "native_material_committed": False,
     "synthetic_ids_created": False,
-    "blocker": "lawful private processing, reuse and redistribution permission is unresolved",
+    "blocker": "private processing is approved; public CLASSIE publication remains permission-gated",
 }
 
 ABNS = {
@@ -294,8 +294,8 @@ def benchmark_completeness(benchmark: ScopedBenchmarkV2 | None = None) -> dict[s
         "sdg_evaluable": len(sdg_subjects) >= 5,
         "sdg_denominator": len(sdg_subjects),
         "sdg_subject_ids": sorted(sdg_subjects),
-        "classie_rights_disabled_path_evaluable": benchmark.classie.get("status") == "blocked_pending_rights_review" and benchmark.classie.get("native_material_committed") is False,
-        "classie_semantic_assignment_evaluation": "blocked_until_rights_permit",
+        "classie_rights_disabled_path_evaluable": benchmark.classie.get("status") == "private_processing_approved_public_withheld" and benchmark.classie.get("native_material_committed") is False,
+        "classie_semantic_assignment_evaluation": "private_processing_allowed_public_withheld",
         "abstention_insufficient_evidence_evaluable": bool(unresolved_cases),
         "provenance_lineage_evaluable": all(c.evidence_locator_ids for c in accepted_cases),
         "economics_replay_evaluable": True,
@@ -336,7 +336,7 @@ def write_private_review_packet(runtime_root: str | Path) -> Path:
                 refs.append(f"{record.source_locator} [{record.selector}]")
             lines.append(f"- `{case.expected_subject_kind}` / `{case.durability_expectation}` ? **{case.concept_or_relation}** ? {case.expected_disposition}; relation: {case.relationship_type or 'none'}; evidence: {'; '.join(refs) or '(none)'}; {case.rationale}")
         lines.append("")
-    lines += ["## CLASSIE", "", "Authoritative 4.2 Subject/Population material is discoverable and exists, but lawful private processing/reuse/redistribution permission is unresolved. Native material is not committed.", ""]
+    lines += ["## CLASSIE", "", "Private CLASSIE processing is approved when a lawful runtime payload is injected. Native material is not committed; public CLASSIE definitions and inferred assignments remain withheld pending publication permission.", ""]
     destination.write_text("\n".join(lines), encoding="utf-8")
     return destination
 
