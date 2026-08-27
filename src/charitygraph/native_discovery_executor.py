@@ -110,8 +110,11 @@ def execute_native_discovery(
     catalog.index_artifact(artifact_id=input_artifact_id, content_hash=input_hash, schema_id=task.task_schema.schema_id, schema_version=task.task_schema.schema_version, storage_path=str(input_path), availability="available", created_at=now, indexed_at=now)
     response: ApiResult | None = None
     raw_response_path: Path | None = None
+    transmitted = False
     try:
         schema = discovery_schema(tuple(item.evidence_id for item in task.evidence_inputs))
+        catalog.mark_authorized_call_transmitted(slot["slot_key"], now=now)
+        transmitted = True
         response = request_fn(model=task.model_snapshot, input_text=prompt, text_format={"type": "json_schema", "name": "program_service_discovery", "schema": schema}, max_output_tokens=MAX_OUTPUT_TOKENS, max_attempts=2)
         raw_response_path = io_dir / f"{task_run_id.replace(':', '_')}.response.json"
         raw_response_path.write_text(response.output_text, encoding="utf-8")
@@ -152,9 +155,28 @@ def execute_native_discovery(
         if unused > 0:
             catalog.release_cost(reservation_id, {"amount": str(unused), "currency": "AUD"}, now=now, entry_key=f"release:{reservation_id}")
         catalog.transition_run(run_id, "succeeded" if status == "succeeded" else "failed", now=now)
-        return NativeDiscoveryExecution(run_id, task.record_id, task_run_id, reservation_id, slot["slot_key"], response.response_id, result_id, output if not errors else None, tuple(p.model_dump(mode="python") for p in output.proposals) if not errors else (), projected, actual_usd, actual_aud, response.usage.input_tokens, response.usage.output_tokens, 1, status, tuple(errors))
+        return NativeDiscoveryExecution(run_id, task.record_id, task_run_id, reservation_id, slot["slot_key"], response.response_id, result_id, output if not errors else None, tuple(p.model_dump(mode="python") for p in output.proposals) if not errors else (), projected, actual_usd, actual_aud, response.usage.input_tokens, response.usage.output_tokens, response.transport_requests, status, tuple(errors))
     except Exception:
-        if response is None:
+        # Once the send boundary is crossed, every failure is terminal and
+        # the authorization is never resettable.
+        if transmitted:
+            try:
+                catalog.abandon_authorized_call(slot["slot_key"], now=now, provider_transmitted=True, reason="post-send failure")
+            except Exception:
+                pass
+            try:
+                catalog.finish_failed_attempt(task_run_id, owner=owner, completed_at=now, retryable=False, error_class="post_send_failure", error_message_redacted="provider response processing failed")
+            except Exception:
+                pass
+            try:
+                position = catalog.reservation_position(reservation_id)
+                unused = max(Decimal("0"), position["reserved"] - min(position["actual"], position["reserved"]) - position["released"])
+                if unused > 0:
+                    catalog.release_cost(reservation_id, {"amount": str(unused), "currency": "AUD"}, now=now, entry_key=f"release:{reservation_id}")
+                catalog.transition_run(run_id, "failed", now=now)
+            except Exception:
+                pass
+        else:
             catalog.abandon_authorized_call(slot["slot_key"], now=now, provider_transmitted=False, reason="pre-transmission failure")
             catalog.finish_failed_attempt(task_run_id, owner=owner, completed_at=now, retryable=False, error_class="provider_request", error_message_redacted="provider request failed")
             position = catalog.reservation_position(reservation_id)

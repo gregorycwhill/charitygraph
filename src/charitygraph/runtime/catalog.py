@@ -664,6 +664,19 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
 
+    def mark_authorized_call_transmitted(self, slot_key: str, *, now: datetime | str) -> dict[str, Any]:
+        """Cross the provider-send boundary durably before network I/O."""
+        self._require_migrated()
+        now_s = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone()
+            if row is None:
+                raise CatalogError("authorized call slot does not exist")
+            if row["status"] != "claimed":
+                raise ConflictError("authorized call slot is not currently claimed")
+            conn.execute("UPDATE authorized_call_slots SET provider_transmitted=1, updated_at=? WHERE slot_key=?", (now_s, slot_key))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
     def complete_authorized_call(self, slot_key: str, *, now: datetime | str, result_ref: str | None = None, terminal_failure: bool = False) -> dict[str, Any]:
         self._require_migrated()
         now_s = _utc(now, "now")
