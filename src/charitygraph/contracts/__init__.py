@@ -5,6 +5,7 @@ from .common import (
     ArtifactRecord, ArtifactRef, CanonicalObject, CanonicalScalar, CanonicalValue, IdPrefix,
     JsonValue, LineageEdge, ProducerRef, SchemaRef, Sha256, StrictModel, VersionedPolicy, VersionedTool,
 )
+from .discovery import DiscoveryDisposition, DISCOVERY_OUTPUT_SCHEMA, ProgramServiceDiscoveryOutput, ProgramServiceProposal, discovery_schema, discovery_schema_hash, discovery_output_schema_ref
 from .economics import (
     BudgetCohort, CostLedger, CostLedgerEntry, CostReservation, FxRateSnapshot, Money, SignedMoney,
     PriceRate, PricingSnapshot, ReservationReconciliation, RunManifest,
@@ -49,7 +50,7 @@ __all__ = [
     "canonical_sha256", "deterministic_id", "model_task_cache_key", "new_opaque_id", "seal_record",
     "validate_promotion_chain", "validate_task_run_tasks", "validate_typed_id", "verify_record_hash",
     "ConceptMapping", "MappingPredicate", "ProgramCandidate", "ProgramCandidateOutput",
-    "EvidenceSelectionOutput", "SDGAlignmentOutput", "SchemeDisposition", "SemanticConclusion",
+    "EvidenceSelectionOutput", "DiscoveryDisposition", "DISCOVERY_OUTPUT_SCHEMA", "ProgramServiceDiscoveryOutput", "ProgramServiceProposal", "discovery_schema", "discovery_schema_hash", "discovery_output_schema_ref", "SDGAlignmentOutput", "SchemeDisposition", "SemanticConclusion",
     "SemanticEvidence", "TaxonomyAssignment", "TaxonomyAssignmentOutput", "TaxonomyConcept",
     "TaxonomyScheme", "TaxonomySelection", "TaxonomyVersion",
 ]

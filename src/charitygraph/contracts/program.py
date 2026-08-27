@@ -20,6 +20,7 @@ class ProgramCandidate(ArtifactRecord):
     subject_id: str
     source_record_id: str | None = None
     model_result_id: str | None = None
+    model_result_item_key: str | None = None
     evidence_ids: tuple[str, ...]
     label: str
     candidate_kind: Literal["explicit_program", "explicit_service", "structured_segment", "non_program", "ambiguous"]
@@ -58,6 +59,11 @@ class ProgramCandidate(ArtifactRecord):
         except ValueError as exc:
             raise ValueError("model_result_id must use modelresult: typed ID") from exc
 
+    @field_validator("model_result_item_key")
+    @classmethod
+    def _model_result_item_key(cls, value: str | None) -> str | None:
+        return None if value is None else require_nonblank(value, "model_result_item_key")
+
     @field_validator("evidence_ids")
     @classmethod
     def _evidence(cls, value: tuple[str, ...]) -> tuple[str, ...]:
@@ -78,6 +84,6 @@ class ProgramCandidate(ArtifactRecord):
             if self.source_record_id is None or self.model_result_id is not None:
                 raise ValueError("structured/segmented candidates require source_record_id and no model_result_id")
         elif self.extraction_method == "model_task":
-            if self.model_result_id is None or self.source_record_id is not None:
-                raise ValueError("model-task candidates require model_result_id and no source_record_id")
+            if self.model_result_id is None or self.model_result_item_key is None or self.source_record_id is not None:
+                raise ValueError("model-task candidates require model_result_id/item_key and no source_record_id")
         return self
