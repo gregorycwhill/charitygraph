@@ -79,17 +79,17 @@ HUMAN_GOLD_DISPOSITIONS = {
 REQUIRED_GOLD_COUNT = 12
 HUMAN_GOLD_REQUIRED_VARIANTS = {
     ("The Smith Family", "learning-for-life"): ("learning-for-life", "program:learning-for-life"),
-    ("The Smith Family", "learning-clubs"): ("learning-clubs",),
+    ("The Smith Family", "learning-clubs"): ("learning-clubs", "program:learning-clubs", "proposal:learning-clubs"),
     ("The Smith Family", "program:lets-read"): ("program:lets-read",),
     ("The Smith Family", "program:passport"): ("program:passport",),
-    ("Australian Red Cross Society", "service:disaster-support"): ("service:disaster-support",),
-    ("Australian Red Cross Society", "service:first-aid-training"): ("service:first-aid-training",),
-    ("Australian Communities Foundation Limited", "proposal:impact-fund"): ("proposal:impact-fund",),
+    ("Australian Red Cross Society", "service:disaster-support"): ("service:disaster-support", "service_disaster_support"),
+    ("Australian Red Cross Society", "service:first-aid-training"): ("service:first-aid-training", "service_first_aid_training"),
+    ("Australian Communities Foundation Limited", "proposal:impact-fund"): ("proposal:impact-fund", "program:impact-fund"),
     ("Australian Communities Foundation Limited", "service:acf-advisory"): ("service:acf-advisory",),
     ("Australian Communities Foundation Limited", "service:scholarship-funds"): ("service:scholarship-funds",),
-    ("The Fred Hollows Foundation", "program:eye-health-workforce-training"): ("program:eye-health-workforce-training", "program:training-and-empowerment"),
+    ("The Fred Hollows Foundation", "program:eye-health-workforce-training"): ("program:eye-health-workforce-training", "program:training-and-empowerment", "proposal:eye-health-workforce-training", "service:eye-health-workforce-training"),
     ("The Fred Hollows Foundation", "program:eye-health-advocacy-for-change"): ("program:eye-health-advocacy-for-change", "program:eye-health-advocacy", "program:advocacy-for-change"),
-    ("The Fred Hollows Foundation", "program:research-and-technology"): ("program:research-and-technology",),
+    ("The Fred Hollows Foundation", "program:research-and-technology"): ("program:research-and-technology", "program:eye-health-research-technology"),
 }
 
 
