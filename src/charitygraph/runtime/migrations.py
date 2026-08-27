@@ -478,11 +478,34 @@ CREATE TABLE program_candidates (
 CREATE INDEX program_candidates_subject_idx ON program_candidates(subject_id, status);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V5 = """
+CREATE TABLE authorized_call_slots (
+    slot_key TEXT PRIMARY KEY,
+    authorization_scope_hash TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    task_family TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('claimed','completed','failed_terminal','abandoned','reviewed_reset')),
+    lease_owner TEXT,
+    lease_expires_at TEXT,
+    provider_transmitted INTEGER NOT NULL DEFAULT 0 CHECK(provider_transmitted IN (0,1)),
+    claimed_at TEXT NOT NULL,
+    completed_at TEXT,
+    reviewed_reset_at TEXT,
+    review_ref TEXT,
+    result_ref TEXT,
+    updated_at TEXT NOT NULL,
+    UNIQUE(authorization_scope_hash, subject_id, task_family, material_hash)
+);
+CREATE INDEX authorized_call_slots_status_idx ON authorized_call_slots(status, lease_expires_at);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
     Migration(3, "governed_knowledge_primitives", CATALOGUE_SQL_V3),
     Migration(4, "taxonomy_and_pre_run_engine", CATALOGUE_SQL_V4),
+    Migration(5, "authorized_call_slots", CATALOGUE_SQL_V5),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
