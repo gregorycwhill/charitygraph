@@ -1,13 +1,14 @@
-﻿from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 import sqlite3
 
 import pytest
 from pydantic import ValidationError
 
-from charitygraph.contracts import ModelResult, ProgramCandidate, ProgramCandidateOutput, SchemaRef, SemanticConclusion, SemanticEvidence
+from charitygraph.contracts import EvidenceInput, EvidenceLocator, ModelResult, ModelTask, ProgramCandidate, ProgramCandidateOutput, SchemaRef, SemanticConclusion, SemanticEvidence, model_task_cache_key
 from charitygraph.runtime import CatalogError, ConflictError, SQLiteCatalog
 from .test_budget_ledger import BASE_COHORT, BASE_RUN, COHORT_ID, NOW
 from .test_knowledge_persistence import subject
+from charitygraph.contracts.ids import deterministic_id
 
 OUTPUT_SCHEMA = SchemaRef(schema_id="urn:charitygraph:builder:schema:program-decomposition-output:1.0", schema_version="1.0")
 EVIDENCE_ID = "evidence:" + "e" * 32
@@ -29,12 +30,12 @@ def setup(tmp_path):
     return catalog, task
 
 
-def output(decision):
-    return ProgramCandidateOutput(label="Clean Water Service", decision=decision, subject_kind="service" if decision == "material_service" else "program", duplicate_of_candidate_id=("programcandidate:" + "d" * 32 if decision == "duplicate_or_alias" else None), parent_candidate_id=("programcandidate:" + "a" * 32 if decision == "parent_child_proposal" else None), conclusion=SemanticConclusion(outcome="supported", evidence=(SemanticEvidence(evidence_id=EVIDENCE_ID, role="supporting"),), rationale="Explicit synthetic evidence", confidence="high"))
+def output(decision, evidence_id=EVIDENCE_ID):
+    return ProgramCandidateOutput(label="Clean Water Service", decision=decision, subject_kind="service" if decision == "material_service" else "program", duplicate_of_candidate_id=("programcandidate:" + "d" * 32 if decision == "duplicate_or_alias" else None), parent_candidate_id=("programcandidate:" + "a" * 32 if decision == "parent_child_proposal" else None), conclusion=SemanticConclusion(outcome="supported", evidence=(SemanticEvidence(evidence_id=evidence_id, role="supporting"),), rationale="Explicit synthetic evidence", confidence="high"))
 
 
-def result(decision="material_program", *, result_id="modelresult:" + "3" * 32, task_id=TASK_ID, task_run_id=TASK_RUN_ID, validation_status="valid"):
-    return ModelResult(record_id=result_id, created_at=NOW, producer={"kind": "model", "producer_id": "fake-provider"}, model_task_id=task_id, task_run_id=task_run_id, output_schema=OUTPUT_SCHEMA, output=output(decision), validation_status=validation_status, validation_errors=("invalid output",) if validation_status == "invalid" else (), raw_response_ref="response:synthetic", completed_at=NOW, provider_id="fake", model_snapshot="fake")
+def result(decision="material_program", *, result_id="modelresult:" + "3" * 32, task_id=TASK_ID, task_run_id=TASK_RUN_ID, validation_status="valid", output_schema=OUTPUT_SCHEMA, provider_id="fake", model_snapshot="fake-v1", evidence_id=EVIDENCE_ID):
+    return ModelResult(record_id=result_id, created_at=NOW, producer={"kind": "model", "producer_id": "fake-provider"}, model_task_id=task_id, task_run_id=task_run_id, output_schema=output_schema, output=output(decision, evidence_id), validation_status=validation_status, validation_errors=("invalid output",) if validation_status == "invalid" else (), raw_response_ref="response:synthetic", completed_at=NOW, provider_id=provider_id, model_snapshot=model_snapshot)
 
 
 def test_model_result_persists_exact_output_and_is_idempotent(tmp_path):
@@ -122,3 +123,89 @@ def test_schema_upgrade_contains_model_result_fk_and_candidate_lineage_columns(t
         assert conn.execute("PRAGMA foreign_key_check").fetchall() == []
 
 
+
+def typed_setup(tmp_path):
+    catalog = SQLiteCatalog(tmp_path / "typed.sqlite3").open(initialize=True)
+    catalog.register_cohort(BASE_COHORT)
+    catalog.register_run(BASE_RUN)
+    catalog.register_subject(subject(SUBJECT_ID))
+    artifact_id = "artifact:" + "a" * 32
+    catalog.index_artifact(artifact_id=artifact_id, content_hash="a" * 64, schema_id="urn:test:artifact", schema_version="1", storage_path="private/test", availability="available", created_at=NOW, indexed_at=NOW)
+    locator = catalog.register_evidence_locator(EvidenceLocator(kind="document", artifact_id=artifact_id, locator="fixture://doc"), evidence_locator_id=EVIDENCE_ID, now=NOW)
+    evidence = EvidenceInput(evidence_id=EVIDENCE_ID, content_hash="a" * 64, selection_hash=locator["material_hash"])
+    task_schema = SchemaRef(schema_id="urn:charitygraph:builder:schema:typed-task:1.0", schema_version="1.0")
+    cache_key = model_task_cache_key(task_type="semantic_interpretation", task_schema=task_schema, output_schema=OUTPUT_SCHEMA, evidence_inputs=(evidence,), prompt_template_id="typed-test", prompt_template_version="1", policy_refs=(), provider_id="fake", model_snapshot="fake-v1", parameters={"temperature": "0"}, material_tool_versions=())
+    typed = ModelTask(record_id=deterministic_id("modeltask:", {"subject_id": SUBJECT_ID, "scope_id": None, "task_type": "semantic_interpretation", "cache_key": cache_key, "output_schema": OUTPUT_SCHEMA}), created_at=NOW, producer={"kind": "code", "producer_id": "typed-test", "version": "1"}, subject_id=SUBJECT_ID, task_type="semantic_interpretation", task_schema=task_schema, output_schema=OUTPUT_SCHEMA, evidence_inputs=(evidence,), prompt_template_id="typed-test", prompt_template_version="1", provider_id="fake", model_snapshot="fake-v1", parameters={"temperature": "0"}, paid_output_categories=("semantic_judgement",), cache_key=cache_key)
+    row = catalog.register_task(typed, run_id=BASE_RUN["record_id"], now=NOW)
+    catalog.claim_task(typed.record_id, owner="worker", lease_expires_at=NOW + timedelta(minutes=5), now=NOW)
+    catalog.begin_task_attempt(typed.record_id, owner="worker", task_run_id=TASK_RUN_ID, now=NOW)
+    return catalog, typed, evidence, row
+
+
+def test_typed_model_task_persists_ordered_evidence_schema_and_material(tmp_path):
+    catalog, typed, evidence, row = typed_setup(tmp_path)
+    assert row["output_schema_id"] == OUTPUT_SCHEMA.schema_id
+    assert row["output_schema_version"] == OUTPUT_SCHEMA.schema_version
+    assert row["task_material_json"]
+    with sqlite3.connect(tmp_path / "typed.sqlite3") as conn:
+        persisted = conn.execute("SELECT ordinal, evidence_id, content_hash, selection_hash FROM model_task_evidence WHERE model_task_id=?", (typed.record_id,)).fetchall()
+    assert persisted == [(0, evidence.evidence_id, evidence.content_hash, evidence.selection_hash)]
+
+
+@pytest.mark.parametrize("field", ["content_hash", "selection_hash"])
+def test_typed_model_task_rejects_wrong_evidence_hash(tmp_path, field):
+    catalog = SQLiteCatalog(tmp_path / "wrong.sqlite3").open(initialize=True)
+    catalog.register_cohort(BASE_COHORT)
+    catalog.register_run(BASE_RUN)
+    catalog.register_subject(subject(SUBJECT_ID))
+    artifact_id = "artifact:" + "b" * 32
+    catalog.index_artifact(artifact_id=artifact_id, content_hash="b" * 64, schema_id="urn:test:artifact", schema_version="1", storage_path="private/test", availability="available", created_at=NOW, indexed_at=NOW)
+    locator = catalog.register_evidence_locator(EvidenceLocator(kind="document", artifact_id=artifact_id, locator="fixture://doc"), evidence_locator_id=EVIDENCE_ID, now=NOW)
+    good = EvidenceInput(evidence_id=EVIDENCE_ID, content_hash="b" * 64, selection_hash=locator["material_hash"])
+    bad = good.model_copy(update={field: "c" * 64})
+    task_schema = SchemaRef(schema_id="urn:charitygraph:builder:schema:typed-task:1.0", schema_version="1.0")
+    evidence = (bad,)
+    cache_key = model_task_cache_key(task_type="semantic_interpretation", task_schema=task_schema, output_schema=OUTPUT_SCHEMA, evidence_inputs=evidence, prompt_template_id="typed-test", prompt_template_version="1", policy_refs=(), provider_id="fake", model_snapshot="fake-v1", parameters={"temperature": "0"}, material_tool_versions=())
+    typed = ModelTask(record_id=deterministic_id("modeltask:", {"subject_id": SUBJECT_ID, "scope_id": None, "task_type": "semantic_interpretation", "cache_key": cache_key, "output_schema": OUTPUT_SCHEMA}), created_at=NOW, producer={"kind": "code", "producer_id": "typed-test", "version": "1"}, subject_id=SUBJECT_ID, task_type="semantic_interpretation", task_schema=task_schema, output_schema=OUTPUT_SCHEMA, evidence_inputs=evidence, prompt_template_id="typed-test", prompt_template_version="1", provider_id="fake", model_snapshot="fake-v1", parameters={"temperature": "0"}, paid_output_categories=("semantic_judgement",), cache_key=cache_key)
+    with pytest.raises(ConflictError):
+        catalog.register_task(typed, run_id=BASE_RUN["record_id"], now=NOW)
+
+
+@pytest.mark.parametrize(("attribute", "value"), [("provider_id", "other"), ("model_snapshot", "other-v1")])
+def test_bound_result_requires_task_provider_and_model(tmp_path, attribute, value):
+    catalog, typed, _, _ = typed_setup(tmp_path)
+    kwargs = {attribute: value}
+    with pytest.raises(ConflictError):
+        catalog.register_model_result(result(**kwargs, task_id=typed.record_id, task_run_id=TASK_RUN_ID))
+
+
+def test_bound_result_requires_output_schema(tmp_path):
+    catalog, typed, _, _ = typed_setup(tmp_path)
+    other_schema = SchemaRef(schema_id="urn:charitygraph:builder:schema:other:1.0", schema_version="1.0")
+    with pytest.raises(ConflictError):
+        catalog.register_model_result(result(task_id=typed.record_id, task_run_id=TASK_RUN_ID, output_schema=other_schema))
+
+
+def test_bound_result_rejects_catalogue_evidence_not_task_bound(tmp_path):
+    catalog, typed, _, _ = typed_setup(tmp_path)
+    other_id = "evidence:" + "d" * 32
+    artifact_id = "artifact:" + "d" * 32
+    catalog.index_artifact(artifact_id=artifact_id, content_hash="d" * 64, schema_id="urn:test:artifact", schema_version="1", storage_path="private/test", availability="available", created_at=NOW, indexed_at=NOW)
+    catalog.register_evidence_locator(EvidenceLocator(kind="document", artifact_id=artifact_id, locator="fixture://other"), evidence_locator_id=other_id, now=NOW)
+    with pytest.raises(ConflictError):
+        catalog.register_model_result(result(task_id=typed.record_id, task_run_id=TASK_RUN_ID, evidence_id=other_id))
+
+
+def test_bound_result_projects_through_typed_task(tmp_path):
+    catalog, typed, _, _ = typed_setup(tmp_path)
+    stored = catalog.register_model_result(result(task_id=typed.record_id, task_run_id=TASK_RUN_ID))
+    candidate = catalog.project_program_candidate(stored["model_result_id"], now=NOW)
+    assert candidate["model_result_id"] == stored["model_result_id"]
+    assert candidate["evidence_ids"] == [EVIDENCE_ID]
+
+
+def test_typed_model_task_rejects_duplicate_evidence_ids(tmp_path):
+    catalog, typed, evidence, _ = typed_setup(tmp_path)
+    duplicate = typed.model_copy(update={"evidence_inputs": (evidence, evidence)})
+    with pytest.raises(ConflictError):
+        catalog.register_task(duplicate, run_id=BASE_RUN["record_id"], now=NOW)

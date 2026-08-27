@@ -501,6 +501,21 @@ CREATE INDEX authorized_call_slots_status_idx ON authorized_call_slots(status, l
 """.strip() + "\n"
 
 CATALOGUE_SQL_V6 = """
+ALTER TABLE tasks ADD COLUMN output_schema_id TEXT;
+ALTER TABLE tasks ADD COLUMN output_schema_version TEXT;
+ALTER TABLE tasks ADD COLUMN task_material_json TEXT;
+
+CREATE TABLE model_task_evidence (
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+    evidence_id TEXT NOT NULL REFERENCES evidence_locators(evidence_locator_id),
+    content_hash TEXT NOT NULL,
+    selection_hash TEXT NOT NULL,
+    PRIMARY KEY(model_task_id, ordinal),
+    UNIQUE(model_task_id, evidence_id)
+);
+CREATE INDEX model_task_evidence_evidence_idx ON model_task_evidence(evidence_id);
+
 CREATE TABLE model_results (
     model_result_id TEXT PRIMARY KEY,
     model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
