@@ -563,6 +563,10 @@ CREATE INDEX program_candidates_subject_idx ON program_candidates(subject_id, st
 CREATE INDEX program_candidates_model_result_idx ON program_candidates(model_result_id);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V7 = """
+ALTER TABLE program_candidates ADD COLUMN model_result_item_key TEXT;
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -570,6 +574,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(4, "taxonomy_and_pre_run_engine", CATALOGUE_SQL_V4),
     Migration(5, "authorized_call_slots", CATALOGUE_SQL_V5),
     Migration(6, "model_results_and_candidate_lineage", CATALOGUE_SQL_V6),
+    Migration(7, "model_result_item_lineage", CATALOGUE_SQL_V7),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

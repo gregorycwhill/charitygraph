@@ -25,6 +25,7 @@ from ..contracts.knowledge import (
 from ..contracts.source import AcquisitionReceipt, EvidenceLocator, SourceDefinition
 from ..contracts.program import ProgramCandidate
 from ..contracts.semantic import ProgramCandidateOutput
+from ..contracts.discovery import ProgramServiceDiscoveryOutput
 from ..contracts.tasks import ModelResult, ModelTask
 from ..contracts.taxonomy import ConceptMapping, TaxonomyAssignment, TaxonomyConcept, TaxonomyScheme, TaxonomyVersion
 
@@ -1184,9 +1185,12 @@ class SQLiteCatalog:
     @staticmethod
     def _model_result_evidence_ids(model: ModelResult[Any]) -> tuple[str, ...]:
         output = _dump(model.output)
-        conclusion = output.get("conclusion") if isinstance(output, dict) else None
-        evidence = conclusion.get("evidence", ()) if isinstance(conclusion, dict) else ()
-        return tuple(str(item["evidence_id"]) for item in evidence if isinstance(item, dict) and item.get("evidence_id"))
+        if isinstance(output, dict) and isinstance(output.get("proposals"), list):
+            evidence = [item for proposal in output["proposals"] if isinstance(proposal, dict) for item in proposal.get("evidence", ())]
+        else:
+            conclusion = output.get("conclusion") if isinstance(output, dict) else None
+            evidence = conclusion.get("evidence", ()) if isinstance(conclusion, dict) else ()
+        return tuple(dict.fromkeys(str(item["evidence_id"]) for item in evidence if isinstance(item, dict) and item.get("evidence_id")))
 
     def register_model_result(self, result: Any) -> dict[str, Any]:
         self._require_migrated()
@@ -1231,33 +1235,59 @@ class SQLiteCatalog:
         with self._connection() as conn:
             return self._decode_knowledge_row(conn.execute("SELECT * FROM model_results WHERE model_result_id=?", (model_result_id,)).fetchone())
 
-    def project_program_candidate(self, model_result_id: str, *, now: datetime | str, producer_id: str = "semantic-result-projector") -> dict[str, Any] | None:
+    def project_program_candidates(self, model_result_id: str, *, now: datetime | str, producer_id: str = "semantic-result-projector") -> list[dict[str, Any]]:
         result = self.get_model_result(model_result_id)
         if result is None:
             raise CatalogError(f"unknown model result {model_result_id}")
         if result["validation_status"] != "valid":
-            return None
+            return []
+        raw_output = result["output"]
         try:
-            output = ProgramCandidateOutput.model_validate(result["output"])
-        except Exception as exc:
-            raise CatalogError("valid model result is not a ProgramCandidateOutput") from exc
-        if output.decision not in {"material_program", "material_service"}:
-            return None
-        candidate_id = "programcandidate:" + hashlib.sha256(json.dumps({"model_result_id": model_result_id, "label": output.label, "decision": output.decision}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-        candidate = ProgramCandidate(
-            record_id=candidate_id,
-            created_at=_utc(now, "created_at"),
-            producer={"kind": "model", "producer_id": producer_id},
-            about_subject_ids=(result["subject_id"],),
-            subject_id=result["subject_id"],
-            model_result_id=model_result_id,
-            evidence_ids=tuple(item.evidence_id for item in output.conclusion.evidence),
-            label=output.label,
-            candidate_kind="explicit_program" if output.decision == "material_program" else "explicit_service",
-            extraction_method="model_task",
-            status="candidate",
-        )
-        return self.register_program_candidate(candidate)
+            discovery = ProgramServiceDiscoveryOutput.model_validate(raw_output)
+        except Exception:
+            discovery = None
+        if discovery is None:
+            try:
+                output = ProgramCandidateOutput.model_validate(raw_output)
+            except Exception as exc:
+                raise CatalogError("valid model result is not a supported discovery output") from exc
+            if output.decision not in {"material_program", "material_service"}:
+                return []
+            proposals = [{
+                "proposal_key": "single",
+                "label": output.label,
+                "disposition": "program" if output.decision == "material_program" else "service",
+                "durable": True,
+                "evidence": output.conclusion.evidence,
+            }]
+        else:
+            proposals = [proposal.model_dump(mode="python") for proposal in discovery.proposals]
+        candidates: list[dict[str, Any]] = []
+        for proposal in proposals:
+            if proposal["disposition"] not in {"program", "service"} or proposal["durable"] is not True:
+                continue
+            evidence = tuple(item["evidence_id"] if isinstance(item, dict) else item.evidence_id for item in proposal["evidence"])
+            candidate_id = "programcandidate:" + hashlib.sha256(json.dumps({"model_result_id": model_result_id, "proposal_key": proposal["proposal_key"]}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            candidate = ProgramCandidate(
+                record_id=candidate_id,
+                created_at=_utc(now, "created_at"),
+                producer={"kind": "model", "producer_id": producer_id},
+                about_subject_ids=(result["subject_id"],),
+                subject_id=result["subject_id"],
+                model_result_id=model_result_id,
+                model_result_item_key=proposal["proposal_key"],
+                evidence_ids=evidence,
+                label=proposal["label"],
+                candidate_kind="explicit_program" if proposal["disposition"] == "program" else "explicit_service",
+                extraction_method="model_task",
+                status="candidate",
+            )
+            candidates.append(self.register_program_candidate(candidate))
+        return candidates
+
+    def project_program_candidate(self, model_result_id: str, *, now: datetime | str, producer_id: str = "semantic-result-projector") -> dict[str, Any] | None:
+        candidates = self.project_program_candidates(model_result_id, now=now, producer_id=producer_id)
+        return candidates[0] if candidates else None
 
     def register_program_candidate(self, candidate: Any) -> dict[str, Any]:
         self._require_migrated()
@@ -1281,14 +1311,32 @@ class SQLiteCatalog:
                 result_evidence = set(json.loads(result["evidence_ids_json"]))
                 if not set(model.evidence_ids).issubset(result_evidence):
                     raise ConflictError("candidate evidence must be drawn from the originating model result")
+                raw_output = json.loads(result["output_json"])
                 try:
-                    output = ProgramCandidateOutput.model_validate(json.loads(result["output_json"]))
-                except Exception as exc:
-                    raise ConflictError("model result output is not a ProgramCandidateOutput") from exc
-                expected_kind = {"material_program": "explicit_program", "material_service": "explicit_service"}.get(output.decision)
-                if expected_kind != model.candidate_kind or output.label != model.label:
-                    raise ConflictError("candidate kind and label must follow the validated model result")
-            row = self._insert_idempotent(conn, table="program_candidates", id_column="program_candidate_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.subject_id, model.source_record_id, model.model_result_id, self._json(model.evidence_ids), model.label, model.candidate_kind, model.extraction_method, model.source_locator, model.status, self._json(model), material_hash, created), columns="program_candidate_id, subject_id, source_record_id, model_result_id, evidence_ids_json, label, candidate_kind, extraction_method, source_locator, status, material_json, material_hash, created_at")
+                    discovery = ProgramServiceDiscoveryOutput.model_validate(raw_output)
+                except Exception:
+                    discovery = None
+                if discovery is not None:
+                    proposal = next((item for item in discovery.proposals if item.proposal_key == model.model_result_item_key), None)
+                    if proposal is None:
+                        raise ConflictError("model result item key does not identify a proposal")
+                    expected_kind = {"program": "explicit_program", "service": "explicit_service"}.get(proposal.disposition) if proposal.durable is True else None
+                    proposal_evidence = {item.evidence_id for item in proposal.evidence}
+                    if expected_kind != model.candidate_kind or proposal.label != model.label:
+                        raise ConflictError("candidate kind and label must follow the originating proposal")
+                    if not set(model.evidence_ids).issubset(proposal_evidence):
+                        raise ConflictError("candidate evidence must be drawn from the originating proposal")
+                else:
+                    try:
+                        output = ProgramCandidateOutput.model_validate(raw_output)
+                    except Exception as exc:
+                        raise ConflictError("model result output is not a supported discovery output") from exc
+                    if model.model_result_item_key != "single":
+                        raise ConflictError("single-result candidates require model_result_item_key='single'")
+                    expected_kind = {"material_program": "explicit_program", "material_service": "explicit_service"}.get(output.decision)
+                    if expected_kind != model.candidate_kind or output.label != model.label:
+                        raise ConflictError("candidate kind and label must follow the validated model result")
+            row = self._insert_idempotent(conn, table="program_candidates", id_column="program_candidate_id", record_id=model.record_id, material_hash=material_hash, values=(model.record_id, model.subject_id, model.source_record_id, model.model_result_id, model.model_result_item_key, self._json(model.evidence_ids), model.label, model.candidate_kind, model.extraction_method, model.source_locator, model.status, self._json(model), material_hash, created), columns="program_candidate_id, subject_id, source_record_id, model_result_id, model_result_item_key, evidence_ids_json, label, candidate_kind, extraction_method, source_locator, status, material_json, material_hash, created_at")
             self._commit(conn)
             return row
 

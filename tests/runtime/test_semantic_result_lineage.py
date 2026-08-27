@@ -4,8 +4,9 @@ import sqlite3
 import pytest
 from pydantic import ValidationError
 
-from charitygraph.contracts import EvidenceInput, EvidenceLocator, ModelResult, ModelTask, ProgramCandidate, ProgramCandidateOutput, SchemaRef, SemanticConclusion, SemanticEvidence, model_task_cache_key
+from charitygraph.contracts import EvidenceInput, EvidenceLocator, ModelResult, ModelTask, ProgramCandidate, ProgramCandidateOutput, ProgramServiceDiscoveryOutput, ProgramServiceProposal, SchemaRef, SemanticConclusion, SemanticEvidence, model_task_cache_key
 from charitygraph.runtime import CatalogError, ConflictError, SQLiteCatalog
+from charitygraph.native_program_discovery import build_discovery_task
 from .test_budget_ledger import BASE_COHORT, BASE_RUN, COHORT_ID, NOW
 from .test_knowledge_persistence import subject
 from charitygraph.contracts.ids import deterministic_id
@@ -34,8 +35,8 @@ def output(decision, evidence_id=EVIDENCE_ID):
     return ProgramCandidateOutput(label="Clean Water Service", decision=decision, subject_kind="service" if decision == "material_service" else "program", duplicate_of_candidate_id=("programcandidate:" + "d" * 32 if decision == "duplicate_or_alias" else None), parent_candidate_id=("programcandidate:" + "a" * 32 if decision == "parent_child_proposal" else None), conclusion=SemanticConclusion(outcome="supported", evidence=(SemanticEvidence(evidence_id=evidence_id, role="supporting"),), rationale="Explicit synthetic evidence", confidence="high"))
 
 
-def result(decision="material_program", *, result_id="modelresult:" + "3" * 32, task_id=TASK_ID, task_run_id=TASK_RUN_ID, validation_status="valid", output_schema=OUTPUT_SCHEMA, provider_id="fake", model_snapshot="fake-v1", evidence_id=EVIDENCE_ID):
-    return ModelResult(record_id=result_id, created_at=NOW, producer={"kind": "model", "producer_id": "fake-provider"}, model_task_id=task_id, task_run_id=task_run_id, output_schema=output_schema, output=output(decision, evidence_id), validation_status=validation_status, validation_errors=("invalid output",) if validation_status == "invalid" else (), raw_response_ref="response:synthetic", completed_at=NOW, provider_id=provider_id, model_snapshot=model_snapshot)
+def result(decision="material_program", *, result_id="modelresult:" + "3" * 32, task_id=TASK_ID, task_run_id=TASK_RUN_ID, validation_status="valid", output_schema=OUTPUT_SCHEMA, provider_id="fake", model_snapshot="fake-v1", evidence_id=EVIDENCE_ID, output_value=None):
+    return ModelResult(record_id=result_id, created_at=NOW, producer={"kind": "model", "producer_id": "fake-provider"}, model_task_id=task_id, task_run_id=task_run_id, output_schema=output_schema, output=output_value if output_value is not None else output(decision, evidence_id), validation_status=validation_status, validation_errors=("invalid output",) if validation_status == "invalid" else (), raw_response_ref="response:synthetic", completed_at=NOW, provider_id=provider_id, model_snapshot=model_snapshot)
 
 
 def test_model_result_persists_exact_output_and_is_idempotent(tmp_path):
@@ -94,10 +95,10 @@ def test_model_task_candidate_contract_requires_model_result_and_structured_requ
 def test_model_task_candidate_cannot_mismatch_result_kind_or_evidence(tmp_path):
     catalog, _ = setup(tmp_path)
     stored = catalog.register_model_result(result("material_program"))
-    bad_kind = ProgramCandidate(record_id="programcandidate:" + "8" * 32, created_at=NOW, producer={"kind": "model", "producer_id": "test"}, subject_id=SUBJECT_ID, model_result_id=stored["model_result_id"], evidence_ids=(EVIDENCE_ID,), label="Clean Water Service", candidate_kind="explicit_service", extraction_method="model_task")
+    bad_kind = ProgramCandidate(record_id="programcandidate:" + "8" * 32, created_at=NOW, producer={"kind": "model", "producer_id": "test"}, subject_id=SUBJECT_ID, model_result_id=stored["model_result_id"], model_result_item_key="single", evidence_ids=(EVIDENCE_ID,), label="Clean Water Service", candidate_kind="explicit_service", extraction_method="model_task")
     with pytest.raises(ConflictError):
         catalog.register_program_candidate(bad_kind)
-    bad_evidence = ProgramCandidate(record_id="programcandidate:" + "9" * 32, created_at=NOW, producer={"kind": "model", "producer_id": "test"}, subject_id=SUBJECT_ID, model_result_id=stored["model_result_id"], evidence_ids=("evidence:" + "a" * 32,), label="Clean Water Service", candidate_kind="explicit_program", extraction_method="model_task")
+    bad_evidence = ProgramCandidate(record_id="programcandidate:" + "9" * 32, created_at=NOW, producer={"kind": "model", "producer_id": "test"}, subject_id=SUBJECT_ID, model_result_id=stored["model_result_id"], model_result_item_key="single", evidence_ids=("evidence:" + "a" * 32,), label="Clean Water Service", candidate_kind="explicit_program", extraction_method="model_task")
     with pytest.raises(CatalogError):
         catalog.register_program_candidate(bad_evidence)
 
@@ -107,7 +108,7 @@ def test_model_result_and_candidate_subject_are_bound_to_task(tmp_path):
     other = "subject:" + "a" * 32
     catalog.register_subject(subject(other))
     stored = catalog.register_model_result(result())
-    candidate = ProgramCandidate(record_id="programcandidate:" + "b" * 32, created_at=NOW, producer={"kind": "model", "producer_id": "test"}, subject_id=other, model_result_id=stored["model_result_id"], evidence_ids=(EVIDENCE_ID,), label="Clean Water Service", candidate_kind="explicit_program", extraction_method="model_task")
+    candidate = ProgramCandidate(record_id="programcandidate:" + "b" * 32, created_at=NOW, producer={"kind": "model", "producer_id": "test"}, subject_id=other, model_result_id=stored["model_result_id"], model_result_item_key="single", evidence_ids=(EVIDENCE_ID,), label="Clean Water Service", candidate_kind="explicit_program", extraction_method="model_task")
     with pytest.raises(ConflictError):
         catalog.register_program_candidate(candidate)
 
@@ -209,3 +210,59 @@ def test_typed_model_task_rejects_duplicate_evidence_ids(tmp_path):
     duplicate = typed.model_copy(update={"evidence_inputs": (evidence, evidence)})
     with pytest.raises(ConflictError):
         catalog.register_task(duplicate, run_id=BASE_RUN["record_id"], now=NOW)
+
+
+def test_discovery_task_builder_reuses_exact_catalogue_evidence_and_changes_identity(tmp_path):
+    catalog, typed, _, _ = typed_setup(tmp_path)
+    task = build_discovery_task(catalog, subject_id=SUBJECT_ID, evidence_ids=(EVIDENCE_ID,), prompt_template_id="discovery", prompt_template_version="1", provider_id="fake", model_snapshot="fake-v1")
+    assert task.evidence_inputs[0].content_hash == "a" * 64
+    assert task.evidence_inputs[0].selection_hash
+    changed = build_discovery_task(catalog, subject_id=SUBJECT_ID, evidence_ids=(EVIDENCE_ID,), prompt_template_id="discovery", prompt_template_version="2", provider_id="fake", model_snapshot="fake-v1")
+    assert changed.record_id != task.record_id
+
+
+def discovery_result_setup(tmp_path, output_value):
+    catalog, _, _, _ = typed_setup(tmp_path)
+    task = build_discovery_task(catalog, subject_id=SUBJECT_ID, evidence_ids=(EVIDENCE_ID,), prompt_template_id="discovery", prompt_template_version="1", provider_id="fake", model_snapshot="fake-v1")
+    catalog.register_task(task, run_id=BASE_RUN["record_id"], now=NOW)
+    run_id = "taskrun:" + "7" * 32
+    catalog.claim_task(task.record_id, owner="worker", lease_expires_at=NOW + timedelta(minutes=5), now=NOW)
+    catalog.begin_task_attempt(task.record_id, owner="worker", task_run_id=run_id, now=NOW)
+    stored = catalog.register_model_result(result(task_id=task.record_id, task_run_id=run_id, output_schema=task.output_schema, output_value=output_value))
+    return catalog, stored, task
+
+
+def test_multi_proposal_discovery_projects_only_three_durable_program_services(tmp_path):
+    proposals = (
+        ProgramServiceProposal(proposal_key="program-1", label="Housing program", disposition="program", durable=True, evidence=(SemanticEvidence(evidence_id=EVIDENCE_ID, role="supporting"),), rationale="Direct"),
+        ProgramServiceProposal(proposal_key="program-2", label="Youth program", disposition="program", durable=True, evidence=(SemanticEvidence(evidence_id=EVIDENCE_ID, role="supporting"),), rationale="Direct"),
+        ProgramServiceProposal(proposal_key="service-1", label="Advice service", disposition="service", durable=True, evidence=(SemanticEvidence(evidence_id=EVIDENCE_ID, role="supporting"),), rationale="Direct"),
+        ProgramServiceProposal(proposal_key="project-1", label="Build project", disposition="project", durable=True, evidence=(SemanticEvidence(evidence_id=EVIDENCE_ID, role="supporting"),), rationale="Project"),
+        ProgramServiceProposal(proposal_key="campaign-1", label="Appeal", disposition="campaign", durable=True, evidence=(SemanticEvidence(evidence_id=EVIDENCE_ID, role="supporting"),), rationale="Campaign"),
+        ProgramServiceProposal(proposal_key="category-1", label="Housing portfolio", disposition="category_or_portfolio", durable=True, evidence=(SemanticEvidence(evidence_id=EVIDENCE_ID, role="supporting"),), rationale="Portfolio"),
+        ProgramServiceProposal(proposal_key="unknown-1", label="Unclear", disposition="insufficient_evidence", durable=None, evidence=(SemanticEvidence(evidence_id=EVIDENCE_ID, role="context"),), rationale="Insufficient"),
+    )
+    catalog, stored, _ = discovery_result_setup(tmp_path, ProgramServiceDiscoveryOutput(proposals=proposals))
+    candidates = catalog.project_program_candidates(stored["model_result_id"], now=NOW)
+    assert [(row["model_result_item_key"], row["candidate_kind"]) for row in candidates] == [("program-1", "explicit_program"), ("program-2", "explicit_program"), ("service-1", "explicit_service")]
+    assert all(row["evidence_ids"] == [EVIDENCE_ID] for row in candidates)
+
+
+def test_multi_proposal_discovery_rejects_unknown_key_kind_and_evidence_lineage(tmp_path):
+    proposals = (ProgramServiceProposal(proposal_key="program-1", label="Housing program", disposition="program", durable=True, evidence=(SemanticEvidence(evidence_id=EVIDENCE_ID, role="supporting"),), rationale="Direct"),)
+    catalog, stored, _ = discovery_result_setup(tmp_path, ProgramServiceDiscoveryOutput(proposals=proposals))
+    common = dict(record_id="programcandidate:" + "f" * 32, created_at=NOW, producer={"kind": "model", "producer_id": "test"}, subject_id=SUBJECT_ID, model_result_id=stored["model_result_id"], evidence_ids=(EVIDENCE_ID,), label="Housing program", extraction_method="model_task", status="candidate")
+    unknown = ProgramCandidate(**common, model_result_item_key="missing", candidate_kind="explicit_program")
+    with pytest.raises(ConflictError):
+        catalog.register_program_candidate(unknown)
+    wrong_kind = ProgramCandidate(**common, model_result_item_key="program-1", candidate_kind="explicit_service")
+    with pytest.raises(ConflictError):
+        catalog.register_program_candidate(wrong_kind)
+    outside = ProgramCandidate(**(common | {"evidence_ids": ("evidence:" + "a" * 32,)}), model_result_item_key="program-1", candidate_kind="explicit_program")
+    with pytest.raises(CatalogError):
+        catalog.register_program_candidate(outside)
+
+
+def test_multi_proposal_discovery_allows_zero_proposals(tmp_path):
+    catalog, stored, _ = discovery_result_setup(tmp_path, ProgramServiceDiscoveryOutput(proposals=()))
+    assert catalog.project_program_candidates(stored["model_result_id"], now=NOW) == []
