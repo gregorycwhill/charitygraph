@@ -1,4 +1,4 @@
-﻿"""Small production executor for one evidence-bound native discovery task.
+"""Small production executor for one evidence-bound native discovery task.
 
 The executor deliberately accepts evidence content from the private runtime and
 keeps all response/input bodies outside the repository.  It owns only the
@@ -106,6 +106,8 @@ def execute_native_discovery(
     io_dir.mkdir(parents=True, exist_ok=True)
     input_path = io_dir / f"{task_run_id.replace(':', '_')}.input.txt"
     input_path.write_text(prompt, encoding="utf-8")
+    input_artifact_id = "canary-input-" + input_hash
+    catalog.index_artifact(artifact_id=input_artifact_id, content_hash=input_hash, schema_id=task.task_schema.schema_id, schema_version=task.task_schema.schema_version, storage_path=str(input_path), availability="available", created_at=now, indexed_at=now)
     response: ApiResult | None = None
     raw_response_path: Path | None = None
     try:
@@ -113,6 +115,9 @@ def execute_native_discovery(
         response = request_fn(model=task.model_snapshot, input_text=prompt, text_format={"type": "json_schema", "name": "program_service_discovery", "schema": schema}, max_output_tokens=MAX_OUTPUT_TOKENS, max_attempts=2)
         raw_response_path = io_dir / f"{task_run_id.replace(':', '_')}.response.json"
         raw_response_path.write_text(response.output_text, encoding="utf-8")
+        response_hash = hashlib.sha256(response.output_text.encode("utf-8")).hexdigest()
+        response_artifact_id = "canary-response-" + response_hash
+        catalog.index_artifact(artifact_id=response_artifact_id, content_hash=response_hash, schema_id=task.output_schema.schema_id, schema_version=task.output_schema.schema_version, storage_path=str(raw_response_path), availability="available", created_at=now, indexed_at=now)
         actual_usd = estimate_response_cost(response.model, response.usage)
         actual_aud = None if actual_usd is None else (actual_usd * fx_usd_aud).quantize(Decimal("0.000001"))
         usage = {"input_tokens": response.usage.input_tokens or 0, "output_tokens": response.usage.output_tokens or 0, "cached_input_tokens": 0, "embedding_input_tokens": 0, "image_units": 0, "tool_calls": 0, "other_billable_units": []}
@@ -152,6 +157,9 @@ def execute_native_discovery(
         if response is None:
             catalog.abandon_authorized_call(slot["slot_key"], now=now, provider_transmitted=False, reason="pre-transmission failure")
             catalog.finish_failed_attempt(task_run_id, owner=owner, completed_at=now, retryable=False, error_class="provider_request", error_message_redacted="provider request failed")
+            position = catalog.reservation_position(reservation_id)
+            unused = max(Decimal("0"), position["reserved"] - min(position["actual"], position["reserved"]) - position["released"])
+            if unused > 0:
+                catalog.release_cost(reservation_id, {"amount": str(unused), "currency": "AUD"}, now=now, entry_key=f"release:{reservation_id}")
+            catalog.transition_run(run_id, "failed", now=now)
         raise
-
-
