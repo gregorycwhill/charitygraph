@@ -154,6 +154,31 @@ CREATE TABLE artifact_index (
 """.strip() + "\n"
 
 
+
+CATALOGUE_SQL_V8 = """
+CREATE TABLE semantic_measurement_authorizations (
+    slot_key TEXT PRIMARY KEY,
+    authorization_scope_hash TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    task_family TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    measurement_id TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('authorized','claimed','completed','failed_terminal','abandoned','reviewed_reset')),
+    lease_owner TEXT,
+    lease_expires_at TEXT,
+    provider_transmitted INTEGER NOT NULL DEFAULT 0 CHECK(provider_transmitted IN (0,1)),
+    claimed_at TEXT,
+    completed_at TEXT,
+    reviewed_reset_at TEXT,
+    review_ref TEXT,
+    result_ref TEXT,
+    updated_at TEXT NOT NULL,
+    UNIQUE(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id)
+);
+CREATE INDEX semantic_measurement_authorizations_lookup_idx
+    ON semantic_measurement_authorizations(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id);
+""".strip() + "\n"
+
 @dataclass(frozen=True)
 class Migration:
     version: int
@@ -575,6 +600,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(5, "authorized_call_slots", CATALOGUE_SQL_V5),
     Migration(6, "model_results_and_candidate_lineage", CATALOGUE_SQL_V6),
     Migration(7, "model_result_item_lineage", CATALOGUE_SQL_V7),
+    Migration(8, "durable_semantic_measurement_authorizations", CATALOGUE_SQL_V8),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
