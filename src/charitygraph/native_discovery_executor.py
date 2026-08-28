@@ -98,6 +98,7 @@ def execute_native_discovery(
     pricing_snapshot_id: str,
     fx_snapshot_id: str,
     fx_usd_aud: Decimal,
+    measurement_id: str = "production",
     owner: str = "native-discovery-worker",
     runtime_root: str | Path,
     request_fn: Callable[..., ApiResult] = responses_create,
@@ -113,7 +114,7 @@ def execute_native_discovery(
     catalog.register_task(task, run_id=run_id, now=now)
     catalog.transition_run(run_id, "running", now=now)
     catalog.reserve_cost({"record_id": reservation_id, "cohort_id": cohort_id, "run_id": run_id, "reserved_aud": {"amount": str(reservation_aud), "currency": "AUD"}, "model_task_ids": (task.record_id,)}, now=now)
-    slot = catalog.claim_authorized_call(authorization_scope_hash=authorization_scope_hash, subject_id=task.subject_id, task_family="program_service_discovery", material_hash=task.cache_key or "", owner=owner, now=now, lease_expires_at=now + timedelta(hours=1))
+    slot = catalog.claim_authorized_call(authorization_scope_hash=authorization_scope_hash, subject_id=task.subject_id, task_family="program_service_discovery", material_hash=task.cache_key or "", measurement_id=measurement_id, owner=owner, now=now, lease_expires_at=now + timedelta(hours=1))
     catalog.claim_task(task.record_id, owner=owner, lease_expires_at=now + timedelta(hours=1), now=now)
     task_run_id = deterministic_id("taskrun:", {"task_id": task.record_id, "run_id": run_id, "attempt": 1})
     attempt = catalog.begin_task_attempt(task.record_id, owner=owner, task_run_id=task_run_id, now=now, reservation_id=reservation_id)

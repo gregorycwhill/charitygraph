@@ -16,12 +16,13 @@ def claim_catalog(tmp_path):
     return catalog
 
 
-def claim(catalog, *, subject="subject:" + "1" * 32, material="a" * 64, owner="worker", lease=None):
+def claim(catalog, *, subject="subject:" + "1" * 32, material="a" * 64, owner="worker", lease=None, measurement_id="production"):
     return catalog.claim_authorized_call(
         authorization_scope_hash="scope:" + "b" * 32,
         subject_id=subject,
         task_family="semantic_interpretation",
         material_hash=material,
+        measurement_id=measurement_id,
         owner=owner,
         now=NOW,
         lease_expires_at=lease,
@@ -164,3 +165,30 @@ def test_send_boundary_is_terminal_and_not_resettable(tmp_path):
         catalog.reset_abandoned_authorized_call(slot["slot_key"], now=NOW, review_ref="review:no-retry")
     with pytest.raises(ConflictError):
         claim(catalog, owner="second-worker")
+
+
+def test_cross_catalogue_durable_measurement_authorization_and_replicates(tmp_path):
+    authority = tmp_path / "authorization.sqlite3"
+    first = SQLiteCatalog(tmp_path / "run-a.sqlite3", authorization_path=authority).open(initialize=True)
+    second = SQLiteCatalog(tmp_path / "run-b.sqlite3", authorization_path=authority).open(initialize=True)
+    common = dict(authorization_scope_hash="scope:" + "d" * 32, subject_id="subject:" + "e" * 32, task_family="program_service_discovery", material_hash="f" * 64)
+    first.authorize_semantic_measurement(**common, measurement_id="replicate-a", authorized_by="owner", now=NOW)
+    slot_a = first.claim_authorized_call(**common, measurement_id="replicate-a", owner="worker-a", now=NOW)
+    first.mark_authorized_call_transmitted(slot_a["slot_key"], now=NOW)
+    first.complete_authorized_call(slot_a["slot_key"], now=NOW, result_ref="response:a")
+    first.close()
+    with pytest.raises(ConflictError):
+        second.claim_authorized_call(**common, measurement_id="replicate-a", owner="worker-b", now=NOW)
+    second.authorize_semantic_measurement(**common, measurement_id="replicate-b", authorized_by="owner", now=NOW)
+    slot_b = second.claim_authorized_call(**common, measurement_id="replicate-b", owner="worker-b", now=NOW)
+    assert slot_b["measurement_id"] == "replicate-b"
+    with pytest.raises(ConflictError):
+        second.claim_authorized_call(**common, measurement_id="replicate-b", owner="worker-c", now=NOW)
+    with pytest.raises(ConflictError):
+        second.claim_authorized_call(**common, measurement_id="replicate-c", owner="worker-c", now=NOW)
+
+
+def test_replicate_requires_explicit_authorization(tmp_path):
+    catalog = claim_catalog(tmp_path)
+    with pytest.raises(ConflictError):
+        claim(catalog, measurement_id="replicate-a")

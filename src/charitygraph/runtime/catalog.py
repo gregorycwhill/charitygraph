@@ -196,10 +196,11 @@ class BudgetPosition:
 class SQLiteCatalog:
     """A per-operation-connection SQLite catalogue with explicit transactions."""
 
-    def __init__(self, path: str | Path, *, busy_timeout_ms: int = 5_000) -> None:
+    def __init__(self, path: str | Path, *, busy_timeout_ms: int = 5_000, authorization_path: str | Path | None = None) -> None:
         if str(path) == ":memory:":
             raise CatalogError("SQLiteCatalog requires a file-backed database; :memory: is unsupported")
         self.path = Path(path)
+        self.authorization_path = Path(authorization_path) if authorization_path is not None else None
         self.busy_timeout_ms = int(busy_timeout_ms)
         if self.busy_timeout_ms <= 0:
             raise CatalogError("busy_timeout_ms must be positive")
@@ -631,21 +632,137 @@ class SQLiteCatalog:
     def _authorized_slot_key(self, authorization_scope_hash: str, subject_id: str, task_family: str, material_hash: str) -> str:
         return "callslot:" + _canonical_hash({"authorization_scope_hash": authorization_scope_hash, "subject_id": subject_id, "task_family": task_family, "material_hash": material_hash})
 
+    def _semantic_slot_key(self, authorization_scope_hash: str, subject_id: str, task_family: str, material_hash: str, measurement_id: str) -> str:
+        return "semantic-slot:" + _canonical_hash({"authorization_scope_hash": authorization_scope_hash, "subject_id": subject_id, "task_family": task_family, "material_hash": material_hash, "measurement_id": measurement_id})
+
+    @contextmanager
+    def _authorization_connection(self, *, immediate: bool = False) -> Iterator[sqlite3.Connection]:
+        """Open the canonical durable authorization authority.
+
+        The authority may be a separate SQLite file so a fresh economics/run
+        catalogue cannot forget a provider transmission.  The table is created
+        defensively for an authority store that predates migration 8.
+        """
+        path = self.authorization_path
+        if path is None:
+            raise CatalogError("durable authorization authority is not configured")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            conn = sqlite3.connect(str(path), timeout=self.busy_timeout_ms / 1000, isolation_level=None)
+        except sqlite3.Error as exc:
+            raise CatalogError("could not open authorization authority") from exc
+        try:
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA foreign_keys = ON")
+            conn.execute(f"PRAGMA busy_timeout = {self.busy_timeout_ms}")
+            conn.execute("""CREATE TABLE IF NOT EXISTS semantic_measurement_authorizations (
+                slot_key TEXT PRIMARY KEY,
+                authorization_scope_hash TEXT NOT NULL,
+                subject_id TEXT NOT NULL,
+                task_family TEXT NOT NULL,
+                material_hash TEXT NOT NULL,
+                measurement_id TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('authorized','claimed','completed','failed_terminal','abandoned','reviewed_reset')),
+                lease_owner TEXT,
+                lease_expires_at TEXT,
+                provider_transmitted INTEGER NOT NULL DEFAULT 0 CHECK(provider_transmitted IN (0,1)),
+                claimed_at TEXT,
+                completed_at TEXT,
+                reviewed_reset_at TEXT,
+                review_ref TEXT,
+                result_ref TEXT,
+                updated_at TEXT NOT NULL,
+                UNIQUE(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id)
+            )""")
+            conn.execute("CREATE INDEX IF NOT EXISTS semantic_measurement_authorizations_lookup_idx ON semantic_measurement_authorizations(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id)")
+            if immediate:
+                conn.execute("BEGIN IMMEDIATE")
+            yield conn
+        except CatalogError:
+            if conn.in_transaction: conn.rollback()
+            raise
+        except sqlite3.IntegrityError as exc:
+            if conn.in_transaction: conn.rollback()
+            raise ConflictError("authorization authority constraint conflict") from exc
+        except sqlite3.Error as exc:
+            if conn.in_transaction: conn.rollback()
+            raise CatalogError("authorization authority operation failed") from exc
+        finally:
+            conn.close()
+
+    def authorize_semantic_measurement(
+        self, *, authorization_scope_hash: str, subject_id: str, task_family: str,
+        material_hash: str, measurement_id: str, authorized_by: str,
+        now: datetime | str,
+    ) -> dict[str, Any]:
+        """Pre-authorize one immutable semantic measurement identity."""
+        self._ensure_open()
+        self._require_migrated()
+        if not str(measurement_id).strip():
+            raise CatalogError("measurement_id is required")
+        if not str(authorized_by).strip():
+            raise CatalogError("authorized_by is required")
+        now_s = _utc(now, "now")
+        slot_key = self._semantic_slot_key(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id)
+        with self._authorization_connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM semantic_measurement_authorizations WHERE slot_key=?", (slot_key,)).fetchone()
+            if row is not None:
+                fields = (row["authorization_scope_hash"], row["subject_id"], row["task_family"], row["material_hash"], row["measurement_id"])
+                if fields != (authorization_scope_hash, subject_id, task_family, material_hash, measurement_id):
+                    raise ConflictError("measurement authorization key was reused with different material")
+                return dict(row)
+            conn.execute("INSERT INTO semantic_measurement_authorizations(slot_key, authorization_scope_hash, subject_id, task_family, material_hash, measurement_id, status, review_ref, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'authorized', ?, ?)", (slot_key, authorization_scope_hash, subject_id, task_family, material_hash, measurement_id, authorized_by, now_s))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM semantic_measurement_authorizations WHERE slot_key=?", (slot_key,)).fetchone())
+
     def get_authorized_call(self, slot_key: str) -> dict[str, Any] | None:
         self._require_migrated()
+        if slot_key.startswith("semantic-slot:") and self.authorization_path is not None:
+            with self._authorization_connection() as conn:
+                return _row(conn.execute("SELECT * FROM semantic_measurement_authorizations WHERE slot_key=?", (slot_key,)).fetchone())
         with self._connection() as conn:
             return _row(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
 
     def claim_authorized_call(
         self, *, authorization_scope_hash: str, subject_id: str, task_family: str, material_hash: str,
         owner: str, now: datetime | str, lease_expires_at: datetime | str | None = None,
+        measurement_id: str = "production",
     ) -> dict[str, Any]:
-        """Atomically consume one bounded provider-call authorization.
+        """Atomically claim one durable measurement authorization.
 
-        Existing claims fail closed, including expired leases. Only an
-        explicitly reviewed reset of an abandoned pre-transmission slot can
-        be reclaimed.
+        Production callers retain the historical implicit single measurement;
+        technical replicates must be pre-authorized explicitly.
         """
+        if self.authorization_path is not None:
+            if measurement_id != "production":
+                slot_key = self._semantic_slot_key(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id)
+                with self._authorization_connection() as conn:
+                    exists = conn.execute("SELECT 1 FROM semantic_measurement_authorizations WHERE slot_key=?", (slot_key,)).fetchone()
+                if exists is None:
+                    raise ConflictError("measurement is not explicitly authorized")
+            self._ensure_open()
+            self._require_migrated()
+            now_s = _utc(now, "now")
+            expiry = _utc(lease_expires_at, "lease_expires_at") if lease_expires_at is not None else (datetime.fromisoformat(now_s) + timedelta(hours=1)).isoformat()
+            if not str(owner).strip():
+                raise CatalogError("authorized call owner is required")
+            slot_key = self._semantic_slot_key(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id)
+            with self._authorization_connection(immediate=True) as conn:
+                row = conn.execute("SELECT * FROM semantic_measurement_authorizations WHERE slot_key=?", (slot_key,)).fetchone()
+                if row is None:
+                    if measurement_id != "production":
+                        raise ConflictError("measurement is not explicitly authorized")
+                    conn.execute("INSERT INTO semantic_measurement_authorizations(slot_key, authorization_scope_hash, subject_id, task_family, material_hash, measurement_id, status, lease_owner, lease_expires_at, claimed_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'claimed', ?, ?, ?, ?)", (slot_key, authorization_scope_hash, subject_id, task_family, material_hash, measurement_id, owner, expiry, now_s, now_s))
+                elif row["status"] == "authorized":
+                    conn.execute("UPDATE semantic_measurement_authorizations SET status='claimed', lease_owner=?, lease_expires_at=?, claimed_at=?, updated_at=? WHERE slot_key=?", (owner, expiry, now_s, now_s, slot_key))
+                elif row["status"] == "reviewed_reset" and int(row["provider_transmitted"]) == 0:
+                    conn.execute("UPDATE semantic_measurement_authorizations SET status='claimed', lease_owner=?, lease_expires_at=?, claimed_at=?, updated_at=?, review_ref=NULL WHERE slot_key=?", (owner, expiry, now_s, now_s, slot_key))
+                else:
+                    raise ConflictError("authorized provider call slot has already been consumed or is active")
+                self._commit(conn)
+                return dict(conn.execute("SELECT * FROM semantic_measurement_authorizations WHERE slot_key=?", (slot_key,)).fetchone())
+        if measurement_id != "production":
+            raise ConflictError("explicit replicate authorization requires a durable authority")
         self._require_migrated()
         now_s = _utc(now, "now")
         expiry = _utc(lease_expires_at, "lease_expires_at") if lease_expires_at is not None else (datetime.fromisoformat(now_s) + timedelta(hours=1)).isoformat()
@@ -664,59 +781,74 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
 
+    def _durable_slot_operation(self, slot_key: str, *, operation: str, now: datetime | str, result_ref: str | None = None, terminal_failure: bool = False, provider_transmitted: bool = False, reason: str | None = None, review_ref: str | None = None) -> dict[str, Any]:
+        self._ensure_open(); self._require_migrated(); now_s = _utc(now, "now")
+        with self._authorization_connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM semantic_measurement_authorizations WHERE slot_key=?", (slot_key,)).fetchone()
+            if row is None: raise CatalogError("authorized call slot does not exist")
+            if operation == "transmit":
+                if row["status"] != "claimed": raise ConflictError("authorized call slot is not currently claimed")
+                conn.execute("UPDATE semantic_measurement_authorizations SET provider_transmitted=1, updated_at=? WHERE slot_key=?", (now_s, slot_key))
+            elif operation == "complete":
+                if row["status"] != "claimed": raise ConflictError("authorized call slot is not currently claimed")
+                status = "failed_terminal" if terminal_failure else "completed"
+                conn.execute("UPDATE semantic_measurement_authorizations SET status=?, provider_transmitted=1, completed_at=?, updated_at=?, result_ref=COALESCE(?, result_ref) WHERE slot_key=?", (status, now_s, now_s, result_ref, slot_key))
+            elif operation == "abandon":
+                if row["status"] != "claimed": raise ConflictError("authorized call slot is not currently claimed")
+                conn.execute("UPDATE semantic_measurement_authorizations SET status='abandoned', provider_transmitted=?, updated_at=?, review_ref=COALESCE(?, review_ref) WHERE slot_key=?", (1 if provider_transmitted else 0, now_s, reason, slot_key))
+            elif operation == "reset":
+                if not str(review_ref or '').strip(): raise CatalogError("review_ref is required to reset an abandoned call")
+                if row["status"] != "abandoned" or int(row["provider_transmitted"]) != 0: raise ConflictError("only abandoned pre-transmission slots may be reviewed and reset")
+                conn.execute("UPDATE semantic_measurement_authorizations SET status='reviewed_reset', reviewed_reset_at=?, review_ref=?, updated_at=? WHERE slot_key=?", (now_s, review_ref, now_s, slot_key))
+            else: raise CatalogError("unknown durable authorization operation")
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM semantic_measurement_authorizations WHERE slot_key=?", (slot_key,)).fetchone())
+
     def mark_authorized_call_transmitted(self, slot_key: str, *, now: datetime | str) -> dict[str, Any]:
-        """Cross the provider-send boundary durably before network I/O."""
-        self._require_migrated()
-        now_s = _utc(now, "now")
+        if slot_key.startswith("semantic-slot:") and self.authorization_path is not None:
+            return self._durable_slot_operation(slot_key, operation="transmit", now=now)
+        self._require_migrated(); now_s = _utc(now, "now")
         with self._connection(immediate=True) as conn:
             row = conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone()
-            if row is None:
-                raise CatalogError("authorized call slot does not exist")
-            if row["status"] != "claimed":
-                raise ConflictError("authorized call slot is not currently claimed")
-            conn.execute("UPDATE authorized_call_slots SET provider_transmitted=1, updated_at=? WHERE slot_key=?", (now_s, slot_key))
-            self._commit(conn)
+            if row is None: raise CatalogError("authorized call slot does not exist")
+            if row["status"] != "claimed": raise ConflictError("authorized call slot is not currently claimed")
+            conn.execute("UPDATE authorized_call_slots SET provider_transmitted=1, updated_at=? WHERE slot_key=?", (now_s, slot_key)); self._commit(conn)
             return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
+
     def complete_authorized_call(self, slot_key: str, *, now: datetime | str, result_ref: str | None = None, terminal_failure: bool = False) -> dict[str, Any]:
-        self._require_migrated()
-        now_s = _utc(now, "now")
+        if slot_key.startswith("semantic-slot:") and self.authorization_path is not None:
+            return self._durable_slot_operation(slot_key, operation="complete", now=now, result_ref=result_ref, terminal_failure=terminal_failure)
+        self._require_migrated(); now_s = _utc(now, "now")
         with self._connection(immediate=True) as conn:
             row = conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone()
-            if row is None:
-                raise CatalogError("authorized call slot does not exist")
-            if row["status"] != "claimed":
-                raise ConflictError("authorized call slot is not currently claimed")
+            if row is None: raise CatalogError("authorized call slot does not exist")
+            if row["status"] != "claimed": raise ConflictError("authorized call slot is not currently claimed")
             status = "failed_terminal" if terminal_failure else "completed"
-            conn.execute("UPDATE authorized_call_slots SET status=?, provider_transmitted=1, completed_at=?, updated_at=?, result_ref=COALESCE(?, result_ref) WHERE slot_key=?", (status, now_s, now_s, result_ref, slot_key))
-            self._commit(conn)
+            conn.execute("UPDATE authorized_call_slots SET status=?, provider_transmitted=1, completed_at=?, updated_at=?, result_ref=COALESCE(?, result_ref) WHERE slot_key=?", (status, now_s, now_s, result_ref, slot_key)); self._commit(conn)
             return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
 
     def abandon_authorized_call(self, slot_key: str, *, now: datetime | str, provider_transmitted: bool = False, reason: str | None = None) -> dict[str, Any]:
-        self._require_migrated()
-        now_s = _utc(now, "now")
+        if slot_key.startswith("semantic-slot:") and self.authorization_path is not None:
+            return self._durable_slot_operation(slot_key, operation="abandon", now=now, provider_transmitted=provider_transmitted, reason=reason)
+        self._require_migrated(); now_s = _utc(now, "now")
         with self._connection(immediate=True) as conn:
             row = conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone()
-            if row is None:
-                raise CatalogError("authorized call slot does not exist")
-            if row["status"] != "claimed":
-                raise ConflictError("authorized call slot is not currently claimed")
-            conn.execute("UPDATE authorized_call_slots SET status='abandoned', provider_transmitted=?, updated_at=?, review_ref=COALESCE(?, review_ref) WHERE slot_key=?", (1 if provider_transmitted else 0, now_s, reason, slot_key))
-            self._commit(conn)
+            if row is None: raise CatalogError("authorized call slot does not exist")
+            if row["status"] != "claimed": raise ConflictError("authorized call slot is not currently claimed")
+            conn.execute("UPDATE authorized_call_slots SET status='abandoned', provider_transmitted=?, updated_at=?, review_ref=COALESCE(?, review_ref) WHERE slot_key=?", (1 if provider_transmitted else 0, now_s, reason, slot_key)); self._commit(conn)
             return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
 
     def reset_abandoned_authorized_call(self, slot_key: str, *, now: datetime | str, review_ref: str) -> dict[str, Any]:
-        self._require_migrated()
-        if not str(review_ref).strip():
-            raise CatalogError("review_ref is required to reset an abandoned call")
+        if slot_key.startswith("semantic-slot:") and self.authorization_path is not None:
+            return self._durable_slot_operation(slot_key, operation="reset", now=now, review_ref=review_ref)
+        self._require_migrated();
+        if not str(review_ref).strip(): raise CatalogError("review_ref is required to reset an abandoned call")
         now_s = _utc(now, "now")
         with self._connection(immediate=True) as conn:
             row = conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone()
-            if row is None:
-                raise CatalogError("authorized call slot does not exist")
-            if row["status"] != "abandoned" or int(row["provider_transmitted"]) != 0:
-                raise ConflictError("only abandoned pre-transmission slots may be reviewed and reset")
-            conn.execute("UPDATE authorized_call_slots SET status='reviewed_reset', reviewed_reset_at=?, review_ref=?, updated_at=? WHERE slot_key=?", (now_s, review_ref, now_s, slot_key))
-            self._commit(conn)
+            if row is None: raise CatalogError("authorized call slot does not exist")
+            if row["status"] != "abandoned" or int(row["provider_transmitted"]) != 0: raise ConflictError("only abandoned pre-transmission slots may be reviewed and reset")
+            conn.execute("UPDATE authorized_call_slots SET status='reviewed_reset', reviewed_reset_at=?, review_ref=?, updated_at=? WHERE slot_key=?", (now_s, review_ref, now_s, slot_key)); self._commit(conn)
             return dict(conn.execute("SELECT * FROM authorized_call_slots WHERE slot_key=?", (slot_key,)).fetchone())
 
     def _update_reservation_status(self, conn: sqlite3.Connection, reservation_id: str, now_s: str) -> None:
