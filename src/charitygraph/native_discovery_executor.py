@@ -33,6 +33,8 @@ DISCOVERY_PROMPT = """Identify program-, service-, project-, campaign- or other 
 
 DISCOVERY_PROMPT_V2 = """Identify program-, service-, project-, campaign- or other program/service-like subjects supported by the supplied evidence. Current availability is not subject identity: report operational status separately as current, closing_or_winding_down, historical, or unknown. A program or service is an identifiable delivered offering or operating subject; headings, themes, portfolios, capabilities, topics, partnerships and organisational practices do not qualify merely because they appear as headings. Distinguish projects and campaigns from programs/services. Do not infer outcomes, impact or ROI. Every proposal must cite supplied evidence IDs and preserve uncertainty. Return only the strict JSON object matching the supplied schema.\n\nSUBJECT: {subject_id}\n\nEVIDENCE:\n{evidence}"""
 PROMPT_TEMPLATE_VERSION_V2 = "v2"
+DISCOVERY_PROMPT_V3 = """Identify distinct program-, service-, project- and campaign-like operating subjects supported by the supplied evidence. Evidence about the reviewed organisation is not necessarily activity of the reviewed organisation. A linked partner's program is not automatically the reviewed organisation's program. Hosting, funding, supporting, promoting or mentioning an activity is not the same as operating it; determine operator relationship explicitly, including genuine joint operation or partnership, and use unclear when uncertain. Build a coherent subject set, not a list of every named noun or source heading. Source-reported program labels, including ACNC/AIS self-classification, are evidence, not authoritative CharityGraph graph grain. Distinguish portfolios, channels, locations, schedules, mechanisms and organisational practices from substantive operating subjects. Merge aliases or paraphrases of approximately the same operating subject, and use parent_proposal_key for substantive umbrella/component relationships. A distinct fundraising appeal or campaign may be a campaign; generic donation or payment machinery is not automatically one. Current availability is separate from subject identity. Determine operational_status independently; absence of an explicit currentness signal is not historical, old source dates alone do not establish cessation, and use unknown when status evidence is insufficient. Non-unknown status requires supporting evidence for the temporal/operating-status proposition. Every substantive proposition must be grounded in cited evidence. Supporting and competing evidence quotes must be verbatim contiguous excerpts from the supplied evidence; quotes are evidence locators, not explanations of model reasoning. Lexical presence is not proposition support. Do not use lexical heuristics. Return only the strict JSON object matching the supplied schema.\n\nSUBJECT: {subject_id}\n\nEVIDENCE:\n{evidence}"""
+PROMPT_TEMPLATE_VERSION_V3 = "v3"
 
 
 @dataclass(frozen=True)
@@ -75,6 +77,8 @@ def _parse_discovery_output(
     task: ModelTask, output_text: str,
 ) -> tuple[ProgramServiceDiscoveryOutput | ProgramServiceDiscoveryOutputV2, tuple[str, ...]]:
     """Validate a response with the output model selected by the task version."""
+    if task.task_schema.schema_id == "urn:charitygraph:builder:schema:program-service-discovery-task:3.0":
+        raise ValueError("program/service discovery v3 is not enabled in the production executor")
     task_v2 = task.task_schema.schema_id == "urn:charitygraph:builder:schema:program-service-discovery-task:2.0"
     output_v2 = task.output_schema.schema_id == DISCOVERY_OUTPUT_SCHEMA_V2.schema_id
     if task_v2 != output_v2:
@@ -111,6 +115,8 @@ def execute_native_discovery(
     """
     now = now or datetime.now(timezone.utc)
     now = now.astimezone(timezone.utc)
+    if task.task_schema.schema_id == "urn:charitygraph:builder:schema:program-service-discovery-task:3.0":
+        raise ValueError("program/service discovery v3 is not enabled in the production executor")
     catalog.register_task(task, run_id=run_id, now=now)
     catalog.transition_run(run_id, "running", now=now)
     catalog.reserve_cost({"record_id": reservation_id, "cohort_id": cohort_id, "run_id": run_id, "reserved_aud": {"amount": str(reservation_aud), "currency": "AUD"}, "model_task_ids": (task.record_id,)}, now=now)
