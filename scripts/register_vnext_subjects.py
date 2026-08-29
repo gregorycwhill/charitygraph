@@ -21,8 +21,20 @@ from charitygraph.runtime import SQLiteCatalog
 
 ABNS = ("28000030179", "50169561394", "20077830347", "22007498482", "15000002522", "28004778081", "46070556642", "67649417658", "45146631843", "15101252171")
 API = "https://www.acnc.gov.au/api/dynamics"
-SOURCE_VERSION = "api-2026-08-29"
+SOURCE_VERSION = "acnc-dynamics-v1"
 POLICY = "acnc-registered-charity-bootstrap-v1"
+PRESERVED_IDS = {
+    "28000030179": "subject:f284a1e0e31a4e04b7d9f8ae8863ef10",
+    "50169561394": "subject:d10dfad31cb04c5fb27ada0a81f36b69",
+    "20077830347": "subject:cd39c657e7df48f28a6e7b1df9ef33fe",
+    "22007498482": "subject:c5773029e25241248fdb15edd7440275",
+    "15000002522": "subject:67db77d503aa4689a78c685704cc8a96",
+    "28004778081": "subject:cf042745edd84e58bce4e1c60704c472",
+    "46070556642": "subject:ca20920c8c074a268f09b7a57866479a",
+    "67649417658": "subject:0c24bf13cc114a1f8fc9251f303f1b19",
+    "45146631843": "subject:c8815cbf7b0c48f28b2a49466a0bd653",
+    "15101252171": "subject:ca2a7205d6de410c85cb2a08196206dc",
+}
 
 
 def _fetch_json(url: str) -> tuple[bytes, dict]:
@@ -53,7 +65,7 @@ def _existing_subject(catalog: SQLiteCatalog, abn: str) -> dict | None:
         rows = conn.execute(
             "SELECT s.* FROM subjects s JOIN external_identifiers e ON e.subject_id=s.subject_id "
             "WHERE e.scheme=? AND e.identifier_value=? AND e.issuing_authority=? AND e.status='active'",
-            ("ABN", abn, "ACNC"),
+            ("ABN", abn, "Australian Business Register"),
         ).fetchall()
     if len(rows) > 1:
         raise RuntimeError(f"more than one active vNext subject is bound to ABN {abn}")
@@ -63,7 +75,7 @@ def _existing_subject(catalog: SQLiteCatalog, abn: str) -> dict | None:
     with catalog._connection() as conn:
         identifier = conn.execute(
             "SELECT material_json FROM external_identifiers WHERE subject_id=? AND scheme=? AND identifier_value=? AND issuing_authority=?",
-            (result["subject_id"], "ABN", abn, "ACNC"),
+            (result["subject_id"], "ABN", abn, "Australian Business Register"),
         ).fetchone()
     if identifier:
         result["acnc_source_record_id"] = (json.loads(identifier["material_json"]).get("source_record_ids") or [None])[0]
@@ -82,7 +94,7 @@ def _name(entity: dict, abn: str) -> str:
 def bootstrap(catalog_path: Path, runtime_root: Path) -> list[dict]:
     catalog = SQLiteCatalog(catalog_path).open(initialize=True)
     store = ContentAddressedArtifactStore(runtime_root / "objects", allowed_roots=(runtime_root,), catalog=catalog)
-    now = datetime.now(timezone.utc)
+    now = datetime(2026, 8, 29, tzinfo=timezone.utc)
     source_definition = SourceDefinition(
         record_id=deterministic_id("srcdef:", {"source_family": "acnc_register", "endpoint": f"{API}/entity", "version": SOURCE_VERSION}),
         created_at=now, producer={"kind": "code", "producer_id": "vnext-bootstrap", "version": "1"},
@@ -103,14 +115,14 @@ def bootstrap(catalog_path: Path, runtime_root: Path) -> list[dict]:
             locator, body, entity = fetch_register_record(abn)
             artifact = store.put(body, created_at=now)
             payload_hash = artifact.content_hash
-            source_record_id = deterministic_id("srcrec:", {"source_family": "acnc_register", "source_version": SOURCE_VERSION, "source_locator": locator, "payload_hash": payload_hash})
+            source_record_id = deterministic_id("srcrec:", {"source_family": "acnc_register", "source_version": None, "source_locator": locator, "payload_hash": payload_hash})
             receipt_id = deterministic_id("acq:", {"source_definition_id": source_definition.record_id, "artifact_id": artifact.artifact_id})
             receipt = AcquisitionReceipt(record_id=receipt_id, created_at=now, producer={"kind": "code", "producer_id": "vnext-bootstrap", "version": "1"}, source_definition_id=source_definition.record_id, requested_locator=locator, resolved_locator=locator, retrieved_at=now, outcome="available", response_status=200, media_type="application/json", content_hash=payload_hash, byte_size=artifact.byte_size, artifact_id=artifact.artifact_id, tool_id="urllib", tool_version="stdlib")
             catalog.record_acquisition_receipt(receipt)
-            record = SourceRecord(record_id=source_record_id, created_at=now, producer={"kind": "code", "producer_id": "vnext-bootstrap", "version": "1"}, source_family="acnc_register", source_role="register_identity", source_version=SOURCE_VERSION, source_locator=locator, retrieved_at=now, observed_at=now, media_type="application/json", payload_ref=artifact.artifact_id, payload_hash=payload_hash, attribution="Australian Charities and Not-for-profits Commission")
+            record = SourceRecord(record_id=source_record_id, created_at=now, producer={"kind": "code", "producer_id": "vnext-bootstrap", "version": "1"}, source_family="acnc_register", source_role="register_identity", source_version=None, source_locator=locator, retrieved_at=now, observed_at=now, media_type="application/json", payload_ref=artifact.artifact_id, payload_hash=payload_hash, attribution="Australian Charities and Not-for-profits Commission")
             catalog.register_source_record(record)
-            subject_id = new_opaque_id("subject:")
-            subject = SubjectRecord(record_id=new_opaque_id("subjectrecord:"), created_at=now, producer={"kind": "code", "producer_id": "vnext-bootstrap", "version": "1"}, subject_id=subject_id, subject_kind="unknown", lifecycle_status="active", display_name=_name(entity, abn), external_identifiers=(ExternalIdentifier(scheme="ABN", value=abn, issuing_authority="ACNC", source_record_ids=(source_record_id,)),), identity_authority_refs=(ArtifactRef(artifact_id=artifact.artifact_id, content_hash=payload_hash, schema=SchemaRef(schema_id="urn:charitygraph:builder:schema:source-artefact:1.0", schema_version="1.0")),), identity_policy_id=POLICY)
+            subject_id = PRESERVED_IDS[abn]
+            subject = SubjectRecord(record_id=new_opaque_id("subjectrecord:"), created_at=now, producer={"kind": "code", "producer_id": "vnext-bootstrap", "version": "1"}, subject_id=subject_id, subject_kind="unknown", lifecycle_status="active", display_name=_name(entity, abn), external_identifiers=(ExternalIdentifier(scheme="ABN", value=abn, issuing_authority="Australian Business Register", source_record_ids=(source_record_id,)),), identity_authority_refs=(ArtifactRef(artifact_id=source_record_id, content_hash=payload_hash, schema=SchemaRef(schema_id="urn:charitygraph:builder:schema:source-record:1.0", schema_version="1.0")),), identity_policy_id=POLICY)
             catalog.register_subject(subject)
             rows.append({"abn": abn, "subject_id": subject_id, "acnc_source_record_id": source_record_id, "status": "created", "subject_kind": "unknown", "identity_policy": POLICY})
         return rows
@@ -139,5 +151,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
 
