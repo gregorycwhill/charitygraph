@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,7 @@ from charitygraph.baseline_corpus import (
     load_v05_cards,
     normalise_host,
     normalise_v05_subject,
+    extract_pfra_members, provider_budget_allows, resolve_wikipedia_candidate, select_filing_documents,
 )
 
 
@@ -99,3 +101,30 @@ def test_material_identity_changes_source_revision_and_record_selection():
     first = build_corpus_manifest(subject_id="subject:abc", profile_version="baseline-v1", members=[member()])
     changed = build_corpus_manifest(subject_id="subject:abc", profile_version="baseline-v1", members=[member(source_revision="rev-2")])
     assert first.material_identity_hash != changed.material_identity_hash
+
+def test_official_website_bound_material_is_not_empty():
+    manifest = build_corpus_manifest(subject_id="subject:website", profile_version="baseline-v1", members=[member(source_family="official_website", source_record_ids=("srcrec:homepage",), artifact_ids=("srcblob:" + "h" * 64,))])
+    assert len(manifest.material_members) == 1
+    assert manifest.material_members[0].source_family == "official_website"
+
+
+def test_filing_bundle_selects_ais_and_same_period_attachments_by_metadata():
+    rows = select_filing_documents([{ "type": "Annual Information Statement", "Year": "2025", "Url": "https://acnc.example/ais" }, { "type": "Annual Report", "Year": "2025", "Url": "https://acnc.example/report" }, { "type": "Financial Report", "Year": "2024", "Url": "https://acnc.example/old" }], "2025")
+    assert [row["role"] for row in rows] == ["annual_information_statement", "annual_report"]
+
+
+def test_provider_budget_guard_blocks_over_cap():
+    assert provider_budget_allows(Decimal("0.10"), Decimal("0.20"), Decimal("0.19"))
+    assert not provider_budget_allows(Decimal("0.40"), Decimal("0.00"), Decimal("0.11"))
+
+
+def test_wikipedia_binding_uses_names_not_abn_title_equality():
+    assert resolve_wikipedia_candidate(["The Smith Family"], [{"title": "The Smith Family"}])["status"] == "bound"
+    assert resolve_wikipedia_candidate(["The Smith Family"], [{"title": "28000030179"}])["status"] == "no_bound_record"
+
+
+def test_pfra_member_parser_is_role_specific_and_preserves_domain():
+    rows = extract_pfra_members("<h4 class=\"card-title\">Mission Australia</h4><p><a href=\"https://www.missionaustralia.com.au\">site</a></p>", page_role="current_charity_membership")
+    assert rows[0]["member_role"] == "current_charity_membership"
+    assert rows[0]["label"] == "Mission Australia"
+    assert rows[0]["linked_domains"] == ["missionaustralia.com.au"]

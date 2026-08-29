@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 from enum import StrEnum
+from decimal import Decimal
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Callable, Literal
@@ -211,7 +212,10 @@ def rank_site_candidates_with_luna(candidates: list[dict[str, Any]], *, subject_
     schema = {"type": "object", "additionalProperties": False, "properties": {"ranked_ordinals": {"type": "array", "items": {"type": "integer"}}}, "required": ["ranked_ordinals"]}
     prompt = "Rank the supplied official-site URL candidates by durable information value across the North Star card. Return only ordinals, preserving every ordinal exactly once. Do not classify, summarise, or infer charity facts. Subject: " + subject_name + "\n" + json.dumps(candidates, ensure_ascii=False, separators=(",", ":"))
     result = request_fn(model=model, input_text=prompt, text_format={"type": "json_schema", "name": "site_information_ranking", "strict": True, "schema": schema}, max_output_tokens=max_output_tokens, max_attempts=2, reasoning={"effort": "high"})
-    output = json.loads(result.output_text)
+    try:
+        output = json.loads(result.output_text)
+    except json.JSONDecodeError:
+        return {"model": result.model, "ranked_ordinals": [], "usage": result.usage.__dict__, "cost_usd": str(estimate_response_cost(result.model, result.usage) or 0), "transport_requests": result.transport_requests, "validation_error": "response was not valid JSON"}
     ranked = output.get("ranked_ordinals", [])
     allowed = {int(item["ordinal"]) for item in candidates}
     if len(ranked) != len(allowed) or set(ranked) != allowed:
@@ -246,6 +250,77 @@ def represent_pdf(path: str | Path, *, vision_extractor: Callable[[dict], Any] |
     gaps = sorted(set(diagnostics["low_text_pages"] + diagnostics["image_only_or_scanned_pages"] + diagnostics["visual_relationships_unresolved_pages"]))
     readiness = RepresentationReadiness.READY if not gaps else RepresentationReadiness.PARTIAL if result["pages"] else RepresentationReadiness.FAILED
     return {"readiness": readiness.value, "page_gaps": gaps, "native_text_pages": diagnostics["native_text_pages"], "visual_escalations": len(diagnostics["vision_escalations"]), "source_sha256": result["source_sha256"], "page_count": result["page_count"], "extracted_page_count": result["extracted_page_count"], "pages": result["pages"]}
+
+
+
+def normalise_entity_label(value: str) -> str:
+    """Conservative name key for governed identity candidate comparison."""
+    return "".join(ch.casefold() for ch in str(value) if ch.isalnum())
+
+
+def resolve_wikipedia_candidate(organisation_names: list[str], candidates: list[dict[str, Any]]) -> dict[str, Any]:
+    """Bind only a unique exact source-native title; never compare ABNs."""
+    names = {normalise_entity_label(name) for name in organisation_names if str(name).strip()}
+    matches = [item for item in candidates if normalise_entity_label(item.get("title", "")) in names]
+    if len(matches) == 1:
+        return {"status": "bound", "candidate": matches[0], "basis": "unique_exact_source_native_name"}
+    if len(matches) > 1:
+        return {"status": "ambiguous", "candidates": matches, "basis": "multiple_exact_source_native_names"}
+    return {"status": "no_bound_record", "candidates": candidates, "basis": "no_exact_source_native_name"}
+
+
+def extract_pfra_members(html: str, *, page_role: str, base_url: str = "https://pfra.org.au/") -> list[dict[str, Any]]:
+    """Extract one logical PFRA member per role-specific h4 card."""
+    parser = _PFRAParser(base_url=base_url, page_role=page_role)
+    parser.feed(html); parser.close()
+    return parser.records
+
+
+class _PFRAParser(HTMLParser):
+    def __init__(self, *, base_url: str, page_role: str) -> None:
+        super().__init__()
+        self.base_url = base_url
+        self.page_role = page_role
+        self.records: list[dict[str, Any]] = []
+        self._label: str | None = None
+        self._text: list[str] = []
+        self._links: list[str] = []
+        self._in_heading = False
+    def _flush(self) -> None:
+        if not self._label: return
+        if self._label.casefold() not in {"charity members", "fundraising agency members"}:
+            self.records.append({"member_role": self.page_role, "label": self._label, "linked_domains": [urlsplit(link).netloc.casefold().removeprefix("www.") for link in self._links if urlsplit(link).scheme in {"http", "https"}], "source_links": self._links[:]})
+        self._label = None; self._text = []; self._links = []
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.casefold()
+        if tag in {"h4", "h3"}:
+            self._flush(); self._in_heading = True; self._text = []
+        elif tag == "a" and self._label is not None:
+            href = dict(attrs).get("href")
+            if href: self._links.append(urljoin(self.base_url, href.strip()))
+    def handle_data(self, data: str) -> None:
+        if self._in_heading: self._text.append(data)
+    def handle_endtag(self, tag: str) -> None:
+        if tag.casefold() in {"h4", "h3"} and self._in_heading:
+            self._label = " ".join(" ".join(self._text).split())
+            self._in_heading = False
+    def close(self) -> None:
+        super().close(); self._flush()
+
+
+def provider_budget_allows(current_actual: Decimal | str, current_reserved: Decimal | str, projected_maximum: Decimal | str, cap: Decimal | str = Decimal("0.50")) -> bool:
+    return Decimal(str(current_actual)) + Decimal(str(current_reserved)) + Decimal(str(projected_maximum)) <= Decimal(str(cap))
+
+
+def select_filing_documents(documents: list[dict[str, Any]], reporting_period: str) -> list[dict[str, Any]]:
+    """Select ACNC filing attachments by structured period/type metadata only."""
+    allowed = {"Annual Information Statement": "annual_information_statement", "Annual Report": "annual_report", "Financial Report": "financial_report", "Other Report": "other_narrative_report"}
+    selected = []
+    for document in documents:
+        if str(document.get("Year") or "") != str(reporting_period): continue
+        role = allowed.get(str(document.get("type") or ""))
+        if role and document.get("Url"): selected.append({"role": role, **document})
+    return selected
 
 
 BASELINE_SOURCE_FAMILIES = ("acnc_register", "acnc_ais_bundle", "ato_abr_dgr", "official_website", "wikipedia_wikimedia", "pfra")
