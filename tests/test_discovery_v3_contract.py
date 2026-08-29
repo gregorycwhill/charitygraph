@@ -22,7 +22,9 @@ from charitygraph.contracts import (
 )
 from charitygraph.native_discovery_executor import (
     DISCOVERY_PROMPT_V3,
+    DISCOVERY_PROMPT_V3_1,
     PROMPT_TEMPLATE_VERSION_V3,
+    PROMPT_TEMPLATE_VERSION_V3_1,
     _parse_discovery_output,
     execute_native_discovery,
 )
@@ -185,6 +187,16 @@ def test_v3_operator_relationship_quote_is_bound_and_exact():
     wrong_id = _proposal(operator_relationship_evidence=(_locator(evidence_id="evidence:wrong", quote="Operated by the subject"),))
     with pytest.raises(ValueError, match="not supplied"):
         validate_v3_evidence_quotes(ProgramServiceDiscoveryOutputV3(proposals=(wrong_id,)), {"evidence:operator": "Operated by the subject."})
+
+
+def test_v31_prompt_is_a_single_frozen_clarification_of_v3():
+    assert PROMPT_TEMPLATE_VERSION_V3_1 == "v3.1"
+    assert DISCOVERY_PROMPT_V3_1 != DISCOVERY_PROMPT_V3
+    assert "Build a coherent subject hierarchy" in DISCOVERY_PROMPT_V3_1
+    assert "Retain a child subject when the evidence supports its own substantive scope" in DISCOVERY_PROMPT_V3_1
+    assert "Use parent_proposal_key to express the relationship rather than deleting the child." in DISCOVERY_PROMPT_V3_1
+    assert "Build a coherent subject hierarchy" not in DISCOVERY_PROMPT_V3
+    assert "Fred Hollows" not in DISCOVERY_PROMPT_V3_1
 
 
 def test_v3_prompt_contains_contract_principles_and_no_case_examples():

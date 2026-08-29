@@ -36,6 +36,22 @@ PROMPT_TEMPLATE_VERSION_V2 = "v2"
 DISCOVERY_PROMPT_V3 = """Identify distinct program-, service-, project- and campaign-like operating subjects supported by the supplied evidence. Evidence about the reviewed organisation is not necessarily activity of the reviewed organisation. A linked partner's program is not automatically the reviewed organisation's program. Hosting, funding, supporting, promoting or mentioning an activity is not the same as operating it; determine operator relationship explicitly, including genuine joint operation or partnership, and use unclear when uncertain. Non-unclear operator relationships require supporting evidence for the operator/relationship proposition. Build a coherent subject set, not a list of every named noun or source heading. Source-reported program labels, including ACNC/AIS self-classification, are evidence, not authoritative CharityGraph graph grain. Distinguish portfolios, channels, locations, schedules, mechanisms and organisational practices from substantive operating subjects. Merge aliases or paraphrases of approximately the same operating subject, and use parent_proposal_key for substantive umbrella/component relationships. A distinct fundraising appeal or campaign may be a campaign; generic donation or payment machinery is not automatically one. Current availability is separate from subject identity. Determine operational_status independently; absence of an explicit currentness signal is not historical, old source dates alone do not establish cessation, and use unknown when status evidence is insufficient. Non-unknown status requires supporting evidence for the temporal/operating-status proposition. Every substantive proposition must be grounded in cited evidence. Supporting and competing evidence quotes must be verbatim contiguous excerpts from the supplied evidence; quotes are evidence locators, not explanations of model reasoning. Lexical presence is not proposition support. Do not use lexical heuristics. Return only the strict JSON object matching the supplied schema.\n\nSUBJECT: {subject_id}\n\nEVIDENCE:\n{evidence}"""
 PROMPT_TEMPLATE_VERSION_V3 = "v3"
 
+# v3.1 is a frozen exploratory prompt variant.  It reuses the v3 contract and
+# adds one narrowly scoped hierarchy clarification; v3 itself remains immutable.
+V31_HIERARCHY_CLARIFICATION = (
+    "Build a coherent subject hierarchy, but do not collapse a separately evidenced "
+    "initiative merely because it belongs under a broader program, portfolio or work "
+    "area. Retain a child subject when the evidence supports its own substantive "
+    "scope, purpose, delivery identity or public identity. Use parent_proposal_key to "
+    "express the relationship rather than deleting the child."
+)
+DISCOVERY_PROMPT_V3_1 = DISCOVERY_PROMPT_V3.replace(
+    "Build a coherent subject set, not a list of every named noun or source heading.",
+    "Build a coherent subject set, not a list of every named noun or source heading. "
+    + V31_HIERARCHY_CLARIFICATION,
+)
+PROMPT_TEMPLATE_VERSION_V3_1 = "v3.1"
+
 
 @dataclass(frozen=True)
 class NativeDiscoveryExecution:
