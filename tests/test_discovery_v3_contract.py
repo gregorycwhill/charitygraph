@@ -1,4 +1,5 @@
 import pytest
+from decimal import Decimal
 
 from charitygraph.contracts import (
     DISCOVERY_OUTPUT_SCHEMA,
@@ -23,6 +24,7 @@ from charitygraph.native_discovery_executor import (
     DISCOVERY_PROMPT_V3,
     PROMPT_TEMPLATE_VERSION_V3,
     _parse_discovery_output,
+    execute_native_discovery,
 )
 from charitygraph.native_program_discovery import TASK_SCHEMA, TASK_SCHEMA_V2, TASK_SCHEMA_V3
 from types import SimpleNamespace
@@ -32,15 +34,28 @@ def _locator(evidence_id="evidence:1", quote="Named service text", role="support
     return PropositionEvidenceLocatorV3(evidence_id=evidence_id, role=role, quote=quote)
 
 
-def _proposal(key="p", parent=None, status="unknown", status_evidence=()):
+def _proposal(
+    key="p",
+    parent=None,
+    status="unknown",
+    status_evidence=(),
+    operator_relationship="operated_by_subject",
+    operator_relationship_evidence=None,
+    evidence=None,
+):
+    if operator_relationship_evidence is None:
+        operator_relationship_evidence = (_locator(),) if operator_relationship != "unclear" else ()
+    if evidence is None:
+        evidence = (_locator(),)
     return ProgramServiceProposalV3(
         proposal_key=key,
         label="Named service",
         disposition="service",
-        operator_relationship="operated_by_subject",
+        operator_relationship=operator_relationship,
+        operator_relationship_evidence=operator_relationship_evidence,
         parent_proposal_key=parent,
         operational_status=status,
-        evidence=(_locator(),),
+        evidence=evidence,
         operational_status_evidence=status_evidence,
         rationale="Bounded evidence supports the proposal",
         confidence="medium",
@@ -75,6 +90,8 @@ def test_v3_schema_is_strict_at_every_object_level():
     assert proposal["additionalProperties"] is False
     assert locator["additionalProperties"] is False
     assert set(proposal["required"]) == set(proposal["properties"])
+    assert "operator_relationship_evidence" in proposal["required"]
+    assert proposal["properties"]["operator_relationship_evidence"]["items"]["additionalProperties"] is False
 
 
 def test_v3_unique_keys_and_parent_references():
@@ -133,6 +150,43 @@ def test_v3_operator_relationship_is_strict():
         ProgramServiceProposalV3.model_validate(value)
 
 
+def test_v3_subject_evidence_requires_supporting_locator():
+    assert _proposal().evidence[0].role == "supporting"
+    with pytest.raises(ValueError, match="supporting subject evidence"):
+        _proposal(evidence=(_locator(role="context", quote=None),))
+    with pytest.raises(ValueError, match="supporting subject evidence"):
+        _proposal(evidence=(_locator(role="competing"),))
+
+
+def test_v3_non_unclear_operator_relationships_require_supporting_evidence():
+    relationships = (
+        "operated_by_subject",
+        "jointly_operated_or_partnered",
+        "supported_or_hosted_by_subject",
+        "externally_operated",
+    )
+    for relationship in relationships:
+        with pytest.raises(ValueError, match="supporting relationship evidence"):
+            _proposal(operator_relationship=relationship, operator_relationship_evidence=())
+    unclear = _proposal(operator_relationship="unclear", operator_relationship_evidence=())
+    assert unclear.operator_relationship_evidence == ()
+
+
+def test_v3_operator_relationship_quote_is_bound_and_exact():
+    locator = _locator(evidence_id="evidence:operator", quote="Operated by the subject")
+    proposal = _proposal(operator_relationship_evidence=(locator,))
+    output = ProgramServiceDiscoveryOutputV3(proposals=(proposal,))
+    assert validate_v3_evidence_quotes(
+        output,
+        {"evidence:1": "Named service text", "evidence:operator": "Operated by the subject."},
+    ) is output
+    with pytest.raises(ValueError, match="verbatim contiguous"):
+        validate_v3_evidence_quotes(output, {"evidence:1": "Named service text", "evidence:operator": "Different text"})
+    wrong_id = _proposal(operator_relationship_evidence=(_locator(evidence_id="evidence:wrong", quote="Operated by the subject"),))
+    with pytest.raises(ValueError, match="not supplied"):
+        validate_v3_evidence_quotes(ProgramServiceDiscoveryOutputV3(proposals=(wrong_id,)), {"evidence:operator": "Operated by the subject."})
+
+
 def test_v3_prompt_contains_contract_principles_and_no_case_examples():
     for phrase in (
         "operator relationship",
@@ -142,6 +196,7 @@ def test_v3_prompt_contains_contract_principles_and_no_case_examples():
         "verbatim contiguous excerpts",
         "Current availability is separate",
         "Do not use lexical heuristics",
+        "Non-unclear operator relationships require supporting evidence for the operator/relationship proposition.",
     ):
         assert phrase in DISCOVERY_PROMPT_V3
     assert "Fred Hollows" not in DISCOVERY_PROMPT_V3
@@ -157,3 +212,27 @@ def test_v3_is_not_dispatchable_and_cannot_trigger_a_provider_call():
     task = SimpleNamespace(task_schema=TASK_SCHEMA_V3, output_schema=DISCOVERY_OUTPUT_SCHEMA_V3)
     with pytest.raises(ValueError, match="not enabled"):
         _parse_discovery_output(task, "{}")
+
+
+def test_v3_executor_rejects_before_provider_or_durable_side_effect():
+    task = SimpleNamespace(task_schema=TASK_SCHEMA_V3, output_schema=DISCOVERY_OUTPUT_SCHEMA_V3)
+
+    class NoSideEffects:
+        def __getattr__(self, name):
+            raise AssertionError(f"unexpected catalog side effect: {name}")
+
+    with pytest.raises(ValueError, match="not enabled"):
+        execute_native_discovery(
+            NoSideEffects(),
+            task=task,
+            evidence_content={},
+            cohort_id="cohort",
+            run_id="run",
+            reservation_id="reservation",
+            authorization_scope_hash="scope",
+            reservation_aud=Decimal("1"),
+            pricing_snapshot_id="pricing",
+            fx_snapshot_id="fx",
+            fx_usd_aud=Decimal("1"),
+            runtime_root=".",
+        )

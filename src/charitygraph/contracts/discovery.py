@@ -145,6 +145,7 @@ class ProgramServiceProposalV3(StrictModel):
     label: str
     disposition: DiscoveryDisposition
     operator_relationship: OperatorRelationship
+    operator_relationship_evidence: tuple[PropositionEvidenceLocatorV3, ...] = ()
     parent_proposal_key: str | None = None
     operational_status: OperationalStatus
     evidence: tuple[PropositionEvidenceLocatorV3, ...]
@@ -161,13 +162,15 @@ class ProgramServiceProposalV3(StrictModel):
     def _optional_text(cls, value: str | None, info) -> str | None:
         return None if value is None else require_nonblank(value, info.field_name)
 
-    @field_validator("evidence", "operational_status_evidence")
+    @field_validator("evidence", "operational_status_evidence", "operator_relationship_evidence")
     @classmethod
     def _unique_evidence(cls, value: tuple[PropositionEvidenceLocatorV3, ...], info):
         if info.field_name == "evidence" and not value:
             raise ValueError("every v3 discovery proposal requires evidence")
         if len({(item.evidence_id, item.role, item.quote) for item in value}) != len(value):
             raise ValueError(f"{info.field_name} locators must be unique")
+        if info.field_name == "evidence" and not any(item.role == "supporting" for item in value):
+            raise ValueError("every v3 discovery proposal requires supporting subject evidence")
         return value
 
     @model_validator(mode="after")
@@ -176,6 +179,14 @@ class ProgramServiceProposalV3(StrictModel):
             item.role == "supporting" for item in self.operational_status_evidence
         ):
             raise ValueError("non-unknown operational status requires supporting status evidence")
+        return self
+
+    @model_validator(mode="after")
+    def _operator_relationship_evidence(self) -> "ProgramServiceProposalV3":
+        if self.operator_relationship != "unclear" and not any(
+            item.role == "supporting" for item in self.operator_relationship_evidence
+        ):
+            raise ValueError("non-unclear operator relationships require supporting relationship evidence")
         return self
 
 
@@ -284,6 +295,7 @@ def discovery_schema_v3(evidence_ids: tuple[str, ...] | list[str]) -> dict:
             "label": {"type": "string", "minLength": 1},
             "disposition": {"type": "string", "enum": list(DiscoveryDisposition.__args__)},
             "operator_relationship": {"type": "string", "enum": list(OperatorRelationship.__args__)},
+            "operator_relationship_evidence": {"type": "array", "items": evidence, "minItems": 0},
             "parent_proposal_key": {"type": ["string", "null"]},
             "operational_status": {"type": "string", "enum": list(OperationalStatus.__args__)},
             "evidence": {"type": "array", "items": evidence, "minItems": 1},
@@ -294,7 +306,7 @@ def discovery_schema_v3(evidence_ids: tuple[str, ...] | list[str]) -> dict:
         },
         "required": [
             "proposal_key", "label", "disposition", "operator_relationship",
-            "parent_proposal_key", "operational_status", "evidence", "operational_status_evidence",
+            "operator_relationship_evidence", "parent_proposal_key", "operational_status", "evidence", "operational_status_evidence",
             "rationale", "confidence", "competing_interpretation",
         ],
     }
@@ -322,7 +334,11 @@ def validate_v3_evidence_quotes(
     """
 
     for proposal in output.proposals:
-        locators = (*proposal.evidence, *proposal.operational_status_evidence)
+        locators = (
+            *proposal.evidence,
+            *proposal.operational_status_evidence,
+            *proposal.operator_relationship_evidence,
+        )
         for locator in locators:
             if locator.quote is None:
                 continue
