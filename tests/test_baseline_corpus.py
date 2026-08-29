@@ -1,4 +1,4 @@
-﻿import json
+import json
 from pathlib import Path
 
 import pytest
@@ -89,3 +89,13 @@ def test_coverage_states_are_separate_and_no_boolean_complete():
     assert item.discovery.value == "not_attempted"
     assert item.acquisition.value == "unavailable"
     assert not hasattr(item, "corpus_complete")
+def test_material_identity_ignores_receipts_operational_state_and_representation():
+    first = build_corpus_manifest(subject_id="subject:abc", profile_version="baseline-v1", members=[member()])
+    second = build_corpus_manifest(subject_id="subject:abc", profile_version="baseline-v1", members=[member(acquisition_receipt_ids=("acq:other",), material_origin=MaterialOrigin.NEWLY_ACQUIRED, acquisition=AcquisitionState.PARTIAL, representation_readiness=RepresentationReadiness.PARTIAL, representation_artifact_ids=("artifact:" + "b" * 64,), representation_gaps=("page-2",))])
+    assert first.material_identity_hash == second.material_identity_hash
+
+
+def test_material_identity_changes_source_revision_and_record_selection():
+    first = build_corpus_manifest(subject_id="subject:abc", profile_version="baseline-v1", members=[member()])
+    changed = build_corpus_manifest(subject_id="subject:abc", profile_version="baseline-v1", members=[member(source_revision="rev-2")])
+    assert first.material_identity_hash != changed.material_identity_hash

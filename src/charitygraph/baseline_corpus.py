@@ -1,4 +1,4 @@
-﻿"""Baseline Charity Corpus v1: private, immutable source-material manifests.
+"""Baseline Charity Corpus v1: private, immutable source-material manifests.
 
 This module deliberately stops at acquisition and document representation.  It
 does not infer charity semantics, create subjects, or emit public cards.
@@ -110,7 +110,7 @@ class CorpusManifest(CorpusModel):
         payload = {
             "subject_id": self.subject_id,
             "corpus_profile_version": self.corpus_profile_version,
-            "material_members": [member.model_dump(mode="json") for member in self.material_members],
+            "material_members": [_material_member(member) for member in self.material_members],
         }
         expected = sha256_json(payload)
         if self.material_identity_hash != expected:
@@ -219,8 +219,21 @@ def rank_site_candidates_with_luna(candidates: list[dict[str, Any]], *, subject_
     return {"model": result.model, "ranked_ordinals": ranked, "usage": result.usage.__dict__, "cost_usd": str(estimate_response_cost(result.model, result.usage) or 0), "transport_requests": result.transport_requests}
 
 
+def _material_member(member: CorpusMember) -> dict[str, Any]:
+    """Return only bytes/lineage identity; operational provenance is excluded."""
+    return {
+        "source_family": member.source_family,
+        "source_definition_id": member.source_definition_id,
+        "artifact_ids": list(member.artifact_ids),
+        "source_record_ids": list(member.source_record_ids),
+        "evidence_locator_ids": list(member.evidence_locator_ids),
+        "source_revision": member.source_revision,
+        "effective_period": member.effective_period,
+    }
+
+
 def build_corpus_manifest(*, subject_id: str, profile_version: str, members: list[CorpusMember], cohort_id: str | None = None, run_id: str | None = None, retrieval_timestamps: tuple[str, ...] = (), builder_commit: str | None = None) -> CorpusManifest:
-    material = {"subject_id": subject_id, "corpus_profile_version": profile_version, "material_members": [item.model_dump(mode="json") for item in members]}
+    material = {"subject_id": subject_id, "corpus_profile_version": profile_version, "material_members": [_material_member(item) for item in members]}
     material_hash = sha256_json(material)
     provenance = sha256_json({**material, "cohort_id": cohort_id, "run_id": run_id, "retrieval_timestamps": retrieval_timestamps, "builder_commit": builder_commit})
     return CorpusManifest(corpus_id=f"corpus:{material_hash}", subject_id=subject_id, corpus_profile_version=profile_version, material_members=tuple(members), cohort_id=cohort_id, run_id=run_id, retrieval_timestamps=retrieval_timestamps, builder_commit=builder_commit, derived_representation_ids=tuple(a for member in members for a in member.representation_artifact_ids), material_identity_hash=material_hash, provenance_hash=provenance)
