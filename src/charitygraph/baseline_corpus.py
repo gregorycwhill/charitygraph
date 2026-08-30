@@ -65,6 +65,14 @@ class CorpusModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
+class CorpusBindingContext(CorpusModel):
+    """Source-native scope context for indirectly admitted material."""
+
+    basis: Literal["acnc_reporting_group"]
+    acnc_entity_id: str
+    source_native_group_name: str
+
+
 class CorpusMember(CorpusModel):
     source_family: str
     source_definition_id: str
@@ -81,6 +89,7 @@ class CorpusMember(CorpusModel):
     representation_readiness: RepresentationReadiness = RepresentationReadiness.NOT_REQUIRED
     representation_artifact_ids: tuple[str, ...] = ()
     representation_gaps: tuple[str, ...] = ()
+    binding_context: CorpusBindingContext | None = None
 
     @model_validator(mode="after")
     def _references(self) -> "CorpusMember":
@@ -233,6 +242,7 @@ def _material_member(member: CorpusMember) -> dict[str, Any]:
         "evidence_locator_ids": list(member.evidence_locator_ids),
         "source_revision": member.source_revision,
         "effective_period": member.effective_period,
+        "binding_context": member.binding_context.model_dump(mode="json") if member.binding_context else None,
     }
 
 
@@ -348,7 +358,9 @@ def partition_site_candidates(candidates: list[dict[str, Any]], *, max_output_to
         trial = current + [candidate]
         input_tokens = len(json.dumps(trial, ensure_ascii=False, separators=(",", ":"))) // 4 + 256
         output_tokens = max(1, len(trial) * 4)
-        if current and input_tokens + output_tokens > max_request_tokens:
+        if not current and (output_tokens > max_output_tokens or input_tokens + output_tokens > max_request_tokens):
+            raise ValueError("single site candidate exceeds configured ranking budget")
+        if current and (output_tokens > max_output_tokens or input_tokens + output_tokens > max_request_tokens):
             batches.append(current)
             current = [candidate]
         else:

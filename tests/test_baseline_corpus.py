@@ -8,6 +8,7 @@ from charitygraph.baseline_corpus import (
     AcquisitionState,
     BindingState,
     CorpusMember,
+    CorpusBindingContext,
     DiscoveryState,
     MaterialOrigin,
     RepresentationReadiness,
@@ -86,6 +87,13 @@ def test_manifest_member_change_changes_material_identity():
     assert first.material_identity_hash != second.material_identity_hash
 
 
+def test_reporting_scope_binding_context_is_material_identity():
+    context = CorpusBindingContext(basis="acnc_reporting_group", acnc_entity_id="group-1", source_native_group_name="Group Name")
+    first = build_corpus_manifest(subject_id="subject:abc", profile_version="baseline-v1", members=[member(binding_context=context)])
+    second = build_corpus_manifest(subject_id="subject:abc", profile_version="baseline-v1", members=[member()])
+    assert first.material_identity_hash != second.material_identity_hash
+
+
 def test_coverage_states_are_separate_and_no_boolean_complete():
     item = member(discovery=DiscoveryState.NOT_ATTEMPTED, acquisition=AcquisitionState.UNAVAILABLE, subject_binding=BindingState.NONE, material_origin=MaterialOrigin.NONE)
     assert item.discovery.value == "not_attempted"
@@ -135,6 +143,25 @@ def test_large_site_partition_is_budget_derived_not_fixed_url_count():
     batches = partition_site_candidates(rows, max_request_tokens=4000)
     assert len(batches) > 1
     assert [item["ordinal"] for batch in batches for item in batch] == list(range(1200))
+
+
+def test_site_partition_enforces_output_token_bound_with_short_candidates():
+    rows = [{"ordinal": i, "url": "u", "label": ""} for i in range(10)]
+    batches = partition_site_candidates(rows, max_output_tokens=8, max_request_tokens=100000)
+    assert all(len(batch) * 4 <= 8 for batch in batches)
+
+
+def test_abr_dgr_prose_is_not_semantically_interpreted():
+    import importlib.util
+    script = Path(__file__).parents[1] / "scripts" / "run_baseline_charity_corpus_v1.py"
+    spec = importlib.util.spec_from_file_location("baseline_runner", script)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    result = module.extract_abr_dgr_fields(b"DGR endorsed: yes; Item 1; 1/1/2025")
+    assert result["status"] is None
+    assert result["source_native"] is False
+    assert result["extraction"] == "deferred"
 
 
 def test_wikipedia_identity_resolution_uses_bounded_model_only_for_residual_candidates():

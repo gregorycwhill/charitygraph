@@ -15,6 +15,7 @@ from charitygraph.baseline_corpus import (
     AcquisitionState,
     BindingState,
     CorpusMember,
+    CorpusBindingContext,
     DiscoveryState,
     MaterialOrigin,
     RepresentationReadiness,
@@ -96,20 +97,17 @@ def digest(body: bytes) -> str:
 
 
 def extract_abr_dgr_fields(body: bytes) -> dict[str, str | None]:
-    """Capture explicitly labelled ABR DGR fields without classifying charity status."""
-    text = re.sub(r"\s+", " ", body.decode("utf-8", "replace"))
-    match = re.search(r"(?i)(?:DGR|deductible gift recipient)(?:.{0,120})", text)
-    if not match:
-        return {"status": None, "effective_date": None, "item": None, "source_native": False}
-    excerpt = match.group(0)
-    status = None
-    if re.search(r"(?i)endorsed|yes|eligible", excerpt):
-        status = "explicit_positive"
-    elif re.search(r"(?i)not endorsed|no|ineligible", excerpt):
-        status = "explicit_negative"
-    date_match = re.search(r"\b(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}-\d{2}-\d{2})\b", excerpt)
-    item_match = re.search(r"(?i)item\s*([1-9]\d?(?:\.\d+)?)", excerpt)
-    return {"status": status, "effective_date": date_match.group(1) if date_match else None, "item": item_match.group(1) if item_match else None, "source_native": True}
+    """Return only mechanically structured ABR fields; never interpret prose."""
+    # The current ABR acquisition is HTML and exposes no governed structured
+    # DGR field.  Keep the raw source artefact and defer legal-status parsing.
+    return {
+        "status": None,
+        "effective_date": None,
+        "item": None,
+        "source_native": False,
+        "extraction": "deferred",
+        "reason": "no structured ABR DGR field adapter",
+    }
 
 
 def projected_luna_cost(candidates: list[dict]) -> Decimal:
@@ -152,7 +150,7 @@ def source_lineage(catalog: SQLiteCatalog, store: ContentAddressedArtifactStore,
         catalog.register_source_definition(definition)
     content_hash = digest(body)
     artifact_id = "srcblob:" + content_hash
-    artifact_existing = catalog.get_artifact(artifact_id) is not None
+    artifact_existing = catalog.get_artifact(artifact_id) is not None and store.exists(artifact_id)
     if not artifact_existing:
         store.put(body, created_at=created)
     receipt_id = deterministic_id("acq:", {"source_definition_id": definition_id, "artifact_id": artifact_id, "requested_locator": url})
@@ -251,7 +249,7 @@ def robots_sitemap_urls(robots_text: str, base: str) -> list[str]:
     return list(dict.fromkeys(urljoin(base, line.split(":", 1)[1].strip()) for line in robots_text.splitlines() if line.casefold().startswith("sitemap:") and ":" in line))
 
 
-def _member_from_lineage(lineage: dict, *, family: str, discovery: DiscoveryState = DiscoveryState.RESOLVED, binding: BindingState = BindingState.BOUND, readiness: RepresentationReadiness = RepresentationReadiness.NOT_REQUIRED, representation_ids: tuple[str, ...] = (), gaps: tuple[str, ...] = (), revision: str | None = None, period: str | None = None) -> CorpusMember:
+def _member_from_lineage(lineage: dict, *, family: str, discovery: DiscoveryState = DiscoveryState.RESOLVED, binding: BindingState = BindingState.BOUND, readiness: RepresentationReadiness = RepresentationReadiness.NOT_REQUIRED, representation_ids: tuple[str, ...] = (), gaps: tuple[str, ...] = (), revision: str | None = None, period: str | None = None, binding_context: CorpusBindingContext | None = None) -> CorpusMember:
     return CorpusMember(
         source_family=family,
         source_definition_id=lineage["source_definition_id"],
@@ -267,6 +265,7 @@ def _member_from_lineage(lineage: dict, *, family: str, discovery: DiscoveryStat
         representation_readiness=readiness,
         representation_artifact_ids=representation_ids,
         representation_gaps=gaps,
+        binding_context=binding_context,
     )
 
 
@@ -297,7 +296,8 @@ def run(args: argparse.Namespace) -> int:
         except Exception:
             continue
     pfra_records = [record for _, body, _, page_role in pfra_pages for record in extract_pfra_members(body.decode("utf-8", "replace"), page_role=page_role, base_url=PFRA_CHARITY)]
-    for abn in ABNS:
+    selected_abns = (args.subject_abn,) if args.subject_abn else ABNS
+    for abn in selected_abns:
         subject_id = ids[abn]
         members: list[CorpusMember] = []
         coverage: dict[str, dict] = {}
@@ -314,6 +314,7 @@ def run(args: argparse.Namespace) -> int:
         data = entity.get("data", {})
         filing_data = data
         filing_scope = {"scope_kind": "registered_entity", "entity_id": data.get("uuid"), "name": data.get("Name")}
+        group_context: CorpusBindingContext | None = None
         reporting_group_lineage = None
         reporting_group_error = None
         if data.get("ParentAccountId"):
@@ -332,7 +333,12 @@ def run(args: argparse.Namespace) -> int:
                         media="application/json",
                         role="reporting_group_profile",
                     )
-                    members.append(_member_from_lineage(reporting_group_lineage, family="acnc_ais_bundle", binding=BindingState.BOUND))
+                    group_context = CorpusBindingContext(
+                        basis="acnc_reporting_group",
+                        acnc_entity_id=str(filing_scope.get("entity_id") or data.get("ParentAccountId")),
+                        source_native_group_name=str(filing_scope.get("name") or ""),
+                    )
+                    members.append(_member_from_lineage(reporting_group_lineage, family="acnc_ais_bundle", binding=BindingState.BOUND, binding_context=group_context))
                     acquired_new += reporting_group_lineage["origin"] == "newly_acquired"
                     reused += reporting_group_lineage["origin"] == "reused_existing"
             except Exception as exc:
@@ -345,7 +351,7 @@ def run(args: argparse.Namespace) -> int:
                 ais_url = f"{API}/entity/{latest['AISId']}"
                 ais_body, ais_resolved, _, _ = fetch(ais_url)
                 ais_lineage = source_lineage(catalog, store, family="acnc_ais_bundle", endpoint=f"{API}/entity/{{AISId}}", url=ais_url, body=ais_body, resolved=ais_resolved, media="application/json", role="annual_information_statement", revision=str(latest.get("Year")))
-                ais_member = _member_from_lineage(ais_lineage, family="acnc_ais_bundle", revision=str(latest.get("Year")), period=str(latest.get("Year")))
+                ais_member = _member_from_lineage(ais_lineage, family="acnc_ais_bundle", revision=str(latest.get("Year")), period=str(latest.get("Year")), binding_context=group_context)
                 members.append(ais_member)
                 filing_rows.append({"role": "annual_information_statement", "source_record_id": ais_lineage["source_record_id"], "year": str(latest.get("Year"))})
                 acquired_new += ais_lineage["origin"] == "newly_acquired"
@@ -386,7 +392,7 @@ def run(args: argparse.Namespace) -> int:
                             readiness = RepresentationReadiness.FAILED
                             gaps = (f"representation_error:{type(exc).__name__}",)
                             pdf_report.append({"abn": abn, "source_record_id": lineage["source_record_id"], "role": role, "year": str(latest.get("Year")), "readiness": "failed", "error": type(exc).__name__, "visual_escalations": 0})
-                    members.append(_member_from_lineage(lineage, family="acnc_ais_bundle", readiness=readiness, representation_ids=representation_ids, gaps=gaps, revision=str(latest.get("Year")), period=str(latest.get("Year"))))
+                    members.append(_member_from_lineage(lineage, family="acnc_ais_bundle", readiness=readiness, representation_ids=representation_ids, gaps=gaps, revision=str(latest.get("Year")), period=str(latest.get("Year")), binding_context=group_context))
                     filing_rows.append({"role": role, "source_record_id": lineage["source_record_id"], "year": str(latest.get("Year")), "title": document.get("Title")})
                     acquired_new += lineage["origin"] == "newly_acquired"
                     reused += lineage["origin"] == "reused_existing"
@@ -628,13 +634,13 @@ def run(args: argparse.Namespace) -> int:
         "pfra_directory_counts": {"charity": sum(r["member_role"] == "current_charity_membership" for r in pfra_records), "agency": sum(r["member_role"] == "agency_membership" for r in pfra_records)},
         "pdf_representation": pdf_report,
         "provider_telemetry": {"model": "gpt-5.6-luna", "events": provider_events, "actual_total_usd": f"{provider_actual:.6f}", "reserved_exposure_usd": f"{provider_reserved:.6f}", "cap_usd": str(MAX_PROVIDER_USD), "fail_closed_enforced": True},
-        "aggregate": {"source_families": 6, "subjects": 10, "newly_acquired_material_count": acquired_new, "reused_material_count": reused, "wikipedia_bound": sum(v.get("status") == "bound" for v in wikipedia_report.values()), "pfra_bound": sum(v.get("status") == "bound" for v in pfra_report.values()), "provider_calls": len(provider_events), "provider": "gpt-5.6-luna", "input_tokens": sum(int((e.get("usage") or {}).get("input_tokens") or 0) for v in site_report.values() for e in [v.get("ranking") or {}]), "output_tokens": sum(int((e.get("usage") or {}).get("output_tokens") or 0) for v in site_report.values() for e in [v.get("ranking") or {}]), "cost_usd": f"{provider_actual:.6f}", "semantic_extraction": False, "economics": "exact Luna usage/cost with conservative preflight and USD 0.50 fail-closed cap; no ranked BudgetCohort ledger used"},
+        "aggregate": {"source_families": 6, "subjects": len(selected_abns), "newly_acquired_material_count": acquired_new, "reused_material_count": reused, "wikipedia_bound": sum(v.get("status") == "bound" for v in wikipedia_report.values()), "pfra_bound": sum(v.get("status") == "bound" for v in pfra_report.values()), "provider_calls": len(provider_events), "provider": "gpt-5.6-luna", "input_tokens": sum(int((e.get("usage") or {}).get("input_tokens") or 0) for e in provider_events), "output_tokens": sum(int((e.get("usage") or {}).get("output_tokens") or 0) for e in provider_events), "cost_usd": f"{provider_actual:.6f}", "semantic_extraction": False, "economics": "exact Luna usage/cost with conservative preflight and USD 0.50 fail-closed cap; no ranked BudgetCohort ledger used"},
     }
     output = runtime / "baseline-corpus-v1-report.json"
     output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (runtime / "baseline-corpus-v1-report.sha256").write_text(hashlib.sha256(output.read_bytes()).hexdigest() + "\n", encoding="ascii")
     catalog.close()
-    print(json.dumps({"report": str(output), "sha256": hashlib.sha256(output.read_bytes()).hexdigest(), "subjects": 10, "provider_calls": len(provider_events), "cost_usd": f"{provider_actual:.6f}"}, indent=2))
+    print(json.dumps({"report": str(output), "sha256": hashlib.sha256(output.read_bytes()).hexdigest(), "subjects": len(selected_abns), "provider_calls": len(provider_events), "cost_usd": f"{provider_actual:.6f}"}, indent=2))
     return 0
 
 
@@ -642,4 +648,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--runtime", type=Path, default=Path(r"C:\CharityGraph-runtime\baseline-corpus-v1-corrected-20260829"))
     parser.add_argument("--skip-luna", action="store_true")
+    parser.add_argument("--subject-abn", choices=ABNS, help="Run one governed subject only")
     raise SystemExit(run(parser.parse_args()))
