@@ -16,7 +16,7 @@ from charitygraph.baseline_corpus import (
     load_v05_cards,
     normalise_host,
     normalise_v05_subject,
-    extract_pfra_members, provider_budget_allows, resolve_wikipedia_candidate, select_filing_documents,
+    extract_pfra_members, partition_site_candidates, provider_budget_allows, resolve_wikipedia_candidate, resolve_wikipedia_candidate_with_luna, select_filing_documents,
 )
 
 
@@ -128,3 +128,30 @@ def test_pfra_member_parser_is_role_specific_and_preserves_domain():
     assert rows[0]["member_role"] == "current_charity_membership"
     assert rows[0]["label"] == "Mission Australia"
     assert rows[0]["linked_domains"] == ["missionaustralia.com.au"]
+
+
+def test_large_site_partition_is_budget_derived_not_fixed_url_count():
+    rows = [{"ordinal": i, "url": f"https://example.org/{i}", "label": "x" * 80} for i in range(1200)]
+    batches = partition_site_candidates(rows, max_request_tokens=4000)
+    assert len(batches) > 1
+    assert [item["ordinal"] for batch in batches for item in batch] == list(range(1200))
+
+
+def test_wikipedia_identity_resolution_uses_bounded_model_only_for_residual_candidates():
+    class Usage:
+        input_tokens = 10
+        output_tokens = 5
+        total_tokens = 15
+    class Result:
+        model = "gpt-5.6-luna"
+        output_text = '{"status":"bound","candidate_index":0}'
+        usage = Usage()
+        transport_requests = 1
+    result = resolve_wikipedia_candidate_with_luna(
+        ["Example Charity"],
+        [{"title": "Example Charity", "snippet": "registered organisation"}],
+        subject_context={"abn": "12"},
+        request_fn=lambda **kwargs: Result(),
+    )
+    assert result["status"] == "bound"
+    assert result["candidate_index"] == 0

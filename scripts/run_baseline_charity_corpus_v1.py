@@ -22,8 +22,10 @@ from charitygraph.baseline_corpus import (
     enumerate_site_candidates,
     extract_pfra_members,
     provider_budget_allows,
+    partition_site_candidates,
     rank_site_candidates_with_luna,
     represent_pdf,
+    resolve_wikipedia_candidate_with_luna,
     resolve_wikipedia_candidate,
     select_filing_documents,
 )
@@ -66,8 +68,48 @@ def fetch(url: str) -> tuple[bytes, str, int, str]:
         return response.read(), response.geturl(), response.status, response.headers.get_content_type()
 
 
+class WebsiteFetchError(RuntimeError):
+    def __init__(self, base_url: str, attempts: list[dict]) -> None:
+        super().__init__(f"official website unavailable: {urlsplit(base_url).netloc}")
+        self.base_url = base_url
+        self.attempts = attempts
+
+
+def fetch_website_homepage(base_url: str) -> tuple[bytes, str, int, str, list[dict]]:
+    """Try only canonical same-site locator variants and retain failure telemetry."""
+    parsed = urlsplit(base_url)
+    variants = [base_url, base_url.rstrip("/") + "/"]
+    if parsed.hostname and parsed.hostname.casefold().startswith("www."):
+        variants.append(f"{parsed.scheme}://{parsed.hostname.removeprefix('www.')}/")
+    attempts: list[dict] = []
+    for locator in dict.fromkeys(variants):
+        try:
+            body, resolved, status, media = fetch(locator)
+            return body, resolved, status, media, attempts + [{"url": locator, "status": status, "outcome": "available"}]
+        except Exception as exc:
+            attempts.append({"url": locator, "outcome": "failed", "error_class": type(exc).__name__, "error": str(exc)[:160]})
+    raise WebsiteFetchError(base_url, attempts)
+
+
 def digest(body: bytes) -> str:
     return hashlib.sha256(body).hexdigest()
+
+
+def extract_abr_dgr_fields(body: bytes) -> dict[str, str | None]:
+    """Capture explicitly labelled ABR DGR fields without classifying charity status."""
+    text = re.sub(r"\s+", " ", body.decode("utf-8", "replace"))
+    match = re.search(r"(?i)(?:DGR|deductible gift recipient)(?:.{0,120})", text)
+    if not match:
+        return {"status": None, "effective_date": None, "item": None, "source_native": False}
+    excerpt = match.group(0)
+    status = None
+    if re.search(r"(?i)endorsed|yes|eligible", excerpt):
+        status = "explicit_positive"
+    elif re.search(r"(?i)not endorsed|no|ineligible", excerpt):
+        status = "explicit_negative"
+    date_match = re.search(r"\b(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}-\d{2}-\d{2})\b", excerpt)
+    item_match = re.search(r"(?i)item\s*([1-9]\d?(?:\.\d+)?)", excerpt)
+    return {"status": status, "effective_date": date_match.group(1) if date_match else None, "item": item_match.group(1) if item_match else None, "source_native": True}
 
 
 def projected_luna_cost(candidates: list[dict]) -> Decimal:
@@ -176,6 +218,25 @@ def acnc_fetch(abn: str) -> tuple[str, bytes, str, dict]:
     return entity_url, body, resolved, entity
 
 
+def acnc_reporting_scope(entity: dict, *, fetch_fn=fetch) -> tuple[dict, dict | None, dict | None]:
+    """Resolve the source-native ACNC reporting envelope, if grouped."""
+    data = entity.get("data") or {}
+    parent_id = data.get("ParentAccountId")
+    if not parent_id:
+        return {"scope_kind": "registered_entity", "entity_id": data.get("uuid"), "name": data.get("Name")}, None, None
+    group_url = f"{API}/entity/{parent_id}"
+    body, resolved, _, _ = fetch_fn(group_url)
+    group_entity = json.loads(body)
+    group_data = group_entity.get("data") or {}
+    scope = {
+        "scope_kind": "acnc_reporting_group",
+        "entity_id": group_data.get("uuid") or parent_id,
+        "name": group_data.get("Name"),
+        "parent_account_id": parent_id,
+    }
+    return scope, group_entity, {"url": group_url, "body": body, "resolved": resolved}
+
+
 def sitemap_urls(home_html: str, base: str) -> list[str]:
     urls = []
     for match in re.finditer(r"<link[^>]+rel=[\"']sitemap[\"'][^>]+href=[\"']([^\"']+)", home_html, re.I):
@@ -184,6 +245,10 @@ def sitemap_urls(home_html: str, base: str) -> list[str]:
         if "sitemap" in match.group(1).casefold():
             urls.append(urljoin(base, match.group(1).strip()))
     return list(dict.fromkeys(urls + [urljoin(base, "/sitemap_index.xml"), urljoin(base, "/sitemap.xml")]))
+
+
+def robots_sitemap_urls(robots_text: str, base: str) -> list[str]:
+    return list(dict.fromkeys(urljoin(base, line.split(":", 1)[1].strip()) for line in robots_text.splitlines() if line.casefold().startswith("sitemap:") and ":" in line))
 
 
 def _member_from_lineage(lineage: dict, *, family: str, discovery: DiscoveryState = DiscoveryState.RESOLVED, binding: BindingState = BindingState.BOUND, readiness: RepresentationReadiness = RepresentationReadiness.NOT_REQUIRED, representation_ids: tuple[str, ...] = (), gaps: tuple[str, ...] = (), revision: str | None = None, period: str | None = None) -> CorpusMember:
@@ -247,7 +312,32 @@ def run(args: argparse.Namespace) -> int:
             entity = {"data": {}}
             coverage["acnc_register"] = {"discovery": "failed", "acquisition": "failed", "binding": "none", "origin": "none", "error": type(exc).__name__}
         data = entity.get("data", {})
-        reports = [item for item in data.get("AnnualReports", []) if item.get("IsAIS") and item.get("Status") == "Submitted" and item.get("AISId")]
+        filing_data = data
+        filing_scope = {"scope_kind": "registered_entity", "entity_id": data.get("uuid"), "name": data.get("Name")}
+        reporting_group_lineage = None
+        reporting_group_error = None
+        if data.get("ParentAccountId"):
+            try:
+                filing_scope, reporting_group, group_payload = acnc_reporting_scope(entity)
+                if reporting_group is not None and group_payload is not None:
+                    filing_data = reporting_group.get("data") or {}
+                    reporting_group_lineage = source_lineage(
+                        catalog,
+                        store,
+                        family="acnc_ais_bundle",
+                        endpoint=f"{API}/entity/{{reporting_group_id}}",
+                        url=group_payload["url"],
+                        body=group_payload["body"],
+                        resolved=group_payload["resolved"],
+                        media="application/json",
+                        role="reporting_group_profile",
+                    )
+                    members.append(_member_from_lineage(reporting_group_lineage, family="acnc_ais_bundle", binding=BindingState.BOUND))
+                    acquired_new += reporting_group_lineage["origin"] == "newly_acquired"
+                    reused += reporting_group_lineage["origin"] == "reused_existing"
+            except Exception as exc:
+                reporting_group_error = type(exc).__name__
+        reports = [item for item in filing_data.get("AnnualReports", []) if item.get("IsAIS") and item.get("Status") == "Submitted" and item.get("AISId")]
         latest = max(reports, key=lambda item: (int(item.get("Year") or 0), item.get("DateReceived") or ""), default=None)
         filing_rows: list[dict] = []
         if latest:
@@ -262,7 +352,7 @@ def run(args: argparse.Namespace) -> int:
                 reused += ais_lineage["origin"] == "reused_existing"
             except Exception:
                 pass
-            for document in select_filing_documents(data.get("Documents") or [], str(latest.get("Year"))):
+            for document in select_filing_documents(filing_data.get("Documents") or [], str(latest.get("Year"))):
                 try:
                     doc_url = str(document["Url"])
                     doc_body, doc_resolved, _, doc_media = fetch(doc_url)
@@ -291,7 +381,7 @@ def run(args: argparse.Namespace) -> int:
                                 )
                                 representation_id = representation_artifact.artifact_id
                             representation_ids = (representation_id,)
-                            pdf_report.append({"abn": abn, "source_record_id": lineage["source_record_id"], "role": role, "year": str(latest.get("Year")), "readiness": representation["readiness"], "page_count": representation.get("page_count"), "native_text_pages": representation.get("native_text_pages"), "visual_escalations": representation.get("visual_escalations", 0), "page_gaps": list(gaps), "derived_artifact_id": representation_id})
+                            pdf_report.append({"abn": abn, "source_record_id": lineage["source_record_id"], "role": role, "year": str(latest.get("Year")), "readiness": representation["readiness"], "page_count": representation.get("page_count"), "native_text_pages": representation.get("native_text_pages"), "visual_escalations": representation.get("visual_escalations", 0), "page_gaps": list(gaps), "gap_reasons": representation.get("gap_reasons", {}), "derived_artifact_id": representation_id})
                         except Exception as exc:
                             readiness = RepresentationReadiness.FAILED
                             gaps = (f"representation_error:{type(exc).__name__}",)
@@ -302,7 +392,7 @@ def run(args: argparse.Namespace) -> int:
                     reused += lineage["origin"] == "reused_existing"
                 except Exception:
                     filing_rows.append({"role": document.get("role"), "url": document.get("Url"), "status": "failed"})
-        coverage["acnc_ais_bundle"] = {"discovery": "resolved" if latest else "absent", "acquisition": "available" if latest else "absent", "binding": "bound" if latest else "no_bound_record", "origin": "newly_acquired" if latest else "none", "period": latest.get("Year") if latest else None, "bundle_member_count": len(filing_rows), "members": filing_rows}
+        coverage["acnc_ais_bundle"] = {"discovery": "resolved" if latest else "absent", "acquisition": "available" if latest else "absent", "binding": "bound" if latest else "no_bound_record", "origin": "newly_acquired" if latest else "none", "period": latest.get("Year") if latest else None, "bundle_member_count": len(filing_rows), "members": filing_rows, "filing_scope": filing_scope, "reporting_group_source_record_id": reporting_group_lineage["source_record_id"] if reporting_group_lineage else None, "reporting_group_error": reporting_group_error}
         abr_url = f"https://abr.business.gov.au/ABN/View?abn={abn}"
         try:
             abr_body, abr_resolved, _, abr_media = fetch(abr_url)
@@ -310,20 +400,33 @@ def run(args: argparse.Namespace) -> int:
             members.append(_member_from_lineage(lineage, family="ato_abr_dgr"))
             acquired_new += lineage["origin"] == "newly_acquired"
             reused += lineage["origin"] == "reused_existing"
-            coverage["ato_abr_dgr"] = {"discovery": "resolved", "acquisition": "available", "binding": "bound", "origin": lineage["origin"], "role": "abr_entity", "source_native_dgr_status": "not_established_by_identity_page", "record_ids": [lineage["source_record_id"]]}
+            dgr_fields = extract_abr_dgr_fields(abr_body)
+            coverage["ato_abr_dgr"] = {"discovery": "resolved", "acquisition": "available", "binding": "bound", "origin": lineage["origin"], "role": "abr_entity", "dgr_fields": dgr_fields, "record_ids": [lineage["source_record_id"]]}
         except Exception as exc:
             coverage["ato_abr_dgr"] = {"discovery": "resolved", "acquisition": "failed", "binding": "none", "origin": "none", "error": type(exc).__name__}
         base = WEBSITES[abn]
-        site_row = {"status": "failed", "candidate_count": 0, "sitemap_urls": [], "sitemap_count": 0, "ranking": None, "acquired_page_records": [], "homepage_persisted": False, "ranking_attempted": False}
+        site_row = {"status": "failed", "candidate_count": 0, "sitemap_urls": [], "sitemap_count": 0, "ranking": None, "acquired_page_records": [], "homepage_persisted": False, "ranking_attempted": False, "batch_count": 0, "finalist_count": 0, "homepage_transport_attempts": []}
         try:
-            home_body, home_resolved, _, home_media = fetch(base)
+            home_body, home_resolved, _, home_media, homepage_attempts = fetch_website_homepage(base)
+            site_row["homepage_transport_attempts"] = homepage_attempts
             home_lineage = source_lineage(catalog, store, family="official_website", endpoint=base, url=base, body=home_body, resolved=home_resolved, media=home_media, role="official_homepage")
             members.append(_member_from_lineage(home_lineage, family="official_website"))
             site_row["homepage_persisted"] = True
             acquired_new += home_lineage["origin"] == "newly_acquired"
             reused += home_lineage["origin"] == "reused_existing"
             sitemap_xmls = []
-            for sitemap_url in sitemap_urls(home_body.decode("utf-8", "replace"), base):
+            sitemap_candidates = sitemap_urls(home_body.decode("utf-8", "replace"), base)
+            try:
+                robots_body, robots_resolved, _, robots_media = fetch(urljoin(base, "/robots.txt"))
+                robots_lineage = source_lineage(catalog, store, family="official_website", endpoint=base, url=urljoin(base, "/robots.txt"), body=robots_body, resolved=robots_resolved, media=robots_media, role="robots")
+                members.append(_member_from_lineage(robots_lineage, family="official_website"))
+                acquired_new += robots_lineage["origin"] == "newly_acquired"
+                reused += robots_lineage["origin"] == "reused_existing"
+                sitemap_candidates = list(dict.fromkeys(robots_sitemap_urls(robots_body.decode("utf-8", "replace"), base) + sitemap_candidates))
+                site_row["robots_url"] = robots_resolved
+            except Exception:
+                site_row["robots_url"] = None
+            for sitemap_url in sitemap_candidates:
                 try:
                     sitemap_body, sitemap_resolved, _, sitemap_media = fetch(sitemap_url)
                     if "xml" not in sitemap_media and b"<url" not in sitemap_body[:2000]:
@@ -342,69 +445,161 @@ def run(args: argparse.Namespace) -> int:
             site_row["candidate_count"] = len(candidates)
             if abn in DEV and not args.skip_luna and candidates:
                 site_row["ranking_attempted"] = True
-                projected = projected_luna_cost(candidates)
-                allowed = provider_budget_allows(provider_actual, provider_reserved, projected, MAX_PROVIDER_USD)
-                event = {"subject_abn": abn, "model": "gpt-5.6-luna", "projected_max_usd": f"{projected:.6f}", "actual_cost_usd": "0", "transport_requests": 0, "preflight_allowed": allowed}
-                if not allowed:
-                    site_row["ranking"] = {"status": "blocked_budget", "projected_max_usd": str(projected)}
-                    provider_events.append(event)
-                else:
+                # Keep each request within the configured model context/output
+                # envelope; this is a token-derived boundary, not a URL-count
+                # shortcut. Large sites therefore use a few bounded batches.
+                batches = partition_site_candidates(candidates, max_output_tokens=LUNA_MAX_OUTPUT_TOKENS, max_request_tokens=60000)
+                site_row["batch_count"] = len(batches)
+                batch_results = []
+                finalists: list[dict] = []
+                ranking_blocked = False
+                subject_name = str(data.get("Name") or data.get("CharityLegalName") or abn)
+                for batch_index, batch in enumerate(batches):
+                    projected = projected_luna_cost(batch)
+                    allowed = provider_budget_allows(provider_actual, provider_reserved, projected, MAX_PROVIDER_USD)
+                    event = {"subject_abn": abn, "subject_name": subject_name, "phase": "batch", "batch_index": batch_index, "candidate_count": len(batch), "model": "gpt-5.6-luna", "projected_max_usd": f"{projected:.6f}", "actual_cost_usd": "0", "transport_requests": 0, "preflight_allowed": allowed}
+                    if not allowed:
+                        event["status"] = "blocked_budget"
+                        provider_events.append(event)
+                        ranking_blocked = True
+                        break
                     try:
-                        ranking = rank_site_candidates_with_luna(candidates, subject_name=abn, model="gpt-5.6-luna", max_output_tokens=LUNA_MAX_OUTPUT_TOKENS)
+                        ranking = rank_site_candidates_with_luna(batch, subject_name=subject_name, model="gpt-5.6-luna", max_output_tokens=LUNA_MAX_OUTPUT_TOKENS)
                         actual = Decimal(str(ranking.get("cost_usd") or "0"))
                         provider_actual += actual
-                        event.update({"actual_cost_usd": f"{actual:.6f}", "transport_requests": ranking.get("transport_requests", 0), "status": "completed" if not ranking.get("validation_error") else "invalid_output"})
+                        event.update({"actual_cost_usd": f"{actual:.6f}", "transport_requests": ranking.get("transport_requests", 0), "input_tokens": (ranking.get("usage") or {}).get("input_tokens"), "output_tokens": (ranking.get("usage") or {}).get("output_tokens"), "status": "completed" if not ranking.get("validation_error") else "invalid_output"})
                         if provider_actual + provider_reserved > MAX_PROVIDER_USD:
                             raise RuntimeError(f"Luna actual spend exceeded USD {MAX_PROVIDER_USD}")
-                        site_row["ranking"] = ranking
                         provider_events.append(event)
+                        batch_results.append({"batch_index": batch_index, "candidate_count": len(batch), "ranking": ranking})
                         if not ranking.get("validation_error"):
-                            for candidate in [candidates[i] for i in ranking["ranked_ordinals"][:10]]:
-                                try:
-                                    page_body, page_resolved, _, page_media = fetch(candidate["url"])
-                                    page_lineage = source_lineage(catalog, store, family="official_website", endpoint=base, url=candidate["url"], body=page_body, resolved=page_resolved, media=page_media, role="official_page")
-                                    members.append(_member_from_lineage(page_lineage, family="official_website"))
-                                    site_row["acquired_page_records"].append({"url": candidate["url"], "source_record_id": page_lineage["source_record_id"], "artifact_id": page_lineage["artifact_id"]})
-                                    acquired_new += page_lineage["origin"] == "newly_acquired"
-                                    reused += page_lineage["origin"] == "reused_existing"
-                                except Exception:
-                                    continue
+                            by_ordinal = {int(item["ordinal"]): item for item in batch}
+                            finalists.extend(by_ordinal[ordinal] for ordinal in ranking["ranked_ordinals"][:10] if ordinal in by_ordinal)
                     except Exception as exc:
                         event.update({"status": "failed", "error": type(exc).__name__})
                         provider_events.append(event)
-                        site_row["ranking"] = {"status": "failed", "error": type(exc).__name__}
+                        batch_results.append({"batch_index": batch_index, "candidate_count": len(batch), "status": "failed", "error": type(exc).__name__})
+                # A second bounded ranking combines the batch finalists.  It is
+                # still ordinal-only and is guarded independently by the cap.
+                finalists = list({int(item["ordinal"]): item for item in finalists}.values())
+                site_row["finalist_count"] = len(finalists)
+                final_ranking = None
+                if finalists and not ranking_blocked:
+                    projected = projected_luna_cost(finalists)
+                    allowed = provider_budget_allows(provider_actual, provider_reserved, projected, MAX_PROVIDER_USD)
+                    event = {"subject_abn": abn, "subject_name": subject_name, "phase": "final", "candidate_count": len(finalists), "model": "gpt-5.6-luna", "projected_max_usd": f"{projected:.6f}", "actual_cost_usd": "0", "transport_requests": 0, "preflight_allowed": allowed}
+                    if not allowed:
+                        event["status"] = "blocked_budget"
+                        provider_events.append(event)
+                    else:
+                        try:
+                            final_ranking = rank_site_candidates_with_luna(finalists, subject_name=subject_name, model="gpt-5.6-luna", max_output_tokens=LUNA_MAX_OUTPUT_TOKENS)
+                            actual = Decimal(str(final_ranking.get("cost_usd") or "0"))
+                            provider_actual += actual
+                            event.update({"actual_cost_usd": f"{actual:.6f}", "transport_requests": final_ranking.get("transport_requests", 0), "input_tokens": (final_ranking.get("usage") or {}).get("input_tokens"), "output_tokens": (final_ranking.get("usage") or {}).get("output_tokens"), "status": "completed" if not final_ranking.get("validation_error") else "invalid_output"})
+                            provider_events.append(event)
+                        except Exception as exc:
+                            event.update({"status": "failed", "error": type(exc).__name__})
+                            provider_events.append(event)
+                            final_ranking = {"status": "failed", "error": type(exc).__name__}
+                selected = []
+                if final_ranking and not final_ranking.get("validation_error") and final_ranking.get("ranked_ordinals"):
+                    by_ordinal = {int(item["ordinal"]): item for item in finalists}
+                    selected = [by_ordinal[ordinal] for ordinal in final_ranking["ranked_ordinals"][:10] if ordinal in by_ordinal]
+                for candidate in selected:
+                    try:
+                        page_body, page_resolved, _, page_media = fetch(candidate["url"])
+                        page_lineage = source_lineage(catalog, store, family="official_website", endpoint=base, url=candidate["url"], body=page_body, resolved=page_resolved, media=page_media, role="official_page")
+                        members.append(_member_from_lineage(page_lineage, family="official_website"))
+                        site_row["acquired_page_records"].append({"url": candidate["url"], "source_record_id": page_lineage["source_record_id"], "artifact_id": page_lineage["artifact_id"]})
+                        acquired_new += page_lineage["origin"] == "newly_acquired"
+                        reused += page_lineage["origin"] == "reused_existing"
+                    except Exception:
+                        continue
+                site_row["ranking"] = {"status": "completed" if final_ranking and not final_ranking.get("validation_error") else ("blocked_budget" if ranking_blocked else "partial"), "batch_rankings": batch_results, "finalists": finalists, "final_ranking": final_ranking}
             site_row["mechanical_candidates"] = [{"ordinal": c["ordinal"], "url": c["url"], "label": c.get("label", "")} for c in candidates]
             coverage["official_website"] = {"discovery": "resolved", "acquisition": "available", "binding": "bound", "origin": "newly_acquired", "candidate_count": len(candidates), "homepage_persisted": True, "sitemap_count": len(sitemap_xmls), "top_page_count": len(site_row["acquired_page_records"])}
+        except WebsiteFetchError as exc:
+            site_row["homepage_transport_attempts"] = exc.attempts
+            site_row["error"] = type(exc).__name__
+            coverage["official_website"] = {"discovery": "resolved", "acquisition": "failed", "binding": "none", "origin": "none", "homepage_persisted": False, "candidate_count": 0, "top_page_count": 0, "error": type(exc).__name__, "transport_attempts": exc.attempts}
         except Exception as exc:
             site_row["error"] = type(exc).__name__
             coverage["official_website"] = {"discovery": "resolved", "acquisition": "failed", "binding": "none", "origin": "none", "homepage_persisted": False, "candidate_count": 0, "top_page_count": 0, "error": type(exc).__name__}
         site_report[abn] = site_row
         names = [str(data.get(key) or "") for key in ("Name", "CharityLegalName", "LegalName") if data.get(key)] + [str(item) for item in (data.get("OtherNames") or []) if item]
         try:
-            query_url = WIKI + "?" + urlencode({"action": "query", "list": "search", "srsearch": names[0] if names else abn, "format": "json", "srlimit": 10})
-            wiki_body, _, _, _ = fetch(query_url)
-            search_rows = json.loads(wiki_body).get("query", {}).get("search", [])
+            search_rows = []
+            seen_titles = set()
+            for query_name in names or [abn]:
+                query_url = WIKI + "?" + urlencode({"action": "query", "list": "search", "srsearch": query_name, "format": "json", "srlimit": 10})
+                wiki_body, _, _, _ = fetch(query_url)
+                for row in json.loads(wiki_body).get("query", {}).get("search", []):
+                    if row.get("title") not in seen_titles:
+                        search_rows.append(row)
+                        seen_titles.add(row.get("title"))
             resolution = resolve_wikipedia_candidate(names, search_rows)
+            identity_resolution = None
+            if resolution["status"] != "bound" and search_rows and not args.skip_luna:
+                projected = projected_luna_cost(search_rows)
+                allowed = provider_budget_allows(provider_actual, provider_reserved, projected, MAX_PROVIDER_USD)
+                identity_event = {"subject_abn": abn, "subject_name": names[0] if names else abn, "phase": "wikipedia_identity", "candidate_count": len(search_rows), "model": "gpt-5.6-luna", "projected_max_usd": f"{projected:.6f}", "actual_cost_usd": "0", "transport_requests": 0, "preflight_allowed": allowed}
+                if allowed:
+                    identity_resolution = resolve_wikipedia_candidate_with_luna(names, search_rows, subject_context={"abn": abn, "registered_name": names[0] if names else None, "website": data.get("Website")}, model="gpt-5.6-luna", max_output_tokens=LUNA_MAX_OUTPUT_TOKENS)
+                    actual = Decimal(str(identity_resolution.get("cost_usd") or "0"))
+                    provider_actual += actual
+                    identity_event.update({"actual_cost_usd": f"{actual:.6f}", "transport_requests": identity_resolution.get("transport_requests", 0), "input_tokens": (identity_resolution.get("usage") or {}).get("input_tokens"), "output_tokens": (identity_resolution.get("usage") or {}).get("output_tokens"), "status": "completed" if not identity_resolution.get("validation_error") else "invalid_output"})
+                    provider_events.append(identity_event)
+                    if identity_resolution.get("status") == "bound" and identity_resolution.get("candidate_index") is not None:
+                        resolution = {"status": "bound", "candidate": search_rows[int(identity_resolution["candidate_index"])], "basis": "luna_bounded_entity_resolution"}
+                    elif identity_resolution.get("status") in {"ambiguous", "no_bound_record"}:
+                        resolution = {"status": identity_resolution["status"], "candidates": search_rows, "basis": "luna_bounded_entity_resolution"}
+                else:
+                    identity_event["status"] = "blocked_budget"
+                    provider_events.append(identity_event)
             if resolution["status"] == "bound":
                 title = resolution["candidate"]["title"]
-                page_query = WIKI + "?" + urlencode({"action": "query", "prop": "info|revisions", "rvprop": "ids|timestamp", "titles": title, "format": "json", "formatversion": "2"})
+                page_query = WIKI + "?" + urlencode({"action": "query", "prop": "info|revisions", "rvprop": "ids|timestamp|content", "rvslots": "main", "rvlimit": 1, "titles": title, "format": "json", "formatversion": "2"})
                 page_body, page_resolved, _, page_media = fetch(page_query)
                 page_data = json.loads(page_body)
                 page = (page_data.get("query", {}).get("pages") or [{}])[0]
                 revision = str((page.get("lastrevid") or ((page.get("revisions") or [{}])[0].get("revid")) or "")) or None
                 lineage = source_lineage(catalog, store, family="wikipedia_wikimedia", endpoint=WIKI, url=page_query, body=page_body, resolved=page_resolved, media=page_media, role="article_identity", revision=revision)
                 members.append(_member_from_lineage(lineage, family="wikipedia_wikimedia", revision=revision))
-                wikipedia_report[abn] = {"status": "bound", "title": title, "revision_id": revision, "source_record_id": lineage["source_record_id"], "basis": resolution["basis"]}
-                coverage["wikipedia_wikimedia"] = {"discovery": "resolved", "acquisition": "available", "binding": "bound", "origin": lineage["origin"], "title": title, "revision_id": revision}
+                wikipedia_report[abn] = {"status": "bound", "title": title, "page_id": page.get("pageid"), "revision_id": revision, "permalink": page.get("canonicalurl"), "content_artifact_id": lineage["artifact_id"], "source_record_id": lineage["source_record_id"], "basis": resolution["basis"]}
+                coverage["wikipedia_wikimedia"] = {"discovery": "resolved", "acquisition": "available", "binding": "bound", "origin": lineage["origin"], "title": title, "page_id": page.get("pageid"), "revision_id": revision, "content_artifact_id": lineage["artifact_id"]}
                 acquired_new += lineage["origin"] == "newly_acquired"
                 reused += lineage["origin"] == "reused_existing"
             else:
-                wikipedia_report[abn] = {"status": resolution["status"], "basis": resolution["basis"], "candidate_count": len(resolution.get("candidates", []))}
-                coverage["wikipedia_wikimedia"] = {"discovery": "resolved", "acquisition": "available", "binding": "no_bound_record", "origin": "none", "candidate_count": len(resolution.get("candidates", []))}
+                wikipedia_report[abn] = {"status": resolution["status"], "basis": resolution["basis"], "candidate_count": len(resolution.get("candidates", [])), "candidates": [{"title": row.get("title"), "snippet": row.get("snippet")} for row in resolution.get("candidates", [])]}
+                coverage["wikipedia_wikimedia"] = {"discovery": "resolved", "acquisition": "available", "binding": resolution["status"], "origin": "none", "candidate_count": len(resolution.get("candidates", []))}
         except Exception as exc:
             wikipedia_report[abn] = {"status": "failed", "error": type(exc).__name__}
             coverage["wikipedia_wikimedia"] = {"discovery": "resolved", "acquisition": "failed", "binding": "none", "origin": "none", "error": type(exc).__name__}
-        matched_pfra = [record for record in pfra_records if _normalise_name(record["label"]) in {_normalise_name(name) for name in names}]
+        subject_domain = urlsplit(WEBSITES[abn]).hostname.casefold().removeprefix("www.") if urlsplit(WEBSITES[abn]).hostname else ""
+        exact_pfra = [record for record in pfra_records if subject_domain in {str(domain).casefold().removeprefix("www.") for domain in record.get("linked_domains", [])}]
+        candidate_pfra = [record for record in pfra_records if _normalise_name(record["label"]) in {_normalise_name(name) for name in names}]
+        matched_pfra = exact_pfra[:1]
+        pfra_basis = "exact_linked_domain" if len(exact_pfra) == 1 else None
+        pfra_identity = None
+        if not matched_pfra and candidate_pfra and not args.skip_luna:
+            projected = projected_luna_cost([{"title": row["label"], "snippet": ", ".join(row.get("linked_domains", []))} for row in candidate_pfra])
+            allowed = provider_budget_allows(provider_actual, provider_reserved, projected, MAX_PROVIDER_USD)
+            identity_event = {"subject_abn": abn, "subject_name": names[0] if names else abn, "phase": "pfra_identity", "candidate_count": len(candidate_pfra), "model": "gpt-5.6-luna", "projected_max_usd": f"{projected:.6f}", "actual_cost_usd": "0", "transport_requests": 0, "preflight_allowed": allowed}
+            if allowed:
+                pfra_identity = resolve_wikipedia_candidate_with_luna(names, [{"title": row["label"], "snippet": ", ".join(row.get("linked_domains", []))} for row in candidate_pfra], subject_context={"abn": abn, "website_domain": subject_domain, "source_family": "PFRA"}, model="gpt-5.6-luna", max_output_tokens=LUNA_MAX_OUTPUT_TOKENS)
+                actual = Decimal(str(pfra_identity.get("cost_usd") or "0"))
+                provider_actual += actual
+                identity_event.update({"actual_cost_usd": f"{actual:.6f}", "transport_requests": pfra_identity.get("transport_requests", 0), "input_tokens": (pfra_identity.get("usage") or {}).get("input_tokens"), "output_tokens": (pfra_identity.get("usage") or {}).get("output_tokens"), "status": "completed" if not pfra_identity.get("validation_error") else "invalid_output"})
+                provider_events.append(identity_event)
+                if pfra_identity.get("status") == "bound" and pfra_identity.get("candidate_index") is not None:
+                    matched_pfra = [candidate_pfra[int(pfra_identity["candidate_index"])]]
+                    pfra_basis = "luna_bounded_entity_resolution"
+                elif pfra_identity.get("status") == "ambiguous":
+                    pfra_basis = "ambiguous_name_candidate"
+            else:
+                identity_event["status"] = "blocked_budget"
+                provider_events.append(identity_event)
         pfra_rows = []
         for record in matched_pfra:
             page_match = next((item for item in pfra_pages if item[3] == record["member_role"]), None)
@@ -416,8 +611,8 @@ def run(args: argparse.Namespace) -> int:
             pfra_rows.append({"member_role": record["member_role"], "label": record["label"], "linked_domains": record["linked_domains"], "source_record_id": lineage["source_record_id"]})
             acquired_new += lineage["origin"] == "newly_acquired"
             reused += lineage["origin"] == "reused_existing"
-        pfra_report[abn] = {"status": "bound" if pfra_rows else "no_bound_record", "records": pfra_rows, "directory_counts": {"charity": sum(r["member_role"] == "current_charity_membership" for r in pfra_records), "agency": sum(r["member_role"] == "agency_membership" for r in pfra_records)}}
-        coverage["pfra"] = {"discovery": "resolved", "acquisition": "available" if pfra_pages else "failed", "binding": "bound" if pfra_rows else "no_bound_record", "origin": "newly_acquired" if pfra_rows else "none", "record_count": len(pfra_rows)}
+        pfra_report[abn] = {"status": "bound" if pfra_rows else ("ambiguous" if pfra_basis == "ambiguous_name_candidate" else "no_bound_record"), "basis": pfra_basis or "no_exact_linked_domain", "records": pfra_rows, "candidate_records": candidate_pfra if not pfra_rows else [], "directory_counts": {"charity": sum(r["member_role"] == "current_charity_membership" for r in pfra_records), "agency": sum(r["member_role"] == "agency_membership" for r in pfra_records)}}
+        coverage["pfra"] = {"discovery": "resolved", "acquisition": "available" if pfra_pages else "failed", "binding": "bound" if pfra_rows else ("ambiguous" if pfra_basis == "ambiguous_name_candidate" else "no_bound_record"), "origin": "newly_acquired" if pfra_rows else "none", "record_count": len(pfra_rows), "binding_basis": pfra_basis or "no_exact_linked_domain"}
         manifest = build_corpus_manifest(subject_id=subject_id, profile_version="baseline-charity-corpus-v1", members=members, retrieval_timestamps=(now().isoformat(),), builder_commit=None)
         corpora.append(manifest.model_dump(mode="json"))
         matrix.append({"abn": abn, "subject_id": subject_id, "registered_name": data.get("Name") or data.get("CharityLegalName"), "coverage": coverage})

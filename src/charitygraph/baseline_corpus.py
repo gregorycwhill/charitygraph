@@ -248,8 +248,13 @@ def represent_pdf(path: str | Path, *, vision_extractor: Callable[[dict], Any] |
     result = extract_pdf_evidence(Path(path), vision_extractor=vision_extractor)
     diagnostics = result["extraction_diagnostics"]
     gaps = sorted(set(diagnostics["low_text_pages"] + diagnostics["image_only_or_scanned_pages"] + diagnostics["visual_relationships_unresolved_pages"]))
+    gap_reasons = {
+        "low_text": list(diagnostics["low_text_pages"]),
+        "image_only_or_scanned": list(diagnostics["image_only_or_scanned_pages"]),
+        "visual_relationships_unresolved": list(diagnostics["visual_relationships_unresolved_pages"]),
+    }
     readiness = RepresentationReadiness.READY if not gaps else RepresentationReadiness.PARTIAL if result["pages"] else RepresentationReadiness.FAILED
-    return {"readiness": readiness.value, "page_gaps": gaps, "native_text_pages": diagnostics["native_text_pages"], "visual_escalations": len(diagnostics["vision_escalations"]), "source_sha256": result["source_sha256"], "page_count": result["page_count"], "extracted_page_count": result["extracted_page_count"], "pages": result["pages"]}
+    return {"readiness": readiness.value, "page_gaps": gaps, "gap_reasons": gap_reasons, "native_text_pages": diagnostics["native_text_pages"], "visual_escalations": len(diagnostics["vision_escalations"]), "source_sha256": result["source_sha256"], "page_count": result["page_count"], "extracted_page_count": result["extracted_page_count"], "pages": result["pages"]}
 
 
 
@@ -267,6 +272,90 @@ def resolve_wikipedia_candidate(organisation_names: list[str], candidates: list[
     if len(matches) > 1:
         return {"status": "ambiguous", "candidates": matches, "basis": "multiple_exact_source_native_names"}
     return {"status": "no_bound_record", "candidates": candidates, "basis": "no_exact_source_native_name"}
+
+
+def resolve_wikipedia_candidate_with_luna(
+    organisation_names: list[str],
+    candidates: list[dict[str, Any]],
+    *,
+    subject_context: dict[str, Any],
+    model: str = "gpt-5.6-luna",
+    max_output_tokens: int = 8000,
+    request_fn: Callable[..., Any] = responses_create,
+) -> dict[str, Any]:
+    """Ask Luna only for residual Wikipedia entity identity resolution.
+
+    The mechanical exact-title path remains authoritative.  This function is
+    deliberately limited to selecting ``bound``, ``ambiguous`` or
+    ``no_bound_record`` from the bounded search candidates and identity context;
+    it performs no fuzzy matching in Python and never receives article content.
+    """
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "status": {"type": "string", "enum": ["bound", "ambiguous", "no_bound_record"]},
+            "candidate_index": {"anyOf": [{"type": "integer"}, {"type": "null"}]},
+        },
+        "required": ["status", "candidate_index"],
+    }
+    prompt = (
+        "Decide whether one bounded Wikipedia search candidate represents the same registered organisation. "
+        "Use only the supplied candidate titles/snippets and identity context. Do not infer from ABN equality, "
+        "and do not extract facts. Return bound only with the zero-based candidate_index; use ambiguous when "
+        "multiple candidates remain plausible, otherwise no_bound_record.\nIDENTITY:\n"
+        + json.dumps({"names": organisation_names, "context": subject_context}, ensure_ascii=False, separators=(",", ":"))
+        + "\nCANDIDATES:\n"
+        + json.dumps(candidates, ensure_ascii=False, separators=(",", ":"))
+    )
+    result = request_fn(
+        model=model,
+        input_text=prompt,
+        text_format={"type": "json_schema", "name": "wikipedia_entity_resolution", "strict": True, "schema": schema},
+        max_output_tokens=max_output_tokens,
+        max_attempts=2,
+        reasoning={"effort": "high"},
+    )
+    usage = result.usage.__dict__
+    base = {
+        "model": result.model,
+        "usage": usage,
+        "cost_usd": str(estimate_response_cost(result.model, result.usage) or 0),
+        "transport_requests": result.transport_requests,
+    }
+    try:
+        output = json.loads(result.output_text)
+    except json.JSONDecodeError:
+        return {**base, "status": "no_bound_record", "candidate_index": None, "validation_error": "response was not valid JSON"}
+    status = output.get("status")
+    index = output.get("candidate_index")
+    if status not in {"bound", "ambiguous", "no_bound_record"} or (index is not None and (not isinstance(index, int) or index < 0 or index >= len(candidates))):
+        return {**base, "status": "no_bound_record", "candidate_index": None, "validation_error": "invalid identity-resolution response"}
+    if status == "bound" and index is None:
+        return {**base, "status": "no_bound_record", "candidate_index": None, "validation_error": "bound response lacked candidate_index"}
+    return {**base, "status": status, "candidate_index": index}
+
+
+def partition_site_candidates(candidates: list[dict[str, Any]], *, max_output_tokens: int = 8000, max_request_tokens: int = 16000) -> list[list[dict[str, Any]]]:
+    """Partition candidates by the configured request/output budget.
+
+    The boundary is derived from serialized request size plus the ordinal output
+    estimate, not from a fixed URL-count heuristic. Candidate order is stable.
+    """
+    batches: list[list[dict[str, Any]]] = []
+    current: list[dict[str, Any]] = []
+    for candidate in candidates:
+        trial = current + [candidate]
+        input_tokens = len(json.dumps(trial, ensure_ascii=False, separators=(",", ":"))) // 4 + 256
+        output_tokens = max(1, len(trial) * 4)
+        if current and input_tokens + output_tokens > max_request_tokens:
+            batches.append(current)
+            current = [candidate]
+        else:
+            current = trial
+    if current:
+        batches.append(current)
+    return batches
 
 
 def extract_pfra_members(html: str, *, page_role: str, base_url: str = "https://pfra.org.au/") -> list[dict[str, Any]]:
