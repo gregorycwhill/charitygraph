@@ -28,6 +28,8 @@ from charitygraph.evidence_store import ContentAddressedArtifactStore
 from charitygraph.openai_client import responses_create, estimate_response_cost
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.whole_card_semantic_v02 import STRICT_SCHEMA, WholeCardExtractionOutputV02, validate_output
+from charitygraph.whole_card_calibration import visible_html
+from charitygraph.baseline_corpus import represent_pdf
 
 # Imported private baseline helpers intentionally: they already implement the
 # governed source registry, HTTP and ACNC filing mechanics.
@@ -134,7 +136,7 @@ def text_for(body: bytes, media: str) -> str:
     return "[binary source material; native representation recorded separately]"
 
 
-def source_packet(catalog: SQLiteCatalog, store: ContentAddressedArtifactStore, members: list[CorpusMember]) -> dict[str, Any]:
+def source_packet(catalog: SQLiteCatalog, store: ContentAddressedArtifactStore, members: list[CorpusMember], diagnostics_out: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     sources = []
     for idx, member in enumerate(members, 1):
         if not member.artifact_ids or not member.source_record_ids:
@@ -146,13 +148,54 @@ def source_packet(catalog: SQLiteCatalog, store: ContentAddressedArtifactStore, 
             continue
         rec = catalog.get_source_record(member.source_record_ids[0]) or {}
         media = rec.get("media_type") or "text/plain"
-        material = text_for(body, media)
-        # Keep packet bounded while preserving source order and provenance.
-        material = material[:24000]
+        representation_type = "text"
+        representation_gap = None
+        derived_artifact_id = None
+        if member.representation_artifact_ids:
+            try:
+                rep = json.loads(store.read(member.representation_artifact_ids[0]).decode("utf-8"))
+                pages = rep.get("representation", {}).get("pages", [])
+                material = "\n".join(f"Page {p.get('page')}:\n{p.get('text', '')}" for p in pages)
+                representation_type = "derived_pdf_native"
+            except Exception:
+                material = ""; representation_gap = "derived_representation_unavailable"
+        elif "pdf" in media or body.startswith(b"%PDF-"):
+            import tempfile
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as handle:
+                handle.write(body); pdf_path = Path(handle.name)
+            try:
+                rep = represent_pdf(pdf_path)
+                rep_bytes = json.dumps({"representation": rep}, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                derived = store.put_derived(rep_bytes, input_artifact_ids=(artifact_id,), created_at=now())
+                derived_artifact_id = derived.artifact_id
+                material = "\n".join(f"Page {p.get('page')}:\n{p.get('text', '')}" for p in rep.get("pages", []))
+                representation_type = "derived_pdf_native"
+                gaps = rep.get("page_gaps") or []
+                representation_gap = (";".join(f"{k}:{v}" for k, v in rep.get("gap_reasons", {}).items() if v) or None)
+            except Exception as exc:
+                material = ""; representation_type = "pdf_placeholder"; representation_gap = f"native_pdf_representation_failed:{type(exc).__name__}"
+            finally:
+                pdf_path.unlink(missing_ok=True)
+        elif "json" in media or body.lstrip().startswith((b"{", b"[")):
+            try:
+                material = json.dumps(json.loads(body), ensure_ascii=False, indent=2)
+                representation_type = "structured_json"
+            except json.JSONDecodeError:
+                material = body.decode("utf-8", "replace"); representation_type = "text"
+        elif "html" in media or body.lstrip().lower().startswith((b"<!doctype html", b"<html")):
+            material = visible_html(body.decode("utf-8", "replace")); representation_type = "visible_html"
+        else:
+            material = body.decode("utf-8", "replace")
+        complete = representation_gap is None
+        bounded = len(material) <= 120000
+        if not bounded:
+            material = material[:120000]; representation_gap = representation_gap or "representation_bounded_to_120000_chars"; complete = False
+        diagnostics = {"source_key": f"S{idx:03d}", "source_record_id": member.source_record_ids[0], "media_type": media, "acquired_bytes": len(body), "representation_type": representation_type, "represented_characters": len(material), "estimated_tokens": estimated_tokens(material), "locator_count": len(material.splitlines() or [""]), "complete": complete, "bounded": bounded, "placeholder": representation_type.endswith("placeholder"), "representation_gap": representation_gap, "derived_artifact_id": derived_artifact_id}
+        if diagnostics_out is not None: diagnostics_out.append(diagnostics)
         lines = material.splitlines() or [material]
         locators = []
-        for line_no, line in enumerate(lines[:400], 1):
-            locators.append({"locator": f"L{line_no:04d}", "quote": line[:500]})
+        for line_no, line in enumerate(lines, 1):
+            locators.append({"locator": f"L{line_no:04d}", "text": line})
         sources.append({"source_key": f"S{idx:03d}", "source_record_id": member.source_record_ids[0],
                         "source_family": member.source_family, "source_role": rec.get("source_role"),
                         "source_locator": rec.get("source_locator"), "locators": locators})

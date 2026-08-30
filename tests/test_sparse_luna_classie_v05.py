@@ -32,3 +32,24 @@ def test_taxonomy_blind_view_removes_classification_without_rewriting_observatio
     assert blind["observations"] == [observation]
     assert blind["observation_refs"] == {"O001": observation}
 
+
+def test_structured_json_representation_keeps_all_lines_and_locators() -> None:
+    payload = {"field": "x" * 900, "second": {"nested": True}}
+
+    class Catalog:
+        def get_source_record(self, _record_id):
+            return {"media_type": "application/json", "source_role": "register_identity", "source_locator": "https://example.test"}
+
+    class Store:
+        def read(self, _artifact_id):
+            import json
+            return json.dumps(payload).encode("utf-8")
+
+    member = runner.CorpusMember(
+        source_family="test", source_definition_id="srcdef:test", acquisition_receipt_ids=("acq:test",),
+        artifact_ids=("srcblob:" + "a" * 64,), source_record_ids=("srcrec:test",),
+        discovery="resolved", acquisition="available", subject_binding="bound", material_origin="newly_acquired",
+    )
+    packet = runner.source_packet(Catalog(), Store(), [member])
+    assert len(packet["sources"][0]["locators"]) > 1
+    assert sum(len(loc["text"]) for loc in packet["sources"][0]["locators"]) > 500
