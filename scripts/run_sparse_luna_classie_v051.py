@@ -46,7 +46,7 @@ def main() -> int:
     if whole_valid: dump(runtime / "whole-card-validation.json", {"status": "passed"})
     blind = build_taxonomy_blind_view(whole); blind_sha = dump(runtime / "classie-blind-knowledge-view.json", blind)
     if not TAXONOMY.is_file(): raise RuntimeError("private CLASSIE taxonomy unavailable; failed closed")
-    taxonomy = json.loads(TAXONOMY.read_text(encoding="utf-8")); concept_ids = {str(c.get("concept_id") or c.get("id")) for c in taxonomy.get("concepts", [])}
+    taxonomy = json.loads(TAXONOMY.read_text(encoding="utf-8")); concept_ids = {str(c.get("external_concept_id") or c.get("concept_id") or c.get("id")) for c in taxonomy.get("concepts", [])}
     classie_prompt = "Infer CharityGraph CLASSIE assignments from this taxonomy-blind knowledge using only the supplied private taxonomy and observations. Return only the strict schema; do not use outside knowledge, ACNC CLASSIE, SDG or CharityGraph Native.\n" + json.dumps({"knowledge": blind, "taxonomy": taxonomy}, ensure_ascii=False, separators=(",", ":"))
     try:
         classie, actual, classie_text = call_luna(classie_prompt, build_classie_schema(), "sparse_classie_v051", CLASSIE_MAX, spent, events); spent += actual

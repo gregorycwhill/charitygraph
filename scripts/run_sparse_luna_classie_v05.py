@@ -338,7 +338,7 @@ def main() -> int:
     if not tax_path.is_file():
         raise RuntimeError("permitted private CLASSIE taxonomy material is unavailable; failed closed")
     taxonomy = json.loads(tax_path.read_text(encoding="utf-8"))
-    concept_ids = {str(c.get("concept_id") or c.get("id")) for c in taxonomy.get("concepts", [])}
+    concept_ids = {str(c.get("external_concept_id") or c.get("concept_id") or c.get("id")) for c in taxonomy.get("concepts", [])}
     classie_packet = {"knowledge": blind, "taxonomy": taxonomy}
     classie_prompt = ("Infer CharityGraph CLASSIE assignments from the supplied taxonomy-blind CharityGraph knowledge. "
                       "Use only supplied observations and taxonomy; return the strict schema. Do not use outside knowledge, ACNC CLASSIE, SDG or CharityGraph Native.\n" +

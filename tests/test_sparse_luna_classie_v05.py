@@ -53,3 +53,12 @@ def test_structured_json_representation_keeps_all_lines_and_locators() -> None:
     packet = runner.source_packet(Catalog(), Store(), [member])
     assert len(packet["sources"][0]["locators"]) > 1
     assert sum(len(loc["text"]) for loc in packet["sources"][0]["locators"]) > 500
+
+
+def test_private_taxonomy_source_native_ids_are_external_concept_ids() -> None:
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("sparse_v052", ROOT / "scripts" / "run_sparse_luna_classie_v052.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert module.taxonomy_ids([{"external_concept_id": "X1", "preferred_label": "hidden"}]) == {"X1"}
