@@ -62,3 +62,14 @@ def test_private_taxonomy_source_native_ids_are_external_concept_ids() -> None:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     assert module.taxonomy_ids([{"external_concept_id": "X1", "preferred_label": "hidden"}]) == {"X1"}
+
+
+def test_terra_review_schema_requires_five_candidate_reviews_and_omission_check() -> None:
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("terra_v053", ROOT / "scripts" / "run_sparse_terra_classie_v053.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    schema = module.review_schema()
+    assert set(schema["required"]) == {"candidate_reviews", "omission_check"}
+    assert schema["properties"]["candidate_reviews"]["minItems"] == 5
