@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Literal
@@ -94,9 +95,23 @@ def validate_output(value: dict[str, Any], packet: dict[str, Any]) -> WholeCardE
     spaces = {item["source_record_id"]: {loc["locator"] for loc in item["locators"]} for item in packet["sources"]}
     for observation in result.observations:
         for evidence in observation.evidence:
-            if evidence.source_record_id not in spaces or evidence.packet_locator not in spaces[evidence.source_record_id]:
+            if evidence.source_record_id not in spaces or not locator_resolves(evidence.packet_locator, spaces[evidence.source_record_id]):
                 raise ValueError("evidence locator does not resolve in packet")
     return result
+
+
+_LOCATOR = re.compile(r"^\[S(?P<source>\d{3}):L(?P<start>\d{4})\](?:-\[S(?P<source_end>\d{3}):L(?P<end>\d{4})\])?$")
+
+
+def locator_resolves(value: str, valid_locators: set[str]) -> bool:
+    """Resolve a packet line or same-source inclusive line range."""
+    if value in valid_locators:
+        return True
+    match = _LOCATOR.fullmatch(value)
+    if not match or (match.group("source_end") and match.group("source_end") != match.group("source")):
+        return False
+    start, end = int(match.group("start")), int(match.group("end") or match.group("start"))
+    return start <= end and all(f"[S{match.group('source')}:L{line:04d}]" in valid_locators for line in range(start, end + 1))
 
 
 class _VisibleText(HTMLParser):
