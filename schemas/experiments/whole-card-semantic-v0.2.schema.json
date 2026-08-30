@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CharityGraph Whole-Card Semantic Knowledge Production v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "section_assessments": {"type": "array", "minItems": 20, "maxItems": 20, "items": {"$ref": "#/$defs/section_assessment"}},
+    "observations": {"type": "array", "items": {"$ref": "#/$defs/observation"}},
+    "assignments": {"type": "array", "items": {"$ref": "#/$defs/assignment"}},
+    "relationships": {"type": "array", "items": {"$ref": "#/$defs/relationship"}},
+    "cross_source_issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}}
+  },
+  "required": ["section_assessments", "observations", "assignments", "relationships", "cross_source_issues"],
+  "$defs": {
+    "section_assessment": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"section_id": {"type": "integer", "minimum": 1, "maximum": 20}, "status": {"type": "string", "enum": ["observations_found", "insufficient_evidence", "not_applicable", "deferred"]}, "note": {"type": ["string", "null"]}},
+      "required": ["section_id", "status", "note"]
+    },
+    "scope": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"kind": {"type": "string", "enum": ["subject", "reporting_group", "named_program_or_service", "other_named_scope", "uncertain"]}, "label": {"type": ["string", "null"]}},
+      "required": ["kind", "label"]
+    },
+    "temporal_scope": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"kind": {"type": "string", "enum": ["current", "as_of", "reporting_period", "historical", "undated", "mixed"]}, "value": {"type": ["string", "null"]}},
+      "required": ["kind", "value"]
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"source": {"type": "string", "pattern": "^S[0-9]{3}$"}, "locator": {"type": "string", "pattern": "^L[0-9]{4}(?:-L[0-9]{4})?$"}, "role": {"type": "string", "enum": ["supporting", "corroborating", "context"]}},
+      "required": ["source", "locator", "role"]
+    },
+    "observation": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"section_id": {"type": "integer", "minimum": 1, "maximum": 20}, "scope": {"$ref": "#/$defs/scope"}, "proposition": {"type": "string", "minLength": 1, "maxLength": 500}, "epistemic_status": {"type": "string", "enum": ["supported", "explicit_absence"]}, "temporal_scope": {"$ref": "#/$defs/temporal_scope"}, "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}}, "qualifications": {"type": "array", "items": {"type": "string"}}},
+      "required": ["section_id", "scope", "proposition", "epistemic_status", "temporal_scope", "evidence", "qualifications"]
+    },
+    "assignment_scope": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"kind": {"type": "string", "enum": ["subject", "reporting_group", "named_program_or_service", "other_named_scope", "uncertain"]}, "label": {"type": ["string", "null"]}},
+      "required": ["kind", "label"]
+    },
+    "assignment": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"target_scope": {"$ref": "#/$defs/assignment_scope"}, "scheme": {"type": "string", "minLength": 1}, "scheme_version": {"type": "string", "minLength": 1}, "concept_id": {"type": "string", "minLength": 1}, "concept_label_if_permitted": {"type": ["string", "null"]}, "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}}, "rationale": {"type": "string", "minLength": 1}, "alternatives": {"type": "array", "items": {"type": "string"}}, "qualification": {"type": "array", "items": {"type": "string"}}},
+      "required": ["target_scope", "scheme", "scheme_version", "concept_id", "concept_label_if_permitted", "evidence", "rationale", "alternatives", "qualification"]
+    },
+    "relationship": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"source_scope": {"$ref": "#/$defs/scope"}, "target_source_native_name": {"type": "string", "minLength": 1}, "relationship_type": {"type": "string", "minLength": 1}, "direction": {"type": "string", "enum": ["source_to_target", "target_to_source", "bidirectional", "uncertain"]}, "temporal_scope": {"$ref": "#/$defs/temporal_scope"}, "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}}, "qualification": {"type": "array", "items": {"type": "string"}}},
+      "required": ["source_scope", "target_source_native_name", "relationship_type", "direction", "temporal_scope", "evidence", "qualification"]
+    },
+    "issue": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"issue_type": {"type": "string", "enum": ["contradiction", "materially_different_characterisation", "scope_reporting_mismatch", "temporal_conflict", "identity_binding_ambiguity"]}, "description": {"type": "string", "minLength": 1}, "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}}, "qualification": {"type": "array", "items": {"type": "string"}}},
+      "required": ["issue_type", "description", "evidence", "qualification"]
+    }
+  }
+}
