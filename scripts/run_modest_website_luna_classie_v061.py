@@ -85,6 +85,21 @@ def projected_packet(packet: dict) -> tuple[dict, list[str], set[str]]:
     return out, removed, acnc_ids
 
 
+def structured_funded_external_count(observations: list[dict], relationships: list[dict]) -> int:
+    """Count project observations linked by explicit non-operator relationships."""
+    external_labels = {
+        r.get("source_scope", {}).get("label")
+        for r in relationships
+        if r.get("source_scope", {}).get("kind") == "named_program_or_service"
+        and any(token in str(r.get("relationship_type", "")).casefold() for token in ("delivered", "partnership", "leveraged"))
+    }
+    return sum(
+        o.get("scope", {}).get("kind") == "named_program_or_service"
+        and o.get("scope", {}).get("label") in external_labels
+        for o in observations
+    )
+
+
 def main() -> int:
     RUNTIME.mkdir(parents=True, exist_ok=True)
     packet = json.loads((FROZEN / "whole-card-packet-v06.json").read_text(encoding="utf-8"))
@@ -123,7 +138,7 @@ def main() -> int:
     relationships = whole.get("relationships", [])
     subject_obs = sum(o.get("scope", {}).get("kind") == "subject" for o in whole.get("observations", []))
     network_obs = sum(o.get("scope", {}).get("kind") in {"reporting_group", "other_named_scope", "uncertain"} for o in whole.get("observations", []))
-    funded_obs = sum(any("fund" in str(o.get("proposition", "")).casefold() or "support" in str(o.get("proposition", "")).casefold() for _ in [0]) and o.get("scope", {}).get("kind") != "subject" for o in whole.get("observations", []))
+    funded_obs = structured_funded_external_count(whole.get("observations", []), relationships)
     write_json(RUNTIME / "run-report-v061.json", {"private": True, "packet_sha256": packet_sha, "projection_removed_count": len(removed), "whole_card": {"valid": whole_valid, "observations": len(whole.get("observations", [])), "sections": sorted({o.get("section_id") for o in whole.get("observations", [])}), "scope_counts": dict(scope_counts), "relationships": len(relationships), "target_subject_observations": subject_obs, "network_sibling_context_observations": network_obs, "funded_external_project_observations": funded_obs}, "classie_blind_sha256": blind_sha, "classie_assignments": len(classie.get("assignments", [])), "target_assessments": dict(Counter(a.get("status") for a in classie.get("target_assessments", []))), "acnc_exact_agreement": sorted({str(a.get("concept_id")) for a in classie.get("assignments", [])} & acnc_ids), "acnc_exact_agreement_count": len({str(a.get("concept_id")) for a in classie.get("assignments", [])} & acnc_ids), "cg_only_count": len({str(a.get("concept_id")) for a in classie.get("assignments", [])} - acnc_ids), "acnc_only_count": len(acnc_ids - {str(a.get("concept_id")) for a in classie.get("assignments", [])}), "acnc_ids_observed_count": len(acnc_ids), "provider_events": events, "total_cost_usd": f"{spent:.6f}", "provider_calls": 2, "acnc_comparison": "exact source-native IDs only; ACNC is reported reference, not ground truth"})
     print(json.dumps({"runtime": str(RUNTIME), "packet_sha256": packet_sha, "whole_observations": len(whole.get("observations", [])), "scope_counts": dict(scope_counts), "relationships": len(relationships), "blind_sha256": blind_sha, "classie_assignments": len(classie.get("assignments", [])), "acnc_id_count": len(acnc_ids), "provider_calls": 2, "total_cost_usd": f"{spent:.6f}"}, indent=2))
     return 0
