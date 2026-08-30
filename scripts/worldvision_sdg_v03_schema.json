@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "target_assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "target_scope": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "kind": {"type": "string", "enum": ["subject", "named_program_or_service"]},
+              "label": {"type": "string"}
+            },
+            "required": ["kind", "label"]
+          },
+          "status": {"type": "string", "enum": ["assignments_found", "no_supported_assignment", "insufficient_evidence"]},
+          "note": {"type": "string"}
+        },
+        "required": ["target_scope", "status", "note"]
+      }
+    },
+    "assignments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "target_scope": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "kind": {"type": "string", "enum": ["subject", "named_program_or_service"]},
+              "label": {"type": "string"}
+            },
+            "required": ["kind", "label"]
+          },
+          "scheme": {"type": "string"},
+          "scheme_version": {"type": "string"},
+          "goal_id": {"type": "string"},
+          "supporting_observations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "observation_ref": {"type": "string", "pattern": "^O[0-9]{3}$"},
+                "role": {"type": "string", "enum": ["supporting", "corroborating", "context"]}
+              },
+              "required": ["observation_ref", "role"]
+            }
+          },
+          "rationale": {"type": "string"},
+          "alternatives": {"type": "array", "items": {"type": "string"}},
+          "qualifications": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["target_scope", "scheme", "scheme_version", "goal_id", "supporting_observations", "rationale", "alternatives", "qualifications"]
+      }
+    }
+  },
+  "required": ["target_assessments", "assignments"]
+}
