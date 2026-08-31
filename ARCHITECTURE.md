@@ -62,8 +62,9 @@ The internal model is a typed artefact graph. Each persisted artefact has an ID,
 | Record | Purpose | Authority |
 | --- | --- | --- |
 | `SubjectRecord` | Durable opaque `subject_id`, subject kind, lifecycle, identity attributes, external identifiers and provenance | Governed identity authority |
-| `ScopeRecord` | Program, service, unit, fund or other scoped thing related to a subject, with time and promotion status | Governed scoped identity |
-| `SubjectRelationship` | Real-world relation between subjects/scopes, distinct from production lineage | Governed relationship observation |
+| `ScopeRecord` | Bounded program, service, unit, fund or other context on a subject, with time and promotion status | Governed scoped context; not automatically an entity or relationship endpoint |
+| `PartyRole` | A durable party's typed role in a bounded subject scope | Governed contextual role observation |
+| `RelationshipStatement` | Directed real-world relation between two distinct durable subjects, optionally contextualised by a scope | Governed relationship observation |
 | `SourceBlob` | Immutable acquired bytes plus retrieval and integrity metadata | Upstream evidence, privately retained |
 | `SourceRecord` | Source-native structured record or document/page representation | Upstream observation; not automatically canonical |
 | `SubjectBinding` | Resolution of a source record to zero, one, or multiple subjects | Governed or policy-authorised binding |
@@ -83,18 +84,22 @@ The common envelope must not turn domain payloads into generic key/value claims.
 
 ### Subject, scope and correction invariants
 
-`SubjectRecord` lifecycle supports creation, active/inactive status, merge, split, predecessor, successor and tombstone semantics without silently reassigning identity. Source bindings are reversible and retain resolution basis, conflict and review state. Names, domains, filenames and structural proximity never create a subject or subject binding. A program or service may stay a `ScopeRecord` until governed evidence justifies durable promotion.
+`SubjectRecord` lifecycle supports creation, active/inactive status, merge, split, predecessor, successor and tombstone semantics without silently reassigning identity. Source bindings are reversible and retain resolution basis, conflict and review state. Names, domains, filenames and structural proximity never create a subject or subject binding. A program or service may stay a `ScopeRecord` until explicit source-backed identity governance justifies durable promotion; it is never promoted merely to make a relationship persist.
 
-Artefact lineage explains how a record was produced; `SubjectRelationship` explains the world. Neither may be inferred from the other. `about_subject` is an indexable association only, never causal lineage.
+Artefact lineage explains how a record was produced; `PartyRole` and
+`RelationshipStatement` explain the world. Neither may be inferred from the
+other. `about_subject` is an indexable association only, never causal lineage.
 
-Role-bearing `RelationshipStatement` records preserve directed source and target
-subjects, optional governed scope, evidence and temporal bounds. The structured
-activity roles are `operator`, `deliverer`, `funder`, `sponsor`, `partner`,
-`auspice` and `network_context`; they remain distinct from the legacy
-relationship type/predicate and are never inferred by scanning prose. A shared
-domain or network context does not propagate proposition ownership, and a
-replacement relationship is retained append-only through directed supersedes
-lineage.
+`ScopeRecord` is context, not automatically an entity or relationship endpoint.
+`PartyRole` represents a party's typed role in a scope and is the projection for
+claims such as an operator, deliverer, funder, sponsor, partner, auspice or
+network-context participant in that scope. `RelationshipStatement` remains a
+directed relationship between distinct durable subjects; a scope ID cannot be
+substituted for a subject ID, and same-subject scope pairs are not coerced into
+subject relationships. These roles remain distinct from the legacy relationship
+type/predicate and are never inferred by scanning prose. A shared domain or
+network context does not propagate proposition ownership, and a replacement
+relationship is retained append-only through directed supersedes lineage.
 
 The first bounded direct-service pressure case uses these shared primitives
 for typed participation opportunities/measures, service and access

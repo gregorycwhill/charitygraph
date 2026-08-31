@@ -12,6 +12,15 @@ from charitygraph.contracts.direct_service_wire import DirectServiceWireOutput
 from charitygraph.contracts.direct_service import DIRECT_SERVICE_OUTPUT_SCHEMA
 from charitygraph.direct_service_planning import SECTIONS
 from charitygraph.direct_service_recovery import RECOVERY_ADAPTER_VERSION, recover_historical_wire, recovery_identity
+from charitygraph.direct_service_relationship_projection import (
+    ARCHITECTURE_GAP,
+    PARTY_ROLE_IN_SCOPE,
+    REQUIRES_SUBJECT_PROMOTION,
+    SUBJECT_TO_SUBJECT,
+    build_party_role_projection,
+    classify_relationship,
+    persist_party_role_projection,
+)
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.strict_schema import strictify_schema
 
@@ -109,11 +118,85 @@ def main() -> int:
                 catalog.record_observation(observation)
                 catalog.record_knowledge_lineage(observation.record_id, recovery_id, "derived_from", material={"validation_policy": RECOVERY_POLICY_VERSION}, created_at=now)
                 accepted.append({"index": index, "observation_id": observation.record_id, "proposition_type": proposition.proposition_type, "scope_id": proposition.scope_id, "scope_kind": proposition.scope_kind, "coverage_state": proposition.coverage_state, "evidence": [ref.model_dump(mode="json") for ref in proposition.evidence], "source_record_ids": source_ids})
-            sections.append({"section": number, "response_id": response_id, "original_schema": historical_schema, "original_validation": "failed_schema_identity", "recovery_validation_id": recovery_id, "wire_valid": True, "domain_valid": True, "proposed": len(wire.propositions), "accepted": len(accepted), "rejected": rejected, "relationships_proposed": len(wire.relationships), "relationships_accepted": len(domain.relationships), "relationships_rejected_scope": relationship_rejected_scope, "relationship_persistence": "blocked_scoped_relationship_target_requires_product_primitive" if domain.relationships else "none", "accepted_items": accepted})
+            relationship_projections = []
+            durable_subject_ids = {
+                candidate.get("subject_id")
+                for candidate in (catalog.get_subject(SUBJECT_ID) or {},)
+                if candidate.get("subject_id")
+            }
+            for relationship_index, relationship in enumerate(domain.relationships):
+                source_scope = catalog.get_scope(relationship.source_scope_id)
+                target_scope = catalog.get_scope(relationship.target_scope_id)
+                scope_map = {
+                    key: value for key, value in (
+                        (relationship.source_scope_id, source_scope),
+                        (relationship.target_scope_id, target_scope),
+                    ) if value is not None
+                }
+                status = classify_relationship(relationship, scope_map, durable_subject_ids=durable_subject_ids)
+                projection = {
+                    "relationship_index": relationship_index,
+                    "role": relationship.role,
+                    "direction": relationship.direction,
+                    "source_scope_id": relationship.source_scope_id,
+                    "source_scope_kind": relationship.source_scope_kind,
+                    "source_label": relationship.source_label,
+                    "target_scope_id": relationship.target_scope_id,
+                    "target_scope_kind": relationship.target_scope_kind,
+                    "target_label": relationship.target_label,
+                    "evidence": [ref.model_dump(mode="json") for ref in relationship.evidence],
+                    "projection_status": status,
+                    "semantic_classification": {
+                        PARTY_ROLE_IN_SCOPE: "party_role_in_scope",
+                        SUBJECT_TO_SUBJECT: "subject_to_subject_relationship",
+                        REQUIRES_SUBJECT_PROMOTION: "requires_subject_promotion",
+                        ARCHITECTURE_GAP: "not_representable_under_current_semantics",
+                    }[status],
+                }
+                if source_scope is not None:
+                    projection["source_subject_id"] = source_scope["subject_id"]
+                    projection["source_endpoint_durable"] = source_scope["subject_id"] in durable_subject_ids
+                if target_scope is not None:
+                    projection["target_subject_id"] = target_scope["subject_id"]
+                    projection["target_endpoint_durable"] = target_scope["subject_id"] in durable_subject_ids
+                if status == PARTY_ROLE_IN_SCOPE:
+                    assert source_scope is not None and target_scope is not None
+                    party_id = source_scope["subject_id"]
+                    scope_id = target_scope["scope_id"]
+                    source_ids = tuple(dict.fromkeys(locator_sources[ref.locator.split("#", 1)[0]] for ref in relationship.evidence))
+                    evidence_observation, party_role = build_party_role_projection(
+                        relationship,
+                        party_id=party_id,
+                        scope_id=scope_id,
+                        source_record_ids=source_ids,
+                        recovery_result_id=recovery_id,
+                        original_task_id=task_report["task_id"],
+                        relationship_index=relationship_index,
+                        created_at=now,
+                        producer={"kind": "code", "producer_id": "direct-service-relationship-projection", "version": "1"},
+                    )
+                    persist_party_role_projection(catalog, evidence_observation, party_role, created_at=now)
+                    projection.update({
+                        "party_id": party_role.party_id,
+                        "scope_id": party_role.scope_id,
+                        "observation_id": evidence_observation.record_id,
+                        "party_role_id": party_role.record_id,
+                        "evidence_lineage": "observation -> party_role context_record_id",
+                    })
+                elif status == SUBJECT_TO_SUBJECT:
+                    projection["hold_reason"] = "relationship_statement_projection_not needed by current Red Cross case"
+                elif status == REQUIRES_SUBJECT_PROMOTION:
+                    projection["hold_reason"] = "SERVICE SUBJECT PROMOTION REQUIRED"
+                else:
+                    projection["hold_reason"] = "relationship endpoints are not representable under current structural semantics"
+                relationship_projections.append(projection)
+            persisted_statuses = {item["projection_status"] for item in relationship_projections}
+            sections.append({"section": number, "response_id": response_id, "original_schema": historical_schema, "original_validation": "failed_schema_identity", "recovery_validation_id": recovery_id, "wire_valid": True, "domain_valid": True, "proposed": len(wire.propositions), "accepted": len(accepted), "rejected": rejected, "relationships_proposed": len(wire.relationships), "relationships_accepted": len(domain.relationships), "relationships_rejected_scope": relationship_rejected_scope, "relationship_persistence": "party_role" if PARTY_ROLE_IN_SCOPE in persisted_statuses else ("held" if relationship_projections else "none"), "accepted_items": accepted, "relationship_projections": relationship_projections})
         projection = {"private": True, "packet_sha256": _sha((json.dumps(packet, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode()), "subject_id": SUBJECT_ID, "sections": sections, "history": "original provider responses remain completed; original validation failed; deterministic recovery removes only obsolete top-level schema"}
         (ROOT / "combined-red-cross-projection-recovered.json").write_text(json.dumps(projection, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         new_wire_schema = strictify_schema(DirectServiceWireOutput.model_json_schema())
-        report = {"private": True, "adapter": {"old_wire_schema_sha": OLD_SCHEMA_SHA, "new_wire_schema_sha": _sha(json.dumps(new_wire_schema, sort_keys=True, separators=(",", ":")).encode()), "removed_provider_field": "schema", "canonical_domain_schema": DIRECT_SERVICE_OUTPUT_SCHEMA.model_dump(mode="json"), "recovery_adapter_version": RECOVERY_ADAPTER_VERSION, "recovery_policy_version": RECOVERY_POLICY_VERSION}, "sections": sections, "aggregate": {"accepted": sum(x["accepted"] for x in sections), "proposed": sum(x["proposed"] for x in sections), "rejected": sum(sum(len(v) for v in x["rejected"].values()) for x in sections), "relationships_proposed": sum(x["relationships_proposed"] for x in sections), "relationships_accepted": sum(x["relationships_accepted"] for x in sections), "relationships_rejected_scope": sum(x["relationships_rejected_scope"] for x in sections), "relationship_persistence": "blocked_scoped_relationship_target_requires_product_primitive", "new_provider_calls": 0, "new_provider_cost_usd": "0", "original_provider_cost_usd": "0.130508", "original_provider_cost_aud": "0.198372", "coverage_states": sorted({item["coverage_state"] for section in sections for item in section["accepted_items"]}), "new_durable_primitive_required": any(x["relationships_proposed"] for x in sections)}, "combined_projection_path": str(ROOT / "combined-red-cross-projection-recovered.json")}
+        all_relationship_projections = [item for section in sections for item in section.get("relationship_projections", [])]
+        report = {"private": True, "adapter": {"old_wire_schema_sha": OLD_SCHEMA_SHA, "new_wire_schema_sha": _sha(json.dumps(new_wire_schema, sort_keys=True, separators=(",", ":")).encode()), "removed_provider_field": "schema", "canonical_domain_schema": DIRECT_SERVICE_OUTPUT_SCHEMA.model_dump(mode="json"), "recovery_adapter_version": RECOVERY_ADAPTER_VERSION, "recovery_policy_version": RECOVERY_POLICY_VERSION}, "sections": sections, "aggregate": {"accepted": sum(x["accepted"] for x in sections), "proposed": sum(x["proposed"] for x in sections), "rejected": sum(sum(len(v) for v in x["rejected"].values()) for x in sections), "relationships_proposed": sum(x["relationships_proposed"] for x in sections), "relationships_accepted": sum(x["relationships_accepted"] for x in sections), "relationships_rejected_scope": sum(x["relationships_rejected_scope"] for x in sections), "relationship_projection_counts": {status: sum(item["projection_status"] == status for item in all_relationship_projections) for status in (PARTY_ROLE_IN_SCOPE, SUBJECT_TO_SUBJECT, REQUIRES_SUBJECT_PROMOTION, ARCHITECTURE_GAP)}, "relationship_persistence": "party_role", "new_provider_calls": 0, "new_provider_cost_usd": "0", "original_provider_cost_usd": "0.130508", "original_provider_cost_aud": "0.198372", "coverage_states": sorted({item["coverage_state"] for section in sections for item in section["accepted_items"]}), "new_durable_primitive_required": any(item["projection_status"] == REQUIRES_SUBJECT_PROMOTION for item in all_relationship_projections)}, "combined_projection_path": str(ROOT / "combined-red-cross-projection-recovered.json")}
         (ROOT / "recovery-report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps(report["aggregate"], indent=2))
         return 0
