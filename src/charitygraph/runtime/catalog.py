@@ -1844,13 +1844,13 @@ class SQLiteCatalog:
                 material_hash=material_hash,
                 values=(
                     model.record_id, model.source_subject_id, model.target_subject_id, model.relationship_type,
-                    model.scope_id, model.source_role, model.target_role,
+                    model.role, model.scope_id, model.source_role, model.target_role,
                     self._json(model.evidence_locator_ids), self._json(model.observation_ids),
                     model.valid_from.isoformat() if model.valid_from else None,
                     model.valid_to.isoformat() if model.valid_to else None,
                     model.status, self._json(model), material_hash, _utc(model.created_at, "created_at"),
                 ),
-                columns="relationship_id, source_subject_id, target_subject_id, relationship_type, scope_id, source_role, target_role, evidence_locator_ids_json, observation_ids_json, valid_from, valid_to, status, material_json, material_hash, created_at",
+                columns="relationship_id, source_subject_id, target_subject_id, relationship_type, relationship_role, scope_id, source_role, target_role, evidence_locator_ids_json, observation_ids_json, valid_from, valid_to, status, material_json, material_hash, created_at",
             )
             self._commit(conn)
             for edge in model.lineage:
@@ -1937,10 +1937,10 @@ class SQLiteCatalog:
         ):
             raise ConflictError("promoted_as lineage must run from candidate to observation")
         if edge_type == "supersedes" and not (
-            source_record_id.startswith(("observation:", "assertion:"))
-            and target_record_id.startswith(("observation:", "assertion:"))
+            source_record_id.startswith(("observation:", "assertion:", "relationship:"))
+            and target_record_id.startswith(("observation:", "assertion:", "relationship:"))
         ):
-            raise ConflictError("supersedes lineage must connect observations or assertions")
+            raise ConflictError("supersedes lineage must connect observations, assertions or relationships")
         if edge_type == "supersedes":
             with self._connection() as check_conn:
                 source = None
@@ -1954,9 +1954,17 @@ class SQLiteCatalog:
                         "SELECT supersedes_assertion_id FROM knowledge_assertions WHERE assertion_id=?",
                         (source_record_id,),
                     ).fetchone()
+                elif source_record_id.startswith("relationship:"):
+                    # RelationshipStatement has no dedicated supersedes_* field;
+                    # its append-only replacement is governed by this directed
+                    # lineage edge after both relationship records exist.
+                    source = check_conn.execute(
+                        "SELECT relationship_id FROM relationship_statements WHERE relationship_id=?",
+                        (source_record_id,),
+                    ).fetchone()
                 if source is None:
                     raise CatalogError(f"unknown superseding record {source_record_id}")
-                if source[0] != target_record_id:
+                if source_record_id.startswith(("observation:", "assertion:")) and source[0] != target_record_id:
                     raise ConflictError("supersedes lineage must match the successor's supersedes field")
         if edge_type in {"reviewed_by", "promoted_as", "supersedes"}:
             if target_record_id.startswith(("observation:", "assertion:", "relationship:", "adjudication:")):

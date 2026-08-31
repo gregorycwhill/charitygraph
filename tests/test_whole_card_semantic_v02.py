@@ -1,6 +1,6 @@
 import pytest
 
-from charitygraph.whole_card_semantic_v02 import WholeCardExtractionOutputV02, validate_output
+from charitygraph.whole_card_semantic_v02 import STRICT_SCHEMA, WholeCardExtractionOutputV02, validate_output
 
 
 def assessments():
@@ -42,3 +42,25 @@ def test_v02_assignments_relationships_and_issues_require_supporting_evidence():
     value = {**base, "assignments": [assignment], "relationships": [relationship], "cross_source_issues": [issue]}
     packet = {"sources": [{"source_key": "S001", "locators": [{"locator": "S001:L0001", "text": "fact"}]}]}
     assert validate_output(value, packet).assignments
+
+
+def test_structured_relationship_role_and_target_scope_are_preserved():
+    relationship = {
+        "source_scope": {"kind": "subject", "label": "Foundation A"},
+        "target_source_native_name": "Program Alpha",
+        "target_scope": {"kind": "named_program_or_service", "label": "Program Alpha"},
+        "role": "funder",
+        "relationship_type": "supports",
+        "direction": "source_to_target",
+        "temporal_scope": {"kind": "current", "value": None},
+        "evidence": [{"source": "S001", "locator": "L0001", "role": "supporting"}],
+        "qualification": [],
+    }
+    value = {"section_assessments": assessments(), "observations": [], "assignments": [], "relationships": [relationship], "cross_source_issues": []}
+    packet = {"sources": [{"source_key": "S001", "locators": [{"locator": "S001:L0001", "text": "fact"}]}]}
+    result = validate_output(value, packet)
+    assert result.relationships[0].role == "funder"
+    assert result.relationships[0].target_scope.kind == "named_program_or_service"
+    relationship_schema = STRICT_SCHEMA["$defs"]["Relationship"]
+    assert "role" in relationship_schema["properties"]
+    assert "target_scope" in relationship_schema["properties"]

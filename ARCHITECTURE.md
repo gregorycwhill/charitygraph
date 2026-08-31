@@ -87,6 +87,15 @@ The common envelope must not turn domain payloads into generic key/value claims.
 
 Artefact lineage explains how a record was produced; `SubjectRelationship` explains the world. Neither may be inferred from the other. `about_subject` is an indexable association only, never causal lineage.
 
+Role-bearing `RelationshipStatement` records preserve directed source and target
+subjects, optional governed scope, evidence and temporal bounds. The structured
+activity roles are `operator`, `deliverer`, `funder`, `sponsor`, `partner`,
+`auspice` and `network_context`; they remain distinct from the legacy
+relationship type/predicate and are never inferred by scanning prose. A shared
+domain or network context does not propagate proposition ownership, and a
+replacement relationship is retained append-only through directed supersedes
+lineage.
+
 Raw correction submissions remain private. Moderation creates a `CorrectionProposal`; a governed `DecisionRecord` accepts, edits, rejects, holds, retracts or otherwise disposes of it. An accepted change creates append-only replacement artefacts and typed `invalidates` edges to affected candidates, coverage, derivatives and release projections. Challenges and exceptional privacy/legal removal follow explicit procedures; no published object is silently hand-edited.
 
 #### Domain-policy invariants
