@@ -243,7 +243,7 @@ def main() -> int:
         catalog.claim_task(task_id, owner=owner, lease_expires_at=now + timedelta(hours=2), now=now)
         task_run_id = deterministic_id("taskrun:", {"task_id": task_id, "run_id": run_id, "attempt": 1})
         catalog.begin_task_attempt(task_id, owner=owner, task_run_id=task_run_id, now=now, reservation_id=reservation_id)
-        slot = catalog.claim_authorized_call(authorization_scope_hash=_sha((CORPUS_ID + packet_sha).encode()), subject_id=SUBJECT_ID, task_family="direct_service_semantics", material_hash=packet_sha, measurement_id="production", owner=owner, now=now, lease_expires_at=now + timedelta(hours=2))
+        slot = catalog.claim_authorized_call(authorization_scope_hash=_sha((CORPUS_ID + packet_sha + task_id).encode()), subject_id=SUBJECT_ID, task_family="direct_service_semantics", material_hash=packet_sha, measurement_id="production", owner=owner, now=now, lease_expires_at=now + timedelta(hours=2))
         catalog.mark_authorized_call_transmitted(slot["slot_key"], now=now)
         response = responses_create(model=MODEL, input_text=prompt, text_format={"type": "json_schema", "name": "direct_service_semantic_output", "strict": True, "schema": strict_schema}, max_output_tokens=MAX_OUTPUT_TOKENS, max_attempts=MAX_ATTEMPTS, timeout_seconds=300, reasoning={"effort": "high"})
         response_path = runtime_root / "response.json"
