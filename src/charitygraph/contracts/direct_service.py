@@ -77,6 +77,7 @@ class DirectServiceProposition(StrictModel):
     """One evidence-bound proposition at an explicit scope and grain."""
 
     proposition_type: DirectServicePropositionType
+    scope_id: str
     scope_kind: ScopeKind
     scope_label: str | None = None
     coverage_state: CoverageState = "unknown"
@@ -90,7 +91,7 @@ class DirectServiceProposition(StrictModel):
     evidence: tuple[DirectServiceEvidenceRef, ...] = ()
     qualification: str | None = None
 
-    @field_validator("scope_label", "unit", "scheme_id", "scheme_version", "scheme_status", "scheme_identifier", "qualification")
+    @field_validator("scope_id", "scope_label", "unit", "scheme_id", "scheme_version", "scheme_status", "scheme_identifier", "qualification")
     @classmethod
     def _optional_text(cls, value: str | None) -> str | None:
         return None if value is None else require_nonblank(value)
@@ -118,15 +119,17 @@ class DirectServiceRelationship(StrictModel):
     """A role-bearing relationship output whose endpoints remain explicit."""
 
     source_scope_kind: ScopeKind
+    source_scope_id: str
     source_label: str
     target_scope_kind: ScopeKind
+    target_scope_id: str
     target_label: str
     role: RelationshipRole
     direction: RelationshipDirection
     evidence: tuple[DirectServiceEvidenceRef, ...] = ()
     observation_time: ObservationTime | None = None
 
-    @field_validator("source_label", "target_label")
+    @field_validator("source_scope_id", "target_scope_id", "source_label", "target_label")
     @classmethod
     def _labels(cls, value: str) -> str:
         return require_nonblank(value)
@@ -210,6 +213,21 @@ def project_observation(
     )
 
 
+def validate_scope_bindings(output: DirectServiceSemanticOutput, allowed_scope_ids: set[str]) -> None:
+    """Reject model scope substitutions outside the task-visible allow-list."""
+
+    if not allowed_scope_ids:
+        raise ValueError("direct-service task must provide at least one visible scope")
+    for proposition in output.propositions:
+        if proposition.scope_id not in allowed_scope_ids:
+            raise ValueError(f"unknown proposition scope_id: {proposition.scope_id}")
+    for relationship in output.relationships:
+        if relationship.source_scope_id not in allowed_scope_ids:
+            raise ValueError(f"unknown relationship source_scope_id: {relationship.source_scope_id}")
+        if relationship.target_scope_id not in allowed_scope_ids:
+            raise ValueError(f"unknown relationship target_scope_id: {relationship.target_scope_id}")
+
+
 DIRECT_SERVICE_OUTPUT_SCHEMA = _schema("direct-service-semantic-output")
 
 
@@ -217,5 +235,5 @@ __all__ = [
     "CoverageState", "DirectServiceSection", "DirectServicePropositionType", "ScopeKind",
     "RelationshipDirection", "DirectServiceEvidenceRef", "DirectServiceProposition",
     "DirectServiceRelationship", "DirectServiceSemanticOutput",
-    "DIRECT_SERVICE_OUTPUT_SCHEMA", "project_observation",
+    "DIRECT_SERVICE_OUTPUT_SCHEMA", "project_observation", "validate_scope_bindings",
 ]

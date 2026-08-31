@@ -11,6 +11,7 @@ from charitygraph.contracts import (
     DirectServiceRelationship,
     project_observation,
     ModelTaskType,
+    validate_scope_bindings,
 )
 from charitygraph.contracts.semantic import TASK_OUTPUT_SCHEMAS
 
@@ -22,6 +23,7 @@ EVIDENCE = (DirectServiceEvidenceRef(locator="evidence:S001:L0001", role="suppor
 def proposition(kind="service_offer", **updates):
     value = {
         "proposition_type": kind,
+        "scope_id": "scope:" + "1" * 32,
         "scope_kind": "service",
         "scope_label": "Crisis support service",
         "coverage_state": "supported",
@@ -85,15 +87,15 @@ def test_scheme_scope_and_status_do_not_become_quality_claims():
 
 def test_relationship_roles_remain_distinct_and_evidence_bound():
     relationship = DirectServiceRelationship(
-        source_scope_kind="organisation", source_label="Australian Red Cross",
-        target_scope_kind="service", target_label="Emergency support",
+        source_scope_kind="organisation", source_scope_id="scope:" + "1" * 32, source_label="Australian Red Cross",
+        target_scope_kind="service", target_scope_id="scope:" + "2" * 32, target_label="Emergency support",
         role="deliverer", direction="source_to_target", evidence=EVIDENCE,
     )
     assert relationship.role == "deliverer"
     with pytest.raises(ValidationError):
         DirectServiceRelationship(
-            source_scope_kind="organisation", source_label="Australian Red Cross",
-            target_scope_kind="service", target_label="Emergency support",
+            source_scope_kind="organisation", source_scope_id="scope:" + "1" * 32, source_label="Australian Red Cross",
+            target_scope_kind="service", target_scope_id="scope:" + "2" * 32, target_label="Emergency support",
             role="operator", direction="source_to_target", evidence=(),
         )
 
@@ -101,6 +103,13 @@ def test_relationship_roles_remain_distinct_and_evidence_bound():
 def test_output_schema_and_task_registration_are_stable():
     assert DIRECT_SERVICE_OUTPUT_SCHEMA == TASK_OUTPUT_SCHEMAS["direct_service_semantics"]
     assert TypeAdapter(ModelTaskType).validate_python("direct_service_semantics") == "direct_service_semantics"
+
+
+def test_scope_bindings_require_task_visible_ids_and_do_not_use_label_matching():
+    output = DirectServiceSemanticOutput(section="participation", propositions=(proposition("participation_opportunity"),))
+    validate_scope_bindings(output, {"scope:" + "1" * 32})
+    with pytest.raises(ValueError, match="unknown proposition scope_id"):
+        validate_scope_bindings(output, {"scope:" + "9" * 32})
 
 
 def test_proposition_projects_to_existing_observation_without_collapsing_coverage():

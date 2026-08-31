@@ -26,7 +26,7 @@ from .direct_service import (
     CoverageState, DirectServiceEvidenceRef, DirectServiceProposition,
     DirectServiceSemanticOutput, DirectServiceSection, DirectServicePropositionType,
     DirectServiceRelationship, RelationshipDirection, ScopeKind, DIRECT_SERVICE_OUTPUT_SCHEMA,
-    project_observation,
+    project_observation, validate_scope_bindings,
 )
 from .semantic import (
     EvidenceSelectionOutput, ProgramCandidateOutput, SDGAlignmentOutput,
@@ -62,5 +62,5 @@ __all__ = [
     "CoverageState", "DirectServiceEvidenceRef", "DirectServiceProposition",
     "DirectServiceSemanticOutput", "DirectServiceSection", "DirectServicePropositionType",
     "DirectServiceRelationship", "RelationshipDirection", "ScopeKind", "DIRECT_SERVICE_OUTPUT_SCHEMA",
-    "project_observation",
+    "project_observation", "validate_scope_bindings",
 ]

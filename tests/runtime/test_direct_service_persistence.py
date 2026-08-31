@@ -52,6 +52,7 @@ def test_direct_service_projection_preserves_scope_evidence_and_missingness(tmp_
     )["evidence_locator_id"]
     proposition = DirectServiceProposition(
         proposition_type="current_availability",
+        scope_id=scope.record_id,
         scope_kind="service",
         scope_label="Crisis support service",
         coverage_state="source_silent",
