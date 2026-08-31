@@ -36,3 +36,15 @@ def test_exhausted_transport_error_reports_attempts_without_payload(monkeypatch)
         responses_create(model="gpt-5.6-luna", input_text="x", text_format={"type": "json_schema"}, max_attempts=2)
     assert exc.value.attempts_made == 2
     assert "temporary" in str(exc.value)
+
+
+def test_http_400_is_non_retryable(monkeypatch):
+    calls = []
+    def fake_post(*args, **kwargs):
+        calls.append(1)
+        raise OpenAIRequestError("invalid request", status_code=400)
+    monkeypatch.setattr("charitygraph.openai_client._post", fake_post)
+    with pytest.raises(OpenAIRequestError) as exc:
+        responses_create(model="gpt-5.6-luna", input_text="x", text_format={"type": "json_schema"}, max_attempts=2)
+    assert exc.value.attempts_made == 1
+    assert len(calls) == 1

@@ -22,9 +22,10 @@ API_URL = "https://api.openai.com/v1"
 class OpenAIRequestError(RuntimeError):
     """A deliberately sanitised API error suitable for private run metadata."""
 
-    def __init__(self, message: str, *, attempts_made: int = 0) -> None:
+    def __init__(self, message: str, *, attempts_made: int = 0, status_code: int | None = None) -> None:
         super().__init__(message)
         self.attempts_made = attempts_made
+        self.status_code = status_code
 
 
 
@@ -74,7 +75,9 @@ def _post(path: str, payload: dict[str, Any], *, timeout_seconds: int = 60) -> d
     try:
         with urlopen(request, timeout=timeout_seconds) as response:
             return json.loads(response.read().decode("utf-8"))
-    except (HTTPError, URLError, TimeoutError) as error:
+    except HTTPError as error:
+        raise OpenAIRequestError(_safe_error(error), status_code=error.code) from None
+    except (URLError, TimeoutError) as error:
         raise OpenAIRequestError(_safe_error(error)) from None
 
 
@@ -125,7 +128,9 @@ def responses_create(
                 transport_requests=attempt + 1,
             )
         except OpenAIRequestError as error:
-            last_error = OpenAIRequestError(str(error), attempts_made=attempt + 1)
+            last_error = OpenAIRequestError(str(error), attempts_made=attempt + 1, status_code=error.status_code)
+            if error.status_code == 400:
+                break
             if attempt + 1 < max_attempts:
                 time.sleep(1 + attempt)
     assert last_error is not None

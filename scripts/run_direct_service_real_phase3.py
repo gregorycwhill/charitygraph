@@ -29,6 +29,7 @@ from charitygraph.contracts import (
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.openai_client import estimate_response_cost, responses_create
 from charitygraph.runtime import SQLiteCatalog
+from charitygraph.strict_schema import strictify_schema, validate_strict_schema
 
 
 SUBJECT_ID = "subject:d10dfad31cb04c5fb27ada0a81f36b69"
@@ -45,23 +46,6 @@ FX_ID = "fx:direct-service-aud-v1"
 
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
-
-
-def _strictify(node: Any) -> Any:
-    if isinstance(node, dict):
-        out = {k: _strictify(v) for k, v in node.items() if k != "default"}
-        # Pydantic emits an empty Enum branch for CanonicalValue.  OpenAI's
-        # strict JSON-schema validator rejects empty enums, so omit that
-        # impossible branch without changing the Python contract.
-        if out.get("enum") == []:
-            out.pop("enum", None)
-        if out.get("type") == "object" and "properties" in out:
-            out["additionalProperties"] = False
-            out["required"] = list(out["properties"])
-        return out
-    if isinstance(node, list):
-        return [_strictify(v) for v in node]
-    return node
 
 
 def _find_artifact(root: Path, artifact_id: str) -> Path:
@@ -219,6 +203,8 @@ def main() -> int:
         runtime_root.mkdir(parents=True, exist_ok=True)
         (runtime_root / "packet.json").write_bytes(packet_bytes)
         (runtime_root / "prompt.txt").write_bytes(prompt_bytes)
+        strict_schema = strictify_schema(DirectServiceSemanticOutput.model_json_schema())
+        validate_strict_schema(strict_schema)
         task_schema = SchemaRef(schema_id="urn:charitygraph:builder:schema:direct-service-task:1.0", schema_version="1.0")
         inputs = tuple(EvidenceInput(evidence_id=x, content_hash=source_meta[i]["artifact_id"].split(":", 1)[-1], selection_hash=selection_hashes[i]) for i, x in enumerate(evidence_ids))
         old_parameters = {"max_output_tokens": MAX_OUTPUT_TOKENS, "reasoning": "high", "scope_ids": [x["scope_id"] for x in scopes]}
@@ -259,7 +245,7 @@ def main() -> int:
         catalog.begin_task_attempt(task_id, owner=owner, task_run_id=task_run_id, now=now, reservation_id=reservation_id)
         slot = catalog.claim_authorized_call(authorization_scope_hash=_sha((CORPUS_ID + packet_sha).encode()), subject_id=SUBJECT_ID, task_family="direct_service_semantics", material_hash=packet_sha, measurement_id="production", owner=owner, now=now, lease_expires_at=now + timedelta(hours=2))
         catalog.mark_authorized_call_transmitted(slot["slot_key"], now=now)
-        response = responses_create(model=MODEL, input_text=prompt, text_format={"type": "json_schema", "name": "direct_service_semantic_output", "strict": True, "schema": _strictify(DirectServiceSemanticOutput.model_json_schema())}, max_output_tokens=MAX_OUTPUT_TOKENS, max_attempts=MAX_ATTEMPTS, timeout_seconds=300, reasoning={"effort": "high"})
+        response = responses_create(model=MODEL, input_text=prompt, text_format={"type": "json_schema", "name": "direct_service_semantic_output", "strict": True, "schema": strict_schema}, max_output_tokens=MAX_OUTPUT_TOKENS, max_attempts=MAX_ATTEMPTS, timeout_seconds=300, reasoning={"effort": "high"})
         response_path = runtime_root / "response.json"
         response_path.write_text(json.dumps({"response_id": response.response_id, "model": response.model, "status": response.status, "output_text": response.output_text, "usage": response.usage.__dict__, "transport_requests": response.transport_requests}, ensure_ascii=False, indent=2), encoding="utf-8")
         output = None
