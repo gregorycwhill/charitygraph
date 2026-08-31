@@ -28,6 +28,11 @@ from .direct_service import (
     DirectServiceRelationship, RelationshipDirection, ScopeKind, DIRECT_SERVICE_OUTPUT_SCHEMA,
     project_observation, validate_scope_bindings,
 )
+from .direct_service_wire import (
+    WireScalar, DirectServiceWireEvidenceRef, DirectServiceWireObservationTime,
+    DirectServiceWireProposition, DirectServiceWireRelationship, DirectServiceWireOutput,
+    wire_to_domain,
+)
 from .semantic import (
     EvidenceSelectionOutput, ProgramCandidateOutput, SDGAlignmentOutput,
     SemanticConclusion, SemanticEvidence, TaxonomyAssignmentOutput, TaxonomySelection,
@@ -63,4 +68,7 @@ __all__ = [
     "DirectServiceSemanticOutput", "DirectServiceSection", "DirectServicePropositionType",
     "DirectServiceRelationship", "RelationshipDirection", "ScopeKind", "DIRECT_SERVICE_OUTPUT_SCHEMA",
     "project_observation", "validate_scope_bindings",
+    "WireScalar", "DirectServiceWireEvidenceRef", "DirectServiceWireObservationTime",
+    "DirectServiceWireProposition", "DirectServiceWireRelationship", "DirectServiceWireOutput",
+    "wire_to_domain",
 ]

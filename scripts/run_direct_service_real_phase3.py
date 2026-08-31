@@ -17,14 +17,14 @@ from typing import Any
 
 from charitygraph.contracts import (
     DIRECT_SERVICE_OUTPUT_SCHEMA,
-    DirectServiceSemanticOutput,
+    DirectServiceWireOutput,
     EvidenceInput,
     ModelTask,
     SchemaRef,
     ScopeRecord,
     model_task_cache_key,
     project_observation,
-    validate_scope_bindings,
+    wire_to_domain,
 )
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.openai_client import OpenAIRequestError, estimate_response_cost, responses_create
@@ -40,8 +40,8 @@ MAX_ATTEMPTS = 2
 OWNER = "direct-service-phase3-worker"
 PROMPT_ID = "direct_service_semantics"
 PROMPT_VERSION = "v1"
-PRICING_ID = "pricing:direct-service-luna-v1"
-FX_ID = "fx:direct-service-aud-v1"
+PRICING_ID = "pricing:bfd141c5764a2927647406c12b1072f46bb8364e7c5f31f17b1be5261c3a6653"
+FX_ID = "fx:725b0aab965ecb9aaa34a7d14b32339b746f53fb525ee0445098d39795040744"
 
 
 def _sha(data: bytes) -> str:
@@ -203,7 +203,7 @@ def main() -> int:
         runtime_root.mkdir(parents=True, exist_ok=True)
         (runtime_root / "packet.json").write_bytes(packet_bytes)
         (runtime_root / "prompt.txt").write_bytes(prompt_bytes)
-        strict_schema = strictify_schema(DirectServiceSemanticOutput.model_json_schema())
+        strict_schema = strictify_schema(DirectServiceWireOutput.model_json_schema())
         validate_strict_schema(strict_schema)
         task_schema = SchemaRef(schema_id="urn:charitygraph:builder:schema:direct-service-task:1.0", schema_version="1.0")
         inputs = tuple(EvidenceInput(evidence_id=x, content_hash=source_meta[i]["artifact_id"].split(":", 1)[-1], selection_hash=selection_hashes[i]) for i, x in enumerate(evidence_ids))
@@ -216,7 +216,7 @@ def main() -> int:
         prior_cache = model_task_cache_key(task_type="direct_service_semantics", task_schema=task_schema, output_schema=DIRECT_SERVICE_OUTPUT_SCHEMA, evidence_inputs=inputs, prompt_template_id=PROMPT_ID, prompt_template_version=PROMPT_VERSION, policy_refs=(), provider_id="openai", model_snapshot=MODEL, parameters=prior_parameters, material_tool_versions=())
         prior_task_id = deterministic_id("modeltask:", {"subject_id": SUBJECT_ID, "scope_id": None, "task_type": "direct_service_semantics", "cache_key": prior_cache, "output_schema": DIRECT_SERVICE_OUTPUT_SCHEMA})
         recovered_prior_attempt = recovered_prior_attempt or _recover_exact_prior_attempt(catalog, prior_task_id, "", now)
-        parameters = {"max_output_tokens": MAX_OUTPUT_TOKENS, "reasoning": "high", "scope_ids": [x["scope_id"] for x in scopes], "schema_transport_revision": "empty-enum-omitted-v3"}
+        parameters = {"max_output_tokens": MAX_OUTPUT_TOKENS, "reasoning": "high", "scope_ids": [x["scope_id"] for x in scopes], "schema_transport_revision": "wire-dto-v1"}
         cache_key = model_task_cache_key(task_type="direct_service_semantics", task_schema=task_schema, output_schema=DIRECT_SERVICE_OUTPUT_SCHEMA, evidence_inputs=inputs, prompt_template_id=PROMPT_ID, prompt_template_version=PROMPT_VERSION, policy_refs=(), provider_id="openai", model_snapshot=MODEL, parameters=parameters, material_tool_versions=())
         task_id = deterministic_id("modeltask:", {"subject_id": SUBJECT_ID, "scope_id": None, "task_type": "direct_service_semantics", "cache_key": cache_key, "output_schema": DIRECT_SERVICE_OUTPUT_SCHEMA})
         task = ModelTask(record_id=task_id, created_at=now, producer={"kind": "code", "producer_id": "direct-service-runner", "version": "1"}, subject_id=SUBJECT_ID, cohort_id=None, task_type="direct_service_semantics", task_schema=task_schema, output_schema=DIRECT_SERVICE_OUTPUT_SCHEMA, evidence_inputs=inputs, prompt_template_id=PROMPT_ID, prompt_template_version=PROMPT_VERSION, provider_id="openai", model_snapshot=MODEL, parameters=parameters, paid_output_categories=("semantic_judgement",))
@@ -266,8 +266,8 @@ def main() -> int:
         output = None
         errors: list[str] = []
         try:
-            output = DirectServiceSemanticOutput.model_validate_json(response.output_text)
-            validate_scope_bindings(output, {s["scope_id"] for s in scopes})
+            wire_output = DirectServiceWireOutput.model_validate_json(response.output_text)
+            output = wire_to_domain(wire_output, allowed_scope_ids={s["scope_id"] for s in scopes}, evidence_locators=set(evidence_ids))
             valid_locators = set(evidence_ids)
             for proposition in output.propositions:
                 if any(ref.locator not in valid_locators for ref in proposition.evidence):

@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 
 import pytest
 from pydantic import TypeAdapter, ValidationError
@@ -9,10 +10,15 @@ from charitygraph.contracts import (
     DirectServiceProposition,
     DirectServiceSemanticOutput,
     DirectServiceRelationship,
+    DirectServiceWireOutput,
+    DirectServiceWireProposition,
+    DirectServiceWireEvidenceRef,
+    wire_to_domain,
     project_observation,
     ModelTaskType,
     validate_scope_bindings,
 )
+from charitygraph.strict_schema import strictify_schema, validate_strict_schema
 from charitygraph.contracts.semantic import TASK_OUTPUT_SCHEMAS
 
 
@@ -126,3 +132,43 @@ def test_proposition_projects_to_existing_observation_without_collapsing_coverag
     assert projected.scope_id == "scope:" + "2" * 32
     assert projected.predicate == "direct_service.current_availability"
     assert projected.value["coverage_state"] == "source_silent"
+
+
+def test_provider_wire_schema_is_bounded_and_excludes_internal_value_algebra():
+    schema = strictify_schema(DirectServiceWireOutput.model_json_schema())
+    validate_strict_schema(schema)
+    serialized = str(schema)
+    assert "CanonicalValue" not in serialized
+    assert "pattern" not in serialized
+    assert "format" not in serialized
+    assert not any(
+        isinstance(node, dict) and isinstance(node.get("additionalProperties"), dict)
+        for node in schema.get("$defs", {}).values()
+        if isinstance(node, dict)
+    )
+
+
+def test_wire_output_converts_scalars_to_existing_domain_contract():
+    wire = DirectServiceWireOutput(
+        section="participation",
+        propositions=(DirectServiceWireProposition(
+            proposition_type="participation_measure", scope_id="scope:" + "1" * 32,
+            scope_kind="service", scope_label="Training", coverage_state="supported",
+            value=12.5, unit="people", evidence=(DirectServiceWireEvidenceRef(locator="evidence:S001:L0001", role="supporting"),),
+            observation_time={"observed_at": NOW.isoformat()},
+        ),),
+    )
+    domain = wire_to_domain(wire, allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"evidence:S001:L0001"})
+    assert domain.propositions[0].value == Decimal("12.5")
+    assert type(domain.propositions[0].value) is Decimal
+
+
+def test_wire_conversion_rejects_unknown_scope_and_evidence_locator():
+    wire = DirectServiceWireOutput(section="participation", propositions=(DirectServiceWireProposition(
+        proposition_type="participation_opportunity", scope_id="scope:" + "9" * 32,
+        scope_kind="service", value="available", evidence=(DirectServiceWireEvidenceRef(locator="missing", role="supporting"),),
+    ),))
+    with pytest.raises(ValueError, match="evidence locator"):
+        wire_to_domain(wire, allowed_scope_ids={"scope:" + "9" * 32}, evidence_locators={"evidence:S001:L0001"})
+    with pytest.raises(ValueError, match="unknown proposition scope_id"):
+        wire_to_domain(wire, allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"missing"})

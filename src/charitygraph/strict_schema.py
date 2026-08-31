@@ -18,12 +18,6 @@ def strictify_schema(node: Any) -> Any:
     if isinstance(node, list):
         values = []
         for value in node:
-            # OpenAI strict Structured Outputs does not support arbitrary
-            # recursive map branches.  They are represented by an object with
-            # schema-valued additionalProperties and must be omitted from the
-            # provider wire schema; the Python contract remains unchanged.
-            if isinstance(value, dict) and value.get("type") == "object" and "properties" not in value and isinstance(value.get("additionalProperties"), dict):
-                continue
             strict_value = strictify_schema(value)
             # Pydantic can emit annotation-only union branches (for example an
             # Enum branch represented solely by description/title).  They are
