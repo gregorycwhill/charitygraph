@@ -67,6 +67,42 @@ class ApiResult:
     transport_requests: int = 1
 
 
+@dataclass(frozen=True)
+class RetrievedResponseMetadata:
+    """Credential-safe metadata for an already-created Responses response."""
+
+    response_id: str | None
+    model: str | None
+    status: str | None
+    incomplete_details: dict[str, Any] | None
+    input_tokens: int | None
+    cached_input_tokens: int | None
+    output_tokens: int | None
+    reasoning_tokens: int | None
+    total_tokens: int | None
+    max_output_tokens: int | None
+
+
+def _response_metadata(raw: dict[str, Any]) -> RetrievedResponseMetadata:
+    usage = raw.get("usage") if isinstance(raw.get("usage"), dict) else {}
+    input_details = usage.get("input_tokens_details") if isinstance(usage.get("input_tokens_details"), dict) else {}
+    output_details = usage.get("output_tokens_details") if isinstance(usage.get("output_tokens_details"), dict) else {}
+    details = raw.get("incomplete_details") if isinstance(raw.get("incomplete_details"), dict) else None
+    safe_details = None if details is None else {key: details[key] for key in ("reason",) if key in details and isinstance(details[key], str)}
+    return RetrievedResponseMetadata(
+        response_id=raw.get("id") if isinstance(raw.get("id"), str) else None,
+        model=raw.get("model") if isinstance(raw.get("model"), str) else None,
+        status=raw.get("status") if isinstance(raw.get("status"), str) else None,
+        incomplete_details=safe_details,
+        input_tokens=usage.get("input_tokens") if isinstance(usage.get("input_tokens"), int) else None,
+        cached_input_tokens=input_details.get("cached_tokens") if isinstance(input_details.get("cached_tokens"), int) else None,
+        output_tokens=usage.get("output_tokens") if isinstance(usage.get("output_tokens"), int) else None,
+        reasoning_tokens=output_details.get("reasoning_tokens") if isinstance(output_details.get("reasoning_tokens"), int) else None,
+        total_tokens=usage.get("total_tokens") if isinstance(usage.get("total_tokens"), int) else None,
+        max_output_tokens=raw.get("max_output_tokens") if isinstance(raw.get("max_output_tokens"), int) else None,
+    )
+
+
 def _credential() -> str:
     value = os.environ.get("OPENAI_API_KEY")
     if not value:
@@ -134,6 +170,25 @@ def _post(path: str, payload: dict[str, Any], *, timeout_seconds: int = 60) -> d
         raise OpenAIRequestError(_safe_error(error, diagnostic), status_code=error.code, diagnostic=diagnostic) from None
     except (URLError, TimeoutError) as error:
         raise OpenAIRequestError(_safe_error(error)) from None
+
+
+def _get(path: str, *, timeout_seconds: int = 60) -> dict[str, Any]:
+    request = Request(f"{API_URL}{path}", method="GET", headers={"Authorization": f"Bearer {_credential()}"})
+    try:
+        with urlopen(request, timeout=timeout_seconds) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as error:
+        diagnostic = _provider_diagnostic(error)
+        raise OpenAIRequestError(_safe_error(error, diagnostic), status_code=error.code, diagnostic=diagnostic) from None
+    except (URLError, TimeoutError) as error:
+        raise OpenAIRequestError(_safe_error(error)) from None
+
+
+def responses_retrieve(response_id: str, *, timeout_seconds: int = 60) -> RetrievedResponseMetadata:
+    """Retrieve safe metadata for an existing Responses response."""
+    if not response_id or any(ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for ch in response_id):
+        raise ValueError("invalid response ID")
+    return _response_metadata(_get(f"/responses/{response_id}", timeout_seconds=timeout_seconds))
 
 
 def _output_text(raw: dict[str, Any]) -> str:

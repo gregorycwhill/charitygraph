@@ -36,7 +36,7 @@ SUBJECT_ID = "subject:d10dfad31cb04c5fb27ada0a81f36b69"
 CORPUS_ID = "corpus:a7dd2f638bb5be4960b006ec9ce05927a51fd41e076e4ea32605a035fab29dbf"
 MODEL = "gpt-5.6-luna"
 MAX_OUTPUT_TOKENS = 8000
-MAX_ATTEMPTS = 2
+MAX_ATTEMPTS = 1
 OWNER = "direct-service-phase3-worker"
 PROMPT_ID = "direct_service_semantics"
 PROMPT_VERSION = "v1"
@@ -256,9 +256,12 @@ def main() -> int:
             provider_error = {"error_class": type(exc).__name__, "error_message": str(exc)[:512], "attempts_made": exc.attempts_made, "diagnostic": diagnostic}
             (runtime_root / "provider-error.json").write_text(json.dumps(provider_error, indent=2, sort_keys=True), encoding="utf-8")
             catalog.complete_authorized_call(slot["slot_key"], now=now, result_ref=None, terminal_failure=True)
-            catalog.finish_failed_attempt(task_run_id, owner=owner, completed_at=now, retryable=False, error_class="provider_request", error_message_redacted="provider request failed")
-            catalog.transition_run(run_id, "failed", now=now, error_class="provider_request", error_message_redacted="provider request failed")
-            report_out = preflight | {"provider_calls": 1, "transport_requests": exc.attempts_made, "validation_status": "provider_error", "provider_error": provider_error}
+            ambiguous = exc.status_code is None
+            error_class = "ambiguous_transport" if ambiguous else "provider_request"
+            message = "provider acceptance cannot be ruled out" if ambiguous else "provider request failed"
+            catalog.finish_failed_attempt(task_run_id, owner=owner, completed_at=now, retryable=False, error_class=error_class, error_message_redacted=message)
+            catalog.transition_run(run_id, "failed", now=now, error_class=error_class, error_message_redacted=message)
+            report_out = preflight | {"provider_calls": 1, "transport_requests": exc.attempts_made, "validation_status": "provider_error", "transmission_state": "ambiguous_after_transmission" if ambiguous else "confirmed_pre_acceptance_failure", "provider_error": provider_error}
             _report_path(runtime_root).write_text(json.dumps(report_out, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
             return 0
         response_path = runtime_root / "response.json"
