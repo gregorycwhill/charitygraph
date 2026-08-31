@@ -11,11 +11,12 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import Field, StrictBool, StrictFloat, StrictInt, StrictStr, field_validator
+from pydantic import StrictBool, StrictFloat, StrictInt, StrictStr, field_validator
 
-from .common import SchemaRef, StrictModel, require_nonblank
+from .common import StrictModel, require_nonblank
 from .direct_service import (
     CoverageState,
+    DIRECT_SERVICE_OUTPUT_SCHEMA,
     DirectServiceEvidenceRef,
     DirectServiceProposition,
     DirectServicePropositionType,
@@ -87,15 +88,6 @@ class DirectServiceWireRelationship(StrictModel):
 
 class DirectServiceWireOutput(StrictModel):
     """Provider-only output; convert to ``DirectServiceSemanticOutput`` first."""
-
-    schema_ref: SchemaRef = Field(
-        default_factory=lambda: SchemaRef(
-            schema_id="urn:charitygraph:builder:schema:direct-service-semantic-output:1.0",
-            schema_version="1.0",
-        ),
-        validation_alias="schema",
-        serialization_alias="schema",
-    )
     section: DirectServiceSection
     propositions: tuple[DirectServiceWireProposition, ...] = ()
     relationships: tuple[DirectServiceWireRelationship, ...] = ()
@@ -178,7 +170,8 @@ def wire_to_domain(
         for item in wire.relationships
     )
     domain = DirectServiceSemanticOutput(
-        schema=wire.schema_ref,
+        # Schema identity is a Builder-owned invariant, never model output.
+        schema=DIRECT_SERVICE_OUTPUT_SCHEMA,
         section=wire.section,
         propositions=propositions,
         relationships=relationships,
