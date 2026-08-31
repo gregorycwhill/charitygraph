@@ -12,6 +12,7 @@ from pydantic import Field, field_validator, model_validator
 
 from .common import SchemaRef, StrictModel, require_nonblank
 from .ids import validate_typed_id
+from .direct_service import DirectServiceSemanticOutput
 
 
 def _schema(name: str) -> SchemaRef:
@@ -156,6 +157,7 @@ TASK_OUTPUT_SCHEMAS = {
     "operational_activity_assignment": _schema("operational-activity-assignment-output"),
     "sdg_alignment": _schema("sdg-alignment-output"),
     "evidence_selection": _schema("evidence-selection-output"),
+    "direct_service_semantics": _schema("direct-service-semantic-output"),
 }
 
 SEMANTIC_OUTPUT_MODELS = {
@@ -165,4 +167,5 @@ SEMANTIC_OUTPUT_MODELS = {
     "operational_activity_assignment": TaxonomyAssignmentOutput,
     "sdg_alignment": SDGAlignmentOutput,
     "evidence_selection": EvidenceSelectionOutput,
+    "direct_service_semantics": DirectServiceSemanticOutput,
 }

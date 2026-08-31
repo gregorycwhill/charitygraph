@@ -22,6 +22,12 @@ from .tasks import (
     PaidOutputCategory, ProviderUsage, TaskRun, model_task_cache_key, validate_task_run_tasks,
 )
 from .program import ProgramCandidate
+from .direct_service import (
+    CoverageState, DirectServiceEvidenceRef, DirectServiceProposition,
+    DirectServiceSemanticOutput, DirectServiceSection, DirectServicePropositionType,
+    DirectServiceRelationship, RelationshipDirection, ScopeKind, DIRECT_SERVICE_OUTPUT_SCHEMA,
+    project_observation,
+)
 from .semantic import (
     EvidenceSelectionOutput, ProgramCandidateOutput, SDGAlignmentOutput,
     SemanticConclusion, SemanticEvidence, TaxonomyAssignmentOutput, TaxonomySelection,
@@ -53,4 +59,8 @@ __all__ = [
     "EvidenceSelectionOutput", "DiscoveryDisposition", "OperationalStatus", "DISCOVERY_OUTPUT_SCHEMA", "DISCOVERY_OUTPUT_SCHEMA_V2", "ProgramServiceDiscoveryOutput", "ProgramServiceDiscoveryOutputV2", "ProgramServiceProposal", "ProgramServiceProposalV2", "discovery_schema", "discovery_schema_hash", "discovery_schema_v2", "discovery_schema_v2_hash", "discovery_output_schema_ref", "discovery_output_schema_ref_v2", "SDGAlignmentOutput", "SchemeDisposition", "SemanticConclusion",
     "SemanticEvidence", "TaxonomyAssignment", "TaxonomyAssignmentOutput", "TaxonomyConcept",
     "TaxonomyScheme", "TaxonomySelection", "TaxonomyVersion",
+    "CoverageState", "DirectServiceEvidenceRef", "DirectServiceProposition",
+    "DirectServiceSemanticOutput", "DirectServiceSection", "DirectServicePropositionType",
+    "DirectServiceRelationship", "RelationshipDirection", "ScopeKind", "DIRECT_SERVICE_OUTPUT_SCHEMA",
+    "project_observation",
 ]

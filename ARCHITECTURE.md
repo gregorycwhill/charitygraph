@@ -96,6 +96,15 @@ domain or network context does not propagate proposition ownership, and a
 replacement relationship is retained append-only through directed supersedes
 lineage.
 
+The first bounded direct-service pressure case uses these shared primitives
+for typed participation opportunities/measures, service and access
+propositions, capacity/availability observations, and scheme or accreditation
+references. Capability, capacity, availability, activity, output and outcome
+remain distinct; an opportunity is not participation, a service offer is not
+current availability, and scheme participation is not a quality or compliance
+claim. Coverage/missingness is retained in the typed proposition payload when
+the legacy observation state vocabulary cannot express the finer distinction.
+
 Raw correction submissions remain private. Moderation creates a `CorrectionProposal`; a governed `DecisionRecord` accepts, edits, rejects, holds, retracts or otherwise disposes of it. An accepted change creates append-only replacement artefacts and typed `invalidates` edges to affected candidates, coverage, derivatives and release projections. Challenges and exceptional privacy/legal removal follow explicit procedures; no published object is silently hand-edited.
 
 #### Domain-policy invariants
