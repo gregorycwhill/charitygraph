@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from charitygraph.contracts import AutomationAuthority, CandidateObservation, CanonicalObservation, DerivativeArtifact, LineageEdge, validate_promotion_chain
+from charitygraph.contracts import AutomationAuthority, CandidateObservation, CanonicalObservation, DerivativeArtifact, LineageEdge, RelationshipStatement, validate_promotion_chain
 from ._helpers import NOW, Payload, SCHEMA, SUBJECT, candidate, decision, observation, ref, subject
 
 
@@ -134,3 +134,30 @@ def test_decision_authority_is_not_model_authority():
         type(dec)(**{**dec.model_dump(), "producer": {"kind": "model", "producer_id": "model", "version": "1"}})
     with pytest.raises(ValidationError):
         AutomationAuthority(policy_id="p", policy_version="1", benchmark_artifact_ids=())
+
+
+def test_structured_relationship_roles_are_explicit_and_not_coerced():
+    relationship = RelationshipStatement(
+        record_id="relationship:" + "a" * 32,
+        created_at=NOW,
+        producer={"kind": "code", "producer_id": "fixture"},
+        source_subject_id=SUBJECT,
+        target_subject_id="subject:" + "2" * 32,
+        relationship_type="supports",
+        role="funder",
+    )
+    assert relationship.role == "funder"
+    with pytest.raises(ValidationError):
+        RelationshipStatement(**{**relationship.model_dump(), "role": "owner"})
+
+
+def test_ambiguous_relationship_keeps_role_unresolved():
+    relationship = RelationshipStatement(
+        record_id="relationship:" + "b" * 32,
+        created_at=NOW,
+        producer={"kind": "model", "producer_id": "recorded"},
+        source_subject_id=SUBJECT,
+        target_subject_id="subject:" + "2" * 32,
+        relationship_type="supports",
+    )
+    assert relationship.role is None

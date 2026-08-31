@@ -179,6 +179,11 @@ CREATE INDEX semantic_measurement_authorizations_lookup_idx
     ON semantic_measurement_authorizations(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V9 = """
+ALTER TABLE relationship_statements ADD COLUMN relationship_role TEXT;
+CREATE INDEX relationship_statements_role_idx ON relationship_statements(relationship_role);
+""".strip() + "\n"
+
 @dataclass(frozen=True)
 class Migration:
     version: int
@@ -601,6 +606,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(6, "model_results_and_candidate_lineage", CATALOGUE_SQL_V6),
     Migration(7, "model_result_item_lineage", CATALOGUE_SQL_V7),
     Migration(8, "durable_semantic_measurement_authorizations", CATALOGUE_SQL_V8),
+    Migration(9, "structured_relationship_roles", CATALOGUE_SQL_V9),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

@@ -210,6 +210,14 @@ OutcomeState = Literal[
     "extraction_failure", "model_failure",
 ]
 
+# Structured activity/ecosystem roles.  These are intentionally narrower than
+# the legacy relationship_type vocabulary so unsupported values cannot be
+# silently promoted into an operator/delivery/funding meaning.
+RelationshipRole = Literal[
+    "operator", "deliverer", "funder", "sponsor", "partner", "auspice",
+    "network_context",
+]
+
 LifecycleState = Literal[
     "candidate", "accepted", "edited", "rejected", "superseded",
     "contradicted", "withdrawn", "held", "unresolved",
@@ -491,6 +499,15 @@ class RelationshipStatement(ArtifactRecord):
     source_subject_id: str = Field(validation_alias=AliasChoices("source_subject_id", "source_id"))
     target_subject_id: str = Field(validation_alias=AliasChoices("target_subject_id", "target_id"))
     relationship_type: str
+    # Optional structured role for activity/ecosystem relationships.  The
+    # legacy relationship_type/source_role/target_role fields remain intact;
+    # this field prevents new role-bearing propositions from relying on
+    # unrestricted free text while preserving compatibility with older rows.
+    role: RelationshipRole | None = Field(
+        default=None,
+        validation_alias=AliasChoices("role", "relationship_role"),
+        serialization_alias="role",
+    )
     scope_id: str | None = None
     source_role: str | None = None
     target_role: str | None = None

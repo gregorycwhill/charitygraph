@@ -16,7 +16,7 @@ from charitygraph.contracts import (
     ScopeRecord,
     SubjectRecord,
 )
-from charitygraph.runtime import ConflictError, SQLiteCatalog
+from charitygraph.runtime import CatalogError, ConflictError, SQLiteCatalog
 from charitygraph.runtime.migrations import MIGRATIONS, SUPPORTED_VERSION
 
 
@@ -245,3 +245,126 @@ def test_relationship_direction_and_outcome_states_are_preserved(tmp_path):
         item = observation("observation:" + f"{index + 2:x}" * 32, state=state)
         catalog.record_observation(item)
     assert len(catalog.reconstruct_knowledge_history(SUBJECT_A)["observations"]) == 5
+
+
+def test_structured_activity_roles_round_trip_without_propagation(tmp_path):
+    catalog = open_catalog(tmp_path)
+    catalog.register_subject(subject(SUBJECT_A))
+    catalog.register_subject(subject(SUBJECT_B))
+    catalog.register_scope(scope())
+    roles = ("operator", "deliverer", "funder", "sponsor", "partner", "auspice", "network_context")
+    for index, role in enumerate(roles, start=1):
+        relationship = RelationshipStatement(
+            record_id="relationship:" + f"{index:x}" * 32,
+            created_at=NOW,
+            producer={"kind": "human", "producer_id": "reviewer"},
+            source_subject_id=SUBJECT_A,
+            target_subject_id=SUBJECT_B,
+            relationship_type="activity_relationship",
+            role=role,
+            source_role=role,
+            target_role="program",
+            scope_id=scope().record_id,
+            status="accepted",
+        )
+        first = catalog.record_relationship(relationship)
+        second = catalog.record_relationship(relationship)
+        assert first["relationship_role"] == role
+        assert second["relationship_role"] == role
+
+    history_a = catalog.reconstruct_knowledge_history(SUBJECT_A)
+    assert [item["relationship_role"] for item in history_a["relationships"]] == list(roles)
+    assert all(item["scope_id"] == scope().record_id for item in history_a["relationships"])
+    assert all(item["source_subject_id"] == SUBJECT_A and item["target_subject_id"] == SUBJECT_B for item in history_a["relationships"])
+    assert len(catalog.reconstruct_knowledge_history(SUBJECT_B)["relationships"]) == len(roles)
+
+
+def test_role_cases_preserve_ownership_without_implicit_propagation(tmp_path):
+    catalog = open_catalog(tmp_path)
+    subjects = {
+        "funder": "subject:" + "3" * 32,
+        "operator": "subject:" + "4" * 32,
+        "partner": "subject:" + "5" * 32,
+        "auspice": "subject:" + "6" * 32,
+        "program": "subject:" + "7" * 32,
+    }
+    for subject_id in subjects.values():
+        catalog.register_subject(subject(subject_id))
+
+    cases = (
+        (subjects["funder"], subjects["program"], "funder"),
+        (subjects["operator"], subjects["program"], "operator"),
+        (subjects["operator"], subjects["program"], "deliverer"),
+        (subjects["partner"], subjects["program"], "partner"),
+        (subjects["auspice"], subjects["program"], "auspice"),
+        (subjects["partner"], subjects["operator"], "network_context"),
+    )
+    for index, (source_id, target_id, role) in enumerate(cases, start=1):
+        catalog.record_relationship(RelationshipStatement(
+            record_id="relationship:" + f"{index + 10:x}" * 32,
+            created_at=NOW,
+            producer={"kind": "code", "producer_id": "fixture"},
+            source_subject_id=source_id,
+            target_subject_id=target_id,
+            relationship_type="activity_relationship",
+            role=role,
+            status="accepted",
+        ))
+
+    rows = catalog.reconstruct_knowledge_history(subjects["program"])["relationships"]
+    assert {row["relationship_role"] for row in rows} == {"funder", "operator", "deliverer", "partner", "auspice"}
+    assert not any(row["relationship_role"] == "operator" and row["source_subject_id"] == subjects["funder"] for row in rows)
+    network = catalog.reconstruct_knowledge_history(subjects["operator"])["relationships"]
+    assert [(row["source_subject_id"], row["target_subject_id"], row["relationship_role"]) for row in network if row["relationship_role"] == "network_context"] == [
+        (subjects["partner"], subjects["operator"], "network_context"),
+    ]
+
+
+def test_relationship_rejects_unknown_subject_or_scope_reference(tmp_path):
+    catalog = open_catalog(tmp_path)
+    catalog.register_subject(subject(SUBJECT_A))
+    missing_target = RelationshipStatement(
+        record_id="relationship:" + "c" * 32,
+        created_at=NOW,
+        producer={"kind": "code", "producer_id": "fixture"},
+        source_subject_id=SUBJECT_A,
+        target_subject_id="subject:" + "f" * 32,
+        relationship_type="activity_relationship",
+        role="partner",
+    )
+    with pytest.raises(CatalogError):
+        catalog.record_relationship(missing_target)
+    catalog.register_subject(subject(SUBJECT_B))
+    missing_scope = missing_target.model_copy(update={
+        "record_id": "relationship:" + "d" * 32,
+        "target_subject_id": SUBJECT_B,
+        "scope_id": "scope:" + "e" * 32,
+    })
+    with pytest.raises(CatalogError):
+        catalog.record_relationship(missing_scope)
+
+
+def test_relationship_correction_retains_prior_role_and_directed_lineage(tmp_path):
+    catalog = open_catalog(tmp_path)
+    catalog.register_subject(subject(SUBJECT_A))
+    catalog.register_subject(subject(SUBJECT_B))
+    old_id = "relationship:" + "8" * 32
+    new_id = "relationship:" + "9" * 32
+    old = RelationshipStatement(
+        record_id=old_id, created_at=NOW,
+        producer={"kind": "human", "producer_id": "reviewer"},
+        source_subject_id=SUBJECT_A, target_subject_id=SUBJECT_B,
+        relationship_type="activity_relationship", role="partner", status="accepted",
+    )
+    replacement = RelationshipStatement(
+        record_id=new_id, created_at=NOW,
+        producer={"kind": "human", "producer_id": "reviewer"},
+        source_subject_id=SUBJECT_A, target_subject_id=SUBJECT_B,
+        relationship_type="activity_relationship", role="deliverer", status="accepted",
+        lineage=(LineageEdge(edge_type="supersedes", source_artifact_id=new_id, target_artifact_id=old_id),),
+    )
+    catalog.record_relationship(old)
+    catalog.record_relationship(replacement)
+    history = catalog.reconstruct_knowledge_history(SUBJECT_A)
+    assert {row["relationship_id"] for row in history["relationships"]} == {old_id, new_id}
+    assert any(edge["edge_type"] == "supersedes" and edge["source_record_id"] == new_id and edge["target_record_id"] == old_id for edge in catalog.get_knowledge_lineage())

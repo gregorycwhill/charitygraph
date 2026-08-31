@@ -81,6 +81,14 @@ class SemanticAssignment(_Strict):
 class Relationship(_Strict):
     source_scope: Scope
     target_source_native_name: str = Field(min_length=1)
+    target_scope: Scope | None = None
+    # New role-bearing outputs should use this structured value.  It is
+    # optional for backwards compatibility with historical v0.2 results whose
+    # relationship_type was free text; no Python inference is performed.
+    role: Literal[
+        "operator", "deliverer", "funder", "sponsor", "partner", "auspice",
+        "network_context",
+    ] | None = None
     relationship_type: str = Field(min_length=1)
     direction: Literal["source_to_target", "target_to_source", "bidirectional", "uncertain"]
     temporal_scope: TemporalScope

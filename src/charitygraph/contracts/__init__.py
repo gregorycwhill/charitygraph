@@ -15,7 +15,7 @@ from .knowledge import (
     ArtifactRef as KnowledgeArtifactRef, AutomationAuthority, CandidateObservation, CanonicalObservation,
     DecisionAuthority, DecisionRecord, DerivativeArtifact, EvidenceFragment, ExternalIdentifier,
     HumanAuthority, Observation, ObservationTime, OutcomeState, Assertion, AdjudicationDecision,
-    PartyRole, RelationshipStatement, ScopeRecord, SourceRecord, SubjectRecord, validate_promotion_chain,
+    PartyRole, RelationshipRole, RelationshipStatement, ScopeRecord, SourceRecord, SubjectRecord, validate_promotion_chain,
 )
 from .tasks import (
     EmbeddingResult, EvidenceInput, ModelResult, ModelTask, ModelTaskType, NamedUsage,
@@ -44,7 +44,7 @@ __all__ = [
     "EmbeddingResult", "EvidenceFragment", "EvidenceInput", "ExternalIdentifier", "FxRateSnapshot",
     "HumanAuthority", "IdPrefix", "JsonValue", "LineageEdge", "ModelResult", "ModelTask", "ModelTaskType",
     "Money", "NamedUsage", "SignedMoney", "Observation", "ObservationTime", "OutcomeState", "Assertion",
-    "AdjudicationDecision", "PartyRole", "RelationshipStatement", "ScopeRecord", "PaidOutputCategory", "PriceRate", "PricingSnapshot",
+    "AdjudicationDecision", "PartyRole", "RelationshipRole", "RelationshipStatement", "ScopeRecord", "PaidOutputCategory", "PriceRate", "PricingSnapshot",
     "ProducerRef", "ProviderUsage", "ReservationReconciliation", "RunManifest", "SchemaRef", "Sha256", "SourceRecord", "StrictModel",
     "SubjectRecord", "TaskRun", "VersionedPolicy", "VersionedTool", "canonical_data", "canonical_json_bytes",
     "canonical_sha256", "deterministic_id", "model_task_cache_key", "new_opaque_id", "seal_record",
