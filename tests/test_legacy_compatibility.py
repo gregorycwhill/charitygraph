@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import importlib
-import subprocess
 import sys
+import tomllib
 import warnings
 from pathlib import Path
 
@@ -20,10 +20,20 @@ def test_legacy_package_import_warns_and_resolves_canonical_module():
     assert any("deprecated" in str(item.message) for item in caught)
 
 
-def test_legacy_cli_alias_warns_and_delegates_to_charitygraph():
-    legacy_cli = Path(sys.executable).with_name("causebase.exe")
-    result = subprocess.run([legacy_cli, "--help"], capture_output=True, text=True)
+def test_packaging_declares_canonical_and_legacy_console_scripts():
+    project = tomllib.loads((Path(__file__).parents[1] / "pyproject.toml").read_text(encoding="utf-8"))
+    scripts = project["project"]["scripts"]
+    assert scripts["charitygraph"] == "charitygraph.cli:main"
+    assert scripts["causebase"] == "charitygraph.cli:legacy_main"
 
-    assert result.returncode == 0
-    assert "usage: charitygraph" in result.stdout
-    assert "deprecated" in result.stderr.lower()
+
+def test_legacy_cli_alias_warns_and_delegates_directly(monkeypatch):
+    cli = importlib.import_module("charitygraph.cli")
+    called = []
+    monkeypatch.setattr(cli, "main", lambda: called.append(True) or 17)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = cli.legacy_main()
+    assert result == 17
+    assert called == [True]
+    assert any("deprecated" in str(item.message).lower() for item in caught)
