@@ -24,7 +24,15 @@ def strictify_schema(node: Any) -> Any:
             # provider wire schema; the Python contract remains unchanged.
             if isinstance(value, dict) and value.get("type") == "object" and "properties" not in value and isinstance(value.get("additionalProperties"), dict):
                 continue
-            values.append(strictify_schema(value))
+            strict_value = strictify_schema(value)
+            # Pydantic can emit annotation-only union branches (for example an
+            # Enum branch represented solely by description/title).  They are
+            # not JSON Schema nodes and the provider rejects them for lacking
+            # a type.  Preserve the Python contract while omitting only this
+            # demonstrated malformed transport branch.
+            if isinstance(strict_value, dict) and not any(key in strict_value for key in ("type", "$ref", "anyOf", "oneOf", "allOf", "enum", "const", "properties")):
+                continue
+            values.append(strict_value)
         return values
     return node
 
@@ -56,6 +64,8 @@ def validate_strict_schema(schema: dict[str, Any]) -> None:
                 walk(value, f"{path}.{key}", node)
         elif isinstance(node, list):
             for index, value in enumerate(node):
+                if isinstance(parent, dict) and any(key in parent for key in ("anyOf", "oneOf", "allOf")) and isinstance(value, dict) and not any(key in value for key in ("type", "$ref", "anyOf", "oneOf", "allOf", "enum", "const", "properties")):
+                    raise ValueError(f"schema branch lacks a type at {path}[{index}]")
                 walk(value, f"{path}[{index}]", parent)
     walk(schema)
 

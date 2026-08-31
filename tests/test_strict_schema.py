@@ -21,3 +21,19 @@ def test_direct_service_schema_strictification_passes_and_removes_defaults_empty
     validate_strict_schema(schema)
     assert "default" not in str(schema)
     assert all(value != [] for value in schema.get("$defs", {}).values() if isinstance(value, dict) for value in [value.get("enum")])
+
+
+def test_annotation_only_union_branch_is_rejected_and_omitted():
+    malformed = {"anyOf": [{"type": "string"}, {"description": "Enum annotation"}]}
+    with pytest.raises(ValueError, match="lacks a type"):
+        validate_strict_schema(malformed)
+    projected = strictify_schema(malformed)
+    assert projected == {"anyOf": [{"type": "string"}]}
+
+
+def test_direct_service_schema_has_no_annotation_only_branches():
+    schema = strictify_schema(DirectServiceSemanticOutput.model_json_schema())
+    validate_strict_schema(schema)
+    for definition in schema.get("$defs", {}).values():
+        if isinstance(definition, dict) and isinstance(definition.get("anyOf"), list):
+            assert all(not (isinstance(branch, dict) and set(branch).issubset({"description", "title"})) for branch in definition["anyOf"])

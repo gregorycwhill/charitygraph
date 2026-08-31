@@ -27,7 +27,7 @@ from charitygraph.contracts import (
     validate_scope_bindings,
 )
 from charitygraph.contracts.ids import deterministic_id
-from charitygraph.openai_client import estimate_response_cost, responses_create
+from charitygraph.openai_client import OpenAIRequestError, estimate_response_cost, responses_create
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.strict_schema import strictify_schema, validate_strict_schema
 
@@ -249,7 +249,18 @@ def main() -> int:
         catalog.begin_task_attempt(task_id, owner=owner, task_run_id=task_run_id, now=now, reservation_id=reservation_id)
         slot = catalog.claim_authorized_call(authorization_scope_hash=_sha((CORPUS_ID + packet_sha + task_id).encode()), subject_id=SUBJECT_ID, task_family="direct_service_semantics", material_hash=packet_sha, measurement_id="production", owner=owner, now=now, lease_expires_at=now + timedelta(hours=2))
         catalog.mark_authorized_call_transmitted(slot["slot_key"], now=now)
-        response = responses_create(model=MODEL, input_text=prompt, text_format={"type": "json_schema", "name": "direct_service_semantic_output", "strict": True, "schema": strict_schema}, max_output_tokens=MAX_OUTPUT_TOKENS, max_attempts=MAX_ATTEMPTS, timeout_seconds=300, reasoning={"effort": "high"})
+        try:
+            response = responses_create(model=MODEL, input_text=prompt, text_format={"type": "json_schema", "name": "direct_service_semantic_output", "strict": True, "schema": strict_schema}, max_output_tokens=MAX_OUTPUT_TOKENS, max_attempts=MAX_ATTEMPTS, timeout_seconds=300, reasoning={"effort": "high"})
+        except OpenAIRequestError as exc:
+            diagnostic = exc.diagnostic.as_dict() if exc.diagnostic else {"status_code": exc.status_code}
+            provider_error = {"error_class": type(exc).__name__, "error_message": str(exc)[:512], "attempts_made": exc.attempts_made, "diagnostic": diagnostic}
+            (runtime_root / "provider-error.json").write_text(json.dumps(provider_error, indent=2, sort_keys=True), encoding="utf-8")
+            catalog.complete_authorized_call(slot["slot_key"], now=now, result_ref=None, terminal_failure=True)
+            catalog.finish_failed_attempt(task_run_id, owner=owner, completed_at=now, retryable=False, error_class="provider_request", error_message_redacted="provider request failed")
+            catalog.transition_run(run_id, "failed", now=now, error_class="provider_request", error_message_redacted="provider request failed")
+            report_out = preflight | {"provider_calls": 1, "transport_requests": exc.attempts_made, "validation_status": "provider_error", "provider_error": provider_error}
+            _report_path(runtime_root).write_text(json.dumps(report_out, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+            return 0
         response_path = runtime_root / "response.json"
         response_path.write_text(json.dumps({"response_id": response.response_id, "model": response.model, "status": response.status, "output_text": response.output_text, "usage": response.usage.__dict__, "transport_requests": response.transport_requests}, ensure_ascii=False, indent=2), encoding="utf-8")
         output = None

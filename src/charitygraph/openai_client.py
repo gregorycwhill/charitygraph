@@ -19,13 +19,34 @@ from urllib.request import Request, urlopen
 API_URL = "https://api.openai.com/v1"
 
 
+@dataclass(frozen=True)
+class ProviderDiagnostic:
+    """Bounded, credential-safe fields from a provider error response."""
+
+    status_code: int | None = None
+    error_type: str | None = None
+    error_code: str | None = None
+    error_param: str | None = None
+    error_message: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {key: value for key, value in {
+            "status_code": self.status_code,
+            "error_type": self.error_type,
+            "error_code": self.error_code,
+            "error_param": self.error_param,
+            "error_message": self.error_message,
+        }.items() if value is not None}
+
+
 class OpenAIRequestError(RuntimeError):
     """A deliberately sanitised API error suitable for private run metadata."""
 
-    def __init__(self, message: str, *, attempts_made: int = 0, status_code: int | None = None) -> None:
+    def __init__(self, message: str, *, attempts_made: int = 0, status_code: int | None = None, diagnostic: ProviderDiagnostic | None = None) -> None:
         super().__init__(message)
         self.attempts_made = attempts_made
         self.status_code = status_code
+        self.diagnostic = diagnostic
 
 
 
@@ -53,10 +74,43 @@ def _credential() -> str:
     return value
 
 
-def _safe_error(error: HTTPError | URLError) -> str:
+_MAX_PROVIDER_MESSAGE = 512
+
+
+def _redact_provider_text(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value[:_MAX_PROVIDER_MESSAGE]
+    # Error messages must never become a credential side channel.
+    import re
+    text = re.sub(r"(?i)bearer\s+[A-Za-z0-9._~+/=-]+", "Bearer [redacted]", text)
+    text = re.sub(r"(?i)(?:sk|sess|api[_-]?key)[-_A-Za-z0-9]{8,}", "[redacted]", text)
+    return text
+
+
+def _provider_diagnostic(error: HTTPError) -> ProviderDiagnostic:
+    diagnostic = ProviderDiagnostic(status_code=error.code)
+    try:
+        body = error.read(8192)
+        parsed = json.loads(body.decode("utf-8", errors="replace"))
+        detail = parsed.get("error") if isinstance(parsed, dict) else None
+        if not isinstance(detail, dict):
+            return diagnostic
+        return ProviderDiagnostic(
+            status_code=error.code,
+            error_type=_redact_provider_text(detail.get("type")),
+            error_code=_redact_provider_text(detail.get("code")),
+            error_param=_redact_provider_text(detail.get("param")),
+            error_message=_redact_provider_text(detail.get("message")),
+        )
+    except Exception:
+        return diagnostic
+
+
+def _safe_error(error: HTTPError | URLError, diagnostic: ProviderDiagnostic | None = None) -> str:
     if isinstance(error, HTTPError):
-        # Do not include an HTTP body: although it should not contain a secret,
-        # it is not needed for the deterministic failure classification.
+        if diagnostic and diagnostic.error_message:
+            return f"OpenAI API request failed with HTTP {error.code}: {diagnostic.error_message}"
         return f"OpenAI API request failed with HTTP {error.code}"
     return "OpenAI API request could not connect"
 
@@ -76,7 +130,8 @@ def _post(path: str, payload: dict[str, Any], *, timeout_seconds: int = 60) -> d
         with urlopen(request, timeout=timeout_seconds) as response:
             return json.loads(response.read().decode("utf-8"))
     except HTTPError as error:
-        raise OpenAIRequestError(_safe_error(error), status_code=error.code) from None
+        diagnostic = _provider_diagnostic(error)
+        raise OpenAIRequestError(_safe_error(error, diagnostic), status_code=error.code, diagnostic=diagnostic) from None
     except (URLError, TimeoutError) as error:
         raise OpenAIRequestError(_safe_error(error)) from None
 
@@ -128,7 +183,7 @@ def responses_create(
                 transport_requests=attempt + 1,
             )
         except OpenAIRequestError as error:
-            last_error = OpenAIRequestError(str(error), attempts_made=attempt + 1, status_code=error.status_code)
+            last_error = OpenAIRequestError(str(error), attempts_made=attempt + 1, status_code=error.status_code, diagnostic=error.diagnostic)
             if error.status_code == 400:
                 break
             if attempt + 1 < max_attempts:
