@@ -16,7 +16,16 @@ def strictify_schema(node: Any) -> Any:
             out["required"] = list(out["properties"])
         return out
     if isinstance(node, list):
-        return [strictify_schema(value) for value in node]
+        values = []
+        for value in node:
+            # OpenAI strict Structured Outputs does not support arbitrary
+            # recursive map branches.  They are represented by an object with
+            # schema-valued additionalProperties and must be omitted from the
+            # provider wire schema; the Python contract remains unchanged.
+            if isinstance(value, dict) and value.get("type") == "object" and "properties" not in value and isinstance(value.get("additionalProperties"), dict):
+                continue
+            values.append(strictify_schema(value))
+        return values
     return node
 
 
@@ -37,7 +46,7 @@ def validate_strict_schema(schema: dict[str, Any]) -> None:
                     # misclassifying it as the fixed-object error this
                     # preflight is intended to catch.
                     if isinstance(node.get("additionalProperties"), dict):
-                        return
+                        raise ValueError(f"strict schema contains unsupported typed-map branch at {path}")
                     raise ValueError(f"object schema lacks properties at {path}")
                 if node.get("additionalProperties") is not False:
                     raise ValueError(f"object schema must set additionalProperties=false at {path}")
