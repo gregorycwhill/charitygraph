@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from charitygraph.section16_preflight import (
     SUBJECT_ID,
     build_pressure_case_bundles,
@@ -8,6 +10,8 @@ from charitygraph.section16_preflight import (
     bundle_locators,
     bundle_prompt,
     plan_pressure_case,
+    persist_prompt_artifact,
+    load_prompt_artifact,
 )
 
 
@@ -63,4 +67,13 @@ def test_task_preflight_has_distinct_ids_and_cost_ceiling_comparison(tmp_path):
         assert item["task_run_id"].startswith("taskrun:")
         assert item["represented_characters"] > 0
         assert item["task_id"]
+        assert Path(item["prompt_artifact_path"]).is_file()
     assert {item["control_kind"] for item in report["bundles"]} == {None, "current_registration_section_boundary_control"}
+
+
+def test_prompt_artifact_replays_exactly_and_mismatch_fails_closed(tmp_path):
+    prompt = "frozen section 16 prompt\n"
+    artifact = persist_prompt_artifact(prompt, tmp_path)
+    assert load_prompt_artifact(artifact["prompt_artifact_path"], artifact["prompt_sha256"]) == prompt
+    with pytest.raises(ValueError, match="SHA mismatch"):
+        load_prompt_artifact(artifact["prompt_artifact_path"], "0" * 64)

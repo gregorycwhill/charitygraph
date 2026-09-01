@@ -107,6 +107,27 @@ def _assign_evidence_keys(representations: list[dict[str, Any]]) -> None:
             key_number += 1
 
 
+def persist_prompt_artifact(prompt: str, output_dir: str | Path) -> dict[str, str]:
+    """Persist exact prompt bytes privately and return its content identity."""
+    data = prompt.encode("utf-8")
+    digest = _sha_bytes(data)
+    path = Path(output_dir) / "prompts" / f"{digest}.txt"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists() and path.read_bytes() != data:
+        raise ValueError("prompt artefact hash collision or mutation")
+    if not path.exists():
+        path.write_bytes(data)
+    return {"prompt_sha256": digest, "prompt_artifact_id": f"prompt:{digest}", "prompt_artifact_path": str(path)}
+
+
+def load_prompt_artifact(path: str | Path, expected_sha256: str) -> str:
+    """Load a frozen prompt and fail closed if its bytes do not match."""
+    data = Path(path).read_bytes()
+    if _sha_bytes(data) != expected_sha256:
+        raise ValueError("frozen prompt artefact SHA mismatch")
+    return data.decode("utf-8")
+
+
 def build_pressure_case_bundles(packet_path: str | Path, store_root: str | Path, output_dir: str | Path | None = None) -> list[dict[str, Any]]:
     """Build four deterministic bundles from the frozen packet."""
     packet = json.loads(Path(packet_path).read_text(encoding="utf-8"))
@@ -200,11 +221,12 @@ def plan_pressure_case(packet_path: str | Path, store_root: str | Path, output_d
         task_run_id = deterministic_id("taskrun:", {"task_id": task_id, "run_id": run_id, "attempt": 1})
         estimated_input = (len(packet_bytes) + len(prompt_bytes) + 3) // 4
         costs = {str(ceiling): str((Decimal(estimated_input) * Decimal("0.20") + Decimal(ceiling) * Decimal("1.20")) / Decimal(1_000_000)) for ceiling in (12000, 16000, 24000)}
+        prompt_artifact = persist_prompt_artifact(prompt, output_dir) if output_dir is not None else {}
         planned.append({
             "bundle_name": bundle["bundle_name"], "control_kind": bundle["control_kind"], "source_record_ids": bundle["source_record_ids"], "bundle_sha256": bundle_sha,
             "represented_characters": sum(len(line["text"]) for rep in bundle["representations"] for line in rep.get("lines", [])),
             "packet_bytes": len(packet_bytes), "prompt_bytes": len(prompt_bytes), "estimated_input_tokens": estimated_input,
-            "prompt_sha256": prompt_sha, "wire_schema_sha256": schema_sha, "evidence_map_sha256": _sha_bytes(json.dumps(bundle_evidence_map(bundle), sort_keys=True, separators=(",", ":")).encode()), "task_id": task_id, "run_id": run_id, "task_run_id": task_run_id,
+            "prompt_sha256": prompt_sha, "prompt_artifact_id": prompt_artifact.get("prompt_artifact_id"), "prompt_artifact_path": prompt_artifact.get("prompt_artifact_path"), "wire_schema_sha256": schema_sha, "evidence_map_sha256": _sha_bytes(json.dumps(bundle_evidence_map(bundle), sort_keys=True, separators=(",", ":")).encode()), "task_id": task_id, "run_id": run_id, "task_run_id": task_run_id,
             "authorization_identity": deterministic_id("decision:", {"task_id": task_id, "state": "not_authorized"}),
             "cache_key": _sha_bytes(json.dumps(task_identity, sort_keys=True, separators=(",", ":")).encode()),
             "accounting_identity": deterministic_id("costledger:", {"task_id": task_id}), "max_output_tokens": OUTPUT_CEILING,

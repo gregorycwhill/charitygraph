@@ -33,6 +33,7 @@ from charitygraph.section16_preflight import (
     bundle_prompt,
     plan_pressure_case,
     wire_schema,
+    load_prompt_artifact,
 )
 
 
@@ -173,9 +174,10 @@ def execute(bundle_name: str, *, packet_path: Path, store_root: Path, preflight_
     bundle = next(item for item in build_pressure_case_bundles(packet_path, store_root) if item["bundle_name"] == bundle_name)
     if bundle["bundle_sha256"] != task["bundle_sha256"]:
         raise RuntimeError("frozen bundle SHA mismatch")
-    prompt = bundle_prompt(bundle)
-    if _sha(prompt.encode()) != task["prompt_sha256"]:
-        raise RuntimeError("frozen prompt SHA mismatch")
+    prompt_path = task.get("prompt_artifact_path")
+    if not prompt_path:
+        raise RuntimeError("frozen prompt artefact is missing")
+    prompt = load_prompt_artifact(prompt_path, task["prompt_sha256"])
     schema = wire_schema()
     if _sha(json.dumps(schema, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()) != task["wire_schema_sha256"]:
         raise RuntimeError("strict schema SHA mismatch")
