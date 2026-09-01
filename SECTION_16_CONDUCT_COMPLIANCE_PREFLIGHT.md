@@ -1,8 +1,7 @@
 # Section 16 conduct, adverse matters & compliance — deterministic preflight
 
-**Status:** Phase 3 design/preflight only; no new Section 16 evidence was sent
-to a provider in this correction.  A single non-sensitive schema acceptance
-probe is diagnostic only, and the bounded source packet is private runtime
+**Status:** Phase 3 experimental preflight and bounded private execution
+record.  The source packet, responses and diagnostics are private runtime
 material.  This note is not a claim that Section 16 is complete.
 
 **Authority basis:** the merged Data North Star, roadmap and implementation
@@ -272,7 +271,7 @@ The corresponding regenerated task/run/task-run and source-record identities
 | --- | --- | --- | --- | --- |
 | 2020 | `modeltask:2bc085126bfc663e93e2c8157249ac21b29f5347f70c6ee54d2ca799bb55b9bd` | `run:d9608adfa06d58a4332ff69555004e852d335d945e2107e6846f659efd973df9` | `taskrun:954cdb922ce820e80c3de1f5c4b516129bfc56214abeaf5c228179549e4aac52` | `srcrec:898766af7c3624fced893a04b550059c87fe1be45871be0259eef07eee3b6b21` |
 | 2023 | `modeltask:171c03bc2c3325e3066d6a6bb426e480bc253b60dfcdb7fca3bb64cff8ffbacb` | `run:7b5b9790f45dd11116d0408f99cc4a410f759981c51ba211dda24d9b88080d4d` | `taskrun:1669aba28a20978ab360f75dcb0916f8a75636677e5f5e838c20a5ad540609b8` | `srcrec:dd8c70b78cc766a8ba66cf74575547233e004199b67e36063b661e24d27e8ec9`, `srcrec:4c1d129b170866bb55d7013c38417a17c5866ab499b3694b3bbeb775b22b7be1` |
-| 2025 | `modeltask:4eab9a1735bf80b880370758784967628bcf738cb8f6c2274d9ef610104b755` | `run:adfc3fa7428fa84b9086e20d2a9a5cf9c0554c2226be7da9483efa030ce3c24b` | `taskrun:462037f77f9a98e4ac21d87922f140eb7bac32b9830a175ebd2d068265af797a` | `srcrec:8c39eaf19d794611ce4c81a8fb1011e05ae3fa6e4c963d938cb46cd7f47fa6aa` |
+| 2025 | `modeltask:4eab9a1735bf80b880370758784967628bcdf738cb8f6c2274d9ef610104b755` | `run:adfc3fa7428fa84b9086e20d2a9a5cf9c0554c2226be7da9483efa030ce3c24b` | `taskrun:462037f77f9a98e4ac21d87922f140eb7bac32b9830a175ebd2d068265af797a` | `srcrec:8c39eaf19d794611ce4c81a8fb1011e05ae3fa6e4c963d938cb46cd7f47fa6aa` |
 | Boundary control | `modeltask:b599c6d0b3ad8de0f44879abc260dc38e0c69f1ecd862110c18a0836a4e4e6c8` | `run:e88aa543c52a25219a00495fea9272ca09a8655fb47f42a14a3fb9b39f5116d1` | `taskrun:00a605795b6d33bdf3965b98c7bb2034e0ca7724c7ab86378197277a6d445b8b` | `srcrec:61d455442ae83a77b885408397436f90e3391611c69a0edfde33de2e34c57144` |
 
 These are regenerated identities and do not reuse the earlier v1 task records.
@@ -348,16 +347,47 @@ priority over example-specific prompt or ontology changes.  Architecture should
 change only for repeated/systematic errors, a durable-model representation gap,
 or a deterministic mechanical failure.
 
-The three substantive LWB bundles remain pending separate authorization:
+The following are the pre-execution identities consumed by the subsequent
+bounded run:
 
 | Bundle | Bundle SHA | Task | Run | Task-run | Prompt SHA | Evidence-map SHA | Input tokens | Max output | USD @24k | Authorization |
 | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | --- |
-| 2020 compliance action | `6ff2ca3b089b06c5ae4c2488e45adf75f158fab457cd7b57202d4f7e2ad9337a` | `modeltask:2bc085126bfc663e93e2c8157249ac21b29f5347f70c6ee54d2ca799bb55b9bd` | `run:d9608adfa06d58a4332ff69555004e852d335d945e2107e6846f659efd973df9` | `taskrun:954cdb922ce820e80c3de1f5c4b516129bfc56214abeaf5c228179549e4aac52` | `d327b4f5756b8b55ee274ed92ba1f9e37116707469532cc4848e949b2ef13666` | `61bfeb1d56b88e839df2654edde0178b1e15923a5797c983c4609dace64b35aa` | 935 | 24,000 | 0.028987 | not_authorized |
-| 2023 enforceable undertaking | `951570dbceaa924205f6b3632dba44ecf3f3609fa3b3ff31bbab2a7a6373413e` | `modeltask:171c03bc2c3325e3066d6a6bb426e480bc253b60dfcdb7fca3bb64cff8ffbacb` | `run:7b5b9790f45dd11116d0408f99cc4a410f759981c51ba211dda24d9b88080d4d` | `taskrun:1669aba28a20978ab360f75dcb0916f8a75636677e5f5e838c20a5ad540609b8` | `db4ce7ce26d277fd1cdc3420ba661dd5f38c3a1c01c3d039511baafb1a843a93` | `3524f83c4358b805b53f7f9cd91159b1dbdbcef6f0fb36b03aa2bcda46c1a116` | 10,801 | 24,000 | 0.0309602 | not_authorized |
-| 2025 compliance action | `1fff5f9763618e7992ca312eb48e9e1dd063b9d6217599764784ee89d28d08b2` | `modeltask:4eab9a1735bf80b880370758784967628bcf738cb8f6c2274d9ef610104b755` | `run:adfc3fa7428fa84b9086e20d2a9a5cf9c0554c2226be7da9483efa030ce3c24b` | `taskrun:462037f77f9a98e4ac21d87922f140eb7bac32b9830a175ebd2d068265af797a` | `690660f33ef411b7e173146685c0f90b737665b72e681f7682f545ddea1e8afc` | `61bfeb1d56b88e839df2654edde0178b1e15923a5797c983c4609dace64b35aa` | 899 | 24,000 | 0.0289798 | not_authorized |
+| 2020 compliance action | `6ff2ca3b089b06c5ae4c2488e45adf75f158fab457cd7b57202d4f7e2ad9337a` | `modeltask:2bc085126bfc663e93e2c8157249ac21b29f5347f70c6ee54d2ca799bb55b9bd` | `run:d9608adfa06d58a4332ff69555004e852d335d945e2107e6846f659efd973df9` | `taskrun:954cdb922ce820e80c3de1f5c4b516129bfc56214abeaf5c228179549e4aac52` | `d327b4f5756b8b55ee274ed92ba1f9e37116707469532cc4848e949b2ef13666` | `61bfeb1d56b88e839df2654edde0178b1e15923a5797c983c4609dace64b35aa` | 935 | 24,000 | 0.028987 | executed_2026-09-01 |
+| 2023 enforceable undertaking | `951570dbceaa924205f6b3632dba44ecf3f3609fa3b3ff31bbab2a7a6373413e` | `modeltask:171c03bc2c3325e3066d6a6bb426e480bc253b60dfcdb7fca3bb64cff8ffbacb` | `run:7b5b9790f45dd11116d0408f99cc4a410f759981c51ba211dda24d9b88080d4d` | `taskrun:1669aba28a20978ab360f75dcb0916f8a75636677e5f5e838c20a5ad540609b8` | `db4ce7ce26d277fd1cdc3420ba661dd5f38c3a1c01c3d039511baafb1a843a93` | `3524f83c4358b805b53f7f9cd91159b1dbdbcef6f0fb36b03aa2bcda46c1a116` | 10,801 | 24,000 | 0.0309602 | executed_2026-09-01 |
+| 2025 compliance action | `1fff5f9763618e7992ca312eb48e9e1dd063b9d6217599764784ee89d28d08b2` | `modeltask:4eab9a1735bf80b880370758784967628bcdf738cb8f6c2274d9ef610104b755` | `run:adfc3fa7428fa84b9086e20d2a9a5cf9c0554c2226be7da9483efa030ce3c24b` | `taskrun:462037f77f9a98e4ac21d87922f140eb7bac32b9830a175ebd2d068265af797a` | `690660f33ef411b7e173146685c0f90b737665b72e681f7682f545ddea1e8afc` | 899 | 24,000 | 0.0289798 | executed_2026-09-01 |
 
 Aggregate projected maximum for the three substantive bundles is USD
-0.088927.  No substantive bundle has been transmitted.
+0.088927.
+
+### Substantive v2 execution — 1 September 2026
+
+The product owner explicitly authorized exactly one physical Luna transmission
+for each substantive frozen bundle, with no retry.  The frozen packet, bundle,
+prompt, strict schema and evidence maps were verified before dispatch.  No
+source acquisition occurred.  Raw responses, transport diagnostics and the
+private aggregate are under
+`C:\CharityGraph-runtime\section16-lwb-pressure-case-20260901\bundles-v2\executions-v2\`;
+none are committed.
+
+| Bundle | Physical transmissions | Result | Usage / known cost | Persistence |
+| --- | ---: | --- | --- | --- |
+| 2020 compliance action | 1 | Completed response; terminal output validation failure | 948 input / 1,496 output; USD 0.001985 | Raw response and actual cost retained privately; no typed result or knowledge persisted. |
+| 2023 enforceable undertaking | 1 | Ambiguous terminal transport failure; no response available | No usage/cost receipt available | No retry; provider acceptance cannot be ruled out. |
+| 2025 compliance action | 1 | Completed response; terminal output validation failure | 949 input / 526 output; USD 0.000821 | Raw response and actual cost retained privately; no typed result or knowledge persisted. |
+
+The two completed responses exposed the same **category-A generic mechanical
+contract gap**: the strict transport schema permits
+`proposition_owner_label` with `source_publisher`, while the frozen domain
+validator rejects that combination unless the owner is `other_named_party`.
+This is a schema/validator correspondence defect, not a basis to reinterpret
+or repair either response.  The known actual charge is USD 0.002806; the 2023
+charge remains unknown after its ambiguous transport failure.
+
+No prompt, schema, ontology, source bundle or model output was changed after
+dispatch.  Section 16 v2 remains frozen as an experimental input contract, but
+no further Section 16 execution should be authorized until this deterministic
+schema/validator compatibility gap has a focused correction and regression
+test.  Existing task slots are terminal and must not be retried.
 
 ### Contrasting pressure-case candidates (not acquired)
 
