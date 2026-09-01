@@ -72,3 +72,23 @@ was performed.
    solved before a Top-100 full-card build?
 
 Section 16 remains frozen under the prior conclusion: no architecture change now.
+
+## Closed experiment finding
+
+The sharded follow-up is closed as a successful negative architecture experiment.
+All eight evidence-sharded calls produced zero completed outputs: even the
+smallest shard exhausted the 5,000-token ceiling. This is not a provider-quality
+judgement and did not demonstrate a durable representation gap.
+
+The current `WholeCardExtractionOutputV02` contract combines twenty section
+assessments, section IDs on observations, high-recall extraction, taxonomy
+assignments, relationships and cross-source issues. That card-shaped contract
+places downstream card/lens work in the primary semantic producer and is
+inconsistent with the intended flow:
+
+`evidence → reusable representation → high-recall governed knowledge → downstream lenses/projections`
+
+Decision: **PRIMARY KNOWLEDGE EXTRACTION MUST BE CARD-BLIND**. The next tranche
+will test a compact, section-agnostic semantic atom contract over one modest
+evidence shard per subject, with the existing North-Star card and taxonomies
+remaining downstream projections.
