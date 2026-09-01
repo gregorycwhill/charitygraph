@@ -21,8 +21,8 @@ SUBJECT = "subject:" + "a" * 32
 LOCATOR = "[S001:L0001]"
 
 
-def ref(role="supporting", locator=LOCATOR):
-    return ConductComplianceWireEvidenceRef(locator=locator, role=role)
+def ref(role="supporting", evidence_key="E000001"):
+    return ConductComplianceWireEvidenceRef(evidence_key=evidence_key, role=role)
 
 
 def proposition(**updates):
@@ -58,6 +58,12 @@ def test_nonempty_proposition_requires_supporting_evidence():
     with pytest.raises(ValidationError):
         proposition(evidence=(ref("context"),))
     assert ConductComplianceWireOutput.model_validate({"propositions": []}).propositions == ()
+    with pytest.raises(ValidationError):
+        ConductComplianceWireProposition.model_validate({
+            "proposition_class": "finding", "procedural_status": "completed", "scope_id": SUBJECT,
+            "proposition_owner_kind": "source_publisher", "statement": "x",
+            "evidence": [{"locator": "[S001:L0001]", "role": "supporting"}],
+        })
 
 
 def test_temporal_strings_convert_and_invalid_syntax_fails_closed():
@@ -69,11 +75,13 @@ def test_temporal_strings_convert_and_invalid_syntax_fails_closed():
 
 def test_scope_and_evidence_are_exact_task_bindings():
     wire = ConductComplianceWireOutput(propositions=(proposition(),))
-    assert conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_locators={LOCATOR}).propositions
+    assert conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_key_map={"E000001": LOCATOR}).propositions
     with pytest.raises(ValueError, match="scope_id"):
-        conduct_wire_to_domain(wire, allowed_scope_ids={"subject:" + "b" * 32}, evidence_locators={LOCATOR})
-    with pytest.raises(ValueError, match="evidence locator"):
-        conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_locators={"[S001:L0002]"})
+        conduct_wire_to_domain(wire, allowed_scope_ids={"subject:" + "b" * 32}, evidence_key_map={"E000001": LOCATOR})
+    with pytest.raises(ValueError, match="evidence key"):
+        conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_key_map={"E000002": "[S001:L0002]"})
+    with pytest.raises(ValueError, match="evidence key map"):
+        conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_key_map={"E000001": LOCATOR, "E000002": LOCATOR})
 
 
 def test_projection_preserves_owner_status_and_existing_observation_shape():
@@ -104,3 +112,6 @@ def test_strict_provider_schema_is_valid_and_bounded():
     assert "CanonicalValue" not in str(schema)
     assert "additionalProperties" in str(schema)
     assert not any(isinstance(v, dict) and isinstance(v.get("additionalProperties"), dict) for v in schema.get("$defs", {}).values())
+    evidence_schema = schema["$defs"]["ConductComplianceWireEvidenceRef"]
+    assert evidence_schema["required"] == ["evidence_key", "role"]
+    assert "locator" not in evidence_schema["properties"]

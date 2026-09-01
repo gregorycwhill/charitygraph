@@ -4,6 +4,7 @@ from pathlib import Path
 from charitygraph.section16_preflight import (
     SUBJECT_ID,
     build_pressure_case_bundles,
+    bundle_evidence_map,
     bundle_locators,
     bundle_prompt,
     plan_pressure_case,
@@ -18,11 +19,23 @@ STORE = RUNTIME
 def test_four_bundles_are_source_partitioned_and_registration_is_empty_control():
     bundles = build_pressure_case_bundles(PACKET, STORE)
     assert [b["bundle_name"] for b in bundles] == [
-        "2020_compliance_action", "2023_enforceable_undertaking", "2025_compliance_action", "current_registration_negative_control"
+        "2020_compliance_action", "2023_enforceable_undertaking", "2025_compliance_action", "current_registration_section_boundary_control"
     ]
     assert [len(b["source_record_ids"]) for b in bundles] == [1, 2, 1, 1]
-    assert bundles[-1]["negative_control"] is True
-    assert "registration_status" not in bundle_prompt(bundles[-1])
+    assert bundles[-1]["control_kind"] == "current_registration_section_boundary_control"
+    first_source = bundles[0]["representations"][0]
+    assert first_source["source_key"] == "S001"
+    assert first_source["source_record_id"] == bundles[0]["source_record_ids"][0]
+    assert first_source["role"]
+    assert first_source["publisher_authority"]
+    assert first_source["lines"][0]["evidence_key"] == "E000001"
+    assert first_source["lines"][0]["canonical_locator"] == "[S001:L0001]"
+    undertaking = bundles[1]
+    assert len(bundle_locators(undertaking)) == sum(len(source["lines"]) for source in undertaking["representations"])
+    assert len(bundle_evidence_map(undertaking)) == len(bundle_locators(undertaking))
+    prompt = bundle_prompt(bundles[-1])
+    assert "SOURCE_ROLE: regulator_registration_status" in prompt
+    assert "return an empty proposition collection" in prompt
     assert all(bundle_locators(bundle) for bundle in bundles)
     assert all(len(json.dumps(bundle, ensure_ascii=False)) < 240000 for bundle in bundles)
 
@@ -50,4 +63,4 @@ def test_task_preflight_has_distinct_ids_and_cost_ceiling_comparison(tmp_path):
         assert item["task_run_id"].startswith("taskrun:")
         assert item["represented_characters"] > 0
         assert item["task_id"]
-    assert {item["negative_control"] for item in report["bundles"]} == {False, True}
+    assert {item["control_kind"] for item in report["bundles"]} == {None, "current_registration_section_boundary_control"}

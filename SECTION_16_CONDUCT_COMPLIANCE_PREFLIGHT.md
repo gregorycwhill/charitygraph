@@ -1,9 +1,9 @@
 # Section 16 conduct, adverse matters & compliance — deterministic preflight
 
-**Status:** Phase 3 design/preflight only; no Section 16 evidence has been sent
-to a provider.  A single non-sensitive schema acceptance probe is diagnostic
-only, and the bounded source packet is private runtime material.  This note is
-not a claim that Section 16 is complete.
+**Status:** Phase 3 design/preflight only; no new Section 16 evidence was sent
+to a provider in this correction.  A single non-sensitive schema acceptance
+probe is diagnostic only, and the bounded source packet is private runtime
+material.  This note is not a claim that Section 16 is complete.
 
 **Authority basis:** the merged Data North Star, roadmap and implementation
 plan, together with the Builder observation-first contracts on this branch.
@@ -194,8 +194,8 @@ Proposition ownership is one of `source_publisher`, `target_subject`,
 label.  Temporal fields are simple strings/nulls (`effective_from`,
 `effective_to`, `observed_at`, `reporting_period`) and convert deterministically
 to existing `ObservationTime`.  Every proposition requires at least one
-supporting task-visible evidence locator.  Scope and evidence IDs are exact
-allow-list bindings; cross-bundle or invented IDs fail closed.  Bundle 4 may
+supporting task-visible evidence key.  Scope and evidence bindings are exact
+allow-list mappings; cross-bundle or invented IDs fail closed.  Bundle 4 may
 return an empty proposition collection and must not manufacture a registration
 or exoneration claim.
 
@@ -205,9 +205,25 @@ projects valid output to existing append-only `Observation` records under the
 `conduct_compliance.<proposition_class>` predicate; output remains candidate /
 review-required and is never automatically promoted to public adverse truth.
 
+The boundary-control correction is now explicit across sections: ordinary
+registration conditions, variations, audit requirements and approval conditions
+are not automatically Section 16 propositions.  There is no
+`regulatory_condition` proposition class.  A registration/status control may
+return an empty collection; a non-empty result is accepted only after the same
+Section 16 evidence, scope, ownership and class validation as any other bundle.
+Source headers expose `source_key`, source-record ID, source role and
+publisher/authority.  Provider evidence references use one ephemeral
+`E######` evidence-key field; the private task binding maps each key exactly to
+one canonical durable locator.  Durable locators are never placed on the wire,
+and the historical response using `S001:L0002`/`S001:L0003` remains invalid and
+unchanged.
+
 The strict schema SHA-256 is
-`a56a0d8e1e1f5f26b83b2f54d0f5d263a3c6035bfa64efa03fd19fde97c09e03` (4 objects,
-2 arrays, 4 enums, 3 `$ref` branches, no patterns, formats or typed maps).
+`dc59f1f031160397489d92aba157d80426a2675799d14ec5cfd7169d1d66998e` after
+the evidence-key correction (the prior diagnostic schema was
+`a56a0d8e1e1f5f26b83b2f54d0f5d263a3c6035bfa64efa03fd19fde97c09e03`; 4
+objects, 2 arrays, 4 enums, 3 `$ref` branches, no patterns, formats or typed
+maps).  The schema has exactly one evidence-key field and no locator alias.
 No migration is required.
 
 ## Economics and deterministic task preflight
@@ -221,24 +237,59 @@ represented generically (HTML visible main content; all six native PDF pages)
 without semantic phrase selection.
 
 The private preflight report is
-`C:\CharityGraph-runtime\section16-lwb-pressure-case-20260901\bundles-v1\section16-provider-preflight.json`.
+`C:\CharityGraph-runtime\section16-lwb-pressure-case-20260901\bundles-v2\section16-provider-preflight.json`.
 The bundles and exact task identities are deterministic.  At the Luna snapshot
 (USD 0.20/M input, USD 1.20/M output), the 24,000-token projections are:
 
 | Bundle | Source records | Characters | Input tokens | 12k USD | 16k USD | 24k USD |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 2020 compliance action | 1 | 697 | 724 | 0.014545 | 0.019345 | 0.028945 |
-| 2023 enforceable undertaking | 2 | 8,738 | 9,415 | 0.016283 | 0.021083 | 0.030683 |
-| 2025 compliance action | 1 | 623 | 687 | 0.014537 | 0.019337 | 0.028937 |
-| Current registration (negative control) | 1 | 1,655 | 1,862 | 0.014772 | 0.019572 | 0.029172 |
+| 2020 compliance action | 1 | 697 | 935 | 0.014587 | 0.019387 | 0.028987 |
+| 2023 enforceable undertaking | 2 | 8,738 | 10,801 | 0.016560 | 0.021360 | 0.030960 |
+| 2025 compliance action | 1 | 623 | 899 | 0.014580 | 0.019380 | 0.028980 |
+| Current registration section-boundary control | 1 | 1,655 | 2,519 | 0.014904 | 0.019704 | 0.029304 |
 
-Aggregate maximum at the recommended 24,000 ceiling is USD 0.117738.  No FX
-snapshot was used, so no AUD conversion is asserted.  All four tasks have
-`authorization_state: not_authorized`, physical maximum attempts 1 and no
-active reservation.
+The regenerated v2 bundle identities are private and recorded in the report,
+including each bundle SHA, evidence-map SHA, prompt SHA, task/run/task-run ID,
+input estimate and accounting identity.  Aggregate maximum at the recommended
+24,000 ceiling is USD 0.118231.  No FX snapshot was used, so no AUD conversion
+is asserted.  All four tasks have `authorization_state: not_authorized`,
+physical maximum attempts 1 and no active reservation.  The underlying frozen
+packet SHA remains `35a44dde214ec360394e39aa15917230865fff8c99b80cdce636a8937506d994`.
 
-The next boundary is an explicit evidence-transmission authorization.  No
-pressure-case evidence has been sent to a provider.
+For auditability, the regenerated private identity rows are:
+
+| Bundle | Bundle SHA | Evidence-map SHA | Prompt SHA | Input tokens | USD @24k | Authorization |
+| --- | --- | --- | --- | ---: | ---: | --- |
+| 2020 compliance action | `6ff2ca3b089b06c5ae4c2488e45adf75f158fab457cd7b57202d4f7e2ad9337a` | `61bfeb1d56b88e839df2654edde0178b1e15923a5797c983c4609dace64b35aa` | `d327b4f5756b8b55ee274ed92ba1f9e37116707469532cc4848e949b2ef13666` | 935 | 0.028987 | not_authorized |
+| 2023 enforceable undertaking | `951570dbceaa924205f6b3632dba44ecf3f3609fa3b3ff31bbab2a7a6373413e` | `3524f83c4358b805b53f7f9cd91159b1dbdbcef6f0fb36b03aa2bcda46c1a116` | `db4ce7ce26d277fd1cdc3420ba661dd5f38c3a1c01c3d039511baafb1a843a93` | 10,801 | 0.0309602 | not_authorized |
+| 2025 compliance action | `1fff5f9763618e7992ca312eb48e9e1dd063b9d6217599764784ee89d28d08b2` | `61bfeb1d56b88e839df2654edde0178b1e15923a5797c983c4609dace64b35aa` | `690660f33ef411b7e173146685c0f90b737665b72e681f7682f545ddea1e8afc` | 899 | 0.0289798 | not_authorized |
+| Current registration section-boundary control | `798be9a8aef9a8412d65b0bd2751e8e7dafe31cd66654bb5263a9988e75e75c4` | `929e93d23197ff2279db6f7103d48390bfbedefbe8cbd24a81922a7d998f0dc1` | `896061a4d9af579462e6b82ac756f46941a41e03f9504c971ecb8ef8076036ba` | 2,519 | 0.0293038 | not_authorized |
+
+The corresponding regenerated task/run/task-run and source-record identities
+(also retained in the private report) are:
+
+| Bundle | Task | Run | Task-run | Source records |
+| --- | --- | --- | --- | --- |
+| 2020 | `modeltask:2bc085126bfc663e93e2c8157249ac21b29f5347f70c6ee54d2ca799bb55b9bd` | `run:d9608adfa06d58a4332ff69555004e852d335d945e2107e6846f659efd973df9` | `taskrun:954cdb922ce820e80c3de1f5c4b516129bfc56214abeaf5c228179549e4aac52` | `srcrec:898766af7c3624fced893a04b550059c87fe1be45871be0259eef07eee3b6b21` |
+| 2023 | `modeltask:171c03bc2c3325e3066d6a6bb426e480bc253b60dfcdb7fca3bb64cff8ffbacb` | `run:7b5b9790f45dd11116d0408f99cc4a410f759981c51ba211dda24d9b88080d4d` | `taskrun:1669aba28a20978ab360f75dcb0916f8a75636677e5f5e838c20a5ad540609b8` | `srcrec:dd8c70b78cc766a8ba66cf74575547233e004199b67e36063b661e24d27e8ec9`, `srcrec:4c1d129b170866bb55d7013c38417a17c5866ab499b3694b3bbeb775b22b7be1` |
+| 2025 | `modeltask:4eab9a1735bf80b880370758784967628bcf738cb8f6c2274d9ef610104b755` | `run:adfc3fa7428fa84b9086e20d2a9a5cf9c0554c2226be7da9483efa030ce3c24b` | `taskrun:462037f77f9a98e4ac21d87922f140eb7bac32b9830a175ebd2d068265af797a` | `srcrec:8c39eaf19d794611ce4c81a8fb1011e05ae3fa6e4c963d938cb46cd7f47fa6aa` |
+| Boundary control | `modeltask:b599c6d0b3ad8de0f44879abc260dc38e0c69f1ecd862110c18a0836a4e4e6c8` | `run:e88aa543c52a25219a00495fea9272ca09a8655fb47f42a14a3fb9b39f5116d1` | `taskrun:00a605795b6d33bdf3965b98c7bb2034e0ca7724c7ab86378197277a6d445b8b` | `srcrec:61d455442ae83a77b885408397436f90e3391611c69a0edfde33de2e34c57144` |
+
+These are regenerated identities and do not reuse the earlier v1 task records.
+
+The prior registration boundary experiment is preserved as historical runtime
+evidence: one completed request (`modeltask:dcf...`, response
+`resp_0ffc...`, USD 0.001857) returned two propositions, both labelled
+`enforcement_action`, with invalid durable locator syntax.  No knowledge was
+persisted and no later task ran.  Under the corrected boundary these are
+adjacent registration-condition statements, not safely admitted Section 16
+enforcement propositions: the source text is present, but the class and
+target-subject ownership are unsupported by the boundary, and the supplied
+locators are invalid.  This is not treated as a factual hallucination finding.
+
+The next boundary is explicit authorization for the corrected
+`current_registration_section_boundary_control` only after provider schema
+acceptance.  No pressure-case evidence was sent in this correction.
 
 ## Schema acceptance probe
 
@@ -298,7 +349,7 @@ human review.  Luna output is never automatically publishable adverse truth.
 17. Can reporting-group, predecessor, partner and network scope be represented without propagation?
 18. Can the review path require stronger controls for high-consequence claims?
 
-**Next boundary:** provider-contract implementation, deterministic event/source
-partitioning, exact task/cost preflight, schema acceptance, then explicit
-authorization to transmit the frozen pressure-case bundles.  Section 16
-semantics are not claimed complete by this document.
+**Next boundary:** corrected provider-contract implementation, deterministic
+event/source partitioning, exact task/cost preflight, schema acceptance, then
+explicit authorization to transmit a selected frozen pressure-case bundle.
+Section 16 semantics are not claimed complete by this document.

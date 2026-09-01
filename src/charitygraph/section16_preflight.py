@@ -24,7 +24,7 @@ SOURCE_BUNDLES: tuple[tuple[str, tuple[str, ...], bool], ...] = (
     ("2020_compliance_action", ("srcrec:898766af7c3624fced893a04b550059c87fe1be45871be0259eef07eee3b6b21",), False),
     ("2023_enforceable_undertaking", ("srcrec:dd8c70b78cc766a8ba66cf74575547233e004199b67e36063b661e24d27e8ec9", "srcrec:4c1d129b170866bb55d7013c38417a17c5866ab499b3694b3bbeb775b22b7be1"), False),
     ("2025_compliance_action", ("srcrec:8c39eaf19d794611ce4c81a8fb1011e05ae3fa6e4c963d938cb46cd7f47fa6aa",), False),
-    ("current_registration_negative_control", ("srcrec:61d455442ae83a77b885408397436f90e3391611c69a0edfde33de2e34c57144",), True),
+    ("current_registration_section_boundary_control", ("srcrec:61d455442ae83a77b885408397436f90e3391611c69a0edfde33de2e34c57144",), True),
 )
 
 SUBJECT_ID = "subject:ca2a7205d6de410c85cb2a08196206dc"
@@ -57,10 +57,12 @@ def _html_representation(raw: bytes, *, source_record: dict[str, Any], source_nu
         lines = [" ".join(html.split())]
     return {
         "source_record_id": source_record["source_record_id"],
+        "source_key": f"S{source_number:03d}",
         "source_url": source_record["url"],
         "role": source_record["role"],
+        "publisher_authority": "NDIS Quality and Safeguards Commission",
         "representation_type": "generic_visible_main_content",
-        "lines": [{"locator": f"[S{source_number:03d}:L{i:04d}]", "text": line} for i, line in enumerate(lines, 1)],
+        "lines": [{"evidence_key": f"E{i:06d}", "canonical_locator": f"[S{source_number:03d}:L{i:04d}]", "text": line} for i, line in enumerate(lines, 1)],
     }
 
 
@@ -82,16 +84,27 @@ def _pdf_representation(store_root: Path, source_record: dict[str, Any], source_
             line_number += 1
     return {
         "source_record_id": source_record["source_record_id"],
+        "source_key": f"S{source_number:03d}",
         "source_url": source_record["url"],
         "role": source_record["role"],
+        "publisher_authority": "NDIS Quality and Safeguards Commission",
         "representation_type": "native_pdf_all_pages",
         "pages": data.get("pages", []),
-        "lines": lines,
+        "lines": [{"evidence_key": f"E{i:06d}", "canonical_locator": line["locator"], "text": line["text"]} for i, line in enumerate(lines, 1)],
     }
 
 
 def _bundle_hash(bundle: dict[str, Any]) -> str:
     return sha256_json({key: value for key, value in bundle.items() if key != "bundle_sha256"})
+
+
+def _assign_evidence_keys(representations: list[dict[str, Any]]) -> None:
+    """Assign one deterministic provider key namespace across a bundle."""
+    key_number = 1
+    for representation in representations:
+        for line in representation.get("lines", []):
+            line["evidence_key"] = f"E{key_number:06d}"
+            key_number += 1
 
 
 def build_pressure_case_bundles(packet_path: str | Path, store_root: str | Path, output_dir: str | Path | None = None) -> list[dict[str, Any]]:
@@ -102,7 +115,7 @@ def build_pressure_case_bundles(packet_path: str | Path, store_root: str | Path,
     records = {item["source_record_id"]: item for item in packet["source_records"]}
     store = Path(store_root)
     bundles: list[dict[str, Any]] = []
-    for bundle_name, source_ids, negative_control in SOURCE_BUNDLES:
+    for bundle_name, source_ids, is_boundary_control in SOURCE_BUNDLES:
         representations = []
         for index, source_id in enumerate(source_ids, 1):
             record = records[source_id]
@@ -114,10 +127,11 @@ def build_pressure_case_bundles(packet_path: str | Path, store_root: str | Path,
             else:
                 raise ValueError(f"unsupported pressure-case media type: {record['media_type']}")
             representations.append(rep)
+        _assign_evidence_keys(representations)
         bundle = {
             "version": "section16-pressure-bundle-v1",
             "bundle_name": bundle_name,
-            "negative_control": negative_control,
+            "control_kind": "current_registration_section_boundary_control" if is_boundary_control else None,
             "subject_id": packet["subject_id"],
             "allowed_scope_ids": [packet["subject_id"]],
             "source_record_ids": list(source_ids),
@@ -135,18 +149,28 @@ def build_pressure_case_bundles(packet_path: str | Path, store_root: str | Path,
 
 
 def bundle_locators(bundle: dict[str, Any]) -> set[str]:
-    return {line["locator"] for source in bundle["representations"] for line in source.get("lines", [])}
+    return {line["evidence_key"] for source in bundle["representations"] for line in source.get("lines", [])}
+
+
+def bundle_evidence_map(bundle: dict[str, Any]) -> dict[str, str]:
+    """Map provider evidence keys to canonical durable line locators."""
+    return {line["evidence_key"]: line["canonical_locator"] for source in bundle["representations"] for line in source.get("lines", [])}
 
 
 def bundle_prompt(bundle: dict[str, Any]) -> str:
-    sparse = " Do not manufacture a Section 16 proposition merely because the task expects structured output; return an empty proposition collection when the registration record does not itself support one." if bundle.get("negative_control") else ""
-    evidence = "\n".join(f"{line['locator']} {line['text']}" for source in bundle["representations"] for line in source.get("lines", []))
+    boundary = bundle.get("control_kind") == "current_registration_section_boundary_control"
+    sparse = " This is a regulator registration/status record. It may contain registration conditions, variations, audit conditions or other regulatory-status facts. Do not classify those as Section 16 enforcement_action, finding or another conduct/adverse/compliance proposition merely because a condition was imposed. Emit a proposition only where the supplied evidence itself establishes a Section 16 matter. If it contains only registration/status conditions outside Section 16, return an empty proposition collection." if boundary else ""
+    evidence = "\n".join(f"SOURCE_KEY: {source['source_key']}\nSOURCE_RECORD_ID: {source['source_record_id']}\nSOURCE_ROLE: {source['role']}\nPUBLISHER/AUTHORITY: {source['publisher_authority']}\n" + "\n".join(f"{line['evidence_key']} {line['text']}" for line in source.get("lines", [])) for source in bundle["representations"])
     return (
         "Extract only Section 16 conduct/adverse/compliance propositions supported by this supplied bundle. "
         "Sparse output is correct when evidence is sparse. Do not infer moral or reputational character, present "
-        "non-compliance from historical action, or treat current registration as exoneration. Distinguish source "
-        "publisher authority from proposition owner. Use only supplied subject, scope and evidence IDs; use no "
-        f"outside knowledge. Subject scope: {bundle['subject_id']}.{sparse}\n" + evidence
+        "non-compliance from historical action, or treat current registration as exoneration or general compliance "
+        "endorsement. Distinguish source publisher authority from proposition owner: owner means who makes or holds "
+        "the proposition/commitment, not who is affected by a condition. Do not absorb adjacent registration status, "
+        "accreditation, governance or service-description facts unless the evidence supports a Section 16 proposition. "
+        "Use only supplied subject, scope and evidence keys; use no outside knowledge. Provider evidence references "
+        "must use the supplied E###### evidence keys, never durable locator syntax or source-record IDs. "
+        f"Subject scope: {bundle['subject_id']}.{sparse}\n" + evidence
     )
 
 
@@ -177,10 +201,10 @@ def plan_pressure_case(packet_path: str | Path, store_root: str | Path, output_d
         estimated_input = (len(packet_bytes) + len(prompt_bytes) + 3) // 4
         costs = {str(ceiling): str((Decimal(estimated_input) * Decimal("0.20") + Decimal(ceiling) * Decimal("1.20")) / Decimal(1_000_000)) for ceiling in (12000, 16000, 24000)}
         planned.append({
-            "bundle_name": bundle["bundle_name"], "negative_control": bundle["negative_control"], "source_record_ids": bundle["source_record_ids"], "bundle_sha256": bundle_sha,
+            "bundle_name": bundle["bundle_name"], "control_kind": bundle["control_kind"], "source_record_ids": bundle["source_record_ids"], "bundle_sha256": bundle_sha,
             "represented_characters": sum(len(line["text"]) for rep in bundle["representations"] for line in rep.get("lines", [])),
             "packet_bytes": len(packet_bytes), "prompt_bytes": len(prompt_bytes), "estimated_input_tokens": estimated_input,
-            "prompt_sha256": prompt_sha, "wire_schema_sha256": schema_sha, "task_id": task_id, "run_id": run_id, "task_run_id": task_run_id,
+            "prompt_sha256": prompt_sha, "wire_schema_sha256": schema_sha, "evidence_map_sha256": _sha_bytes(json.dumps(bundle_evidence_map(bundle), sort_keys=True, separators=(",", ":")).encode()), "task_id": task_id, "run_id": run_id, "task_run_id": task_run_id,
             "authorization_identity": deterministic_id("decision:", {"task_id": task_id, "state": "not_authorized"}),
             "cache_key": _sha_bytes(json.dumps(task_identity, sort_keys=True, separators=(",", ":")).encode()),
             "accounting_identity": deterministic_id("costledger:", {"task_id": task_id}), "max_output_tokens": OUTPUT_CEILING,
@@ -194,4 +218,4 @@ def plan_pressure_case(packet_path: str | Path, store_root: str | Path, output_d
     return report
 
 
-__all__ = ["SOURCE_BUNDLES", "build_pressure_case_bundles", "bundle_locators", "bundle_prompt", "wire_schema", "wire_schema_sha", "plan_pressure_case"]
+__all__ = ["SOURCE_BUNDLES", "build_pressure_case_bundles", "bundle_locators", "bundle_evidence_map", "bundle_prompt", "wire_schema", "wire_schema_sha", "plan_pressure_case"]

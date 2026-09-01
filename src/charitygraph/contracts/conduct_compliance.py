@@ -9,7 +9,7 @@ mechanical binding and temporal validation.
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Literal
+from typing import Literal, Mapping
 
 from pydantic import Field, StrictStr, field_validator, model_validator
 
@@ -40,13 +40,13 @@ class ConductComplianceWireTemporal(StrictModel):
 
 
 class ConductComplianceWireEvidenceRef(StrictModel):
-    locator: StrictStr
+    evidence_key: StrictStr
     role: Literal["supporting", "corroborating", "context"]
 
-    @field_validator("locator")
+    @field_validator("evidence_key")
     @classmethod
-    def _locator(cls, value: str) -> str:
-        return require_nonblank(value, "locator")
+    def _evidence_key(cls, value: str) -> str:
+        return require_nonblank(value, "evidence_key")
 
 
 class ConductComplianceWireProposition(StrictModel):
@@ -78,7 +78,7 @@ class ConductComplianceWireProposition(StrictModel):
             raise ValueError("proposition_owner_label is limited to other_named_party")
         if not any(item.role == "supporting" for item in self.evidence):
             raise ValueError("non-empty conduct propositions require supporting evidence")
-        if len({item.locator for item in self.evidence}) != len(self.evidence):
+        if len({item.evidence_key for item in self.evidence}) != len(self.evidence):
             raise ValueError("conduct evidence locators must be unique")
         return self
 
@@ -150,17 +150,21 @@ def wire_to_domain(
     wire: ConductComplianceWireOutput,
     *,
     allowed_scope_ids: set[str] | None = None,
-    evidence_locators: set[str] | None = None,
+    evidence_key_map: Mapping[str, str] | None = None,
 ) -> ConductComplianceSemanticOutput:
     """Convert a validated wire response using only exact task bindings."""
     if allowed_scope_ids is not None and not allowed_scope_ids:
         raise ValueError("Section 16 task must provide at least one visible scope")
+    if evidence_key_map is not None and len(set(evidence_key_map.values())) != len(evidence_key_map):
+        raise ValueError("evidence key map must bind each canonical locator once")
     converted: list[ConductComplianceSemanticProposition] = []
     for item in wire.propositions:
         if allowed_scope_ids is not None and item.scope_id not in allowed_scope_ids:
             raise ValueError(f"unknown conduct scope_id: {item.scope_id}")
-        if evidence_locators is not None and any(ref.locator not in evidence_locators for ref in item.evidence):
-            raise ValueError("conduct evidence locator is not present in the task bundle")
+        if evidence_key_map is not None:
+            unknown = [ref.evidence_key for ref in item.evidence if ref.evidence_key not in evidence_key_map]
+            if unknown:
+                raise ValueError("conduct evidence key is not present in the task bundle")
         converted.append(
             ConductComplianceSemanticProposition(
                 proposition_class=item.proposition_class,
@@ -171,7 +175,7 @@ def wire_to_domain(
                 statement=item.statement,
                 qualification=item.qualification,
                 observation_time=_parse_temporal(item.temporal),
-                evidence=tuple(DirectServiceEvidenceRef(locator=ref.locator, role=ref.role) for ref in item.evidence),
+                evidence=tuple(DirectServiceEvidenceRef(locator=evidence_key_map[ref.evidence_key] if evidence_key_map is not None else ref.evidence_key, role=ref.role) for ref in item.evidence),
             )
         )
     return ConductComplianceSemanticOutput(propositions=tuple(converted))
