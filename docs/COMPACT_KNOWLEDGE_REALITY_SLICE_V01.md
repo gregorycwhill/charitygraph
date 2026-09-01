@@ -9,24 +9,28 @@ one supporting locator. North-Star section IDs, section assessments, card
 completeness, taxonomies, cross-source synthesis and durable opaque IDs are
 downstream or Builder-owned and are absent from the provider contract.
 
-The three preflighted calls completed HTTP execution under standing Luna
-authorization, with no retries. Inputs/outputs/costs were:
+The initial high-effort calls completed HTTP execution under standing Luna
+authorization, with no retries, but their output ceilings were dominated by
+reasoning tokens and all three were incomplete. A retrieval-only token audit
+confirmed that confound. A controlled follow-up reused identical packet,
+prompt and schema bytes with `reasoning=none`:
 
-| Subject | Input tokens | Output tokens | Cost (USD) | Valid JSON |
-|---|---:|---:|---:|---|
-| Australian Red Cross Society | 36,150 | 7,000 | 0.015630 | no |
-| Life Without Barriers | 14,478 | 7,000 | 0.011296 | no |
-| Australian Conservation Foundation | 20,667 | 7,000 | 0.012533 | no |
+| Subject | Input | Output | Atoms | Cost (USD) |
+|---|---:|---:|---:|---:|
+| Australian Red Cross Society | 36,150 | 1,938 | 21 | 0.009556 |
+| Life Without Barriers | 14,478 | 1,921 | 21 | 0.005201 |
+| Australian Conservation Foundation | 20,667 | 1,364 | 14 | 0.005770 |
 
-All three responses were marked incomplete and ended in unterminated JSON at
-the output ceiling. Accordingly completion rate and mechanical-validity rate
-were 0/3, no compact atoms were eligible for persistence, and no downstream
-section projection was generated. Raw responses and usage metadata remain in
-the private runtime under `C:\CharityGraph-runtime\compact-knowledge-v01`.
+The controlled reasoning-free run completed and validated all three responses
+(3/3), yielding 56 evidence-grounded atoms in total. Evidence locators resolved
+against the unchanged packets. Total controlled cost was USD 0.020527. Raw
+responses and usage metadata remain private under
+`C:\CharityGraph-runtime\compact-knowledge-v01-none-lwb` and
+`C:\CharityGraph-runtime\compact-knowledge-v01-none-acf-red`.
 
-This is an execution result, not a semantic-quality judgement. It shows that
-the selected 7,000-token ceiling remains insufficient for these high-recall
-responses even after removing card-shaped fields. No durable representation gap
-was demonstrated. The next decision is architectural review of output sizing
-and/or compactness before further provider calls; no automatic tuning or retry
-was performed here.
+This is an execution result, not a semantic-quality judgement. The high-effort
+failure was materially confounded by reasoning-token
+consumption; the controlled result validates the compact card-blind production
+boundary for this bounded three-subject experiment. `reasoning=none` is the
+validated configuration for this experiment only, not a permanent policy for
+all future semantic tasks. No durable representation gap was demonstrated.
