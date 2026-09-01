@@ -47,10 +47,17 @@ response at the output ceiling (one request each; USD 0.032958 and USD 0.026716,
 respectively). Their raw responses, usage and structural diagnostics are retained
 in the private runtime under `C:\CharityGraph-runtime\complete-card-slice-v01`.
 
-These results expose an execution-size limitation for this corpus/ceiling, not a
-justification to change the semantic contract in this tranche. The slice remains
-in progress pending human review of the private diagnostics and any separately
-approved bounded execution strategy.
+These results exposed an execution-size limitation for this corpus/ceiling, not a
+justification to change the semantic contract. The follow-up sharded run used
+eight deterministic shards (Red Cross 5, LWB 2, ACF 1), one physical request per
+shard, and a USD 0.114094 projected maximum. Actual charges were USD 0.125979
+across eight requests. All eight responses reached the 5,000-token output ceiling
+and failed JSON completion; consequently zero shard outputs were eligible for
+governed observation persistence or a populated card projection. Raw responses
+and per-shard reports remain private. This is evidence that the selected output
+ceiling is still too small for the returned high-recall payloads, not evidence of
+a missing durable observation primitive. No automatic retry or tuning iteration
+was performed.
 
 ## Acceptance questions
 
