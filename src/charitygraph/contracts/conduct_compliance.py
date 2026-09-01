@@ -9,7 +9,7 @@ mechanical binding and temporal validation.
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Literal, Mapping
+from typing import Annotated, Literal, Mapping, Union
 
 from pydantic import Field, StrictStr, field_validator, model_validator
 
@@ -30,6 +30,34 @@ ConductProceduralStatus = Literal[
     "closed", "unknown",
 ]
 PropositionOwnerKind = Literal["source_publisher", "target_subject", "other_named_party", "unknown"]
+
+
+class ConductWireSourcePublisher(StrictModel):
+    kind: Literal["source_publisher"]
+
+
+class ConductWireTargetSubject(StrictModel):
+    kind: Literal["target_subject"]
+
+
+class ConductWireUnknownOwner(StrictModel):
+    kind: Literal["unknown"]
+
+
+class ConductWireOtherNamedParty(StrictModel):
+    kind: Literal["other_named_party"]
+    label: StrictStr
+
+    @field_validator("label")
+    @classmethod
+    def _label(cls, value: str) -> str:
+        return require_nonblank(value, "owner.label")
+
+
+ConductWireOwner = Annotated[
+    Union[ConductWireSourcePublisher, ConductWireTargetSubject, ConductWireOtherNamedParty, ConductWireUnknownOwner],
+    Field(discriminator="kind"),
+]
 
 
 class ConductComplianceWireTemporal(StrictModel):
@@ -53,8 +81,7 @@ class ConductComplianceWireProposition(StrictModel):
     proposition_class: ConductPropositionClass
     procedural_status: ConductProceduralStatus
     scope_id: StrictStr
-    proposition_owner_kind: PropositionOwnerKind
-    proposition_owner_label: StrictStr | None = None
+    owner: ConductWireOwner
     statement: StrictStr
     qualification: StrictStr | None = None
     temporal: ConductComplianceWireTemporal | None = None
@@ -65,17 +92,13 @@ class ConductComplianceWireProposition(StrictModel):
     def _required_text(cls, value: str) -> str:
         return require_nonblank(value)
 
-    @field_validator("proposition_owner_label", "qualification")
+    @field_validator("qualification")
     @classmethod
     def _optional_text(cls, value: str | None) -> str | None:
         return None if value is None else require_nonblank(value)
 
     @model_validator(mode="after")
     def _shape(self) -> "ConductComplianceWireProposition":
-        if self.proposition_owner_kind == "other_named_party" and not self.proposition_owner_label:
-            raise ValueError("other_named_party requires proposition_owner_label")
-        if self.proposition_owner_kind != "other_named_party" and self.proposition_owner_label is not None:
-            raise ValueError("proposition_owner_label is limited to other_named_party")
         if not any(item.role == "supporting" for item in self.evidence):
             raise ValueError("non-empty conduct propositions require supporting evidence")
         if len({item.evidence_key for item in self.evidence}) != len(self.evidence):
@@ -170,8 +193,8 @@ def wire_to_domain(
                 proposition_class=item.proposition_class,
                 procedural_status=item.procedural_status,
                 scope_id=item.scope_id,
-                proposition_owner_kind=item.proposition_owner_kind,
-                proposition_owner_label=item.proposition_owner_label,
+                proposition_owner_kind=item.owner.kind,
+                proposition_owner_label=getattr(item.owner, "label", None),
                 statement=item.statement,
                 qualification=item.qualification,
                 observation_time=_parse_temporal(item.temporal),
@@ -235,7 +258,7 @@ def review_flags(proposition: ConductComplianceSemanticProposition) -> tuple[str
 __all__ = [
     "ConductPropositionClass", "ConductProceduralStatus", "PropositionOwnerKind",
     "ConductComplianceWireTemporal", "ConductComplianceWireEvidenceRef",
-    "ConductComplianceWireProposition", "ConductComplianceWireOutput",
+    "ConductComplianceWireProposition", "ConductComplianceWireOutput", "ConductWireOwner",
     "ConductComplianceSemanticProposition", "ConductComplianceSemanticOutput",
     "wire_to_domain", "project_observation", "review_flags",
 ]

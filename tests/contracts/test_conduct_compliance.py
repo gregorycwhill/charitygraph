@@ -7,12 +7,17 @@ from charitygraph.contracts import (
     ConductComplianceWireEvidenceRef,
     ConductComplianceWireOutput,
     ConductComplianceWireProposition,
+    ConductWireOtherNamedParty,
+    ConductWireSourcePublisher,
+    ConductWireTargetSubject,
+    ConductWireUnknownOwner,
     ConductComplianceSemanticProposition,
     conduct_project_observation,
     conduct_review_flags,
     conduct_wire_to_domain,
 )
 from charitygraph.section16_preflight import wire_schema, wire_schema_sha
+from charitygraph.section16_recovery import recover_historical_wire
 from charitygraph.strict_schema import validate_strict_schema
 
 
@@ -30,7 +35,7 @@ def proposition(**updates):
         "proposition_class": "enforcement_action",
         "procedural_status": "no_longer_in_force",
         "scope_id": SUBJECT,
-        "proposition_owner_kind": "source_publisher",
+        "owner": {"kind": "source_publisher"},
         "statement": "The regulator published an enforcement action.",
         "temporal": {"observed_at": NOW.isoformat(), "effective_from": "2020-09-21", "effective_to": "2020-10-01"},
         "evidence": (ref(),),
@@ -48,10 +53,11 @@ def test_class_and_status_are_separate_and_bounded():
 
 def test_owner_label_rule_is_closed():
     with pytest.raises(ValidationError):
-        proposition(proposition_owner_kind="other_named_party")
-    with pytest.raises(ValidationError):
-        proposition(proposition_owner_kind="target_subject", proposition_owner_label="LWB")
-    assert proposition(proposition_owner_kind="other_named_party", proposition_owner_label="Another party")
+        ConductWireOtherNamedParty.model_validate({"kind": "other_named_party"})
+    assert proposition(owner={"kind": "other_named_party", "label": "Another party"})
+    for owner in ({"kind": "source_publisher", "label": "bad"}, {"kind": "target_subject", "label": "bad"}, {"kind": "unknown", "label": "bad"}):
+        with pytest.raises(ValidationError):
+            proposition(owner=owner)
 
 
 def test_nonempty_proposition_requires_supporting_evidence():
@@ -61,7 +67,7 @@ def test_nonempty_proposition_requires_supporting_evidence():
     with pytest.raises(ValidationError):
         ConductComplianceWireProposition.model_validate({
             "proposition_class": "finding", "procedural_status": "completed", "scope_id": SUBJECT,
-            "proposition_owner_kind": "source_publisher", "statement": "x",
+            "owner": {"kind": "source_publisher"}, "statement": "x",
             "evidence": [{"locator": "[S001:L0001]", "role": "supporting"}],
         })
 
@@ -85,7 +91,7 @@ def test_scope_and_evidence_are_exact_task_bindings():
 
 
 def test_projection_preserves_owner_status_and_existing_observation_shape():
-    domain = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(proposition_owner_kind="target_subject"),)))
+    domain = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(owner={"kind": "target_subject"}),)))
     observation = conduct_project_observation(
         domain.propositions[0], record_id="observation:" + "b" * 32, subject_id=SUBJECT,
         source_record_ids=("srcrec:" + "c" * 32,), created_at=NOW,
@@ -101,7 +107,7 @@ def test_review_flags_are_structural_not_phrase_heuristics():
     assert "allegation_without_formal_finding" in conduct_review_flags(allegation)
     varied = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(procedural_status="varied"),))).propositions[0]
     assert "status_varied" in conduct_review_flags(varied)
-    unknown_owner = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(proposition_owner_kind="unknown"),))).propositions[0]
+    unknown_owner = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(owner={"kind": "unknown"}),))).propositions[0]
     assert "proposition_owner_ambiguous" in conduct_review_flags(unknown_owner)
 
 
@@ -115,3 +121,33 @@ def test_strict_provider_schema_is_valid_and_bounded():
     evidence_schema = schema["$defs"]["ConductComplianceWireEvidenceRef"]
     assert evidence_schema["required"] == ["evidence_key", "role"]
     assert "locator" not in evidence_schema["properties"]
+
+
+def test_provider_owner_shapes_round_trip_to_domain_without_flat_label_leakage():
+    owners = [
+        {"kind": "source_publisher"}, {"kind": "target_subject"},
+        {"kind": "unknown"}, {"kind": "other_named_party", "label": "Commission"},
+    ]
+    for owner in owners:
+        item = proposition(owner=owner)
+        domain = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(item,)))
+        assert domain.propositions[0].proposition_owner_kind == owner["kind"]
+        assert domain.propositions[0].proposition_owner_label == owner.get("label")
+
+
+def test_provider_schema_uses_tagged_owner_and_rejects_legacy_flat_fields():
+    schema = wire_schema()["$defs"]["ConductComplianceWireProposition"]
+    assert "owner" in schema["required"]
+    assert "proposition_owner_kind" not in schema["properties"]
+    assert "proposition_owner_label" not in schema["properties"]
+
+
+def test_historical_owner_recovery_removes_only_redundant_inapplicable_label():
+    raw_item = proposition().model_dump(mode="json")
+    raw_item.pop("owner")
+    raw_item.update({"proposition_owner_kind": "source_publisher", "proposition_owner_label": "redundant"})
+    raw = {"propositions": [raw_item]}
+    wire, diagnostics = recover_historical_wire(raw)
+    assert wire.propositions[0].owner.kind == "source_publisher"
+    assert diagnostics["removed_owner_labels"][0]["redundant_label"] == "redundant"
+    assert wire.propositions[0].statement == "The regulator published an enforcement action."

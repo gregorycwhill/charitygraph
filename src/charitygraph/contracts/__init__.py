@@ -37,6 +37,8 @@ from .conduct_compliance import (
     ConductPropositionClass, ConductProceduralStatus, PropositionOwnerKind,
     ConductComplianceWireTemporal, ConductComplianceWireEvidenceRef,
     ConductComplianceWireProposition, ConductComplianceWireOutput,
+    ConductWireOtherNamedParty, ConductWireSourcePublisher, ConductWireTargetSubject,
+    ConductWireUnknownOwner,
     ConductComplianceSemanticProposition, ConductComplianceSemanticOutput,
     wire_to_domain as conduct_wire_to_domain,
     project_observation as conduct_project_observation,
