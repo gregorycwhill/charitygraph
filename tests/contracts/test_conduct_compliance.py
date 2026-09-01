@@ -144,6 +144,8 @@ def test_provider_schema_uses_tagged_owner_and_rejects_legacy_flat_fields():
     assert "owner" in schema["required"]
     assert "proposition_owner_kind" not in schema["properties"]
     assert "proposition_owner_label" not in schema["properties"]
+    assert "anyOf" in schema["properties"]["owner"]
+    assert "oneOf" not in str(wire_schema())
 
 
 def test_historical_owner_recovery_removes_only_redundant_inapplicable_label():

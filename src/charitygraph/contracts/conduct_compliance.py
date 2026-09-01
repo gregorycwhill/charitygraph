@@ -9,7 +9,7 @@ mechanical binding and temporal validation.
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Annotated, Literal, Mapping, Union
+from typing import Literal, Mapping, Union
 
 from pydantic import Field, StrictStr, field_validator, model_validator
 
@@ -54,10 +54,7 @@ class ConductWireOtherNamedParty(StrictModel):
         return require_nonblank(value, "owner.label")
 
 
-ConductWireOwner = Annotated[
-    Union[ConductWireSourcePublisher, ConductWireTargetSubject, ConductWireOtherNamedParty, ConductWireUnknownOwner],
-    Field(discriminator="kind"),
-]
+ConductWireOwner = Union[ConductWireSourcePublisher, ConductWireTargetSubject, ConductWireOtherNamedParty, ConductWireUnknownOwner]
 
 
 class ConductComplianceWireTemporal(StrictModel):
