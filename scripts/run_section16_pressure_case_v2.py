@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -191,16 +192,13 @@ def execute(bundle_name: str, *, packet_path: Path, store_root: Path, preflight_
         if set(evidence_map) != set(runtime_evidence_map):
             raise RuntimeError("registered evidence keys do not exactly equal the frozen evidence map")
         reservation_id, reserved_aud = _register_lifecycle(catalog, task, now)
-        auth_scope = _sha(json.dumps({"authorization": "active-chat-2026-09-01", "task_id": task["task_id"], "bundle_sha256": task["bundle_sha256"]}, sort_keys=True).encode())
-        catalog.authorize_semantic_measurement(
-            authorization_scope_hash=auth_scope,
-            subject_id=SUBJECT_ID,
-            task_family="section16_conduct_compliance",
-            material_hash=task["bundle_sha256"],
-            measurement_id="production",
-            authorized_by="product_owner_active_chat_2026-09-01",
-            now=now,
-        )
+        standing = None
+        if os.environ.get("CHARITYGRAPH_STANDING_AUTHORIZATION_ID"):
+            standing = catalog.get_standing_authorization(provider="OpenAI", model=MODEL, material_class="governed_lawful_public_source_evidence", task_family="approved_semantic_inference", attempts=1, now=now)
+            auth_scope = standing["policy_scope_hash"]
+        else:
+            auth_scope = _sha(json.dumps({"authorization": "active-chat-2026-09-01", "task_id": task["task_id"], "bundle_sha256": task["bundle_sha256"]}, sort_keys=True).encode())
+            catalog.authorize_semantic_measurement(authorization_scope_hash=auth_scope, subject_id=SUBJECT_ID, task_family="section16_conduct_compliance", material_hash=task["bundle_sha256"], measurement_id="production", authorized_by="product_owner_active_chat_2026-09-01", now=now)
         slot = catalog.claim_authorized_call(
             authorization_scope_hash=auth_scope,
             subject_id=SUBJECT_ID,

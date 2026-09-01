@@ -192,3 +192,27 @@ def test_replicate_requires_explicit_authorization(tmp_path):
     catalog = claim_catalog(tmp_path)
     with pytest.raises(ConflictError):
         claim(catalog, measurement_id="replicate-a")
+
+
+def test_standing_authorization_covers_distinct_tasks_but_slots_remain_exactly_once(tmp_path):
+    authority = tmp_path / "authorization.sqlite3"
+    catalog = SQLiteCatalog(tmp_path / "state.sqlite3", authorization_path=authority).open(initialize=True)
+    policy = catalog.authorize_standing_scope(authorization_id="standing:semantic-v1", policy_scope_hash="standing-scope:" + "a" * 32, provider="OpenAI", model="gpt-5.6-luna", material_class="governed_lawful_public_source_evidence", task_family="approved_semantic_inference", max_attempts=1, publication_policy="never_automatic", established_by="product-owner", now=NOW)
+    assert catalog.get_standing_authorization(provider="OpenAI", model="gpt-5.6-luna", material_class="governed_lawful_public_source_evidence", task_family="approved_semantic_inference", now=NOW)["authorization_id"] == policy["authorization_id"]
+    one = catalog.claim_authorized_call(authorization_scope_hash=policy["policy_scope_hash"], subject_id="subject:" + "1" * 32, task_family="approved_semantic_inference", material_hash="b" * 64, owner="worker", now=NOW)
+    two = catalog.claim_authorized_call(authorization_scope_hash=policy["policy_scope_hash"], subject_id="subject:" + "2" * 32, task_family="approved_semantic_inference", material_hash="c" * 64, owner="worker", now=NOW)
+    assert one["slot_key"] != two["slot_key"]
+    with pytest.raises(ConflictError):
+        catalog.claim_authorized_call(authorization_scope_hash=policy["policy_scope_hash"], subject_id="subject:" + "1" * 32, task_family="approved_semantic_inference", material_hash="b" * 64, owner="worker2", now=NOW)
+
+
+def test_standing_authorization_rejects_model_material_and_revocation(tmp_path):
+    catalog = SQLiteCatalog(tmp_path / "state.sqlite3", authorization_path=tmp_path / "authorization.sqlite3").open(initialize=True)
+    catalog.authorize_standing_scope(authorization_id="standing:semantic-v1", policy_scope_hash="standing-scope:" + "a" * 32, provider="OpenAI", model="gpt-5.6-luna", material_class="governed_lawful_public_source_evidence", task_family="approved_semantic_inference", max_attempts=1, publication_policy="never_automatic", established_by="product-owner", now=NOW)
+    with pytest.raises(ConflictError):
+        catalog.get_standing_authorization(provider="OpenAI", model="gpt-5.6-terra", material_class="governed_lawful_public_source_evidence", task_family="approved_semantic_inference", now=NOW)
+    with pytest.raises(ConflictError):
+        catalog.get_standing_authorization(provider="OpenAI", model="gpt-5.6-luna", material_class="private_documents", task_family="approved_semantic_inference", now=NOW)
+    catalog.revoke_standing_authorization("standing:semantic-v1", now=NOW, reason="phase ended")
+    with pytest.raises(ConflictError):
+        catalog.get_standing_authorization(provider="OpenAI", model="gpt-5.6-luna", material_class="governed_lawful_public_source_evidence", task_family="approved_semantic_inference", now=NOW)
