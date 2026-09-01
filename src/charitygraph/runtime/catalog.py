@@ -675,6 +675,15 @@ class SQLiteCatalog:
                 UNIQUE(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id)
             )""")
             conn.execute("CREATE INDEX IF NOT EXISTS semantic_measurement_authorizations_lookup_idx ON semantic_measurement_authorizations(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id)")
+            conn.execute("""CREATE TABLE IF NOT EXISTS standing_authorizations (
+                authorization_id TEXT PRIMARY KEY,
+                policy_scope_hash TEXT NOT NULL UNIQUE,
+                status TEXT NOT NULL CHECK(status IN ('active','revoked')),
+                provider TEXT NOT NULL, model TEXT NOT NULL, material_class TEXT NOT NULL,
+                task_family TEXT NOT NULL, max_attempts INTEGER NOT NULL CHECK(max_attempts > 0),
+                publication_policy TEXT NOT NULL, established_by TEXT NOT NULL, established_at TEXT NOT NULL,
+                expires_at TEXT, revoked_at TEXT, revoke_reason TEXT
+            )""")
             if immediate:
                 conn.execute("BEGIN IMMEDIATE")
             yield conn
@@ -689,6 +698,45 @@ class SQLiteCatalog:
             raise CatalogError("authorization authority operation failed") from exc
         finally:
             conn.close()
+
+    def authorize_standing_scope(self, *, authorization_id: str, policy_scope_hash: str, provider: str,
+                                 model: str, material_class: str, task_family: str, max_attempts: int,
+                                 publication_policy: str, established_by: str, now: datetime | str,
+                                 expires_at: datetime | str | None = None) -> dict[str, Any]:
+        """Establish a revocable standing authority independent of task/material IDs."""
+        self._ensure_open(); self._require_migrated()
+        fields = (authorization_id, policy_scope_hash, provider, model, material_class, task_family, publication_policy, established_by)
+        if max_attempts < 1 or not all(str(v).strip() for v in fields):
+            raise CatalogError("standing authorization fields are required")
+        now_s = _utc(now, "now"); expiry = _utc(expires_at, "expires_at") if expires_at is not None else None
+        with self._authorization_connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM standing_authorizations WHERE authorization_id=?", (authorization_id,)).fetchone()
+            if row is not None:
+                if row["policy_scope_hash"] != policy_scope_hash: raise ConflictError("standing authorization scope mismatch")
+                return dict(row)
+            conn.execute("INSERT INTO standing_authorizations(authorization_id, policy_scope_hash, status, provider, model, material_class, task_family, max_attempts, publication_policy, established_by, established_at, expires_at) VALUES (?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?)", (authorization_id, policy_scope_hash, provider, model, material_class, task_family, max_attempts, publication_policy, established_by, now_s, expiry))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM standing_authorizations WHERE authorization_id=?", (authorization_id,)).fetchone())
+
+    def get_standing_authorization(self, *, provider: str, model: str, material_class: str, task_family: str,
+                                   attempts: int = 1, now: datetime | str | None = None) -> dict[str, Any]:
+        """Return an active policy matching a task, enforcing provider/model/attempt boundaries."""
+        self._ensure_open(); self._require_migrated(); now_s = _utc(now, "now") if now is not None else datetime.now(timezone.utc).isoformat()
+        with self._authorization_connection() as conn:
+            row = conn.execute("SELECT * FROM standing_authorizations WHERE status='active' AND provider=? AND model=? AND material_class=? AND task_family=? ORDER BY established_at DESC LIMIT 1", (provider, model, material_class, task_family)).fetchone()
+        if row is None: raise ConflictError("no active standing authorization covers this task")
+        if row["expires_at"] is not None and row["expires_at"] <= now_s: raise ConflictError("standing authorization has expired")
+        if attempts > int(row["max_attempts"]): raise ConflictError("task exceeds standing authorization attempt limit")
+        return dict(row)
+
+    def revoke_standing_authorization(self, authorization_id: str, *, now: datetime | str, reason: str) -> dict[str, Any]:
+        self._ensure_open(); self._require_migrated(); now_s = _utc(now, "now")
+        if not str(reason).strip(): raise CatalogError("revocation reason is required")
+        with self._authorization_connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM standing_authorizations WHERE authorization_id=?", (authorization_id,)).fetchone()
+            if row is None: raise CatalogError("standing authorization does not exist")
+            conn.execute("UPDATE standing_authorizations SET status='revoked', revoked_at=?, revoke_reason=? WHERE authorization_id=?", (now_s, reason, authorization_id)); self._commit(conn)
+            return dict(conn.execute("SELECT * FROM standing_authorizations WHERE authorization_id=?", (authorization_id,)).fetchone())
 
     def authorize_semantic_measurement(
         self, *, authorization_scope_hash: str, subject_id: str, task_family: str,
