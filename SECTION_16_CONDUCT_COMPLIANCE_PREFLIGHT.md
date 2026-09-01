@@ -165,7 +165,7 @@ The PDF representation is native, six pages, with no extraction or visual gap;
 HTML representations are native and complete.  Rights are retained as private
 review-only NDIS Commission material under the existing source governance.
 
-## Provider-boundary sketch (not implemented)
+## Provider-boundary contract (implemented; execution not authorised)
 
 The future task should be narrower than the durable ontology and should carry:
 
@@ -178,23 +178,78 @@ The future task should be narrower than the durable ontology and should carry:
   them; and
 * qualifications and an epistemic result state.
 
-The model must not receive or emit unrestricted `CanonicalValue`, invent source
-authority, propagate scope, or emit a CharityGraph moral judgement.  Domain
-conversion, validation, lineage and publication eligibility remain deterministic
-Builder responsibilities.  No schema probe, provider DTO or migration is
-introduced by this preflight.
+The implemented transport DTO is `ConductComplianceWireOutput`.  Its closed
+proposition classes are `complaint`, `allegation`, `investigation`, `proceeding`,
+`finding`, `enforcement_action`, `sanction_or_penalty`,
+`undertaking_or_agreement`, `remediation_or_corrective_action`,
+`subject_response`, `appeal_or_review`, `correction_or_variation`, `overturning`
+and `matter_status`.  Procedural status is a separate closed value set:
+`pending`, `ongoing`, `in_force`, `completed`, `fulfilled`,
+`no_longer_in_force`, `withdrawn`, `varied`, `overturned`, `stayed`, `closed` or
+`unknown`.
 
-## Economics preflight
+Proposition ownership is one of `source_publisher`, `target_subject`,
+`other_named_party` or `unknown`; the third value requires a nonblank owner
+label.  Temporal fields are simple strings/nulls (`effective_from`,
+`effective_to`, `observed_at`, `reporting_period`) and convert deterministically
+to existing `ObservationTime`.  Every proposition requires at least one
+supporting task-visible evidence locator.  Scope and evidence IDs are exact
+allow-list bindings; cross-bundle or invented IDs fail closed.  Bundle 4 may
+return an empty proposition collection and must not manufacture a registration
+or exoneration claim.
+
+The provider wire object contains no Builder schema identity, task ID,
+`CanonicalValue`, authority ranking or arbitrary map.  Deterministic conversion
+projects valid output to existing append-only `Observation` records under the
+`conduct_compliance.<proposition_class>` predicate; output remains candidate /
+review-required and is never automatically promoted to public adverse truth.
+
+The strict schema SHA-256 is
+`a56a0d8e1e1f5f26b83b2f54d0f5d263a3c6035bfa64efa03fd19fde97c09e03` (4 objects,
+2 arrays, 4 enums, 3 `$ref` branches, no patterns, formats or typed maps).
+No migration is required.
+
+## Economics and deterministic task preflight
 
 The five accepted source representations contain approximately 927,185
 characters (about 231,796 tokens at the existing four-characters-per-token
 planning estimate); the private frozen packet metadata is 7,287 bytes.  This
-whole packet is larger than a single bounded request, so Section 16 must use
-task-specific/section-partitioned representations rather than one whole-card
-transmission.  At the current Luna snapshot (USD 0.20/M input, USD 1.20/M
-output), a 40,000-token bounded task with a 24,000-token output ceiling would
-project USD 0.0368 before any separately approved retry exposure.  No budget
-was reserved and no provider call was made.
+whole packet is larger than a single bounded request, so Section 16 uses four
+task-specific bundles rather than one whole-card transmission.  Each bundle is
+represented generically (HTML visible main content; all six native PDF pages)
+without semantic phrase selection.
+
+The private preflight report is
+`C:\CharityGraph-runtime\section16-lwb-pressure-case-20260901\bundles-v1\section16-provider-preflight.json`.
+The bundles and exact task identities are deterministic.  At the Luna snapshot
+(USD 0.20/M input, USD 1.20/M output), the 24,000-token projections are:
+
+| Bundle | Source records | Characters | Input tokens | 12k USD | 16k USD | 24k USD |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2020 compliance action | 1 | 697 | 724 | 0.014545 | 0.019345 | 0.028945 |
+| 2023 enforceable undertaking | 2 | 8,738 | 9,415 | 0.016283 | 0.021083 | 0.030683 |
+| 2025 compliance action | 1 | 623 | 687 | 0.014537 | 0.019337 | 0.028937 |
+| Current registration (negative control) | 1 | 1,655 | 1,862 | 0.014772 | 0.019572 | 0.029172 |
+
+Aggregate maximum at the recommended 24,000 ceiling is USD 0.117738.  No FX
+snapshot was used, so no AUD conversion is asserted.  All four tasks have
+`authorization_state: not_authorized`, physical maximum attempts 1 and no
+active reservation.
+
+The next boundary is an explicit evidence-transmission authorization.  No
+pressure-case evidence has been sent to a provider.
+
+## Schema acceptance probe
+
+After local validation, one tiny non-sensitive empty-output probe was sent using
+the strict schema above, with no subject, charity, source or evidence content.
+It completed successfully: response ID `resp_0b5f1df3e3f4b233006a96366e0a8c87d0a036a05154cce23b`,
+status `completed`, one physical transmission, 576 input tokens, 16 output
+tokens, latency 2.74 seconds and cost USD 0.000134.  The private raw response
+and metadata are under
+`C:\CharityGraph-runtime\section16-lwb-pressure-case-20260901\schema-probe-v1\`;
+the diagnostic output is not canonical knowledge.  No LWB evidence was
+transmitted, and no retry or repair probe was made.
 
 ## Empirical acceptance inventory
 
@@ -242,6 +297,7 @@ human review.  Luna output is never automatically publishable adverse truth.
 17. Can reporting-group, predecessor, partner and network scope be represented without propagation?
 18. Can the review path require stronger controls for high-consequence claims?
 
-**Next boundary:** source acquisition and human approval of the enumerated
-procedural/status vocabulary.  No Section 16 semantics are claimed complete by
-this document.
+**Next boundary:** provider-contract implementation, deterministic event/source
+partitioning, exact task/cost preflight, schema acceptance, then explicit
+authorization to transmit the frozen pressure-case bundles.  Section 16
+semantics are not claimed complete by this document.

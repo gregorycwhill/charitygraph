@@ -33,6 +33,15 @@ from .direct_service_wire import (
     DirectServiceWireProposition, DirectServiceWireRelationship, DirectServiceWireOutput,
     wire_to_domain,
 )
+from .conduct_compliance import (
+    ConductPropositionClass, ConductProceduralStatus, PropositionOwnerKind,
+    ConductComplianceWireTemporal, ConductComplianceWireEvidenceRef,
+    ConductComplianceWireProposition, ConductComplianceWireOutput,
+    ConductComplianceSemanticProposition, ConductComplianceSemanticOutput,
+    wire_to_domain as conduct_wire_to_domain,
+    project_observation as conduct_project_observation,
+    review_flags as conduct_review_flags,
+)
 from .semantic import (
     EvidenceSelectionOutput, ProgramCandidateOutput, SDGAlignmentOutput,
     SemanticConclusion, SemanticEvidence, TaxonomyAssignmentOutput, TaxonomySelection,
@@ -71,4 +80,9 @@ __all__ = [
     "WireScalar", "DirectServiceWireEvidenceRef", "DirectServiceWireObservationTime",
     "DirectServiceWireProposition", "DirectServiceWireRelationship", "DirectServiceWireOutput",
     "wire_to_domain",
+    "ConductPropositionClass", "ConductProceduralStatus", "PropositionOwnerKind",
+    "ConductComplianceWireTemporal", "ConductComplianceWireEvidenceRef",
+    "ConductComplianceWireProposition", "ConductComplianceWireOutput",
+    "ConductComplianceSemanticProposition", "ConductComplianceSemanticOutput",
+    "conduct_wire_to_domain", "conduct_project_observation", "conduct_review_flags",
 ]
