@@ -16,8 +16,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(SCRIPT_DIR.parent / "src"))
 from charitygraph.compact_knowledge import COMPACT_V02_SCHEMA, CompactKnowledgeOutputV02
+from charitygraph.compact_knowledge_persistence import adapt_compact_v02
 from charitygraph.openai_client import estimate_response_cost, responses_create
 from run_complete_card_sharded_v01 import _packet_for, _shard, _public_packet
+
+# Valid responses are handed to ``adapt_compact_v02`` before the established
+# downstream North-Star projection lens; the CLI below remains dry-run only.
 
 MODEL = "gpt-5.6-luna"
 REASONING_EFFORT = "none"
