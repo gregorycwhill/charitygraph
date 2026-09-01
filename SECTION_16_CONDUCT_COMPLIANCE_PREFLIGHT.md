@@ -328,6 +328,60 @@ regulator/court authority, historical actions presented as current breach,
 overturned/varied findings, and ownership ambiguity for stronger assurance or
 human review.  Luna output is never automatically publishable adverse truth.
 
+## Boundary-control calibration and broader-testing rule
+
+The corrected registration section-boundary control was executed once after the
+non-sensitive schema probe.  It returned a completed, schema-valid empty
+proposition collection with valid zero-reference evidence binding; no semantic
+knowledge was persisted.  This is acceptable calibration data (category C), not
+a reason to tune the contract against this one example.  The v1 result remains
+historical evidence of two adjacent registration-condition statements that were
+misclassified as `enforcement_action`, used affected-subject ownership and
+failed the locator-format contract.
+
+Unless a future run exposes a generic mechanical defect, the following are
+frozen as **Section 16 experimental contract v2 — frozen for broader testing**:
+the 14 proposition classes, 12 procedural statuses, four owner kinds,
+evidence-key mechanism, source-role headers, temporal representation, scope
+allow-list, strict wire schema and prompt template.  Broader evidence takes
+priority over example-specific prompt or ontology changes.  Architecture should
+change only for repeated/systematic errors, a durable-model representation gap,
+or a deterministic mechanical failure.
+
+The three substantive LWB bundles remain pending separate authorization:
+
+| Bundle | Bundle SHA | Task | Run | Task-run | Prompt SHA | Evidence-map SHA | Input tokens | Max output | USD @24k | Authorization |
+| --- | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | --- |
+| 2020 compliance action | `6ff2ca3b089b06c5ae4c2488e45adf75f158fab457cd7b57202d4f7e2ad9337a` | `modeltask:2bc085126bfc663e93e2c8157249ac21b29f5347f70c6ee54d2ca799bb55b9bd` | `run:d9608adfa06d58a4332ff69555004e852d335d945e2107e6846f659efd973df9` | `taskrun:954cdb922ce820e80c3de1f5c4b516129bfc56214abeaf5c228179549e4aac52` | `d327b4f5756b8b55ee274ed92ba1f9e37116707469532cc4848e949b2ef13666` | `61bfeb1d56b88e839df2654edde0178b1e15923a5797c983c4609dace64b35aa` | 935 | 24,000 | 0.028987 | not_authorized |
+| 2023 enforceable undertaking | `951570dbceaa924205f6b3632dba44ecf3f3609fa3b3ff31bbab2a7a6373413e` | `modeltask:171c03bc2c3325e3066d6a6bb426e480bc253b60dfcdb7fca3bb64cff8ffbacb` | `run:7b5b9790f45dd11116d0408f99cc4a410f759981c51ba211dda24d9b88080d4d` | `taskrun:1669aba28a20978ab360f75dcb0916f8a75636677e5f5e838c20a5ad540609b8` | `db4ce7ce26d277fd1cdc3420ba661dd5f38c3a1c01c3d039511baafb1a843a93` | `3524f83c4358b805b53f7f9cd91159b1dbdbcef6f0fb36b03aa2bcda46c1a116` | 10,801 | 24,000 | 0.0309602 | not_authorized |
+| 2025 compliance action | `1fff5f9763618e7992ca312eb48e9e1dd063b9d6217599764784ee89d28d08b2` | `modeltask:4eab9a1735bf80b880370758784967628bcf738cb8f6c2274d9ef610104b755` | `run:adfc3fa7428fa84b9086e20d2a9a5cf9c0554c2226be7da9483efa030ce3c24b` | `taskrun:462037f77f9a98e4ac21d87922f140eb7bac32b9830a175ebd2d068265af797a` | `690660f33ef411b7e173146685c0f90b737665b72e681f7682f545ddea1e8afc` | `61bfeb1d56b88e839df2654edde0178b1e15923a5797c983c4609dace64b35aa` | 899 | 24,000 | 0.0289798 | not_authorized |
+
+Aggregate projected maximum for the three substantive bundles is USD
+0.088927.  No substantive bundle has been transmitted.
+
+### Contrasting pressure-case candidates (not acquired)
+
+The next case should be structurally different from the NDIS registration and
+compliance notices.  These are screening candidates only; their source
+availability and subject-specific relevance must be verified before any
+acquisition or authorization:
+
+1. **Environmental Justice Australia** — primary Federal Court/tribunal
+   judgments and appeal material could test proceeding, finding, appeal and
+   party-role scope while distinguishing the charity as litigant/advocate from
+   the subject of an adverse finding.  Preferred candidate if a bounded,
+   subject-relevant decision record can be identified.
+2. **Australian Red Cross Society** — a statutory inquiry or tribunal record,
+   if a subject-specific matter is available, could test investigation versus
+   finding, source-publisher ownership and organisational/network scope.
+3. **A large ACNC-registered charity with a primary ACNC compliance notice and
+   subsequent review/variation record** — candidate to be selected from the
+   governed national backbone only after confirming a distinct review or
+   overturning chronology, rather than another NDIS notice.
+
+No candidate is treated as evidence of misconduct or as selected for execution.
+No source has been acquired for this shortlist.
+
 ## Bounded acceptance questions
 
 1. Can an allegation be represented without becoming a finding?
