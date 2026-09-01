@@ -48,3 +48,29 @@ for node in [STRICT_SCHEMA]:
             elif isinstance(value, list):
                 for child in value: strictify(child)
         strictify(node)
+
+
+class CompactAtomV02(_Strict):
+    proposition: str = Field(min_length=1, max_length=500)
+    scope_kind: Literal["subject", "reporting_group", "named_program_or_service", "other_named_scope", "uncertain"]
+    scope_label: str | None = None
+    effective_from: str | None = None
+    effective_to: str | None = None
+    reporting_period: str | None = None
+    epistemic_status: Literal["supported", "explicit_absence"]
+    evidence: tuple[CompactAtomEvidence, ...]
+    qualifications: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def supporting_evidence_required(self) -> "CompactAtomV02":
+        if not any(ref.role == "supporting" for ref in self.evidence):
+            raise ValueError("compact atoms require supporting evidence")
+        return self
+
+
+class CompactKnowledgeOutputV02(_Strict):
+    atoms: tuple[CompactAtomV02, ...]
+
+
+COMPACT_V02_SCHEMA = CompactKnowledgeOutputV02.model_json_schema()
+strictify(COMPACT_V02_SCHEMA)
