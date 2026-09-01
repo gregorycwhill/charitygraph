@@ -154,15 +154,20 @@ def _release_unused(catalog: SQLiteCatalog, reservation_id: str, now: datetime) 
         catalog.release_cost(reservation_id, {"amount": str(unused), "currency": "AUD"}, now=now, entry_key=f"release:{reservation_id}")
 
 
-def execute(bundle_name: str, *, packet_path: Path, store_root: Path, preflight_path: Path, catalogue_path: Path, authorization_path: Path, runtime_root: Path) -> dict[str, Any]:
+def execute(bundle_name: str, *, packet_path: Path, store_root: Path, preflight_path: Path, catalogue_path: Path, authorization_path: Path, runtime_root: Path, replacement_task_path: Path | None = None) -> dict[str, Any]:
     if bundle_name not in ALLOWED_BUNDLES:
         raise ValueError("only the three explicitly authorised substantive bundles may be executed")
     regenerated = plan_pressure_case(packet_path, store_root)
     report = json.loads(preflight_path.read_text(encoding="utf-8"))
     task = _task_report(report, bundle_name)
     fresh = _task_report(regenerated, bundle_name)
+    if replacement_task_path is not None:
+        replacement = json.loads(replacement_task_path.read_text(encoding="utf-8"))
+        if replacement.get("bundle_sha256") != task["bundle_sha256"] or replacement.get("prompt_sha256") != task["prompt_sha256"] or replacement.get("wire_schema_sha256") != fresh["wire_schema_sha256"]:
+            raise RuntimeError("replacement task does not match frozen bundle, prompt and corrected schema")
+        task = task | {key: replacement[key] for key in ("task_id", "run_id", "task_run_id", "wire_schema_sha256")}
     identity_fields = ("bundle_sha256", "prompt_sha256", "wire_schema_sha256", "evidence_map_sha256", "task_id", "run_id", "task_run_id", "cache_key")
-    if any(task[field] != fresh[field] for field in identity_fields):
+    if replacement_task_path is None and any(task[field] != fresh[field] for field in identity_fields):
         raise RuntimeError("preflighted task identity differs from regenerated frozen bundle")
     bundle = next(item for item in build_pressure_case_bundles(packet_path, store_root) if item["bundle_name"] == bundle_name)
     if bundle["bundle_sha256"] != task["bundle_sha256"]:
@@ -330,8 +335,9 @@ def main() -> int:
     parser.add_argument("--preflight", type=Path, default=Path(r"C:\CharityGraph-runtime\section16-lwb-pressure-case-20260901\bundles-v2\section16-provider-preflight.json"))
     parser.add_argument("--catalogue", type=Path, default=Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3"))
     parser.add_argument("--authorization", type=Path, default=Path(r"C:\CharityGraph-runtime\state\semantic-measurement-authorizations.sqlite3"))
+    parser.add_argument("--replacement-task", type=Path, default=None)
     args = parser.parse_args()
-    print(json.dumps(execute(args.bundle, packet_path=args.packet, store_root=args.store_root, preflight_path=args.preflight, catalogue_path=args.catalogue, authorization_path=args.authorization, runtime_root=args.runtime_root), sort_keys=True))
+    print(json.dumps(execute(args.bundle, packet_path=args.packet, store_root=args.store_root, preflight_path=args.preflight, catalogue_path=args.catalogue, authorization_path=args.authorization, runtime_root=args.runtime_root, replacement_task_path=args.replacement_task), sort_keys=True))
     return 0
 
 
