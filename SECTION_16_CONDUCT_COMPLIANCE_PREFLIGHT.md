@@ -1,7 +1,8 @@
 # Section 16 conduct, adverse matters & compliance — deterministic preflight
 
-**Status:** Phase 3 design/preflight only; no provider execution and no source
-acquisition.  This note is a bounded implementation proposal for human review,
+**Status:** Phase 3 design/preflight only; no Section 16 evidence has been sent
+to a provider.  A single non-sensitive schema acceptance probe is diagnostic
+only, and the bounded source packet is private runtime material.  This note is
 not a claim that Section 16 is complete.
 
 **Authority basis:** the merged Data North Star, roadmap and implementation
