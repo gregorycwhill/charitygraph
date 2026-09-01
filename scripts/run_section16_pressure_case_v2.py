@@ -271,7 +271,7 @@ def execute(bundle_name: str, *, packet_path: Path, store_root: Path, preflight_
             if response.status != "completed":
                 raise ValueError(f"provider response status is {response.status!r}")
             wire = ConductComplianceWireOutput.model_validate_json(response.output_text)
-            output = wire_to_domain(wire, allowed_scope_ids={SUBJECT_ID}, evidence_key_map=runtime_evidence_map)
+            output = wire_to_domain(wire, allowed_scope_ids={SUBJECT_ID}, evidence_key_map=runtime_evidence_map, observed_at=now)
         except Exception as exc:
             errors.append(str(exc)[:512])
         response_hash = _sha(response.output_text.encode())

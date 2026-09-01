@@ -37,7 +37,7 @@ def proposition(**updates):
         "scope_id": SUBJECT,
         "owner": {"kind": "source_publisher"},
         "statement": "The regulator published an enforcement action.",
-        "temporal": {"observed_at": NOW.isoformat(), "effective_from": "2020-09-21", "effective_to": "2020-10-01"},
+        "temporal": {"effective_from": "2020-09-21", "effective_to": "2020-10-01"},
         "evidence": (ref(),),
     }
     value.update(updates)
@@ -73,25 +73,29 @@ def test_nonempty_proposition_requires_supporting_evidence():
 
 
 def test_temporal_strings_convert_and_invalid_syntax_fails_closed():
-    domain = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(),)))
+    domain = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(),)), observed_at=NOW)
     assert domain.propositions[0].observation_time.effective_from.isoformat() == "2020-09-21"
     with pytest.raises(ValueError, match="invalid effective_from"):
-        conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(temporal={"observed_at": NOW.isoformat(), "effective_from": "not-a-date"}),)))
+        conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(temporal={"effective_from": "not-a-date"}),)), observed_at=NOW)
+    with pytest.raises(ValueError, match="Builder observation timestamp"):
+        conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(),)))
+    temporal_schema = wire_schema()["$defs"]["ConductComplianceWireTemporal"]
+    assert "observed_at" not in temporal_schema["properties"]
 
 
 def test_scope_and_evidence_are_exact_task_bindings():
     wire = ConductComplianceWireOutput(propositions=(proposition(),))
-    assert conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_key_map={"E000001": LOCATOR}).propositions
+    assert conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_key_map={"E000001": LOCATOR}, observed_at=NOW).propositions
     with pytest.raises(ValueError, match="scope_id"):
-        conduct_wire_to_domain(wire, allowed_scope_ids={"subject:" + "b" * 32}, evidence_key_map={"E000001": LOCATOR})
+        conduct_wire_to_domain(wire, allowed_scope_ids={"subject:" + "b" * 32}, evidence_key_map={"E000001": LOCATOR}, observed_at=NOW)
     with pytest.raises(ValueError, match="evidence key"):
-        conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_key_map={"E000002": "[S001:L0002]"})
+        conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_key_map={"E000002": "[S001:L0002]"}, observed_at=NOW)
     with pytest.raises(ValueError, match="evidence key map"):
-        conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_key_map={"E000001": LOCATOR, "E000002": LOCATOR})
+        conduct_wire_to_domain(wire, allowed_scope_ids={SUBJECT}, evidence_key_map={"E000001": LOCATOR, "E000002": LOCATOR}, observed_at=NOW)
 
 
 def test_projection_preserves_owner_status_and_existing_observation_shape():
-    domain = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(owner={"kind": "target_subject"}),)))
+    domain = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(owner={"kind": "target_subject"}),)), observed_at=NOW)
     observation = conduct_project_observation(
         domain.propositions[0], record_id="observation:" + "b" * 32, subject_id=SUBJECT,
         source_record_ids=("srcrec:" + "c" * 32,), created_at=NOW,
@@ -103,11 +107,11 @@ def test_projection_preserves_owner_status_and_existing_observation_shape():
 
 
 def test_review_flags_are_structural_not_phrase_heuristics():
-    allegation = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(proposition_class="allegation", procedural_status="pending"),))).propositions[0]
+    allegation = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(proposition_class="allegation", procedural_status="pending"),)), observed_at=NOW).propositions[0]
     assert "allegation_without_formal_finding" in conduct_review_flags(allegation)
-    varied = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(procedural_status="varied"),))).propositions[0]
+    varied = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(procedural_status="varied"),)), observed_at=NOW).propositions[0]
     assert "status_varied" in conduct_review_flags(varied)
-    unknown_owner = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(owner={"kind": "unknown"}),))).propositions[0]
+    unknown_owner = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(proposition(owner={"kind": "unknown"}),)), observed_at=NOW).propositions[0]
     assert "proposition_owner_ambiguous" in conduct_review_flags(unknown_owner)
 
 
@@ -130,7 +134,7 @@ def test_provider_owner_shapes_round_trip_to_domain_without_flat_label_leakage()
     ]
     for owner in owners:
         item = proposition(owner=owner)
-        domain = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(item,)))
+        domain = conduct_wire_to_domain(ConductComplianceWireOutput(propositions=(item,)), observed_at=NOW)
         assert domain.propositions[0].proposition_owner_kind == owner["kind"]
         assert domain.propositions[0].proposition_owner_label == owner.get("label")
 
@@ -151,3 +155,14 @@ def test_historical_owner_recovery_removes_only_redundant_inapplicable_label():
     assert wire.propositions[0].owner.kind == "source_publisher"
     assert diagnostics["removed_owner_labels"][0]["redundant_label"] == "redundant"
     assert wire.propositions[0].statement == "The regulator published an enforcement action."
+
+
+def test_historical_recovery_removes_null_observed_at_and_injects_builder_time():
+    raw_item = proposition().model_dump(mode="json")
+    raw_item.pop("owner")
+    raw_item.update({"proposition_owner_kind": "source_publisher", "proposition_owner_label": "redundant"})
+    raw_item["temporal"]["observed_at"] = None
+    from charitygraph.section16_recovery import recover_historical_domain
+    output, diagnostics = recover_historical_domain({"propositions": [raw_item]}, observed_at=NOW)
+    assert output.propositions[0].observation_time.observed_at == NOW
+    assert diagnostics["removed_owner_labels"][0]["removed_temporal_observed_at"] is True

@@ -63,7 +63,6 @@ ConductWireOwner = Annotated[
 class ConductComplianceWireTemporal(StrictModel):
     effective_from: StrictStr | None = None
     effective_to: StrictStr | None = None
-    observed_at: StrictStr | None = None
     reporting_period: StrictStr | None = None
 
 
@@ -146,7 +145,7 @@ class ConductComplianceSemanticOutput(StrictModel):
     propositions: tuple[ConductComplianceSemanticProposition, ...] = ()
 
 
-def _parse_temporal(value: ConductComplianceWireTemporal | None) -> ObservationTime | None:
+def _parse_temporal(value: ConductComplianceWireTemporal | None, *, observed_at: datetime | date | str | None) -> ObservationTime | None:
     if value is None:
         return None
 
@@ -158,14 +157,14 @@ def _parse_temporal(value: ConductComplianceWireTemporal | None) -> ObservationT
         except ValueError as exc:
             raise ValueError(f"invalid {field} temporal value") from exc
 
-    observed_at = parse(value.observed_at, "observed_at")
     if observed_at is None:
-        raise ValueError("temporal.observed_at is required when temporal is supplied")
+        raise ValueError("Builder observation timestamp is required when temporal is supplied")
+    observed_value = parse(observed_at, "observed_at") if isinstance(observed_at, str) else observed_at
     return ObservationTime(
         effective_from=parse(value.effective_from, "effective_from"),
         effective_to=parse(value.effective_to, "effective_to"),
         reporting_period=value.reporting_period,
-        observed_at=observed_at,
+        observed_at=observed_value,
     )
 
 
@@ -174,6 +173,7 @@ def wire_to_domain(
     *,
     allowed_scope_ids: set[str] | None = None,
     evidence_key_map: Mapping[str, str] | None = None,
+    observed_at: datetime | date | str | None = None,
 ) -> ConductComplianceSemanticOutput:
     """Convert a validated wire response using only exact task bindings."""
     if allowed_scope_ids is not None and not allowed_scope_ids:
@@ -197,7 +197,7 @@ def wire_to_domain(
                 proposition_owner_label=getattr(item.owner, "label", None),
                 statement=item.statement,
                 qualification=item.qualification,
-                observation_time=_parse_temporal(item.temporal),
+                observation_time=_parse_temporal(item.temporal, observed_at=observed_at),
                 evidence=tuple(DirectServiceEvidenceRef(locator=evidence_key_map[ref.evidence_key] if evidence_key_map is not None else ref.evidence_key, role=ref.role) for ref in item.evidence),
             )
         )
