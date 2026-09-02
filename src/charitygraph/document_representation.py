@@ -20,9 +20,9 @@ class _TextParser(HTMLParser):
     def __init__(self):
         super().__init__(); self.parts=[]; self.skip=0
     def handle_starttag(self, tag, attrs):
-        if tag.lower() in {"script","style","noscript","template"}: self.skip += 1
+        if tag.lower() in {"script","style","noscript","template","nav","footer"}: self.skip += 1
     def handle_endtag(self, tag):
-        if tag.lower() in {"script","style","noscript","template"} and self.skip: self.skip -= 1
+        if tag.lower() in {"script","style","noscript","template","nav","footer"} and self.skip: self.skip -= 1
     def handle_data(self, data):
         if not self.skip and data.strip(): self.parts.append(data.strip())
 
