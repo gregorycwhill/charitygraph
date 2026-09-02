@@ -41,6 +41,13 @@ def represent_document(raw: bytes, *, content_type: str | None = None) -> Docume
             return DocumentRepresentation("pdf", "none", "", raw_sha, hashlib.sha256(b"").hexdigest(), "pdfplumber", False, f"pdf_extraction_failed:{type(exc).__name__}")
         material = "pdf"
     else:
-        parser = _TextParser(); parser.feed(raw.decode("utf-8", errors="replace")); text = "\n".join(parser.parts); method = "html_parser"; material = "html"
+        ctype_ok = ctype in {"text/html", "application/xhtml+xml", "text/plain", "text/markdown", "application/json"}
+        markup = b"<html" in raw[:4096].lower() or b"<!doctype html" in raw[:4096].lower()
+        if not (ctype_ok or markup):
+            return DocumentRepresentation("unknown", "none", "", raw_sha, hashlib.sha256(b"").hexdigest(), "none", False, "unsupported_binary_or_content_type")
+        if ctype in {"text/plain", "text/markdown", "application/json"} and not markup:
+            text = raw.decode("utf-8", errors="strict"); method = "text_utf8"; material = "text"
+        else:
+            parser = _TextParser(); parser.feed(raw.decode("utf-8", errors="strict")); text = "\n".join(parser.parts); method = "html_parser"; material = "html"
     rep_sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
     return DocumentRepresentation(material, "readable_text", text, raw_sha, rep_sha, method, True)
