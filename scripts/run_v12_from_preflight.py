@@ -11,14 +11,25 @@ ROOT=Path(r"C:\CharityGraph-runtime\broad-compact-diagnostic-v12")
 CP="Extract all evidence-supported Compact Knowledge v0.2 atoms about the declared target. Scope fields are producer hints only. Use exact dates only when supported; use reporting_period for coarse periods. Cite packet-local locators."
 RP="Resolve scope independently using only the declared target, proposition and exact evidence excerpts. Do not use producer scope hints. Generic organisation facts/categories are subject; named_program_or_service requires one specifically named instance; other_named_scope requires one named subordinate thing; reporting_group requires formal evidence; otherwise uncertain. Return one indexed decision per atom."
 def main():
- pre=json.loads((ROOT/"acquisition-preflight.json").read_text(encoding="utf-8")); entries=[]
- for row in pre["rows"]:
-  for a in row.get("artifacts",[]):
-   if a.get("complete") and a.get("raw_path"): entries.append((row,a))
+ persisted=ROOT/"persisted-representation-manifest.json"
+ if persisted.exists():
+  entries=[]
+  for m in json.loads(persisted.read_text(encoding="utf-8"))["representations"]:
+   d=json.loads(Path(m["representation_path"]).read_text(encoding="utf-8")); entries.append(({"target":d["target"],"publisher":d["publisher"],"source_relation":d["source_relation"],"material_role":d["material_role"],"requested_url":d.get("original_url")},{"raw_path":d["raw_path"],"raw_sha256":d["raw_sha256"],"representation_sha256":d["representation_sha256"],"content_type":"application/pdf" if d["material_type"]=="pdf" else "text/html","persisted_path":m["representation_path"]}))
+ else:
+  pre=json.loads((ROOT/"acquisition-preflight.json").read_text(encoding="utf-8")); entries=[]
+ if not persisted.exists():
+  for row in pre["rows"]:
+   for a in row.get("artifacts",[]):
+    if a.get("complete") and a.get("raw_path"): entries.append((row,a))
  # material diversity: split each represented body into coherent line chunks, cap 100 packets
  packets=[]
  for row,a in entries:
-  raw=Path(a["raw_path"]).read_bytes(); rep=represent_document(raw,content_type=a.get("content_type")); lines=[x for x in rep.text.splitlines() if x.strip()]; step=max(1,min(80,len(lines)//4 or 1))
+  if a.get("persisted_path"):
+   pd=json.loads(Path(a["persisted_path"]).read_text(encoding="utf-8")); lines=[x for x in pd["text"].splitlines() if x.strip()]; rep=type("Persisted",(),{"representation_sha256":pd["representation_sha256"]})()
+  else:
+   raw=Path(a["raw_path"]).read_bytes(); rep=represent_document(raw,content_type=a.get("content_type")); lines=[x for x in rep.text.splitlines() if x.strip()]
+  step=max(1,min(80,len(lines)//4 or 1))
   for start in range(0,len(lines),step):
    packets.append((row,a,rep,lines[start:start+step],start))
  packets=packets[:100]; summary={"campaign":"broad-compact-diagnostic-v12","source_manifest":"acquisition-preflight.json","packets":[],"atoms":[]}; total=0.0
