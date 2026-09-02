@@ -9,9 +9,9 @@ from charitygraph.scope_resolution_contract import ScopeResolutionOutput,SCOPE_R
 from charitygraph.scope_resolution import resolve_scope
 from charitygraph.openai_client import responses_create,estimate_response_cost
 
-ROOT=Path(r"C:\CharityGraph-runtime\broad-compact-diagnostic-v11")
-RAW=Path(r"C:\CharityGraph-runtime\prospective-replicates-20260828\evidence-raw")
-NAMES={"40656129127":"Oh-Rule Family Philanthropy Ltd","47002684737":"Children's Medical Research Institute","54563288318":"Australian Red Cross Society","61002643852":"Greenpeace Australia Pacific Limited","87931078265":"Sadaqa Welfare Fund Incorporated","15286324686":"World Vision Australia","17686524625":"Australian Conservation Foundation","31620202244":"Reconciliation Council of Tasmania Limited","33001882337":"Australian Communities Foundation","39367906920":"Fred Hollows Foundation","59962540635":"The Perth Diocesan Trustees","56006580883":"Life Without Barriers","13648619587":"Indigenous Literacy Foundation","86786702673":"Mission Australia","62102736502":"Landscape Recovery Foundation","28000030179":"The Smith Family"}
+ROOT=Path(r"C:\CharityGraph-runtime\broad-compact-diagnostic-v12")
+RAW=Path(r"C:\CharityGraph-runtime\prospective-replicates-20260828\evidence-freeze-v1\raw")
+NAMES={"28000030179":"The Smith Family","50169561394":"Australian Red Cross Society","67649417658":"Landscape Recovery Foundation Ltd.","45146631843":"Indigenous Literacy Foundation Ltd.","20077830347":"Australian Communities Foundation Limited","22007498482":"Australian Conservation Foundation Incorporated","15000002522":"Mission Australia","15101252171":"Life Without Barriers","28004778081":"World Vision Australia","46070556642":"The Fred Hollows Foundation"}
 COMPACT_PROMPT="""Extract all evidence-supported Compact Knowledge v0.2 atoms about the declared target. Keep scope fields as producer hints only. Use exact dates only when supported; use reporting_period for coarser periods. Preserve source relationships and explicit absence. Cite packet-local evidence locators."""
 RESOLVE_PROMPT="""Resolve scope independently. Do not use producer scope hints. Use only the declared target, proposition and exact evidence excerpts. Generic organisation facts/categories are subject; a named program/service requires a specifically named instance; other_named_scope requires a named subordinate entity; reporting_group requires formal evidence; otherwise uncertain. Return indexed evidence references only."""
 def main():
@@ -20,7 +20,7 @@ def main():
         for f in sorted((RAW/abn).iterdir()):
             if f.suffix.lower() in {".html",".pdf"}: files.append((abn,f))
     # broad, multi-charity, multi-material sample
-    files=files[:24]
+    files=files
     summary={"campaign":"broad-compact-diagnostic-v11","acquisition_attempts":len(files),"acquisition_successes":len(files),"acquisition_failures":[],"representations":[],"chunks":[],"compact":[],"resolver":[],"atoms":[]}; total=0.0
     for idx,(abn,raw_path) in enumerate(files,1):
         raw=raw_path.read_bytes(); raw_sha=hashlib.sha256(raw).hexdigest(); ctype="application/pdf" if raw.startswith(b"%PDF-") or raw_path.suffix.lower()==".pdf" else "text/html"; rep=represent_document(raw,content_type=ctype)
