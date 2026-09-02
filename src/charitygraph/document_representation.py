@@ -14,6 +14,7 @@ class DocumentRepresentation:
     method: str
     complete: bool
     gap: str | None = None
+    units: tuple[dict, ...] = ()
 
 class _TextParser(HTMLParser):
     def __init__(self):
@@ -35,11 +36,11 @@ def represent_document(raw: bytes, *, content_type: str | None = None) -> Docume
                 pages = [p.extract_text() or "" for p in pdf.pages]
             text = "\n\n".join(p for p in pages if p.strip())
             if not text.strip():
-                return DocumentRepresentation("pdf", "pdf_text", "", raw_sha, hashlib.sha256(b"").hexdigest(), "pdfplumber", False, "image_only_or_scanned")
+                return DocumentRepresentation("pdf", "pdf_text", "", raw_sha, hashlib.sha256(b"").hexdigest(), "pdfplumber", False, "image_only_or_scanned", tuple({"kind":"page","page":i+1,"text":t} for i,t in enumerate(pages)))
             method = "pdfplumber"
         except Exception as exc:
             return DocumentRepresentation("pdf", "none", "", raw_sha, hashlib.sha256(b"").hexdigest(), "pdfplumber", False, f"pdf_extraction_failed:{type(exc).__name__}")
-        material = "pdf"
+        material = "pdf"; units=tuple({"kind":"page","page":i+1,"text":t} for i,t in enumerate(pages))
     else:
         ctype_ok = ctype in {"text/html", "application/xhtml+xml", "text/plain", "text/markdown", "application/json"}
         markup = b"<html" in raw[:4096].lower() or b"<!doctype html" in raw[:4096].lower()
@@ -55,4 +56,6 @@ def represent_document(raw: bytes, *, content_type: str | None = None) -> Docume
         else:
             parser = _TextParser(); parser.feed(raw.decode("utf-8", errors="strict")); text = "\n".join(parser.parts); method = "html_parser"; material = "html"
     rep_sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
-    return DocumentRepresentation(material, "readable_text", text, raw_sha, rep_sha, method, True)
+    if material == "html": units=tuple({"kind":"line","line":i+1,"text":line} for i,line in enumerate(text.splitlines()) if line)
+    elif material == "text": units=tuple({"kind":"line","line":i+1,"text":line} for i,line in enumerate(text.splitlines()) if line)
+    return DocumentRepresentation(material, "readable_text", text, raw_sha, rep_sha, method, True, None, units)
