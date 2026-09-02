@@ -43,6 +43,9 @@ def recover(root: Path) -> dict:
         sample_dir = root / f"{int(row['sample']):02d}-{row['abn']}-{row['source_family']}"
         raw_path = sample_dir / "raw-response.json"
         item = dict(row)
+        historical_state = {k: item.pop(k) for k in ("schema_valid", "temporal_valid", "validation_error", "evidence_valid", "persistence") if k in item}
+        if historical_state:
+            item["historical_aggregate_state"] = historical_state
         item["stages"] = {}
         atoms = []
         try:
@@ -76,7 +79,11 @@ def recover(root: Path) -> dict:
             # authoritatively validate historical references, even if its bytes
             # hash-match the campaign row.
             authoritative = bool(source_map) and bool(locator_map)
-            item["evidence_invalid"] = invalid
+            item.pop("evidence_invalid", None)
+            if invalid and authoritative:
+                item["invalid_evidence_refs"] = invalid
+            elif invalid:
+                item["unvalidated_evidence_refs"] = invalid
             item["evidence_validation"] = "passed" if authoritative and not invalid else ("unavailable_historical_packet" if not authoritative else "failed")
             item["stages"]["evidence_references"] = authoritative and not invalid
         else:
@@ -89,7 +96,7 @@ def recover(root: Path) -> dict:
     all_atoms = [a for s in samples for a in s["atoms"]]
     out = {"campaign": root.name, "historical_aggregate_oracle": aggregate.get("total_atoms"), "samples": samples, "total_atoms": len(all_atoms), "stage_counts": {k: sum(bool(s["stages"].get(k)) for s in samples) for k in ["provider_completion","response_extraction","json_schema","temporal","evidence_references"]}, "atoms": all_atoms}
     (root / "aggregate-review-salvaged.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    summary = {"campaign": root.name, "samples": len(samples), "recovered_atoms": len(all_atoms), "stage_counts": out["stage_counts"], "evidence_invalid_samples": sum(bool(s["evidence_invalid"]) for s in samples), "historical_packet_matches": sum(bool(s["historical_packet_match"]) for s in samples)}
+    summary = {"campaign": root.name, "samples": len(samples), "recovered_atoms": len(all_atoms), "stage_counts": out["stage_counts"], "invalid_evidence_samples": sum(bool(s.get("invalid_evidence_refs")) for s in samples), "unvalidated_evidence_samples": sum(bool(s.get("unvalidated_evidence_refs")) for s in samples), "historical_packet_matches": sum(bool(s["historical_packet_match"]) for s in samples)}
     (root / "campaign-summary-salvaged.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return out
 
