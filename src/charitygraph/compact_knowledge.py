@@ -54,8 +54,8 @@ class CompactAtomV02(_Strict):
     proposition: str = Field(min_length=1, max_length=500)
     scope_kind: Literal["subject", "reporting_group", "named_program_or_service", "other_named_scope", "uncertain"]
     scope_label: str | None = None
-    effective_from: str | None = None
-    effective_to: str | None = None
+    effective_from: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    effective_to: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
     reporting_period: str | None = None
     epistemic_status: Literal["supported", "explicit_absence"]
     evidence: tuple[CompactAtomEvidence, ...]
@@ -65,6 +65,14 @@ class CompactAtomV02(_Strict):
     def supporting_evidence_required(self) -> "CompactAtomV02":
         if not any(ref.role == "supporting" for ref in self.evidence):
             raise ValueError("compact atoms require supporting evidence")
+        from datetime import date
+        for field in ("effective_from", "effective_to"):
+            value = getattr(self, field)
+            if value is not None:
+                try:
+                    date.fromisoformat(value)
+                except ValueError as exc:
+                    raise ValueError(f"{field} must be an ISO calendar date") from exc
         return self
 
 

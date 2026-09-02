@@ -28,7 +28,7 @@ def test_v02_temporal_forms_and_scopes_map_to_existing_observation():
 
 
 def test_malformed_iso_temporal_value_is_rejected_without_repair():
-    with pytest.raises(ValueError, match="ISO date"):
+    with pytest.raises(ValueError):
         adapt_compact_v02({"atoms": [atom(effective_from="2013-12-31 onward")]}, subject_id=SUBJECT, observed_at=WHEN, model_result_id="modelresult:" + "d" * 32, task_id="modeltask:" + "e" * 32, evidence_locator_map=MAP, source_record_map=SRC)
 
 
@@ -44,3 +44,10 @@ def test_evidence_and_lineage_are_preserved_and_replay_is_deterministic():
 def test_v02_schema_has_temporal_fields():
     props = COMPACT_V02_SCHEMA["$defs"]["CompactAtomV02"]["properties"]
     assert set(("effective_from", "effective_to", "reporting_period")) <= set(props)
+
+def test_v02_schema_enforces_exact_calendar_dates_but_periods_remain_coarse():
+    CompactKnowledgeOutputV02(atoms=(atom(effective_from="2020-11-30"), atom(reporting_period="2020"), atom(reporting_period="2020-11")))
+    for value in ("2020", "2020-11", "2020-02-31", "2020-11-30 onward"):
+        with pytest.raises(ValueError):
+            CompactKnowledgeOutputV02(atoms=(atom(effective_from=value),))
+    assert "pattern" in COMPACT_V02_SCHEMA["$defs"]["CompactAtomV02"]["properties"]["effective_from"]["anyOf"][0]

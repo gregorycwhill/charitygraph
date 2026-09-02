@@ -11,7 +11,7 @@ from charitygraph.contracts.source import EvidenceLocator
 from run_complete_card_sharded_v01 import _packet_for
 from run_compact_knowledge_slice_v01 import modest
 
-PROMPT="""Extract all evidence-supported CharityGraph knowledge atoms from this packet. Return only JSON with an atoms array. Each atom must contain one concise proposition, scope_kind and optional scope_label, effective_from/effective_to as ISO dates or null, reporting_period or null, epistemic_status, packet-local evidence locators and qualifications. Do not use North-Star sections, taxonomies, card completeness, opaque IDs or outside knowledge. Sparse output is correct."""
+PROMPT="""Extract all evidence-supported CharityGraph knowledge atoms from this packet. Return only JSON with an atoms array. Each atom must contain one concise proposition, scope_kind and optional scope_label, effective_from/effective_to only as exact ISO calendar dates (YYYY-MM-DD) when supported, reporting_period for coarser year/month/period descriptions, epistemic_status, packet-local evidence locators and qualifications. Never manufacture day or month precision. Do not use North-Star sections, taxonomies, card completeness, opaque IDs or outside knowledge. Sparse output is correct."""
 ROOT=Path(r"C:\CharityGraph-runtime\compact-e2e-v02")
 DB=Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3")
 
