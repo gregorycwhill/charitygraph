@@ -9,7 +9,17 @@ class ScopeDecision(BaseModel):
     resolved_scope_kind: Literal["subject", "named_program_or_service", "other_named_scope", "reporting_group", "uncertain"]
     resolved_scope_label: str | None = None
     scope_status: Literal["resolved", "uncertain"]
-    evidence_refs: tuple[str, ...] = ()
+    supporting_evidence_indices: tuple[int, ...] = ()
+
+    @classmethod
+    def validate_for_atom(cls, decision: "ScopeDecision", evidence_count: int) -> "ScopeDecision":
+        if any(i < 0 or i >= evidence_count for i in decision.supporting_evidence_indices):
+            raise ValueError("supporting_evidence_indices out of range")
+        if decision.resolved_scope_kind in {"subject", "uncertain"} and decision.resolved_scope_label is not None:
+            raise ValueError("subject and uncertain scopes must not carry labels")
+        if decision.resolved_scope_kind not in {"subject", "uncertain"} and not decision.resolved_scope_label:
+            raise ValueError("lower scopes require a label")
+        return decision
 
 class ScopeResolutionOutput(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)

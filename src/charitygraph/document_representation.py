@@ -45,8 +45,13 @@ def represent_document(raw: bytes, *, content_type: str | None = None) -> Docume
         markup = b"<html" in raw[:4096].lower() or b"<!doctype html" in raw[:4096].lower()
         if not (ctype_ok or markup):
             return DocumentRepresentation("unknown", "none", "", raw_sha, hashlib.sha256(b"").hexdigest(), "none", False, "unsupported_binary_or_content_type")
-        if ctype in {"text/plain", "text/markdown", "application/json"} and not markup:
-            text = raw.decode("utf-8", errors="strict"); method = "text_utf8"; material = "text"
+        if ctype == "application/json":
+            return DocumentRepresentation("json", "none", "", raw_sha, hashlib.sha256(b"").hexdigest(), "none", False, "structured_json_not_prose")
+        if ctype in {"text/plain", "text/markdown"} and not markup:
+            text = raw.decode("utf-8", errors="strict")
+            if any(ord(ch) < 9 or (13 < ord(ch) < 32) for ch in text):
+                return DocumentRepresentation("text", "none", "", raw_sha, hashlib.sha256(b"").hexdigest(), "text_utf8", False, "binary_control_content")
+            method = "text_utf8"; material = "text"
         else:
             parser = _TextParser(); parser.feed(raw.decode("utf-8", errors="strict")); text = "\n".join(parser.parts); method = "html_parser"; material = "html"
     rep_sha = hashlib.sha256(text.encode("utf-8")).hexdigest()

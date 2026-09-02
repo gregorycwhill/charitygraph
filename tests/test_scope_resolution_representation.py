@@ -24,3 +24,7 @@ def test_pdf_uses_text_layer_path_and_reports_gap_when_scanned():
     r = represent_document(buf.getvalue(), content_type="application/pdf")
     assert r.material_type == "pdf" and r.method == "pdfplumber"
     assert (r.complete and r.representation_type == "readable_text") or r.gap
+
+def test_json_is_not_semantic_prose():
+    r = represent_document(b'{"value": 1}', content_type="application/json")
+    assert not r.complete and r.gap == "structured_json_not_prose"
