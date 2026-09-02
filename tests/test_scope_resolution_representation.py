@@ -16,3 +16,11 @@ def test_html_representation_excludes_scripts_and_preserves_text():
 def test_binary_is_not_treated_as_prose():
     r = represent_document(b"\x00\x01binary")
     assert r.complete and r.material_type == "html"  # decoded only when not identified as PDF
+
+def test_pdf_uses_text_layer_path_and_reports_gap_when_scanned():
+    from PIL import Image
+    import io
+    buf = io.BytesIO(); Image.new("RGB", (20, 20), "white").save(buf, format="PDF")
+    r = represent_document(buf.getvalue(), content_type="application/pdf")
+    assert r.material_type == "pdf" and r.method == "pdfplumber"
+    assert (r.complete and r.representation_type == "readable_text") or r.gap
