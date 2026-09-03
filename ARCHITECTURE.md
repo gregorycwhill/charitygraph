@@ -434,4 +434,10 @@ After the bounded knowledge-primitives tranche, the next implementation task is 
 
 Builder is Python-controlled and LLM-powered: LLMs are the routine semantic engine for unrestricted prose relevance, entity/program/service interpretation, extraction, classification, ambiguity and bounded rationale. Python may acquire, parse stable structure, assemble/select evidence, join, validate, schedule, account and compile releases; it must not teach Python English through deterministic lexical interpretation.
 
+**BUILDER DOESN'T DO DISCOVERY.** Central sourcing defines the governed
+evidence universe; Builder processes that approved universe and specialist
+sections do not add sources because evidence is sparse. Persisted reusable
+representations are the normal semantic input; raw-document parsing is not an
+escape hatch.
+
 Before coding any unrestricted natural-language semantic rule, ask: **Does this diff teach Python English?** If yes, stop unless the exact exception has a registered Greg-approved CG-SH-* entry in the sibling Data repository's SEMANTIC_HEURISTIC_APPROVALS.md. Mechanical parsing remains permitted only for stable syntax, IDs, URLs, dates, numbers, formats, markup, exact source-native structured fields, schema validation, arithmetic and joins.
