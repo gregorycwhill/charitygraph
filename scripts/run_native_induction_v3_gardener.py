@@ -205,9 +205,27 @@ def apply_operations(catalogue: dict[str, dict[str, Any]], operations: list[dict
                             reason = "impossible_successor_support_observation_id"; break
                         trial[spec_id] = normalise_concept(spec, lineage=[{"stage": stage, "action": action, "predecessors": preds}], active=True)
                 if reason is None:
-                    for p in preds:
+                    retired = [p for p in preds if not (action == "merge" and p in succs)]
+                    for p in retired:
                         trial[p]["active"] = False; trial[p]["deprecated_by"] = succs
+                    # A merge with one declared successor has an exact mechanical
+                    # parent replacement for direct children.  A split has no such
+                    # allocation unless the model states it, so it is quarantined
+                    # rather than guessed when children would be orphaned.
+                    children = [cid for cid, item in trial.items() if item.get("active") and item.get("parent_concept_id") in retired]
+                    if children and action == "merge" and len(succs) == 1:
+                        for child in children: trial[child]["parent_concept_id"] = succs[0]
+                    elif children:
+                        reason = "retirement_would_orphan_children_without_explicit_parent_allocation"
             elif action == "deprecate":
+                children = [cid for cid, item in trial.items() if item.get("active") and item.get("parent_concept_id") in preds]
+                if children and len(succs) != 1:
+                    reason = "retirement_would_orphan_children_without_single_successor"
+                elif children and (succs[0] not in trial or not trial[succs[0]].get("active")):
+                    reason = "unknown_deprecation_successor"
+                elif children:
+                    for child in children: trial[child]["parent_concept_id"] = succs[0]
+            if reason is None and action == "deprecate":
                 for p in preds:
                     trial[p]["active"] = False; trial[p]["deprecated_by"] = succs
             if reason is None and has_parent_cycle(trial): reason = "parent_cycle"
@@ -252,12 +270,19 @@ def validate_attachments(output: dict[str, Any], batch: list[dict[str, Any]], ca
 
 
 class Lab:
-    def __init__(self) -> None:
+    def __init__(self, replay_raw_root: Path | None = None) -> None:
+        self.replay_raw_root=replay_raw_root
         self.calls: list[dict[str, Any]]=[]; self.actual=Decimal("0"); self.quarantines: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
     def call(self, label: str, *, model: str, reasoning: dict[str, Any], prompt: str, payload: dict[str, Any], schema: dict[str, Any]) -> dict[str, Any] | None:
         errs = strict_schema_errors(schema)
         if errs: raise RuntimeError(f"invalid local strict schema: {errs}")
+        if self.replay_raw_root is not None:
+            saved=json.loads((self.replay_raw_root/f"{label}.json").read_text(encoding="utf-8")); metadata=saved["metadata"]
+            self.actual += Decimal(metadata.get("cost_usd") or "0"); self.calls.append(metadata)
+            if metadata.get("status") != "completed": self.quarantines["calls"].append({"label":label,"reason":"noncompleted_response"}); return None
+            try: return json.loads(saved["output_text"])
+            except (json.JSONDecodeError, TypeError): self.quarantines["calls"].append({"label":label,"reason":"malformed_json"}); return None
         started=time.perf_counter(); text=prompt+"\nINPUT:\n"+json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         metadata: dict[str, Any] = {"label": label, "model": model, "reasoning": reasoning["effort"], "max_output_tokens": MAX_OUTPUT, "transport_attempts": 0}
         try:
@@ -350,18 +375,21 @@ def discovery_challenge(lab: Lab, work: list[dict[str, Any]], l: dict[str, Any],
     write(ROOT/"auxiliary-discovery.json",result); return result
 
 
-def main() -> None:
+def main(*, replay: bool = False) -> None:
+    global ROOT
+    original_root=ROOT
+    if replay: ROOT=original_root/"offline-replay-v1"
     errors = {name:strict_schema_errors(schema) for name,schema in {"tend":TEND_SCHEMA,"attach":ATTACH_SCHEMA,"discovery":DISC_SCHEMA}.items()}
     if any(errors.values()): raise SystemExit(f"strict schema shape errors: {errors}")
     base,work,hold,allobs=load_base(); ROOT.mkdir(parents=True,exist_ok=True)
     base_rows=list(base.values()); base_hash=sha_json(base_rows); write(ROOT/"native-v3-base-93.json",{"catalogue":base_rows,"count":len(base_rows),"sha256":base_hash,"v2_catalogue_sha256":sha_json(json.loads((V2_ROOT/'catalogue.json').read_text(encoding='utf-8')))})
     write(ROOT/"partition.json",{"salt":SALT,"rule":"sha256(salt + observation_id) mod 10 < 2","workshop_count":len(work),"holdout_count":len(hold),"workshop_ids":[x['observation_id'] for x in work],"holdout_ids":[x['observation_id'] for x in hold]})
-    lab=Lab(); l=run_arm(lab,"L",base,work,hold,allobs)
+    lab=Lab(original_root/"raw" if replay else None); l=run_arm(lab,"L",base,work,hold,allobs)
     if lab.actual >= CAP_USD: raise SystemExit(f"actual spend ceiling reached after Arm L: {lab.actual}")
     t=run_arm(lab,"T",base,work,hold,allobs)
     if lab.actual < CAP_USD: aux=discovery_challenge(lab,work,l,t)
     else: aux=[]; lab.quarantines["calls"].append({"reason":"budget_ceiling_before_auxiliary"})
-    summary={"experiment_id":EXPERIMENT,"base_catalogue_count":len(base),"base_catalogue_hash":base_hash,"workshop_count":len(work),"holdout_count":len(hold),"calls":lab.calls,"actual_cost_usd":str(lab.actual),"L":l,"T":t,"auxiliary":aux,"quarantines":dict(lab.quarantines),"provider_calls_expected":58,"provider_calls_recorded":len(lab.calls),"production_persistence":False}
+    summary={"experiment_id":EXPERIMENT,"base_catalogue_count":len(base),"base_catalogue_hash":base_hash,"workshop_count":len(work),"holdout_count":len(hold),"calls":lab.calls,"actual_cost_usd":str(lab.actual),"L":l,"T":t,"auxiliary":aux,"quarantines":dict(lab.quarantines),"provider_calls_expected":58,"provider_calls_recorded":len(lab.calls),"production_persistence":False,"offline_replay":replay}
     write(ROOT/"summary.json",summary); print(json.dumps({"experiment_id":EXPERIMENT,"calls":len(lab.calls),"actual_cost_usd":str(lab.actual)},indent=2))
 
 
@@ -390,7 +418,8 @@ def integrity(catalogue: list[dict[str, Any]], attachments: list[dict[str, Any]]
 
 def export_public() -> None:
     """Derive review material only; never copy raw provider traffic or source text."""
-    summary=json.loads((ROOT/"summary.json").read_text(encoding="utf-8")); base, work, hold, observations=load_base()
+    root = ROOT/"offline-replay-v1" if (ROOT/"offline-replay-v1"/"summary.json").exists() else ROOT
+    summary=json.loads((root/"summary.json").read_text(encoding="utf-8")); base, work, hold, observations=load_base()
     l=summary["L"]; t=summary["T"]
     PUBLIC.mkdir(parents=True, exist_ok=True)
     write(PUBLIC/"README.md", "# CharityGraph Native induction v3 gardener comparison review\n\nPublic-safe, derived Semantic Lab review material. It contains provisional CharityGraph Native concepts, bounded governed propositions, attachment outputs, explicit model-recommended operations, and mechanical comparison diagnostics. It excludes raw provider traffic, source documents, private representations, credentials, runtime databases, and controlled external taxonomy material. Neither arm is a canonical ontology or a production result.\n")
@@ -402,7 +431,7 @@ def export_public() -> None:
         write(PUBLIC/f"{arm}-final-catalogue.json", {"concepts":[public_concept(x) for x in result["final_catalogue"]]})
     def operations_for(arm: str) -> list[dict[str, Any]]:
         operations=[]
-        folder=ROOT/"arms"/arm/"operations"
+        folder=root/"arms"/arm/"operations"
         for path in sorted(folder.glob("*.json")):
             doc=json.loads(path.read_text(encoding="utf-8"))
             for operation in doc.get("operations", []): operations.append({"stage":path.stem,"operation":operation})
@@ -438,5 +467,7 @@ def export_public() -> None:
 if __name__ == "__main__":
     if "--export-public-review" in sys.argv:
         export_public()
+    elif "--replay-existing" in sys.argv:
+        main(replay=True)
     else:
         main()

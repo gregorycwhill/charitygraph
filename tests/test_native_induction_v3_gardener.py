@@ -47,6 +47,16 @@ def test_apply_split_preserves_predecessor_lineage() -> None:
     assert result["b"]["active"] is True and result["c"]["active"] is True
 
 
+def test_merge_keeps_existing_successor_active_and_reparents_direct_children() -> None:
+    catalogue = {"a": _concept("a"), "b": _concept("b"), "child": _concept("child", "b")}
+    operation = _operation("merge", ["a", "b"], ["a"])
+    result, bad, counts = apply_operations(catalogue, [operation], {"o1"}, "test")
+    assert not bad and counts["merge"] == 1
+    assert result["a"]["active"] is True
+    assert result["b"]["active"] is False
+    assert result["child"]["parent_concept_id"] == "a"
+
+
 def test_parent_cycle_is_quarantined() -> None:
     catalogue = {"a": _concept("a"), "b": _concept("b", "a")}
     operation = _operation("reparent", ["a"], new_parent_concept_id="b")
