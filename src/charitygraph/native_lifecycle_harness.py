@@ -56,6 +56,19 @@ class FakeProvider:
     return {"reviews":out}
    return {"reviews":[{"overlay_key":o,"disposition":"accept","rationale":"bounded","facet_after":payload["facet"],"reviewed_overlay_statement":"statement","reviewed_analytic_dimension":"dimension","reviewed_inclusion_boundary":"include","reviewed_exclusion_boundary":"exclude","qualification":"none","uncertainty":None} for o in payload["overlay_keys"]]}
   if task=="discovery": return {"concepts":[{"local_key":"P01","preferred_label":"canonical one","definition":"definition one","inclusion_boundary":"include one","exclusion_boundary":"exclude one","support_overlay_keys":payload["overlay_keys"][:1],"parent_local_key":None,"uncertainty":None},{"local_key":"P02","preferred_label":"canonical two","definition":"definition two","inclusion_boundary":"include two","exclusion_boundary":"exclude two","support_overlay_keys":payload["overlay_keys"][:1],"parent_local_key":None,"uncertainty":None}]}
+  if task=="gardener" and "concept_keys" in payload:
+   keys=payload["concept_keys"]; facet=payload.get("facet"); ops=[]
+   if facet=="operational_activity": action="rename"
+   elif facet=="participation": action="redefine"
+   else: action="retain"
+   k=keys[0]; spec={"preferred_label":"provider revised","definition":"provider definition","inclusion_boundary":"include","exclusion_boundary":"exclude","support_overlay_keys":payload.get("overlay_keys",[])[:1]}
+   ops.append({"operation_key":"provider-op","action":action,"predecessor_local_keys":[k],"successor_specs":[] if action=="retain" else [spec],"parent_mode":"unchanged","parent_local_key":None,"non_native_representation":None,"rationale":"deterministic fake provider"})
+   return {"operations":ops}
+  if task=="attachment" and "active_concept_ids" in payload:
+   ids=payload["active_concept_ids"]; out=[]
+   for o in payload.get("overlay_keys",[]):
+    n=int(hashlib.sha256((o+payload.get("catalogue_hash","")).encode()).hexdigest()[:8],16); take=0 if n%3==0 else 1 if n%3==1 else min(2,len(ids)); out.append({"overlay_key":o,"concept_ids":ids[:take],"rationale":"deterministic fake attachment","missing_concept_suggestion":None,"ambiguity":None})
+   return {"assignments":out}
   if task=="gardener": return {"operations":[{"operation_key":"rename","action":"rename","predecessor_local_keys":["P01"],"successor_specs":[{"preferred_label":"renamed","definition":"definition one","inclusion_boundary":"include one","exclusion_boundary":"exclude one","support_overlay_keys":payload["overlay_keys"][:1]}],"parent_mode":"unchanged","parent_local_key":None,"non_native_representation":None,"rationale":"rename"},{"operation_key":"redefine","action":"redefine","predecessor_local_keys":["P02"],"successor_specs":[{"preferred_label":"canonical two","definition":"redefined","inclusion_boundary":"redefined include","exclusion_boundary":"redefined exclude","support_overlay_keys":payload["overlay_keys"][:1]}],"parent_mode":"unchanged","parent_local_key":None,"non_native_representation":None,"rationale":"redefine"}]}
   if task=="attachment": return {"assignments":[{"overlay_key":o,"concept_ids":([] if i==0 else payload["concept_ids"][:(1 if i==1 else 2)]),"rationale":"attachment","missing_concept_suggestion":None,"ambiguity":None} for i,o in enumerate(payload["overlay_keys"])]}
   if task=="extraction": return {"reviews":[{"canonical_object_key":o,"overlays":[{"overlay_statement":"holdout","facet":FACETS[0],"analytic_dimension":"mode","why_adds_value_beyond_canonical":"test","anti_duplication_boundary":"boundary","qualification":"qualified","uncertainty":None}]} for o in payload["object_keys"]]}
@@ -82,6 +95,10 @@ def process_extraction_response(r,s):
 class Catalogue:
  def __init__(self,facet,overlays=(),registry=None): self.facet=facet; self.overlays=set(overlays); self.registry=registry if registry is not None else {}; self.items={}; self.history=[]; self.frozen=False
  def freeze(self): self.frozen=True
+ def to_dict(self): return {"facet":self.facet,"overlays":sorted(self.overlays),"registry":self.registry,"items":self.items,"history":self.history,"frozen":self.frozen}
+ @classmethod
+ def from_dict(cls,data):
+  c=cls(data["facet"],data.get("overlays",[]),data.get("registry",{})); c.items=data.get("items",{}); c.history=data.get("history",[]); c.frozen=data.get("frozen",False); return c
  def _id(self,local,call_id="call-1"):
   ident="CON-"+self.facet+"-"+hashlib.sha256((self.facet+"|"+call_id+"|"+local).encode()).hexdigest()[:16]
   if ident in self.registry and self.registry[ident]!=(self.facet,call_id,local): raise ValueError("collision")

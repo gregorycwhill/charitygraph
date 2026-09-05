@@ -118,13 +118,14 @@ def run_workshop_complete(v5_root, output_dir):
  _write_json(out,"v5rr-dry-run-reviewed-pools.json",pools); _write_json(out,"v5rr-dry-run-core-qualification.json",qual); _write_json(out,"v5rr-dry-run-splits.json",splits)
  training=("Local Buying Foundation (WA)","World Vision Australia","Australian Communities Foundation")
  workshop_tx=[]; discovery_diag={}; cats={}; validation_sets={}; r1_state={}; r2_state={}
+ provider=FakeProvider()
  for facet in ("operational_activity","participation","fundraising_mode"):
   rows=pools[facet]; ids=[r["durable_overlay_id"] for r in rows]; dset,vset=splits[facet]["discovery"],splits[facet]["validation"]; validation_sets[facet]=vset
   c=Catalogue(facet,ids); call_concepts=[]; discovery_counts=[]
   for ci,subset in enumerate((dset[:len(dset)//2],dset[len(dset)//2:]),1):
    # equal partition, no validation leakage
    keys=["P01","P02"]; payload={"facet":facet,"overlay_keys":subset,"concept_keys":keys,"catalogue_context":list(c.items)}
-   resp=FakeProvider().request("discovery",payload,schemas()["discovery"]); parsed=process_discovery_response(resp,schemas()["discovery"])
+   resp=provider.request("discovery",payload,schemas()["discovery"]); parsed=process_discovery_response(resp,schemas()["discovery"])
    alias_map={};
    for spec in parsed:
     local=f"discovery-{ci}/"+spec["local_key"]; alias_map[spec["local_key"]]=local
