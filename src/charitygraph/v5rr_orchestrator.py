@@ -209,3 +209,32 @@ def run_full_fake_campaign(v5_root,v5r_root,output_dir):
     splits=build_deterministic_splits(pools,qualification); _write(out,"v5rr-dry-run-splits.json",splits)
     report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","provider_calls":0,"historical_overlay_count":len(all_rows),"excluded_native_candidate_count":len(bad),"clean_overlay_count":len(clean),"authoritative_quality_count":len(quality),"fake_quality_transmissions":len(tx),"dispositions":{d:sum(r["disposition"]==d for r in quality) for d in DISPOSITIONS},"reviewed_pool_counts":{f:len(v) for f,v in pools.items()},"core_qualification":qualification,"split_facets":sorted(splits)}
     _write(out,"v5rr-orchestrator-dry-run.json",report); return report
+
+def run_full_fake_campaign_complete(v5_root, v4r_root, output_dir):
+ """Complete provider-free workshop plus bounded holdout extraction/quality/transfer."""
+ out=Path(output_dir); base=run_workshop_complete(v5_root,out)
+ hold=[]
+ for f in sorted(Path(v4r_root).glob("raw/stage-a-*.json")):
+  try:
+   x=json.loads(f.read_text(encoding="utf-8")); data=json.loads(x.get("output_text","{}"))
+   for disp in data.get("dispositions",[]):
+    for obj in disp.get("objects",[]):
+     org=(obj.get("statement") or "")
+     if "Fred Hollows" in org or "Tweed Regional Gallery" in org:
+      hold.append({"canonical_object_id":disp.get("local_key"),"observation_id":disp.get("local_key"),"organisation":"The Fred Hollows Foundation" if "Fred Hollows" in org else "Tweed Regional Gallery Foundation Limited","overlay_statement":obj.get("statement",""),"facet":obj.get("facet_hint") or "operational_activity","representation_family":obj.get("representation_family"),"qualification":obj.get("qualification")})
+  except Exception: pass
+ hold=[dict(r,durable_overlay_id=f"HOLD-{i:03d}") for i,r in enumerate(hold) if r.get("representation_family")!="native_candidate"]
+ _write_json(out,"v5rr-dry-run-holdout-canonical-objects.json",hold)
+ # Pre-freeze guard is evaluated against workshop manifests.
+ pre_files=list(out.glob("discovery-*.json"))+list(out.glob("round1-*.json"))+list(out.glob("sweep1-*.json"))+list(out.glob("round2-*.json"))+list(out.glob("sweep2-*.json")); pretext="\n".join(f.read_text(encoding="utf-8") for f in pre_files); guard=not any(r["observation_id"] in pretext for r in hold)
+ ext_provider=FakeProvider(); extraction=[]
+ for i in range(0,len(hold),10):
+  batch=hold[i:i+10]; payload={"object_keys":[r["canonical_object_id"] for r in batch],"eligible_facets":["operational_activity","participation","fundraising_mode"]}; resp=ext_provider.request("extraction",payload,schemas()["extraction"]); parsed=process_extraction_response(resp,schemas()["extraction"]); extraction.extend({"durable_overlay_id":f"HOVL-{i+j:03d}","canonical_object_id":r["canonical_object_id"],"observation_id":r["observation_id"],"organisation":r["organisation"],"facet":o["facet"],"overlay_statement":o["overlay_statement"],"analytic_dimension":o["analytic_dimension"],"qualification":o["qualification"],"anti_duplication_boundary":o["anti_duplication_boundary"]} for j,(r,h) in enumerate(zip(batch,parsed)) for o in h["overlays"])
+ _write_json(out,"v5rr-dry-run-holdout-extraction.json",extraction); hq,ht=run_quality_review(extraction,FakeProvider(),out,10) if extraction else ([],[]); _write_json(out,"v5rr-dry-run-holdout-authoritative-quality.json",hq)
+ transfers=[]; frozen_hashes=base.get("final_catalogue_hashes",{})
+ for facet in ("operational_activity","participation","fundraising_mode"):
+  final= json.loads((_find:=next(iter(out.glob(f"round2-catalogue-{facet}.json"))).read_text(encoding="utf-8"))) if list(out.glob(f"round2-catalogue-{facet}.json")) else {}
+  ids=[v["id"] for v in final.values() if v.get("active")]; rows=[r for r in hq if r.get("reviewed_facet")==facet and r.get("disposition")!="reject_native"]
+  if rows: transfers.extend(FakeProvider().request("attachment",{"overlay_keys":[r["durable_overlay_id"] for r in rows],"active_concept_ids":ids,"catalogue_hash":frozen_hashes.get(facet,"")},schemas()["attachment"])["assignments"])
+ _write_json(out,"v5rr-dry-run-holdout-transfer.json",transfers); _write_json(out,"v5rr-dry-run-promotion-evidence.json",{"concept_count":sum(len(json.loads(p.read_text(encoding="utf-8"))) for p in out.glob("round2-catalogue-*.json")),"holdout_assignment_count":len(transfers)})
+ result=dict(base); result.update({"stage":"full_fake_campaign_complete","holdout_canonical_objects":len(hold),"holdout_extraction_overlays":len(extraction),"holdout_quality_records":len(hq),"holdout_transfer_assignments":len(transfers),"pre_freeze_holdout_guard":guard,"fake_quality_calls":len(ht)}); _write_json(out,"v5rr-full-fake-campaign-complete.json",result); return result
