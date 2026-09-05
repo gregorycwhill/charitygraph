@@ -80,7 +80,8 @@ def process_extraction_response(r,s):
  return r["reviews"]
 
 class Catalogue:
- def __init__(self,facet,overlays=(),registry=None): self.facet=facet; self.overlays=set(overlays); self.registry=registry if registry is not None else {}; self.items={}; self.history=[]
+ def __init__(self,facet,overlays=(),registry=None): self.facet=facet; self.overlays=set(overlays); self.registry=registry if registry is not None else {}; self.items={}; self.history=[]; self.frozen=False
+ def freeze(self): self.frozen=True
  def _id(self,local,call_id="call-1"):
   ident="CON-"+self.facet+"-"+hashlib.sha256((self.facet+"|"+call_id+"|"+local).encode()).hexdigest()[:16]
   if ident in self.registry and self.registry[ident]!=(self.facet,call_id,local): raise ValueError("collision")
@@ -96,6 +97,7 @@ class Catalogue:
    seen.add(cur); cur=self.items.get(cur,{}).get("parent")
   return False
  def mutate(self,action,preds,successors=(),parent_mode="unchanged",parent=None,non_native_representation=None):
+  if self.frozen: raise ValueError("catalogue frozen")
   if any(k not in self.items for k in preds): raise ValueError("unknown predecessor")
   if action=="retain": self.history.append(action); return
   if action in ("rename","redefine"):
