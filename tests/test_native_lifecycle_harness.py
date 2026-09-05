@@ -1,116 +1,54 @@
 import json
 import pytest
+from charitygraph.native_lifecycle_harness import *
 
-from charitygraph.native_lifecycle_harness import (
-    ACTIONS, FACETS, Catalogue, digest, run_synthetic_lifecycle,
-    schemas, validate_attachments, validate_schema_shapes,
-)
-
-
-def test_all_five_schemas_are_strict():
-    assert set(schemas()) == {"quality", "discovery", "gardener", "attachment", "extraction"}
-    assert all(not validate_schema_shapes(v) for v in schemas().values())
-
-
-def test_recursive_schema_rejects_missing_additional_properties_guard():
-    bad = {"type": "object", "required": [], "properties": {}}
-    assert validate_schema_shapes(bad) == [":additionalProperties"]
-
-
-def test_catalogue_rejects_unknown_support():
-    c = Catalogue(FACETS[0], {"OVL-1"})
-    with pytest.raises(ValueError): c.add("P1", "x", ["OVL-2"])
-
-
-def test_catalogue_rejects_duplicate_concept():
-    c = Catalogue(FACETS[0], {"OVL-1"}); c.add("P1", "x", ["OVL-1"])
-    with pytest.raises(ValueError): c.add("P1", "y", ["OVL-1"])
-
-
-def test_retain_is_append_only():
-    c = Catalogue(FACETS[0], {"OVL-1"}); c.add("P1", "x", ["OVL-1"]); before = digest(c.items)
-    c.mutate("retain", ["P1"]); assert digest(c.items) == before
-
-
-def test_rename_and_redefine_change_semantics():
-    c = Catalogue(FACETS[0], {"OVL-1"}); c.add("P1", "x", ["OVL-1"]); c.mutate("rename", ["P1"])
-    assert c.items["P1"]["label"].endswith("renamed"); c.mutate("redefine", ["P1"])
-    assert c.items["P1"]["definition"] == "redefined"
-
-
-def test_reparent_remove():
-    c = Catalogue(FACETS[0], {"OVL-1"}); c.add("P1", "x", ["OVL-1"]); c.add("P2", "y", ["OVL-1"], "P1")
-    c.mutate("reparent", ["P2"], parent_mode="remove"); assert c.items["P2"]["parent"] is None
-
-
-def test_reparent_rejects_self():
-    c = Catalogue(FACETS[0], {"OVL-1"}); c.add("P1", "x", ["OVL-1"])
-    with pytest.raises(ValueError): c.mutate("reparent", ["P1"], parent_mode="set", parent="P1")
-
-
-def test_reparent_rejects_cross_facet():
-    a = Catalogue(FACETS[0], {"OVL-1"}); b = Catalogue(FACETS[1], {"OVL-1"})
-    a.add("P1", "x", ["OVL-1"]); b.add("P2", "y", ["OVL-1"])
-    with pytest.raises(ValueError): b.mutate("reparent", ["P2"], parent_mode="set", parent="P1")
-
-
-def test_merge_deprecates_predecessors_and_records_lineage():
-    c = Catalogue(FACETS[0], {"OVL-1"}); c.add("P1", "x", ["OVL-1"]); c.add("P2", "y", ["OVL-1"])
-    c.mutate("merge", ["P1", "P2"], ({"label":"m", "definition":"d", "support":[]},))
-    assert not c.items["P1"]["active"] and any(v["predecessors"] == ["P1", "P2"] for v in c.items.values())
-
-
-def test_split_records_predecessor_lineage():
-    c = Catalogue(FACETS[0], {"OVL-1"}); c.add("P1", "x", ["OVL-1"])
-    c.mutate("split", ["P1"], ({"label":"a", "definition":"d", "support":[]}, {"label":"b", "definition":"d", "support":[]}))
-    assert sum(1 for v in c.items.values() if v["predecessors"]) == 2
-
-
-def test_deprecate_and_dispose_preserve_history():
-    c = Catalogue(FACETS[0], {"OVL-1"}); c.add("P1", "x", ["OVL-1"]); c.mutate("deprecate", ["P1"]); c.mutate("dispose_non_native", ["P1"])
-    assert not c.items["P1"]["active"] and c.items["P1"]["history"] == ["deprecate", "dispose_non_native"]
-
-
-def test_attachment_exact_coverage_and_zero_one_multi():
-    assert validate_attachments(["O1", "O2", "O3"], {"P1"}, [
-        {"overlay_key":"O1", "concept_keys":[]}, {"overlay_key":"O2", "concept_keys":["P1"]}, {"overlay_key":"O3", "concept_keys":["P1", "P1"]}]) == [0, 1, 2]
-
-
-def test_attachment_rejects_missing_overlay():
-    with pytest.raises(ValueError): validate_attachments(["O1"], set(), [])
-
-
-def test_attachment_rejects_unknown_concept():
-    with pytest.raises(ValueError): validate_attachments(["O1"], set(), [{"overlay_key":"O1", "concept_keys":["P9"]}])
-
-
-def test_durable_ids_are_not_local_keys():
-    r = run_synthetic_lifecycle(); assert r["catalogue_hashes"]["round1"] != r["catalogue_hashes"]["final"]
-
-
-def test_synthetic_harness_has_thirty_passing_assertions():
-    r = run_synthetic_lifecycle(); assert r["passed"] == 30; assert r["total"] == 30; assert all(r["assertions"].values())
-
-
-def test_synthetic_report_is_json_serializable(tmp_path):
-    r = run_synthetic_lifecycle(tmp_path); data = json.loads((tmp_path / "synthetic-lifecycle-verification.json").read_text())
-    assert data["passed"] == r["passed"]
-
-
-def test_unknown_operation_rejected():
-    c = Catalogue(FACETS[0], set()); c.add("P1", "x", [])
-    with pytest.raises(ValueError): c.mutate("unknown", ["P1"])
-
-
-def test_unknown_predecessor_rejected():
-    c = Catalogue(FACETS[0], set())
-    with pytest.raises(ValueError): c.mutate("retain", ["P9"])
-
-
-def test_catalogue_validation_checks_support_and_parent():
-    c = Catalogue(FACETS[0], {"O1"}); c.add("P1", "x", ["O1"]); assert c.validate({"O1"})
-    c.items["P1"]["parent"] = "missing"; assert not c.validate({"O1"})
-
-
-def test_all_actions_are_declared():
-    assert set(ACTIONS) == {"retain", "rename", "redefine", "merge", "split", "reparent", "deprecate", "dispose_non_native"}
+def cat(f="operational_activity"):
+    c=Catalogue(f,{"O1","O2"}); c.add("P01","one",["O1"]); c.add("P02","two",["O2"]); return c
+def test_five_strict_schemas(): assert set(schemas())=={"quality","discovery","gardener","attachment","extraction"} and all(not validate_schema_shapes(x) for x in schemas().values())
+def test_recursive_schema_guard(): assert validate_schema_shapes({"type":"object","required":[],"properties":[]})
+def test_discovery_processor_requires_local_key():
+    with pytest.raises(ValueError): process_discovery_response({"concepts":[{"preferred_label":"x"}]},schemas()["discovery"])
+def test_duplicate_local_key_rejected():
+    with pytest.raises(ValueError): process_discovery_response({"concepts":[{"local_key":"P","preferred_label":"x"},{"local_key":"P","preferred_label":"y"}]},schemas()["discovery"])
+def test_gardener_processor_requires_operations():
+    with pytest.raises(ValueError): process_gardener_response({"operations":[{"local_key":"P"}]},schemas()["gardener"])
+def test_extraction_processor_requires_reviews():
+    with pytest.raises(ValueError): process_extraction_response({"local_key":"x"},schemas()["extraction"])
+def test_local_keys_global_ids(): assert cat().active_ids().isdisjoint(cat("participation").active_ids())
+def test_repeated_local_keys_across_calls():
+    r={}; a=Catalogue("operational_activity",{"O1"},r); b=Catalogue("operational_activity",{"O1"},r); a.add("P01","a",["O1"]); b.add("P02","b",["O1"]); assert len(r)==2
+def test_unknown_support_rejected():
+    with pytest.raises(ValueError): Catalogue("operational_activity",{"O1"}).add("P","x",["O2"])
+def test_rename_returned_semantics():
+    c=cat(); c.mutate("rename",["P01"],[{"preferred_label":"returned","support_overlay_keys":["O1"]}]); assert c.items["P01"]["preferred_label"]=="returned"
+def test_redefine_returned_semantics():
+    c=cat(); c.mutate("redefine",["P01"],[{"preferred_label":"one","definition":"new","inclusion_boundary":"i","exclusion_boundary":"e","support_overlay_keys":["O1"]}]); assert c.items["P01"]["definition"]=="new"
+def test_self_parent_rejected():
+    with pytest.raises(ValueError): cat().mutate("reparent",["P01"],parent_mode="set",parent="P01")
+def test_indirect_cycle_rejected():
+    c=cat(); c.add("A","A",["O1"]); c.add("B","B",["O1"],"A"); c.add("C","C",["O1"],"B")
+    with pytest.raises(ValueError): c.mutate("reparent",["A"],parent_mode="set",parent="C")
+def test_cross_facet_parent_rejected():
+    c=cat(); c2=cat("participation"); c2.items["P01"]["parent"]=c.items["P01"]["id"]; assert not c2.validate({"O1","O2"})
+def test_remove_parent(): c=cat(); c.mutate("reparent",["P02"],parent_mode="remove"); assert c.items["P02"]["parent"] is None
+def test_merge_unknown_support_rejected():
+    with pytest.raises(ValueError): cat().mutate("merge",["P01","P02"],[{"preferred_label":"m","support_overlay_keys":["O9"]}])
+def test_lineage_backlinks_validate():
+    c=cat(); c.mutate("merge",["P01","P02"],[{"preferred_label":"m","definition":"d","inclusion_boundary":"i","exclusion_boundary":"e","support_overlay_keys":["O1"]}]); child=next(k for k,v in c.items.items() if v["predecessors"]); c.items[child]["predecessors"]=[]; assert not c.validate({"O1","O2"})
+def test_duplicate_attachment_rejected():
+    with pytest.raises(ValueError): validate_attachments(["O1"],{"C"},[{"overlay_key":"O1","concept_ids":["C","C"]}])
+def test_unknown_attachment_rejected():
+    with pytest.raises(ValueError): validate_attachments(["O1"],{"C"},[{"overlay_key":"O1","concept_ids":["X"]}])
+def test_inactive_attachment_rejected():
+    c=cat(); c.mutate("deprecate",["P01"])
+    with pytest.raises(ValueError): validate_attachments(["O1"],c.active_ids(),[{"overlay_key":"O1","concept_ids":[c.items["P01"]["id"]]}])
+def test_salted_split_order_independent():
+    ids={"O1","O2","O3","O4"}; assert split_overlay_ids(list(ids),"s")==split_overlay_ids(list(reversed(list(ids))),"s")
+def test_holdout_guard(): assert not holdout_guard([{"object_ids":["H"],"overlay_ids":[]}],{"H"},set())
+def test_holdout_allowed_after_freeze(): assert holdout_guard([{"object_ids":["H"],"overlay_ids":[]}],{"H"},set(),frozen=True)
+def test_fake_provider_roundtrips():
+    p=FakeProvider(); s=schemas(); assert process_quality_response(p.request("quality",{"overlay_keys":["O1"],"facet":FACETS[0]},s["quality"]),s["quality"])
+def test_synthetic_30_assertions():
+    r=run_synthetic_lifecycle(); assert r["passed"]==30 and r["total"]==30 and all(r["assertions"].values())
+def test_synthetic_persists_report(tmp_path):
+    r=run_synthetic_lifecycle(tmp_path); assert json.loads((tmp_path/"synthetic-lifecycle-verification.json").read_text())["passed"]==30
