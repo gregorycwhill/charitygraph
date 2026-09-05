@@ -182,6 +182,15 @@ def run_workshop_complete(v5_root, output_dir):
   cats[facet]=c
  _write_json(out,"v5rr-dry-run-workshop-transmissions.json",workshop_tx)
  for c in cats.values(): c.freeze()
+ concept_use={}
+ repeatability={}
+ for facet,state in r2_state.items():
+  c=state["catalogue"]; a,b=state["sweep1"],state["sweep2"]; exact=sum(set(x["concept_ids"])==set(y["concept_ids"]) for x,y in zip(a,b)); js=[]
+  for x,y in zip(a,b):
+   sx,sy=set(x["concept_ids"]),set(y["concept_ids"]); js.append(1.0 if not sx and not sy else len(sx&sy)/len(sx|sy) if sx|sy else 1.0)
+  repeatability[facet]={"exact_agreement":exact/len(a) if a else 1.0,"mean_jaccard":sum(js)/len(js) if js else 1.0,"median_jaccard":sorted(js)[len(js)//2] if js else 1.0,"zero_to_nonzero":sum(not x["concept_ids"] and y["concept_ids"] for x,y in zip(a,b)),"nonzero_to_zero":sum(x["concept_ids"] and not y["concept_ids"] for x,y in zip(a,b))}
+  for k,v in c.items(): concept_use[v["id"]]={"facet":facet,"discovery_support_overlay_count":len(v["support_overlay_ids"]),"discovery_support_organisations":[],"sweep1_uses":sum(v["id"] in x["concept_ids"] for x in a),"sweep2_uses":sum(v["id"] in x["concept_ids"] for x in b),"unused_by_validation":not any(v["id"] in x["concept_ids"] for x in b)}
+ _write_json(out,"v5rr-dry-run-repeatability.json",repeatability); _write_json(out,"v5rr-dry-run-workshop-concept-use.json",concept_use)
  freeze={f:{"final_catalogue_sha256":_catalogue_hash(c),"active_concept_ids":sorted(c.active_ids()),"inactive_concept_ids":sorted(v["id"] for v in c.items.values() if not v["active"]),"freeze_state":True} for f,c in cats.items()}; _write_json(out,"v5rr-dry-run-catalogue-freeze.json",freeze)
  report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","stage":"workshop_complete","provider_calls":0,"quality_calls":len(quality_tx),"workshop_calls":len(workshop_tx),"clean_overlay_count":len(clean),"core_qualification":qual,"discovery_diagnostics":discovery_diag,"final_catalogue_hashes":{f:_catalogue_hash(c) for f,c in cats.items()},"catalogue_freeze":True,"fake_cost_usd":0}
  _write_json(out,"v5rr-workshop-complete-report.json",report); return report
