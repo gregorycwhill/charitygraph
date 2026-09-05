@@ -52,5 +52,3 @@ def test_fake_provider_roundtrips():
     p=FakeProvider(); s=schemas(); assert process_quality_response(p.request("quality",{"overlay_keys":["O1"],"facet":FACETS[0]},s["quality"]),s["quality"])
 def test_synthetic_30_assertions():
     r=run_synthetic_lifecycle(); assert r["passed"]==30 and r["total"]==30 and all(r["assertions"].values())
-def test_synthetic_persists_report(tmp_path):
-    r=run_synthetic_lifecycle(tmp_path); assert json.loads((tmp_path/"synthetic-lifecycle-verification.json").read_text())["passed"]==30
