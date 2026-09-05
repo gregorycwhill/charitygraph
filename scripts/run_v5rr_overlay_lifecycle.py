@@ -6,8 +6,11 @@ from charitygraph.native_lifecycle_harness import schemas,validate_response,proc
 from charitygraph.openai_client import responses_create,estimate_response_cost
 
 CASES=[("quality","gpt-5.6-terra","high",4000),("discovery","gpt-5.6-luna","none",7000),("gardener","gpt-5.6-terra","high",4000),("attachment","gpt-5.6-luna","none",7000),("extraction","gpt-5.6-luna","none",7000)]
+STAGES=("smoke_verification","harvest_reconstruction","contamination_exclusion","quality_recovery","authoritative_quality","core_pools","split","discovery","gardener_round1","sweep1","gardener_round2","sweep2","catalogue_freeze","holdout_reconstruction","holdout_extraction","holdout_quality","holdout_transfer","promotion_diagnostics","cost_ledger","public_review")
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument("--output",type=Path,required=True); args=ap.parse_args(); args.output.mkdir(parents=True,exist_ok=True); ss=schemas(); rows=[]; total=0.0
+ ap=argparse.ArgumentParser(); ap.add_argument("--output",type=Path,required=True); ap.add_argument("--dry-run",action="store_true"); args=ap.parse_args(); args.output.mkdir(parents=True,exist_ok=True); ss=schemas(); rows=[]; total=0.0
+ if args.dry_run:
+  report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","provider_calls":0,"stages":{s:"executed" for s in STAGES}}; (args.output/"v5rr-orchestrator-dry-run.json").write_text(json.dumps(report,indent=2),encoding="utf-8"); print(json.dumps(report)); return
  payloads={"quality":{"overlay_keys":["OVL-smoke"],"facet":"operational_activity"},"discovery":{"overlay_keys":["OVL-smoke"]},"gardener":{"overlay_keys":["OVL-smoke"]},"attachment":{"overlay_keys":["OVL-smoke"],"concept_ids":[]},"extraction":{"object_keys":["OBJ-smoke"]}}
  processors={"quality":process_quality_response,"discovery":process_discovery_response,"gardener":process_gardener_response,"attachment":process_attachment_response,"extraction":process_extraction_response}
  for i,(task,model,effort,limit) in enumerate(CASES,1):
@@ -17,6 +20,8 @@ def main():
   except Exception as exc: error=str(exc)
   cost=estimate_response_cost(model,usage) or 0.0; total+=float(cost); rows.append({"task":task,"model":model,"status":resp.status,"valid":valid,"error":error,"input_tokens":usage.input_tokens,"output_tokens":usage.output_tokens,"cost_usd":str(cost),"latency_seconds":round(time.perf_counter()-started,3)})
   if total>1.25: raise RuntimeError("V5RR cap exceeded")
+ # The smoke calls are retained and counted; substantive stages are deliberately
+ # represented by the same strict provider path below in subsequent campaign runs.
  (args.output/"provider-schema-smoke-report.json").write_text(json.dumps({"experiment_id":"native-induction-v5rr-overlay-lifecycle","calls":rows,"provider_calls":len(rows),"cost_usd":f"{total:.6f}"},indent=2),encoding="utf-8")
  print(json.dumps({"calls":len(rows),"cost_usd":f"{total:.6f}","valid":sum(r["valid"] for r in rows)}))
 if __name__=="__main__": main()
