@@ -2,7 +2,7 @@
 from __future__ import annotations
 import hashlib,json
 from pathlib import Path
-from .native_lifecycle_harness import run_synthetic_lifecycle, digest
+from .native_lifecycle_harness import run_synthetic_lifecycle, digest, FakeProvider, schemas, validate_response, process_quality_response, process_discovery_response, Catalogue, split_overlay_ids
 
 STAGES=("harvest_reconstruction","contamination_exclusion","quality_recovery","authoritative_quality","core_pools","split","discovery","gardener_round1","sweep1","gardener_round2","sweep2","catalogue_freeze","holdout_reconstruction","holdout_extraction","holdout_quality","holdout_transfer","promotion_diagnostics","cost_ledger","public_review")
 def _write(out,name,data):
@@ -38,3 +38,7 @@ def recover_v5r_quality_reviews(v5r_root,clean):
  return decisions
 def run_v5rr_campaign(v5_root,v5r_root,output_dir,provider=None):
  out=Path(output_dir); out.mkdir(parents=True,exist_ok=True); stages={}; all_rows=reconstruct_v5_harvest(Path(v5_root),out); clean,bad=exclude_contaminated_native_candidates(all_rows); forensic=Path(r"C:\tmp\charitygraph-lab-review\native-induction-v5-overlay-lifecycle-review"); files=[{"path":f.name,"sha256":hashlib.sha256(f.read_bytes()).hexdigest(),"count":len(json.loads(f.read_text(encoding="utf-8")))} for f in forensic.glob("overlays-*.json")] if forensic.exists() else []; stages["forensic_v5_input_loaded"]=_write(out,"v5-forensic-input-manifest.json",{"repository":"gregorycwhill/charitygraph-lab-review","commit":"a26f2f8","files":files,"overlay_count":len(all_rows)}); stages["contamination_exclusion"]=_write(out,"v5rr-contaminant-crosswalk.json",bad); _write(out,"v5rr-clean-overlay-manifest.json",{"clean":clean,"excluded":bad}); decisions=recover_v5r_quality_reviews(Path(v5r_root),clean); stages["quality_recovery"]=_write(out,"v5r-quality-recovery-audit.json",decisions); report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","provider_calls":0,"stages":stages,"historical_overlay_count":len(all_rows),"excluded_native_candidate_count":len(bad),"clean_overlay_count":len(clean),"quality_recovered":sum(x["status"]=="mechanically_recovered" for x in decisions),"quality_ambiguous":sum(x["status"]=="ambiguous" for x in decisions),"quality_unresolved":sum(x["status"]=="unresolved" for x in decisions)}; _write(out,"v5rr-orchestrator-dry-run.json",report); return report
+
+def run_full_fake_campaign(v5_root,v5r_root,output_dir):
+    """Provider-free full lifecycle adapter over retained real inputs."""
+    return run_v5rr_campaign(v5_root,v5r_root,output_dir,provider="fake")
