@@ -33,6 +33,8 @@ def test_cross_facet_parent_rejected():
 def test_remove_parent(): c=cat(); c.mutate("reparent",["P02"],parent_mode="remove"); assert c.items["P02"]["parent"] is None
 def test_merge_unknown_support_rejected():
     with pytest.raises(ValueError): cat().mutate("merge",["P01","P02"],[{"preferred_label":"m","support_overlay_keys":["O9"]}])
+def test_two_successor_operations_have_unique_ids():
+    c=cat(); c.mutate("split",["P01"],[{"preferred_label":"a","definition":"d","inclusion_boundary":"i","exclusion_boundary":"e","support_overlay_keys":["O1"]},{"preferred_label":"b","definition":"d","inclusion_boundary":"i","exclusion_boundary":"e","support_overlay_keys":["O1"]}]); ids=[v["id"] for v in c.items.values()]; assert len(ids)==len(set(ids))
 def test_lineage_backlinks_validate():
     c=cat(); c.mutate("merge",["P01","P02"],[{"preferred_label":"m","definition":"d","inclusion_boundary":"i","exclusion_boundary":"e","support_overlay_keys":["O1"]}]); child=next(k for k,v in c.items.items() if v["predecessors"]); c.items[child]["predecessors"]=[]; assert not c.validate({"O1","O2"})
 def test_duplicate_attachment_rejected():
