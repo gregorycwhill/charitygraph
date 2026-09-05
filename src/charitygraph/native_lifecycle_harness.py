@@ -1,6 +1,6 @@
 """Provider-free executable Native lifecycle laboratory harness."""
 from __future__ import annotations
-import hashlib,json
+import hashlib,json,uuid
 from pathlib import Path
 
 FACETS=("operational_activity","participation","fundraising_mode")
@@ -44,7 +44,9 @@ def validate_response(value,schema,path=""):
     elif t=="string" and not isinstance(value,str): raise ValueError(path+": string required")
     if "enum" in schema and value not in schema["enum"]: raise ValueError(path+": invalid enum")
 class FakeProvider:
+ def __init__(self): self.invocations=[]
  def request(self,task,payload,schema):
+  self.invocations.append({"task":task,"payload_sha256":digest(payload)})
   if task=="quality":
    if "items" in payload:
     facets=("operational_activity","participation","fundraising_mode","capability_access","governance_practice","ethos_conduct","evaluation_method"); out=[]
@@ -73,6 +75,39 @@ class FakeProvider:
   if task=="attachment": return {"assignments":[{"overlay_key":o,"concept_ids":([] if i==0 else payload["concept_ids"][:(1 if i==1 else 2)]),"rationale":"attachment","missing_concept_suggestion":None,"ambiguity":None} for i,o in enumerate(payload["overlay_keys"])]}
   if task=="extraction": return {"reviews":[{"canonical_object_key":o,"overlays":[{"overlay_statement":"holdout","facet":FACETS[0],"analytic_dimension":"mode","why_adds_value_beyond_canonical":"test","anti_duplication_boundary":"boundary","qualification":"qualified","uncertainty":None}]} for o in payload["object_keys"]]}
   raise ValueError("unknown task")
+
+class SemanticCallLedger:
+ """Authoritative ledger for every semantic provider invocation."""
+ def __init__(self, output_dir=None): self.rows=[]; self.output_dir=Path(output_dir) if output_dir else None
+ def record(self,row):
+  self.rows.append(dict(row))
+  if self.output_dir:
+   self.output_dir.mkdir(parents=True,exist_ok=True)
+   (self.output_dir/(row["call_id"]+"-ledger.json")).write_text(json.dumps(row,indent=2,ensure_ascii=False),encoding="utf-8")
+ def counts(self): return {task:sum(r["task"]==task for r in self.rows) for task in sorted({r["task"] for r in self.rows})}
+ def reconcile(self, provider):
+  actual=getattr(provider,"invocations",())
+  if len(self.rows)!=len(actual): raise AssertionError("semantic ledger/provider invocation mismatch")
+  if [r["task"] for r in self.rows] != [r["task"] for r in actual]: raise AssertionError("semantic task mismatch")
+  return True
+
+def invoke_semantic_call(provider, task, payload, schema, processor, *, ledger=None,
+                         output_dir=None, facet=None, organisation=None, model="fake",
+                         reasoning="none", provider_kind=None, call_id=None):
+ """Single controlled path for manifest, provider call, validation, processing and ledger."""
+ ledger=ledger or SemanticCallLedger(output_dir)
+ call_id=call_id or f"{task}-{uuid.uuid4().hex[:12]}"
+ kind=provider_kind or ("fake" if isinstance(provider,FakeProvider) else "adapter")
+ request_sha=digest(payload); manifest={"call_id":call_id,"task":task,"facet":facet,"organisation":organisation,"model":model,"reasoning":reasoning,"provider_kind":kind,"request_sha256":request_sha}
+ out=Path(output_dir) if output_dir else None
+ if out:
+  out.mkdir(parents=True,exist_ok=True); (out/(call_id+"-manifest.json")).write_text(json.dumps(manifest,indent=2),encoding="utf-8")
+ response=provider.request(task,payload,schema)
+ parsed=processor(response,schema)
+ row=dict(manifest,status="completed",response_sha256=digest(response),usage=None,cost_usd=0)
+ ledger.record(row)
+ if out: (out/(call_id+"-response.json")).write_text(json.dumps(response,indent=2,ensure_ascii=False),encoding="utf-8")
+ return parsed, row, ledger
 def _require(x,k):
  if not isinstance(x,dict) or k not in x: raise ValueError("missing "+k)
 def _unique(v):
@@ -95,10 +130,11 @@ def process_extraction_response(r,s):
 class Catalogue:
  def __init__(self,facet,overlays=(),registry=None): self.facet=facet; self.overlays=set(overlays); self.registry=registry if registry is not None else {}; self.items={}; self.history=[]; self.frozen=False
  def freeze(self): self.frozen=True
- def to_dict(self): return {"facet":self.facet,"overlays":sorted(self.overlays),"registry":self.registry,"items":self.items,"history":self.history,"frozen":self.frozen}
+ def to_dict(self): return {"facet":self.facet,"overlays":sorted(self.overlays),"registry":{k:list(v) if isinstance(v,tuple) else v for k,v in self.registry.items()},"items":self.items,"history":self.history,"frozen":self.frozen}
+ def semantic_hash(self): return digest(self.to_dict())
  @classmethod
  def from_dict(cls,data):
-  c=cls(data["facet"],data.get("overlays",[]),data.get("registry",{})); c.items=data.get("items",{}); c.history=data.get("history",[]); c.frozen=data.get("frozen",False); return c
+  c=cls(data["facet"],data.get("overlays",[]),{k:tuple(v) if isinstance(v,list) else v for k,v in data.get("registry",{}).items()}); c.items=data.get("items",{}); c.history=data.get("history",[]); c.frozen=data.get("frozen",False); return c
  def _id(self,local,call_id="call-1"):
   ident="CON-"+self.facet+"-"+hashlib.sha256((self.facet+"|"+call_id+"|"+local).encode()).hexdigest()[:16]
   if ident in self.registry and self.registry[ident]!=(self.facet,call_id,local): raise ValueError("collision")
