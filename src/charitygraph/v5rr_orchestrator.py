@@ -2,7 +2,35 @@
 from __future__ import annotations
 import hashlib,json
 from pathlib import Path
+from decimal import Decimal
+from .openai_client import responses_create, estimate_response_cost
 from .native_lifecycle_harness import run_synthetic_lifecycle, digest, FakeProvider, SemanticCallLedger, invoke_semantic_call, schemas, validate_response, process_quality_response, process_discovery_response, process_gardener_response, process_extraction_response, process_attachment_response, Catalogue, split_overlay_ids, DISPOSITIONS, validate_attachments
+
+PROMPTS={
+ "quality": """Review each supplied overlay as an optional CharityGraph Native classification over canonical semantic objects. Canonical representation remains primary. Accept only reusable analytical/retrieval value beyond canonical representation. Do not promote names, program instances, dates, amounts, locations, regulatory/accounting facts, ordinary relationships, or evidence metadata. Apply the supplied facet contracts conservatively. Return exactly one decision per overlay using accept, reframe, move_facet, or reject_native.""",
+ "discovery": """Discover reusable CharityGraph Native concepts from the supplied reviewed overlays. Do not create record-shaped concepts; encode names, programs, dates, amounts, locations, or identifiers; force every overlay; or duplicate catalogue concepts. Support IDs must refer to supplied evidence. The current catalogue context is authoritative.""",
+ "gardener": """Tend the actual supplied catalogue using the supplied validation evidence. Preserve reusable meaning, abstraction, support coherence, boundaries, and low duplication. Available actions are retain, rename, redefine, merge, split, reparent, deprecate, and dispose_non_native. Do not manufacture change; return only valid operations against supplied local keys.""",
+ "attachment": """Assign each reviewed overlay to active concepts in the supplied catalogue. Zero, one, or multiple distinct assignments are legitimate. Do not force-fit. Report missing-concept suggestions and ambiguities where warranted.""",
+ "extraction": """From only the supplied canonical holdout objects, identify optional reusable Native overlays in the supplied qualifying facets. No Native catalogue is provided. Do not match concepts, encode record identity, or force output; zero overlays is legitimate.""",
+}
+
+class OpenAIProvider:
+ """Sequential real provider adapter used by the same semantic wrapper as FakeProvider."""
+ def __init__(self, output_dir, cap=Decimal("1.25"), retained=Decimal("0.006449")):
+  self.output_dir=Path(output_dir); self.cap=Decimal(str(cap)); self.spent=Decimal(str(retained)); self.retained=Decimal(str(retained)); self.invocations=[]; self.last_call={}
+  self.limits={"quality":5000,"discovery":6000,"gardener":5000,"attachment":5000,"extraction":6000}
+  self.models={"quality":("gpt-5.6-terra","high"),"gardener":("gpt-5.6-terra","high"),"discovery":("gpt-5.6-luna","none"),"attachment":("gpt-5.6-luna","none"),"extraction":("gpt-5.6-luna","none")}
+ def request(self,task,payload,schema):
+  model,effort=self.models[task]; prompt=PROMPTS[task]+"\n\nTASK PAYLOAD (evidence and state; do not invent facts):\n"+json.dumps(payload,sort_keys=True,ensure_ascii=False)
+  input_est=Decimal(max(1,len(prompt)//4)); output_est=Decimal(self.limits[task]); rates={"gpt-5.6-terra":(Decimal("2"),Decimal("12")),"gpt-5.6-luna":(Decimal("0.2"),Decimal("1.2"))}[model]
+  reserve=(input_est*rates[0]+output_est*rates[1])/Decimal(1000000)
+  if self.spent+reserve>self.cap: raise RuntimeError(f"V5RR budget reservation would exceed cap before {task}")
+  result=responses_create(model=model,input_text=prompt,text_format={"type":"json_schema","name":f"v5rr_{task}","strict":True,"schema":schema},max_output_tokens=self.limits[task],max_attempts=1,timeout_seconds=300,reasoning={"effort":effort})
+  usage=result.usage; cost=estimate_response_cost(model,usage) or Decimal("0")
+  self.spent+=Decimal(str(cost)); self.invocations.append({"task":task,"response_id":result.response_id,"status":result.status,"model":model,"reasoning":effort,"input_tokens":usage.input_tokens,"output_tokens":usage.output_tokens,"cost_usd":str(cost)})
+  self.last_call={"response_id":result.response_id,"provider_status":result.status,"model":model,"reasoning":effort,"input_tokens":usage.input_tokens,"output_tokens":usage.output_tokens,"cost_usd":str(cost),"completion_state":"completed" if result.output_text else "incomplete","prompt":prompt}
+  if not result.output_text: raise RuntimeError(f"incomplete provider response for {task}")
+  return json.loads(result.output_text)
 
 STAGES=("harvest_reconstruction","contamination_exclusion","quality_recovery","authoritative_quality","core_pools","split","discovery","gardener_round1","sweep1","gardener_round2","sweep2","catalogue_freeze","holdout_reconstruction","holdout_extraction","holdout_quality","holdout_transfer","promotion_diagnostics","cost_ledger","public_review")
 FORENSIC_COMMIT="a26f2f8e968c66231b85fb847b44d99120dd7336"
@@ -134,23 +162,23 @@ def _catalogue_hash(c): return digest(c.items)
 def _write_json(out,name,data):
  p=out/name; p.write_text(json.dumps(data,indent=2,ensure_ascii=False),encoding="utf-8"); return p
 
-def run_workshop_complete(v5_root, output_dir, forensic_root=None, excluded_manifest=None):
+def run_workshop_complete(v5_root, output_dir, forensic_root=None, excluded_manifest=None, provider=None):
  """Provider-free complete workshop lifecycle over the reviewed core pools."""
  out=Path(output_dir); out.mkdir(parents=True,exist_ok=True)
  if forensic_root: verify_forensic_input(forensic_root)
  all_rows=reconstruct_v5_harvest(Path(v5_root),out,forensic_root,excluded_manifest); clean,bad=exclude_contaminated_native_candidates(all_rows)
- quality_provider=FakeProvider(); quality,quality_tx=run_quality_review(clean,quality_provider,out); pools=build_reviewed_pools(quality); qual=qualify_core_facets(pools); splits=build_deterministic_splits(pools,qual)
+ quality_provider=provider or FakeProvider(); quality,quality_tx=run_quality_review(clean,quality_provider,out); pools=build_reviewed_pools(quality); qual=qualify_core_facets(pools); splits=build_deterministic_splits(pools,qual)
  _write_json(out,"v5rr-dry-run-reviewed-pools.json",pools); _write_json(out,"v5rr-dry-run-core-qualification.json",qual); _write_json(out,"v5rr-dry-run-splits.json",splits)
  training=("Local Buying Foundation (WA)","World Vision Australia","Australian Communities Foundation")
  workshop_tx=[]; discovery_diag={}; cats={}; validation_sets={}; r1_state={}; r2_state={}
- provider=FakeProvider()
+ provider=provider or FakeProvider()
  ledger=SemanticCallLedger(out)
  for facet in ("operational_activity","participation","fundraising_mode"):
   rows=pools[facet]; ids=[r["durable_overlay_id"] for r in rows]; dset,vset=splits[facet]["discovery"],splits[facet]["validation"]; validation_sets[facet]=vset
   c=Catalogue(facet,ids); call_concepts=[]; discovery_counts=[]
   for ci,subset in enumerate((dset[:len(dset)//2],dset[len(dset)//2:]),1):
    # equal partition, no validation leakage
-   keys=["P01","P02"]; payload={"facet":facet,"overlay_keys":subset,"concept_keys":keys,"catalogue_context":list(c.items)}
+   keys=["P01","P02"]; payload={"facet":facet,"overlay_keys":subset,"concept_keys":keys,"catalogue_context":c.to_dict()}
    parsed, ledger_row, _=invoke_semantic_call(provider,"discovery",payload,schemas()["discovery"],process_discovery_response,ledger=ledger,output_dir=out,facet=facet,call_id=f"discovery-{facet}-{ci}")
    alias_map={};
    for spec in parsed:
@@ -177,7 +205,7 @@ def run_workshop_complete(v5_root, output_dir, forensic_root=None, excluded_mani
     ops.append({"operation_key":"r1-"+action,"action":action,"predecessor_local_keys":keys[:2],"successor_specs":su,"parent_mode":"unchanged","parent_local_key":None,"non_native_representation":None,"rationale":"r1"})
    elif action in ("deprecate","dispose_non_native"): ops.append({"operation_key":"r1-"+action,"action":action,"predecessor_local_keys":[k],"successor_specs":[],"parent_mode":"unchanged","parent_local_key":None,"non_native_representation":"non-native" if action=="dispose_non_native" else None,"rationale":"r1"})
    elif action=="retain": ops.append({"operation_key":"r1-retain","action":"retain","predecessor_local_keys":[k],"successor_specs":[],"parent_mode":"unchanged","parent_local_key":None,"non_native_representation":None,"rationale":"r1"})
-  parsed, ledger_row, _=invoke_semantic_call(provider,"gardener",{"concept_keys":keys,"overlay_keys":ids,"facet":facet},schemas()["gardener"],process_gardener_response,ledger=ledger,output_dir=out,facet=facet,call_id=f"gardener-r1-{facet}"); applied=[]; quarantined=[]
+  parsed, ledger_row, _=invoke_semantic_call(provider,"gardener",{"concept_keys":keys,"overlay_keys":ids,"facet":facet,"catalogue_context":c.to_dict()},schemas()["gardener"],process_gardener_response,ledger=ledger,output_dir=out,facet=facet,call_id=f"gardener-r1-{facet}"); applied=[]; quarantined=[]
   for op in parsed:
    try:
     c.mutate(op["action"],op["predecessor_local_keys"],op["successor_specs"],op["parent_mode"],op["parent_local_key"],op["non_native_representation"]); applied.append(op["action"])
@@ -186,7 +214,7 @@ def run_workshop_complete(v5_root, output_dir, forensic_root=None, excluded_mani
   c=Catalogue.from_dict(json.loads((out/f"round1-catalogue-{facet}.json").read_text(encoding="utf-8"))); r1_state[facet]=c
   workshop_tx.append(dict(ledger_row,facet=facet,input_count=len(c.items),schema="gardener",validation="PASS",processing="PASS",pre_state_hash=None,post_state_hash=_catalogue_hash(c)))
   # Sweep 1 from persisted R1 state.
-  active=list(c.active_ids()); assigns1, ledger_row, _=invoke_semantic_call(provider,"attachment",{"overlay_keys":sorted(vset),"active_concept_ids":active,"catalogue_hash":c.semantic_hash()},schemas()["attachment"],process_attachment_response,ledger=ledger,output_dir=out,facet=facet,call_id=f"sweep1-{facet}")
+  active=list(c.active_ids()); assigns1, ledger_row, _=invoke_semantic_call(provider,"attachment",{"overlay_keys":sorted(vset),"overlays":[r for r in rows if r["durable_overlay_id"] in vset],"active_concept_ids":active,"catalogue_context":c.to_dict(),"catalogue_hash":c.semantic_hash()},schemas()["attachment"],process_attachment_response,ledger=ledger,output_dir=out,facet=facet,call_id=f"sweep1-{facet}")
   validate_attachments(vset,set(active),assigns1); _write_json(out,f"sweep1-{facet}.json",assigns1); _write_json(out,f"sweep1-diagnostics-{facet}.json",{"zero":sum(not x["concept_ids"] for x in assigns1),"multi":sum(len(x["concept_ids"])>1 for x in assigns1)})
   assigns1=json.loads((out/f"sweep1-{facet}.json").read_text(encoding="utf-8")); json.loads((out/f"sweep1-diagnostics-{facet}.json").read_text(encoding="utf-8"))
   workshop_tx.append(dict(ledger_row,facet=facet,input_count=len(vset),schema="attachment",validation="PASS",processing="PASS",pre_state_hash=_catalogue_hash(c),post_state_hash=_catalogue_hash(c)))
@@ -195,7 +223,7 @@ def run_workshop_complete(v5_root, output_dir, forensic_root=None, excluded_mani
   if keys2:
    k=keys2[0]; spec={"preferred_label":c.items[k]["preferred_label"],"definition":"round2 definition","inclusion_boundary":c.items[k]["inclusion_boundary"],"exclusion_boundary":c.items[k]["exclusion_boundary"],"support_overlay_keys":c.items[k]["support_overlay_ids"][:1]}
    op2=[{"operation_key":"r2","action":"redefine" if facet!="fundraising_mode" else "retain","predecessor_local_keys":[k],"successor_specs":[] if facet=="fundraising_mode" else [spec],"parent_mode":"unchanged","parent_local_key":None,"non_native_representation":None,"rationale":"r2"}]
-  parsed2, ledger_row, _=invoke_semantic_call(provider,"gardener",{"concept_keys":keys2,"overlay_keys":ids,"facet":facet,"validation_assignments":assigns1},schemas()["gardener"],process_gardener_response,ledger=ledger,output_dir=out,facet=facet,call_id=f"gardener-r2-{facet}"); applied2=[]
+  parsed2, ledger_row, _=invoke_semantic_call(provider,"gardener",{"concept_keys":keys2,"overlay_keys":ids,"facet":facet,"catalogue_context":c.to_dict(),"validation_assignments":assigns1,"validation_diagnostics":{"zero":sum(not x["concept_ids"] for x in assigns1),"multi":sum(len(x["concept_ids"])>1 for x in assigns1),"unused_concepts":[v["id"] for v in c.items.values() if not any(v["id"] in x["concept_ids"] for x in assigns1)]}},schemas()["gardener"],process_gardener_response,ledger=ledger,output_dir=out,facet=facet,call_id=f"gardener-r2-{facet}"); applied2=[]
   for op in parsed2:
    try:c.mutate(op["action"],op["predecessor_local_keys"],op["successor_specs"],op["parent_mode"],op["parent_local_key"],op["non_native_representation"]); applied2.append(op["action"])
    except Exception: pass
@@ -203,7 +231,7 @@ def run_workshop_complete(v5_root, output_dir, forensic_root=None, excluded_mani
   c=Catalogue.from_dict(json.loads((out/f"round2-catalogue-{facet}.json").read_text(encoding="utf-8")))
   workshop_tx.append(dict(ledger_row,facet=facet,input_count=len(c.items),schema="gardener",validation="PASS",processing="PASS",pre_state_hash=None,post_state_hash=_catalogue_hash(c)))
   # Sweep 2 freshly calculated, deterministic state-sensitive assignments.
-  active2=list(c.active_ids()); assigns2, ledger_row, _=invoke_semantic_call(provider,"attachment",{"overlay_keys":sorted(vset),"active_concept_ids":active2,"catalogue_hash":c.semantic_hash()},schemas()["attachment"],process_attachment_response,ledger=ledger,output_dir=out,facet=facet,call_id=f"sweep2-{facet}")
+  active2=list(c.active_ids()); assigns2, ledger_row, _=invoke_semantic_call(provider,"attachment",{"overlay_keys":sorted(vset),"overlays":[r for r in rows if r["durable_overlay_id"] in vset],"active_concept_ids":active2,"catalogue_context":c.to_dict(),"catalogue_hash":c.semantic_hash()},schemas()["attachment"],process_attachment_response,ledger=ledger,output_dir=out,facet=facet,call_id=f"sweep2-{facet}")
   validate_attachments(vset,set(active2),assigns2); _write_json(out,f"sweep2-{facet}.json",assigns2)
   workshop_tx.append(dict(ledger_row,facet=facet,input_count=len(vset),schema="attachment",validation="PASS",processing="PASS",pre_state_hash=_catalogue_hash(c),post_state_hash=_catalogue_hash(c)))
   r2_state[facet]={"catalogue":c,"sweep1":assigns1,"sweep2":assigns2,"r1_actions":applied,"r2_actions":applied2}
@@ -228,7 +256,8 @@ def run_workshop_complete(v5_root, output_dir, forensic_root=None, excluded_mani
   for k,v in c.items.items(): concept_use[v["id"]]={"facet":facet,"discovery_support_overlay_count":len(v["support_overlay_ids"]),"discovery_support_organisations":sorted({org_by_id.get(oid) for oid in v["support_overlay_ids"] if org_by_id.get(oid)}),"sweep1_uses":sum(v["id"] in x["concept_ids"] for x in a),"sweep2_uses":sum(v["id"] in x["concept_ids"] for x in b),"unused_by_validation":not any(v["id"] in x["concept_ids"] for x in b)}
  _write_json(out,"v5rr-dry-run-repeatability.json",repeatability); _write_json(out,"v5rr-dry-run-workshop-concept-use.json",concept_use)
  freeze={f:{"final_catalogue_sha256":_catalogue_hash(c),"active_concept_ids":sorted(c.active_ids()),"inactive_concept_ids":sorted(v["id"] for v in c.items.values() if not v["active"]),"freeze_state":True} for f,c in cats.items()}; _write_json(out,"v5rr-dry-run-catalogue-freeze.json",freeze)
- report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","stage":"workshop_complete","provider_calls":len(quality_provider.invocations)+len(provider.invocations),"ledger_rows":len(quality_tx)+len(ledger.rows),"provider_invocations_by_task":{**{k:sum(1 for x in quality_provider.invocations if x["task"]==k) for k in {x["task"] for x in quality_provider.invocations}},**ledger.counts()},"quality_calls":len(quality_tx),"workshop_calls":len(workshop_tx),"clean_overlay_count":len(clean),"core_qualification":qual,"discovery_diagnostics":discovery_diag,"final_catalogue_hashes":{f:_catalogue_hash(c) for f,c in cats.items()},"catalogue_freeze":True,"fake_cost_usd":0}
+ unique_calls=quality_provider.invocations if quality_provider is provider else quality_provider.invocations+provider.invocations
+ report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","stage":"workshop_complete","provider_calls":len(unique_calls),"ledger_rows":len(quality_tx)+len(ledger.rows),"provider_invocations_by_task":{k:sum(1 for x in unique_calls if x["task"]==k) for k in sorted({x["task"] for x in unique_calls})},"quality_calls":len(quality_tx),"workshop_calls":len(workshop_tx),"clean_overlay_count":len(clean),"core_qualification":qual,"discovery_diagnostics":discovery_diag,"final_catalogue_hashes":{f:_catalogue_hash(c) for f,c in cats.items()},"catalogue_freeze":True,"new_cost_usd":str(getattr(provider,"spent",0)-getattr(provider,"retained",0))}
  _write_json(out,"v5rr-workshop-complete-report.json",report); return report
 def run_v5rr_campaign(v5_root,v5r_root,output_dir,provider=None,forensic_root=None,excluded_manifest=None):
  out=Path(output_dir); out.mkdir(parents=True,exist_ok=True); stages={}; all_rows=reconstruct_v5_harvest(Path(v5_root),out,forensic_root,excluded_manifest); clean,bad=exclude_contaminated_native_candidates(all_rows); pin=verify_forensic_input(forensic_root) if forensic_root else None; stages["forensic_v5_input_loaded"]=_write(out,"v5-forensic-input-manifest.json",pin or {"overlay_count":len(all_rows)}); stages["contamination_exclusion"]=_write(out,"v5rr-contaminant-crosswalk.json",bad); _write(out,"v5rr-clean-overlay-manifest.json",{"clean":clean,"excluded":bad}); decisions=recover_v5r_quality_reviews(Path(v5r_root),clean); stages["quality_recovery"]=_write(out,"v5r-quality-recovery-audit.json",decisions); report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","provider_calls":0,"stages":stages,"historical_overlay_count":len(all_rows),"excluded_native_candidate_count":len(bad),"clean_overlay_count":len(clean),"quality_recovered":sum(x["status"]=="mechanically_recovered" for x in decisions),"quality_ambiguous":sum(x["status"]=="ambiguous" for x in decisions),"quality_unresolved":sum(x["status"]=="unresolved" for x in decisions)}; _write(out,"v5rr-orchestrator-dry-run.json",report); return report
@@ -245,7 +274,7 @@ def run_full_fake_campaign(v5_root,v5r_root,output_dir):
     report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","provider_calls":0,"historical_overlay_count":len(all_rows),"excluded_native_candidate_count":len(bad),"clean_overlay_count":len(clean),"authoritative_quality_count":len(quality),"fake_quality_transmissions":len(tx),"dispositions":{d:sum(r["disposition"]==d for r in quality) for d in DISPOSITIONS},"reviewed_pool_counts":{f:len(v) for f,v in pools.items()},"core_qualification":qualification,"split_facets":sorted(splits)}
     _write(out,"v5rr-orchestrator-dry-run.json",report); return report
 
-def run_full_fake_campaign_complete(v5_root, v4r_root, output_dir, forensic_root=None, excluded_manifest=None):
+def run_full_fake_campaign_complete(v5_root, v4r_root, output_dir, forensic_root=None, excluded_manifest=None, provider=None):
  """Complete provider-free workshop plus bounded holdout extraction/quality/transfer."""
  out=Path(output_dir); base=run_workshop_complete(v5_root,out,forensic_root,excluded_manifest)
  hold=[]
@@ -262,14 +291,19 @@ def run_full_fake_campaign_complete(v5_root, v4r_root, output_dir, forensic_root
  _write_json(out,"v5rr-dry-run-holdout-canonical-objects.json",hold)
  # Pre-freeze guard is evaluated against workshop manifests.
  pre_files=list(out.glob("discovery-*.json"))+list(out.glob("round1-*.json"))+list(out.glob("sweep1-*.json"))+list(out.glob("round2-*.json"))+list(out.glob("sweep2-*.json")); pretext="\n".join(f.read_text(encoding="utf-8") for f in pre_files); guard=not any(r["observation_id"] in pretext for r in hold)
- ext_provider=FakeProvider(); extraction=[]
+ ext_provider=provider or FakeProvider(); extraction=[]; extraction_ledger=SemanticCallLedger(out)
  for i in range(0,len(hold),10):
-  batch=hold[i:i+10]; payload={"object_keys":[r["canonical_object_id"] for r in batch],"eligible_facets":["operational_activity","participation","fundraising_mode"]}; resp=ext_provider.request("extraction",payload,schemas()["extraction"]); parsed=process_extraction_response(resp,schemas()["extraction"]); extraction.extend({"durable_overlay_id":f"HOVL-{i+j:03d}","canonical_object_id":r["canonical_object_id"],"observation_id":r["observation_id"],"organisation":r["organisation"],"facet":o["facet"],"overlay_statement":o["overlay_statement"],"analytic_dimension":o["analytic_dimension"],"qualification":o["qualification"],"anti_duplication_boundary":o["anti_duplication_boundary"]} for j,(r,h) in enumerate(zip(batch,parsed)) for o in h["overlays"])
- _write_json(out,"v5rr-dry-run-holdout-extraction.json",extraction); hq,ht=run_quality_review(extraction,FakeProvider(),out,10) if extraction else ([],[]); _write_json(out,"v5rr-dry-run-holdout-authoritative-quality.json",hq)
- transfers=[]; frozen_hashes=base.get("final_catalogue_hashes",{})
+  batch=hold[i:i+10]; payload={"object_keys":[r["canonical_object_id"] for r in batch],"canonical_objects":batch,"eligible_facets":["operational_activity","participation","fundraising_mode"]}; parsed,_,_=invoke_semantic_call(ext_provider,"extraction",payload,schemas()["extraction"],process_extraction_response,ledger=extraction_ledger,output_dir=out,model="gpt-5.6-luna",reasoning="none",call_id=f"holdout-extraction-{i//10+1:02d}"); by_key={h["canonical_object_key"]:h for h in parsed};
+  for r in batch:
+   h=by_key.get(r["canonical_object_id"],{"overlays":[]})
+   for o in h["overlays"]: extraction.append({"durable_overlay_id":f"HOVL-{len(extraction):03d}","canonical_object_id":r["canonical_object_id"],"observation_id":r["observation_id"],"organisation":r["organisation"],"facet":o["facet"],"overlay_statement":o["overlay_statement"],"analytic_dimension":o["analytic_dimension"],"qualification":o["qualification"],"anti_duplication_boundary":o["anti_duplication_boundary"]})
+ _write_json(out,"v5rr-dry-run-holdout-extraction.json",extraction); hq,ht=run_quality_review(extraction,ext_provider,out,10) if extraction else ([],[]); _write_json(out,"v5rr-dry-run-holdout-authoritative-quality.json",hq)
+ transfers=[]; transfer_ledger=SemanticCallLedger(out); frozen_hashes=base.get("final_catalogue_hashes",{})
  for facet in ("operational_activity","participation","fundraising_mode"):
   final= json.loads(next(iter(out.glob(f"round2-catalogue-{facet}.json"))).read_text(encoding="utf-8")) if list(out.glob(f"round2-catalogue-{facet}.json")) else {}
   items=final.get("items",final); ids=[v["id"] for v in items.values() if v.get("active")]; rows=[r for r in hq if r.get("reviewed_facet")==facet and r.get("disposition")!="reject_native"]
-  if rows: transfers.extend(FakeProvider().request("attachment",{"overlay_keys":[r["durable_overlay_id"] for r in rows],"active_concept_ids":ids,"catalogue_hash":frozen_hashes.get(facet,"")},schemas()["attachment"])["assignments"])
+  for organisation in sorted({r["organisation"] for r in rows}):
+   org_rows=[r for r in rows if r["organisation"]==organisation]; before=frozen_hashes.get(facet,""); parsed,_,_=invoke_semantic_call(ext_provider,"attachment",{"overlay_keys":[r["durable_overlay_id"] for r in org_rows],"active_concept_ids":ids,"catalogue_hash":before,"organisation":organisation},schemas()["attachment"],process_attachment_response,ledger=transfer_ledger,output_dir=out,facet=facet,organisation=organisation,model="gpt-5.6-luna",reasoning="none",call_id=f"transfer-{facet}-{len(transfers):03d}"); transfers.extend(parsed)
+   if _catalogue_hash(Catalogue.from_dict(final))!=before: raise AssertionError("frozen catalogue changed during transfer")
  _write_json(out,"v5rr-dry-run-holdout-transfer.json",transfers); _write_json(out,"v5rr-dry-run-promotion-evidence.json",{"concept_count":sum(len(json.loads(p.read_text(encoding="utf-8")).get("items",{})) for p in out.glob("round2-catalogue-*.json")),"holdout_assignment_count":len(transfers)})
- result=dict(base); result.update({"stage":"full_fake_campaign_complete","holdout_canonical_objects":len(hold),"holdout_extraction_overlays":len(extraction),"holdout_quality_records":len(hq),"holdout_transfer_assignments":len(transfers),"pre_freeze_holdout_guard":guard,"fake_quality_calls":len(ht)}); _write_json(out,"v5rr-full-fake-campaign-complete.json",result); return result
+ result=dict(base); result.update({"stage":"full_fake_campaign_complete","holdout_canonical_objects":len(hold),"holdout_extraction_overlays":len(extraction),"holdout_quality_records":len(hq),"holdout_transfer_assignments":len(transfers),"pre_freeze_holdout_guard":guard,"holdout_extraction_calls":len(extraction_ledger.rows),"holdout_quality_calls":len(ht),"transfer_calls":len(transfer_ledger.rows),"real_provider_calls":len(getattr(provider,"invocations",())) if provider else 0,"new_cost_usd":str(getattr(provider,"spent",0)-getattr(provider,"retained",0)) if provider else "0"}); _write_json(out,"v5rr-full-fake-campaign-complete.json",result); return result

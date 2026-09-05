@@ -102,11 +102,20 @@ def invoke_semantic_call(provider, task, payload, schema, processor, *, ledger=N
  out=Path(output_dir) if output_dir else None
  if out:
   out.mkdir(parents=True,exist_ok=True); (out/(call_id+"-manifest.json")).write_text(json.dumps(manifest,indent=2),encoding="utf-8")
- response=provider.request(task,payload,schema)
- parsed=processor(response,schema)
- row=dict(manifest,status="completed",response_sha256=digest(response),usage=None,cost_usd=0)
- ledger.record(row)
- if out: (out/(call_id+"-response.json")).write_text(json.dumps(response,indent=2,ensure_ascii=False),encoding="utf-8")
+ try:
+  response=provider.request(task,payload,schema)
+  parsed=processor(response,schema)
+  row=dict(manifest,status="completed",response_sha256=digest(response),usage=None,cost_usd=0)
+ except Exception as exc:
+  response={"error":str(exc)}; row=dict(manifest,status="incomplete_or_rejected",error=str(exc),response_sha256=digest(response),usage=None,cost_usd=0)
+  row.update(getattr(provider,"last_call",{})); ledger.record(row)
+  if out: (out/(call_id+"-response.json")).write_text(json.dumps(response,indent=2,ensure_ascii=False),encoding="utf-8")
+  raise
+ row.update(getattr(provider,"last_call",{})); ledger.record(row)
+ if out:
+  (out/(call_id+"-response.json")).write_text(json.dumps(response,indent=2,ensure_ascii=False),encoding="utf-8")
+  prompt=getattr(provider,"last_call",{}).get("prompt")
+  if prompt: (out/(call_id+"-prompt.txt")).write_text(prompt,encoding="utf-8")
  return parsed, row, ledger
 def _require(x,k):
  if not isinstance(x,dict) or k not in x: raise ValueError("missing "+k)
