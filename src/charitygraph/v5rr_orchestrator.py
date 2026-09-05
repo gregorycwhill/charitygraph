@@ -276,7 +276,7 @@ def run_full_fake_campaign(v5_root,v5r_root,output_dir):
 
 def run_full_fake_campaign_complete(v5_root, v4r_root, output_dir, forensic_root=None, excluded_manifest=None, provider=None):
  """Complete provider-free workshop plus bounded holdout extraction/quality/transfer."""
- out=Path(output_dir); base=run_workshop_complete(v5_root,out,forensic_root,excluded_manifest)
+ out=Path(output_dir); base=run_workshop_complete(v5_root,out,forensic_root,excluded_manifest,provider=provider)
  hold=[]
  for f in sorted(Path(v4r_root).glob("raw/stage-a-*.json")):
   try:
