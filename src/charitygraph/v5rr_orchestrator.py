@@ -128,6 +128,8 @@ def run_quality_review(clean_overlays, provider, output_dir, batch_size=10):
   parsed, ledger_row, _ = invoke_semantic_call(provider,"quality",payload,ss,process_quality_response,output_dir=out,call_id=f"quality-{bi:02d}")
   call_id=ledger_row["call_id"]
   for item,review in zip(items,parsed):
+   if review["overlay_key"]==item["call_local_alias"]:
+    review["overlay_key"]=item["durable_overlay_id"]
    if review["overlay_key"]!=item["durable_overlay_id"]: raise ValueError("quality overlay correspondence")
    rows.append({"durable_overlay_id":item["durable_overlay_id"],"canonical_object_id":item["canonical_object_id"],"observation_id":item["observation_id"],"organisation":item["organisation"],"original_facet":item["original_facet"],"disposition":review["disposition"],"reviewed_facet":review["facet_after"],"original_statement":item["overlay_statement"],"reviewed_statement":review["reviewed_overlay_statement"],"reviewed_analytic_dimension":review["reviewed_analytic_dimension"],"reviewed_inclusion_boundary":review["reviewed_inclusion_boundary"],"reviewed_exclusion_boundary":review["reviewed_exclusion_boundary"],"qualification":review["qualification"],"uncertainty":review["uncertainty"],"quality_call_id":call_id,"quality_call_local_alias":item["call_local_alias"],"provider_kind":"fake" if isinstance(provider,FakeProvider) else "adapter"})
   transmissions.append(dict(ledger_row,input_count=len(items),first_overlay_id=items[0]["durable_overlay_id"],last_overlay_id=items[-1]["durable_overlay_id"],response_count=len(parsed),schema_validation="PASS",processing="PASS"))
