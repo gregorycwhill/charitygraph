@@ -29,6 +29,20 @@ def validate_schema_shapes(value):
    for i,v in enumerate(x): walk(v,p+"/"+str(i))
  walk(value); return bad
 def digest(x): return hashlib.sha256(json.dumps(x,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
+def validate_response(value,schema,path=""):
+    t=schema.get("type")
+    if isinstance(t,list):
+        if value is None and "null" in t:return
+        t=next((x for x in t if x!="null"),None)
+    if t=="object":
+        if not isinstance(value,dict): raise ValueError(path+": object required")
+        if set(value)!=set(schema.get("properties",{})): raise ValueError(path+": undeclared/missing field")
+        for k,v in schema["properties"].items(): validate_response(value[k],v,path+"/"+k)
+    elif t=="array":
+        if not isinstance(value,list): raise ValueError(path+": array required")
+        for i,v in enumerate(value): validate_response(v,schema["items"],path+"/"+str(i))
+    elif t=="string" and not isinstance(value,str): raise ValueError(path+": string required")
+    if "enum" in schema and value not in schema["enum"]: raise ValueError(path+": invalid enum")
 class FakeProvider:
  def request(self,task,payload,schema):
   if task=="quality": return {"reviews":[{"overlay_key":o,"disposition":"accept","rationale":"bounded","facet_after":payload["facet"],"reviewed_overlay_statement":"statement","reviewed_analytic_dimension":"dimension","reviewed_inclusion_boundary":"include","reviewed_exclusion_boundary":"exclude","qualification":"none","uncertainty":None} for o in payload["overlay_keys"]]}
@@ -41,30 +55,31 @@ def _require(x,k):
  if not isinstance(x,dict) or k not in x: raise ValueError("missing "+k)
 def _unique(v):
  if any(x is None for x in v) or len(v)!=len(set(v)): raise ValueError("duplicate or missing local key")
-def process_quality_response(r,s): _require(r,"reviews"); return r["reviews"]
-def process_discovery_response(r,s): _require(r,"concepts"); _unique([x.get("local_key") for x in r["concepts"]]); return r["concepts"]
+def process_quality_response(r,s): validate_response(r,s); _require(r,"reviews"); return r["reviews"]
+def process_discovery_response(r,s): validate_response(r,s); _require(r,"concepts"); _unique([x.get("local_key") for x in r["concepts"]]); return r["concepts"]
 def process_gardener_response(r,s):
- _require(r,"operations")
+ validate_response(r,s); _require(r,"operations")
  if any(not x.get("operation_key") or "predecessor_local_keys" not in x for x in r["operations"]): raise ValueError("invalid gardener operation")
  return r["operations"]
 def process_attachment_response(r,s):
- _require(r,"assignments")
+ validate_response(r,s); _require(r,"assignments")
  if any("concept_ids" not in x for x in r["assignments"]): raise ValueError("invalid attachment")
  return r["assignments"]
 def process_extraction_response(r,s):
- _require(r,"reviews")
+ validate_response(r,s); _require(r,"reviews")
  if any(not x.get("canonical_object_key") for x in r["reviews"]): raise ValueError("invalid extraction")
  return r["reviews"]
 
 class Catalogue:
  def __init__(self,facet,overlays=(),registry=None): self.facet=facet; self.overlays=set(overlays); self.registry=registry if registry is not None else {}; self.items={}; self.history=[]
- def _id(self,local):
-  ident="CON-"+self.facet+"-"+hashlib.sha256((self.facet+"|"+local).encode()).hexdigest()[:16]
-  if ident in self.registry and self.registry[ident]!=(self.facet,local): raise ValueError("collision")
-  self.registry[ident]=(self.facet,local); return ident
- def add(self,local,label,support,parent=None,semantics=None):
-  if local in self.items or any(x not in self.overlays for x in support): raise ValueError("duplicate-or-unknown-support")
-  sem=semantics or {}; self.items[local]={"id":self._id(local),"local_key":local,"facet":self.facet,"preferred_label":label,"definition":sem.get("definition","definition"),"inclusion_boundary":sem.get("inclusion_boundary","include"),"exclusion_boundary":sem.get("exclusion_boundary","exclude"),"active":True,"parent":parent,"support_overlay_ids":list(support),"predecessors":[],"successors":[],"lifecycle_history":[]}; return self.items[local]["id"]
+ def _id(self,local,call_id="call-1"):
+  ident="CON-"+self.facet+"-"+hashlib.sha256((self.facet+"|"+call_id+"|"+local).encode()).hexdigest()[:16]
+  if ident in self.registry and self.registry[ident]!=(self.facet,call_id,local): raise ValueError("collision")
+  self.registry[ident]=(self.facet,call_id,local); return ident
+ def add(self,local,label,support,parent=None,semantics=None,call_id="call-1"):
+  storage_key=local if call_id=="call-1" and local not in self.items else call_id+"/"+local
+  if storage_key in self.items or any(x not in self.overlays for x in support): raise ValueError("duplicate-or-unknown-support")
+  sem=semantics or {}; ident=self._id(local,call_id); self.items[storage_key]={"id":ident,"local_key":local,"call_id":call_id,"facet":self.facet,"preferred_label":label,"definition":sem.get("definition","definition"),"inclusion_boundary":sem.get("inclusion_boundary","include"),"exclusion_boundary":sem.get("exclusion_boundary","exclude"),"active":True,"parent":parent,"support_overlay_ids":list(support),"predecessors":[],"successors":[],"lifecycle_history":[]}; return ident
  def _cycle(self,child,parent):
   seen=set(); cur=parent
   while cur is not None:
@@ -129,7 +144,8 @@ def run_synthetic_lifecycle(output_dir=None):
  ss=schemas(); checks={"five schema preflights":all(not validate_schema_shapes(v) for v in ss.values())}; provider=FakeProvider(); overlays=[f"OVL-{i:03d}" for i in range(1,29)]; registry={}; cats={f:Catalogue(f,overlays,registry) for f in FACETS}; maps={}; responses={}
  for facet,c in cats.items():
   r=provider.request("discovery",{"overlay_keys":overlays[:4],"facet":facet},ss["discovery"]); responses[facet]=r; maps[facet]={x["local_key"]:c.add(x["local_key"],x["preferred_label"],x["support_overlay_keys"],semantics=x) for x in process_discovery_response(r,ss["discovery"])}
- checks["discovery round-trips"]=len(maps)==3 and all(len(x)==2 for x in maps.values()); checks["globally unique durable concept IDs"]=len(registry)==6 and len(set(registry))==6
+  r2=provider.request("discovery",{"overlay_keys":overlays[4:8],"facet":facet},ss["discovery"]); responses[facet+"-2"]=r2; maps[facet+"-2"]={x["local_key"]:c.add(x["local_key"],x["preferred_label"],x["support_overlay_keys"],semantics=x,call_id="discovery-2") for x in process_discovery_response(r2,ss["discovery"])}
+ checks["discovery round-trips"]=len(maps)==6 and all(len(x)==2 for x in maps.values()); checks["globally unique durable concept IDs"]=len(registry)==12 and len(set(registry))==12
  d,v=split_overlay_ids(overlays,"salt-v1"); checks["salted split complete/disjoint/deterministic"]=split_overlay_ids(list(reversed(overlays)),"salt-v1")== (d,v) and d.isdisjoint(v) and d|v==set(overlays)
  hold=[f"HOBJ-{i:03d}" for i in range(1,7)]; m=[{"object_ids":[f"OBJ-{i}" for i in range(12)],"overlay_ids":list(d)}]; checks["holdout guard clean"]=holdout_guard(m,hold,set(hold)); checks["holdout guard rejects leakage"]=not holdout_guard(m+[{"object_ids":[hold[0]],"overlay_ids":[]}],hold,set())
  c=cats[FACETS[0]]; g=provider.request("gardener",{"overlay_keys":overlays[:4]},ss["gardener"]); ops=process_gardener_response(g,ss["gardener"]); c.mutate("rename",["P01"],[ops[0]["successor_specs"][0]]); c.mutate("redefine",["P02"],[ops[1]["successor_specs"][0]]); checks["gardener schema-to-mutation"]=c.items["P01"]["preferred_label"]=="renamed" and c.items["P02"]["definition"]=="redefined"
