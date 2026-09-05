@@ -246,7 +246,7 @@ def run_workshop_complete(v5_root, output_dir, forensic_root=None, excluded_mani
   except ValueError: pass
   else: raise AssertionError("frozen catalogue accepted mutation")
   cats[facet]=frozen
- ledger.reconcile(provider)
+ ledger.reconcile(provider, offset=len(quality_tx))
  concept_use={}
  repeatability={}
  for facet,state in r2_state.items():

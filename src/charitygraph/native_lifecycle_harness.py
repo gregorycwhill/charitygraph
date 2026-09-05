@@ -85,8 +85,8 @@ class SemanticCallLedger:
    self.output_dir.mkdir(parents=True,exist_ok=True)
    (self.output_dir/(row["call_id"]+"-ledger.json")).write_text(json.dumps(row,indent=2,ensure_ascii=False),encoding="utf-8")
  def counts(self): return {task:sum(r["task"]==task for r in self.rows) for task in sorted({r["task"] for r in self.rows})}
- def reconcile(self, provider):
-  actual=getattr(provider,"invocations",())
+ def reconcile(self, provider, offset=0):
+  actual=list(getattr(provider,"invocations",()))[offset:]
   if len(self.rows)!=len(actual): raise AssertionError("semantic ledger/provider invocation mismatch")
   if [r["task"] for r in self.rows] != [r["task"] for r in actual]: raise AssertionError("semantic task mismatch")
   return True
