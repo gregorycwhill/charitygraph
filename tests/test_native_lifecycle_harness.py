@@ -1,6 +1,7 @@
 import json
 import pytest
 from charitygraph.native_lifecycle_harness import *
+from charitygraph.v5rr_orchestrator import run_quality_review, build_reviewed_pools, qualify_core_facets, build_deterministic_splits
 
 def cat(f="operational_activity"):
     c=Catalogue(f,{"O1","O2"}); c.add("P01","one",["O1"]); c.add("P02","two",["O2"]); return c
@@ -52,3 +53,18 @@ def test_fake_provider_roundtrips():
     p=FakeProvider(); s=schemas(); assert process_quality_response(p.request("quality",{"overlay_keys":["O1"],"facet":FACETS[0]},s["quality"]),s["quality"])
 def test_synthetic_30_assertions():
     r=run_synthetic_lifecycle(); assert r["passed"]==30 and r["total"]==30 and all(r["assertions"].values())
+
+def _quality_rows(n=135):
+    orgs=("Local Buying Foundation (WA)","World Vision Australia","Australian Communities Foundation")
+    return [{"overlay_id":f"OV-{i:03d}","canonical_object_id":f"C-{i}","observation_id":f"O-{i}","organisation":orgs[i%3],"facet":FACETS[i%3],"overlay_statement":f"statement {i}","analytic_dimension":"dimension","why_adds_value_beyond_canonical":"value","anti_duplication_boundary":"boundary","qualification":"qualified","uncertainty":None} for i in range(n)]
+def test_v5rr_quality_135_batches_and_authority(tmp_path):
+    rows, tx = run_quality_review(_quality_rows(), FakeProvider(), tmp_path)
+    assert len(rows)==135 and len(tx)==14 and len({r["durable_overlay_id"] for r in rows})==135
+    assert {r["disposition"] for r in rows}==set(DISPOSITIONS)
+    assert all(r["canonical_object_id"] and r["observation_id"] for r in rows)
+def test_v5rr_quality_order_independent_and_pools(tmp_path):
+    a,_=run_quality_review(_quality_rows(),FakeProvider(),tmp_path/"a"); b,_=run_quality_review(list(reversed(_quality_rows())),FakeProvider(),tmp_path/"b")
+    by_a={r["durable_overlay_id"]:r for r in a}; by_b={r["durable_overlay_id"]:r for r in b}; assert {k: v["disposition"] for k,v in by_a.items()}=={k:v["disposition"] for k,v in by_b.items()}
+    pools=build_reviewed_pools(a); assert set(pools)=={"operational_activity","participation","fundraising_mode","capability_access","governance_practice","ethos_conduct","evaluation_method"}
+    q=qualify_core_facets(pools); splits=build_deterministic_splits(pools,q)
+    for f in splits: assert set(splits[f]["discovery"]).isdisjoint(splits[f]["validation"])
