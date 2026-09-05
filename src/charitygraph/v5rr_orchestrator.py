@@ -221,7 +221,7 @@ def run_full_fake_campaign_complete(v5_root, v4r_root, output_dir):
     for obj in disp.get("objects",[]):
      org=(obj.get("statement") or "")
      if "Fred Hollows" in org or "Tweed Regional Gallery" in org:
-      hold.append({"canonical_object_id":disp.get("local_key"),"observation_id":disp.get("local_key"),"organisation":"The Fred Hollows Foundation" if "Fred Hollows" in org else "Tweed Regional Gallery Foundation Limited","overlay_statement":obj.get("statement",""),"facet":obj.get("facet_hint") or "operational_activity","representation_family":obj.get("representation_family"),"qualification":obj.get("qualification")})
+      hold.append({"canonical_object_id":"holdout:"+f.stem+":"+str(disp.get("local_key")),"observation_id":"holdout:"+f.stem+":"+str(disp.get("local_key")),"organisation":"The Fred Hollows Foundation" if "Fred Hollows" in org else "Tweed Regional Gallery Foundation Limited","overlay_statement":obj.get("statement",""),"facet":obj.get("facet_hint") or "operational_activity","representation_family":obj.get("representation_family"),"qualification":obj.get("qualification")})
   except Exception: pass
  hold=[dict(r,durable_overlay_id=f"HOLD-{i:03d}") for i,r in enumerate(hold) if r.get("representation_family")!="native_candidate"]
  _write_json(out,"v5rr-dry-run-holdout-canonical-objects.json",hold)
