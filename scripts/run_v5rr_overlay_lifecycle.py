@@ -3,15 +3,15 @@ from __future__ import annotations
 import argparse,json,time
 from pathlib import Path
 from charitygraph.native_lifecycle_harness import schemas,validate_response,process_quality_response,process_discovery_response,process_gardener_response,process_attachment_response,process_extraction_response
-from charitygraph.v5rr_orchestrator import run_full_fake_campaign
+from charitygraph.v5rr_orchestrator import run_full_fake_campaign,run_full_fake_campaign_complete
 from charitygraph.openai_client import responses_create,estimate_response_cost
 
 CASES=[("quality","gpt-5.6-terra","high",4000),("discovery","gpt-5.6-luna","none",7000),("gardener","gpt-5.6-terra","high",4000),("attachment","gpt-5.6-luna","none",7000),("extraction","gpt-5.6-luna","none",7000)]
 STAGES=("smoke_verification","harvest_reconstruction","contamination_exclusion","quality_recovery","authoritative_quality","core_pools","split","discovery","gardener_round1","sweep1","gardener_round2","sweep2","catalogue_freeze","holdout_reconstruction","holdout_extraction","holdout_quality","holdout_transfer","promotion_diagnostics","cost_ledger","public_review")
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument("--output",type=Path,required=True); ap.add_argument("--dry-run",action="store_true"); args=ap.parse_args(); args.output.mkdir(parents=True,exist_ok=True); ss=schemas(); rows=[]; total=0.0
+ ap=argparse.ArgumentParser(); ap.add_argument("--output",type=Path,required=True); ap.add_argument("--v5-root",type=Path,required=True); ap.add_argument("--v5r-root",type=Path,required=True); ap.add_argument("--forensic-root",type=Path,required=True); ap.add_argument("--excluded-manifest",type=Path,required=True); ap.add_argument("--dry-run",action="store_true"); args=ap.parse_args(); args.output.mkdir(parents=True,exist_ok=True); ss=schemas(); rows=[]; total=0.0
  if args.dry_run:
-  report=run_full_fake_campaign(Path(r"C:\CharityGraph-runtime\native-induction-v5-overlay-lifecycle"),Path(r"C:\CharityGraph-runtime\native-induction-v5r-overlay-quality-lifecycle"),args.output); print(json.dumps(report)); return
+  report=run_full_fake_campaign_complete(args.v5_root,args.v5r_root,args.output,args.forensic_root,args.excluded_manifest); print(json.dumps(report)); return
  payloads={"quality":{"overlay_keys":["OVL-smoke"],"facet":"operational_activity"},"discovery":{"overlay_keys":["OVL-smoke"]},"gardener":{"overlay_keys":["OVL-smoke"]},"attachment":{"overlay_keys":["OVL-smoke"],"concept_ids":[]},"extraction":{"object_keys":["OBJ-smoke"]}}
  processors={"quality":process_quality_response,"discovery":process_discovery_response,"gardener":process_gardener_response,"attachment":process_attachment_response,"extraction":process_extraction_response}
  for i,(task,model,effort,limit) in enumerate(CASES,1):

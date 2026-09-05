@@ -5,11 +5,36 @@ from pathlib import Path
 from .native_lifecycle_harness import run_synthetic_lifecycle, digest, FakeProvider, SemanticCallLedger, invoke_semantic_call, schemas, validate_response, process_quality_response, process_discovery_response, process_gardener_response, process_extraction_response, process_attachment_response, Catalogue, split_overlay_ids, DISPOSITIONS, validate_attachments
 
 STAGES=("harvest_reconstruction","contamination_exclusion","quality_recovery","authoritative_quality","core_pools","split","discovery","gardener_round1","sweep1","gardener_round2","sweep2","catalogue_freeze","holdout_reconstruction","holdout_extraction","holdout_quality","holdout_transfer","promotion_diagnostics","cost_ledger","public_review")
+FORENSIC_COMMIT="a26f2f8e968c66231b85fb847b44d99120dd7336"
+FORENSIC_FILE_SHA256={
+ "overlays-capability-access.json":"e1dd8c1f56fa92e6ae238c3125ddf941001f426dc1896168e4d72d2da89c6369",
+ "overlays-ethos-conduct.json":"e0bd3fdf9277a217521046feaeb4405863be90f9f5250bcb2a419ae8e707caf2",
+ "overlays-evaluation-method.json":"8a87ed6b5bd4c95ee66182f30ed001ccc071594dd63b15a82b5e9fdd693320dc",
+ "overlays-fundraising-mode.json":"0d275ac51d12f04e01ebe193abce7d06b96bcec2778cda32c3e3812117a7b902",
+ "overlays-governance-practice.json":"042ae8e71c719cdd10dd60795c8b9be4f3535ed1e999ce08a06f660972cc9311",
+ "overlays-operational-activity.json":"cad2e291b4013ea9233090c576ff0355bfe174caf9ac59d06fb28227176e3efd",
+ "overlays-participation.json":"cfde941b5e5ad66b62afe2eaf731e8246d6670012583f59d7cb4ab3522b55f8c",
+}
 def _write(out,name,data):
  p=out/name; p.write_text(json.dumps(data,indent=2,ensure_ascii=False),encoding="utf-8"); return {"status":"executed","input_count":len(data) if isinstance(data,(list,dict)) else 1,"output_count":len(data) if isinstance(data,(list,dict)) else 1,"artefact":str(p),"sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
-def reconstruct_v5_harvest(v5_root,out):
- forensic=Path(r"C:\tmp\charitygraph-lab-review\native-induction-v5-overlay-lifecycle-review")
- files=list(forensic.glob("overlays-*.json")) if forensic.exists() else list((v5_root/"raw").glob("luna-harvest-*.json")); rows=[]
+def verify_forensic_input(forensic_root):
+ root=Path(forensic_root); actual={}; failures=[]
+ git_root=root.parent if root.name=="native-induction-v5-overlay-lifecycle-review" else root
+ try:
+  commit=__import__("subprocess").check_output(["git","-c",f"safe.directory={git_root}","-C",str(git_root),"rev-parse","HEAD"],text=True,stderr=__import__("subprocess").DEVNULL).strip()
+ except Exception: commit=None
+ for name,expected in FORENSIC_FILE_SHA256.items():
+  p=root/name
+  if not p.exists(): failures.append(name); continue
+  actual[name]=hashlib.sha256(p.read_bytes()).hexdigest()
+  if actual[name]!=expected: failures.append(name)
+ if commit!=FORENSIC_COMMIT: failures.append("git_commit")
+ if failures: raise ValueError("forensic input pin mismatch: "+",".join(failures))
+ return {"repository":"gregorycwhill/charitygraph-lab-review","commit":commit,"files":actual,"overlay_count":139}
+
+def reconstruct_v5_harvest(v5_root,out,forensic_root=None,excluded_manifest=None):
+ forensic=Path(forensic_root) if forensic_root else None
+ files=list(forensic.glob("overlays-*.json")) if forensic and forensic.exists() else list((Path(v5_root)/"raw").glob("luna-harvest-*.json")); rows=[]
  for f in files:
   try:
    x=json.loads(f.read_text(encoding="utf-8"));
@@ -21,8 +46,8 @@ def reconstruct_v5_harvest(v5_root,out):
    else: rows.extend(dict(r,source_file=f.name) if isinstance(r,dict) else r for r in x.get("overlays",x.get("data",[])))
   except Exception: pass
  if not rows: rows=[{"source_file":f.name} for f in files]
- excluded=Path(r"C:\tmp\charitygraph-lab-review\native-induction-v4r-faceted-disposition-repair-review\luna-native-candidate-cases.json")
- if excluded.exists():
+ excluded=Path(excluded_manifest) if excluded_manifest else None
+ if excluded and excluded.exists():
   try:
    source=json.loads(excluded.read_text(encoding="utf-8")); vals=source.get("value",source if isinstance(source,list) else []); ids={x.get("observation_id") for x in vals}
    for r in rows:
@@ -109,10 +134,11 @@ def _catalogue_hash(c): return digest(c.items)
 def _write_json(out,name,data):
  p=out/name; p.write_text(json.dumps(data,indent=2,ensure_ascii=False),encoding="utf-8"); return p
 
-def run_workshop_complete(v5_root, output_dir):
+def run_workshop_complete(v5_root, output_dir, forensic_root=None, excluded_manifest=None):
  """Provider-free complete workshop lifecycle over the reviewed core pools."""
  out=Path(output_dir); out.mkdir(parents=True,exist_ok=True)
- all_rows=reconstruct_v5_harvest(Path(v5_root),out); clean,bad=exclude_contaminated_native_candidates(all_rows)
+ if forensic_root: verify_forensic_input(forensic_root)
+ all_rows=reconstruct_v5_harvest(Path(v5_root),out,forensic_root,excluded_manifest); clean,bad=exclude_contaminated_native_candidates(all_rows)
  quality_provider=FakeProvider(); quality,quality_tx=run_quality_review(clean,quality_provider,out); pools=build_reviewed_pools(quality); qual=qualify_core_facets(pools); splits=build_deterministic_splits(pools,qual)
  _write_json(out,"v5rr-dry-run-reviewed-pools.json",pools); _write_json(out,"v5rr-dry-run-core-qualification.json",qual); _write_json(out,"v5rr-dry-run-splits.json",splits)
  training=("Local Buying Foundation (WA)","World Vision Australia","Australian Communities Foundation")
@@ -204,8 +230,8 @@ def run_workshop_complete(v5_root, output_dir):
  freeze={f:{"final_catalogue_sha256":_catalogue_hash(c),"active_concept_ids":sorted(c.active_ids()),"inactive_concept_ids":sorted(v["id"] for v in c.items.values() if not v["active"]),"freeze_state":True} for f,c in cats.items()}; _write_json(out,"v5rr-dry-run-catalogue-freeze.json",freeze)
  report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","stage":"workshop_complete","provider_calls":len(quality_provider.invocations)+len(provider.invocations),"ledger_rows":len(quality_tx)+len(ledger.rows),"provider_invocations_by_task":{**{k:sum(1 for x in quality_provider.invocations if x["task"]==k) for k in {x["task"] for x in quality_provider.invocations}},**ledger.counts()},"quality_calls":len(quality_tx),"workshop_calls":len(workshop_tx),"clean_overlay_count":len(clean),"core_qualification":qual,"discovery_diagnostics":discovery_diag,"final_catalogue_hashes":{f:_catalogue_hash(c) for f,c in cats.items()},"catalogue_freeze":True,"fake_cost_usd":0}
  _write_json(out,"v5rr-workshop-complete-report.json",report); return report
-def run_v5rr_campaign(v5_root,v5r_root,output_dir,provider=None):
- out=Path(output_dir); out.mkdir(parents=True,exist_ok=True); stages={}; all_rows=reconstruct_v5_harvest(Path(v5_root),out); clean,bad=exclude_contaminated_native_candidates(all_rows); forensic=Path(r"C:\tmp\charitygraph-lab-review\native-induction-v5-overlay-lifecycle-review"); files=[{"path":f.name,"sha256":hashlib.sha256(f.read_bytes()).hexdigest(),"count":len(json.loads(f.read_text(encoding="utf-8")))} for f in forensic.glob("overlays-*.json")] if forensic.exists() else []; stages["forensic_v5_input_loaded"]=_write(out,"v5-forensic-input-manifest.json",{"repository":"gregorycwhill/charitygraph-lab-review","commit":"a26f2f8","files":files,"overlay_count":len(all_rows)}); stages["contamination_exclusion"]=_write(out,"v5rr-contaminant-crosswalk.json",bad); _write(out,"v5rr-clean-overlay-manifest.json",{"clean":clean,"excluded":bad}); decisions=recover_v5r_quality_reviews(Path(v5r_root),clean); stages["quality_recovery"]=_write(out,"v5r-quality-recovery-audit.json",decisions); report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","provider_calls":0,"stages":stages,"historical_overlay_count":len(all_rows),"excluded_native_candidate_count":len(bad),"clean_overlay_count":len(clean),"quality_recovered":sum(x["status"]=="mechanically_recovered" for x in decisions),"quality_ambiguous":sum(x["status"]=="ambiguous" for x in decisions),"quality_unresolved":sum(x["status"]=="unresolved" for x in decisions)}; _write(out,"v5rr-orchestrator-dry-run.json",report); return report
+def run_v5rr_campaign(v5_root,v5r_root,output_dir,provider=None,forensic_root=None,excluded_manifest=None):
+ out=Path(output_dir); out.mkdir(parents=True,exist_ok=True); stages={}; all_rows=reconstruct_v5_harvest(Path(v5_root),out,forensic_root,excluded_manifest); clean,bad=exclude_contaminated_native_candidates(all_rows); pin=verify_forensic_input(forensic_root) if forensic_root else None; stages["forensic_v5_input_loaded"]=_write(out,"v5-forensic-input-manifest.json",pin or {"overlay_count":len(all_rows)}); stages["contamination_exclusion"]=_write(out,"v5rr-contaminant-crosswalk.json",bad); _write(out,"v5rr-clean-overlay-manifest.json",{"clean":clean,"excluded":bad}); decisions=recover_v5r_quality_reviews(Path(v5r_root),clean); stages["quality_recovery"]=_write(out,"v5r-quality-recovery-audit.json",decisions); report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","provider_calls":0,"stages":stages,"historical_overlay_count":len(all_rows),"excluded_native_candidate_count":len(bad),"clean_overlay_count":len(clean),"quality_recovered":sum(x["status"]=="mechanically_recovered" for x in decisions),"quality_ambiguous":sum(x["status"]=="ambiguous" for x in decisions),"quality_unresolved":sum(x["status"]=="unresolved" for x in decisions)}; _write(out,"v5rr-orchestrator-dry-run.json",report); return report
 
 def run_full_fake_campaign(v5_root,v5r_root,output_dir):
     """Run only the approved provider-free quality/pool/split stages."""
@@ -219,9 +245,9 @@ def run_full_fake_campaign(v5_root,v5r_root,output_dir):
     report={"experiment_id":"native-induction-v5rr-overlay-lifecycle","provider_calls":0,"historical_overlay_count":len(all_rows),"excluded_native_candidate_count":len(bad),"clean_overlay_count":len(clean),"authoritative_quality_count":len(quality),"fake_quality_transmissions":len(tx),"dispositions":{d:sum(r["disposition"]==d for r in quality) for d in DISPOSITIONS},"reviewed_pool_counts":{f:len(v) for f,v in pools.items()},"core_qualification":qualification,"split_facets":sorted(splits)}
     _write(out,"v5rr-orchestrator-dry-run.json",report); return report
 
-def run_full_fake_campaign_complete(v5_root, v4r_root, output_dir):
+def run_full_fake_campaign_complete(v5_root, v4r_root, output_dir, forensic_root=None, excluded_manifest=None):
  """Complete provider-free workshop plus bounded holdout extraction/quality/transfer."""
- out=Path(output_dir); base=run_workshop_complete(v5_root,out)
+ out=Path(output_dir); base=run_workshop_complete(v5_root,out,forensic_root,excluded_manifest)
  hold=[]
  for f in sorted(Path(v4r_root).glob("raw/stage-a-*.json")):
   try:
