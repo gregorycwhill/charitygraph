@@ -18,7 +18,7 @@ class OpenAIProvider:
  """Sequential real provider adapter used by the same semantic wrapper as FakeProvider."""
  def __init__(self, output_dir, cap=Decimal("1.25"), retained=Decimal("0.006449")):
   self.output_dir=Path(output_dir); self.cap=Decimal(str(cap)); self.spent=Decimal(str(retained)); self.retained=Decimal(str(retained)); self.invocations=[]; self.last_call={}
-  self.limits={"quality":5000,"discovery":6000,"gardener":5000,"attachment":5000,"extraction":6000}
+  self.limits={"quality":12000,"discovery":6000,"gardener":5000,"attachment":5000,"extraction":6000}
   self.models={"quality":("gpt-5.6-terra","high"),"gardener":("gpt-5.6-terra","high"),"discovery":("gpt-5.6-luna","none"),"attachment":("gpt-5.6-luna","none"),"extraction":("gpt-5.6-luna","none")}
  def request(self,task,payload,schema):
   model,effort=self.models[task]; prompt=PROMPTS[task]+"\n\nTASK PAYLOAD (evidence and state; do not invent facts):\n"+json.dumps(payload,sort_keys=True,ensure_ascii=False)
