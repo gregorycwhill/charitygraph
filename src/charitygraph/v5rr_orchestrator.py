@@ -2,7 +2,7 @@
 from __future__ import annotations
 import hashlib,json
 from pathlib import Path
-from .native_lifecycle_harness import run_synthetic_lifecycle, digest, FakeProvider, schemas, validate_response, process_quality_response, process_discovery_response, process_gardener_response, Catalogue, split_overlay_ids, DISPOSITIONS, validate_attachments
+from .native_lifecycle_harness import run_synthetic_lifecycle, digest, FakeProvider, schemas, validate_response, process_quality_response, process_discovery_response, process_gardener_response, process_extraction_response, Catalogue, split_overlay_ids, DISPOSITIONS, validate_attachments
 
 STAGES=("harvest_reconstruction","contamination_exclusion","quality_recovery","authoritative_quality","core_pools","split","discovery","gardener_round1","sweep1","gardener_round2","sweep2","catalogue_freeze","holdout_reconstruction","holdout_extraction","holdout_quality","holdout_transfer","promotion_diagnostics","cost_ledger","public_review")
 def _write(out,name,data):
