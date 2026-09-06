@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,6 +28,7 @@ from charitygraph.contracts import AcquisitionReceipt, PropositionAuthorityRole,
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.evidence_store import ContentAddressedArtifactStore
 from charitygraph.runtime import SQLiteCatalog
+from charitygraph.phase5_preflight import resolve_governed_source_material
 
 
 COHORT_HASH = "704d105c9b8b9dda05dba1ac8285f5f01ba92a1b22775a8d92c8236ddcf09e00"
@@ -41,7 +43,6 @@ ABR_HOSTS = {"abr.business.gov.au"}
 WIKIMEDIA_HOSTS = {"en.wikipedia.org"}
 PFRA_HOSTS = {"pfra.org.au", "www.pfra.org.au"}
 SOURCE_DEFINITION_CREATED_AT = datetime(2026, 9, 6, tzinfo=timezone.utc)
-MAX_NATIVE_TEXT_PAGES = 5
 
 
 class ProviderUseProhibited(RuntimeError):
@@ -133,6 +134,19 @@ def read_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def open_existing_catalogue_readonly(path: Path) -> sqlite3.Connection:
+    """Open a governed input catalogue without ever initialising it.
+
+    A catalogue used to establish prior lineage is evidence, not a writable
+    runtime.  Requiring a non-empty regular file before the read-only SQLite
+    URI prevents a misspelled lookup path from silently becoming a new
+    zero-byte database.
+    """
+    if not path.is_file() or path.stat().st_size == 0:
+        raise FileNotFoundError(f"required governed catalogue is missing or empty: {path}")
+    return sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True)
+
+
 def atomic_json(path: Path, value: Any) -> None:
     encoded = json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if path.exists() and path.read_text(encoding="utf-8") == encoded:
@@ -155,19 +169,18 @@ def validate_checkpoint(*, historical_root: Path, identity_path: Path, catalog_p
     subject_ids = {str(item["abn"]): item["subject_id"] for item in identity["rows"]}
     if set(subject_ids) != {str(item["abn"]) for item in cohort} or len(set(subject_ids.values())) != 100:
         raise RuntimeError("identity map is not a 100/100 exact cohort map")
-    catalog = SQLiteCatalog(catalog_path).open(initialize=True)
+    connection = open_existing_catalogue_readonly(catalog_path)
     try:
-        with catalog._connection() as connection:
-            query = ",".join("?" for _ in subject_ids)
-            rows = connection.execute(
-                f"SELECT identifier_value, subject_id, status, issuing_authority FROM external_identifiers WHERE scheme='ABN' AND identifier_value IN ({query})",
-                tuple(subject_ids),
-            ).fetchall()
+        query = ",".join("?" for _ in subject_ids)
+        rows = connection.execute(
+            f"SELECT identifier_value, subject_id, status, issuing_authority FROM external_identifiers WHERE scheme='ABN' AND identifier_value IN ({query})",
+            tuple(subject_ids),
+        ).fetchall()
         bound = {str(row[0]): str(row[1]) for row in rows if row[2] == "active" and row[3] == "Australian Business Register"}
         if bound != subject_ids or len(rows) != 100:
             raise RuntimeError("catalogue does not have exactly one active governed ABN binding per cohort member")
     finally:
-        catalog.close()
+        connection.close()
     return sorted(cohort, key=lambda item: item["donation_rank_2024_public"]), subject_ids
 
 
@@ -217,15 +230,16 @@ def state_member(*, family: str, source_definition_id: str, acquisition: Acquisi
 
 
 def historical_material(historical_root: Path) -> dict[str, dict[str, dict[str, Any]]]:
-    bundles = read_json(historical_root / "evidence-bundles.json")["bundles"]
+    evidence = read_json(historical_root / "evidence-bundles.json")
+    bundles = evidence["bundles"]
+    failures = {(str(item["abn"]), item["source_family"]): item.get("reason", "historical attempt failed") for item in evidence.get("failures", ())}
     result: dict[str, dict[str, dict[str, Any]]] = {}
-    names = {"acnc-profile": "acnc_register", "acnc-profile-ais": "acnc_ais_bundle", "official-homepage": "official_website", "abr": "ato_abr_dgr"}
     for bundle in bundles:
         by_family: dict[str, dict[str, Any]] = {}
-        for record in bundle.get("evidence_records", []):
-            family = names.get(record.get("source_family"))
-            if family:
-                by_family[family] = record
+        for family in ("acnc_register", "acnc_ais_bundle", "ato_abr_dgr", "official_website"):
+            resolved = resolve_governed_source_material(bundle=bundle, source_family=family, failures=failures)
+            if resolved["state"] == "acquired_available":
+                by_family[family] = resolved["records"][0]
         result[str(bundle["abn"])] = by_family
     return result
 
@@ -259,19 +273,14 @@ def native_pdf_representation(path: Path) -> dict[str, Any]:
     """Preserve native page text and explicit visual gaps without rendering pages.
 
     Rendering every page is not required to retain a truthful corpus state and
-    makes large filings non-resumable in practice.  Low-text pages remain
-    explicitly unresolved for later authorized OCR/vision work.
+    retains the complete source document without rendering pages. Low-text
+    pages remain explicitly unresolved for later authorized OCR/vision work.
     """
     source_bytes = path.read_bytes()
     pages: list[dict[str, Any]] = []
     native_text_pages = 0; low_text_pages: list[int] = []; scanned_pages: list[int] = []; visual_pages: list[int] = []
     with pdfplumber.open(path) as document:
         for number, page in enumerate(document.pages, start=1):
-            if number > MAX_NATIVE_TEXT_PAGES:
-                low_text_pages.append(number)
-                visual_pages.append(number)
-                pages.append({"page": number, "text": "", "native_text_characters": 0, "page_state": "native_extraction_deferred", "visual_or_ocr_state": "unresolved_without_provider_escalation"})
-                continue
             text = page.extract_text() or ""
             low_text = len(text.strip()) < 40
             visual = bool(page.images or page.curves or page.rects)
@@ -283,7 +292,7 @@ def native_pdf_representation(path: Path) -> dict[str, Any]:
                 native_text_pages += 1
             pages.append({"page": number, "text": text, "native_text_characters": len(text.strip()), "page_state": "native_text_sufficient" if not low_text else "native_text_insufficient", "visual_or_ocr_state": "unresolved_without_provider_escalation" if low_text else "not_required"})
     readiness = "ready" if not low_text_pages else "partial" if pages else "failed"
-    return {"readiness": readiness, "source_sha256": hashlib.sha256(source_bytes).hexdigest(), "page_count": len(pages), "extracted_page_count": native_text_pages + len(low_text_pages) - sum(1 for page in pages if page["page_state"] == "native_extraction_deferred"), "native_text_pages": native_text_pages, "low_text_pages": low_text_pages, "image_only_or_scanned_pages": scanned_pages, "visual_relationships_unresolved_pages": visual_pages, "pages": pages, "extractor": "pdfplumber_native_text_no_render_no_provider", "native_text_page_budget": MAX_NATIVE_TEXT_PAGES, "deferred_page_count": sum(1 for page in pages if page["page_state"] == "native_extraction_deferred")}
+    return {"readiness": readiness, "source_sha256": hashlib.sha256(source_bytes).hexdigest(), "page_count": len(pages), "extracted_page_count": len(pages), "native_text_pages": native_text_pages, "low_text_pages": low_text_pages, "image_only_or_scanned_pages": scanned_pages, "visual_relationships_unresolved_pages": visual_pages, "pages": pages, "extractor": "pdfplumber_native_text_no_render_no_provider", "native_text_page_budget": None, "deferred_page_count": 0}
 
 
 def governed_website_url(value: str) -> str:

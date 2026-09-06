@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from charitygraph.baseline_corpus import BASELINE_SOURCE_FAMILIES
-from charitygraph.phase5_baseline_corpus import MAX_NATIVE_TEXT_PAGES, NetworkLedger, NetworkPolicyError, ProviderGuard, ProviderUseProhibited, available_member, governed_website_hosts, historical_bytes, latest_report_documents
+from charitygraph.phase5_baseline_corpus import NetworkLedger, NetworkPolicyError, ProviderGuard, ProviderUseProhibited, available_member, governed_website_hosts, historical_bytes, latest_report_documents, native_pdf_representation, open_existing_catalogue_readonly
 
 
 def test_phase5_baseline_source_universe_has_all_seven_families() -> None:
@@ -70,8 +70,68 @@ def test_governed_website_hosts_allow_only_canonical_www_counterpart() -> None:
     assert governed_website_hosts("https://example.org") == {"example.org", "www.example.org"}
 
 
-def test_native_representation_page_budget_is_explicit() -> None:
-    assert MAX_NATIVE_TEXT_PAGES == 5
+def test_native_representation_attempts_every_page_without_provider(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    class Page:
+        def __init__(self, text: str) -> None:
+            self.text = text
+            self.images = []
+            self.curves = []
+            self.rects = []
+
+        def extract_text(self) -> str:
+            return self.text
+
+    class Document:
+        pages = [Page("sufficient native text " * 4) for _ in range(6)]
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args) -> None:
+            return None
+
+    monkeypatch.setattr("charitygraph.phase5_baseline_corpus.pdfplumber.open", lambda _path: Document())
+    path = tmp_path / "report.pdf"
+    path.write_bytes(b"not parsed because pdfplumber is mocked")
+    report = native_pdf_representation(path)
+    assert report["extracted_page_count"] == 6
+    assert report["pages"][5]["page_state"] == "native_text_sufficient"
+    assert report["deferred_page_count"] == 0
+
+
+def test_native_representation_retains_low_text_page_as_explicit_gap(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    class Page:
+        images = [object()]
+        curves = []
+        rects = []
+
+        @staticmethod
+        def extract_text() -> str:
+            return ""
+
+    class Document:
+        pages = [Page()]
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args) -> None:
+            return None
+
+    monkeypatch.setattr("charitygraph.phase5_baseline_corpus.pdfplumber.open", lambda _path: Document())
+    path = tmp_path / "scanned.pdf"
+    path.write_bytes(b"not parsed because pdfplumber is mocked")
+    report = native_pdf_representation(path)
+    assert report["readiness"] == "partial"
+    assert report["low_text_pages"] == [1]
+    assert report["pages"][0]["page_state"] == "native_text_insufficient"
+
+
+def test_missing_readonly_catalogue_fails_without_creating_sqlite_file(tmp_path) -> None:
+    missing = tmp_path / "missing.sqlite3"
+    with pytest.raises(FileNotFoundError):
+        open_existing_catalogue_readonly(missing)
+    assert not missing.exists()
 
 
 def test_zero_byte_successful_transport_is_retained_as_partial_not_available() -> None:
