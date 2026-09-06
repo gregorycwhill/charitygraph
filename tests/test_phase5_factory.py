@@ -2,6 +2,7 @@ from charitygraph.phase5_factory import FactoryPlan
 from charitygraph.runtime import SQLiteCatalog
 from datetime import datetime, timezone
 from decimal import Decimal
+import sqlite3
 
 
 def test_factory_plan_keeps_logical_identity_and_never_crosses_subjects() -> None:
@@ -12,6 +13,7 @@ def test_factory_plan_keeps_logical_identity_and_never_crosses_subjects() -> Non
     ])
     assert [len(x) for x in plan.packages()] == [2, 1]
     assert len(plan.manifest_hash) == 64
+    assert [len(x) for x in plan.physical_packages()] == [2, 1]
 
 
 def test_rehearsal_provider_is_deterministic_and_has_no_output_payload() -> None:
@@ -51,3 +53,12 @@ def test_physical_attempt_persists_send_then_receipt(tmp_path) -> None:
     attempt="physical:one"; catalog.prepare_physical_attempt(physical_attempt_id=attempt,run_id=run,subject_id=task['subject_id'],delivery_mode='batch',provider_request_id='fake-request:x',model_task_ids=(task['record_id'],),reservation_id=None,now=now)
     assert catalog.mark_physical_send_started(attempt,now=now)['status']=='send_started'
     assert catalog.persist_provider_receipt(physical_attempt_id=attempt,provider_receipt_id='fake-receipt:x',raw_result_ref='rehearsal:x',usage={},now=now)['physical_attempt_id']==attempt
+
+
+def test_semantic_package_has_one_physical_receipt(tmp_path) -> None:
+    now=datetime(2026,1,1,tzinfo=timezone.utc); cohort="cohort:"+"a"*32; run="run:"+"e"*32
+    catalog=SQLiteCatalog(tmp_path/'factory.sqlite3').open(initialize=True); catalog.register_cohort({"record_id":cohort,"cohort_code":"R","definition_version":"1","membership_hash":"c"*64,"budget_cap":{"amount":"100","currency":"AUD"},"created_at":now}); catalog.register_run({"record_id":run,"cohort_id":cohort,"run_kind":"r","status":"planned","configuration_hash":"d"*64,"created_at":now})
+    from charitygraph.phase5_factory import ReferenceFactory
+    plan=FactoryPlan.from_manifest([{ "logical_task_id":x,"subject_id":"subject:"+"1"*32,"physical_bundle_opportunity":"b","difficulty":"lower_cost_constrained_semantic"} for x in ('x','y')]); runner=ReferenceFactory(catalog,plan,cohort_id=cohort,run_id=run); tasks=runner.seed(now); package,receipt=runner.prepare_package(tasks,now=now)
+    with sqlite3.connect(tmp_path/'factory.sqlite3') as conn: count=conn.execute('select count(*) from provider_receipts').fetchone()[0]
+    assert receipt and count == 1 and runner.finalise_package_children(tasks,package_id=package,receipt=receipt,now=now)==2
