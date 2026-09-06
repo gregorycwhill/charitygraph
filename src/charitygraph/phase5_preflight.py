@@ -10,7 +10,7 @@ import json
 import sqlite3
 from collections import Counter
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -40,6 +40,7 @@ SECTIONS = {
 CoverageState = Literal[
     "acquired_available", "attempted_unavailable", "access_failed", "parsing_failed",
     "representation_not_ready", "stale", "not_applicable", "not_attempted", "unknown",
+    "provenance_unresolved",
 ]
 MethodClass = Literal[
     "deterministic", "constrained_semantic", "stronger_semantic_judgement",
@@ -98,6 +99,48 @@ class SourceCoverageItem(StrictPlanModel):
     evidence_ids: tuple[str, ...] = ()
     evidence_hashes: tuple[str, ...] = ()
     notes: tuple[str, ...] = ()
+
+
+def resolve_governed_source_material(*, bundle: dict[str, Any], source_family: str, failures: dict[tuple[str, str], str], retained_bytes: Callable[[dict[str, Any]], bytes] | None = None) -> dict[str, Any]:
+    """Resolve only material whose frozen provenance is mechanically usable.
+
+    `available_source_families` records historical presence, not a reusable
+    byte-level source.  It cannot be promoted to `acquired_available` without
+    an exact evidence record carrying a content hash and bytes which can be
+    re-read and hash-verified through an explicit retained-material resolver.
+    """
+    historical_name = {"acnc_register": "acnc-profile", "acnc_ais_bundle": "acnc-profile-ais", "ato_abr_dgr": "abr", "official_website": "official-homepage"}.get(source_family)
+    abn = str(bundle["abn"])
+    if historical_name is None:
+        return {"state": "not_attempted", "records": (), "reason": "no_prior_material_contract"}
+    records = tuple(record for record in bundle.get("evidence_records", ()) if record.get("source_family") == historical_name)
+    def material_is_recoverable(record: dict[str, Any]) -> bool:
+        expected = record.get("content_hash")
+        if not expected:
+            return False
+        try:
+            if isinstance(record.get("text"), str):
+                body = record["text"].encode("utf-8")
+            elif retained_bytes is not None:
+                body = retained_bytes(record)
+            else:
+                return False
+        except (FileNotFoundError, OSError, ValueError):
+            return False
+        return hashlib.sha256(body).hexdigest() == expected
+    exact = tuple(record for record in records if material_is_recoverable(record))
+    invalid = bool(records) and not exact
+    if len(exact) == 1:
+        return {"state": "acquired_available", "records": exact, "reason": "exact_frozen_evidence_material"}
+    if len(exact) > 1:
+        return {"state": "provenance_unresolved", "records": exact, "reason": "multiple_exact_materials_require_selection_policy"}
+    if invalid:
+        return {"state": "provenance_unresolved", "records": (), "reason": "exact_provenance_metadata_without_recoverable_hash_verified_bytes"}
+    if historical_name in set(bundle.get("available_source_families", ())):
+        return {"state": "provenance_unresolved", "records": (), "reason": "historical_presence_without_recoverable_material"}
+    if (abn, historical_name) in failures:
+        return {"state": "attempted_unavailable", "records": (), "reason": failures[(abn, historical_name)]}
+    return {"state": "not_attempted", "records": (), "reason": "no_governed_attempt_or_material"}
 
 
 class SemanticReuseItem(StrictPlanModel):
@@ -255,17 +298,13 @@ def build_source_inventory(cohort: list[dict[str, Any]], subject_ids: dict[str, 
         abn = str(member["abn"]); bundle = bundle_by_abn[abn]
         available = set(bundle.get("available_source_families", []))
         for family in SOURCE_FAMILIES:
-            historical_name = {"acnc_register": "acnc-profile", "acnc_ais_bundle": "acnc-profile-ais", "ato_abr_dgr": "abr", "official_website": "official-homepage"}.get(family)
-            if family == "acnc_register":
-                state: CoverageState = "acquired_available"; notes = ("P5-A0 governed exact-ABN identity source reused",)
-                ids = tuple(source_records.get(abn, ())); evidence_ids = (); evidence_hashes = ()
-            elif historical_name in available:
-                state = "acquired_available"; notes = ("historical frozen Top-100 evidence bundle",)
-                ids = (); evidence_ids = tuple(item["evidence_id"] for item in bundle.get("evidence_records", []) if item.get("source_family") == historical_name); evidence_hashes = tuple(item["content_hash"] for item in bundle.get("evidence_records", []) if item.get("source_family") == historical_name)
-            elif (abn, historical_name) in failures:
-                state = "attempted_unavailable"; notes = (failures[(abn, historical_name)],); ids = (); evidence_ids = (); evidence_hashes = ()
-            else:
-                state = "not_attempted"; notes = ("no governed historical acquisition or failure record",); ids = (); evidence_ids = (); evidence_hashes = ()
+            resolved = resolve_governed_source_material(bundle=bundle, source_family=family, failures=failures)
+            state: CoverageState = resolved["state"]
+            records = resolved["records"]
+            ids = tuple(source_records.get(abn, ())) if family == "acnc_register" else ()
+            evidence_ids = tuple(item["evidence_id"] for item in records)
+            evidence_hashes = tuple(item["content_hash"] for item in records)
+            notes = (resolved["reason"],)
             rows.append(SourceCoverageItem(subject_id=subject_ids[abn], abn=abn, source_family=family, state=state, source_record_ids=ids, evidence_ids=evidence_ids, evidence_hashes=evidence_hashes, notes=notes))
     return rows
 

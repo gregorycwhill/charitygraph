@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import hashlib
+
 from charitygraph.phase5_preflight import (
     ClaimFamilyPolicy, PlanningUnit, SourceCoverageItem, build_planned_tasks,
     build_planning_matrix, classify_reuse_status, implemented_claim_families,
-    preflight_interruption_safety, proposed_claim_families,
+    preflight_interruption_safety, proposed_claim_families, resolve_governed_source_material,
 )
 
 
@@ -41,6 +43,42 @@ def test_coverage_states_are_distinct_and_not_boolean_completeness() -> None:
     failed = available.model_copy(update={"state": "attempted_unavailable"})
     assert {available.state, missing.state, failed.state} == {"acquired_available", "not_attempted", "attempted_unavailable"}
     assert not hasattr(available, "complete")
+
+
+def test_available_source_family_without_material_is_provenance_unresolved() -> None:
+    resolved = resolve_governed_source_material(
+        bundle={"abn": "12345678901", "available_source_families": ["official-homepage"], "evidence_records": []},
+        source_family="official_website",
+        failures={},
+    )
+    assert resolved["state"] == "provenance_unresolved"
+    assert resolved["records"] == ()
+
+
+def test_exact_frozen_evidence_with_hash_and_material_is_reusable() -> None:
+    text = "preserved"
+    record = {"source_family": "official-homepage", "evidence_id": "top100:12345678901:official-homepage", "content_hash": hashlib.sha256(text.encode("utf-8")).hexdigest(), "text": text}
+    resolved = resolve_governed_source_material(
+        bundle={"abn": "12345678901", "available_source_families": ["official-homepage"], "evidence_records": [record]},
+        source_family="official_website",
+        failures={},
+    )
+    assert resolved["state"] == "acquired_available"
+    assert resolved["records"] == (record,)
+
+
+def test_invalid_inline_material_hash_is_provenance_unresolved() -> None:
+    resolved = resolve_governed_source_material(bundle={"abn": "12345678901", "evidence_records": [{"source_family": "official-homepage", "content_hash": "a" * 64, "text": "wrong"}]}, source_family="official_website", failures={})
+    assert resolved["state"] == "provenance_unresolved"
+
+
+def test_retained_bytes_resolver_requires_existing_hash_matching_bytes() -> None:
+    body = b"retained bytes"; record = {"source_family": "official-homepage", "content_hash": hashlib.sha256(body).hexdigest(), "raw_path": "opaque-reference"}
+    reusable = resolve_governed_source_material(bundle={"abn": "12345678901", "evidence_records": [record]}, source_family="official_website", failures={}, retained_bytes=lambda _record: body)
+    missing = resolve_governed_source_material(bundle={"abn": "12345678901", "evidence_records": [record]}, source_family="official_website", failures={}, retained_bytes=lambda _record: (_ for _ in ()).throw(FileNotFoundError()))
+    mismatched = resolve_governed_source_material(bundle={"abn": "12345678901", "evidence_records": [record]}, source_family="official_website", failures={}, retained_bytes=lambda _record: b"different")
+    assert reusable["state"] == "acquired_available"
+    assert missing["state"] == mismatched["state"] == "provenance_unresolved"
 
 
 def test_planning_contract_does_not_offer_fuzzy_semantic_reuse() -> None:

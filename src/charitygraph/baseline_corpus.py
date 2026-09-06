@@ -424,4 +424,7 @@ def select_filing_documents(documents: list[dict[str, Any]], reporting_period: s
     return selected
 
 
-BASELINE_SOURCE_FAMILIES = ("acnc_register", "acnc_ais_bundle", "ato_abr_dgr", "official_website", "wikipedia_wikimedia", "pfra")
+BASELINE_SOURCE_FAMILIES = (
+    "acnc_register", "acnc_ais_bundle", "ato_abr_dgr", "official_website",
+    "annual_report", "wikipedia_wikimedia", "pfra",
+)
