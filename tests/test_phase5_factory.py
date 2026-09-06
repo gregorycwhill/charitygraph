@@ -1,0 +1,24 @@
+from charitygraph.phase5_factory import FactoryPlan
+from charitygraph.runtime import SQLiteCatalog
+from datetime import datetime, timezone
+
+
+def test_factory_plan_keeps_logical_identity_and_never_crosses_subjects() -> None:
+    plan = FactoryPlan.from_manifest([
+        {"logical_task_id": "a", "subject_id": "subject:one", "physical_bundle_opportunity": "bundle:x"},
+        {"logical_task_id": "b", "subject_id": "subject:one", "physical_bundle_opportunity": "bundle:x"},
+        {"logical_task_id": "c", "subject_id": "subject:two", "physical_bundle_opportunity": "bundle:x"},
+    ])
+    assert [len(x) for x in plan.packages()] == [2, 1]
+    assert len(plan.manifest_hash) == 64
+
+
+def test_reference_runner_is_durable_and_noops_after_terminal_run(tmp_path) -> None:
+    now=datetime(2026,1,1,tzinfo=timezone.utc); cohort="cohort:"+"a"*32; run="run:"+"b"*32
+    catalog=SQLiteCatalog(tmp_path/'factory.sqlite3').open(initialize=True)
+    catalog.register_cohort({"record_id":cohort,"cohort_code":"REHEARSAL","definition_version":"1","membership_hash":"c"*64,"budget_cap":{"amount":"100","currency":"AUD"},"created_at":now})
+    catalog.register_run({"record_id":run,"cohort_id":cohort,"run_kind":"phase5_factory_rehearsal","status":"planned","configuration_hash":"d"*64,"created_at":now})
+    from charitygraph.phase5_factory import ReferenceFactory
+    plan=FactoryPlan.from_manifest([{"logical_task_id":"x","subject_id":"subject:"+"1"*32,"physical_bundle_opportunity":None,"difficulty":"deterministic"}])
+    runner=ReferenceFactory(catalog,plan,cohort_id=cohort,run_id=run); runner.seed(now)
+    assert runner.run(now)==1 and runner.run(now)==0
