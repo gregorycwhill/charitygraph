@@ -94,6 +94,7 @@ class SectionCoverage(_Strict):
     section_id: int = Field(ge=1, le=20)
     title: str
     observation_ids: tuple[str, ...] = ()
+    relationship_ids: tuple[str, ...] = ()
     missingness: Missingness
     disposition_counts: dict[str, int] = Field(default_factory=dict)
     basis: str | None = None
@@ -143,11 +144,15 @@ def compile_coverage(graph: IntegratedGraph, *, subject_id: str | None = None) -
     for section_id, title in SECTION_TITLES.items():
         assigned = [item for item in evidence if section_id in item.section_ids]
         ids = tuple(item.observation_id for item in assigned)
+        relationship_ids = tuple(item.record_id for item in graph.relationships if section_id == 12 and subject_id in {item.source_subject_id, item.target_subject_id})
         counts: dict[str, int] = {}
         for item in assigned:
             counts[item.disposition] = counts.get(item.disposition, 0) + 1
         if ids:
             missingness: Missingness = "GOVERNED_PRESENT" if all(item.disposition == "REUSABLE_GOVERNED" for item in assigned) else "EXPERIMENTAL_REVIEW"
+            basis = "observed_present"
+        elif relationship_ids:
+            missingness = "EXPERIMENTAL_REVIEW" if any(item.status == "candidate" for item in graph.relationships if item.record_id in relationship_ids) else "GOVERNED_PRESENT"
             basis = "observed_present"
         else:
             item = explicit.get(section_id)
@@ -155,7 +160,7 @@ def compile_coverage(graph: IntegratedGraph, *, subject_id: str | None = None) -
                 missingness, basis = "UNKNOWN", "unknown_history"
             else:
                 missingness, basis = item.state, item.basis
-        result.append(SectionCoverage(section_id=section_id, title=title, observation_ids=ids, missingness=missingness, disposition_counts=counts, basis=basis))
+        result.append(SectionCoverage(section_id=section_id, title=title, observation_ids=ids, relationship_ids=relationship_ids, missingness=missingness, disposition_counts=counts, basis=basis))
     return tuple(result)
 
 
