@@ -12,7 +12,7 @@ def _write_json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value), encoding="utf-8")
 
 
-def test_audit_requires_exact_locator_and_hash_verified_bytes(tmp_path: Path) -> None:
+def test_audit_requires_catalogue_for_exact_locator_and_hash_verified_bytes(tmp_path: Path) -> None:
     historical = tmp_path / "historical"; runtime = tmp_path / "runtime"
     _write_json(historical / "acnc-profiles.json", {"entities": {"12345678901": {"profile": {"data": {"Website": "example.org"}}}}})
     body = b"kept"; digest = hashlib.sha256(body).hexdigest()
@@ -22,5 +22,5 @@ def test_audit_requires_exact_locator_and_hash_verified_bytes(tmp_path: Path) ->
     _write_json(runtime / "network-cache" / "bad.json", {"event": {"source_family": "official_website", "outcome": "available", "requested_url": "https://other.example.org", "resolved_url": "https://other.example.org", "content_hash": digest}})
     decisions = audit_website_events(runtime_root=runtime, historical_root=historical)
     assert decisions[0]["classification"] == "ADMISSIBILITY_UNRESOLVED"
-    assert decisions[1]["classification"] == "ELIGIBLE_PROSPECTIVE_REUSE"
+    assert decisions[1]["classification"] == "ADMISSIBILITY_UNRESOLVED"
     assert decisions[1]["abn"] == "12345678901"

@@ -57,7 +57,7 @@ def audit_website_events(*, runtime_root: Path, historical_root: Path, catalog_p
             receipts = catalog.execute("select acquisition_id from acquisition_receipts where content_hash=? and requested_locator=? and resolved_locator=? and outcome='available'", (content_hash, requested, resolved)).fetchall()
             records = catalog.execute("select source_record_id from source_records where source_family='official_website' and source_role='official_homepage' and payload_hash=? and source_locator=?", (content_hash, resolved)).fetchall()
             artifacts = catalog.execute("select artifact_id from artifact_index where artifact_id=? and content_hash=? and availability='available'", (artifact_id, content_hash)).fetchall()
-        lineage_ok = catalog is None or bool(receipts and records and artifacts)
+        lineage_ok = bool(catalog is not None and receipts and records and artifacts)
         resolved_host = (urlsplit(str(resolved)).hostname or "").casefold()
         redirect_ok = bool(candidates and resolved_host in governed_website_hosts(str(requested)))
         successful = event.get("outcome") == "available"
