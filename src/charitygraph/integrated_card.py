@@ -7,7 +7,7 @@ never as a negative assertion.
 """
 from __future__ import annotations
 
-from typing import Literal, Mapping, Sequence
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -18,13 +18,12 @@ SECTION_TITLES: dict[int, str] = {
     1: "Identity & regulatory status", 2: "Purpose, mandate & cause",
     3: "Programs, services, projects & campaigns", 4: "Populations & beneficiaries",
     5: "Geography", 6: "Participation", 7: "Fundraising & resource mobilisation",
-    8: "Finance & resource flows", 9: "People, workforce & volunteering",
-    10: "Governance, accountability & conduct", 11: "Capability, infrastructure & access",
-    12: "Networks, partners & ecosystem", 13: "Evidence, transparency & information quality",
-    14: "Technology, data & digital access", 15: "Communications & public presence",
-    16: "Advocacy, policy & systems change", 17: "Risk, safeguarding & complaints",
-    18: "Outcomes, evaluation & learning", 19: "Commitments, plans & future direction",
-    20: "Cross-domain synthesis & open questions",
+    8: "Finance & resource flows", 9: "Governance", 10: "Workforce",
+    11: "Capability, capacity, access & availability", 12: "Relationships & ecosystem",
+    13: "Memberships, schemes, registrations & accreditations", 14: "Ethos & institutional identity",
+    15: "Positions, commitments & implementation", 16: "Conduct, adverse matters & compliance",
+    17: "Notable context & institutional history", 18: "Outcomes, impact & evaluation",
+    19: "Classifications & semantic lenses", 20: "Evidence, coverage, freshness & corrections",
 }
 
 Disposition = Literal[
@@ -37,6 +36,12 @@ Missingness = Literal[
     "NOT_PROCESSED", "PROCESSING_FAILED", "NOT_REVIEWED", "NOT_APPLICABLE",
     "WITHHELD", "STALE", "UNKNOWN",
 ]
+CoverageBasis = Literal[
+    "observed_present", "processed_source_silent", "no_domain_result",
+    "unknown_history", "source_unavailable", "not_acquired", "not_reviewed",
+    "not_applicable", "withheld",
+]
+AssignmentContract = Literal["CANONICAL_COMPATIBLE", "LEGACY_COMPATIBLE_SUBSET", "UNRESOLVED"]
 
 
 class _Strict(BaseModel):
@@ -47,6 +52,7 @@ class CardEvidence(_Strict):
     observation_id: str
     disposition: Disposition
     section_ids: tuple[int, ...] = ()
+    assignment_contract: AssignmentContract = "CANONICAL_COMPATIBLE"
     note: str | None = None
 
     @model_validator(mode="after")
@@ -55,6 +61,32 @@ class CardEvidence(_Strict):
             raise ValueError("section_ids must be North-Star sections 1..20")
         if len(set(self.section_ids)) != len(self.section_ids):
             raise ValueError("section_ids must be unique")
+        if self.assignment_contract == "UNRESOLVED" and self.section_ids:
+            raise ValueError("unresolved historical assignments cannot be projected by numeric section ID")
+        if self.assignment_contract == "LEGACY_COMPATIBLE_SUBSET" and any(section > 8 for section in self.section_ids):
+            raise ValueError("legacy-compatible subset only permits unchanged sections 1..8")
+        return self
+
+
+class CoverageInput(_Strict):
+    subject_id: str
+    section_id: int = Field(ge=1, le=20)
+    state: Missingness
+    basis: CoverageBasis
+    note: str | None = None
+
+    @model_validator(mode="after")
+    def state_has_basis(self) -> "CoverageInput":
+        required = {
+            "SOURCE_SILENT": "processed_source_silent", "NOT_PROCESSED": "no_domain_result",
+            "UNKNOWN": "unknown_history", "SOURCE_UNAVAILABLE": "source_unavailable",
+            "NOT_ACQUIRED": "not_acquired", "NOT_REVIEWED": "not_reviewed",
+            "NOT_APPLICABLE": "not_applicable", "WITHHELD": "withheld",
+        }
+        if self.state in required and self.basis != required[self.state]:
+            raise ValueError(f"{self.state} requires basis {required[self.state]}")
+        if self.state in {"GOVERNED_PRESENT", "EXPERIMENTAL_REVIEW"} and self.basis != "observed_present":
+            raise ValueError(f"{self.state} requires basis observed_present")
         return self
 
 
@@ -64,6 +96,7 @@ class SectionCoverage(_Strict):
     observation_ids: tuple[str, ...] = ()
     missingness: Missingness
     disposition_counts: dict[str, int] = Field(default_factory=dict)
+    basis: str | None = None
 
 
 class IntegratedGraph(_Strict):
@@ -72,6 +105,7 @@ class IntegratedGraph(_Strict):
     observations: tuple[Observation, ...]
     relationships: tuple[RelationshipStatement, ...] = ()
     evidence: tuple[CardEvidence, ...]
+    coverage_inputs: tuple[CoverageInput, ...] = ()
 
     @model_validator(mode="after")
     def coherent(self) -> "IntegratedGraph":
@@ -90,24 +124,38 @@ class IntegratedGraph(_Strict):
             raise ValueError("each observation has one integration disposition")
         if any(item.source_subject_id not in subject_ids or item.target_subject_id not in subject_ids for item in self.relationships):
             raise ValueError("relationships must reference durable subjects")
+        if any(item.subject_id not in subject_ids for item in self.coverage_inputs):
+            raise ValueError("coverage inputs must reference durable subjects")
         return self
 
 
-def compile_coverage(graph: IntegratedGraph) -> tuple[SectionCoverage, ...]:
+def compile_coverage(graph: IntegratedGraph, *, subject_id: str | None = None) -> tuple[SectionCoverage, ...]:
     """Compile a reproducible coverage matrix from explicit assignments."""
-    by_observation = {item.observation_id: item for item in graph.evidence}
+    if subject_id is None:
+        subject_ids = {item.subject_id for item in graph.subjects}
+        if len(subject_ids) != 1:
+            raise ValueError("subject_id is required to compile multi-subject coverage")
+        subject_id = next(iter(subject_ids))
+    observation_ids = {item.record_id for item in graph.observations if item.subject_id == subject_id}
+    evidence = [item for item in graph.evidence if item.observation_id in observation_ids]
+    explicit = {item.section_id: item for item in graph.coverage_inputs if item.subject_id == subject_id}
     result: list[SectionCoverage] = []
     for section_id, title in SECTION_TITLES.items():
-        assigned = [item for item in graph.evidence if section_id in item.section_ids]
+        assigned = [item for item in evidence if section_id in item.section_ids]
         ids = tuple(item.observation_id for item in assigned)
         counts: dict[str, int] = {}
         for item in assigned:
             counts[item.disposition] = counts.get(item.disposition, 0) + 1
         if ids:
             missingness: Missingness = "GOVERNED_PRESENT" if all(item.disposition == "REUSABLE_GOVERNED" for item in assigned) else "EXPERIMENTAL_REVIEW"
+            basis = "observed_present"
         else:
-            missingness = "SOURCE_SILENT"
-        result.append(SectionCoverage(section_id=section_id, title=title, observation_ids=ids, missingness=missingness, disposition_counts=counts))
+            item = explicit.get(section_id)
+            if item is None:
+                missingness, basis = "UNKNOWN", "unknown_history"
+            else:
+                missingness, basis = item.state, item.basis
+        result.append(SectionCoverage(section_id=section_id, title=title, observation_ids=ids, missingness=missingness, disposition_counts=counts, basis=basis))
     return tuple(result)
 
 
@@ -123,7 +171,8 @@ def project_subject(graph: IntegratedGraph, subject_id: str) -> dict[str, object
         observations=tuple(item for item in graph.observations if item.subject_id == subject_id),
         relationships=tuple(item for item in graph.relationships if item.source_subject_id == subject_id or item.target_subject_id == subject_id),
         evidence=tuple(evidence),
-    ))
+        coverage_inputs=tuple(item for item in graph.coverage_inputs if item.subject_id == subject_id),
+    ), subject_id=subject_id)
     return {
         "subject_id": subject_id,
         "observation_ids": tuple(item.record_id for item in graph.observations if item.subject_id == subject_id),
@@ -132,4 +181,16 @@ def project_subject(graph: IntegratedGraph, subject_id: str) -> dict[str, object
     }
 
 
-__all__ = ["SECTION_TITLES", "CardEvidence", "IntegratedGraph", "SectionCoverage", "compile_coverage", "project_subject"]
+def compile_matrix(graph: IntegratedGraph) -> tuple[dict[str, object], ...]:
+    """Return canonical section rows with one explicit cell per subject."""
+    rows: list[dict[str, object]] = []
+    for section_id, title in SECTION_TITLES.items():
+        cells = []
+        for subject in graph.subjects:
+            coverage = compile_coverage(graph, subject_id=subject.subject_id)[section_id - 1]
+            cells.append({"subject_id": subject.subject_id, "subject_name": subject.display_name, "status": coverage.missingness, "observation_count": len(coverage.observation_ids), "basis": coverage.basis})
+        rows.append({"section_id": section_id, "title": title, "cells": tuple(cells)})
+    return tuple(rows)
+
+
+__all__ = ["SECTION_TITLES", "CardEvidence", "CoverageInput", "IntegratedGraph", "SectionCoverage", "compile_coverage", "compile_matrix", "project_subject"]
