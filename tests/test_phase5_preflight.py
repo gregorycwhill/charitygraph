@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from charitygraph.phase5_preflight import (
     ClaimFamilyPolicy, PlanningUnit, SourceCoverageItem, build_planned_tasks,
-    implemented_claim_families, preflight_interruption_safety, proposed_claim_families,
+    build_planning_matrix, classify_reuse_status, implemented_claim_families,
+    preflight_interruption_safety, proposed_claim_families,
 )
 
 
@@ -70,3 +71,31 @@ def test_private_review_state_and_phase6_families_schedule_no_tasks() -> None:
     assert all(families[item].maturity == "high_risk_depth_deferred" for item in (
         "ethos-institutional-identity-proposed-v1", "positions-commitments-implementation-proposed-v1",
         "conduct-compliance-proposed-v1", "outcomes-evaluation-proposed-v1"))
+
+
+def test_source_ready_stronger_method_classes_route_to_stronger_judgement() -> None:
+    families = {item.family_id: item for item in (*implemented_claim_families(), *proposed_claim_families())}
+    selected = (families["typed-relationship-role-v1"], families["fundraising-practice-proposed-v1"])
+    subject_ids = {"12345678901": "subject:" + "a" * 32}
+    cohort = [{"abn": "12345678901", "donation_rank_2024_public": 1}]
+    reuse = [type("Reuse", (), {"abn": "12345678901", "evidence_identity": "e" * 64, "exact_reuse_status": "no_prior_result"})()]
+    coverage = [SourceCoverageItem(subject_id=subject_ids["12345678901"], abn="12345678901", source_family=source, state="acquired_available") for family in selected for source in family.expected_source_family_refs]
+    matrix = build_planning_matrix(cohort, subject_ids, selected, reuse, coverage)
+    assert {item.family_id: item.state for item in matrix} == {family.family_id: "stronger_semantic_required" for family in selected}
+
+
+def test_reuse_requires_structural_validity_and_quote_grounding() -> None:
+    assert classify_reuse_status("12345678901", {"structural_output_valid": True, "quote_grounding_valid": True, "action": "completed"}) == "exact_reusable_validated_candidate"
+    assert classify_reuse_status("12345678901", {"structural_output_valid": True, "quote_grounding_valid": False, "action": "completed"}) == "structural_valid_grounding_failed"
+    assert classify_reuse_status("12345678901", {"structural_output_valid": False, "quote_grounding_valid": False, "action": "completed"}) == "structurally_invalid"
+    assert classify_reuse_status("12345678901", {"structural_output_valid": True, "quote_grounding_valid": False, "action": "reused_exact_terra_A"}) == "structural_valid_grounding_failed"
+
+
+def test_non_grounded_historical_result_is_not_reusable_planning_coverage() -> None:
+    family = implemented_claim_families()[2]
+    subject_ids = {"12345678901": "subject:" + "b" * 32}
+    cohort = [{"abn": "12345678901", "donation_rank_2024_public": 1}]
+    reuse = [type("Reuse", (), {"abn": "12345678901", "evidence_identity": "e" * 64, "exact_reuse_status": "structural_valid_grounding_failed"})()]
+    coverage = [SourceCoverageItem(subject_id=subject_ids["12345678901"], abn="12345678901", source_family=source, state="acquired_available") for source in family.expected_source_family_refs]
+    matrix = build_planning_matrix(cohort, subject_ids, (family,), reuse, coverage)
+    assert matrix[0].state == "processing_failure_known"

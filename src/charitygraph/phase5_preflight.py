@@ -113,7 +113,8 @@ class SemanticReuseItem(StrictPlanModel):
     lineage: tuple[str, ...]
     exact_reuse_status: Literal[
         "exact_reusable_validated_candidate", "exact_reusable_prior_result",
-        "historical_not_reusable", "blocked_ambiguous_transmission", "no_prior_result",
+        "structural_valid_grounding_failed", "structurally_invalid",
+        "blocked_ambiguous_transmission", "no_prior_result",
     ]
     result_hash: str | None = None
 
@@ -230,6 +231,22 @@ def _evidence_identity(bundle: dict[str, Any]) -> str:
     return canonical_sha256({"abn": bundle["abn"], "evidence_ids": bundle.get("available_evidence_ids", []), "evidence_hashes": [item.get("content_hash") for item in bundle.get("evidence_records", [])]})
 
 
+def classify_reuse_status(abn: str, result: dict[str, Any] | None) -> str:
+    if abn == "48321126727":
+        return "blocked_ambiguous_transmission"
+    if result is None:
+        return "no_prior_result"
+    structural = bool(result.get("structural_output_valid"))
+    grounded = bool(result.get("quote_grounding_valid"))
+    if structural and grounded:
+        if result.get("action") in {"exact_prior_reuse", "reused_exact_terra_A"}:
+            return "exact_reusable_prior_result"
+        return "exact_reusable_validated_candidate"
+    if structural:
+        return "structural_valid_grounding_failed"
+    return "structurally_invalid"
+
+
 def build_source_inventory(cohort: list[dict[str, Any]], subject_ids: dict[str, str], bundles: list[dict[str, Any]], source_records: dict[str, list[str]]) -> list[SourceCoverageItem]:
     bundle_by_abn = {str(item["abn"]): item for item in bundles}
     failures = {(str(item["abn"]), item["source_family"]): item.get("reason", "historical attempt failed") for item in _read_json(Path(r"C:\CharityGraph-runtime\top100-terra-v31-20260829\evidence-bundles.json")).get("failures", [])}
@@ -260,15 +277,12 @@ def build_reuse_inventory(cohort: list[dict[str, Any]], subject_ids: dict[str, s
     rows = []
     for member in sorted(cohort, key=lambda item: item["donation_rank_2024_public"]):
         abn = str(member["abn"]); item = charities[abn]; result = result_by_abn.get(abn); bundle = bundle_by_abn[abn]
-        if abn == "48321126727":
-            status = "blocked_ambiguous_transmission"
-        elif result and result.get("structural_output_valid") and (result.get("status") == "completed_response_artifact" or result.get("status") == "reused" or result.get("action") in {"exact_prior_reuse", "reused_exact_terra_A"}):
-            status = "exact_reusable_prior_result" if result.get("action") in {"exact_prior_reuse", "reused_exact_terra_A"} else "exact_reusable_validated_candidate"
-        elif result:
-            status = "historical_not_reusable"
-        else:
-            status = "no_prior_result"
-        rows.append(SemanticReuseItem(subject_id=subject_ids[abn], abn=abn, rank=member["donation_rank_2024_public"], scope="organisation/program-service-discovery", original_task_profile=f"{manifest['prompt_version']}:{manifest['schema_version']}", evidence_identity=_evidence_identity(bundle), provider_model_run_identity=f"{manifest['model']}:{manifest['reasoning_effort']}:{manifest['builder_commit']}:{manifest['cohort_manifest_sha256']}", validation_state="structural_valid_quote_valid" if result and result.get("quote_grounding_valid") else "structural_valid_quote_invalid" if result and result.get("structural_output_valid") else "indeterminate_no_response" if result else "no_result", governed_candidate_state="candidate_requires_downstream_governance" if result and result.get("structural_output_valid") else "none", lineage=("top100-cohort-manifest", "evidence-bundles", "semantic-run-manifest", "call-results-partial"), exact_reuse_status=status, result_hash=result.get("output_text_sha256") if result else None))
+        status = classify_reuse_status(abn, result)
+        structural = bool(result and result.get("structural_output_valid"))
+        grounded = bool(result and result.get("quote_grounding_valid"))
+        validation_state = "structural_valid_quote_valid" if structural and grounded else "structural_valid_quote_invalid" if structural else "indeterminate_no_response" if result and result.get("status") == "indeterminate_no_response_artifact" else "structural_invalid" if result else "no_result"
+        candidate_state = "candidate_requires_downstream_governance" if structural and grounded else "candidate_requires_grounding_review" if structural else "none"
+        rows.append(SemanticReuseItem(subject_id=subject_ids[abn], abn=abn, rank=member["donation_rank_2024_public"], scope="organisation/program-service-discovery", original_task_profile=f"{manifest['prompt_version']}:{manifest['schema_version']}", evidence_identity=_evidence_identity(bundle), provider_model_run_identity=f"{manifest['model']}:{manifest['reasoning_effort']}:{manifest['builder_commit']}:{manifest['cohort_manifest_sha256']}", validation_state=validation_state, governed_candidate_state=candidate_state, lineage=("top100-cohort-manifest", "evidence-bundles", "semantic-run-manifest", "call-results-partial"), exact_reuse_status=status, result_hash=result.get("output_text_sha256") if result else None))
     return rows
 
 
@@ -286,9 +300,9 @@ def build_planning_matrix(cohort: list[dict[str, Any]], subject_ids: dict[str, s
             elif family.family_id == "program-service-discovery-v2":
                 if abn == "48321126727": state, reason = "blocked_execution_ambiguity", "historical rank-62 transmission/billing ambiguity blocks only colliding program-task identity"
                 elif reuse_by_abn[abn].exact_reuse_status in {"exact_reusable_validated_candidate", "exact_reusable_prior_result"}: state, reason = "reusable_validated_semantic_result", "exact prior program result is reusable as a candidate, not canonical knowledge"
+                elif reuse_by_abn[abn].exact_reuse_status in {"structural_valid_grounding_failed", "structurally_invalid"}: state, reason = "processing_failure_known", "historical program result is not reusable because validation did not establish a grounded, structurally valid output"
                 else: state, reason = "source_ready_constrained_required", "no exact prior result; frozen evidence is available"
             elif family.maturity == "high_risk_depth_deferred": state, reason = "deferred_phase6", "accepted policy explicitly defers new semantic depth to Phase 6; existing governed material remains reusable"
-            elif family.family_id == "typed-relationship-role-v1": state, reason = "stronger_semantic_required", "typed role/scope boundary work routes to stronger judgement"
             else:
                 available = [coverage.get((abn, source)) for source in family.expected_source_family_refs]
                 has_source = any(item is not None and item.state == "acquired_available" for item in available)
@@ -296,6 +310,8 @@ def build_planning_matrix(cohort: list[dict[str, Any]], subject_ids: dict[str, s
                     state, reason = "source_missing_not_acquired", "accepted Phase-5 family is eligible, but every expected source family remains unacquired for this subject"
                 elif family.method_class == "deterministic":
                     state, reason = "source_ready_deterministic_required", "accepted source-native Phase-5 policy supports deterministic processing"
+                elif family.method_class == "stronger_semantic_judgement":
+                    state, reason = "stronger_semantic_required", "accepted source-ready family routes to stronger semantic judgement"
                 else:
                     state, reason = "source_ready_constrained_required", "accepted Phase-5 planning family is eligible and frozen source evidence is available"
             units.append(_unit(subject, family, state, reason, evidence))
