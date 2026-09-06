@@ -12,6 +12,7 @@ from charitygraph.phase5_preflight import (
     build_planning_matrix, build_reuse_inventory, build_source_inventory,
     implemented_claim_families, preflight_interruption_safety, proposed_claim_families,
     summarize, workload_summary, baseline_readiness,
+    SourceCoverageItem,
 )
 
 
@@ -31,6 +32,7 @@ def main() -> int:
     parser.add_argument("--runtime-root", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--historical-root", type=Path, default=ROOT)
     parser.add_argument("--identity-report", type=Path, default=IDENTITY_REPORT)
+    parser.add_argument("--clean-coverage", type=Path)
     args = parser.parse_args()
     root = args.historical_root
     cohort_manifest = json.loads((root / "top100-cohort-manifest.json").read_text(encoding="utf-8"))
@@ -56,6 +58,8 @@ def main() -> int:
         if abn in subject_ids:
             source_records[abn] = tuple(json.loads(material_json).get("source_record_ids") or ())
     coverage = build_source_inventory(cohort, subject_ids, bundles, source_records)
+    if args.clean_coverage:
+        coverage = [SourceCoverageItem(subject_id=item["subject_id"], abn=item["abn"], source_family=item["source_family"], state=item["state"], notes=("clean_corpus",)) for item in json.loads(args.clean_coverage.read_text(encoding="utf-8"))]
     reuse = build_reuse_inventory(cohort, subject_ids, run_manifest, results, closeout, bundles)
     canonical = implemented_claim_families(); proposed = proposed_claim_families(); policies = canonical + proposed
     matrix = build_planning_matrix(cohort, subject_ids, policies, reuse, coverage)
