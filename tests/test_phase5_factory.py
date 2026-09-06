@@ -41,3 +41,13 @@ def test_fake_semantic_path_reconciles_its_synthetic_reservation(tmp_path) -> No
     plan=FactoryPlan.from_manifest([{"logical_task_id":"x","subject_id":"subject:"+"1"*32,"physical_bundle_opportunity":None,"difficulty":"lower_cost_constrained_semantic"}])
     runner=ReferenceFactory(catalog,plan,cohort_id=cohort,run_id=run); runner.seed(now); assert runner.run(now)==1
     assert catalog.budget_position(cohort).actual_spend_aud == Decimal("0.001")
+
+
+def test_physical_attempt_persists_send_then_receipt(tmp_path) -> None:
+    now=datetime(2026,1,1,tzinfo=timezone.utc); cohort="cohort:"+"a"*32; run="run:"+"d"*32
+    catalog=SQLiteCatalog(tmp_path/'factory.sqlite3').open(initialize=True)
+    catalog.register_cohort({"record_id":cohort,"cohort_code":"REHEARSAL","definition_version":"1","membership_hash":"c"*64,"budget_cap":{"amount":"100","currency":"AUD"},"created_at":now}); catalog.register_run({"record_id":run,"cohort_id":cohort,"run_kind":"phase5_factory_rehearsal","status":"planned","configuration_hash":"d"*64,"created_at":now})
+    plan=FactoryPlan.from_manifest([{"logical_task_id":"x","subject_id":"subject:"+"1"*32,"physical_bundle_opportunity":None,"difficulty":"deterministic"}]); task=plan.runtime_tasks(cohort_id=cohort)[0]; catalog.register_task(task,run_id=run,now=now)
+    attempt="physical:one"; catalog.prepare_physical_attempt(physical_attempt_id=attempt,run_id=run,subject_id=task['subject_id'],delivery_mode='batch',provider_request_id='fake-request:x',model_task_ids=(task['record_id'],),reservation_id=None,now=now)
+    assert catalog.mark_physical_send_started(attempt,now=now)['status']=='send_started'
+    assert catalog.persist_provider_receipt(physical_attempt_id=attempt,provider_receipt_id='fake-receipt:x',raw_result_ref='rehearsal:x',usage={},now=now)['physical_attempt_id']==attempt

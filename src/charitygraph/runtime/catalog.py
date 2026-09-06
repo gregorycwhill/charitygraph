@@ -2127,3 +2127,37 @@ class SQLiteCatalog:
             }
 
     knowledge_history = reconstruct_knowledge_history
+
+    def prepare_physical_attempt(self, *, physical_attempt_id: str, run_id: str, subject_id: str, delivery_mode: str, provider_request_id: str, model_task_ids: tuple[str, ...], reservation_id: str | None, now: datetime | str, provider_batch_id: str | None = None) -> dict[str, Any]:
+        """Persist a package before its provider send boundary can be crossed."""
+        when = _utc(now, "now")
+        if delivery_mode not in {"standard", "flex", "batch"} or not model_task_ids:
+            raise CatalogError("physical attempt needs a delivery mode and members")
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            if existing:
+                return dict(existing)
+            for task_id in model_task_ids:
+                task = conn.execute("SELECT run_id, subject_id FROM tasks WHERE model_task_id=?", (task_id,)).fetchone()
+                if task is None or task["run_id"] != run_id or task["subject_id"] != subject_id:
+                    raise ConflictError("physical attempt members must belong to its run and subject")
+            conn.execute("INSERT INTO physical_attempts(physical_attempt_id,run_id,subject_id,delivery_mode,status,provider_request_id,reservation_id,provider_batch_id,created_at,updated_at) VALUES (?,?,?,?, 'prepared',?,?,?,?,?)", (physical_attempt_id,run_id,subject_id,delivery_mode,provider_request_id,reservation_id,provider_batch_id,when,when))
+            conn.executemany("INSERT INTO physical_attempt_members(physical_attempt_id,model_task_id) VALUES (?,?)", [(physical_attempt_id, task_id) for task_id in model_task_ids])
+            self._commit(conn); return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def mark_physical_send_started(self, physical_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
+        when=_utc(now,"now")
+        with self._connection(immediate=True) as conn:
+            row=conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?",(physical_attempt_id,)).fetchone()
+            if row is None or row["status"] != "prepared": raise InvalidTransitionError("only prepared physical attempts can send")
+            conn.execute("UPDATE physical_attempts SET status='send_started',send_started_at=?,updated_at=? WHERE physical_attempt_id=?",(when,when,physical_attempt_id)); self._commit(conn)
+            return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?",(physical_attempt_id,)).fetchone())
+
+    def persist_provider_receipt(self, *, physical_attempt_id: str, provider_receipt_id: str, raw_result_ref: str, usage: Any, now: datetime | str) -> dict[str, Any]:
+        when=_utc(now,"now")
+        with self._connection(immediate=True) as conn:
+            row=conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?",(physical_attempt_id,)).fetchone()
+            if row is None or row["status"] != "send_started": raise InvalidTransitionError("receipt requires send_started physical attempt")
+            conn.execute("INSERT INTO provider_receipts(provider_receipt_id,physical_attempt_id,provider_request_id,raw_result_ref,usage_json,received_at) VALUES (?,?,?,?,?,?)",(provider_receipt_id,physical_attempt_id,row["provider_request_id"],raw_result_ref,json.dumps(_dump(usage),sort_keys=True),when))
+            conn.execute("UPDATE physical_attempts SET status='receipt_persisted',receipt_persisted_at=?,updated_at=? WHERE physical_attempt_id=?",(when,when,physical_attempt_id)); self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())

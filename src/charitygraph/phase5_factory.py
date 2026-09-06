@@ -51,16 +51,19 @@ class FakeProviderReceipt:
 class RehearsalFakeProvider:
     """Network-free provider seam; it exposes no knowledge-producing output."""
     provider_id = "fake"
-    def execute(self, task: dict[str, Any]) -> FakeProviderReceipt:
+    tariffs = {"batch": "0.000500", "flex": "0.001000", "standard": "0.002000"}
+    def execute(self, task: dict[str, Any], *, delivery_mode: str = "batch") -> FakeProviderReceipt:
+        if delivery_mode not in self.tariffs: raise ValueError("unknown rehearsal delivery mode")
         request = "fake-request:" + task["cache_key"]
         return FakeProviderReceipt(request, "fake-receipt:" + hashlib.sha256(request.encode()).hexdigest(), "rehearsal-result:" + task["cache_key"], {"input_tokens": 1, "output_tokens": 1})
 
 
 class ReferenceFactory:
     """Synchronous isolated runner; fake-only and never a knowledge producer."""
-    def __init__(self, catalog: Any, plan: FactoryPlan, *, cohort_id: str, run_id: str, provider: RehearsalFakeProvider | None = None) -> None:
+    def __init__(self, catalog: Any, plan: FactoryPlan, *, cohort_id: str, run_id: str, provider: RehearsalFakeProvider | None = None, delivery_mode: str = "batch") -> None:
         self.catalog, self.plan, self.cohort_id, self.run_id = catalog, plan, cohort_id, run_id
         self.provider = provider or RehearsalFakeProvider()
+        self.delivery_mode = delivery_mode
     def seed(self, now: datetime) -> tuple[dict[str, Any], ...]:
         tasks=self.plan.runtime_tasks(cohort_id=self.cohort_id)
         for task in tasks: self.catalog.register_task(task, run_id=self.run_id, now=now)
@@ -74,11 +77,15 @@ class ReferenceFactory:
                 continue
             receipt = None; reservation_id = None
             if task["difficulty"] != "deterministic":
-                receipt = self.provider.execute(task)
                 reservation_id = deterministic_id("reservation:", {"task": task["record_id"], "rehearsal": "phase5-reference-v1"})
                 self.catalog.reserve_cost({"record_id": reservation_id, "cohort_id": self.cohort_id, "run_id": self.run_id, "reserved_aud": {"amount": "0.010000", "currency": "AUD"}, "model_task_ids": (task["record_id"],), "expires_at": None}, now=now)
             attempt_id=deterministic_id("taskrun:", {"task":task["record_id"],"attempt":1})
-            request_id = receipt.request_id if receipt else "deterministic:"+task["cache_key"]
+            request_id = "fake-request:" + task["cache_key"] if reservation_id else "deterministic:"+task["cache_key"]
+            if reservation_id is not None:
+                self.catalog.prepare_physical_attempt(physical_attempt_id="physical:"+attempt_id.split(":",1)[1], run_id=self.run_id, subject_id=task["subject_id"], delivery_mode=self.delivery_mode, provider_request_id=request_id, model_task_ids=(task["record_id"],), reservation_id=reservation_id, now=now)
+                self.catalog.mark_physical_send_started("physical:"+attempt_id.split(":",1)[1], now=now)
+                receipt = self.provider.execute(task, delivery_mode=self.delivery_mode)
+                self.catalog.persist_provider_receipt(physical_attempt_id="physical:"+attempt_id.split(":",1)[1], provider_receipt_id=receipt.receipt_id, raw_result_ref=receipt.raw_result_ref, usage=receipt.usage, now=now)
             result_ref = receipt.raw_result_ref if receipt else "rehearsal-result:"+task["cache_key"]
             usage = receipt.usage if receipt else {"input_tokens":0,"output_tokens":0}
             self.catalog.begin_task_attempt(task["record_id"], owner=owner, task_run_id=attempt_id, now=now, provider_request_id=request_id, reservation_id=reservation_id)
