@@ -24,7 +24,7 @@ BUILD_ID = "phase5-top100-factory-preflight-v1"
 BUILD_VERSION = "1"
 SOURCE_FAMILIES = (
     "acnc_register", "acnc_ais_bundle", "ato_abr_dgr", "official_website",
-    "wikipedia_wikimedia", "pfra",
+    "annual_report", "wikipedia_wikimedia", "pfra",
 )
 SECTIONS = {
     1: "Identity & regulatory status", 2: "Purpose, mandate & cause",
@@ -77,7 +77,8 @@ class ClaimFamilyPolicy(StrictPlanModel):
     privacy_publication_policy_ref: str
     correction_policy_ref: str
     phase5_treatment_depth: str
-    maturity: Literal["implemented", "reality_tested", "proposed", "high_risk_depth_deferred", "unresolved"] = "implemented"
+    maturity: Literal["implemented", "reality_tested", "phase5_planning_accepted", "high_risk_depth_deferred", "unresolved"] = "implemented"
+    default_publication_state: Literal["private_review_only", "withheld"] = "private_review_only"
 
     @model_validator(mode="after")
     def _sections(self) -> "ClaimFamilyPolicy":
@@ -184,17 +185,20 @@ def proposed_claim_families() -> tuple[ClaimFamilyPolicy, ...]:
         ("fundraising-practice-proposed-v1", "Fundraising practice and resource mobilisation", (7,), "fundraising", "stronger_semantic_judgement", ("acnc_ais_bundle", "official_website", "pfra"), "Fundraising practice, expenditure and actors require independent source-role boundaries."),
         ("finance-resource-flow-proposed-v1", "Finance and resource flows", (8,), "finance", "deterministic", ("acnc_ais_bundle", "ato_abr_dgr"), "Source-faithful financial periods and flows are not yet a Builder claim-family contract."),
         ("governance-proposed-v1", "Governance and responsible persons", (9,), "governance", "constrained_semantic", ("acnc_ais_bundle", "annual_report"), "Governance structure and responsible-person claims need scope and privacy rules."),
-        ("workforce-proposed-v1", "Workforce", (10,), "workforce", "deferred", ("acnc_ais_bundle", "annual_report"), "Workforce depth is not yet safely specified for this tranche."),
+        ("workforce-proposed-v1", "Workforce", (10,), "workforce", "constrained_semantic", ("acnc_ais_bundle", "annual_report"), "Workforce structure is a Phase-5 planning family; sensitive depth remains review-controlled."),
         ("ethos-institutional-identity-proposed-v1", "Ethos and institutional identity", (14,), "ethos", "human_reviewed", ("acnc_ais_bundle", "official_website", "annual_report"), "High-consequence identity and religious/philosophical claims require consequence-aware review."),
         ("positions-commitments-implementation-proposed-v1", "Positions, commitments and implementation", (15,), "positions_commitments", "human_reviewed", ("official_website", "annual_report"), "Statement, commitment, implementation and observed practice are separate stages."),
         ("conduct-compliance-proposed-v1", "Conduct, adverse matters and compliance", (16,), "conduct_compliance", "human_reviewed", ("acnc_ais_bundle", "official_website"), "Formal findings, allegations, responses and correction states require specialist controls."),
-        ("notable-context-history-proposed-v1", "Notable context and institutional history", (17,), "institutional_history", "deferred", ("wikipedia_wikimedia", "official_website", "annual_report"), "Context must not become unsupported reputation or significance scoring."),
-        ("outcomes-evaluation-proposed-v1", "Outcomes, impact and evaluation", (18,), "outcomes_evaluation", "deferred", ("annual_report", "official_website"), "Evaluation design, attribution and limitations require deeper Phase 6 treatment."),
+        ("notable-context-history-proposed-v1", "Notable context and institutional history", (17,), "institutional_history", "constrained_semantic", ("wikipedia_wikimedia", "official_website", "annual_report"), "Context must not become unsupported reputation or significance scoring."),
+        ("outcomes-evaluation-proposed-v1", "Outcomes, impact and evaluation", (18,), "outcomes_evaluation", "human_reviewed", ("annual_report", "official_website"), "Evaluation design, attribution and limitations require deeper Phase 6 treatment."),
+        ("scheme-participation-v1", "Scheme participation, registrations and accreditations", (13,), "scheme_participation", "constrained_semantic", ("ato_abr_dgr", "pfra", "acnc_ais_bundle"), "Scheme/body participation is distinct from identity, taxonomy and generic relationships."),
     ]
+    deferred = {"ethos-institutional-identity-proposed-v1", "positions-commitments-implementation-proposed-v1", "conduct-compliance-proposed-v1", "outcomes-evaluation-proposed-v1"}
     result = []
     for family_id, label, sections, profile, method, sources, reason in specs:
         refs = _policy_refs(family_id)
-        result.append(ClaimFamilyPolicy(family_id=family_id, label=label, version="1", north_star_sections=sections, domain_profile=profile, method_class=method, expected_source_family_refs=sources, applicability_state="unresolved_or_triggered", automation_eligibility="not_canonical", human_risk_review_trigger="Greg_or_policy_review_required", phase5_treatment_depth=reason, maturity="high_risk_depth_deferred" if method == "deferred" else "proposed", **refs))
+        depth = "Phase-6 depth deferred; reuse existing governed material only." if family_id in deferred else reason
+        result.append(ClaimFamilyPolicy(family_id=family_id, label=label, version="1", north_star_sections=sections, domain_profile=profile, method_class=method, expected_source_family_refs=sources, applicability_state="eligible_for_attempt", automation_eligibility="planning_only_bounded_contract", human_risk_review_trigger="human_or_policy_review_when_triggered", phase5_treatment_depth=depth, maturity="high_risk_depth_deferred" if family_id in deferred else "phase5_planning_accepted", **refs))
     return tuple(result)
 
 
@@ -282,15 +286,19 @@ def build_planning_matrix(cohort: list[dict[str, Any]], subject_ids: dict[str, s
             elif family.family_id == "program-service-discovery-v2":
                 if abn == "48321126727": state, reason = "blocked_execution_ambiguity", "historical rank-62 transmission/billing ambiguity blocks only colliding program-task identity"
                 elif reuse_by_abn[abn].exact_reuse_status in {"exact_reusable_validated_candidate", "exact_reusable_prior_result"}: state, reason = "reusable_validated_semantic_result", "exact prior program result is reusable as a candidate, not canonical knowledge"
-                else: state, reason = "source_ready_constrained_required", "no exact prior result; frozen ACNC evidence is available"
-            elif family.family_id == "taxonomy-assignment-v1": state, reason = "source_ready_constrained_required", "taxonomy task remains independently planned against frozen evidence"
-            elif family.family_id == "direct-service-access-v1": state, reason = "source_ready_constrained_required", "direct-service contract exists but no exact reusable result is assumed"
+                else: state, reason = "source_ready_constrained_required", "no exact prior result; frozen evidence is available"
+            elif family.maturity == "high_risk_depth_deferred": state, reason = "deferred_phase6", "accepted policy explicitly defers new semantic depth to Phase 6; existing governed material remains reusable"
             elif family.family_id == "typed-relationship-role-v1": state, reason = "stronger_semantic_required", "typed role/scope boundary work routes to stronger judgement"
-            else: state, reason = ("deferred_phase6", "high-consequence or depth-deferred family is explicitly not generated in Phase 5") if family.method_class == "deferred" else ("policy_unresolved", "proposed family boundary is private and not canonical")
+            else:
+                available = [coverage.get((abn, source)) for source in family.expected_source_family_refs]
+                has_source = any(item is not None and item.state == "acquired_available" for item in available)
+                if not has_source:
+                    state, reason = "source_missing_not_acquired", "accepted Phase-5 family is eligible, but every expected source family remains unacquired for this subject"
+                elif family.method_class == "deterministic":
+                    state, reason = "source_ready_deterministic_required", "accepted source-native Phase-5 policy supports deterministic processing"
+                else:
+                    state, reason = "source_ready_constrained_required", "accepted Phase-5 planning family is eligible and frozen source evidence is available"
             units.append(_unit(subject, family, state, reason, evidence))
-        for family in proposed_claim_families():
-            state = "deferred_phase6" if family.method_class == "deferred" else "policy_unresolved"
-            units.append(_unit(subject, family, state, "private proposed catalogue; Greg policy decision required before scheduling", evidence))
     return units
 
 
@@ -319,3 +327,17 @@ def summarize(items: list[PlanningUnit]) -> dict[str, int]:
 
 def workload_summary(items: list[PlanningUnit]) -> dict[str, int]:
     return dict(sorted(Counter(item.method_class for item in items if item.state not in {"governed_knowledge_reusable", "reusable_validated_semantic_result", "not_applicable"}).items()))
+
+
+def baseline_readiness(coverage: list[SourceCoverageItem]) -> dict[str, Any]:
+    gaps: dict[str, dict[str, int]] = {}
+    for family in SOURCE_FAMILIES:
+        states = Counter(item.state for item in coverage if item.source_family == family)
+        gaps[family] = dict(sorted(states.items()))
+    material_gaps = {family: states for family, states in gaps.items() if any(state != "acquired_available" for state in states)}
+    return {
+        "ready_for_semantic_execution": not material_gaps,
+        "recommendation": "SEMANTIC_EXECUTION" if not material_gaps else "BASELINE_ACQUISITION/FREEZE",
+        "gaps": material_gaps,
+        "reason": "baseline source-universe obligations remain materially unattempted or unavailable" if material_gaps else "all planned baseline source families are available",
+    }

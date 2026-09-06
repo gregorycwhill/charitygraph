@@ -14,7 +14,8 @@ def test_claim_family_is_not_a_north_star_section() -> None:
 
 def test_policy_versioning_and_proposed_boundaries_are_explicit() -> None:
     assert all(item.version for item in implemented_claim_families())
-    assert all(item.maturity in {"proposed", "high_risk_depth_deferred"} for item in proposed_claim_families())
+    assert all(item.maturity in {"phase5_planning_accepted", "high_risk_depth_deferred"} for item in proposed_claim_families())
+    assert any(item.family_id == "scheme-participation-v1" and item.north_star_sections == (13,) for item in proposed_claim_families())
 
 
 def test_planned_logical_identity_is_independent_of_physical_bundle() -> None:
@@ -45,3 +46,27 @@ def test_planning_contract_does_not_offer_fuzzy_semantic_reuse() -> None:
     source = open("src/charitygraph/phase5_preflight.py", encoding="utf-8").read()
     assert "fuzzy" not in source.casefold()
     assert "exact_reusable_validated_candidate" in source
+
+
+def test_scheme_participation_is_distinct_from_identity_taxonomy_and_relationships() -> None:
+    families = {item.family_id: item for item in (*implemented_claim_families(), *proposed_claim_families())}
+    scheme = families["scheme-participation-v1"]
+    assert scheme.north_star_sections == (13,)
+    assert scheme.family_id not in {"identity-regulatory-status-v1", "taxonomy-assignment-v1", "typed-relationship-role-v1"}
+    assert scheme.domain_profile == "scheme_participation"
+
+
+def test_applicability_is_not_missingness() -> None:
+    family = proposed_claim_families()[0]
+    assert family.applicability_state == "eligible_for_attempt"
+    item = SourceCoverageItem(subject_id="subject:" + "b" * 32, abn="12345678901", source_family="annual_report", state="not_attempted")
+    assert item.state == "not_attempted"
+    assert family.applicability_state != item.state
+
+
+def test_private_review_state_and_phase6_families_schedule_no_tasks() -> None:
+    families = {item.family_id: item for item in proposed_claim_families()}
+    assert all(item.default_publication_state == "private_review_only" for item in families.values())
+    assert all(families[item].maturity == "high_risk_depth_deferred" for item in (
+        "ethos-institutional-identity-proposed-v1", "positions-commitments-implementation-proposed-v1",
+        "conduct-compliance-proposed-v1", "outcomes-evaluation-proposed-v1"))
