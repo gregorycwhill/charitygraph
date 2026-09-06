@@ -14,6 +14,13 @@ def test_factory_plan_keeps_logical_identity_and_never_crosses_subjects() -> Non
     assert len(plan.manifest_hash) == 64
 
 
+def test_rehearsal_provider_is_deterministic_and_has_no_output_payload() -> None:
+    from charitygraph.phase5_factory import RehearsalFakeProvider
+    task={"cache_key":"a"*64}
+    first=RehearsalFakeProvider().execute(task); second=RehearsalFakeProvider().execute(task)
+    assert first == second and first.raw_result_ref.startswith("rehearsal-result:")
+
+
 def test_reference_runner_is_durable_and_noops_after_terminal_run(tmp_path) -> None:
     now=datetime(2026,1,1,tzinfo=timezone.utc); cohort="cohort:"+"a"*32; run="run:"+"b"*32
     catalog=SQLiteCatalog(tmp_path/'factory.sqlite3').open(initialize=True)

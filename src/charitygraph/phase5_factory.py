@@ -40,10 +40,27 @@ class FactoryPlan:
         return tuple(tasks)
 
 
+@dataclass(frozen=True)
+class FakeProviderReceipt:
+    request_id: str
+    receipt_id: str
+    raw_result_ref: str
+    usage: dict[str, int]
+
+
+class RehearsalFakeProvider:
+    """Network-free provider seam; it exposes no knowledge-producing output."""
+    provider_id = "fake"
+    def execute(self, task: dict[str, Any]) -> FakeProviderReceipt:
+        request = "fake-request:" + task["cache_key"]
+        return FakeProviderReceipt(request, "fake-receipt:" + hashlib.sha256(request.encode()).hexdigest(), "rehearsal-result:" + task["cache_key"], {"input_tokens": 1, "output_tokens": 1})
+
+
 class ReferenceFactory:
     """Synchronous isolated runner; fake-only and never a knowledge producer."""
-    def __init__(self, catalog: Any, plan: FactoryPlan, *, cohort_id: str, run_id: str) -> None:
+    def __init__(self, catalog: Any, plan: FactoryPlan, *, cohort_id: str, run_id: str, provider: RehearsalFakeProvider | None = None) -> None:
         self.catalog, self.plan, self.cohort_id, self.run_id = catalog, plan, cohort_id, run_id
+        self.provider = provider or RehearsalFakeProvider()
     def seed(self, now: datetime) -> tuple[dict[str, Any], ...]:
         tasks=self.plan.runtime_tasks(cohort_id=self.cohort_id)
         for task in tasks: self.catalog.register_task(task, run_id=self.run_id, now=now)
@@ -55,13 +72,17 @@ class ReferenceFactory:
             owner="phase5-factory-reference"
             if not self.catalog.claim_task(task["record_id"], owner=owner, lease_expires_at=now+timedelta(hours=1), now=now):
                 continue
-            reservation_id = None
+            receipt = None; reservation_id = None
             if task["difficulty"] != "deterministic":
+                receipt = self.provider.execute(task)
                 reservation_id = deterministic_id("reservation:", {"task": task["record_id"], "rehearsal": "phase5-reference-v1"})
                 self.catalog.reserve_cost({"record_id": reservation_id, "cohort_id": self.cohort_id, "run_id": self.run_id, "reserved_aud": {"amount": "0.010000", "currency": "AUD"}, "model_task_ids": (task["record_id"],), "expires_at": None}, now=now)
             attempt_id=deterministic_id("taskrun:", {"task":task["record_id"],"attempt":1})
-            self.catalog.begin_task_attempt(task["record_id"], owner=owner, task_run_id=attempt_id, now=now, provider_request_id="fake-request:"+task["cache_key"], reservation_id=reservation_id)
-            self.catalog.finish_successful_attempt(attempt_id, owner=owner, completed_at=now, result_artifact_id="rehearsal-result:"+task["cache_key"], provider_request_id="fake-request:"+task["cache_key"], usage={"input_tokens":1,"output_tokens":1}, pricing_snapshot_id="pricing:rehearsal", fx_snapshot_id="fx:rehearsal")
+            request_id = receipt.request_id if receipt else "deterministic:"+task["cache_key"]
+            result_ref = receipt.raw_result_ref if receipt else "rehearsal-result:"+task["cache_key"]
+            usage = receipt.usage if receipt else {"input_tokens":0,"output_tokens":0}
+            self.catalog.begin_task_attempt(task["record_id"], owner=owner, task_run_id=attempt_id, now=now, provider_request_id=request_id, reservation_id=reservation_id)
+            self.catalog.finish_successful_attempt(attempt_id, owner=owner, completed_at=now, result_artifact_id=result_ref, provider_request_id=request_id, usage=usage, pricing_snapshot_id="pricing:rehearsal", fx_snapshot_id="fx:rehearsal")
             if reservation_id is not None:
                 actual = {"cohort_id": self.cohort_id, "run_id": self.run_id, "task_run_id": attempt_id, "reservation_id": reservation_id, "entry_type": "actual", "paid_output_category": "extraction", "provider_cost": {"amount": "0.001000", "currency": "USD"}, "aud_cost": {"amount": "0.001000", "currency": "AUD"}, "usage": {"input_tokens": 1, "output_tokens": 1}, "recorded_at": now, "pricing_snapshot_id": deterministic_id("pricing:", {"rehearsal": "phase5"}), "fx_snapshot_id": deterministic_id("fx:", {"rehearsal": "phase5"})}
                 self.catalog.record_cost_entry(actual, entry_key="actual:"+reservation_id)
