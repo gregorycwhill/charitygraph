@@ -159,7 +159,7 @@ def main() -> None:
         matrix_lines.append(f"| {row['section_id']} | {row['title']} | " + " | ".join(f"{cell['status']} ({cell['observation_count']})" for cell in cells) + " |")
     (OUTPUT / "coverage-matrix.md").write_text("\n".join(matrix_lines) + "\n", encoding="utf-8")
     diagnostics = {
-        "canonical_projection": "YES", "missingness": "YES", "relationships": "NO", "integrated_assembly": "PARTIALLY", "provider_calls": 0, "new_source_acquisition": 0,
+        "canonical_projection": "YES", "missingness": "YES", "relationships": "NOT_YET_DEMONSTRATED", "integrated_assembly": "PARTIALLY", "relationship_role_production_mechanics": "DEMONSTRATED", "provider_calls": 0, "new_source_acquisition": 0,
         "selected_charities": [item["name"] for item in selection], "observations": len(observations),
         "governed_observations": sum(item.disposition == "REUSABLE_GOVERNED" for item in evidence),
         "experimental_observations": sum(item.disposition == "REUSABLE_EXPERIMENTAL_INPUT" for item in evidence),
@@ -173,13 +173,13 @@ def main() -> None:
             {"class": "PROJECTION", "blocking": False, "detail": "Historical 9..20 numeric assignments are held unresolved rather than remapped by coincidence."},
         ],
         "remaining_blockers": [],
-        "next_tranche": "PHASE 3 CAN CLOSE",
+        "next_tranche": "PHASE 3 RELATIONSHIP GATE STILL OPEN",
         "unresolved_relationship_count": len(unresolved_relationships),
     }
     (OUTPUT / "diagnostics.json").write_text(json.dumps(diagnostics, indent=2, ensure_ascii=False), encoding="utf-8")
     lines = ["# Phase 3 integrated-card closeout", "", f"Integrated assembly: **{diagnostics['integrated_assembly']}**", "", "Provider calls: **0**  ", "New source acquisition: **0**  ", f"Observations retained: **{len(observations)}**", "", "## Selected charities", ""]
     lines.extend(f"- {item['name']} (ABN {item['abn']}) — {item['source_count']} retained sources" for item in selection)
-    lines.extend(["", "## Result", "", "The private projection uses the exact canonical twenty-section contract. Prior model outputs remain visibly experimental; empty sections use explicit `NOT_PROCESSED` or `UNKNOWN` states and are not absence claims.", "", f"Canonical projection: **{diagnostics['canonical_projection']}**", f"Missingness: **{diagnostics['missingness']}**", f"Relationships: **{diagnostics['relationships']}** (six unresolved targets retained diagnostically)", f"Next disposition: **{diagnostics['next_tranche']}**"])
+    lines.extend(["", "## Result", "", "The private projection uses the exact canonical twenty-section contract. Prior model outputs remain visibly experimental; empty sections use explicit `NOT_PROCESSED` or `UNKNOWN` states and are not absence claims.", "", f"Canonical projection: **{diagnostics['canonical_projection']}**", f"Missingness: **{diagnostics['missingness']}**", f"Integrated assembly: **{diagnostics['integrated_assembly']}**", "Relationship-role production mechanics: **DEMONSTRATED**", "Real retained relationship-role persistence/projection: **NOT YET DEMONSTRATED**", f"Next disposition: **{diagnostics['next_tranche']}**"])
     (OUTPUT / "closeout.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(OUTPUT)
 
