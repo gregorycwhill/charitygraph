@@ -10,7 +10,7 @@ import json
 import sqlite3
 from collections import Counter
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -101,23 +101,41 @@ class SourceCoverageItem(StrictPlanModel):
     notes: tuple[str, ...] = ()
 
 
-def resolve_governed_source_material(*, bundle: dict[str, Any], source_family: str, failures: dict[tuple[str, str], str]) -> dict[str, Any]:
+def resolve_governed_source_material(*, bundle: dict[str, Any], source_family: str, failures: dict[tuple[str, str], str], retained_bytes: Callable[[dict[str, Any]], bytes] | None = None) -> dict[str, Any]:
     """Resolve only material whose frozen provenance is mechanically usable.
 
     `available_source_families` records historical presence, not a reusable
     byte-level source.  It cannot be promoted to `acquired_available` without
-    an exact evidence record carrying a content hash and retained material.
+    an exact evidence record carrying a content hash and bytes which can be
+    re-read and hash-verified through an explicit retained-material resolver.
     """
     historical_name = {"acnc_register": "acnc-profile", "acnc_ais_bundle": "acnc-profile-ais", "ato_abr_dgr": "abr", "official_website": "official-homepage"}.get(source_family)
     abn = str(bundle["abn"])
     if historical_name is None:
         return {"state": "not_attempted", "records": (), "reason": "no_prior_material_contract"}
     records = tuple(record for record in bundle.get("evidence_records", ()) if record.get("source_family") == historical_name)
-    exact = tuple(record for record in records if record.get("content_hash") and (isinstance(record.get("text"), str) or record.get("raw_path")))
+    def material_is_recoverable(record: dict[str, Any]) -> bool:
+        expected = record.get("content_hash")
+        if not expected:
+            return False
+        try:
+            if isinstance(record.get("text"), str):
+                body = record["text"].encode("utf-8")
+            elif retained_bytes is not None:
+                body = retained_bytes(record)
+            else:
+                return False
+        except (FileNotFoundError, OSError, ValueError):
+            return False
+        return hashlib.sha256(body).hexdigest() == expected
+    exact = tuple(record for record in records if material_is_recoverable(record))
+    invalid = bool(records) and not exact
     if len(exact) == 1:
         return {"state": "acquired_available", "records": exact, "reason": "exact_frozen_evidence_material"}
     if len(exact) > 1:
         return {"state": "provenance_unresolved", "records": exact, "reason": "multiple_exact_materials_require_selection_policy"}
+    if invalid:
+        return {"state": "provenance_unresolved", "records": (), "reason": "exact_provenance_metadata_without_recoverable_hash_verified_bytes"}
     if historical_name in set(bundle.get("available_source_families", ())):
         return {"state": "provenance_unresolved", "records": (), "reason": "historical_presence_without_recoverable_material"}
     if (abn, historical_name) in failures:
