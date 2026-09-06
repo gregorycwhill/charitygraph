@@ -55,8 +55,16 @@ class ReferenceFactory:
             owner="phase5-factory-reference"
             if not self.catalog.claim_task(task["record_id"], owner=owner, lease_expires_at=now+timedelta(hours=1), now=now):
                 continue
+            reservation_id = None
+            if task["difficulty"] != "deterministic":
+                reservation_id = deterministic_id("reservation:", {"task": task["record_id"], "rehearsal": "phase5-reference-v1"})
+                self.catalog.reserve_cost({"record_id": reservation_id, "cohort_id": self.cohort_id, "run_id": self.run_id, "reserved_aud": {"amount": "0.010000", "currency": "AUD"}, "model_task_ids": (task["record_id"],), "expires_at": None}, now=now)
             attempt_id=deterministic_id("taskrun:", {"task":task["record_id"],"attempt":1})
-            self.catalog.begin_task_attempt(task["record_id"], owner=owner, task_run_id=attempt_id, now=now, provider_request_id="fake-request:"+task["cache_key"])
+            self.catalog.begin_task_attempt(task["record_id"], owner=owner, task_run_id=attempt_id, now=now, provider_request_id="fake-request:"+task["cache_key"], reservation_id=reservation_id)
             self.catalog.finish_successful_attempt(attempt_id, owner=owner, completed_at=now, result_artifact_id="rehearsal-result:"+task["cache_key"], provider_request_id="fake-request:"+task["cache_key"], usage={"input_tokens":1,"output_tokens":1}, pricing_snapshot_id="pricing:rehearsal", fx_snapshot_id="fx:rehearsal")
+            if reservation_id is not None:
+                actual = {"cohort_id": self.cohort_id, "run_id": self.run_id, "task_run_id": attempt_id, "reservation_id": reservation_id, "entry_type": "actual", "paid_output_category": "extraction", "provider_cost": {"amount": "0.001000", "currency": "USD"}, "aud_cost": {"amount": "0.001000", "currency": "AUD"}, "usage": {"input_tokens": 1, "output_tokens": 1}, "recorded_at": now, "pricing_snapshot_id": deterministic_id("pricing:", {"rehearsal": "phase5"}), "fx_snapshot_id": deterministic_id("fx:", {"rehearsal": "phase5"})}
+                self.catalog.record_cost_entry(actual, entry_key="actual:"+reservation_id)
+                self.catalog.release_reservation(reservation_id, {"amount": "0.009000", "currency": "AUD"}, now=now, entry_key="release:"+reservation_id)
             completed+=1
         return completed
