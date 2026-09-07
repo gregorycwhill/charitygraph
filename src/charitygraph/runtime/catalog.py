@@ -2223,6 +2223,29 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
 
+    def persist_delivery_file_id(self, delivery_job_id: str, file_kind: str, provider_file_id: str, *, now: datetime | str) -> dict[str, Any]:
+        """Persist an OpenAI Batch file identity exactly once and idempotently."""
+        columns = {
+            "input": "provider_input_file_id",
+            "output": "provider_output_file_id",
+            "error": "provider_error_file_id",
+        }
+        column = columns.get(file_kind)
+        if column is None or not str(provider_file_id).strip():
+            raise CatalogError("delivery file kind and provider file ID are required")
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown delivery job")
+            existing = row[column]
+            if existing is not None and existing != provider_file_id:
+                raise ConflictError("delivery file identity conflicts with the durable value")
+            if existing is None:
+                conn.execute(f"UPDATE delivery_jobs SET {column}=?, updated_at=? WHERE delivery_job_id=?", (provider_file_id, when, delivery_job_id))
+                self._commit(conn)
+            return dict(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
+
     def create_provider_request_item(self, *, provider_request_item_id: str, run_id: str, model_task_id: str, provider_id: str, model_route: str, requested_delivery_mode: str, effective_service_tier: str, now: datetime | str, delivery_job_id: str | None = None, physical_attempt_id: str | None = None) -> dict[str, Any]:
         if requested_delivery_mode not in {"batch", "flex", "standard"} or effective_service_tier not in {"batch", "flex", "standard"}:
             raise CatalogError("unknown request item delivery mode")
