@@ -12,19 +12,15 @@ from charitygraph.phase5_factory import FactoryPlan, FakeProviderReceipt, Refere
 from charitygraph.runtime import SQLiteCatalog
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--manifest", type=Path, default=Path(r"C:\CharityGraph-runtime\phase5-top100-factory-preflight-clean-v1\planned-logical-tasks.json"))
-    parser.add_argument("--runtime-root", type=Path, default=Path(r"C:\CharityGraph-runtime\phase5-factory-delivery-v1"))
-    args = parser.parse_args()
+def run_reference(manifest: Path, runtime_root: Path) -> dict[str, object]:
     now = datetime(2026, 9, 7, tzinfo=timezone.utc)
-    logical = json.loads(args.manifest.read_text(encoding="utf-8"))
+    logical = json.loads(manifest.read_text(encoding="utf-8"))
     plan = FactoryPlan.from_manifest(logical)
     if len(plan.logical_tasks) != 1331:
         raise RuntimeError("authoritative Phase-5 task count changed")
     delivery = build_delivery_plan(plan.logical_tasks)
-    args.runtime_root.mkdir(parents=True, exist_ok=True)
-    catalog = SQLiteCatalog(args.runtime_root / "factory.sqlite3").open(initialize=True)
+    runtime_root.mkdir(parents=True, exist_ok=True)
+    catalog = SQLiteCatalog(runtime_root / "factory.sqlite3").open(initialize=True)
     cohort = deterministic_id("cohort:", {"rehearsal": "phase5-delivery-v1"})
     run = deterministic_id("run:", {"rehearsal": "phase5-delivery-v1"})
     catalog.register_cohort({"record_id": cohort, "cohort_code": "P5_DELIVERY", "definition_version": "1", "membership_hash": plan.manifest_hash, "budget_cap": {"amount": "10000", "currency": "AUD"}, "created_at": now})
@@ -73,7 +69,15 @@ def main() -> int:
     noop = sum(1 for task in catalog.list_provider_request_items(run) if task["status"] != "completed")
     catalog.transition_run(run, "succeeded", now=now)
     report = {"logical_tasks": len(plan.logical_tasks), "deterministic": len(delivery.deterministic_logical_task_ids), "semantic": delivery.semantic_count, "provider_request_items": len(delivery.request_items), "batch_jobs": sum(1 for job in delivery.delivery_jobs if job.delivery_mode == "batch"), "mode_counts": delivery.count_modes(), "economics": {key: str(value) for key, value in delivery.economics().items()}, "completed_semantic_items": completed, "terminal_noop_unfinished_items": noop, "network_calls": 0, "provider_calls": 0, "semantic_knowledge_production": 0}
-    (args.runtime_root / "delivery-reference-summary.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (runtime_root / "delivery-reference-summary.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return report
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--manifest", type=Path, default=Path(r"C:\CharityGraph-runtime\phase5-top100-factory-preflight-clean-v1\planned-logical-tasks.json"))
+    parser.add_argument("--runtime-root", type=Path, default=Path(r"C:\CharityGraph-runtime\phase5-factory-delivery-v1"))
+    report=run_reference(parser.parse_args().manifest, parser.parse_args().runtime_root)
     print(json.dumps(report, sort_keys=True))
     return 0
 
