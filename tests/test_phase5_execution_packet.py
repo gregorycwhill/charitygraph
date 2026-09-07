@@ -6,6 +6,7 @@ import pytest
 
 from charitygraph.evidence_store import ContentAddressedArtifactStore
 from charitygraph.phase5_execution_packet import ExecutionPacketUnready, materialize_execution_packet, render_packet_prompt
+from charitygraph.phase5_openai_dry_run import serialize_execution_packet_request
 from charitygraph.phase5_semantic_contracts import executable_contract_for
 
 
@@ -19,6 +20,7 @@ def _task(contract):
         "prompt_policy_version": contract.planner_prompt_policy_version,
         "schema_version": contract.planner_schema_version,
         "evidence_corpus_hash": "a" * 64,
+        "difficulty": "lower_cost_constrained_semantic",
     }
 
 
@@ -66,6 +68,13 @@ def test_packet_materializes_bytes_and_prompt_from_content_addressed_store(tmp_p
     assert packet.evidence_units[0].content == content.decode()
     assert json.dumps(corpus) not in packet.evidence_units[0].content
     assert content.decode() in render_packet_prompt(packet, contract)
+    request = serialize_execution_packet_request(task, packet, delivery_job_id="deliveryjob:test", service_tier="batch")
+    developer_text = request.body["input"][0]["content"][0]["text"]
+    user_text = request.body["input"][1]["content"][0]["text"]
+    assert content.decode() in developer_text
+    assert content.decode() not in user_text
+    assert "evidence_units" not in user_text
+    assert "evidence_bindings" in user_text
 
 
 def test_packet_fails_closed_for_missing_retained_artifact(tmp_path):

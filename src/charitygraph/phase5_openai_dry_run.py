@@ -93,6 +93,16 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
     schema_name = contract.schema_id.rsplit(":", 1)[-1].replace("-", "_")
     request_item_id = provider_request_identity(task, contract, model=model, service_tier=service_tier, evidence_ids=evidence_ids)
     prompt = render_packet_prompt(packet, contract)
+    evidence_bindings = [
+        {
+            "evidence_id": item.evidence_id,
+            "artifact_id": item.artifact_id,
+            "content_hash": item.content_hash,
+            "byte_count": item.byte_count,
+            "source_record_id": item.source_record_id,
+        }
+        for item in packet.evidence_units
+    ]
     body = {
         "model": model,
         "service_tier": service_tier,
@@ -100,7 +110,7 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
         "store": False,
         "input": [
             {"role": "developer", "content": [{"type": "input_text", "text": prompt}]},
-            {"role": "user", "content": [{"type": "input_text", "text": json.dumps({"logical_task_id": task["logical_task_id"], "claim_family_id": task["claim_family_id"], "task_profile": task["task_profile"], "prompt_policy_version": task["prompt_policy_version"], "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract": contract.identity_payload(evidence_ids), "evidence_policy": contract.evidence_policy, "execution_packet": packet.material()}, ensure_ascii=False, sort_keys=True)}]},
+            {"role": "user", "content": [{"type": "input_text", "text": json.dumps({"logical_task_id": task["logical_task_id"], "claim_family_id": task["claim_family_id"], "task_profile": task["task_profile"], "prompt_policy_version": task["prompt_policy_version"], "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract": contract.identity_payload(evidence_ids), "evidence_policy": contract.evidence_policy, "evidence_bindings": evidence_bindings}, ensure_ascii=False, sort_keys=True)}]},
         ],
         "text": {"format": {"type": "json_schema", "name": schema_name, "strict": True, "schema": schema}},
         "metadata": {"logical_task_id": task["logical_task_id"], "provider_request_item_id": request_item_id, "delivery_job_id": delivery_job_id, "claim_family_id": task["claim_family_id"], "semantic_contract_id": contract.contract_id, "semantic_contract_hash": contract.identity_hash(evidence_ids)},
