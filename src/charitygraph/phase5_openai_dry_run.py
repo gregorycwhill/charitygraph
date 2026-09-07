@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .phase5_semantic_contracts import executable_contract_for, provider_request_identity
+from .phase5_execution_packet import ExecutionPacketUnready, SemanticExecutionPacket, render_packet_prompt
 
 RESPONSES_ENDPOINT = "/v1/responses"
 LUNA, TERRA = "gpt-5.6-luna", "gpt-5.6-terra"
@@ -83,16 +84,15 @@ def resolve_model(task: dict[str, Any]) -> tuple[str, str]:
     raise ValueError("dry-run compiler accepts semantic tasks only")
 
 
-def compile_request(task: dict[str, Any], corpus: dict[str, Any], *, delivery_job_id: str, service_tier: str) -> CompiledRequest:
+def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExecutionPacket, *, delivery_job_id: str, service_tier: str) -> CompiledRequest:
     model, effort = resolve_model(task)
     contract = executable_contract_for(task)
-    evidence_ids = tuple(sorted({str(value) for member in corpus.get("material_members", []) for key in ("evidence_locator_ids", "evidence_ids") for value in member.get(key, [])}))
+    evidence_ids = tuple(item.evidence_id for item in packet.evidence_units)
     schema = contract.schema_for_evidence(evidence_ids)
     _validate_schema(schema)
     schema_name = contract.schema_id.rsplit(":", 1)[-1].replace("-", "_")
     request_item_id = provider_request_identity(task, contract, model=model, service_tier=service_tier, evidence_ids=evidence_ids)
-    scope_text = "\n".join(str(member.get("scope_id") or member.get("source_record_ids", [""])[0]) for member in corpus.get("material_members", []))
-    prompt = contract.prompt_template.replace("{subject_id}", task["subject_id"]).replace("{scope_text}", scope_text).replace("{evidence}", json.dumps(corpus, ensure_ascii=False, sort_keys=True)).replace("{allowed_vocabulary}", "supplied governed vocabulary only")
+    prompt = render_packet_prompt(packet, contract)
     body = {
         "model": model,
         "service_tier": service_tier,
@@ -100,12 +100,19 @@ def compile_request(task: dict[str, Any], corpus: dict[str, Any], *, delivery_jo
         "store": False,
         "input": [
             {"role": "developer", "content": [{"type": "input_text", "text": prompt}]},
-            {"role": "user", "content": [{"type": "input_text", "text": json.dumps({"logical_task_id": task["logical_task_id"], "claim_family_id": task["claim_family_id"], "task_profile": task["task_profile"], "prompt_policy_version": task["prompt_policy_version"], "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract": contract.identity_payload(evidence_ids), "evidence_policy": contract.evidence_policy, "governed_corpus_manifest": corpus}, ensure_ascii=False, sort_keys=True)}]},
+            {"role": "user", "content": [{"type": "input_text", "text": json.dumps({"logical_task_id": task["logical_task_id"], "claim_family_id": task["claim_family_id"], "task_profile": task["task_profile"], "prompt_policy_version": task["prompt_policy_version"], "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract": contract.identity_payload(evidence_ids), "evidence_policy": contract.evidence_policy, "execution_packet": packet.material()}, ensure_ascii=False, sort_keys=True)}]},
         ],
         "text": {"format": {"type": "json_schema", "name": schema_name, "strict": True, "schema": schema}},
         "metadata": {"logical_task_id": task["logical_task_id"], "provider_request_item_id": request_item_id, "delivery_job_id": delivery_job_id, "claim_family_id": task["claim_family_id"], "semantic_contract_id": contract.contract_id, "semantic_contract_hash": contract.identity_hash(evidence_ids)},
     }
     return CompiledRequest(task["logical_task_id"], request_item_id, delivery_job_id, model, service_tier, schema_name, body)
+
+
+def compile_request(task: dict[str, Any], corpus: dict[str, Any], *, delivery_job_id: str, service_tier: str, packet: SemanticExecutionPacket | None = None) -> CompiledRequest:
+    """Compatibility entry point; manifest-only compilation is forbidden."""
+    if packet is None:
+        raise ExecutionPacketUnready("OpenAI serialization requires a materialized semantic execution packet")
+    return serialize_execution_packet_request(task, packet, delivery_job_id=delivery_job_id, service_tier=service_tier)
 
 
 def estimate_tokens(body: dict[str, Any]) -> int:

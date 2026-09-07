@@ -60,15 +60,21 @@ def _json_text(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def render_discovery_prompt(subject_id: str, evidence_items: Sequence[tuple[str, str]], *, v2: bool = False) -> str:
+    """Render the frozen discovery prompt from ordered evidence units."""
+    chunks = [f"[{evidence_id}]\n{content}" for evidence_id, content in evidence_items]
+    prompt = DISCOVERY_PROMPT_V2 if v2 else DISCOVERY_PROMPT
+    return prompt.format(subject_id=subject_id, evidence="\n\n".join(chunks))
+
+
 def build_prompt(task: ModelTask, evidence_content: Mapping[str, str], *, v2: bool = False) -> str:
     """Render the versioned frozen prompt with evidence in task order only."""
-    chunks = []
+    items = []
     for item in task.evidence_inputs:
         if item.evidence_id not in evidence_content:
             raise ValueError(f"missing private evidence content for {item.evidence_id}")
-        chunks.append(f"[{item.evidence_id}]\n{evidence_content[item.evidence_id]}")
-    prompt = DISCOVERY_PROMPT_V2 if v2 else DISCOVERY_PROMPT
-    return prompt.format(subject_id=task.subject_id, evidence="\n\n".join(chunks))
+        items.append((item.evidence_id, evidence_content[item.evidence_id]))
+    return render_discovery_prompt(task.subject_id, items, v2=v2)
 
 
 def _parse_discovery_output(

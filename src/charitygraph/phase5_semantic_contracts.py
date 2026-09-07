@@ -294,6 +294,17 @@ def executable_contract_for(task: dict[str, Any]) -> SemanticContract:
     return contract
 
 
+def resolve_result_adapter(contract: SemanticContract) -> Callable[..., Any]:
+    """Resolve the semantic adapter implementation, never by naming convention."""
+    if contract.adapter_id == "charitygraph.native_discovery_executor._parse_discovery_output":
+        from .native_discovery_executor import _parse_discovery_output
+        return _parse_discovery_output
+    if contract.adapter_id == "charitygraph.contracts.direct_service_wire.wire_to_domain":
+        from .contracts.direct_service_wire import wire_to_domain
+        return wire_to_domain
+    raise LookupError(f"semantic result adapter is not registered: {contract.adapter_id}")
+
+
 def validate_evidence_refs(refs: list[str] | tuple[str, ...], allowed_evidence_ids: set[str]) -> None:
     if not set(refs).issubset(allowed_evidence_ids):
         raise ValueError("semantic output references evidence outside the supplied governed evidence")
@@ -319,4 +330,4 @@ def provider_request_identity(task: dict[str, Any], contract: SemanticContract, 
     return "requestitem:" + sha256_json(payload)
 
 
-__all__ = ["SemanticContract", "REGISTRY", "build_registry", "resolve_contract", "executable_contract_for", "registry_rows", "provider_request_identity", "validate_evidence_refs", "validate_taxonomy_output", "validate_relationship_output", "sha256_text", "sha256_json", "PROMPT_TEMPLATE_VERSION_V2"]
+__all__ = ["SemanticContract", "REGISTRY", "build_registry", "resolve_contract", "executable_contract_for", "resolve_result_adapter", "registry_rows", "provider_request_identity", "validate_evidence_refs", "validate_taxonomy_output", "validate_relationship_output", "sha256_text", "sha256_json", "PROMPT_TEMPLATE_VERSION_V2"]
