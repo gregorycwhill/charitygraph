@@ -24,6 +24,14 @@ def run_reference(manifest: Path, runtime_root: Path, *, scenario: str | None = 
     label = scenario or "reference"
     cohort = deterministic_id("cohort:", {"rehearsal": "phase5-delivery-v1", "scenario": label})
     run = deterministic_id("run:", {"rehearsal": "phase5-delivery-v1", "scenario": label})
+    summary_path = runtime_root / "delivery-reference-summary.json"
+    existing_run = catalog.get_run(run)
+    if existing_run is not None and existing_run["status"] in {"succeeded", "failed", "held"}:
+        # A terminal rehearsal is an immutable execution event.  Reopening it
+        # returns its recorded result and cannot submit or reconcile anew.
+        if not summary_path.exists():
+            raise RuntimeError("terminal delivery rehearsal is missing its summary")
+        return json.loads(summary_path.read_text(encoding="utf-8"))
     catalog.register_cohort({"record_id": cohort, "cohort_code": "P5_DELIVERY", "definition_version": "1", "membership_hash": plan.manifest_hash, "budget_cap": {"amount": "10000", "currency": "AUD"}, "created_at": now})
     catalog.register_run({"record_id": run, "cohort_id": cohort, "run_kind": "phase5_factory_delivery_reference", "status": "planned", "configuration_hash": plan.manifest_hash, "created_at": now})
     catalog.transition_run(run, "running", now=now)
@@ -127,7 +135,7 @@ def run_reference(manifest: Path, runtime_root: Path, *, scenario: str | None = 
     run_status = "failed" if scenario in {"C4_structural", "C6_partial_bundle"} and selected_item_ids else "held" if scenario == "C5_grounding" and selected_item_ids else "succeeded"
     catalog.transition_run(run, run_status, now=now)
     report = {"scenario": scenario or "reference", "run_status": run_status, "logical_tasks": len(plan.logical_tasks), "deterministic": len(delivery.deterministic_logical_task_ids), "semantic": delivery.semantic_count, "provider_request_items": len(delivery.request_items), "selected_fault_items": len(selected_item_ids), "batch_jobs": sum(1 for job in delivery.delivery_jobs if job.delivery_mode == "batch"), "mode_counts": delivery.count_modes(), "economics": {key: str(value) for key, value in delivery.economics().items()}, "completed_semantic_items": completed, "terminal_noop_unfinished_items": noop, "network_calls": 0, "provider_calls": 0, "semantic_knowledge_production": 0}
-    (runtime_root / "delivery-reference-summary.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    summary_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return report
 
 
