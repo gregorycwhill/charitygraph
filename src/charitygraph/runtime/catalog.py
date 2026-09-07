@@ -2256,3 +2256,11 @@ class SQLiteCatalog:
     def list_provider_request_items(self, run_id: str) -> list[dict[str, Any]]:
         with self._connection() as conn:
             return [dict(row) for row in conn.execute("SELECT * FROM provider_request_items WHERE run_id=? ORDER BY provider_request_item_id", (run_id,)).fetchall()]
+
+    def get_delivery_job(self, delivery_job_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
+
+    def list_delivery_jobs(self, run_id: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            return [dict(row) for row in conn.execute("SELECT * FROM delivery_jobs WHERE run_id=? ORDER BY delivery_job_id", (run_id,)).fetchall()]
