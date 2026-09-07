@@ -64,3 +64,4 @@ def test_semantic_package_has_one_physical_receipt(tmp_path) -> None:
     plan=FactoryPlan.from_manifest([{ "logical_task_id":x,"subject_id":"subject:"+"1"*32,"physical_bundle_opportunity":"b","difficulty":"lower_cost_constrained_semantic"} for x in ('x','y')]); runner=ReferenceFactory(catalog,plan,cohort_id=cohort,run_id=run); tasks=runner.seed(now); package,receipt=runner.prepare_package(tasks,now=now)
     with sqlite3.connect(tmp_path/'factory.sqlite3') as conn: count=conn.execute('select count(*) from provider_receipts').fetchone()[0]
     assert receipt and count == 1 and runner.finalise_package_children(tasks,package_id=package,receipt=receipt,now=now)==2
+    assert catalog.get_physical_attempt('physical:'+package.split(':',1)[1])['status'] == 'validated'

@@ -193,7 +193,14 @@ class ReferenceFactory:
         completed=0
         for package in self.plan.physical_packages(delivery_mode=self.delivery_mode):
             tasks=tuple(by_logical[item["logical_task_id"]] for item in package)
-            if all(self.catalog.get_task(task["record_id"])["status"] == "succeeded" for task in tasks): continue
+            if all(self.catalog.get_task(task["record_id"])["status"] == "succeeded" for task in tasks):
+                # A crash after child terminalisation but before physical closure
+                # is recoverable without another send or logical attempt.
+                package_id=deterministic_id("taskrun:", {"members": [task["record_id"] for task in tasks], "mode": self.delivery_mode})
+                physical=self.catalog.get_physical_attempt(self._physical_id(package_id))
+                if physical and physical["status"] == "receipt_persisted":
+                    self.finalise_package_children(tasks, package_id=package_id, receipt=self._receipt_from_catalog(self._physical_id(package_id)), now=now)
+                continue
             package_id,receipt=self.prepare_package(tasks,now=now,interruption=(interruptions or {}).get(self._physical_id(deterministic_id("taskrun:", {"members": [task["record_id"] for task in tasks], "mode": self.delivery_mode}))))
             completed += self.finalise_package_children(tasks,package_id=package_id,receipt=receipt,now=now,failure=(failures or {}).get(self._physical_id(package_id)))
         return completed
