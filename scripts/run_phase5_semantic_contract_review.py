@@ -62,7 +62,7 @@ def build_packet(manifest_path: Path, route_path: Path, output_root: Path) -> di
         route = routes[task["logical_task_id"]]
         contract = resolve_contract(task)
         evidence_ids: tuple[str, ...] = ()
-        new_id = provider_request_identity(task, contract, model=route["model"], service_tier=route["service_tier"], evidence_ids=evidence_ids)
+        new_id = provider_request_identity(task, contract, model=route["model"], delivery_mode=route["service_tier"], evidence_ids=evidence_ids)
         reassessment.append({
             "logical_task_id": task["logical_task_id"], "claim_family_id": task["claim_family_id"],
             "task_profile": task["task_profile"], "authority_state": contract.authority_state,

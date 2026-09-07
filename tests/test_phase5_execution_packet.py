@@ -68,7 +68,7 @@ def test_packet_materializes_bytes_and_prompt_from_content_addressed_store(tmp_p
     assert packet.evidence_units[0].content == content.decode()
     assert json.dumps(corpus) not in packet.evidence_units[0].content
     assert content.decode() in render_packet_prompt(packet, contract)
-    request = serialize_execution_packet_request(task, packet, delivery_job_id="deliveryjob:test", service_tier="batch")
+    request = serialize_execution_packet_request(task, packet, delivery_job_id="deliveryjob:test", delivery_mode="batch")
     developer_text = request.body["input"][0]["content"][0]["text"]
     user_text = request.body["input"][1]["content"][0]["text"]
     assert content.decode() in developer_text
@@ -78,7 +78,11 @@ def test_packet_materializes_bytes_and_prompt_from_content_addressed_store(tmp_p
     assert request.body["max_output_tokens"] == 8000
     assert request.schema_name == "program_service_discovery_v2"
     assert request.body["text"]["format"]["name"] == "program_service_discovery_v2"
-    assert request.provider_request_item_id == "requestitem:1218c05d09ad73b49c8bc22388cff699ff09f70e3fcf31327a1c4928374ea0bd"
+    assert "service_tier" not in request.body
+    assert request.provider_request_item_id == "requestitem:6bc252705078c7ee72cc2d784cedeea7c9653169a1cf0239a401def6d4a5506b"
+    flex = serialize_execution_packet_request(task, packet, delivery_job_id="deliveryjob:test", delivery_mode="flex")
+    assert flex.body["service_tier"] == "flex"
+    assert flex.provider_request_item_id != request.provider_request_item_id
 
 
 def test_packet_fails_closed_for_missing_retained_artifact(tmp_path):

@@ -40,7 +40,7 @@ def run(manifest_path: Path, inventory_path: Path, corpus_dir: Path, runtime_roo
             result["adapter_resolved"] = f"{adapter.__module__}.{adapter.__name__}"
             corpus = json.loads((corpus_dir / (inventory[task["subject_id"]]["abn"] + ".json")).read_text(encoding="utf-8"))
             packet = materialize_execution_packet(task=task, corpus=corpus, contract=executable, runtime_root=runtime_root, catalog_path=catalog_path, model=route["model"], reasoning_effort=route["reasoning_effort"], service_tier=route["service_tier"])
-            request = serialize_execution_packet_request(task, packet, delivery_job_id=f"deliveryjob:canary-{route['model'].replace('.', '-')}", service_tier="default")
+            request = serialize_execution_packet_request(task, packet, delivery_job_id=f"deliveryjob:canary-{route['model'].replace('.', '-')}", delivery_mode="standard")
             schema = executable.schema_for_evidence(tuple(item.evidence_id for item in packet.evidence_units))
             evidence_ids = [item.evidence_id for item in packet.evidence_units]
             schema_evidence_enum = schema["properties"]["proposals"]["items"]["properties"]["evidence"]["items"]["properties"]["evidence_id"]["enum"]

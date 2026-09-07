@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 
-from charitygraph.phase5_openai_dry_run import RealProviderExecutionGate, parse_provider_result, serialize_fallback, validate_provider_schema_name
+from charitygraph.phase5_openai_dry_run import RealProviderExecutionGate, parse_provider_result, provider_service_tier_for_delivery_mode, serialize_fallback, validate_provider_schema_name, validate_provider_service_tier
 from charitygraph.phase5_semantic_contracts import (
     REGISTRY,
     executable_contract_for,
@@ -32,6 +32,16 @@ def test_flex_fallback_uses_responses_service_tier() -> None:
     assert serialize_fallback(request, "flex")["body"]["service_tier"] == "flex"
 
 
+def test_delivery_mode_mapping_is_orthogonal_to_provider_service_tier() -> None:
+    assert provider_service_tier_for_delivery_mode("batch") is None
+    assert provider_service_tier_for_delivery_mode("standard") is None
+    assert provider_service_tier_for_delivery_mode("flex") == "flex"
+    with pytest.raises(ValueError, match="unsupported internal delivery mode"):
+        provider_service_tier_for_delivery_mode("batchish")
+    with pytest.raises(ValueError, match="unsupported Responses service_tier"):
+        validate_provider_service_tier("batch")
+
+
 def test_provider_schema_name_validator_matches_openai_pattern_without_provider_calls() -> None:
     for name in ("letters", "v2_0", "program-service_discovery2"):
         assert validate_provider_schema_name(name) == name
@@ -50,12 +60,13 @@ def test_semantic_contract_identity_does_not_use_provider_alias() -> None:
 def test_provider_wire_identity_is_stable_and_tracks_provider_significant_material() -> None:
     contract = next(c for c in REGISTRY if c.task_profile == "program_service_discovery")
     task = _task("program_service_discovery", "program-service-discovery-v2")
-    kwargs = dict(model="gpt-5.6-luna", reasoning_effort="low", service_tier="batch", provider_schema_name="program_service_discovery_v2", schema_hash="a" * 64, max_output_tokens=8000)
+    kwargs = dict(model="gpt-5.6-luna", reasoning_effort="low", delivery_mode="batch", provider_service_tier=None, provider_schema_name="program_service_discovery_v2", schema_hash="a" * 64, max_output_tokens=8000)
     first = provider_wire_fingerprint(task, contract, **kwargs)
     assert first == provider_wire_fingerprint(task, contract, **kwargs)
     assert first != provider_wire_fingerprint(task, contract, **{**kwargs, "provider_schema_name": "2.0"})
     assert first != provider_wire_fingerprint(task, contract, **{**kwargs, "max_output_tokens": 4000})
     assert first != provider_wire_fingerprint(task, contract, **{**kwargs, "schema_hash": "b" * 64})
+    assert first != provider_wire_fingerprint(task, contract, **{**kwargs, "provider_service_tier": "flex"})
     changed_prompt = replace(contract, prompt_template=contract.prompt_template + "\nchanged")
     assert first != provider_wire_fingerprint(task, changed_prompt, **kwargs)
     request_id = provider_request_identity(task, contract, evidence_ids=(), **kwargs)
@@ -120,7 +131,7 @@ def test_contract_aware_request_identity_changes_when_contract_changes() -> None
     task = _task("direct_service_semantics", "direct-service-access-v1")
     contract = resolve_contract(task)
     changed = replace(contract, prompt_template=contract.prompt_template + "\nchanged")
-    assert provider_request_identity(task, contract, model="gpt-5.6-luna", service_tier="default") != provider_request_identity(task, changed, model="gpt-5.6-luna", service_tier="default")
+    assert provider_request_identity(task, contract, model="gpt-5.6-luna", delivery_mode="standard") != provider_request_identity(task, changed, model="gpt-5.6-luna", delivery_mode="standard")
 
 
 def test_taxonomy_concept_and_evidence_boundaries_are_enforced() -> None:

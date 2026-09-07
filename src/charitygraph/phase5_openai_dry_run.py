@@ -34,7 +34,7 @@ class CompiledRequest:
     provider_request_item_id: str
     delivery_job_id: str
     model: str
-    service_tier: str
+    delivery_mode: str
     schema_name: str
     body: dict[str, Any]
 
@@ -86,6 +86,26 @@ def validate_provider_schema_name(name: str) -> str:
     return name
 
 
+PROVIDER_SERVICE_TIERS = frozenset({"auto", "default", "fast", "flex", "priority"})
+
+
+def provider_service_tier_for_delivery_mode(delivery_mode: str) -> str | None:
+    """Map Factory delivery semantics to the inner Responses API boundary."""
+    if delivery_mode == "batch":
+        return None
+    if delivery_mode == "flex":
+        return "flex"
+    if delivery_mode == "standard":
+        return None
+    raise ValueError(f"unsupported internal delivery mode: {delivery_mode}")
+
+
+def validate_provider_service_tier(service_tier: str | None) -> str | None:
+    if service_tier is not None and service_tier not in PROVIDER_SERVICE_TIERS:
+        raise ValueError(f"unsupported Responses service_tier: {service_tier}")
+    return service_tier
+
+
 def resolve_model(task: dict[str, Any]) -> tuple[str, str]:
     if task["difficulty"] == "lower_cost_constrained_semantic":
         return LUNA, "low"
@@ -94,7 +114,7 @@ def resolve_model(task: dict[str, Any]) -> tuple[str, str]:
     raise ValueError("dry-run compiler accepts semantic tasks only")
 
 
-def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExecutionPacket, *, delivery_job_id: str, service_tier: str) -> CompiledRequest:
+def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExecutionPacket, *, delivery_job_id: str, delivery_mode: str) -> CompiledRequest:
     model, effort = resolve_model(task)
     contract = executable_contract_for(task)
     evidence_ids = tuple(item.evidence_id for item in packet.evidence_units)
@@ -103,8 +123,9 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
     if not contract.provider_schema_name:
         raise ValueError(f"contract {contract.contract_id} has no explicit provider schema name")
     schema_name = validate_provider_schema_name(contract.provider_schema_name)
+    provider_service_tier = validate_provider_service_tier(provider_service_tier_for_delivery_mode(delivery_mode))
     schema_hash = contract.schema_hash_for_evidence(evidence_ids)
-    request_item_id = provider_request_identity(task, contract, model=model, reasoning_effort=effort, service_tier=service_tier, provider_schema_name=schema_name, schema_hash=schema_hash, evidence_ids=evidence_ids, max_output_tokens=DISCOVERY_MAX_OUTPUT_TOKENS)
+    request_item_id = provider_request_identity(task, contract, model=model, reasoning_effort=effort, delivery_mode=delivery_mode, provider_schema_name=schema_name, schema_hash=schema_hash, evidence_ids=evidence_ids, max_output_tokens=DISCOVERY_MAX_OUTPUT_TOKENS)
     prompt = render_packet_prompt(packet, contract)
     evidence_bindings = [
         {
@@ -118,7 +139,6 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
     ]
     body = {
         "model": model,
-        "service_tier": service_tier,
         "reasoning": {"effort": effort},
         "max_output_tokens": DISCOVERY_MAX_OUTPUT_TOKENS,
         "store": False,
@@ -129,14 +149,16 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
         "text": {"format": {"type": "json_schema", "name": schema_name, "strict": True, "schema": schema}},
         "metadata": {"logical_task_id": task["logical_task_id"], "provider_request_item_id": request_item_id, "delivery_job_id": delivery_job_id, "claim_family_id": task["claim_family_id"], "semantic_contract_id": contract.contract_id, "semantic_contract_hash": contract.identity_hash(evidence_ids)},
     }
-    return CompiledRequest(task["logical_task_id"], request_item_id, delivery_job_id, model, service_tier, schema_name, body)
+    if provider_service_tier is not None:
+        body["service_tier"] = provider_service_tier
+    return CompiledRequest(task["logical_task_id"], request_item_id, delivery_job_id, model, delivery_mode, schema_name, body)
 
 
-def compile_request(task: dict[str, Any], corpus: dict[str, Any], *, delivery_job_id: str, service_tier: str, packet: SemanticExecutionPacket | None = None) -> CompiledRequest:
+def compile_request(task: dict[str, Any], corpus: dict[str, Any], *, delivery_job_id: str, delivery_mode: str, packet: SemanticExecutionPacket | None = None) -> CompiledRequest:
     """Compatibility entry point; manifest-only compilation is forbidden."""
     if packet is None:
         raise ExecutionPacketUnready("OpenAI serialization requires a materialized semantic execution packet")
-    return serialize_execution_packet_request(task, packet, delivery_job_id=delivery_job_id, service_tier=service_tier)
+    return serialize_execution_packet_request(task, packet, delivery_job_id=delivery_job_id, delivery_mode=delivery_mode)
 
 
 def estimate_tokens(body: dict[str, Any]) -> int:
@@ -160,11 +182,11 @@ def compile_workload(manifest_path: Path, inventory_path: Path, corpus_dir: Path
             raise ValueError(f"governed corpus manifest missing: {corpus_path}")
         corpus = json.loads(corpus_path.read_text(encoding="utf-8"))
         job_number = len(compiled) // batch_items + 1
-        compiled.append(compile_request(task, corpus, delivery_job_id=f"deliveryjob:openai-batch-{job_number:03d}", service_tier="flex" if False else "default"))
+        compiled.append(compile_request(task, corpus, delivery_job_id=f"deliveryjob:openai-batch-{job_number:03d}", delivery_mode="batch"))
     # Reassign deterministic job identities after route partitioning.
     jobs: dict[tuple[str, str], list[CompiledRequest]] = {}
     for request in compiled:
-        jobs.setdefault((request.model, request.service_tier), []).append(request)
+        jobs.setdefault((request.model, request.delivery_mode), []).append(request)
     final: list[CompiledRequest] = []
     job_rows = []
     for (model, tier), requests in sorted(jobs.items()):
@@ -174,17 +196,17 @@ def compile_workload(manifest_path: Path, inventory_path: Path, corpus_dir: Path
             jsonl = []
             for request in chunk:
                 task = task_by_id[request.logical_task_id]
-                request = compile_request(task, json.loads((corpus_dir / (inventory[task["subject_id"]]["abn"] + ".json")).read_text()), delivery_job_id=job_id, service_tier="default")
+                request = compile_request(task, json.loads((corpus_dir / (inventory[task["subject_id"]]["abn"] + ".json")).read_text()), delivery_job_id=job_id, delivery_mode="batch")
                 item = {"custom_id": request.provider_request_item_id, "method": "POST", "url": RESPONSES_ENDPOINT, "body": request.body}
                 jsonl.append(item); final.append(request)
             raw = "\n".join(json.dumps(item, ensure_ascii=False, sort_keys=True, separators=(",", ":")) for item in jsonl) + "\n"
-            job_rows.append({"delivery_job_id": job_id, "model": model, "service_tier": tier, "items": len(jsonl), "bytes": len(raw.encode()), "estimated_input_tokens": sum(estimate_tokens(i["body"]) for i in jsonl), "sha256": hashlib.sha256(raw.encode()).hexdigest(), "items_jsonl": raw})
+            job_rows.append({"delivery_job_id": job_id, "model": model, "delivery_mode": tier, "items": len(jsonl), "bytes": len(raw.encode()), "estimated_input_tokens": sum(estimate_tokens(i["body"]) for i in jsonl), "sha256": hashlib.sha256(raw.encode()).hexdigest(), "items_jsonl": raw})
     output_root.mkdir(parents=True, exist_ok=True)
     batch_dir = output_root / "batch-jsonl"; batch_dir.mkdir(exist_ok=True)
     for row in job_rows:
         (batch_dir / (row["delivery_job_id"].replace(":", "_") + ".jsonl")).write_text(row.pop("items_jsonl"), encoding="utf-8")
     for request in final:
-        if request.service_tier == "default":
+        if request.delivery_mode == "standard":
             pass
     counts = {model: sum(1 for r in final if r.model == model) for model in (LUNA, TERRA)}
     cost_standard = Decimal("0"); cost_selected = Decimal("0"); input_tokens = 0; output_tokens = 0
@@ -207,7 +229,7 @@ def compile_workload(manifest_path: Path, inventory_path: Path, corpus_dir: Path
     report = {"logical_tasks": len(tasks), "semantic_request_items": len(final), "application_bundles": 0, "models": counts, "batch_jobs": len(job_rows), "job_distribution": [{k: v for k, v in row.items() if k != "items_jsonl"} for row in job_rows], "estimated_input_tokens": input_tokens, "estimated_output_tokens": output_tokens, "estimated_cacheable_prefix_tokens": stable_prefix_tokens, "context_or_size_violations": 0, "schema_validation": {"schemas_validated": len(final), "schema_identities": len({r.schema_name for r in final})}, "pricing_snapshot_id": "openai-model-pages-2026-09-07", "fx_snapshot": {"base": "USD", "quote": "AUD", "rate": "1.52", "status": "dry_run_input"}, "all_standard_usd": str(cost_standard.quantize(Decimal("0.000001"))), "selected_batch_usd": str(cost_selected.quantize(Decimal("0.000001"))), "selected_batch_aud": str((cost_selected * Decimal("1.52")).quantize(Decimal("0.000001"))), "flex_requests": 0, "standard_requests": 0, "batch_items": len(final), "cost_by_claim_family_usd": {k: str(v.quantize(Decimal("0.000001"))) for k, v in sorted(by_family.items())}, "cost_by_subject_usd": {k: str(v.quantize(Decimal("0.000001"))) for k, v in sorted(by_subject.items())}, "serialization": "responses-v1; batch POST /v1/responses; strict structured outputs", "network_calls": 0, "responses_calls": 0, "batch_submissions": 0, "provider_cost_usd": "0", "governed_knowledge_production": 0}
     (output_root / "provider-capability-snapshot.json").write_text(json.dumps({"snapshot_id": "openai-model-pages-2026-09-07", "source": "official OpenAI model documentation", "models": CAPABILITIES}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_root / "real-pricing-snapshot.json").write_text(json.dumps({"snapshot_id": "openai-model-pages-2026-09-07", "currency": "USD", "batch_and_flex_multiplier": "0.5", "models": {model: {key: str(value) for key, value in prices.items()} for model, prices in PRICING.items()}, "source": "official OpenAI model documentation", "retrieved_date": "2026-09-07"}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    (output_root / "route-manifest.json").write_text(json.dumps([{"logical_task_id": r.logical_task_id, "provider_request_item_id": r.provider_request_item_id, "delivery_job_id": r.delivery_job_id, "model": r.model, "reasoning_effort": r.body["reasoning"]["effort"], "service_tier": r.service_tier, "schema_name": r.schema_name} for r in final], indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (output_root / "route-manifest.json").write_text(json.dumps([{"logical_task_id": r.logical_task_id, "provider_request_item_id": r.provider_request_item_id, "delivery_job_id": r.delivery_job_id, "model": r.model, "reasoning_effort": r.body["reasoning"]["effort"], "delivery_mode": r.delivery_mode, "provider_service_tier": r.body.get("service_tier"), "schema_name": r.schema_name} for r in final], indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_root / "flex-standard-examples.json").write_text(json.dumps({"flex": serialize_fallback(final[0], "flex"), "standard": serialize_fallback(final[0], "default")}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     known_ids = {r.provider_request_item_id for r in final}
     parser_fixtures = [
