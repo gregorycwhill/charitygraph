@@ -9,6 +9,8 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, Iterable
 
+from .phase5_semantic_contracts import executable_contract_for, provider_request_identity
+
 RESPONSES_ENDPOINT = "/v1/responses"
 LUNA, TERRA = "gpt-5.6-luna", "gpt-5.6-terra"
 
@@ -21,13 +23,6 @@ PRICING = {
     LUNA: {"input": Decimal("0.20"), "cached_input": Decimal("0.02"), "output": Decimal("1.20")},
     TERRA: {"input": Decimal("2.00"), "cached_input": Decimal("0.20"), "output": Decimal("12.00")},
 }
-
-SCHEMA = {
-    "type": "object", "additionalProperties": False,
-    "properties": {"claim_family": {"type": "string"}, "status": {"type": "string"}, "claims": {"type": "array", "items": {"type": "object", "additionalProperties": False, "properties": {"statement": {"type": "string"}, "evidence_refs": {"type": "array", "items": {"type": "string"}}, "qualification": {"type": "string"}}, "required": ["statement", "evidence_refs", "qualification"]}}},
-    "required": ["claim_family", "status", "claims"],
-}
-
 
 @dataclass(frozen=True)
 class CompiledRequest:
@@ -90,20 +85,25 @@ def resolve_model(task: dict[str, Any]) -> tuple[str, str]:
 
 def compile_request(task: dict[str, Any], corpus: dict[str, Any], *, delivery_job_id: str, service_tier: str) -> CompiledRequest:
     model, effort = resolve_model(task)
-    _validate_schema(SCHEMA)
-    schema_name = "charitygraph_phase5_" + task["task_profile"].replace("-", "_")
-    request_item_id = "requestitem:" + _sha({"logical_task_id": task["logical_task_id"], "model": model, "service_tier": service_tier})
+    contract = executable_contract_for(task)
+    evidence_ids = tuple(sorted({str(value) for member in corpus.get("material_members", []) for key in ("evidence_locator_ids", "evidence_ids") for value in member.get(key, [])}))
+    schema = contract.schema_for_evidence(evidence_ids)
+    _validate_schema(schema)
+    schema_name = contract.schema_id.rsplit(":", 1)[-1].replace("-", "_")
+    request_item_id = provider_request_identity(task, contract, model=model, service_tier=service_tier, evidence_ids=evidence_ids)
+    scope_text = "\n".join(str(member.get("scope_id") or member.get("source_record_ids", [""])[0]) for member in corpus.get("material_members", []))
+    prompt = contract.prompt_template.replace("{subject_id}", task["subject_id"]).replace("{scope_text}", scope_text).replace("{evidence}", json.dumps(corpus, ensure_ascii=False, sort_keys=True)).replace("{allowed_vocabulary}", "supplied governed vocabulary only")
     body = {
         "model": model,
         "service_tier": service_tier,
         "reasoning": {"effort": effort},
         "store": False,
         "input": [
-            {"role": "developer", "content": [{"type": "input_text", "text": "Apply the approved CharityGraph claim-family policy to the supplied governed evidence manifest. Return only the requested structured output. Do not discover sources, use outside knowledge, or infer unsupported claims."}]},
-            {"role": "user", "content": [{"type": "input_text", "text": json.dumps({"logical_task_id": task["logical_task_id"], "claim_family_id": task["claim_family_id"], "task_profile": task["task_profile"], "prompt_policy_version": task["prompt_policy_version"], "evidence_corpus_hash": task["evidence_corpus_hash"], "governed_corpus_manifest": corpus}, ensure_ascii=False, sort_keys=True)}]},
+            {"role": "developer", "content": [{"type": "input_text", "text": prompt}]},
+            {"role": "user", "content": [{"type": "input_text", "text": json.dumps({"logical_task_id": task["logical_task_id"], "claim_family_id": task["claim_family_id"], "task_profile": task["task_profile"], "prompt_policy_version": task["prompt_policy_version"], "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract": contract.identity_payload(evidence_ids), "evidence_policy": contract.evidence_policy, "governed_corpus_manifest": corpus}, ensure_ascii=False, sort_keys=True)}]},
         ],
-        "text": {"format": {"type": "json_schema", "name": schema_name, "strict": True, "schema": SCHEMA}},
-        "metadata": {"logical_task_id": task["logical_task_id"], "provider_request_item_id": request_item_id, "delivery_job_id": delivery_job_id, "claim_family_id": task["claim_family_id"]},
+        "text": {"format": {"type": "json_schema", "name": schema_name, "strict": True, "schema": schema}},
+        "metadata": {"logical_task_id": task["logical_task_id"], "provider_request_item_id": request_item_id, "delivery_job_id": delivery_job_id, "claim_family_id": task["claim_family_id"], "semantic_contract_id": contract.contract_id, "semantic_contract_hash": contract.identity_hash(evidence_ids)},
     }
     return CompiledRequest(task["logical_task_id"], request_item_id, delivery_job_id, model, service_tier, schema_name, body)
 
