@@ -63,15 +63,21 @@ def test_batch_recovery_states_are_durable_and_no_duplicate_submission(tmp_path)
 
 def test_batch_partial_expiry_and_duplicate_result_replay(tmp_path) -> None:
     catalog,run,task,now=_catalogue(tmp_path); job="deliveryjob:"+"3"*64; item="requestitem:"+"4"*64
+    second_task="modeltask:"+"9"*64
+    catalog.register_task({"record_id":second_task,"subject_id":"subject:"+"1"*32,"cohort_id":"cohort:"+"a"*32,"task_type":"structured_extraction","task_schema":{"schema_id":"urn:test"},"cache_key":"a"*64,"provider_id":"fake","model_snapshot":"test"},run_id=run,now=now)
     catalog.create_delivery_job(delivery_job_id=job,run_id=run,provider_id="fake",model_route="test",delivery_mode="batch",pricing_snapshot_id="pricing:test",now=now)
     catalog.create_provider_request_item(provider_request_item_id=item,run_id=run,model_task_id=task,provider_id="fake",model_route="test",requested_delivery_mode="batch",effective_service_tier="batch",delivery_job_id=job,now=now)
+    second_item="requestitem:"+"b"*64
+    catalog.create_provider_request_item(provider_request_item_id=second_item,run_id=run,model_task_id=second_task,provider_id="fake",model_route="test",requested_delivery_mode="batch",effective_service_tier="batch",delivery_job_id=job,now=now)
     catalog.transition_delivery_job(job,"submitted",now=now,provider_batch_id="fake-batch:two"); catalog.transition_delivery_job(job,"in_progress",now=now)
     catalog.transition_provider_request_item(item,"submitted",now=now,provider_request_id="fake-request:two"); catalog.transition_provider_request_item(item,"in_progress",now=now)
     first=catalog.transition_provider_request_item(item,"completed",now=now,provider_receipt_id="fake-receipt:two",result_ref="fake-result",usage={"input_tokens":1})
     replay=catalog.transition_provider_request_item(item,"completed",now=now,provider_receipt_id="fake-receipt:two",result_ref="fake-result",usage={"input_tokens":1})
     assert first["provider_receipt_id"] == replay["provider_receipt_id"] == "fake-receipt:two"
-    catalog.transition_delivery_job(job,"completed",now=now)
-    assert catalog.get_delivery_job(job)["status"] == "completed"
+    catalog.transition_provider_request_item(second_item,"submitted",now=now,provider_request_id="fake-request:expired"); catalog.transition_provider_request_item(second_item,"in_progress",now=now); catalog.transition_provider_request_item(second_item,"expired",now=now)
+    catalog.transition_delivery_job(job,"expired",now=now)
+    states={row["provider_request_item_id"]:row["status"] for row in catalog.list_provider_request_items(run)}
+    assert states[item] == "completed" and states[second_item] == "expired" and catalog.get_delivery_job(job)["status"] == "expired"
 
 
 def test_flex_and_standard_remain_individual_delivery_jobs(tmp_path) -> None:
