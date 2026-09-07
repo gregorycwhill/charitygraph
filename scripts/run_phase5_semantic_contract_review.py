@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from charitygraph.phase5_semantic_contracts import REGISTRY, provider_request_identity, registry_rows, resolve_contract
+from charitygraph.phase5_semantic_contracts import REGISTRY, provider_request_identity, registry_rows, resolve_contract, resolve_result_adapter
 
 
 SLICE_IDS = {
@@ -39,7 +39,17 @@ def build_packet(manifest_path: Path, route_path: Path, output_root: Path) -> di
         try:
             contract = resolve_contract(task)
             row = contract.as_review_row()
-            row.update({"phase5_family_id": family, "phase5_task_profile": task["task_profile"], "phase5_task_profile_version": task["task_profile_version"], "currently_executable": contract.executable})
+            try:
+                adapter = resolve_result_adapter(contract)
+                adapter_state = f"resolved:{adapter.__module__}.{adapter.__name__}"
+            except (LookupError, ImportError) as exc:
+                adapter_state = f"unresolved:{exc}"
+            packet_requirement = {
+                "program_service_discovery": "materialized retained evidence units; schema evidence enum; deterministic parser",
+                "direct_service_semantics": "materialized retained evidence units with governed locator IDs and active governed scopes",
+            }.get(task["task_profile"], "draft contract requires human/Sol semantic approval before packet execution")
+            readiness = "packet_dependent_production_bound" if contract.executable else "not_execution_ready_draft_for_review"
+            row.update({"phase5_family_id": family, "phase5_task_profile": task["task_profile"], "phase5_task_profile_version": task["task_profile_version"], "currently_executable": contract.executable, "execution_packet_requirements": packet_requirement, "adapter_resolution": adapter_state, "execution_readiness": readiness, "deterministic_component": "none_for_semantic_task", "semantic_component": "provider-bound semantic execution" if contract.executable else "not authorised"})
         except Exception as exc:
             resolution_errors[family] = str(exc)
             row = {"phase5_family_id": family, "phase5_task_profile": task["task_profile"], "phase5_task_profile_version": task["task_profile_version"], "authority_state": "blocked", "currently_executable": False, "resolution_error": str(exc)}

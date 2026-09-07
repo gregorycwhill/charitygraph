@@ -10,6 +10,7 @@ from charitygraph.phase5_semantic_contracts import (
     executable_contract_for,
     provider_request_identity,
     resolve_contract,
+    resolve_result_adapter,
     validate_relationship_output,
     validate_taxonomy_output,
 )
@@ -51,6 +52,19 @@ def test_taxonomy_and_relationship_contracts_are_materially_different() -> None:
 def test_drafts_cannot_serialize_for_provider_execution() -> None:
     with pytest.raises(PermissionError):
         executable_contract_for(_task("taxonomy_assignment", "taxonomy-assignment-v1"))
+
+
+def test_production_contract_adapters_resolve_to_actual_code() -> None:
+    discovery = executable_contract_for(_task("program_service_discovery", "program-service-discovery-v2"))
+    direct = executable_contract_for(_task("direct_service_semantics", "direct-service-access-v1"))
+    assert resolve_result_adapter(discovery).__name__ == "_parse_discovery_output"
+    assert resolve_result_adapter(direct).__name__ == "wire_to_domain"
+
+
+def test_draft_adapter_is_not_accidentally_resolved() -> None:
+    draft = resolve_contract(_task("taxonomy_assignment", "taxonomy-assignment-v1"))
+    with pytest.raises(LookupError):
+        resolve_result_adapter(draft)
 
 
 def test_missing_prompt_schema_and_adapter_fail_closed() -> None:
