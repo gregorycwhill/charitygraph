@@ -325,8 +325,8 @@ def validate_relationship_output(output: dict[str, Any], *, allowed_scope_ids: s
         validate_evidence_refs(relationship.get("evidence_refs", []), allowed_evidence_ids)
 
 
-def provider_request_identity(task: dict[str, Any], contract: SemanticContract, *, model: str, service_tier: str, evidence_ids: tuple[str, ...] = ()) -> str:
-    payload = {"logical_task_id": task["logical_task_id"], "model": model, "service_tier": service_tier, "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract_hash": contract.identity_hash(evidence_ids)}
+def provider_request_identity(task: dict[str, Any], contract: SemanticContract, *, model: str, service_tier: str, evidence_ids: tuple[str, ...] = (), max_output_tokens: int = 8000) -> str:
+    payload = {"logical_task_id": task["logical_task_id"], "model": model, "service_tier": service_tier, "max_output_tokens": max_output_tokens, "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract_hash": contract.identity_hash(evidence_ids)}
     return "requestitem:" + sha256_json(payload)
 
 

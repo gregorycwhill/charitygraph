@@ -13,6 +13,7 @@ from .phase5_semantic_contracts import executable_contract_for, provider_request
 from .phase5_execution_packet import ExecutionPacketUnready, SemanticExecutionPacket, render_packet_prompt
 
 RESPONSES_ENDPOINT = "/v1/responses"
+DISCOVERY_MAX_OUTPUT_TOKENS = 8000
 LUNA, TERRA = "gpt-5.6-luna", "gpt-5.6-terra"
 
 CAPABILITIES = {
@@ -91,7 +92,7 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
     schema = contract.schema_for_evidence(evidence_ids)
     _validate_schema(schema)
     schema_name = contract.schema_id.rsplit(":", 1)[-1].replace("-", "_")
-    request_item_id = provider_request_identity(task, contract, model=model, service_tier=service_tier, evidence_ids=evidence_ids)
+    request_item_id = provider_request_identity(task, contract, model=model, service_tier=service_tier, evidence_ids=evidence_ids, max_output_tokens=DISCOVERY_MAX_OUTPUT_TOKENS)
     prompt = render_packet_prompt(packet, contract)
     evidence_bindings = [
         {
@@ -107,6 +108,7 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
         "model": model,
         "service_tier": service_tier,
         "reasoning": {"effort": effort},
+        "max_output_tokens": DISCOVERY_MAX_OUTPUT_TOKENS,
         "store": False,
         "input": [
             {"role": "developer", "content": [{"type": "input_text", "text": prompt}]},

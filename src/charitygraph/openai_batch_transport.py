@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import uuid
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Protocol, Sequence
@@ -21,6 +25,61 @@ class BatchProviderClient(Protocol):
     def create_batch(self, *, input_file_id: str, endpoint: str, completion_window: str, metadata: dict[str, str]) -> str: ...
     def retrieve_batch(self, batch_id: str) -> dict[str, Any]: ...
     def retrieve_file_content(self, file_id: str) -> bytes: ...
+
+
+class OpenAIHTTPBatchClient:
+    """Minimal real OpenAI Batch adapter used by the existing lifecycle."""
+
+    base_url = "https://api.openai.com/v1"
+
+    def _key(self) -> str:
+        key = os.environ.get("OPENAI_API_KEY")
+        if not key:
+            raise RuntimeError("OPENAI_API_KEY is not available")
+        return key
+
+    def _request(self, method: str, path: str, *, body: bytes | None = None, content_type: str = "application/json") -> dict[str, Any] | bytes:
+        request = Request(self.base_url + path, data=body, method=method, headers={"Authorization": f"Bearer {self._key()}", "Content-Type": content_type})
+        try:
+            with urlopen(request, timeout=120) as response:
+                payload = response.read()
+        except (HTTPError, URLError, TimeoutError) as exc:
+            raise RuntimeError("OpenAI Batch HTTP operation failed") from exc
+        if path.endswith("/content"):
+            return payload
+        return json.loads(payload.decode("utf-8"))
+
+    def upload_batch_file(self, content: bytes, *, purpose: str) -> str:
+        boundary = "----charitygraph-" + uuid.uuid4().hex
+        parts = [
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\n{purpose}\r\n".encode(),
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"batch.jsonl\"\r\nContent-Type: application/jsonl\r\n\r\n".encode() + content + b"\r\n",
+            f"--{boundary}--\r\n".encode(),
+        ]
+        result = self._request("POST", "/files", body=b"".join(parts), content_type=f"multipart/form-data; boundary={boundary}")
+        file_id = result.get("id") if isinstance(result, dict) else None
+        if not isinstance(file_id, str) or not file_id:
+            raise RuntimeError("OpenAI file upload returned no file ID")
+        return file_id
+
+    def create_batch(self, *, input_file_id: str, endpoint: str, completion_window: str, metadata: dict[str, str]) -> str:
+        result = self._request("POST", "/batches", body=json.dumps({"input_file_id": input_file_id, "endpoint": endpoint, "completion_window": completion_window, "metadata": metadata}, separators=(",", ":")).encode())
+        batch_id = result.get("id") if isinstance(result, dict) else None
+        if not isinstance(batch_id, str) or not batch_id:
+            raise RuntimeError("OpenAI Batch creation returned no Batch ID")
+        return batch_id
+
+    def retrieve_batch(self, batch_id: str) -> dict[str, Any]:
+        result = self._request("GET", f"/batches/{batch_id}")
+        if not isinstance(result, dict):
+            raise RuntimeError("OpenAI Batch retrieval returned an invalid object")
+        return result
+
+    def retrieve_file_content(self, file_id: str) -> bytes:
+        result = self._request("GET", f"/files/{file_id}/content")
+        if not isinstance(result, bytes):
+            raise RuntimeError("OpenAI file content retrieval returned an invalid payload")
+        return result
 
 
 class BatchTransportError(RuntimeError):
@@ -208,4 +267,4 @@ class OpenAIBatchTransport:
         return BatchReconciliation(delivery_job_id, final_job["provider_batch_id"], final_job["status"], tuple(refreshed), output_retrieved, error_retrieved)
 
 
-__all__ = ["BatchAuthorization", "BatchProviderClient", "BatchReconciliation", "BatchSubmissionAmbiguous", "BatchTransportError", "OpenAIBatchTransport"]
+__all__ = ["BatchAuthorization", "BatchProviderClient", "BatchReconciliation", "BatchSubmissionAmbiguous", "BatchTransportError", "OpenAIHTTPBatchClient", "OpenAIBatchTransport"]
