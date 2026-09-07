@@ -1,6 +1,9 @@
 from decimal import Decimal
+from datetime import datetime, timezone
 
 from charitygraph.phase5_delivery import PricingSnapshot, application_bundle_compatible, build_delivery_plan, select_delivery_mode
+from charitygraph.contracts.ids import deterministic_id
+from charitygraph.runtime import SQLiteCatalog
 
 
 def _task(task_id: str, **extra):
@@ -31,3 +34,50 @@ def test_batch_is_many_independent_items_and_exact_economics() -> None:
     assert len(plan.delivery_jobs) == 1 and len(plan.delivery_jobs[0].request_item_ids) == 3
     assert plan.economics()["all_standard"] == Decimal("0.006000")
     assert plan.economics()["selected"] == Decimal("0.001500")
+
+
+def _catalogue(tmp_path):
+    now=datetime(2026, 1, 1, tzinfo=timezone.utc); cohort="cohort:"+"a"*32; run="run:"+"b"*32
+    catalog=SQLiteCatalog(tmp_path/'delivery.sqlite3').open(initialize=True)
+    catalog.register_cohort({"record_id":cohort,"cohort_code":"DELIVERY","definition_version":"1","membership_hash":"c"*64,"budget_cap":{"amount":"100","currency":"AUD"},"created_at":now})
+    catalog.register_run({"record_id":run,"cohort_id":cohort,"run_kind":"delivery","status":"planned","configuration_hash":"d"*64,"created_at":now})
+    task="modeltask:"+"e"*64
+    catalog.register_task({"record_id":task,"subject_id":"subject:"+"1"*32,"cohort_id":cohort,"task_type":"structured_extraction","task_schema":{"schema_id":"urn:test"},"cache_key":"f"*64,"provider_id":"fake","model_snapshot":"test"},run_id=run,now=now)
+    return catalog,run,task,now
+
+
+def test_batch_recovery_states_are_durable_and_no_duplicate_submission(tmp_path) -> None:
+    catalog,run,task,now=_catalogue(tmp_path); job="deliveryjob:"+"1"*64; item="requestitem:"+"2"*64
+    catalog.create_delivery_job(delivery_job_id=job,run_id=run,provider_id="fake",model_route="test",delivery_mode="batch",pricing_snapshot_id="pricing:test",now=now)
+    catalog.create_provider_request_item(provider_request_item_id=item,run_id=run,model_task_id=task,provider_id="fake",model_route="test",requested_delivery_mode="batch",effective_service_tier="batch",delivery_job_id=job,now=now)
+    # B1: prepared state survives a restart without any submission identity.
+    assert SQLiteCatalog(tmp_path/'delivery.sqlite3').open(initialize=False).get_delivery_job(job)["status"] == "prepared"
+    # B2/B3: a single submission ID persists; in-progress recovery does not create another job.
+    catalog.transition_delivery_job(job,"submitted",now=now,provider_batch_id="fake-batch:one")
+    catalog.transition_delivery_job(job,"in_progress",now=now)
+    catalog.transition_provider_request_item(item,"submitted",now=now,provider_request_id="fake-request:one")
+    catalog.transition_provider_request_item(item,"send_ambiguous",now=now)
+    assert SQLiteCatalog(tmp_path/'delivery.sqlite3').open(initialize=False).get_delivery_job(job)["provider_batch_id"] == "fake-batch:one"
+    assert catalog.list_provider_request_items(run)[0]["status"] == "send_ambiguous"
+
+
+def test_batch_partial_expiry_and_duplicate_result_replay(tmp_path) -> None:
+    catalog,run,task,now=_catalogue(tmp_path); job="deliveryjob:"+"3"*64; item="requestitem:"+"4"*64
+    catalog.create_delivery_job(delivery_job_id=job,run_id=run,provider_id="fake",model_route="test",delivery_mode="batch",pricing_snapshot_id="pricing:test",now=now)
+    catalog.create_provider_request_item(provider_request_item_id=item,run_id=run,model_task_id=task,provider_id="fake",model_route="test",requested_delivery_mode="batch",effective_service_tier="batch",delivery_job_id=job,now=now)
+    catalog.transition_delivery_job(job,"submitted",now=now,provider_batch_id="fake-batch:two"); catalog.transition_delivery_job(job,"in_progress",now=now)
+    catalog.transition_provider_request_item(item,"submitted",now=now,provider_request_id="fake-request:two"); catalog.transition_provider_request_item(item,"in_progress",now=now)
+    first=catalog.transition_provider_request_item(item,"completed",now=now,provider_receipt_id="fake-receipt:two",result_ref="fake-result",usage={"input_tokens":1})
+    replay=catalog.transition_provider_request_item(item,"completed",now=now,provider_receipt_id="fake-receipt:two",result_ref="fake-result",usage={"input_tokens":1})
+    assert first["provider_receipt_id"] == replay["provider_receipt_id"] == "fake-receipt:two"
+    catalog.transition_delivery_job(job,"completed",now=now)
+    assert catalog.get_delivery_job(job)["status"] == "completed"
+
+
+def test_flex_and_standard_remain_individual_delivery_jobs(tmp_path) -> None:
+    for mode, suffix in (("flex","5"),("standard","6")):
+        catalog,run,task,now=_catalogue(tmp_path / mode)
+        job="deliveryjob:"+suffix*64; item="requestitem:"+("7" if mode=="flex" else "8")*64
+        catalog.create_delivery_job(delivery_job_id=job,run_id=run,provider_id="fake",model_route="test",delivery_mode=mode,pricing_snapshot_id="pricing:test",now=now)
+        catalog.create_provider_request_item(provider_request_item_id=item,run_id=run,model_task_id=task,provider_id="fake",model_route="test",requested_delivery_mode=mode,effective_service_tier=mode,delivery_job_id=job,now=now)
+        assert catalog.get_delivery_job(job)["delivery_mode"] == mode
