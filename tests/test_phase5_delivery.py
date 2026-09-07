@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import datetime, timezone
 
-from charitygraph.phase5_delivery import DeliveryJob, FakeDeliveryAdapter, PricingSnapshot, application_bundle_compatible, build_delivery_plan, delivery_chaos_populations, select_delivery_mode
+from charitygraph.phase5_delivery import DELIVERY_CHAOS_SCENARIOS, DeliveryJob, FakeDeliveryAdapter, PricingSnapshot, application_bundle_compatible, build_delivery_plan, delivery_chaos_populations, select_delivery_mode
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.runtime import SQLiteCatalog
 
@@ -40,6 +40,13 @@ def test_delivery_chaos_selection_returns_full_deterministic_populations() -> No
     plan=build_delivery_plan([_task(str(index)) for index in range(200)])
     first=delivery_chaos_populations(plan); second=delivery_chaos_populations(plan)
     assert first == second and sum(len(items) for items in first.values()) > 1
+
+
+def test_partial_bundle_chaos_never_treats_batch_items_as_application_bundles() -> None:
+    plan = build_delivery_plan([_task(str(index)) for index in range(200)])
+    populations = delivery_chaos_populations(plan)
+    assert tuple(populations) == DELIVERY_CHAOS_SCENARIOS
+    assert populations["C6_partial_bundle"] == ()
 
 
 def _catalogue(tmp_path):

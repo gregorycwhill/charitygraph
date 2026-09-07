@@ -14,6 +14,7 @@ from .contracts.ids import deterministic_id
 from .phase5_factory_chaos import scenario_for
 
 DELIVERY_MODES = ("batch", "flex", "standard")
+DELIVERY_CHAOS_SCENARIOS = ("C1_pre_send", "C2_send_ambiguous", "C3_receipt_restart", "C4_structural", "C5_grounding", "C6_partial_bundle")
 
 
 @dataclass(frozen=True)
@@ -137,9 +138,14 @@ def delivery_chaos_populations(plan: DeliveryPlan) -> dict[str, tuple[ProviderRe
     populations: dict[str, list[ProviderRequestItem]] = defaultdict(list)
     for item in plan.request_items:
         scenario = scenario_for("physical:" + item.request_item_id.split(":", 1)[1])
+        # C6 is specifically a partial *application bundle* exercise.  A
+        # provider batch contains independent request items and must never be
+        # treated as a multiplexed application request.
+        if scenario == "C6_partial_bundle" and len(item.logical_task_ids) < 2:
+            continue
         if scenario is not None:
             populations[scenario].append(item)
-    return {scenario: tuple(sorted(items, key=lambda item: item.request_item_id)) for scenario, items in sorted(populations.items())}
+    return {scenario: tuple(sorted(populations[scenario], key=lambda item: item.request_item_id)) for scenario in DELIVERY_CHAOS_SCENARIOS}
 
 
 class FakeDeliveryAdapter:
