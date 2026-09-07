@@ -597,6 +597,36 @@ CATALOGUE_SQL_V7 = """
 ALTER TABLE program_candidates ADD COLUMN model_result_item_key TEXT;
 """.strip() + "\n"
 
+CATALOGUE_SQL_V10 = """
+CREATE TABLE physical_attempts (
+    physical_attempt_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    subject_id TEXT NOT NULL,
+    delivery_mode TEXT NOT NULL CHECK(delivery_mode IN ('standard','flex','batch')),
+    status TEXT NOT NULL CHECK(status IN ('prepared','send_started','receipt_persisted','validated','held','failed')),
+    provider_request_id TEXT NOT NULL UNIQUE,
+    reservation_id TEXT REFERENCES budget_reservations(reservation_id),
+    provider_batch_id TEXT,
+    created_at TEXT NOT NULL,
+    send_started_at TEXT,
+    receipt_persisted_at TEXT,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE physical_attempt_members (
+    physical_attempt_id TEXT NOT NULL REFERENCES physical_attempts(physical_attempt_id),
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    PRIMARY KEY(physical_attempt_id, model_task_id)
+);
+CREATE TABLE provider_receipts (
+    provider_receipt_id TEXT PRIMARY KEY,
+    physical_attempt_id TEXT NOT NULL UNIQUE REFERENCES physical_attempts(physical_attempt_id),
+    provider_request_id TEXT NOT NULL,
+    raw_result_ref TEXT NOT NULL,
+    usage_json TEXT NOT NULL,
+    received_at TEXT NOT NULL
+);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -607,6 +637,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(7, "model_result_item_lineage", CATALOGUE_SQL_V7),
     Migration(8, "durable_semantic_measurement_authorizations", CATALOGUE_SQL_V8),
     Migration(9, "structured_relationship_roles", CATALOGUE_SQL_V9),
+    Migration(10, "physical_factory_attempts", CATALOGUE_SQL_V10),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
