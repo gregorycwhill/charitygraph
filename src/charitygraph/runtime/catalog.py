@@ -2169,3 +2169,27 @@ class SQLiteCatalog:
     def get_provider_receipt(self, provider_receipt_id: str) -> dict[str, Any] | None:
         with self._connection() as conn:
             return _row(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())
+
+    def get_physical_attempt(self, physical_attempt_id: str) -> dict[str, Any] | None:
+        """Return a physical Factory attempt without changing its recovery state."""
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def get_physical_receipt(self, physical_attempt_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM provider_receipts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def mark_physical_validated(self, physical_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
+        """Close the receipt-to-child-validation boundary exactly once."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown physical attempt")
+            if row["status"] == "validated":
+                return dict(row)
+            if row["status"] != "receipt_persisted":
+                raise InvalidTransitionError("only receipt_persisted physical attempts can validate")
+            conn.execute("UPDATE physical_attempts SET status='validated', updated_at=? WHERE physical_attempt_id=?", (when, physical_attempt_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())

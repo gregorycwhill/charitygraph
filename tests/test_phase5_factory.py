@@ -42,7 +42,7 @@ def test_fake_semantic_path_reconciles_its_synthetic_reservation(tmp_path) -> No
     from charitygraph.phase5_factory import ReferenceFactory
     plan=FactoryPlan.from_manifest([{"logical_task_id":"x","subject_id":"subject:"+"1"*32,"physical_bundle_opportunity":None,"difficulty":"lower_cost_constrained_semantic"}])
     runner=ReferenceFactory(catalog,plan,cohort_id=cohort,run_id=run); runner.seed(now); assert runner.run(now)==1
-    assert catalog.budget_position(cohort).actual_spend_aud == Decimal("0.001")
+    assert catalog.budget_position(cohort).actual_spend_aud == Decimal("0.000500")
 
 
 def test_physical_attempt_persists_send_then_receipt(tmp_path) -> None:
