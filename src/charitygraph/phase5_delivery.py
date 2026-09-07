@@ -155,3 +155,11 @@ class FakeDeliveryAdapter:
             catalog.transition_provider_request_item(item.request_item_id, "in_progress", now=now)
             catalog.transition_provider_request_item(item.request_item_id, "completed", now=now, provider_receipt_id=receipt, result_ref="fake-result:" + item.request_item_id, usage={"input_tokens": 1, "output_tokens": 1})
         catalog.transition_delivery_job(job.delivery_job_id, "completed", now=now)
+
+    def reconcile_batch(self, catalog: Any, job: DeliveryJob) -> dict[str, Any]:
+        """Read-only fake-provider reconciliation: never submits a replacement job."""
+        stored = catalog.get_delivery_job(job.delivery_job_id)
+        if stored is None:
+            raise RuntimeError("fake provider has no durable batch job to reconcile")
+        items = [item for item in catalog.list_provider_request_items(stored["run_id"]) if item["delivery_job_id"] == job.delivery_job_id]
+        return {"delivery_job_id": job.delivery_job_id, "provider_batch_id": stored["provider_batch_id"], "status": stored["status"], "items": tuple({"request_item_id": item["provider_request_item_id"], "status": item["status"], "provider_request_id": item["provider_request_id"], "provider_receipt_id": item["provider_receipt_id"]} for item in items)}

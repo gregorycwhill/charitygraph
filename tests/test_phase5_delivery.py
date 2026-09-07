@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import datetime, timezone
 
-from charitygraph.phase5_delivery import PricingSnapshot, application_bundle_compatible, build_delivery_plan, select_delivery_mode
+from charitygraph.phase5_delivery import DeliveryJob, FakeDeliveryAdapter, PricingSnapshot, application_bundle_compatible, build_delivery_plan, select_delivery_mode
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.runtime import SQLiteCatalog
 
@@ -59,6 +59,8 @@ def test_batch_recovery_states_are_durable_and_no_duplicate_submission(tmp_path)
     catalog.transition_provider_request_item(item,"send_ambiguous",now=now)
     assert SQLiteCatalog(tmp_path/'delivery.sqlite3').open(initialize=False).get_delivery_job(job)["provider_batch_id"] == "fake-batch:one"
     assert catalog.list_provider_request_items(run)[0]["status"] == "send_ambiguous"
+    reconciled=FakeDeliveryAdapter().reconcile_batch(catalog, DeliveryJob(job,"batch","fake","test",(item,)))
+    assert reconciled["provider_batch_id"] == "fake-batch:one" and reconciled["items"][0]["status"] == "send_ambiguous"
 
 
 def test_batch_partial_expiry_and_duplicate_result_replay(tmp_path) -> None:
