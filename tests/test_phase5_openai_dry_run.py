@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 
-from charitygraph.phase5_openai_dry_run import RealProviderExecutionGate, parse_provider_result, serialize_fallback
+from charitygraph.phase5_openai_dry_run import RealProviderExecutionGate, parse_provider_result, serialize_fallback, validate_provider_schema_name
 from charitygraph.phase5_semantic_contracts import (
     REGISTRY,
     executable_contract_for,
@@ -29,6 +29,21 @@ def test_provider_result_unknown_custom_id_fails_closed() -> None:
 def test_flex_fallback_uses_responses_service_tier() -> None:
     request = type("Request", (), {"provider_request_item_id": "requestitem:one", "body": {"model": "gpt-5.6-luna"}})()
     assert serialize_fallback(request, "flex")["body"]["service_tier"] == "flex"
+
+
+def test_provider_schema_name_validator_matches_openai_pattern_without_provider_calls() -> None:
+    for name in ("letters", "v2_0", "program-service_discovery2"):
+        assert validate_provider_schema_name(name) == name
+    for name in ("2.0", "with space", "slash/name", ""):
+        with pytest.raises(ValueError, match="provider structured-output schema name"):
+            validate_provider_schema_name(name)
+
+
+def test_semantic_contract_identity_does_not_use_provider_alias() -> None:
+    contract = next(c for c in REGISTRY if c.task_profile == "program_service_discovery")
+    assert contract.provider_schema_name == "program_service_discovery_v2"
+    assert contract.schema_id == "urn:charitygraph:builder:schema:program-service-discovery-output:2.0"
+    assert contract.identity_hash() == replace(contract, provider_schema_name="another_safe_alias").identity_hash()
 
 
 def _task(profile: str, family: str, version: str = "1") -> dict:

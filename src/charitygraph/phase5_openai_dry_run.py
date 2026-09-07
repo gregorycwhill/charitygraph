@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
@@ -15,6 +16,7 @@ from .phase5_execution_packet import ExecutionPacketUnready, SemanticExecutionPa
 RESPONSES_ENDPOINT = "/v1/responses"
 DISCOVERY_MAX_OUTPUT_TOKENS = 8000
 LUNA, TERRA = "gpt-5.6-luna", "gpt-5.6-terra"
+PROVIDER_SCHEMA_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
 
 CAPABILITIES = {
     LUNA: {"provider": "openai", "responses": True, "batch": True, "flex": True, "structured_outputs": True, "reasoning_efforts": ["none", "low", "medium", "high", "xhigh", "max"], "context_window": 1_050_000, "max_output_tokens": 128_000, "batch_queue_tier1": 5_000_000},
@@ -77,6 +79,13 @@ def _validate_schema(schema: dict[str, Any]) -> None:
         raise ValueError("all structured-output properties must be required")
 
 
+def validate_provider_schema_name(name: str) -> str:
+    """Validate an OpenAI structured-output alias before any wire artefact exists."""
+    if not isinstance(name, str) or not PROVIDER_SCHEMA_NAME_PATTERN.fullmatch(name) or len(name) > 64:
+        raise ValueError("provider structured-output schema name must match ^[a-zA-Z0-9_-]+$ and be at most 64 characters")
+    return name
+
+
 def resolve_model(task: dict[str, Any]) -> tuple[str, str]:
     if task["difficulty"] == "lower_cost_constrained_semantic":
         return LUNA, "low"
@@ -91,7 +100,9 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
     evidence_ids = tuple(item.evidence_id for item in packet.evidence_units)
     schema = contract.schema_for_evidence(evidence_ids)
     _validate_schema(schema)
-    schema_name = contract.schema_id.rsplit(":", 1)[-1].replace("-", "_")
+    if not contract.provider_schema_name:
+        raise ValueError(f"contract {contract.contract_id} has no explicit provider schema name")
+    schema_name = validate_provider_schema_name(contract.provider_schema_name)
     request_item_id = provider_request_identity(task, contract, model=model, service_tier=service_tier, evidence_ids=evidence_ids, max_output_tokens=DISCOVERY_MAX_OUTPUT_TOKENS)
     prompt = render_packet_prompt(packet, contract)
     evidence_bindings = [

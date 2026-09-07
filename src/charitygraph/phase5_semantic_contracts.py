@@ -53,6 +53,8 @@ class SemanticContract:
     schema_factory: Callable[[tuple[str, ...]], dict[str, Any]] | None = None
     source_refs: tuple[str, ...] = ()
     unresolved_design_questions: tuple[str, ...] = ()
+    # Transport identity is deliberately separate from semantic schema identity.
+    provider_schema_name: str | None = None
 
     @property
     def prompt_sha256(self) -> str:
@@ -117,6 +119,7 @@ class SemanticContract:
             "schema": self.output_schema,
             "schema_factory_id": self.schema_factory_id,
             "schema_hash_without_evidence": self.output_schema_sha256,
+            "provider_schema_name": self.provider_schema_name,
             "evidence_policy": self.evidence_policy,
             "grounding_requirements": list(self.grounding_requirements),
             "adapter_id": self.adapter_id,
@@ -203,6 +206,7 @@ def _production_discovery() -> SemanticContract:
         publication_boundary="validated candidate only; downstream governance required", schema_factory_id="charitygraph.contracts.discovery.discovery_schema_v2",
         planner_prompt_policy_version="program-service-discovery-v2:prompt-policy:v1",
         planner_schema_version="urn:charitygraph:phase5:planned:program_service_discovery:v1",
+        provider_schema_name="program_service_discovery_v2",
         schema_factory=discovery_schema_v2, source_refs=("src/charitygraph/contracts/discovery.py", "src/charitygraph/native_discovery_executor.py"),
     )
 
@@ -240,6 +244,7 @@ PACKET EVIDENCE:
         publication_boundary="domain validation and downstream governance required", source_refs=("src/charitygraph/contracts/direct_service_wire.py", "src/charitygraph/contracts/direct_service.py", "scripts/run_direct_service_real_phase3.py"),
         planner_prompt_policy_version="direct-service-access-v1:prompt-policy:v1",
         planner_schema_version="urn:charitygraph:phase5:planned:direct_service_semantics:v1",
+        provider_schema_name="direct_service_semantics_v1",
     )
 
 

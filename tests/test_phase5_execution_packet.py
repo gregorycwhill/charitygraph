@@ -76,6 +76,8 @@ def test_packet_materializes_bytes_and_prompt_from_content_addressed_store(tmp_p
     assert "evidence_units" not in user_text
     assert "evidence_bindings" in user_text
     assert request.body["max_output_tokens"] == 8000
+    assert request.schema_name == "program_service_discovery_v2"
+    assert request.body["text"]["format"]["name"] == "program_service_discovery_v2"
 
 
 def test_packet_fails_closed_for_missing_retained_artifact(tmp_path):
