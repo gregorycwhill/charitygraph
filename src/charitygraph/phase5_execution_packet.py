@@ -68,22 +68,31 @@ class SemanticExecutionPacket:
         }
 
 
-def _read_catalog_metadata(catalog_path: Path, source_record_ids: set[str], subject_id: str) -> tuple[dict[str, dict[str, Any]], tuple[GovernedScope, ...]]:
+def _read_catalog_metadata(catalog_path: Path, source_record_ids: set[str], subject_id: str, evidence_locator_ids: tuple[str, ...] = ()) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], tuple[GovernedScope, ...]]:
     if not catalog_path.is_file() or catalog_path.stat().st_size == 0:
         raise ExecutionPacketUnready(f"governed catalogue is missing or empty: {catalog_path}")
     uri = f"file:{catalog_path}?mode=ro"
     conn = sqlite3.connect(uri, uri=True)
+    conn.row_factory = sqlite3.Row
     try:
         records: dict[str, dict[str, Any]] = {}
+        locators: dict[str, dict[str, Any]] = {}
         for record_id in sorted(source_record_ids):
             row = conn.execute("SELECT source_record_id, source_family, source_role, source_locator, payload_ref, payload_hash FROM source_records WHERE source_record_id=?", (record_id,)).fetchone()
             if row is None:
                 raise ExecutionPacketUnready(f"governed source record is missing: {record_id}")
             records[record_id] = {"source_record_id": row[0], "source_family": row[1], "source_role": row[2], "source_locator": row[3], "payload_ref": row[4], "payload_hash": row[5]}
+        for locator_id in evidence_locator_ids:
+            row = conn.execute("SELECT evidence_locator_id, artifact_id, source_record_id, kind, locator_json, material_hash FROM evidence_locators WHERE evidence_locator_id=?", (locator_id,)).fetchone()
+            if row is None:
+                raise ExecutionPacketUnready(f"governed evidence locator is missing: {locator_id}")
+            if row["source_record_id"] not in records:
+                raise ExecutionPacketUnready(f"evidence locator is not bound to the retained source record: {locator_id}")
+            locators[locator_id] = dict(row)
         scopes = tuple(GovernedScope(str(row[0]), str(row[1]), str(row[2] or "")) for row in conn.execute("SELECT scope_id, scope_kind, label FROM subject_scopes WHERE subject_id=? AND lifecycle_status='active' ORDER BY scope_id", (subject_id,)).fetchall())
     finally:
         conn.close()
-    return records, scopes
+    return records, locators, scopes
 
 
 def _decode_retained(content: bytes, artifact_id: str) -> str:
@@ -98,14 +107,17 @@ def _decode_retained(content: bytes, artifact_id: str) -> str:
 def _materialize_units(corpus: dict[str, Any], store: ContentAddressedArtifactStore, catalog_path: Path, *, require_locators: bool = False) -> tuple[EvidenceUnit, ...]:
     members = sorted(corpus.get("material_members", []), key=lambda item: (item.get("source_family", ""), tuple(item.get("source_record_ids", []))))
     source_ids = {str(record_id) for member in members for record_id in member.get("source_record_ids", [])}
-    records, _ = _read_catalog_metadata(catalog_path, source_ids, str(corpus["subject_id"]))
+    locator_ids = tuple(str(value) for member in members for value in member.get("evidence_locator_ids", []))
+    if require_locators and not locator_ids:
+        raise ExecutionPacketUnready("Discovery V2 packet has no governed evidence-locator IDs")
+    records, locators, _ = _read_catalog_metadata(catalog_path, source_ids, str(corpus["subject_id"]), locator_ids)
     units: list[EvidenceUnit] = []
     for member in members:
         record_ids = [str(value) for value in member.get("source_record_ids", [])]
         if not record_ids:
             continue
-        locator_ids = tuple(str(value) for value in member.get("evidence_locator_ids", []))
-        if require_locators and not locator_ids:
+        member_locator_ids = tuple(str(value) for value in member.get("evidence_locator_ids", []))
+        if require_locators and not member_locator_ids:
             raise ExecutionPacketUnready(f"direct-service evidence locators are absent for {record_ids[0]}")
         artifact_ids = [str(value) for value in (member.get("representation_artifact_ids") or member.get("artifact_ids") or [])]
         if not artifact_ids:
@@ -122,27 +134,34 @@ def _materialize_units(corpus: dict[str, Any], store: ContentAddressedArtifactSt
             record = records[record_ids[min(index, len(record_ids) - 1)]]
             if record["payload_hash"] and artifact_id.startswith("srcblob:") and record["payload_hash"] != digest:
                 raise ExecutionPacketUnready(f"source record payload hash disagrees with artifact: {record['source_record_id']}")
-            units.append(EvidenceUnit(
-                evidence_id=record["source_record_id"], artifact_id=artifact_id, content_hash=digest,
-                byte_count=len(content_bytes), content=_decode_retained(content_bytes, artifact_id),
-                source_record_id=record["source_record_id"], source_family=record["source_family"],
-                source_role=record["source_role"], source_locator=record["source_locator"], locator_ids=locator_ids,
-            ))
+            represented = member_locator_ids if require_locators else (record["source_record_id"],)
+            for evidence_id in represented:
+                locator = locators.get(evidence_id)
+                if require_locators and locator is None:
+                    raise ExecutionPacketUnready(f"governed evidence locator is missing: {evidence_id}")
+                if locator is not None and locator.get("artifact_id") and locator["artifact_id"] != artifact_id:
+                    raise ExecutionPacketUnready(f"evidence locator does not resolve to the retained artifact: {evidence_id}")
+                units.append(EvidenceUnit(
+                    evidence_id=evidence_id, artifact_id=artifact_id, content_hash=digest,
+                    byte_count=len(content_bytes), content=_decode_retained(content_bytes, artifact_id),
+                    source_record_id=record["source_record_id"], source_family=record["source_family"],
+                    source_role=record["source_role"], source_locator=record["source_locator"], locator_ids=(evidence_id,) if require_locators else (),
+                ))
     if not units:
         raise ExecutionPacketUnready("corpus contains no materializable evidence units")
     return tuple(units)
 
 
 def materialize_execution_packet(*, task: dict[str, Any], corpus: dict[str, Any], contract: SemanticContract, runtime_root: Path, catalog_path: Path, model: str, reasoning_effort: str, service_tier: str) -> SemanticExecutionPacket:
-    require_locators = contract.task_profile == "direct_service_semantics"
+    require_locators = contract.task_profile in {"program_service_discovery", "direct_service_semantics"}
     if require_locators:
         source_ids = {str(record_id) for member in corpus.get("material_members", []) for record_id in member.get("source_record_ids", [])}
-        _, existing_scopes = _read_catalog_metadata(catalog_path, source_ids, task["subject_id"])
-        if not existing_scopes:
+        _, _, existing_scopes = _read_catalog_metadata(catalog_path, source_ids, task["subject_id"])
+        if contract.task_profile == "direct_service_semantics" and not existing_scopes:
             raise ExecutionPacketUnready(f"direct-service packet lacks frozen evidence locators and governed active scopes for {task['subject_id']}")
     units = _materialize_units(corpus, ContentAddressedArtifactStore(runtime_root / "objects", allowed_roots=(runtime_root,)), catalog_path, require_locators=require_locators)
-    _, scopes = _read_catalog_metadata(catalog_path, {item.source_record_id for item in units}, task["subject_id"])
-    if require_locators and not scopes:
+    _, _, scopes = _read_catalog_metadata(catalog_path, {item.source_record_id for item in units}, task["subject_id"])
+    if contract.task_profile == "direct_service_semantics" and not scopes:
         raise ExecutionPacketUnready(f"no governed active scopes for direct-service subject: {task['subject_id']}")
     if contract.task_profile == "direct_service_semantics" and any(scope.scope_id.startswith("srcrec:") for scope in scopes):
         raise ExecutionPacketUnready("source record IDs cannot be used as direct-service scope IDs")

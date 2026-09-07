@@ -34,9 +34,14 @@ def _catalog(path, record_id, payload_hash):
             scope_id TEXT, subject_id TEXT, scope_kind TEXT, label TEXT,
             lifecycle_status TEXT
         );
+        CREATE TABLE evidence_locators (
+            evidence_locator_id TEXT PRIMARY KEY, artifact_id TEXT, source_record_id TEXT,
+            kind TEXT, locator_json TEXT, material_hash TEXT
+        );
         """
     )
     conn.execute("INSERT INTO source_records VALUES (?, ?, ?, ?, ?, ?)", (record_id, "test", "test", "https://example.test", "", payload_hash))
+    conn.execute("INSERT INTO evidence_locators VALUES (?, ?, ?, ?, ?, ?)", ("locator:test", None, record_id, "document", "{}", "selection-hash"))
     conn.commit()
     conn.close()
 
@@ -56,7 +61,7 @@ def test_packet_materializes_bytes_and_prompt_from_content_addressed_store(tmp_p
         "schema_version": "urn:charitygraph:phase5:planned:program_service_discovery:v1",
     })
     task = _task(contract)
-    corpus = {"subject_id": task["subject_id"], "material_members": [{"source_family": "test", "source_record_ids": [record_id], "artifact_ids": [stored.artifact_id], "evidence_locator_ids": []}]}
+    corpus = {"subject_id": task["subject_id"], "material_members": [{"source_family": "test", "source_record_ids": [record_id], "artifact_ids": [stored.artifact_id], "evidence_locator_ids": ["locator:test"]}]}
     packet = materialize_execution_packet(task=task, corpus=corpus, contract=contract, runtime_root=runtime, catalog_path=catalog, model="gpt-5.6-luna", reasoning_effort="low", service_tier="default")
     assert packet.evidence_units[0].content == content.decode()
     assert json.dumps(corpus) not in packet.evidence_units[0].content
@@ -75,7 +80,7 @@ def test_packet_fails_closed_for_missing_retained_artifact(tmp_path):
         "schema_version": "urn:charitygraph:phase5:planned:program_service_discovery:v1",
     })
     task = _task(contract)
-    corpus = {"subject_id": task["subject_id"], "material_members": [{"source_family": "test", "source_record_ids": [record_id], "artifact_ids": ["srcblob:" + "c" * 64], "evidence_locator_ids": []}]}
+    corpus = {"subject_id": task["subject_id"], "material_members": [{"source_family": "test", "source_record_ids": [record_id], "artifact_ids": ["srcblob:" + "c" * 64], "evidence_locator_ids": ["locator:test"]}]}
     with pytest.raises(ExecutionPacketUnready, match="hash-verified"):
         materialize_execution_packet(task=task, corpus=corpus, contract=contract, runtime_root=runtime, catalog_path=catalog, model="gpt-5.6-luna", reasoning_effort="low", service_tier="default")
 

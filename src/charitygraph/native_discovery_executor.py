@@ -91,6 +91,14 @@ def _parse_discovery_output(
     except Exception as exc:
         return output_type(proposals=()), (str(exc)[:500],)
 
+
+def validate_discovery_output_evidence(output: ProgramServiceDiscoveryOutput | ProgramServiceDiscoveryOutputV2, allowed_evidence_ids: set[str] | frozenset[str]) -> None:
+    """Enforce the packet evidence boundary after typed provider parsing."""
+    for proposal in output.proposals:
+        unknown = {item.evidence_id for item in proposal.evidence} - set(allowed_evidence_ids)
+        if unknown:
+            raise ValueError("discovery output references evidence outside the supplied governed packet")
+
 def execute_native_discovery(
     catalog: SQLiteCatalog,
     *,
