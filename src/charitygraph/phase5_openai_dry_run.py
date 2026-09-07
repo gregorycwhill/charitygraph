@@ -51,11 +51,74 @@ class RealProviderExecutionGate:
 
 
 def parse_provider_result(payload: dict[str, Any], known_request_ids: set[str]) -> dict[str, Any]:
+    """Parse one OpenAI Batch JSONL envelope and its Responses body.
+
+    Batch item state, HTTP outcome, and the inner Responses lifecycle are kept
+    as separate fields.  ``status`` remains the small compatibility projection
+    consumed by the transport: it is ``completed`` only for a successful HTTP
+    response whose inner Responses object is completed.
+    """
+    if not isinstance(payload, dict):
+        raise ValueError("Batch result envelope must be an object")
     custom_id = payload.get("custom_id")
     if custom_id not in known_request_ids:
         raise ValueError("unknown provider custom_id")
-    response = payload.get("response") or {}
-    return {"provider_request_item_id": custom_id, "status": payload.get("error") and "failed" or response.get("status", "failed"), "provider_response_id": response.get("id"), "usage": response.get("usage"), "service_tier": response.get("service_tier")}
+    batch_error = payload.get("error")
+    if batch_error is not None:
+        return {
+            "provider_request_item_id": custom_id,
+            "status": "failed",
+            "batch_item_status": "failed",
+            "http_status": None,
+            "provider_request_id": None,
+            "provider_response_id": None,
+            "responses_status": None,
+            "usage": None,
+            "service_tier": None,
+            "error": batch_error,
+        }
+
+    response = payload.get("response")
+    if not isinstance(response, dict):
+        raise ValueError("Batch result envelope is missing response object")
+    status_code = response.get("status_code")
+    request_id = response.get("request_id")
+    body = response.get("body")
+    if isinstance(status_code, bool) or not isinstance(status_code, int):
+        raise ValueError("Batch response is missing integer status_code")
+    if not isinstance(request_id, str) or not request_id:
+        raise ValueError("Batch response is missing request_id")
+    if not isinstance(body, dict):
+        raise ValueError("Batch response is missing Responses body")
+
+    responses_status = body.get("status")
+    usage = body.get("usage")
+    service_tier = body.get("service_tier")
+    successful_http = 200 <= status_code < 300
+    if successful_http:
+        if not isinstance(body.get("id"), str) or not body["id"]:
+            raise ValueError("successful Batch response is missing Responses id")
+        if not isinstance(responses_status, str) or not responses_status:
+            raise ValueError("successful Batch response is missing Responses status")
+        if responses_status == "completed":
+            status = "completed"
+        else:
+            status = "failed"
+    else:
+        status = "failed"
+
+    return {
+        "provider_request_item_id": custom_id,
+        "status": status,
+        "batch_item_status": "completed" if status == "completed" else "failed",
+        "http_status": status_code,
+        "provider_request_id": request_id,
+        "provider_response_id": body.get("id"),
+        "responses_status": responses_status,
+        "usage": usage,
+        "service_tier": service_tier,
+        "error": body.get("error") if not successful_http else None,
+    }
 
 
 def serialize_fallback(request: CompiledRequest, mode: str) -> dict[str, Any]:

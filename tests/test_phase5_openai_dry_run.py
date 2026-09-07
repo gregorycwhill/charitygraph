@@ -27,6 +27,59 @@ def test_provider_result_unknown_custom_id_fails_closed() -> None:
         parse_provider_result({"custom_id": "requestitem:unknown"}, {"requestitem:known"})
 
 
+def _batch_row(*, custom_id: str = "requestitem:known", status_code: int = 200, body: dict | None = None, error=None) -> dict:
+    row = {"custom_id": custom_id, "error": error}
+    if error is None:
+        row["response"] = {"status_code": status_code, "request_id": "req_test", "body": body}
+    return row
+
+
+def test_batch_responses_result_reads_nested_body_and_usage_details() -> None:
+    parsed = parse_provider_result(_batch_row(body={
+        "id": "resp_test",
+        "status": "completed",
+        "service_tier": "default",
+        "usage": {"input_tokens": 69725, "output_tokens": 1329, "input_tokens_details": {"cached_tokens": 7}, "output_tokens_details": {"reasoning_tokens": 119}},
+    }), {"requestitem:known"})
+    assert parsed["status"] == "completed"
+    assert parsed["batch_item_status"] == "completed"
+    assert parsed["http_status"] == 200
+    assert parsed["provider_request_id"] == "req_test"
+    assert parsed["provider_response_id"] == "resp_test"
+    assert parsed["responses_status"] == "completed"
+    assert parsed["usage"]["input_tokens_details"]["cached_tokens"] == 7
+    assert parsed["usage"]["output_tokens_details"]["reasoning_tokens"] == 119
+
+
+def test_batch_request_level_http_error_is_definite_failure() -> None:
+    parsed = parse_provider_result(_batch_row(status_code=400, body={"error": {"message": "invalid request"}}), {"requestitem:known"})
+    assert parsed["status"] == "failed"
+    assert parsed["batch_item_status"] == "failed"
+    assert parsed["http_status"] == 400
+    assert parsed["responses_status"] is None
+    assert parsed["error"]["message"] == "invalid request"
+
+
+def test_batch_top_level_error_is_definite_failure() -> None:
+    parsed = parse_provider_result(_batch_row(error={"code": "batch_error", "message": "item rejected"}), {"requestitem:known"})
+    assert parsed["status"] == "failed"
+    assert parsed["http_status"] is None
+    assert parsed["error"]["code"] == "batch_error"
+
+
+@pytest.mark.parametrize("row", [
+    _batch_row(body=None),
+    _batch_row(body={"id": "resp_test", "status": "in_progress"}),
+])
+def test_malformed_or_nonterminal_batch_response_fails_closed(row: dict) -> None:
+    if row["response"]["body"] is None:
+        with pytest.raises(ValueError, match="Responses body"):
+            parse_provider_result(row, {"requestitem:known"})
+    else:
+        assert parse_provider_result(row, {"requestitem:known"})["responses_status"] == "in_progress"
+        assert parse_provider_result(row, {"requestitem:known"})["status"] == "failed"
+
+
 def test_flex_fallback_uses_responses_service_tier() -> None:
     request = type("Request", (), {"provider_request_item_id": "requestitem:one", "body": {"model": "gpt-5.6-luna"}})()
     assert serialize_fallback(request, "flex")["body"]["service_tier"] == "flex"

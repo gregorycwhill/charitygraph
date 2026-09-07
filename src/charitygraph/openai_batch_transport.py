@@ -236,9 +236,9 @@ class OpenAIBatchTransport:
                 if parsed["status"] == "completed":
                     receipt = f"batchreceipt:{job['provider_batch_id']}:{item_id.split(':', 1)[-1]}"
                     ref = "batch-result:" + hashlib.sha256(json.dumps(row, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-                    catalog.transition_provider_request_item(item_id, "completed", now=now, provider_receipt_id=receipt, result_ref=ref, usage=parsed.get("usage"))
+                    catalog.transition_provider_request_item(item_id, "completed", now=now, provider_request_id=parsed.get("provider_request_id"), provider_receipt_id=receipt, result_ref=ref, usage=parsed.get("usage"))
                 else:
-                    catalog.transition_provider_request_item(item_id, "failed", now=now, result_ref="batch-error:" + item_id)
+                    catalog.transition_provider_request_item(item_id, "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
         if job.get("provider_error_file_id"):
             try:
                 error_rows = _jsonl(self.client.retrieve_file_content(job["provider_error_file_id"]))
@@ -253,7 +253,7 @@ class OpenAIBatchTransport:
                 if current["status"] not in terminal_items:
                     if current["status"] == "submitted":
                         catalog.transition_provider_request_item(item_id, "in_progress", now=now)
-                    catalog.transition_provider_request_item(item_id, "failed", now=now, result_ref="batch-error:" + item_id)
+                    catalog.transition_provider_request_item(item_id, "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
         refreshed = [item for item in catalog.list_provider_request_items(job["run_id"]) if item.get("delivery_job_id") == delivery_job_id]
         statuses = {item["status"] for item in refreshed}
         target = None

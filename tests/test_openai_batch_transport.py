@@ -31,7 +31,7 @@ class MockBatchClient:
 
     def retrieve_file_content(self, file_id):
         self.calls.append(("file", file_id))
-        return b'{"custom_id":"requestitem:two","response":{"id":"resp:one","status":"completed","usage":{"input_tokens":3,"output_tokens":2}}}\n'
+        return b'{"custom_id":"requestitem:two","error":null,"response":{"status_code":200,"request_id":"req:one","body":{"id":"resp:one","status":"completed","usage":{"input_tokens":3,"output_tokens":2}}}}\n'
 
 
 def _catalogue(tmp_path):
@@ -77,6 +77,7 @@ def test_batch_lifecycle_persists_file_and_batch_ids_and_reconciles_items(tmp_pa
     reconciled = OpenAIBatchTransport(client).reconcile_batch(catalog, delivery_job_id=job, now=NOW)
     assert reconciled.provider_status == "completed" and reconciled.output_retrieved is True
     assert reconciled.item_statuses[0]["status"] == "completed"
+    assert reconciled.item_statuses[0]["provider_request_id"] == "req:one"
     call_count = len(client.calls)
     again = OpenAIBatchTransport(client).reconcile_batch(catalog, delivery_job_id=job, now=NOW)
     assert again.provider_status == "completed" and len(client.calls) == call_count
