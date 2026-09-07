@@ -665,6 +665,12 @@ CREATE INDEX provider_request_items_job_idx ON provider_request_items(delivery_j
 CREATE INDEX provider_request_items_task_idx ON provider_request_items(model_task_id);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V12 = """
+ALTER TABLE delivery_jobs ADD COLUMN provider_input_file_id TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN provider_output_file_id TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN provider_error_file_id TEXT;
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -677,6 +683,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(9, "structured_relationship_roles", CATALOGUE_SQL_V9),
     Migration(10, "physical_factory_attempts", CATALOGUE_SQL_V10),
     Migration(11, "provider_delivery_jobs_and_request_items", CATALOGUE_SQL_V11),
+    Migration(12, "provider_batch_file_identities", CATALOGUE_SQL_V12),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
