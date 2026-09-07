@@ -32,7 +32,9 @@ def _select(plan: FactoryPlan, scenario: str, cohort_id: str) -> tuple[tuple[str
     for package in plan.physical_packages(delivery_mode="batch"):
         tasks = tuple(runtime[item["logical_task_id"]] for item in package)
         physical = "physical:" + _package_id(tasks).split(":", 1)[1]
-        if scenario_for(physical) == scenario and (scenario != "C6_partial_bundle" or len(tasks) > 1):
+        # Chaos transports apply only to chargeable provider request packages;
+        # deterministic work never crosses a provider send boundary.
+        if all(task["difficulty"] != "deterministic" for task in tasks) and scenario_for(physical) == scenario and (scenario != "C6_partial_bundle" or len(tasks) > 1):
             candidates.append((physical, tasks))
     if not candidates:
         raise RuntimeError(f"no eligible full-workload package for {scenario}")
