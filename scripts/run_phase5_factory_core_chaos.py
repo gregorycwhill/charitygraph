@@ -26,7 +26,7 @@ def _package_id(tasks: tuple[dict[str, object], ...]) -> str:
     return deterministic_id("taskrun:", {"members": [str(task["record_id"]) for task in tasks], "mode": "batch"})
 
 
-def _select(plan: FactoryPlan, scenario: str, cohort_id: str) -> tuple[str, tuple[dict[str, object], ...]]:
+def _select(plan: FactoryPlan, scenario: str, cohort_id: str) -> tuple[tuple[str, tuple[dict[str, object], ...]], ...]:
     runtime = {task["logical_task_id"]: task for task in plan.runtime_tasks(cohort_id=cohort_id)}
     candidates = []
     for package in plan.physical_packages(delivery_mode="batch"):
@@ -36,7 +36,17 @@ def _select(plan: FactoryPlan, scenario: str, cohort_id: str) -> tuple[str, tupl
             candidates.append((physical, tasks))
     if not candidates:
         raise RuntimeError(f"no eligible full-workload package for {scenario}")
-    return sorted(candidates, key=lambda item: item[0])[0]
+    return tuple(sorted(candidates, key=lambda item: item[0]))
+
+
+def _run_disposition(task_states: dict[str, int], *, unresolved_ambiguities: int) -> str:
+    if unresolved_ambiguities or task_states.get("held", 0):
+        return "held"
+    if task_states.get("failed_terminal", 0):
+        return "failed"
+    if sum(task_states.values()) == task_states.get("succeeded", 0):
+        return "succeeded"
+    return "cancelled"
 
 
 def _open_run(root: Path, plan: FactoryPlan, scenario: str) -> tuple[SQLiteCatalog, str, str, datetime]:
@@ -67,16 +77,14 @@ def run_scenario(plan: FactoryPlan, root: Path, scenario: str) -> dict[str, obje
     catalog, cohort, run, now = _open_run(root, plan, scenario)
     runner = ReferenceFactory(catalog, plan, cohort_id=cohort, run_id=run)
     runner.seed(now)
-    physical, target_tasks = _select(plan, scenario, cohort)
-    target_package = _package_id(target_tasks)
-    interrupted = False
-    try:
-        if scenario in {"C1_pre_send", "C2_send_ambiguous", "C3_receipt_restart"}:
-            runner.run(now, interruptions={physical: SCENARIOS[scenario]})
-        else:
-            runner.run(now, failures={physical: SCENARIOS[scenario]})
-    except (FactoryInterrupted, AmbiguousSendError):
-        interrupted = True
+    selected = _select(plan, scenario, cohort)
+    selected_ids = tuple(physical for physical, _ in selected)
+    selected_tasks = {physical: tasks for physical, tasks in selected}
+    interruptions = {physical: SCENARIOS[scenario] for physical in selected_ids}
+    if scenario in {"C1_pre_send", "C2_send_ambiguous", "C3_receipt_restart"}:
+        runner.run(now, interruptions=interruptions, continue_interruptions=True)
+    else:
+        runner.run(now, failures=interruptions)
     # A fresh catalog/runner object is the real close/reopen restart boundary.
     restarted = SQLiteCatalog(root / "factory.sqlite3").open(initialize=False)
     recovered = ReferenceFactory(restarted, plan, cohort_id=cohort, run_id=run)
@@ -88,17 +96,22 @@ def run_scenario(plan: FactoryPlan, root: Path, scenario: str) -> dict[str, obje
             explicit_reconciliation = True
         else:
             raise AssertionError("ambiguous send was incorrectly auto-resubmitted")
-        recovered.reconcile_ambiguous_package(target_package, now=now)
+        for physical in selected_ids:
+            recovered.reconcile_ambiguous_package(_package_id(selected_tasks[physical]), now=now)
     completed_after_restart = recovered.run(now)
     noop = recovered.run(now)
-    restarted.transition_run(run, "succeeded", now=now)
+    state_counts = _counts(root / "factory.sqlite3")["task_states"]
+    disposition = _run_disposition(state_counts, unresolved_ambiguities=0)
+    restarted.transition_run(run, disposition, now=now)
     result = {
         "scenario": scenario,
         "policy_version": CHAOS_POLICY_VERSION,
-        "target_physical_attempt_id": physical,
-        "target_package_size": len(target_tasks),
-        "interruption_observed": interrupted,
+        "selected_physical_attempt_ids": selected_ids,
+        "selected_count": len(selected_ids),
+        "selected_package_sizes": {physical: len(selected_tasks[physical]) for physical in selected_ids},
+        "interruption_observed": len(runner.interruptions_observed),
         "explicit_reconciliation_observed": explicit_reconciliation,
+        "run_disposition": disposition,
         "completed_after_restart": completed_after_restart,
         "terminal_noop": noop,
         "network_calls": 0,

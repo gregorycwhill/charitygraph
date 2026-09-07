@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 from dataclasses import dataclass
@@ -92,6 +93,7 @@ class ReferenceFactory:
         self.catalog, self.plan, self.cohort_id, self.run_id = catalog, plan, cohort_id, run_id
         self.provider = provider or RehearsalFakeProvider()
         self.delivery_mode = delivery_mode
+        self.interruptions_observed: list[str] = []
     def seed(self, now: datetime) -> tuple[dict[str, Any], ...]:
         tasks=self.plan.runtime_tasks(cohort_id=self.cohort_id)
         for task in tasks: self.catalog.register_task(task, run_id=self.run_id, now=now)
@@ -184,10 +186,11 @@ class ReferenceFactory:
             amount=self.provider.tariffs[self.delivery_mode]
             actual={"cohort_id":self.cohort_id,"run_id":self.run_id,"task_run_id":package_id,"reservation_id":reservation_id,"entry_type":"actual","paid_output_category":"extraction","provider_cost":{"amount":amount,"currency":"USD"},"aud_cost":{"amount":amount,"currency":"AUD"},"usage":receipt.usage,"recorded_at":now,"pricing_snapshot_id":deterministic_id("pricing:",{"rehearsal":"phase5"}),"fx_snapshot_id":deterministic_id("fx:",{"rehearsal":"phase5"})}
             self.catalog.record_cost_entry(actual,entry_key="actual:"+reservation_id)
-            self.catalog.release_reservation(reservation_id,{"amount":str(0.01-float(amount)),"currency":"AUD"},now=now,entry_key="release:"+reservation_id)
+            release = Decimal("0.010000") - Decimal(amount)
+            self.catalog.release_reservation(reservation_id,{"amount":format(release, "f"),"currency":"AUD"},now=now,entry_key="release:"+reservation_id)
             self.catalog.mark_physical_validated(self._physical_id(package_id),now=now)
         return completed
-    def run(self, now: datetime, *, interruptions: dict[str, str] | None = None, failures: dict[str, str] | None = None) -> int:
+    def run(self, now: datetime, *, interruptions: dict[str, str] | None = None, failures: dict[str, str] | None = None, continue_interruptions: bool = False) -> int:
         """Execute physical packages; each semantic package sends once."""
         by_logical={task["logical_task_id"]: task for task in self.plan.runtime_tasks(cohort_id=self.cohort_id)}
         completed=0
@@ -201,7 +204,14 @@ class ReferenceFactory:
                 if physical and physical["status"] == "receipt_persisted":
                     self.finalise_package_children(tasks, package_id=package_id, receipt=self._receipt_from_catalog(self._physical_id(package_id)), now=now)
                 continue
-            package_id,receipt=self.prepare_package(tasks,now=now,interruption=(interruptions or {}).get(self._physical_id(deterministic_id("taskrun:", {"members": [task["record_id"] for task in tasks], "mode": self.delivery_mode}))))
+            physical_id=self._physical_id(deterministic_id("taskrun:", {"members": [task["record_id"] for task in tasks], "mode": self.delivery_mode}))
+            try:
+                package_id,receipt=self.prepare_package(tasks,now=now,interruption=(interruptions or {}).get(physical_id))
+            except (FactoryInterrupted, AmbiguousSendError):
+                if not continue_interruptions:
+                    raise
+                self.interruptions_observed.append(physical_id)
+                continue
             completed += self.finalise_package_children(tasks,package_id=package_id,receipt=receipt,now=now,failure=(failures or {}).get(self._physical_id(package_id)))
         return completed
 
