@@ -83,7 +83,7 @@ def application_bundle_compatible(tasks: Iterable[dict[str, Any]]) -> bool:
     tools = {item.get("tool_policy") for item in members}
     envelopes = {item.get("response_envelope") for item in members}
     multiplex = {item.get("multiplex_contract") for item in members}
-    return len(subject_ids) == len(routes) == len(reasoning) == len(tools) == len(envelopes) == 1 and None not in multiplex
+    return len(subject_ids) == len(routes) == len(reasoning) == len(tools) == len(envelopes) == len(multiplex) == 1 and None not in multiplex
 
 
 def select_delivery_mode(task: dict[str, Any]) -> str:

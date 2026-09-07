@@ -23,6 +23,12 @@ def test_explicit_common_multiplex_contract_allows_application_bundle() -> None:
     assert len(build_delivery_plan(tasks).request_items) == 1
 
 
+def test_different_non_null_multiplex_contracts_do_not_bundle() -> None:
+    tasks = [_task("a", multiplex_contract="schema:a", reasoning_settings="r", tool_policy="none", response_envelope="json"), _task("b", multiplex_contract="schema:b", reasoning_settings="r", tool_policy="none", response_envelope="json")]
+    assert not application_bundle_compatible(tasks)
+    assert len(build_delivery_plan(tasks).request_items) == 2
+
+
 def test_delivery_policy_prefers_batch_then_flex_then_standard() -> None:
     assert select_delivery_mode(_task("a")) == "batch"
     assert select_delivery_mode(_task("b", batch_supported=False)) == "flex"
