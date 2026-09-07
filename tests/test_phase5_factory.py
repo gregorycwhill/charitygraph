@@ -53,6 +53,8 @@ def test_physical_attempt_persists_send_then_receipt(tmp_path) -> None:
     attempt="physical:one"; catalog.prepare_physical_attempt(physical_attempt_id=attempt,run_id=run,subject_id=task['subject_id'],delivery_mode='batch',provider_request_id='fake-request:x',model_task_ids=(task['record_id'],),reservation_id=None,now=now)
     assert catalog.mark_physical_send_started(attempt,now=now)['status']=='send_started'
     assert catalog.persist_provider_receipt(physical_attempt_id=attempt,provider_receipt_id='fake-receipt:x',raw_result_ref='rehearsal:x',usage={},now=now)['physical_attempt_id']==attempt
+    assert catalog.get_provider_receipt('fake-receipt:x')['physical_attempt_id']==attempt
+    assert catalog.persist_provider_receipt(physical_attempt_id=attempt,provider_receipt_id='fake-receipt:x',raw_result_ref='rehearsal:x',usage={},now=now)['physical_attempt_id']==attempt
 
 
 def test_semantic_package_has_one_physical_receipt(tmp_path) -> None:

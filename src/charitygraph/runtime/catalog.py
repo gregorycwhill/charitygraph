@@ -2156,8 +2156,16 @@ class SQLiteCatalog:
     def persist_provider_receipt(self, *, physical_attempt_id: str, provider_receipt_id: str, raw_result_ref: str, usage: Any, now: datetime | str) -> dict[str, Any]:
         when=_utc(now,"now")
         with self._connection(immediate=True) as conn:
+            prior=conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone()
+            if prior is not None:
+                if prior["physical_attempt_id"] != physical_attempt_id: raise ConflictError("provider receipt is already bound to another physical attempt")
+                return dict(prior)
             row=conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?",(physical_attempt_id,)).fetchone()
             if row is None or row["status"] != "send_started": raise InvalidTransitionError("receipt requires send_started physical attempt")
             conn.execute("INSERT INTO provider_receipts(provider_receipt_id,physical_attempt_id,provider_request_id,raw_result_ref,usage_json,received_at) VALUES (?,?,?,?,?,?)",(provider_receipt_id,physical_attempt_id,row["provider_request_id"],raw_result_ref,json.dumps(_dump(usage),sort_keys=True),when))
             conn.execute("UPDATE physical_attempts SET status='receipt_persisted',receipt_persisted_at=?,updated_at=? WHERE physical_attempt_id=?",(when,when,physical_attempt_id)); self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())
+
+    def get_provider_receipt(self, provider_receipt_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())
