@@ -2193,3 +2193,74 @@ class SQLiteCatalog:
             conn.execute("UPDATE physical_attempts SET status='validated', updated_at=? WHERE physical_attempt_id=?", (when, physical_attempt_id))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def create_delivery_job(self, *, delivery_job_id: str, run_id: str, provider_id: str, model_route: str, delivery_mode: str, pricing_snapshot_id: str, now: datetime | str) -> dict[str, Any]:
+        """Persist a provider delivery aggregation separately from request items."""
+        if delivery_mode not in {"batch", "flex", "standard"}:
+            raise CatalogError("unknown delivery mode")
+        when = _utc(now, "now")
+        material = {"delivery_job_id": delivery_job_id, "run_id": run_id, "provider_id": provider_id, "model_route": model_route, "delivery_mode": delivery_mode, "pricing_snapshot_id": pricing_snapshot_id}
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if existing:
+                return dict(existing)
+            if conn.execute("SELECT 1 FROM runs WHERE run_id=?", (run_id,)).fetchone() is None:
+                raise CatalogError("delivery job run does not exist")
+            conn.execute("INSERT INTO delivery_jobs(delivery_job_id,run_id,provider_id,model_route,delivery_mode,status,pricing_snapshot_id,created_at,updated_at) VALUES (?,?,?,?,?,'prepared',?,?,?)", (delivery_job_id,run_id,provider_id,model_route,delivery_mode,pricing_snapshot_id,when,when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
+
+    def transition_delivery_job(self, delivery_job_id: str, status: str, *, now: datetime | str, provider_batch_id: str | None = None) -> dict[str, Any]:
+        allowed = {"prepared": {"submitted", "cancelled", "held"}, "submitted": {"in_progress", "held", "failed", "cancelled"}, "in_progress": {"completed", "expired", "failed", "cancelled", "held"}, "completed": set(), "expired": set(), "failed": set(), "cancelled": set(), "held": set()}
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown delivery job")
+            if row["status"] != status and status not in allowed[row["status"]]:
+                raise InvalidTransitionError(f"cannot transition delivery job {row['status']} to {status}")
+            conn.execute("UPDATE delivery_jobs SET status=?, provider_batch_id=COALESCE(?,provider_batch_id), submitted_at=CASE WHEN ?='submitted' THEN ? ELSE submitted_at END, completed_at=CASE WHEN ? IN ('completed','expired','failed','cancelled','held') THEN ? ELSE completed_at END, updated_at=? WHERE delivery_job_id=?", (status,provider_batch_id,status,when,status,when,when,delivery_job_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
+
+    def create_provider_request_item(self, *, provider_request_item_id: str, run_id: str, model_task_id: str, provider_id: str, model_route: str, requested_delivery_mode: str, effective_service_tier: str, now: datetime | str, delivery_job_id: str | None = None, physical_attempt_id: str | None = None) -> dict[str, Any]:
+        if requested_delivery_mode not in {"batch", "flex", "standard"} or effective_service_tier not in {"batch", "flex", "standard"}:
+            raise CatalogError("unknown request item delivery mode")
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
+            if existing:
+                return dict(existing)
+            task = conn.execute("SELECT run_id FROM tasks WHERE model_task_id=?", (model_task_id,)).fetchone()
+            if task is None or task["run_id"] != run_id:
+                raise ConflictError("provider request item task must belong to its run")
+            if delivery_job_id and conn.execute("SELECT 1 FROM delivery_jobs WHERE delivery_job_id=? AND run_id=?", (delivery_job_id,run_id)).fetchone() is None:
+                raise ConflictError("provider request item delivery job must belong to its run")
+            conn.execute("INSERT INTO provider_request_items(provider_request_item_id,run_id,model_task_id,physical_attempt_id,delivery_job_id,provider_id,model_route,requested_delivery_mode,effective_service_tier,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,'prepared',?,?)", (provider_request_item_id,run_id,model_task_id,physical_attempt_id,delivery_job_id,provider_id,model_route,requested_delivery_mode,effective_service_tier,when,when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone())
+
+    def transition_provider_request_item(self, provider_request_item_id: str, status: str, *, now: datetime | str, provider_request_id: str | None = None, provider_receipt_id: str | None = None, result_ref: str | None = None, usage: Any | None = None) -> dict[str, Any]:
+        allowed = {"prepared": {"submitted", "send_ambiguous", "cancelled"}, "submitted": {"in_progress", "send_ambiguous", "failed", "cancelled"}, "in_progress": {"completed", "failed", "expired", "held"}, "send_ambiguous": {"completed", "held"}, "completed": set(), "failed": set(), "expired": set(), "cancelled": set(), "held": set()}
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown provider request item")
+            if row["status"] != status and status not in allowed[row["status"]]:
+                raise InvalidTransitionError(f"cannot transition provider request item {row['status']} to {status}")
+            conn.execute("UPDATE provider_request_items SET status=?, provider_request_id=COALESCE(?,provider_request_id), provider_receipt_id=COALESCE(?,provider_receipt_id), result_ref=COALESCE(?,result_ref), usage_json=COALESCE(?,usage_json), updated_at=? WHERE provider_request_item_id=?", (status,provider_request_id,provider_receipt_id,result_ref,json.dumps(_dump(usage),sort_keys=True) if usage is not None else None,when,provider_request_item_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone())
+
+    def list_provider_request_items(self, run_id: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            return [dict(row) for row in conn.execute("SELECT * FROM provider_request_items WHERE run_id=? ORDER BY provider_request_item_id", (run_id,)).fetchall()]
+
+    def get_delivery_job(self, delivery_job_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
+
+    def list_delivery_jobs(self, run_id: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            return [dict(row) for row in conn.execute("SELECT * FROM delivery_jobs WHERE run_id=? ORDER BY delivery_job_id", (run_id,)).fetchall()]
