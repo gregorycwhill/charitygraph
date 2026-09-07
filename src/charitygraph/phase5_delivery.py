@@ -11,6 +11,7 @@ from decimal import Decimal
 from typing import Any, Iterable
 
 from .contracts.ids import deterministic_id
+from .phase5_factory_chaos import scenario_for
 
 DELIVERY_MODES = ("batch", "flex", "standard")
 
@@ -129,6 +130,16 @@ def build_delivery_plan(tasks: Iterable[dict[str, Any]], *, pricing: PricingSnap
             for item in members:
                 jobs.append(DeliveryJob(deterministic_id("deliveryjob:", {"mode": mode, "items": [item.request_item_id]}), mode, provider, route, (item.request_item_id,)))
     return DeliveryPlan(tuple(items), tuple(jobs), deterministic, pricing)
+
+
+def delivery_chaos_populations(plan: DeliveryPlan) -> dict[str, tuple[ProviderRequestItem, ...]]:
+    """Select every transport-level item deterministically; never a smoke sample."""
+    populations: dict[str, list[ProviderRequestItem]] = defaultdict(list)
+    for item in plan.request_items:
+        scenario = scenario_for("physical:" + item.request_item_id.split(":", 1)[1])
+        if scenario is not None:
+            populations[scenario].append(item)
+    return {scenario: tuple(sorted(items, key=lambda item: item.request_item_id)) for scenario, items in sorted(populations.items())}
 
 
 class FakeDeliveryAdapter:

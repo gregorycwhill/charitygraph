@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import datetime, timezone
 
-from charitygraph.phase5_delivery import DeliveryJob, FakeDeliveryAdapter, PricingSnapshot, application_bundle_compatible, build_delivery_plan, select_delivery_mode
+from charitygraph.phase5_delivery import DeliveryJob, FakeDeliveryAdapter, PricingSnapshot, application_bundle_compatible, build_delivery_plan, delivery_chaos_populations, select_delivery_mode
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.runtime import SQLiteCatalog
 
@@ -34,6 +34,12 @@ def test_batch_is_many_independent_items_and_exact_economics() -> None:
     assert len(plan.delivery_jobs) == 1 and len(plan.delivery_jobs[0].request_item_ids) == 3
     assert plan.economics()["all_standard"] == Decimal("0.006000")
     assert plan.economics()["selected"] == Decimal("0.001500")
+
+
+def test_delivery_chaos_selection_returns_full_deterministic_populations() -> None:
+    plan=build_delivery_plan([_task(str(index)) for index in range(200)])
+    first=delivery_chaos_populations(plan); second=delivery_chaos_populations(plan)
+    assert first == second and sum(len(items) for items in first.values()) > 1
 
 
 def _catalogue(tmp_path):
