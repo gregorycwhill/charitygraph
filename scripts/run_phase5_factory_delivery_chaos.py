@@ -1,4 +1,4 @@
-"""Execute fake transport-level C1--C6 populations over the planned request items."""
+    """Materialise fake transport-level C1--C6 work populations for execution."""
 from __future__ import annotations
 
 import argparse
@@ -16,15 +16,11 @@ def main() -> int:
     logical = json.loads(args.manifest.read_text(encoding="utf-8"))
     plan = build_delivery_plan(logical)
     populations = delivery_chaos_populations(plan)
-    # Each transport-level injection is independently recovered fake-only.
-    # C1/C3 are safe restart boundaries; C2 requires an explicit reconciliation;
-    # C4/C6 terminalise one item and C5 holds one item, so their dispositions
-    # report rather than mask the injected truth.
     report = {"logical_tasks": len(logical), "provider_request_items": len(plan.request_items), "network_calls": 0, "provider_calls": 0, "semantic_knowledge_production": 0, "scenarios": {}}
     for scenario, items in populations.items():
         count = len(items)
         disposition = "succeeded" if scenario in {"C1_pre_send", "C2_send_ambiguous", "C3_receipt_restart"} else ("held" if scenario == "C5_grounding" else "failed")
-        report["scenarios"][scenario] = {"selected": count, "executed": count, "automatic_resends": 0, "explicit_reconciliations": count if scenario == "C2_send_ambiguous" else 0, "run_disposition": disposition, "request_item_ids": [item.request_item_id for item in items]}
+        report["scenarios"][scenario] = {"selected": count, "execution_status": "planned", "automatic_resends": 0, "required_explicit_reconciliations": count if scenario == "C2_send_ambiguous" else 0, "expected_run_disposition": disposition, "request_item_ids": [item.request_item_id for item in items]}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({key: value["selected"] for key, value in report["scenarios"].items()}, sort_keys=True))
