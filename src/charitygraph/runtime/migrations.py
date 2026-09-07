@@ -627,6 +627,44 @@ CREATE TABLE provider_receipts (
 );
 """.strip() + "\n"
 
+CATALOGUE_SQL_V11 = """
+CREATE TABLE delivery_jobs (
+    delivery_job_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    provider_id TEXT NOT NULL,
+    model_route TEXT NOT NULL,
+    delivery_mode TEXT NOT NULL CHECK(delivery_mode IN ('batch','flex','standard')),
+    provider_batch_id TEXT UNIQUE,
+    status TEXT NOT NULL CHECK(status IN ('prepared','submitted','in_progress','completed','expired','cancelled','failed','held')),
+    pricing_snapshot_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    submitted_at TEXT,
+    completed_at TEXT,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE provider_request_items (
+    provider_request_item_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    physical_attempt_id TEXT REFERENCES physical_attempts(physical_attempt_id),
+    delivery_job_id TEXT REFERENCES delivery_jobs(delivery_job_id),
+    provider_id TEXT NOT NULL,
+    model_route TEXT NOT NULL,
+    requested_delivery_mode TEXT NOT NULL CHECK(requested_delivery_mode IN ('batch','flex','standard')),
+    effective_service_tier TEXT NOT NULL CHECK(effective_service_tier IN ('batch','flex','standard')),
+    status TEXT NOT NULL CHECK(status IN ('prepared','submitted','in_progress','send_ambiguous','completed','failed','expired','cancelled','held')),
+    provider_request_id TEXT UNIQUE,
+    provider_receipt_id TEXT UNIQUE,
+    result_ref TEXT,
+    usage_json TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(run_id, model_task_id)
+);
+CREATE INDEX provider_request_items_job_idx ON provider_request_items(delivery_job_id, status);
+CREATE INDEX provider_request_items_task_idx ON provider_request_items(model_task_id);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -638,6 +676,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(8, "durable_semantic_measurement_authorizations", CATALOGUE_SQL_V8),
     Migration(9, "structured_relationship_roles", CATALOGUE_SQL_V9),
     Migration(10, "physical_factory_attempts", CATALOGUE_SQL_V10),
+    Migration(11, "provider_delivery_jobs_and_request_items", CATALOGUE_SQL_V11),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
