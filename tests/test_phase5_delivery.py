@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import datetime, timezone
 
-from charitygraph.phase5_delivery import DELIVERY_CHAOS_SCENARIOS, DeliveryJob, FakeDeliveryAdapter, PricingSnapshot, application_bundle_compatible, build_delivery_plan, delivery_chaos_populations, select_delivery_mode
+from charitygraph.phase5_delivery import DELIVERY_CHAOS_SCENARIOS, DeliveryJob, FakeDeliveryAdapter, PricingSnapshot, ProviderRequestItem, application_bundle_compatible, build_delivery_plan, delivery_chaos_populations, select_delivery_mode
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.runtime import SQLiteCatalog
 
@@ -102,3 +102,22 @@ def test_flex_and_standard_remain_individual_delivery_jobs(tmp_path) -> None:
         catalog.create_delivery_job(delivery_job_id=job,run_id=run,provider_id="fake",model_route="test",delivery_mode=mode,pricing_snapshot_id="pricing:test",now=now)
         catalog.create_provider_request_item(provider_request_item_id=item,run_id=run,model_task_id=task,provider_id="fake",model_route="test",requested_delivery_mode=mode,effective_service_tier=mode,delivery_job_id=job,now=now)
         assert catalog.get_delivery_job(job)["delivery_mode"] == mode
+
+
+def test_flex_recovery_is_explicit_and_never_resends(tmp_path) -> None:
+    catalog, run, task, now = _catalogue(tmp_path / "flex-recovery")
+    job = "deliveryjob:" + "c" * 64; item_id = "requestitem:" + "d" * 64
+    item = ProviderRequestItem(item_id, ("logical:flex",), "subject:" + "1" * 32, "fake", "test", "flex", "flex")
+    job_model = DeliveryJob(job, "flex", "fake", "test", (item_id,))
+    catalog.create_delivery_job(delivery_job_id=job, run_id=run, provider_id="fake", model_route="test", delivery_mode="flex", pricing_snapshot_id="pricing:test", now=now)
+    catalog.create_provider_request_item(provider_request_item_id=item_id, run_id=run, model_task_id=task, provider_id="fake", model_route="test", requested_delivery_mode="flex", effective_service_tier="flex", delivery_job_id=job, now=now)
+    catalog.transition_delivery_job(job, "submitted", now=now); catalog.transition_delivery_job(job, "in_progress", now=now)
+    request = "fake-flex-request:one"
+    catalog.transition_provider_request_item(item_id, "submitted", now=now, provider_request_id=request)
+    catalog.transition_provider_request_item(item_id, "send_ambiguous", now=now)
+    adapter = FakeDeliveryAdapter()
+    ambiguous = adapter.reconcile_individual(SQLiteCatalog(tmp_path / "flex-recovery" / "delivery.sqlite3").open(initialize=False), job_model, item)
+    assert ambiguous["status"] == "send_ambiguous" and ambiguous["provider_request_id"] == request
+    catalog.transition_provider_request_item(item_id, "held", now=now)
+    held = adapter.reconcile_individual(catalog, job_model, item)
+    assert held["status"] == "held" and held["provider_request_id"] == request and held["provider_receipt_id"] is None

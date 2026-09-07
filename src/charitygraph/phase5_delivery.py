@@ -180,3 +180,13 @@ class FakeDeliveryAdapter:
             raise RuntimeError("fake provider has no durable batch job to reconcile")
         items = [item for item in catalog.list_provider_request_items(stored["run_id"]) if item["delivery_job_id"] == job.delivery_job_id]
         return {"delivery_job_id": job.delivery_job_id, "provider_batch_id": stored["provider_batch_id"], "status": stored["status"], "items": tuple({"request_item_id": item["provider_request_item_id"], "status": item["status"], "provider_request_id": item["provider_request_id"], "provider_receipt_id": item["provider_receipt_id"]} for item in items)}
+
+    def reconcile_individual(self, catalog: Any, job: DeliveryJob, item: ProviderRequestItem) -> dict[str, Any]:
+        """Read the durable Flex/Standard request state; never resend it."""
+        stored_job = catalog.get_delivery_job(job.delivery_job_id)
+        if stored_job is None:
+            raise RuntimeError("fake provider has no durable individual job to reconcile")
+        stored = next((row for row in catalog.list_provider_request_items(stored_job["run_id"]) if row["provider_request_item_id"] == item.request_item_id), None)
+        if stored is None:
+            raise RuntimeError("fake provider has no durable individual request to reconcile")
+        return {"delivery_job_id": job.delivery_job_id, "request_item_id": item.request_item_id, "status": stored["status"], "provider_request_id": stored["provider_request_id"], "provider_receipt_id": stored["provider_receipt_id"]}
