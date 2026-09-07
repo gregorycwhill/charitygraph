@@ -92,7 +92,6 @@ def run_reference(manifest: Path, runtime_root: Path, *, scenario: str | None = 
                 continue
             receipt = receipt_for(item)
             catalog.transition_provider_request_item(item.request_item_id, "submitted", now=now, provider_request_id=receipt.request_id)
-            catalog.transition_provider_request_item(item.request_item_id, "in_progress", now=now)
             if faulted and scenario == "C2_send_ambiguous":
                 # The provider identity and send boundary are durable, but no
                 # receipt exists.  Recovery is reconciliation, never resend.
@@ -100,6 +99,7 @@ def run_reference(manifest: Path, runtime_root: Path, *, scenario: str | None = 
                 catalog.transition_provider_request_item(item.request_item_id, "send_ambiguous", now=now)
                 deferred[item.request_item_id] = (item, job, task)
                 continue
+            catalog.transition_provider_request_item(item.request_item_id, "in_progress", now=now)
             package, _ = persist_receipt(item, job, task, receipt)
             if faulted and scenario == "C3_receipt_restart":
                 deferred[item.request_item_id] = (item, job, task)
