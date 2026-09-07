@@ -9,6 +9,7 @@ from charitygraph.phase5_semantic_contracts import (
     REGISTRY,
     executable_contract_for,
     provider_request_identity,
+    provider_wire_fingerprint,
     resolve_contract,
     resolve_result_adapter,
     validate_relationship_output,
@@ -44,6 +45,21 @@ def test_semantic_contract_identity_does_not_use_provider_alias() -> None:
     assert contract.provider_schema_name == "program_service_discovery_v2"
     assert contract.schema_id == "urn:charitygraph:builder:schema:program-service-discovery-output:2.0"
     assert contract.identity_hash() == replace(contract, provider_schema_name="another_safe_alias").identity_hash()
+
+
+def test_provider_wire_identity_is_stable_and_tracks_provider_significant_material() -> None:
+    contract = next(c for c in REGISTRY if c.task_profile == "program_service_discovery")
+    task = _task("program_service_discovery", "program-service-discovery-v2")
+    kwargs = dict(model="gpt-5.6-luna", reasoning_effort="low", service_tier="batch", provider_schema_name="program_service_discovery_v2", schema_hash="a" * 64, max_output_tokens=8000)
+    first = provider_wire_fingerprint(task, contract, **kwargs)
+    assert first == provider_wire_fingerprint(task, contract, **kwargs)
+    assert first != provider_wire_fingerprint(task, contract, **{**kwargs, "provider_schema_name": "2.0"})
+    assert first != provider_wire_fingerprint(task, contract, **{**kwargs, "max_output_tokens": 4000})
+    assert first != provider_wire_fingerprint(task, contract, **{**kwargs, "schema_hash": "b" * 64})
+    changed_prompt = replace(contract, prompt_template=contract.prompt_template + "\nchanged")
+    assert first != provider_wire_fingerprint(task, changed_prompt, **kwargs)
+    request_id = provider_request_identity(task, contract, evidence_ids=(), **kwargs)
+    assert request_id == "requestitem:" + first
 
 
 def _task(profile: str, family: str, version: str = "1") -> dict:

@@ -103,7 +103,8 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
     if not contract.provider_schema_name:
         raise ValueError(f"contract {contract.contract_id} has no explicit provider schema name")
     schema_name = validate_provider_schema_name(contract.provider_schema_name)
-    request_item_id = provider_request_identity(task, contract, model=model, service_tier=service_tier, evidence_ids=evidence_ids, max_output_tokens=DISCOVERY_MAX_OUTPUT_TOKENS)
+    schema_hash = contract.schema_hash_for_evidence(evidence_ids)
+    request_item_id = provider_request_identity(task, contract, model=model, reasoning_effort=effort, service_tier=service_tier, provider_schema_name=schema_name, schema_hash=schema_hash, evidence_ids=evidence_ids, max_output_tokens=DISCOVERY_MAX_OUTPUT_TOKENS)
     prompt = render_packet_prompt(packet, contract)
     evidence_bindings = [
         {

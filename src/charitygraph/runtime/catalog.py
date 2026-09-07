@@ -2253,6 +2253,20 @@ class SQLiteCatalog:
         with self._connection(immediate=True) as conn:
             existing = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
             if existing:
+                conflicts = {
+                    "run_id": run_id,
+                    "model_task_id": model_task_id,
+                    "provider_id": provider_id,
+                    "model_route": model_route,
+                    "requested_delivery_mode": requested_delivery_mode,
+                    "effective_service_tier": effective_service_tier,
+                }
+                if delivery_job_id is not None:
+                    conflicts["delivery_job_id"] = delivery_job_id
+                if physical_attempt_id is not None:
+                    conflicts["physical_attempt_id"] = physical_attempt_id
+                if any(existing[key] != value for key, value in conflicts.items()):
+                    raise ConflictError("provider request item identity conflicts with its durable material attributes")
                 return dict(existing)
             task = conn.execute("SELECT run_id FROM tasks WHERE model_task_id=?", (model_task_id,)).fetchone()
             if task is None or task["run_id"] != run_id:

@@ -78,6 +78,7 @@ def test_packet_materializes_bytes_and_prompt_from_content_addressed_store(tmp_p
     assert request.body["max_output_tokens"] == 8000
     assert request.schema_name == "program_service_discovery_v2"
     assert request.body["text"]["format"]["name"] == "program_service_discovery_v2"
+    assert request.provider_request_item_id == "requestitem:1218c05d09ad73b49c8bc22388cff699ff09f70e3fcf31327a1c4928374ea0bd"
 
 
 def test_packet_fails_closed_for_missing_retained_artifact(tmp_path):

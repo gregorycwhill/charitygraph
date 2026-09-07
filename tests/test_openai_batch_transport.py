@@ -4,7 +4,7 @@ from decimal import Decimal
 import pytest
 
 from charitygraph.openai_batch_transport import BatchAuthorization, BatchSubmissionAmbiguous, OpenAIBatchTransport
-from charitygraph.runtime import SQLiteCatalog
+from charitygraph.runtime import ConflictError, SQLiteCatalog
 
 
 NOW = datetime(2026, 1, 1, tzinfo=timezone.utc)
@@ -94,3 +94,9 @@ def test_ambiguous_create_persists_boundary_and_forbids_resend(tmp_path):
     with pytest.raises(BatchSubmissionAmbiguous):
         transport.submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[{"provider_request_item_id": item, "status": "prepared", "model": "gpt-5.6-luna"}], jsonl=b'{}\n', authorization=_auth(run), now=NOW)
     assert len(client.calls) == calls
+
+
+def test_request_item_identity_conflict_fails_closed(tmp_path):
+    catalog, run, job, item, attempt = _catalogue(tmp_path)
+    with pytest.raises(ConflictError, match="identity conflicts"):
+        catalog.create_provider_request_item(provider_request_item_id=item, run_id=run, model_task_id="modeltask:" + "d" * 64, provider_id="openai", model_route="gpt-5.6-terra", requested_delivery_mode="batch", effective_service_tier="batch", delivery_job_id=job, physical_attempt_id=attempt, now=NOW)

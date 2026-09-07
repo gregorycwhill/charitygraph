@@ -330,9 +330,61 @@ def validate_relationship_output(output: dict[str, Any], *, allowed_scope_ids: s
         validate_evidence_refs(relationship.get("evidence_refs", []), allowed_evidence_ids)
 
 
-def provider_request_identity(task: dict[str, Any], contract: SemanticContract, *, model: str, service_tier: str, evidence_ids: tuple[str, ...] = (), max_output_tokens: int = 8000) -> str:
-    payload = {"logical_task_id": task["logical_task_id"], "model": model, "service_tier": service_tier, "max_output_tokens": max_output_tokens, "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract_hash": contract.identity_hash(evidence_ids)}
-    return "requestitem:" + sha256_json(payload)
+def provider_wire_fingerprint(
+    task: dict[str, Any],
+    contract: SemanticContract,
+    *,
+    model: str,
+    reasoning_effort: str,
+    service_tier: str,
+    provider_schema_name: str,
+    schema_hash: str,
+    evidence_ids: tuple[str, ...] = (),
+    max_output_tokens: int = 8000,
+    endpoint: str = "/v1/responses",
+) -> str:
+    """Hash stable provider-significant material before per-attempt fields exist."""
+    payload = {
+        "logical_task_id": task["logical_task_id"],
+        "semantic_contract_hash": contract.identity_hash(evidence_ids),
+        "evidence_corpus_hash": task["evidence_corpus_hash"],
+        "model": model,
+        "reasoning_effort": reasoning_effort,
+        "service_tier": service_tier,
+        "provider_schema_name": provider_schema_name,
+        "structured_schema_hash": schema_hash,
+        "max_output_tokens": max_output_tokens,
+        "endpoint": endpoint,
+        "store": False,
+    }
+    return sha256_json(payload)
 
 
-__all__ = ["SemanticContract", "REGISTRY", "build_registry", "resolve_contract", "executable_contract_for", "resolve_result_adapter", "registry_rows", "provider_request_identity", "validate_evidence_refs", "validate_taxonomy_output", "validate_relationship_output", "sha256_text", "sha256_json", "PROMPT_TEMPLATE_VERSION_V2"]
+def provider_request_identity(
+    task: dict[str, Any],
+    contract: SemanticContract,
+    *,
+    model: str,
+    service_tier: str,
+    evidence_ids: tuple[str, ...] = (),
+    max_output_tokens: int = 8000,
+    reasoning_effort: str = "unspecified",
+    provider_schema_name: str = "unspecified",
+    schema_hash: str | None = None,
+) -> str:
+    """Derive the request item from stable wire material, never from its own body."""
+    fingerprint = provider_wire_fingerprint(
+        task,
+        contract,
+        model=model,
+        reasoning_effort=reasoning_effort,
+        service_tier=service_tier,
+        provider_schema_name=provider_schema_name,
+        schema_hash=schema_hash or contract.schema_hash_for_evidence(evidence_ids),
+        evidence_ids=evidence_ids,
+        max_output_tokens=max_output_tokens,
+    )
+    return "requestitem:" + fingerprint
+
+
+__all__ = ["SemanticContract", "REGISTRY", "build_registry", "resolve_contract", "executable_contract_for", "resolve_result_adapter", "registry_rows", "provider_wire_fingerprint", "provider_request_identity", "validate_evidence_refs", "validate_taxonomy_output", "validate_relationship_output", "sha256_text", "sha256_json", "PROMPT_TEMPLATE_VERSION_V2"]
