@@ -153,7 +153,7 @@ class OpenAIBatchTransport:
         catalog: Any,
         *,
         delivery_job_id: str,
-        physical_attempt_id: str,
+        physical_attempt_id: str | None = None,
         request_items: Sequence[dict[str, Any]],
         jsonl: bytes,
         authorization: BatchAuthorization,
@@ -172,10 +172,18 @@ class OpenAIBatchTransport:
         if len(models) != 1:
             raise BatchTransportError("a Batch job must have one model route")
         authorization.assert_allowed(run_id=str(job["run_id"]), model=next(iter(models)))
-        attempt = catalog.get_physical_attempt(physical_attempt_id)
-        if attempt is None or attempt["status"] != "prepared" or attempt.get("reservation_id") is None:
-            raise BatchTransportError("a reserved prepared physical attempt is required before provider operation")
-        catalog.mark_physical_send_started(physical_attempt_id, now=now)
+        item_ids = tuple(str(item["provider_request_item_id"]) for item in request_items)
+        if any(item.get("delivery_job_id") != delivery_job_id or not item.get("physical_attempt_id") for item in request_items):
+            raise BatchTransportError("every Batch request item must carry its delivery job and physical attempt")
+        durable_items = {item["provider_request_item_id"]: item for item in catalog.list_provider_request_items(str(job["run_id"])) if item.get("delivery_job_id") == delivery_job_id}
+        if any(item_ids[index] not in durable_items or durable_items[item_ids[index]].get("physical_attempt_id") != request_items[index].get("physical_attempt_id") for index in range(len(request_items))):
+            raise BatchTransportError("Batch request item physical-attempt mapping conflicts with durable state")
+        if physical_attempt_id is not None and len(request_items) == 1 and physical_attempt_id != request_items[0]["physical_attempt_id"]:
+            raise BatchTransportError("explicit physical attempt does not match the request item")
+        try:
+            catalog.mark_delivery_physical_attempts_send_started(delivery_job_id, item_ids, now=now)
+        except Exception as exc:
+            raise BatchTransportError("Batch physical-attempt cohort is not ready for send") from exc
         try:
             input_file_id = self.client.upload_batch_file(jsonl, purpose="batch")
         except Exception as exc:
@@ -190,6 +198,7 @@ class OpenAIBatchTransport:
         if not batch_id:
             raise BatchSubmissionAmbiguous("Batch creation returned no provider Batch ID")
         catalog.transition_delivery_job(delivery_job_id, "submitted", now=now, provider_batch_id=batch_id)
+        catalog.bind_delivery_physical_attempts_batch(delivery_job_id, batch_id, now=now)
         for item in request_items:
             catalog.transition_provider_request_item(item["provider_request_item_id"], "submitted", now=now, provider_request_id=item["provider_request_item_id"])
         return {"delivery_job_id": delivery_job_id, "provider_input_file_id": input_file_id, "provider_batch_id": batch_id, "submitted_items": len(request_items)}
@@ -236,8 +245,14 @@ class OpenAIBatchTransport:
                 if parsed["status"] == "completed":
                     receipt = f"batchreceipt:{job['provider_batch_id']}:{item_id.split(':', 1)[-1]}"
                     ref = "batch-result:" + hashlib.sha256(json.dumps(row, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+                    physical_id = current.get("physical_attempt_id")
+                    if physical_id:
+                        catalog.persist_provider_receipt(physical_attempt_id=physical_id, provider_receipt_id=receipt, raw_result_ref=ref, usage=parsed.get("usage") or {}, now=now)
                     catalog.transition_provider_request_item(item_id, "completed", now=now, provider_request_id=parsed.get("provider_request_id"), provider_receipt_id=receipt, result_ref=ref, usage=parsed.get("usage"))
                 else:
+                    physical_id = current.get("physical_attempt_id")
+                    if physical_id:
+                        catalog.mark_physical_failed(physical_id, now=now)
                     catalog.transition_provider_request_item(item_id, "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
         if job.get("provider_error_file_id"):
             try:
@@ -253,6 +268,9 @@ class OpenAIBatchTransport:
                 if current["status"] not in terminal_items:
                     if current["status"] == "submitted":
                         catalog.transition_provider_request_item(item_id, "in_progress", now=now)
+                    physical_id = current.get("physical_attempt_id")
+                    if physical_id:
+                        catalog.mark_physical_failed(physical_id, now=now)
                     catalog.transition_provider_request_item(item_id, "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
         refreshed = [item for item in catalog.list_provider_request_items(job["run_id"]) if item.get("delivery_job_id") == delivery_job_id]
         statuses = {item["status"] for item in refreshed}

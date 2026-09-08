@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+import json
 
 import pytest
 
-from charitygraph.openai_batch_transport import BatchAuthorization, BatchSubmissionAmbiguous, OpenAIBatchTransport
+from charitygraph.openai_batch_transport import BatchAuthorization, BatchSubmissionAmbiguous, BatchTransportError, OpenAIBatchTransport
 from charitygraph.runtime import ConflictError, SQLiteCatalog
 
 
@@ -34,6 +35,16 @@ class MockBatchClient:
         return b'{"custom_id":"requestitem:two","error":null,"response":{"status_code":200,"request_id":"req:one","body":{"id":"resp:one","status":"completed","usage":{"input_tokens":3,"output_tokens":2}}}}\n'
 
 
+class MultiItemBatchClient(MockBatchClient):
+    def __init__(self, rows):
+        super().__init__()
+        self.rows = rows
+
+    def retrieve_file_content(self, file_id):
+        self.calls.append(("file", file_id))
+        return b"".join((json.dumps(row, separators=(",", ":")).encode() + b"\n") for row in self.rows)
+
+
 def _catalogue(tmp_path):
     catalog = SQLiteCatalog(tmp_path / "runtime.sqlite3").open(initialize=True)
     cohort = "cohort:" + "a" * 32
@@ -57,20 +68,24 @@ def _auth(run):
     return BatchAuthorization(run, "plan:" + "a" * 64, "packet:" + "b" * 64, "pricing:test", "gpt-5.6-luna", Decimal("0.01"), Decimal("0.02"), Decimal("0.10"), Decimal("0.20"), real_provider_enabled=True)
 
 
+def _item(item, job, attempt, model="gpt-5.6-luna"):
+    return {"provider_request_item_id": item, "status": "prepared", "model": model, "delivery_job_id": job, "physical_attempt_id": attempt}
+
+
 def test_default_deny_happens_before_any_provider_operation(tmp_path):
     catalog, run, job, item, attempt = _catalogue(tmp_path)
     client = MockBatchClient()
     auth = _auth(run)
     auth = BatchAuthorization(**{**auth.__dict__, "real_provider_enabled": False})
     with pytest.raises(PermissionError):
-        OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[{"provider_request_item_id": item, "status": "prepared", "model": "gpt-5.6-luna"}], jsonl=b"{}\n", authorization=auth, now=NOW)
+        OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b"{}\n", authorization=auth, now=NOW)
     assert client.calls == []
 
 
 def test_batch_lifecycle_persists_file_and_batch_ids_and_reconciles_items(tmp_path):
     catalog, run, job, item, attempt = _catalogue(tmp_path)
     client = MockBatchClient()
-    result = OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[{"provider_request_item_id": item, "status": "prepared", "model": "gpt-5.6-luna"}], jsonl=b'{"custom_id":"requestitem:two"}\n', authorization=_auth(run), now=NOW)
+    result = OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b'{"custom_id":"requestitem:two"}\n', authorization=_auth(run), now=NOW)
     assert result["provider_batch_id"] == "batch:one"
     stored = catalog.get_delivery_job(job)
     assert stored["provider_input_file_id"] == "file-input:one" and stored["provider_batch_id"] == "batch:one"
@@ -78,6 +93,8 @@ def test_batch_lifecycle_persists_file_and_batch_ids_and_reconciles_items(tmp_pa
     assert reconciled.provider_status == "completed" and reconciled.output_retrieved is True
     assert reconciled.item_statuses[0]["status"] == "completed"
     assert reconciled.item_statuses[0]["provider_request_id"] == "req:one"
+    assert catalog.get_physical_attempt(attempt)["status"] == "receipt_persisted"
+    assert catalog.get_physical_receipt(attempt)["provider_request_id"] == item
     call_count = len(client.calls)
     again = OpenAIBatchTransport(client).reconcile_batch(catalog, delivery_job_id=job, now=NOW)
     assert again.provider_status == "completed" and len(client.calls) == call_count
@@ -88,12 +105,12 @@ def test_ambiguous_create_persists_boundary_and_forbids_resend(tmp_path):
     client = MockBatchClient(fail_create=True)
     transport = OpenAIBatchTransport(client)
     with pytest.raises(BatchSubmissionAmbiguous):
-        transport.submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[{"provider_request_item_id": item, "status": "prepared", "model": "gpt-5.6-luna"}], jsonl=b'{}\n', authorization=_auth(run), now=NOW)
+        transport.submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b'{}\n', authorization=_auth(run), now=NOW)
     assert catalog.get_delivery_job(job)["provider_input_file_id"] == "file-input:one"
     assert catalog.get_physical_attempt(attempt)["status"] == "send_started"
     calls = len(client.calls)
     with pytest.raises(BatchSubmissionAmbiguous):
-        transport.submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[{"provider_request_item_id": item, "status": "prepared", "model": "gpt-5.6-luna"}], jsonl=b'{}\n', authorization=_auth(run), now=NOW)
+        transport.submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b'{}\n', authorization=_auth(run), now=NOW)
     assert len(client.calls) == calls
 
 
@@ -101,3 +118,39 @@ def test_request_item_identity_conflict_fails_closed(tmp_path):
     catalog, run, job, item, attempt = _catalogue(tmp_path)
     with pytest.raises(ConflictError, match="identity conflicts"):
         catalog.create_provider_request_item(provider_request_item_id=item, run_id=run, model_task_id="modeltask:" + "d" * 64, provider_id="openai", model_route="gpt-5.6-terra", requested_delivery_mode="batch", effective_service_tier="batch", delivery_job_id=job, physical_attempt_id=attempt, now=NOW)
+
+
+def test_multi_subject_batch_has_one_job_six_style_attempts_and_mixed_item_outcomes(tmp_path):
+    catalog, run, job, first_item, first_attempt = _catalogue(tmp_path)
+    cohort = "cohort:" + "a" * 32
+    second_task = "modeltask:" + "d" * 64
+    second_item = "requestitem:three"
+    second_attempt = "physical:" + "4" * 64
+    second_reservation = "reservation:" + "2" * 32
+    catalog.register_task({"record_id": second_task, "subject_id": "subject:" + "2" * 32, "cohort_id": cohort, "task_type": "semantic_interpretation", "task_schema": {"schema_id": "urn:test"}, "cache_key": "1" * 64, "provider_id": "openai", "model_snapshot": "gpt-5.6-luna"}, run_id=run, now=NOW)
+    catalog.reserve_cost({"record_id": second_reservation, "cohort_id": cohort, "run_id": run, "reserved_aud": {"amount": "1", "currency": "AUD"}, "model_task_ids": (second_task,)}, now=NOW)
+    catalog.prepare_physical_attempt(physical_attempt_id=second_attempt, run_id=run, subject_id="subject:" + "2" * 32, delivery_mode="batch", provider_request_id=second_item, model_task_ids=(second_task,), reservation_id=second_reservation, now=NOW)
+    catalog.create_provider_request_item(provider_request_item_id=second_item, run_id=run, model_task_id=second_task, provider_id="openai", model_route="gpt-5.6-luna", requested_delivery_mode="batch", effective_service_tier="batch", delivery_job_id=job, physical_attempt_id=second_attempt, now=NOW)
+    client = MultiItemBatchClient([
+        {"custom_id": first_item, "error": None, "response": {"status_code": 200, "request_id": "req:first", "body": {"id": "resp:first", "status": "completed", "usage": {"input_tokens": 3, "output_tokens": 2}}}},
+        {"custom_id": second_item, "error": {"code": "request_timeout", "message": "timed out"}, "response": None},
+    ])
+    request_items = [_item(first_item, job, first_attempt), _item(second_item, job, second_attempt)]
+    result = OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, request_items=request_items, jsonl=b"{}\n{}\n", authorization=_auth(run), now=NOW)
+    assert result["submitted_items"] == 2
+    assert {catalog.get_physical_attempt(value)["provider_batch_id"] for value in (first_attempt, second_attempt)} == {"batch:one"}
+    reconciled = OpenAIBatchTransport(client).reconcile_batch(catalog, delivery_job_id=job, now=NOW)
+    statuses = {row["provider_request_item_id"]: row["status"] for row in reconciled.item_statuses}
+    assert statuses == {first_item: "completed", second_item: "failed"}
+    assert catalog.get_physical_attempt(first_attempt)["status"] == "receipt_persisted"
+    assert catalog.get_physical_attempt(second_attempt)["status"] == "failed"
+
+
+def test_batch_send_start_is_cohort_atomic_before_upload(tmp_path):
+    catalog, run, job, item, attempt = _catalogue(tmp_path)
+    client = MockBatchClient()
+    bad = _item(item, job, "physical:missing")
+    with pytest.raises(BatchTransportError):
+        OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, request_items=[bad], jsonl=b"{}\n", authorization=_auth(run), now=NOW)
+    assert client.calls == []
+    assert catalog.get_physical_attempt(attempt)["status"] == "prepared"

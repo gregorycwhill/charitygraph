@@ -2166,6 +2166,21 @@ class SQLiteCatalog:
             conn.execute("UPDATE physical_attempts SET status='receipt_persisted',receipt_persisted_at=?,updated_at=? WHERE physical_attempt_id=?",(when,when,physical_attempt_id)); self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())
 
+    def mark_physical_failed(self, physical_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
+        """Close a physical attempt when its provider item has a terminal failure."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown physical attempt")
+            if row["status"] == "failed":
+                return dict(row)
+            if row["status"] != "send_started":
+                raise InvalidTransitionError("only send_started physical attempts can fail")
+            conn.execute("UPDATE physical_attempts SET status='failed', updated_at=? WHERE physical_attempt_id=?", (when, physical_attempt_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
     def get_provider_receipt(self, provider_receipt_id: str) -> dict[str, Any] | None:
         with self._connection() as conn:
             return _row(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())
@@ -2193,6 +2208,67 @@ class SQLiteCatalog:
             conn.execute("UPDATE physical_attempts SET status='validated', updated_at=? WHERE physical_attempt_id=?", (when, physical_attempt_id))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def mark_delivery_physical_attempts_send_started(self, delivery_job_id: str, request_item_ids: tuple[str, ...], *, now: datetime | str) -> list[dict[str, Any]]:
+        """Atomically cross the provider-send boundary for every item in a Batch job."""
+        when = _utc(now, "now")
+        expected = tuple(dict.fromkeys(request_item_ids))
+        if not expected or len(expected) != len(request_item_ids):
+            raise ConflictError("Batch send-start requires unique request items")
+        with self._connection(immediate=True) as conn:
+            job = conn.execute("SELECT run_id, status FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if job is None or job["status"] != "prepared":
+                raise InvalidTransitionError("Batch send-start requires a prepared delivery job")
+            placeholders = ",".join("?" for _ in expected)
+            selected = conn.execute(f"SELECT * FROM provider_request_items WHERE delivery_job_id=? AND provider_request_item_id IN ({placeholders})", (delivery_job_id, *expected)).fetchall()
+            if len(selected) != len(expected) or {row["provider_request_item_id"] for row in selected} != set(expected):
+                raise ConflictError("Batch request-item membership is incomplete or inconsistent")
+            by_id = {row["provider_request_item_id"]: row for row in selected}
+            rows = [by_id[item_id] for item_id in expected]
+            attempt_ids = [row["physical_attempt_id"] for row in rows]
+            if any(not item for item in attempt_ids) or len(set(attempt_ids)) != len(attempt_ids):
+                raise ConflictError("Batch request items require distinct physical attempts")
+            attempts = [conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (item,)).fetchone() for item in attempt_ids]
+            if any(item is None for item in attempts):
+                raise ConflictError("Batch physical attempt is missing")
+            for item, attempt in zip(rows, attempts):
+                if item["status"] != "prepared" or item["provider_id"] != "openai" or item["requested_delivery_mode"] != "batch" or item["effective_service_tier"] != "batch":
+                    raise ConflictError("Batch request item is not prepared for Batch delivery")
+                if item["run_id"] != job["run_id"] or attempt["run_id"] != job["run_id"] or attempt["status"] != "prepared" or attempt["delivery_mode"] != "batch" or attempt["provider_request_id"] != item["provider_request_item_id"]:
+                    raise ConflictError("Batch physical attempt is not prepared for this delivery job")
+                membership = conn.execute("SELECT 1 FROM physical_attempt_members WHERE physical_attempt_id=? AND model_task_id=?", (attempt["physical_attempt_id"], item["model_task_id"])).fetchone()
+                task = conn.execute("SELECT subject_id FROM tasks WHERE model_task_id=?", (item["model_task_id"],)).fetchone()
+                if membership is None or task is None or task["subject_id"] != attempt["subject_id"]:
+                    raise ConflictError("Batch physical attempt does not match its request-item task")
+                reservation = conn.execute("SELECT status FROM budget_reservations WHERE reservation_id=?", (attempt["reservation_id"],)).fetchone() if attempt["reservation_id"] else None
+                if reservation is None or reservation["status"] not in {"active", "partially_consumed"}:
+                    raise ConflictError("Batch physical attempt lacks an active reservation")
+            for attempt in attempts:
+                conn.execute("UPDATE physical_attempts SET status='send_started', send_started_at=?, updated_at=? WHERE physical_attempt_id=?", (when, when, attempt["physical_attempt_id"]))
+            self._commit(conn)
+            return [dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (item,)).fetchone()) for item in attempt_ids]
+
+    def bind_delivery_physical_attempts_batch(self, delivery_job_id: str, provider_batch_id: str, *, now: datetime | str) -> list[dict[str, Any]]:
+        """Bind one provider Batch identity idempotently to all member attempts."""
+        when = _utc(now, "now")
+        if not str(provider_batch_id).strip():
+            raise CatalogError("provider Batch ID is required")
+        with self._connection(immediate=True) as conn:
+            job = conn.execute("SELECT provider_batch_id FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if job is None:
+                raise CatalogError("unknown delivery job")
+            if job["provider_batch_id"] not in (None, provider_batch_id):
+                raise ConflictError("delivery job already has a different provider Batch ID")
+            rows = conn.execute("SELECT physical_attempt_id, provider_batch_id, status FROM physical_attempts WHERE physical_attempt_id IN (SELECT physical_attempt_id FROM provider_request_items WHERE delivery_job_id=?)", (delivery_job_id,)).fetchall()
+            if not rows:
+                raise CatalogError("Batch has no physical attempts")
+            if any(row["provider_batch_id"] not in (None, provider_batch_id) for row in rows):
+                raise ConflictError("physical attempt already has a different provider Batch ID")
+            if any(row["status"] not in {"send_started", "receipt_persisted", "validated", "failed"} for row in rows):
+                raise InvalidTransitionError("Batch physical attempts must have crossed send-start before Batch binding")
+            conn.execute("UPDATE physical_attempts SET provider_batch_id=?, updated_at=? WHERE physical_attempt_id IN (SELECT physical_attempt_id FROM provider_request_items WHERE delivery_job_id=?)", (provider_batch_id, when, delivery_job_id))
+            self._commit(conn)
+            return [dict(row) for row in conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id IN (SELECT physical_attempt_id FROM provider_request_items WHERE delivery_job_id=?) ORDER BY physical_attempt_id", (delivery_job_id,)).fetchall()]
 
     def create_delivery_job(self, *, delivery_job_id: str, run_id: str, provider_id: str, model_route: str, delivery_mode: str, pricing_snapshot_id: str, now: datetime | str) -> dict[str, Any]:
         """Persist a provider delivery aggregation separately from request items."""
