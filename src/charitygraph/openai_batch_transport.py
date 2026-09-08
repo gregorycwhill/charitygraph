@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Protocol, Sequence
 
-from .phase5_openai_dry_run import parse_provider_result
+from .phase5_openai_dry_run import BatchPayloadError, parse_provider_result, validate_batch_jsonl_bytes
 
 
 class BatchProviderClient(Protocol):
@@ -105,6 +105,10 @@ class BatchAuthorization:
     no_automatic_retry: bool = True
     no_fallback: bool = True
     max_submissions: int = 1
+    payload_sha256: str | None = None
+    payload_bytes: int | None = None
+    authorized_custom_ids: tuple[str, ...] = ()
+    payload_local_ref: str | None = None
 
     def assert_allowed(self, *, run_id: str, model: str) -> None:
         if not self.real_provider_enabled:
@@ -117,6 +121,19 @@ class BatchAuthorization:
             raise PermissionError("Batch projected exposure exceeds its hard ceiling")
         if not self.no_automatic_retry or not self.no_fallback or self.max_submissions != 1:
             raise PermissionError("Batch authorization permits an unsafe retry or fallback policy")
+
+    def assert_payload(self, payload: bytes, *, custom_ids: Sequence[str]) -> None:
+        try:
+            validate_batch_jsonl_bytes(payload, expected_custom_ids=custom_ids or self.authorized_custom_ids or None)
+        except BatchPayloadError as exc:
+            raise BatchTransportError(str(exc)) from exc
+        digest = hashlib.sha256(payload).hexdigest()
+        if self.payload_sha256 is not None and digest != self.payload_sha256:
+            raise BatchTransportError("Batch payload SHA-256 does not match authorization")
+        if self.payload_bytes is not None and len(payload) != self.payload_bytes:
+            raise BatchTransportError("Batch payload byte length does not match authorization")
+        if self.authorized_custom_ids and set(custom_ids) != set(self.authorized_custom_ids):
+            raise BatchTransportError("Batch payload custom_id set does not match authorization")
 
 
 @dataclass(frozen=True)
@@ -173,15 +190,36 @@ class OpenAIBatchTransport:
             raise BatchTransportError("a Batch job must have one model route")
         authorization.assert_allowed(run_id=str(job["run_id"]), model=next(iter(models)))
         item_ids = tuple(str(item["provider_request_item_id"]) for item in request_items)
+        authorization.assert_payload(jsonl, custom_ids=item_ids)
+        if authorization.payload_sha256 is not None and hasattr(catalog, "persist_delivery_payload_identity"):
+            catalog.persist_delivery_payload_identity(
+                delivery_job_id,
+                payload_sha256=authorization.payload_sha256,
+                payload_bytes=len(jsonl),
+                payload_local_ref=authorization.payload_local_ref or "authorized:in-memory-payload",
+                now=now,
+            )
         if any(item.get("delivery_job_id") != delivery_job_id or not item.get("physical_attempt_id") for item in request_items):
             raise BatchTransportError("every Batch request item must carry its delivery job and physical attempt")
-        durable_items = {item["provider_request_item_id"]: item for item in catalog.list_provider_request_items(str(job["run_id"])) if item.get("delivery_job_id") == delivery_job_id}
-        if any(item_ids[index] not in durable_items or durable_items[item_ids[index]].get("physical_attempt_id") != request_items[index].get("physical_attempt_id") for index in range(len(request_items))):
-            raise BatchTransportError("Batch request item physical-attempt mapping conflicts with durable state")
+        attempt_mode = any(item.get("delivery_attempt_id") for item in request_items)
+        if attempt_mode and not all(item.get("delivery_attempt_id") for item in request_items):
+            raise BatchTransportError("Batch request items cannot mix stable-only and delivery-attempt records")
+        if attempt_mode:
+            attempt_ids = tuple(str(item["delivery_attempt_id"]) for item in request_items)
+            durable_attempts = {item["delivery_attempt_id"]: item for item in catalog.list_provider_request_attempts(delivery_job_id=delivery_job_id)}
+            if any(attempt_ids[index] not in durable_attempts or durable_attempts[attempt_ids[index]]["provider_request_item_id"] != item_ids[index] or durable_attempts[attempt_ids[index]]["physical_attempt_id"] != request_items[index]["physical_attempt_id"] for index in range(len(request_items))):
+                raise BatchTransportError("Batch delivery-attempt mapping conflicts with durable state")
+        else:
+            durable_items = {item["provider_request_item_id"]: item for item in catalog.list_provider_request_items(str(job["run_id"])) if item.get("delivery_job_id") == delivery_job_id}
+            if any(item_ids[index] not in durable_items or durable_items[item_ids[index]].get("physical_attempt_id") != request_items[index].get("physical_attempt_id") for index in range(len(request_items))):
+                raise BatchTransportError("Batch request item physical-attempt mapping conflicts with durable state")
         if physical_attempt_id is not None and len(request_items) == 1 and physical_attempt_id != request_items[0]["physical_attempt_id"]:
             raise BatchTransportError("explicit physical attempt does not match the request item")
         try:
-            catalog.mark_delivery_physical_attempts_send_started(delivery_job_id, item_ids, now=now)
+            if attempt_mode:
+                catalog.mark_provider_delivery_attempts_send_started(delivery_job_id, attempt_ids, now=now)
+            else:
+                catalog.mark_delivery_physical_attempts_send_started(delivery_job_id, item_ids, now=now)
         except Exception as exc:
             raise BatchTransportError("Batch physical-attempt cohort is not ready for send") from exc
         try:
@@ -198,9 +236,15 @@ class OpenAIBatchTransport:
         if not batch_id:
             raise BatchSubmissionAmbiguous("Batch creation returned no provider Batch ID")
         catalog.transition_delivery_job(delivery_job_id, "submitted", now=now, provider_batch_id=batch_id)
-        catalog.bind_delivery_physical_attempts_batch(delivery_job_id, batch_id, now=now)
+        if attempt_mode:
+            catalog.bind_provider_delivery_attempts_batch(delivery_job_id, batch_id, now=now)
+        else:
+            catalog.bind_delivery_physical_attempts_batch(delivery_job_id, batch_id, now=now)
         for item in request_items:
-            catalog.transition_provider_request_item(item["provider_request_item_id"], "submitted", now=now, provider_request_id=item["provider_request_item_id"])
+            if attempt_mode:
+                catalog.transition_provider_request_attempt(item["delivery_attempt_id"], "submitted", now=now)
+            else:
+                catalog.transition_provider_request_item(item["provider_request_item_id"], "submitted", now=now, provider_request_id=item["provider_request_item_id"])
         return {"delivery_job_id": delivery_job_id, "provider_input_file_id": input_file_id, "provider_batch_id": batch_id, "submitted_items": len(request_items)}
 
     def reconcile_batch(self, catalog: Any, *, delivery_job_id: str, now: Any) -> BatchReconciliation:

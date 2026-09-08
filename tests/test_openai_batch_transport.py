@@ -84,7 +84,7 @@ def test_default_deny_happens_before_any_provider_operation(tmp_path):
     auth = _auth(run)
     auth = BatchAuthorization(**{**auth.__dict__, "real_provider_enabled": False})
     with pytest.raises(PermissionError):
-        OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b"{}\n", authorization=auth, now=NOW)
+        OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b'{"custom_id":"requestitem:two"}\n', authorization=auth, now=NOW)
     assert client.calls == []
 
 
@@ -111,12 +111,12 @@ def test_ambiguous_create_persists_boundary_and_forbids_resend(tmp_path):
     client = MockBatchClient(fail_create=True)
     transport = OpenAIBatchTransport(client)
     with pytest.raises(BatchSubmissionAmbiguous):
-        transport.submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b'{}\n', authorization=_auth(run), now=NOW)
+        transport.submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b'{"custom_id":"requestitem:two"}\n', authorization=_auth(run), now=NOW)
     assert catalog.get_delivery_job(job)["provider_input_file_id"] == "file-input:one"
     assert catalog.get_physical_attempt(attempt)["status"] == "send_started"
     calls = len(client.calls)
     with pytest.raises(BatchSubmissionAmbiguous):
-        transport.submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b'{}\n', authorization=_auth(run), now=NOW)
+        transport.submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b'{"custom_id":"requestitem:two"}\n', authorization=_auth(run), now=NOW)
     assert len(client.calls) == calls
 
 
@@ -142,7 +142,7 @@ def test_multi_subject_batch_has_one_job_six_style_attempts_and_mixed_item_outco
         {"custom_id": second_item, "error": {"code": "request_timeout", "message": "timed out"}, "response": None},
     ])
     request_items = [_item(first_item, job, first_attempt), _item(second_item, job, second_attempt)]
-    result = OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, request_items=request_items, jsonl=b"{}\n{}\n", authorization=_auth(run), now=NOW)
+    result = OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, request_items=request_items, jsonl=b'{"custom_id":"requestitem:two"}\n{"custom_id":"requestitem:three"}\n', authorization=_auth(run), now=NOW)
     assert result["submitted_items"] == 2
     assert {catalog.get_physical_attempt(value)["provider_batch_id"] for value in (first_attempt, second_attempt)} == {"batch:one"}
     reconciled = OpenAIBatchTransport(client).reconcile_batch(catalog, delivery_job_id=job, now=NOW)
@@ -157,7 +157,7 @@ def test_batch_send_start_is_cohort_atomic_before_upload(tmp_path):
     client = MockBatchClient()
     bad = _item(item, job, "physical:missing")
     with pytest.raises(BatchTransportError):
-        OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, request_items=[bad], jsonl=b"{}\n", authorization=_auth(run), now=NOW)
+        OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, request_items=[bad], jsonl=b'{"custom_id":"requestitem:two"}\n', authorization=_auth(run), now=NOW)
     assert client.calls == []
     assert catalog.get_physical_attempt(attempt)["status"] == "prepared"
 
@@ -165,7 +165,7 @@ def test_batch_send_start_is_cohort_atomic_before_upload(tmp_path):
 def test_batch_level_failure_without_item_file_closes_each_item_and_attempt(tmp_path):
     catalog, run, job, item, attempt = _catalogue(tmp_path)
     client = FailedBatchClient()
-    OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b"{}\n", authorization=_auth(run), now=NOW)
+    OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b'{"custom_id":"requestitem:two"}\n', authorization=_auth(run), now=NOW)
     result = OpenAIBatchTransport(client).reconcile_batch(catalog, delivery_job_id=job, now=NOW)
     assert result.provider_status == "failed"
     assert result.item_statuses[0]["status"] == "failed"

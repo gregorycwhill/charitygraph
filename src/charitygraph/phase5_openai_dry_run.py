@@ -20,6 +20,59 @@ PROVIDER_SCHEMA_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
 MONEY_QUANTUM = Decimal("0.000001")
 
 
+class BatchPayloadError(ValueError):
+    """The bytes do not satisfy the canonical OpenAI Batch JSONL contract."""
+
+
+def validate_batch_jsonl_bytes(payload: bytes, *, expected_custom_ids: Iterable[str] | None = None) -> tuple[dict[str, Any], ...]:
+    """Validate immutable provider-bound Batch bytes without re-encoding them."""
+    if not isinstance(payload, bytes):
+        raise BatchPayloadError("Batch payload must be bytes")
+    if payload.startswith(b"\xef\xbb\xbf"):
+        raise BatchPayloadError("Batch payload must not contain a UTF-8 BOM")
+    if b"\x00" in payload:
+        raise BatchPayloadError("Batch payload must not contain NUL bytes")
+    try:
+        text = payload.decode("utf-8", errors="strict")
+    except UnicodeDecodeError as exc:
+        raise BatchPayloadError("Batch payload is not valid UTF-8") from exc
+    if b"\r" in payload:
+        raise BatchPayloadError("Batch payload must use LF-only records")
+    if not payload.endswith(b"\n"):
+        raise BatchPayloadError("Batch payload must use exactly one final LF and LF-only records")
+    lines = text.split("\n")
+    if lines[-1] != "":
+        raise BatchPayloadError("Batch payload must have exactly one final LF")
+    if any(line == "" for line in lines[:-1]):
+        raise BatchPayloadError("Batch payload must not contain blank records")
+    rows: list[dict[str, Any]] = []
+    for line in lines[:-1]:
+        try:
+            value = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise BatchPayloadError("Batch payload contains malformed JSONL") from exc
+        if not isinstance(value, dict):
+            raise BatchPayloadError("Batch payload records must be JSON objects")
+        custom_id = value.get("custom_id")
+        if not isinstance(custom_id, str) or not custom_id:
+            raise BatchPayloadError("Batch payload records require a custom_id")
+        rows.append(value)
+    ids = [row["custom_id"] for row in rows]
+    if len(ids) != len(set(ids)):
+        raise BatchPayloadError("Batch payload contains duplicate custom_id values")
+    if expected_custom_ids is not None and set(ids) != {str(item) for item in expected_custom_ids}:
+        raise BatchPayloadError("Batch payload custom_id set does not match authorization")
+    return tuple(rows)
+
+
+def canonical_batch_jsonl_bytes(items: Iterable[dict[str, Any]], *, expected_custom_ids: Iterable[str] | None = None) -> bytes:
+    """Serialize Batch records once, directly to canonical UTF-8 bytes."""
+    rows = tuple(items)
+    raw = ("\n".join(json.dumps(item, ensure_ascii=False, sort_keys=True, separators=(",", ":")) for item in rows) + ("\n" if rows else "")).encode("utf-8")
+    validate_batch_jsonl_bytes(raw, expected_custom_ids=expected_custom_ids)
+    return raw
+
+
 def conservative_money_ceiling(value: Decimal | str, quantum: Decimal = MONEY_QUANTUM) -> Decimal:
     """Round a non-negative authorization amount upward to ledger precision."""
     amount = Decimal(str(value))
@@ -276,12 +329,12 @@ def compile_workload(manifest_path: Path, inventory_path: Path, corpus_dir: Path
                 request = compile_request(task, json.loads((corpus_dir / (inventory[task["subject_id"]]["abn"] + ".json")).read_text()), delivery_job_id=job_id, delivery_mode="batch")
                 item = {"custom_id": request.provider_request_item_id, "method": "POST", "url": RESPONSES_ENDPOINT, "body": request.body}
                 jsonl.append(item); final.append(request)
-            raw = "\n".join(json.dumps(item, ensure_ascii=False, sort_keys=True, separators=(",", ":")) for item in jsonl) + "\n"
-            job_rows.append({"delivery_job_id": job_id, "model": model, "delivery_mode": tier, "items": len(jsonl), "bytes": len(raw.encode()), "estimated_input_tokens": sum(estimate_tokens(i["body"]) for i in jsonl), "sha256": hashlib.sha256(raw.encode()).hexdigest(), "items_jsonl": raw})
+            raw_bytes = canonical_batch_jsonl_bytes(jsonl, expected_custom_ids=[item["custom_id"] for item in jsonl])
+            job_rows.append({"delivery_job_id": job_id, "model": model, "delivery_mode": tier, "items": len(jsonl), "bytes": len(raw_bytes), "estimated_input_tokens": sum(estimate_tokens(i["body"]) for i in jsonl), "sha256": hashlib.sha256(raw_bytes).hexdigest(), "items_jsonl_bytes": raw_bytes})
     output_root.mkdir(parents=True, exist_ok=True)
     batch_dir = output_root / "batch-jsonl"; batch_dir.mkdir(exist_ok=True)
     for row in job_rows:
-        (batch_dir / (row["delivery_job_id"].replace(":", "_") + ".jsonl")).write_text(row.pop("items_jsonl"), encoding="utf-8")
+        (batch_dir / (row["delivery_job_id"].replace(":", "_") + ".jsonl")).write_bytes(row.pop("items_jsonl_bytes"))
     for request in final:
         if request.delivery_mode == "standard":
             pass
@@ -310,7 +363,7 @@ def compile_workload(manifest_path: Path, inventory_path: Path, corpus_dir: Path
         task = task_by_request[request.provider_request_item_id]; by_family[task["claim_family_id"]] += amount; by_subject[task["subject_id"]] += amount
     stable_prefix_tokens = estimate_tokens({"developer": final[0].body["input"][0]}) * len(final)
     selected_batch_aud = sum(selected_member_aud_costs.values(), Decimal("0"))
-    report = {"logical_tasks": len(tasks), "semantic_request_items": len(final), "application_bundles": 0, "models": counts, "batch_jobs": len(job_rows), "job_distribution": [{k: v for k, v in row.items() if k != "items_jsonl"} for row in job_rows], "estimated_input_tokens": input_tokens, "estimated_output_tokens": output_tokens, "estimated_cacheable_prefix_tokens": stable_prefix_tokens, "context_or_size_violations": 0, "schema_validation": {"schemas_validated": len(final), "schema_identities": len({r.schema_name for r in final})}, "pricing_snapshot_id": "openai-model-pages-2026-09-07", "fx_snapshot": {"base": "USD", "quote": "AUD", "rate": "1.52", "status": "dry_run_input"}, "rounding": {"rule": "full Decimal precision; each non-negative member ceiling rounds upward to 0.000001 before aggregation", "ledger_quantum": str(MONEY_QUANTUM)}, "all_standard_usd": str(cost_standard), "selected_batch_usd": str(cost_selected), "selected_batch_aud": str(selected_batch_aud), "flex_requests": 0, "standard_requests": 0, "batch_items": len(final), "cost_by_claim_family_usd": {k: str(v) for k, v in sorted(by_family.items())}, "cost_by_subject_usd": {k: str(v) for k, v in sorted(by_subject.items())}, "serialization": "responses-v1; batch POST /v1/responses; strict structured outputs", "network_calls": 0, "responses_calls": 0, "batch_submissions": 0, "provider_cost_usd": "0", "governed_knowledge_production": 0}
+    report = {"logical_tasks": len(tasks), "semantic_request_items": len(final), "application_bundles": 0, "models": counts, "batch_jobs": len(job_rows), "job_distribution": [{k: v for k, v in row.items() if k != "items_jsonl_bytes"} for row in job_rows], "estimated_input_tokens": input_tokens, "estimated_output_tokens": output_tokens, "estimated_cacheable_prefix_tokens": stable_prefix_tokens, "context_or_size_violations": 0, "schema_validation": {"schemas_validated": len(final), "schema_identities": len({r.schema_name for r in final})}, "pricing_snapshot_id": "openai-model-pages-2026-09-07", "fx_snapshot": {"base": "USD", "quote": "AUD", "rate": "1.52", "status": "dry_run_input"}, "rounding": {"rule": "full Decimal precision; each non-negative member ceiling rounds upward to 0.000001 before aggregation", "ledger_quantum": str(MONEY_QUANTUM)}, "all_standard_usd": str(cost_standard), "selected_batch_usd": str(cost_selected), "selected_batch_aud": str(selected_batch_aud), "flex_requests": 0, "standard_requests": 0, "batch_items": len(final), "cost_by_claim_family_usd": {k: str(v) for k, v in sorted(by_family.items())}, "cost_by_subject_usd": {k: str(v) for k, v in sorted(by_subject.items())}, "serialization": "responses-v1; batch POST /v1/responses; strict structured outputs", "network_calls": 0, "responses_calls": 0, "batch_submissions": 0, "provider_cost_usd": "0", "governed_knowledge_production": 0}
     (output_root / "provider-capability-snapshot.json").write_text(json.dumps({"snapshot_id": "openai-model-pages-2026-09-07", "source": "official OpenAI model documentation", "models": CAPABILITIES}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_root / "real-pricing-snapshot.json").write_text(json.dumps({"snapshot_id": "openai-model-pages-2026-09-07", "currency": "USD", "batch_and_flex_multiplier": "0.5", "models": {model: {key: str(value) for key, value in prices.items()} for model, prices in PRICING.items()}, "source": "official OpenAI model documentation", "retrieved_date": "2026-09-07"}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_root / "route-manifest.json").write_text(json.dumps([{"logical_task_id": r.logical_task_id, "provider_request_item_id": r.provider_request_item_id, "delivery_job_id": r.delivery_job_id, "model": r.model, "reasoning_effort": r.body["reasoning"]["effort"], "delivery_mode": r.delivery_mode, "provider_service_tier": r.body.get("service_tier"), "schema_name": r.schema_name} for r in final], indent=2, sort_keys=True) + "\n", encoding="utf-8")

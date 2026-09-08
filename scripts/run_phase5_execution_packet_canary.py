@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from charitygraph.phase5_execution_packet import ExecutionPacketUnready, materialize_execution_packet, render_packet_prompt
-from charitygraph.phase5_openai_dry_run import PRICING, estimate_tokens, serialize_execution_packet_request
+from charitygraph.phase5_openai_dry_run import PRICING, canonical_batch_jsonl_bytes, estimate_tokens, serialize_execution_packet_request
 from charitygraph.phase5_semantic_contracts import executable_contract_for, resolve_contract, resolve_result_adapter
 
 
@@ -56,7 +56,7 @@ def run(manifest_path: Path, inventory_path: Path, corpus_dir: Path, runtime_roo
         results.append(result)
     totals = {"ready": sum(row["execution_readiness"] == "execution_packet_ready" for row in results), "unready": sum(row["execution_readiness"] == "execution_packet_unready" for row in results), "input_tokens": sum(row.get("input_tokens", 0) for row in results), "evidence_bytes": sum(row.get("evidence_bytes", 0) for row in results), "projected_batch_usd": str(sum((Decimal(row.get("projected_batch_usd", "0")) for row in results), Decimal("0")).quantize(Decimal("0.000001"))), "projected_standard_usd": str(sum((Decimal(row.get("projected_standard_usd", "0")) for row in results), Decimal("0")).quantize(Decimal("0.000001"))), "provider_calls": 0, "batch_submissions": 0, "semantic_executions": 0, "provider_cost_usd": "0"}
     _write(output_root / "execution-packet-canary-v2.json", {"tasks": results, "totals": totals, "batch_partition": {"ready_items": len(request_items), "model_jobs": sorted({item["body"]["model"] for item in request_items})}})
-    (output_root / "request-items.jsonl").write_text("\n".join(json.dumps(item, ensure_ascii=False, sort_keys=True, separators=(",", ":")) for item in request_items) + ("\n" if request_items else ""), encoding="utf-8")
+    (output_root / "request-items.jsonl").write_bytes(canonical_batch_jsonl_bytes(request_items, expected_custom_ids=[item["custom_id"] for item in request_items]))
     return {"tasks": results, "totals": totals}
 
 
