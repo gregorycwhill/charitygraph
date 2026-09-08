@@ -45,6 +45,12 @@ class MultiItemBatchClient(MockBatchClient):
         return b"".join((json.dumps(row, separators=(",", ":")).encode() + b"\n") for row in self.rows)
 
 
+class FailedBatchClient(MockBatchClient):
+    def retrieve_batch(self, batch_id):
+        self.calls.append(("status", batch_id))
+        return {"id": batch_id, "status": "failed", "output_file_id": None, "error_file_id": None}
+
+
 def _catalogue(tmp_path):
     catalog = SQLiteCatalog(tmp_path / "runtime.sqlite3").open(initialize=True)
     cohort = "cohort:" + "a" * 32
@@ -154,3 +160,13 @@ def test_batch_send_start_is_cohort_atomic_before_upload(tmp_path):
         OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, request_items=[bad], jsonl=b"{}\n", authorization=_auth(run), now=NOW)
     assert client.calls == []
     assert catalog.get_physical_attempt(attempt)["status"] == "prepared"
+
+
+def test_batch_level_failure_without_item_file_closes_each_item_and_attempt(tmp_path):
+    catalog, run, job, item, attempt = _catalogue(tmp_path)
+    client = FailedBatchClient()
+    OpenAIBatchTransport(client).submit_batch(catalog, delivery_job_id=job, physical_attempt_id=attempt, request_items=[_item(item, job, attempt)], jsonl=b"{}\n", authorization=_auth(run), now=NOW)
+    result = OpenAIBatchTransport(client).reconcile_batch(catalog, delivery_job_id=job, now=NOW)
+    assert result.provider_status == "failed"
+    assert result.item_statuses[0]["status"] == "failed"
+    assert catalog.get_physical_attempt(attempt)["status"] == "failed"

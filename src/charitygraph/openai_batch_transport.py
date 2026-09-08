@@ -272,6 +272,18 @@ class OpenAIBatchTransport:
                     if physical_id:
                         catalog.mark_physical_failed(physical_id, now=now)
                     catalog.transition_provider_request_item(item_id, "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
+        if remote_status in {"failed", "expired", "cancelled"} and not job.get("provider_output_file_id") and not job.get("provider_error_file_id"):
+            # A Batch can fail before producing per-item files. Close each
+            # submitted item locally while preserving the Batch-level reason.
+            for current in items:
+                if current["status"] in terminal_items:
+                    continue
+                item_id = current["provider_request_item_id"]
+                physical_id = current.get("physical_attempt_id")
+                if physical_id:
+                    catalog.mark_physical_failed(physical_id, now=now)
+                target = "failed" if remote_status == "failed" else remote_status
+                catalog.transition_provider_request_item(item_id, target, now=now, result_ref="batch-terminal:" + job["provider_batch_id"])
         refreshed = [item for item in catalog.list_provider_request_items(job["run_id"]) if item.get("delivery_job_id") == delivery_job_id]
         statuses = {item["status"] for item in refreshed}
         target = None
