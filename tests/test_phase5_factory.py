@@ -3,6 +3,7 @@ from charitygraph.runtime import SQLiteCatalog
 from datetime import datetime, timezone
 from decimal import Decimal
 import sqlite3
+import pytest
 
 
 def test_factory_plan_keeps_logical_identity_and_never_crosses_subjects() -> None:
@@ -42,7 +43,17 @@ def test_fake_semantic_path_reconciles_its_synthetic_reservation(tmp_path) -> No
     from charitygraph.phase5_factory import ReferenceFactory
     plan=FactoryPlan.from_manifest([{"logical_task_id":"x","subject_id":"subject:"+"1"*32,"physical_bundle_opportunity":None,"difficulty":"lower_cost_constrained_semantic"}])
     runner=ReferenceFactory(catalog,plan,cohort_id=cohort,run_id=run); runner.seed(now); assert runner.run(now)==1
-    assert catalog.budget_position(cohort).actual_spend_aud == Decimal("0.000500")
+    assert catalog.budget_position(cohort).actual_spend_aud == Decimal("0.002000")
+
+
+def test_reference_factory_rejects_build_phase_batch_without_override(tmp_path) -> None:
+    from charitygraph.phase5_factory import ReferenceFactory
+    from charitygraph.phase5_delivery import DeliveryPolicy, DeliveryPolicyError
+    plan = FactoryPlan.from_manifest([{"logical_task_id": "x", "subject_id": "subject:" + "1" * 32, "difficulty": "lower_cost_constrained_semantic"}])
+    with pytest.raises(DeliveryPolicyError, match="disabled by the build-phase policy"):
+        ReferenceFactory(object(), plan, cohort_id="cohort:" + "a" * 32, run_id="run:" + "b" * 32, delivery_mode="batch")
+    runner = ReferenceFactory(object(), plan, cohort_id="cohort:" + "a" * 32, run_id="run:" + "b" * 32, delivery_mode="batch", delivery_policy=DeliveryPolicy.build(reviewed_batch_override=True))
+    assert runner.delivery_mode == "batch"
 
 
 def test_physical_attempt_persists_send_then_receipt(tmp_path) -> None:

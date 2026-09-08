@@ -7,18 +7,19 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from charitygraph.contracts.ids import deterministic_id
-from charitygraph.phase5_delivery import FakeDeliveryAdapter, build_delivery_plan
+from charitygraph.phase5_delivery import DeliveryPolicy, FakeDeliveryAdapter, build_delivery_plan
 from charitygraph.phase5_factory import FactoryPlan, FakeProviderReceipt, ReferenceFactory
 from charitygraph.runtime import SQLiteCatalog
 
 
-def run_reference(manifest: Path, runtime_root: Path, *, scenario: str | None = None, selected_item_ids: set[str] | None = None) -> dict[str, object]:
+def run_reference(manifest: Path, runtime_root: Path, *, scenario: str | None = None, selected_item_ids: set[str] | None = None, reviewed_batch_harness: bool = False) -> dict[str, object]:
     now = datetime(2026, 9, 7, tzinfo=timezone.utc)
     logical = json.loads(manifest.read_text(encoding="utf-8"))
     plan = FactoryPlan.from_manifest(logical)
     if len(plan.logical_tasks) != 1331:
         raise RuntimeError("authoritative Phase-5 task count changed")
-    delivery = build_delivery_plan(plan.logical_tasks)
+    policy = DeliveryPolicy.build(reviewed_batch_override=reviewed_batch_harness)
+    delivery = build_delivery_plan(plan.logical_tasks, policy=policy)
     runtime_root.mkdir(parents=True, exist_ok=True)
     catalog = SQLiteCatalog(runtime_root / "factory.sqlite3").open(initialize=True)
     label = scenario or "reference"
@@ -35,7 +36,7 @@ def run_reference(manifest: Path, runtime_root: Path, *, scenario: str | None = 
     catalog.register_cohort({"record_id": cohort, "cohort_code": "P5_DELIVERY", "definition_version": "1", "membership_hash": plan.manifest_hash, "budget_cap": {"amount": "10000", "currency": "AUD"}, "created_at": now})
     catalog.register_run({"record_id": run, "cohort_id": cohort, "run_kind": "phase5_factory_delivery_reference", "status": "planned", "configuration_hash": plan.manifest_hash, "created_at": now})
     catalog.transition_run(run, "running", now=now)
-    factory = ReferenceFactory(catalog, plan, cohort_id=cohort, run_id=run)
+    factory = ReferenceFactory(catalog, plan, cohort_id=cohort, run_id=run, delivery_policy=policy)
     runtime = {task["logical_task_id"]: task for task in factory.seed(now)}
     # Deterministic tasks never create provider request items or delivery jobs.
     for logical_id in delivery.deterministic_logical_task_ids:

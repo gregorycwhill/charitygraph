@@ -10,6 +10,7 @@ from pathlib import Path
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.phase5_factory import AmbiguousSendError, FactoryInterrupted, FactoryPlan, ReferenceFactory
 from charitygraph.phase5_factory_chaos import CHAOS_POLICY_VERSION, scenario_for
+from charitygraph.phase5_delivery import DeliveryPolicy
 from charitygraph.runtime import SQLiteCatalog
 
 SCENARIOS = {
@@ -77,7 +78,8 @@ def _counts(db: Path) -> dict[str, object]:
 
 def run_scenario(plan: FactoryPlan, root: Path, scenario: str) -> dict[str, object]:
     catalog, cohort, run, now = _open_run(root, plan, scenario)
-    runner = ReferenceFactory(catalog, plan, cohort_id=cohort, run_id=run)
+    reviewed_batch_policy = DeliveryPolicy.build(reviewed_batch_override=True)
+    runner = ReferenceFactory(catalog, plan, cohort_id=cohort, run_id=run, delivery_mode="batch", delivery_policy=reviewed_batch_policy)
     runner.seed(now)
     selected = _select(plan, scenario, cohort)
     selected_ids = tuple(physical for physical, _ in selected)
@@ -89,7 +91,7 @@ def run_scenario(plan: FactoryPlan, root: Path, scenario: str) -> dict[str, obje
         runner.run(now, failures=interruptions)
     # A fresh catalog/runner object is the real close/reopen restart boundary.
     restarted = SQLiteCatalog(root / "factory.sqlite3").open(initialize=False)
-    recovered = ReferenceFactory(restarted, plan, cohort_id=cohort, run_id=run)
+    recovered = ReferenceFactory(restarted, plan, cohort_id=cohort, run_id=run, delivery_mode="batch", delivery_policy=reviewed_batch_policy)
     explicit_reconciliation = False
     if scenario == "C2_send_ambiguous":
         try:

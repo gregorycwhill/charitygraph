@@ -8,6 +8,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
 from .contracts.ids import deterministic_id
+from .phase5_delivery import DeliveryPolicy
 
 
 @dataclass(frozen=True)
@@ -33,7 +34,7 @@ class FactoryPlan:
             groups[(item["subject_id"], item.get("physical_bundle_opportunity") or item["logical_task_id"])].append(item)
         return tuple(tuple(sorted(group, key=lambda item: item["logical_task_id"])) for _, group in sorted(groups.items()))
 
-    def physical_packages(self, *, delivery_mode: str = "batch") -> tuple[tuple[dict[str, Any], ...], ...]:
+    def physical_packages(self, *, delivery_mode: str = "standard") -> tuple[tuple[dict[str, Any], ...], ...]:
         """Only semantic work is batchable; deterministic work stays single-task."""
         if delivery_mode not in {"batch", "flex", "standard"}: raise ValueError("unknown delivery mode")
         groups: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
@@ -89,10 +90,12 @@ class AmbiguousSendError(RuntimeError):
 
 class ReferenceFactory:
     """Synchronous isolated runner; fake-only and never a knowledge producer."""
-    def __init__(self, catalog: Any, plan: FactoryPlan, *, cohort_id: str, run_id: str, provider: RehearsalFakeProvider | None = None, delivery_mode: str = "batch") -> None:
+    def __init__(self, catalog: Any, plan: FactoryPlan, *, cohort_id: str, run_id: str, provider: RehearsalFakeProvider | None = None, delivery_mode: str | None = None, delivery_policy: DeliveryPolicy | None = None) -> None:
         self.catalog, self.plan, self.cohort_id, self.run_id = catalog, plan, cohort_id, run_id
         self.provider = provider or RehearsalFakeProvider()
-        self.delivery_mode = delivery_mode
+        self.delivery_policy = delivery_policy or DeliveryPolicy.build()
+        requested = {"delivery_mode": delivery_mode} if delivery_mode is not None else {}
+        self.delivery_mode = self.delivery_policy.resolve(requested)
         self.interruptions_observed: list[str] = []
     def seed(self, now: datetime) -> tuple[dict[str, Any], ...]:
         tasks=self.plan.runtime_tasks(cohort_id=self.cohort_id)

@@ -8,13 +8,59 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Iterable
+from typing import Any, Iterable, Literal
 
 from .contracts.ids import deterministic_id
 from .phase5_factory_chaos import scenario_for
 
 DELIVERY_MODES = ("batch", "flex", "standard")
 DELIVERY_CHAOS_SCENARIOS = ("C1_pre_send", "C2_send_ambiguous", "C3_receipt_restart", "C4_structural", "C5_grounding", "C6_partial_bundle")
+
+
+class DeliveryPolicyError(PermissionError):
+    """A delivery mode is not permitted by the active execution policy."""
+
+
+@dataclass(frozen=True)
+class DeliveryPolicy:
+    """Explicit phase policy for selecting a provider delivery mode.
+
+    Build mode is deliberately Standard-first.  Batch is available only to
+    an explicitly marked reviewed harness or to production policy; it is
+    never selected merely because it is cheaper.
+    """
+
+    phase: Literal["build", "production"]
+    batch_enabled: bool
+    policy_id: str
+
+    @classmethod
+    def build(cls, *, reviewed_batch_override: bool = False) -> "DeliveryPolicy":
+        return cls(
+            phase="build",
+            batch_enabled=reviewed_batch_override,
+            policy_id=("phase5-build-reviewed-batch-harness-v1" if reviewed_batch_override else "phase5-build-standard-v1"),
+        )
+
+    @classmethod
+    def production(cls) -> "DeliveryPolicy":
+        return cls(phase="production", batch_enabled=True, policy_id="phase5-production-batch-v1")
+
+    def resolve(self, task: dict[str, Any]) -> str:
+        if task.get("difficulty") == "deterministic" or task.get("latency_required"):
+            return "standard"
+        requested = task.get("delivery_mode")
+        if requested is None:
+            # Build/calibration work optimises time-to-learning, not Batch
+            # discount.  Flex remains an explicit opt-in only.
+            return "standard" if self.phase == "build" else ("batch" if task.get("batch_supported", True) else "flex")
+        if requested not in DELIVERY_MODES:
+            raise DeliveryPolicyError(f"unknown delivery mode: {requested}")
+        if requested == "batch" and not self.batch_enabled:
+            raise DeliveryPolicyError(
+                "Batch delivery is disabled by the build-phase policy; use Standard or an explicit reviewed Batch harness override"
+            )
+        return requested
 
 
 @dataclass(frozen=True)
@@ -55,6 +101,7 @@ class DeliveryPlan:
     delivery_jobs: tuple[DeliveryJob, ...]
     deterministic_logical_task_ids: tuple[str, ...]
     pricing: PricingSnapshot
+    policy_id: str
 
     @property
     def semantic_count(self) -> int:
@@ -86,18 +133,19 @@ def application_bundle_compatible(tasks: Iterable[dict[str, Any]]) -> bool:
     return len(subject_ids) == len(routes) == len(reasoning) == len(tools) == len(envelopes) == len(multiplex) == 1 and None not in multiplex
 
 
-def select_delivery_mode(task: dict[str, Any]) -> str:
-    if task.get("difficulty") == "deterministic":
-        return "standard"
-    if task.get("latency_required"):
-        return "standard"
-    if task.get("batch_supported", True):
-        return "batch"
-    return "flex"
+def select_delivery_mode(task: dict[str, Any], *, policy: DeliveryPolicy | None = None) -> str:
+    return (policy or DeliveryPolicy.build()).resolve(task)
 
 
-def build_delivery_plan(tasks: Iterable[dict[str, Any]], *, pricing: PricingSnapshot | None = None, batch_size: int = 100) -> DeliveryPlan:
+def build_delivery_plan(
+    tasks: Iterable[dict[str, Any]],
+    *,
+    pricing: PricingSnapshot | None = None,
+    batch_size: int = 100,
+    policy: DeliveryPolicy | None = None,
+) -> DeliveryPlan:
     pricing = pricing or PricingSnapshot()
+    policy = policy or DeliveryPolicy.build()
     logical = tuple(sorted(tasks, key=lambda item: item["logical_task_id"]))
     deterministic = tuple(item["logical_task_id"] for item in logical if item.get("difficulty") == "deterministic")
     semantic = [item for item in logical if item.get("difficulty") != "deterministic"]
@@ -110,7 +158,7 @@ def build_delivery_plan(tasks: Iterable[dict[str, Any]], *, pricing: PricingSnap
         groups = (group,) if application_bundle_compatible(group) else tuple((task,) for task in group)
         for members in groups:
             first = members[0]
-            mode = select_delivery_mode(first)
+            mode = select_delivery_mode(first, policy=policy)
             ids = tuple(task["logical_task_id"] for task in members)
             items.append(ProviderRequestItem(
                 request_item_id=deterministic_id("requestitem:", {"logical_task_ids": ids, "mode": mode}),
@@ -130,7 +178,7 @@ def build_delivery_plan(tasks: Iterable[dict[str, Any]], *, pricing: PricingSnap
         else:
             for item in members:
                 jobs.append(DeliveryJob(deterministic_id("deliveryjob:", {"mode": mode, "items": [item.request_item_id]}), mode, provider, route, (item.request_item_id,)))
-    return DeliveryPlan(tuple(items), tuple(jobs), deterministic, pricing)
+    return DeliveryPlan(tuple(items), tuple(jobs), deterministic, pricing, policy.policy_id)
 
 
 def delivery_chaos_populations(plan: DeliveryPlan) -> dict[str, tuple[ProviderRequestItem, ...]]:

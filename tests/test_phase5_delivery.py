@@ -1,7 +1,8 @@
 from decimal import Decimal
 from datetime import datetime, timezone
+import pytest
 
-from charitygraph.phase5_delivery import DELIVERY_CHAOS_SCENARIOS, DeliveryJob, FakeDeliveryAdapter, PricingSnapshot, ProviderRequestItem, application_bundle_compatible, build_delivery_plan, delivery_chaos_populations, select_delivery_mode
+from charitygraph.phase5_delivery import DELIVERY_CHAOS_SCENARIOS, DeliveryJob, DeliveryPolicy, DeliveryPolicyError, FakeDeliveryAdapter, PricingSnapshot, ProviderRequestItem, application_bundle_compatible, build_delivery_plan, delivery_chaos_populations, select_delivery_mode
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.runtime import SQLiteCatalog
 
@@ -29,27 +30,50 @@ def test_different_non_null_multiplex_contracts_do_not_bundle() -> None:
     assert len(build_delivery_plan(tasks).request_items) == 2
 
 
-def test_delivery_policy_prefers_batch_then_flex_then_standard() -> None:
-    assert select_delivery_mode(_task("a")) == "batch"
-    assert select_delivery_mode(_task("b", batch_supported=False)) == "flex"
+def test_build_policy_defaults_semantic_work_to_standard() -> None:
+    assert select_delivery_mode(_task("a")) == "standard"
+    assert select_delivery_mode(_task("b", batch_supported=False)) == "standard"
     assert select_delivery_mode(_task("c", latency_required=True)) == "standard"
 
 
+def test_build_policy_rejects_explicit_batch_without_reviewed_override() -> None:
+    with pytest.raises(DeliveryPolicyError, match="disabled by the build-phase policy"):
+        select_delivery_mode({**_task("a"), "delivery_mode": "batch"})
+
+
+def test_reviewed_harness_and_production_policies_can_exercise_batch() -> None:
+    task = _task("a")
+    assert select_delivery_mode(task, policy=DeliveryPolicy.build(reviewed_batch_override=True)) == "standard"
+    assert select_delivery_mode({**task, "delivery_mode": "batch"}, policy=DeliveryPolicy.build(reviewed_batch_override=True)) == "batch"
+    assert select_delivery_mode(task, policy=DeliveryPolicy.production()) == "batch"
+
+
+def test_policy_keeps_semantic_task_material_independent_of_delivery_mode() -> None:
+    task = _task("a", claim_family="program-service-discovery-v2")
+    build = build_delivery_plan([task])
+    production = build_delivery_plan([task], policy=DeliveryPolicy.production())
+    assert build.request_items[0].logical_task_ids == production.request_items[0].logical_task_ids
+    assert build.request_items[0].subject_id == production.request_items[0].subject_id
+    assert build.request_items[0].model_route == production.request_items[0].model_route
+    assert build.request_items[0].effective_service_tier == "standard"
+    assert production.request_items[0].effective_service_tier == "batch"
+
+
 def test_batch_is_many_independent_items_and_exact_economics() -> None:
-    plan = build_delivery_plan([_task(str(index)) for index in range(3)], pricing=PricingSnapshot())
+    plan = build_delivery_plan([_task(str(index)) for index in range(3)], pricing=PricingSnapshot(), policy=DeliveryPolicy.production())
     assert len(plan.delivery_jobs) == 1 and len(plan.delivery_jobs[0].request_item_ids) == 3
     assert plan.economics()["all_standard"] == Decimal("0.006000")
     assert plan.economics()["selected"] == Decimal("0.001500")
 
 
 def test_delivery_chaos_selection_returns_full_deterministic_populations() -> None:
-    plan=build_delivery_plan([_task(str(index)) for index in range(200)])
+    plan=build_delivery_plan([_task(str(index)) for index in range(200)], policy=DeliveryPolicy.production())
     first=delivery_chaos_populations(plan); second=delivery_chaos_populations(plan)
     assert first == second and sum(len(items) for items in first.values()) > 1
 
 
 def test_partial_bundle_chaos_never_treats_batch_items_as_application_bundles() -> None:
-    plan = build_delivery_plan([_task(str(index)) for index in range(200)])
+    plan = build_delivery_plan([_task(str(index)) for index in range(200)], policy=DeliveryPolicy.production())
     populations = delivery_chaos_populations(plan)
     assert tuple(populations) == DELIVERY_CHAOS_SCENARIOS
     assert populations["C6_partial_bundle"] == ()
