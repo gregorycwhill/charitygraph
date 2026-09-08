@@ -251,8 +251,18 @@ class OpenAIBatchTransport:
         job = catalog.get_delivery_job(delivery_job_id)
         if job is None or not job.get("provider_batch_id"):
             raise BatchTransportError("known provider Batch identity is required for reconciliation")
-        items = catalog.list_provider_request_items(job["run_id"])
-        items = [item for item in items if item.get("delivery_job_id") == delivery_job_id]
+        attempt_rows = catalog.list_provider_request_attempts(delivery_job_id=delivery_job_id) if hasattr(catalog, "list_provider_request_attempts") else []
+        attempt_mode = bool(attempt_rows)
+        if attempt_mode:
+            items = []
+            for attempt in attempt_rows:
+                stable = catalog.get_provider_request_item(attempt["provider_request_item_id"])
+                item = dict(stable or {})
+                item.update({"provider_request_item_id": attempt["provider_request_item_id"], "physical_attempt_id": attempt["physical_attempt_id"], "delivery_attempt_id": attempt["delivery_attempt_id"], "delivery_job_id": delivery_job_id, "status": attempt["status"], "provider_request_id": attempt.get("provider_request_id"), "provider_receipt_id": attempt.get("provider_receipt_id"), "result_ref": attempt.get("result_ref"), "usage_json": attempt.get("usage_json")})
+                items.append(item)
+        else:
+            items = catalog.list_provider_request_items(job["run_id"])
+            items = [item for item in items if item.get("delivery_job_id") == delivery_job_id]
         terminal_items = {"completed", "failed", "expired", "cancelled", "held"}
         if items and all(item["status"] in terminal_items for item in items) and job["status"] in {"completed", "failed", "expired", "cancelled", "held"}:
             return BatchReconciliation(delivery_job_id, job["provider_batch_id"], job["status"], tuple(items), False, False)
@@ -285,19 +295,28 @@ class OpenAIBatchTransport:
                 if current["status"] in terminal_items:
                     continue
                 if current["status"] == "submitted":
-                    catalog.transition_provider_request_item(item_id, "in_progress", now=now)
+                    if attempt_mode:
+                        catalog.transition_provider_request_attempt(current["delivery_attempt_id"], "in_progress", now=now)
+                    else:
+                        catalog.transition_provider_request_item(item_id, "in_progress", now=now)
                 if parsed["status"] == "completed":
                     receipt = f"batchreceipt:{job['provider_batch_id']}:{item_id.split(':', 1)[-1]}"
                     ref = "batch-result:" + hashlib.sha256(json.dumps(row, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
                     physical_id = current.get("physical_attempt_id")
                     if physical_id:
                         catalog.persist_provider_receipt(physical_attempt_id=physical_id, provider_receipt_id=receipt, raw_result_ref=ref, usage=parsed.get("usage") or {}, now=now)
-                    catalog.transition_provider_request_item(item_id, "completed", now=now, provider_request_id=parsed.get("provider_request_id"), provider_receipt_id=receipt, result_ref=ref, usage=parsed.get("usage"))
+                    if attempt_mode:
+                        catalog.transition_provider_request_attempt(current["delivery_attempt_id"], "completed", now=now, provider_request_id=parsed.get("provider_request_id"), provider_receipt_id=receipt, result_ref=ref, usage=parsed.get("usage"))
+                    else:
+                        catalog.transition_provider_request_item(item_id, "completed", now=now, provider_request_id=parsed.get("provider_request_id"), provider_receipt_id=receipt, result_ref=ref, usage=parsed.get("usage"))
                 else:
                     physical_id = current.get("physical_attempt_id")
                     if physical_id:
                         catalog.mark_physical_failed(physical_id, now=now)
-                    catalog.transition_provider_request_item(item_id, "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
+                    if attempt_mode:
+                        catalog.transition_provider_request_attempt(current["delivery_attempt_id"], "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
+                    else:
+                        catalog.transition_provider_request_item(item_id, "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
         if job.get("provider_error_file_id"):
             try:
                 error_rows = _jsonl(self.client.retrieve_file_content(job["provider_error_file_id"]))
@@ -311,11 +330,17 @@ class OpenAIBatchTransport:
                 current = next(item for item in items if item["provider_request_item_id"] == item_id)
                 if current["status"] not in terminal_items:
                     if current["status"] == "submitted":
-                        catalog.transition_provider_request_item(item_id, "in_progress", now=now)
+                        if attempt_mode:
+                            catalog.transition_provider_request_attempt(current["delivery_attempt_id"], "in_progress", now=now)
+                        else:
+                            catalog.transition_provider_request_item(item_id, "in_progress", now=now)
                     physical_id = current.get("physical_attempt_id")
                     if physical_id:
                         catalog.mark_physical_failed(physical_id, now=now)
-                    catalog.transition_provider_request_item(item_id, "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
+                    if attempt_mode:
+                        catalog.transition_provider_request_attempt(current["delivery_attempt_id"], "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
+                    else:
+                        catalog.transition_provider_request_item(item_id, "failed", now=now, provider_request_id=parsed.get("provider_request_id"), result_ref="batch-error:" + item_id)
         if remote_status in {"failed", "expired", "cancelled"} and not job.get("provider_output_file_id") and not job.get("provider_error_file_id"):
             # A Batch can fail before producing per-item files. Close each
             # submitted item locally while preserving the Batch-level reason.
@@ -327,8 +352,19 @@ class OpenAIBatchTransport:
                 if physical_id:
                     catalog.mark_physical_failed(physical_id, now=now)
                 target = "failed" if remote_status == "failed" else remote_status
-                catalog.transition_provider_request_item(item_id, target, now=now, result_ref="batch-terminal:" + job["provider_batch_id"])
-        refreshed = [item for item in catalog.list_provider_request_items(job["run_id"]) if item.get("delivery_job_id") == delivery_job_id]
+                if attempt_mode:
+                    catalog.transition_provider_request_attempt(current["delivery_attempt_id"], target, now=now, result_ref="batch-terminal:" + job["provider_batch_id"], failure_class="batch_terminal")
+                else:
+                    catalog.transition_provider_request_item(item_id, target, now=now, result_ref="batch-terminal:" + job["provider_batch_id"])
+        if attempt_mode:
+            refreshed = []
+            for attempt in catalog.list_provider_request_attempts(delivery_job_id=delivery_job_id):
+                stable = catalog.get_provider_request_item(attempt["provider_request_item_id"])
+                item = dict(stable or {})
+                item.update({"provider_request_item_id": attempt["provider_request_item_id"], "physical_attempt_id": attempt["physical_attempt_id"], "delivery_attempt_id": attempt["delivery_attempt_id"], "delivery_job_id": delivery_job_id, "status": attempt["status"], "provider_request_id": attempt.get("provider_request_id"), "provider_receipt_id": attempt.get("provider_receipt_id"), "result_ref": attempt.get("result_ref"), "usage_json": attempt.get("usage_json")})
+                refreshed.append(item)
+        else:
+            refreshed = [item for item in catalog.list_provider_request_items(job["run_id"]) if item.get("delivery_job_id") == delivery_job_id]
         statuses = {item["status"] for item in refreshed}
         target = None
         if remote_status in {"expired", "cancelled", "failed"}:
