@@ -6,7 +6,7 @@ import json
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, ROUND_CEILING
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -17,6 +17,20 @@ RESPONSES_ENDPOINT = "/v1/responses"
 DISCOVERY_MAX_OUTPUT_TOKENS = 8000
 LUNA, TERRA = "gpt-5.6-luna", "gpt-5.6-terra"
 PROVIDER_SCHEMA_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
+MONEY_QUANTUM = Decimal("0.000001")
+
+
+def conservative_money_ceiling(value: Decimal | str, quantum: Decimal = MONEY_QUANTUM) -> Decimal:
+    """Round a non-negative authorization amount upward to ledger precision."""
+    amount = Decimal(str(value))
+    if not amount.is_finite() or amount < 0:
+        raise ValueError("money ceiling must be a finite non-negative Decimal")
+    return amount.quantize(quantum, rounding=ROUND_CEILING)
+
+
+def conservative_member_aud_ceiling(usd_amount: Decimal | str, aud_per_usd: Decimal | str) -> Decimal:
+    """Convert one member ceiling and round it upward before aggregation."""
+    return conservative_money_ceiling(Decimal(str(usd_amount)) * Decimal(str(aud_per_usd)))
 
 CAPABILITIES = {
     LUNA: {"provider": "openai", "responses": True, "batch": True, "flex": True, "structured_outputs": True, "reasoning_efforts": ["none", "low", "medium", "high", "xhigh", "max"], "context_window": 1_050_000, "max_output_tokens": 128_000, "batch_queue_tier1": 5_000_000},
@@ -273,6 +287,8 @@ def compile_workload(manifest_path: Path, inventory_path: Path, corpus_dir: Path
             pass
     counts = {model: sum(1 for r in final if r.model == model) for model in (LUNA, TERRA)}
     cost_standard = Decimal("0"); cost_selected = Decimal("0"); input_tokens = 0; output_tokens = 0
+    selected_member_costs: dict[str, Decimal] = {}
+    selected_member_aud_costs: dict[str, Decimal] = {}
     for row in job_rows:
         input_tokens += row["estimated_input_tokens"]
     output_tokens = sum(1600 if request.model == LUNA else 3200 for request in final)
@@ -280,16 +296,21 @@ def compile_workload(manifest_path: Path, inventory_path: Path, corpus_dir: Path
         model_price = PRICING[request.model]
         tokens = estimate_tokens(request.body)
         out = 1600 if request.model == LUNA else 3200
-        cost_standard += Decimal(tokens) / Decimal(1_000_000) * model_price["input"] + Decimal(out) / Decimal(1_000_000) * model_price["output"]
-        cost_selected += Decimal(tokens) / Decimal(1_000_000) * model_price["input"] / 2 + Decimal(out) / Decimal(1_000_000) * model_price["output"] / 2
+        standard_member = Decimal(tokens) / Decimal(1_000_000) * model_price["input"] + Decimal(out) / Decimal(1_000_000) * model_price["output"]
+        selected_member = standard_member / 2
+        cost_standard += conservative_money_ceiling(standard_member)
+        cost_selected += conservative_money_ceiling(selected_member)
+        selected_member_costs[request.provider_request_item_id] = conservative_money_ceiling(selected_member)
+        selected_member_aud_costs[request.provider_request_item_id] = conservative_member_aud_ceiling(selected_member, "1.52")
     by_family: dict[str, Decimal] = defaultdict(Decimal); by_subject: dict[str, Decimal] = defaultdict(Decimal)
     task_by_request = {r.provider_request_item_id: task_by_id[r.logical_task_id] for r in final}
     for request in final:
         tokens = estimate_tokens(request.body); out = 1600 if request.model == LUNA else 3200
-        amount = Decimal(tokens) / Decimal(1_000_000) * PRICING[request.model]["input"] / 2 + Decimal(out) / Decimal(1_000_000) * PRICING[request.model]["output"] / 2
+        amount = selected_member_costs[request.provider_request_item_id]
         task = task_by_request[request.provider_request_item_id]; by_family[task["claim_family_id"]] += amount; by_subject[task["subject_id"]] += amount
     stable_prefix_tokens = estimate_tokens({"developer": final[0].body["input"][0]}) * len(final)
-    report = {"logical_tasks": len(tasks), "semantic_request_items": len(final), "application_bundles": 0, "models": counts, "batch_jobs": len(job_rows), "job_distribution": [{k: v for k, v in row.items() if k != "items_jsonl"} for row in job_rows], "estimated_input_tokens": input_tokens, "estimated_output_tokens": output_tokens, "estimated_cacheable_prefix_tokens": stable_prefix_tokens, "context_or_size_violations": 0, "schema_validation": {"schemas_validated": len(final), "schema_identities": len({r.schema_name for r in final})}, "pricing_snapshot_id": "openai-model-pages-2026-09-07", "fx_snapshot": {"base": "USD", "quote": "AUD", "rate": "1.52", "status": "dry_run_input"}, "all_standard_usd": str(cost_standard.quantize(Decimal("0.000001"))), "selected_batch_usd": str(cost_selected.quantize(Decimal("0.000001"))), "selected_batch_aud": str((cost_selected * Decimal("1.52")).quantize(Decimal("0.000001"))), "flex_requests": 0, "standard_requests": 0, "batch_items": len(final), "cost_by_claim_family_usd": {k: str(v.quantize(Decimal("0.000001"))) for k, v in sorted(by_family.items())}, "cost_by_subject_usd": {k: str(v.quantize(Decimal("0.000001"))) for k, v in sorted(by_subject.items())}, "serialization": "responses-v1; batch POST /v1/responses; strict structured outputs", "network_calls": 0, "responses_calls": 0, "batch_submissions": 0, "provider_cost_usd": "0", "governed_knowledge_production": 0}
+    selected_batch_aud = sum(selected_member_aud_costs.values(), Decimal("0"))
+    report = {"logical_tasks": len(tasks), "semantic_request_items": len(final), "application_bundles": 0, "models": counts, "batch_jobs": len(job_rows), "job_distribution": [{k: v for k, v in row.items() if k != "items_jsonl"} for row in job_rows], "estimated_input_tokens": input_tokens, "estimated_output_tokens": output_tokens, "estimated_cacheable_prefix_tokens": stable_prefix_tokens, "context_or_size_violations": 0, "schema_validation": {"schemas_validated": len(final), "schema_identities": len({r.schema_name for r in final})}, "pricing_snapshot_id": "openai-model-pages-2026-09-07", "fx_snapshot": {"base": "USD", "quote": "AUD", "rate": "1.52", "status": "dry_run_input"}, "rounding": {"rule": "full Decimal precision; each non-negative member ceiling rounds upward to 0.000001 before aggregation", "ledger_quantum": str(MONEY_QUANTUM)}, "all_standard_usd": str(cost_standard), "selected_batch_usd": str(cost_selected), "selected_batch_aud": str(selected_batch_aud), "flex_requests": 0, "standard_requests": 0, "batch_items": len(final), "cost_by_claim_family_usd": {k: str(v) for k, v in sorted(by_family.items())}, "cost_by_subject_usd": {k: str(v) for k, v in sorted(by_subject.items())}, "serialization": "responses-v1; batch POST /v1/responses; strict structured outputs", "network_calls": 0, "responses_calls": 0, "batch_submissions": 0, "provider_cost_usd": "0", "governed_knowledge_production": 0}
     (output_root / "provider-capability-snapshot.json").write_text(json.dumps({"snapshot_id": "openai-model-pages-2026-09-07", "source": "official OpenAI model documentation", "models": CAPABILITIES}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_root / "real-pricing-snapshot.json").write_text(json.dumps({"snapshot_id": "openai-model-pages-2026-09-07", "currency": "USD", "batch_and_flex_multiplier": "0.5", "models": {model: {key: str(value) for key, value in prices.items()} for model, prices in PRICING.items()}, "source": "official OpenAI model documentation", "retrieved_date": "2026-09-07"}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_root / "route-manifest.json").write_text(json.dumps([{"logical_task_id": r.logical_task_id, "provider_request_item_id": r.provider_request_item_id, "delivery_job_id": r.delivery_job_id, "model": r.model, "reasoning_effort": r.body["reasoning"]["effort"], "delivery_mode": r.delivery_mode, "provider_service_tier": r.body.get("service_tier"), "schema_name": r.schema_name} for r in final], indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -307,7 +328,7 @@ def compile_workload(manifest_path: Path, inventory_path: Path, corpus_dir: Path
         unknown_failed_closed = True
     (output_root / "provider-response-parser-report.json").write_text(json.dumps({"fixture_order": "out_of_order", "parsed_items": parsed, "unknown_id_fail_closed": unknown_failed_closed, "duplicate_ingestion_identity": "provider_request_item_id", "provider_calls": 0}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_root / "structured-schema-validation-report.json").write_text(json.dumps({"schemas_validated": len(final), "schema_identities": len({r.schema_name for r in final}), "strict": True, "additional_properties": False, "all_properties_required": True}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    (output_root / "budget-preflight.json").write_text(json.dumps({"selected_batch_usd": str(cost_selected.quantize(Decimal("0.000001"))), "selected_batch_aud": str((cost_selected * Decimal("1.52")).quantize(Decimal("0.000001"))), "configured_ceiling_aud": "10000.00", "within_ceiling": cost_selected * Decimal("1.52") <= Decimal("10000.00"), "real_provider_authorization": "absent_default_deny", "provider_calls": 0}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (output_root / "budget-preflight.json").write_text(json.dumps({"selected_batch_usd": str(cost_selected), "selected_batch_aud": str(selected_batch_aud), "configured_ceiling_aud": "10000.00", "within_ceiling": selected_batch_aud <= Decimal("10000.00"), "real_provider_authorization": "absent_default_deny", "provider_calls": 0}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_root / "round-trip-report.json").write_text(json.dumps({"request_count": len(final), "unique_custom_ids": len(known_ids) == len(final), "endpoint_consistent": all(row["delivery_job_id"] for row in job_rows), "unknown_id_fail_closed": unknown_failed_closed, "batch_submission_count": 0, "responses_call_count": 0}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_root / "no-send-guard-report.json").write_text(json.dumps({"network_calls": 0, "responses_calls": 0, "file_uploads": 0, "batch_submissions": 0, "flex_sends": 0, "standard_sends": 0, "provider_cost_usd": "0", "gate": "default-deny"}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_root / "dry-run-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
