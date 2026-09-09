@@ -106,7 +106,7 @@ def test_provider_schema_name_validator_matches_openai_pattern_without_provider_
 def test_semantic_contract_identity_does_not_use_provider_alias() -> None:
     contract = next(c for c in REGISTRY if c.task_profile == "program_service_discovery")
     assert contract.provider_schema_name == "program_service_discovery_v2"
-    assert contract.schema_id == "urn:charitygraph:builder:schema:program-service-discovery-output:2.0"
+    assert contract.schema_id == "urn:charitygraph:builder:schema:program-service-discovery-output:2.1"
     assert contract.identity_hash() == replace(contract, provider_schema_name="another_safe_alias").identity_hash()
 
 

@@ -23,6 +23,7 @@ class SemanticEvidence(StrictModel):
     evidence_id: str
     role: Literal["supporting", "competing", "context"]
     note: str | None = None
+    additional_meanings: tuple["EvidenceMeaning", ...] = ()
 
     @field_validator("evidence_id")
     @classmethod
@@ -33,6 +34,31 @@ class SemanticEvidence(StrictModel):
     @classmethod
     def _note(cls, value: str | None) -> str | None:
         return None if value is None else require_nonblank(value)
+
+    @model_validator(mode="after")
+    def _meanings_are_distinct(self) -> "SemanticEvidence":
+        primary = (self.role, self.note)
+        meanings = [primary, *((item.role, item.note) for item in self.additional_meanings)]
+        if len(set(meanings)) != len(meanings):
+            raise ValueError("evidence meanings must be unique within one locator")
+        return self
+
+    def normalized_meanings(self) -> tuple["EvidenceMeaning", ...]:
+        """Return role/note meanings without privileging the first one."""
+        return (EvidenceMeaning(role=self.role, note=self.note), *self.additional_meanings)
+
+
+class EvidenceMeaning(StrictModel):
+    role: Literal["supporting", "competing", "context"]
+    note: str | None = None
+
+    @field_validator("note")
+    @classmethod
+    def _meaning_note(cls, value: str | None) -> str | None:
+        return None if value is None else require_nonblank(value)
+
+
+SemanticEvidence.model_rebuild()
 
 
 class SemanticConclusion(StrictModel):

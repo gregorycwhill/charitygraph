@@ -11,8 +11,8 @@ import json
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from .contracts.discovery import discovery_schema_v2
-from .native_discovery_executor import DISCOVERY_PROMPT_V2, PROMPT_TEMPLATE_VERSION_V2
+from .contracts.discovery import discovery_schema_v2, discovery_schema_v2_corrected
+from .native_discovery_executor import DISCOVERY_PROMPT_V2, DISCOVERY_PROMPT_V2_CORRECTED, PROMPT_TEMPLATE_VERSION_V2, PROMPT_TEMPLATE_VERSION_V2_CORRECTED
 
 
 def _canonical(value: Any) -> bytes:
@@ -191,7 +191,7 @@ def _draft(family: str, profile: str, label: str, route: str, reasoning: str, so
     )
 
 
-def _production_discovery() -> SemanticContract:
+def _historical_production_discovery() -> SemanticContract:
     return SemanticContract(
         contract_id="urn:charitygraph:builder:semantic-contract:program-service-discovery-v2", contract_version="2.0",
         # Phase-5 keeps its planner profile version at 1, but this explicit
@@ -246,6 +246,28 @@ PACKET EVIDENCE:
         planner_schema_version="urn:charitygraph:phase5:planned:direct_service_semantics:v1",
         provider_schema_name="direct_service_semantics_v1",
     )
+
+
+def _production_discovery() -> SemanticContract:
+    """Current Discovery V2.1 contract; the V2.0 identity remains historical."""
+    return SemanticContract(
+        contract_id="urn:charitygraph:builder:semantic-contract:program-service-discovery-v2", contract_version="2.1",
+        task_profile="program_service_discovery", task_profile_version="1", claim_families=("program-service-discovery-v2",),
+        prompt_template=DISCOVERY_PROMPT_V2_CORRECTED, prompt_id="program_service_discovery", output_schema=None,
+        schema_id="urn:charitygraph:builder:schema:program-service-discovery-output:2.1", schema_version="2.1-evidence-bound",
+        evidence_policy={"mode": "task_ordered_frozen_evidence", "outside_knowledge": False, "allowed_reference_field": "evidence_ids"},
+        grounding_requirements=("every proposal cites supplied evidence IDs", "preserve operational status uncertainty", "one locator per proposal with grouped distinct meanings"),
+        adapter_id="charitygraph.native_discovery_executor._parse_discovery_output", adapter_version="2.1",
+        route_class="lower_cost_constrained_semantic", reasoning_policy="low", authority_state="production_bound",
+        publication_boundary="validated candidate only; downstream governance required", schema_factory_id="charitygraph.contracts.discovery.discovery_schema_v2_corrected",
+        planner_prompt_policy_version="program-service-discovery-v2:prompt-policy:v1",
+        planner_schema_version="urn:charitygraph:phase5:planned:program_service_discovery:v1",
+        provider_schema_name="program_service_discovery_v2",
+        schema_factory=discovery_schema_v2_corrected, source_refs=("src/charitygraph/contracts/discovery.py", "src/charitygraph/native_discovery_executor.py"),
+    )
+
+
+HISTORICAL_DISCOVERY_V2_CONTRACT = _historical_production_discovery()
 
 
 def build_registry() -> tuple[SemanticContract, ...]:
@@ -391,4 +413,4 @@ def provider_request_identity(
     return "requestitem:" + fingerprint
 
 
-__all__ = ["SemanticContract", "REGISTRY", "build_registry", "resolve_contract", "executable_contract_for", "resolve_result_adapter", "registry_rows", "provider_wire_fingerprint", "provider_request_identity", "validate_evidence_refs", "validate_taxonomy_output", "validate_relationship_output", "sha256_text", "sha256_json", "PROMPT_TEMPLATE_VERSION_V2"]
+__all__ = ["SemanticContract", "HISTORICAL_DISCOVERY_V2_CONTRACT", "REGISTRY", "build_registry", "resolve_contract", "executable_contract_for", "resolve_result_adapter", "registry_rows", "provider_wire_fingerprint", "provider_request_identity", "validate_evidence_refs", "validate_taxonomy_output", "validate_relationship_output", "sha256_text", "sha256_json", "PROMPT_TEMPLATE_VERSION_V2", "PROMPT_TEMPLATE_VERSION_V2_CORRECTED"]

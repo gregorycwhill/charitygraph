@@ -79,7 +79,7 @@ def test_packet_materializes_bytes_and_prompt_from_content_addressed_store(tmp_p
     assert request.schema_name == "program_service_discovery_v2"
     assert request.body["text"]["format"]["name"] == "program_service_discovery_v2"
     assert "service_tier" not in request.body
-    assert request.provider_request_item_id == "requestitem:6bc252705078c7ee72cc2d784cedeea7c9653169a1cf0239a401def6d4a5506b"
+    assert request.provider_request_item_id == "requestitem:58d1288cd8c75b75234ae3c893b146f7c4fb8b97cbbbcadf537073f34ed402e4"
     flex = serialize_execution_packet_request(task, packet, delivery_job_id="deliveryjob:test", delivery_mode="flex")
     assert flex.body["service_tier"] == "flex"
     assert flex.provider_request_item_id != request.provider_request_item_id

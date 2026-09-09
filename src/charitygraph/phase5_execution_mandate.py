@@ -13,7 +13,7 @@ from decimal import Decimal
 from enum import StrEnum
 from typing import Any, Mapping
 
-from .phase5_semantic_contracts import REGISTRY
+from .phase5_semantic_contracts import HISTORICAL_DISCOVERY_V2_CONTRACT, REGISTRY
 
 
 def _canonical(value: Any) -> bytes:
@@ -50,10 +50,8 @@ class MandateEvaluation:
         return self.decision == MandateDecision.AUTHORIZED_BY_MANDATE
 
 
-def proposed_phase5_standard_luna_manifest() -> dict[str, Any]:
-    """Build the reviewed, inactive Phase-5 v1 mandate envelope."""
-    contract = next(item for item in REGISTRY if item.contract_id == "urn:charitygraph:builder:semantic-contract:program-service-discovery-v2")
-    allowed_contract = {
+def _allowlisted_contract(contract: Any) -> dict[str, Any]:
+    return {
         "contract_key": contract.contract_id + ":" + contract.contract_version,
         "contract_id": contract.contract_id,
         "contract_version": contract.contract_version,
@@ -68,9 +66,16 @@ def proposed_phase5_standard_luna_manifest() -> dict[str, Any]:
         "provider_schema_name": contract.provider_schema_name,
         "schema_hash_rule": "exact governed schema factory over exact evidence IDs; request hash remains independently pinned",
     }
+
+
+def _phase5_standard_luna_manifest(*, mandate_id: str, supersedes_mandate_id: str | None = None, discovery_contract: Any | None = None) -> dict[str, Any]:
+    """Build an inactive Phase-5 mandate envelope for the current registry."""
+    discovery_contract = discovery_contract or next(item for item in REGISTRY if item.contract_id == "urn:charitygraph:builder:semantic-contract:program-service-discovery-v2")
+    direct_contract = next(item for item in REGISTRY if item.contract_id == "urn:charitygraph:builder:semantic-contract:direct-service-v1")
+    allowed_contracts = [_allowlisted_contract(discovery_contract), _allowlisted_contract(direct_contract)]
     return {
         "manifest_version": "execution-mandate-v1",
-        "mandate_id": "mandate:phase5-build-standard-luna-v1",
+        "mandate_id": mandate_id,
         "purpose": "Phase-5 build/calibration semantic execution",
         "phase_scope": "phase5-build-calibration",
         "provider": "openai",
@@ -84,10 +89,29 @@ def proposed_phase5_standard_luna_manifest() -> dict[str, Any]:
         "ambiguous_resend": False,
         "aggregate_hard_aud": "100.00",
         "per_request_hard_aud": "0.25",
-        "allowed_contracts": [allowed_contract],
+        "allowed_contracts": allowed_contracts,
         "excluded_authorities": ["governed_promotion", "CanonicalObservations", "adjudication", "card_projection", "git_merge", "public_release", "source_acquisition", "new_provider"],
         "termination": ["phase5_formally_closed", "aggregate_authority_exhausted", "explicit_revocation", "mandate_invalidating_boundary_change"],
+        **({"supersedes_mandate_id": supersedes_mandate_id} if supersedes_mandate_id else {}),
     }
+
+
+def proposed_phase5_standard_luna_manifest() -> dict[str, Any]:
+    return _phase5_standard_luna_manifest(mandate_id="mandate:phase5-build-standard-luna-v1")
+
+
+def proposed_phase5_standard_luna_historical_manifest() -> dict[str, Any]:
+    return _phase5_standard_luna_manifest(
+        mandate_id="mandate:phase5-build-standard-luna-v1-amendment-1",
+        discovery_contract=HISTORICAL_DISCOVERY_V2_CONTRACT,
+    )
+
+
+def proposed_phase5_standard_luna_amendment_manifest() -> dict[str, Any]:
+    return _phase5_standard_luna_manifest(
+        mandate_id="mandate:phase5-build-standard-luna-v1-amendment-2",
+        supersedes_mandate_id="mandate:phase5-build-standard-luna-v1-amendment-1",
+    )
 
 
 def evaluate_execution_against_mandate(catalog: Any, mandate_id: str, request: Mapping[str, Any], *, now: Any = None) -> MandateEvaluation:
@@ -135,4 +159,4 @@ def evaluate_execution_against_mandate(catalog: Any, mandate_id: str, request: M
     return MandateEvaluation(MandateDecision.AUTHORIZED_BY_MANDATE, "request is within the active mandate", remaining_aud=remaining, mandate_id=mandate_id)
 
 
-__all__ = ["MandateDecision", "MandateEvaluation", "evaluate_execution_against_mandate", "manifest_hash", "proposed_phase5_standard_luna_manifest"]
+__all__ = ["MandateDecision", "MandateEvaluation", "evaluate_execution_against_mandate", "manifest_hash", "proposed_phase5_standard_luna_manifest", "proposed_phase5_standard_luna_historical_manifest", "proposed_phase5_standard_luna_amendment_manifest"]

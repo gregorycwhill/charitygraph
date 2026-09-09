@@ -148,6 +148,51 @@ def discovery_schema_v2_hash(evidence_ids: tuple[str, ...] | list[str]) -> str:
     return canonical_sha256(discovery_schema_v2(evidence_ids))
 
 
+def discovery_schema_v2_corrected(evidence_ids: tuple[str, ...] | list[str]) -> dict:
+    """V2.1 schema: one locator may carry several distinct meanings."""
+    ids = list(evidence_ids)
+    meaning = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "role": {"type": "string", "enum": ["supporting", "competing", "context"]},
+            "note": {"type": ["string", "null"]},
+        },
+        "required": ["role", "note"],
+    }
+    evidence_item = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "evidence_id": {"type": "string", "enum": ids},
+            "role": {"type": "string", "enum": ["supporting", "competing", "context"]},
+            "note": {"type": ["string", "null"]},
+            "additional_meanings": {"type": "array", "items": meaning, "minItems": 0},
+        },
+        "required": ["evidence_id", "role", "note"],
+    }
+    proposal = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "proposal_key": {"type": "string", "minLength": 1, "maxLength": 128},
+            "label": {"type": "string", "minLength": 1},
+            "disposition": {"type": "string", "enum": list(DiscoveryDisposition.__args__)},
+            "operational_status": {"type": "string", "enum": list(OperationalStatus.__args__)},
+            "evidence": {"type": "array", "items": evidence_item, "minItems": 1},
+            "rationale": {"type": "string", "minLength": 1},
+            "confidence": {"type": ["string", "null"], "enum": ["low", "medium", "high", None]},
+            "competing_interpretation": {"type": ["string", "null"]},
+        },
+        "required": ["proposal_key", "label", "disposition", "operational_status", "evidence", "rationale", "confidence", "competing_interpretation"],
+    }
+    return {"type": "object", "additionalProperties": False, "properties": {"proposals": {"type": "array", "items": proposal, "minItems": 0}}, "required": ["proposals"]}
+
+
+def discovery_schema_v2_corrected_hash(evidence_ids: tuple[str, ...] | list[str]) -> str:
+    return canonical_sha256(discovery_schema_v2_corrected(evidence_ids))
+
+
 
 
 DISCOVERY_OUTPUT_SCHEMA = SchemaRef(
@@ -164,6 +209,15 @@ DISCOVERY_OUTPUT_SCHEMA_V2 = SchemaRef(
     schema_version="2.0",
 )
 
+DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED = SchemaRef(
+    schema_id="urn:charitygraph:builder:schema:program-service-discovery-output:2.1",
+    schema_version="2.1",
+)
+
 
 def discovery_output_schema_ref_v2(evidence_ids: tuple[str, ...] | list[str]) -> SchemaRef:
     return SchemaRef(schema_id=DISCOVERY_OUTPUT_SCHEMA_V2.schema_id, schema_version="2.0-" + discovery_schema_v2_hash(evidence_ids)[:16])
+
+
+def discovery_output_schema_ref_v2_corrected(evidence_ids: tuple[str, ...] | list[str]) -> SchemaRef:
+    return SchemaRef(schema_id=DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED.schema_id, schema_version="2.1-" + discovery_schema_v2_corrected_hash(evidence_ids)[:16])

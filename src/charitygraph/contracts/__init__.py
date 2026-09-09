@@ -5,7 +5,7 @@ from .common import (
     ArtifactRecord, ArtifactRef, CanonicalObject, CanonicalScalar, CanonicalValue, IdPrefix,
     JsonValue, LineageEdge, ProducerRef, SchemaRef, Sha256, StrictModel, VersionedPolicy, VersionedTool,
 )
-from .discovery import (DiscoveryDisposition, OperationalStatus, DISCOVERY_OUTPUT_SCHEMA, DISCOVERY_OUTPUT_SCHEMA_V2, ProgramServiceDiscoveryOutput, ProgramServiceDiscoveryOutputV2, ProgramServiceProposal, ProgramServiceProposalV2, discovery_schema, discovery_schema_hash, discovery_schema_v2, discovery_schema_v2_hash, discovery_output_schema_ref, discovery_output_schema_ref_v2)
+from .discovery import (DiscoveryDisposition, OperationalStatus, DISCOVERY_OUTPUT_SCHEMA, DISCOVERY_OUTPUT_SCHEMA_V2, DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED, ProgramServiceDiscoveryOutput, ProgramServiceDiscoveryOutputV2, ProgramServiceProposal, ProgramServiceProposalV2, discovery_schema, discovery_schema_hash, discovery_schema_v2, discovery_schema_v2_hash, discovery_schema_v2_corrected, discovery_schema_v2_corrected_hash, discovery_output_schema_ref, discovery_output_schema_ref_v2, discovery_output_schema_ref_v2_corrected)
 from .economics import (
     BudgetCohort, CostLedger, CostLedgerEntry, CostReservation, FxRateSnapshot, Money, SignedMoney,
     PriceRate, PricingSnapshot, ReservationReconciliation, RunManifest,
@@ -45,7 +45,7 @@ from .conduct_compliance import (
     review_flags as conduct_review_flags,
 )
 from .semantic import (
-    EvidenceSelectionOutput, ProgramCandidateOutput, SDGAlignmentOutput,
+    EvidenceMeaning, EvidenceSelectionOutput, ProgramCandidateOutput, SDGAlignmentOutput,
     SemanticConclusion, SemanticEvidence, TaxonomyAssignmentOutput, TaxonomySelection,
 )
 from .taxonomy import (
@@ -72,8 +72,8 @@ __all__ = [
     "canonical_sha256", "deterministic_id", "model_task_cache_key", "new_opaque_id", "seal_record",
     "validate_promotion_chain", "validate_task_run_tasks", "validate_typed_id", "verify_record_hash",
     "ConceptMapping", "MappingPredicate", "ProgramCandidate", "ProgramCandidateOutput",
-    "EvidenceSelectionOutput", "DiscoveryDisposition", "OperationalStatus", "DISCOVERY_OUTPUT_SCHEMA", "DISCOVERY_OUTPUT_SCHEMA_V2", "ProgramServiceDiscoveryOutput", "ProgramServiceDiscoveryOutputV2", "ProgramServiceProposal", "ProgramServiceProposalV2", "discovery_schema", "discovery_schema_hash", "discovery_schema_v2", "discovery_schema_v2_hash", "discovery_output_schema_ref", "discovery_output_schema_ref_v2", "SDGAlignmentOutput", "SchemeDisposition", "SemanticConclusion",
-    "SemanticEvidence", "TaxonomyAssignment", "TaxonomyAssignmentOutput", "TaxonomyConcept",
+    "EvidenceSelectionOutput", "DiscoveryDisposition", "OperationalStatus", "DISCOVERY_OUTPUT_SCHEMA", "DISCOVERY_OUTPUT_SCHEMA_V2", "DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED", "ProgramServiceDiscoveryOutput", "ProgramServiceDiscoveryOutputV2", "ProgramServiceProposal", "ProgramServiceProposalV2", "discovery_schema", "discovery_schema_hash", "discovery_schema_v2", "discovery_schema_v2_hash", "discovery_schema_v2_corrected", "discovery_schema_v2_corrected_hash", "discovery_output_schema_ref", "discovery_output_schema_ref_v2", "discovery_output_schema_ref_v2_corrected", "SDGAlignmentOutput", "SchemeDisposition", "SemanticConclusion",
+    "EvidenceMeaning", "SemanticEvidence", "TaxonomyAssignment", "TaxonomyAssignmentOutput", "TaxonomyConcept",
     "TaxonomyScheme", "TaxonomySelection", "TaxonomyVersion",
     "CoverageState", "DirectServiceEvidenceRef", "DirectServiceProposition",
     "DirectServiceSemanticOutput", "DirectServiceSection", "DirectServicePropositionType",

@@ -8,7 +8,10 @@ from charitygraph.phase5_execution_mandate import (
     evaluate_execution_against_mandate,
     manifest_hash,
     proposed_phase5_standard_luna_manifest,
+    proposed_phase5_standard_luna_historical_manifest,
+    proposed_phase5_standard_luna_amendment_manifest,
 )
+from charitygraph.phase5_semantic_contracts import HISTORICAL_DISCOVERY_V2_CONTRACT, REGISTRY
 from charitygraph.runtime.catalog import BudgetExceededError, SQLiteCatalog
 
 
@@ -154,3 +157,32 @@ def test_fake_rehearsal_authority_isolated_from_live_mandate(tmp_path):
         rehearsal.settle_execution_mandate_reservation(mandate_id=fake_manifest["mandate_id"], reservation_id=reservation_id, actual_aud="0", ambiguous=False, now=NOW)
     assert Decimal(live.get_execution_mandate(manifest["mandate_id"])["actual_spend_aud"]) == Decimal("0")
     assert Decimal(live.get_execution_mandate(manifest["mandate_id"])["unresolved_reserved_aud"]) == Decimal("0")
+
+
+def test_representation_amendment_replaces_discovery_binding_only(tmp_path):
+    catalog = _catalog(tmp_path)
+    manifest, _ = _register(catalog)
+    amended = proposed_phase5_standard_luna_amendment_manifest()
+    discovery = next(item for item in amended["allowed_contracts"] if item["claim_families"] == ["program-service-discovery-v2"])
+    direct = next(item for item in amended["allowed_contracts"] if item["claim_families"] == ["direct-service-access-v1"])
+    assert discovery["contract_version"] == "2.1"
+    assert discovery["schema_id"].endswith(":2.1")
+    assert discovery["contract_identity_hash"] != HISTORICAL_DISCOVERY_V2_CONTRACT.identity_hash()
+    assert direct["contract_version"] == "1.0"
+    assert direct["contract_identity_hash"] == next(c for c in REGISTRY if c.contract_id.endswith("direct-service-v1")).identity_hash()
+    assert amended["supersedes_mandate_id"] == "mandate:phase5-build-standard-luna-v1-amendment-1"
+
+
+def test_amended_mandate_rejects_historical_discovery_identity_for_future_send(tmp_path):
+    catalog = _catalog(tmp_path)
+    amended = proposed_phase5_standard_luna_amendment_manifest()
+    catalog.register_execution_mandate(
+        mandate_id=amended["mandate_id"], manifest_hash=manifest_hash(amended), authorization_text_hash="b" * 64,
+        scope=amended, contract_allowlist=tuple(amended["allowed_contracts"]), aggregate_hard_aud=amended["aggregate_hard_aud"],
+        per_request_hard_aud=amended["per_request_hard_aud"], phase_scope=amended["phase_scope"], now=NOW,
+    )
+    catalog.activate_execution_mandate(mandate_id=amended["mandate_id"], authorization_text_hash="b" * 64, authorized_by="Greg", now=NOW)
+    catalog.reserve_execution_mandate(mandate_id=amended["mandate_id"], reservation_id="mandatereservation:historical", amount_aud="0.20", now=NOW)
+    old = next(item for item in proposed_phase5_standard_luna_historical_manifest()["allowed_contracts"] if item["claim_families"] == ["program-service-discovery-v2"])
+    request = _request(amended, mandate_reservation_id="mandatereservation:historical", **{key: old[key] for key in ("contract_id", "contract_version", "task_profile", "task_profile_version", "prompt_sha256", "schema_id", "schema_version", "provider_schema_name", "contract_identity_hash")})
+    assert evaluate_execution_against_mandate(catalog, amended["mandate_id"], request).decision == MandateDecision.CONTRACT_NOT_ALLOWED
