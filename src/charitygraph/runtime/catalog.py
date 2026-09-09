@@ -2181,6 +2181,74 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
 
+    def mark_standard_send_started(self, delivery_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
+        """Atomically cross the one-request Standard send boundary."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if attempt is None or attempt["status"] != "prepared":
+                raise InvalidTransitionError("Standard send requires a prepared delivery attempt")
+            item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (attempt["provider_request_item_id"],)).fetchone()
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+            job = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (attempt["delivery_job_id"],)).fetchone()
+            reservation = conn.execute("SELECT status FROM budget_reservations WHERE reservation_id=?", (physical["reservation_id"],)).fetchone() if physical else None
+            if item is None or item["status"] != "prepared" or item["requested_delivery_mode"] != "standard" or item["effective_service_tier"] != "standard":
+                raise ConflictError("Standard request item is not prepared")
+            if physical is None or physical["status"] != "prepared" or physical["delivery_mode"] != "standard" or physical["provider_request_id"] != item["provider_request_item_id"]:
+                raise ConflictError("Standard physical attempt is not prepared")
+            if job is None or job["status"] != "prepared" or job["delivery_mode"] != "standard":
+                raise ConflictError("Standard delivery job is not prepared")
+            if reservation is None or reservation["status"] not in {"active", "partially_consumed"}:
+                raise ConflictError("Standard physical attempt lacks active reservation")
+            conn.execute("UPDATE provider_request_attempts SET status='send_started', submitted_at=?, updated_at=? WHERE delivery_attempt_id=?", (when, when, delivery_attempt_id))
+            conn.execute("UPDATE provider_request_items SET status='submitted', updated_at=? WHERE provider_request_item_id=?", (when, item["provider_request_item_id"]))
+            conn.execute("UPDATE physical_attempts SET status='send_started', send_started_at=?, updated_at=? WHERE physical_attempt_id=?", (when, when, physical["physical_attempt_id"]))
+            conn.execute("UPDATE delivery_jobs SET status='submitted', submitted_at=?, updated_at=? WHERE delivery_job_id=?", (when, when, job["delivery_job_id"]))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
+    def complete_standard_delivery(self, delivery_attempt_id: str, *, provider_request_id: str, provider_receipt_id: str, raw_result_ref: str, usage: Any, result_ref: str, now: datetime | str) -> dict[str, Any]:
+        """Persist a Standard receipt and terminal success as one durable closeout."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if attempt is None or attempt["status"] not in {"send_started", "submitted", "in_progress", "receipt_persisted"}:
+                raise InvalidTransitionError("Standard completion requires an active delivery attempt")
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+            item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (attempt["provider_request_item_id"],)).fetchone()
+            job = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (attempt["delivery_job_id"],)).fetchone()
+            if physical is None or item is None or job is None or physical["status"] not in {"send_started", "receipt_persisted"}:
+                raise ConflictError("Standard completion has inconsistent durable state")
+            prior = conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?", (provider_receipt_id,)).fetchone()
+            if prior is None:
+                conn.execute("INSERT INTO provider_receipts(provider_receipt_id,physical_attempt_id,provider_request_id,raw_result_ref,usage_json,received_at) VALUES (?,?,?,?,?,?)", (provider_receipt_id, physical["physical_attempt_id"], physical["provider_request_id"], raw_result_ref, json.dumps(_dump(usage), sort_keys=True), when))
+            elif prior["physical_attempt_id"] != physical["physical_attempt_id"]:
+                raise ConflictError("Standard provider receipt is bound to another physical attempt")
+            conn.execute("UPDATE provider_request_attempts SET status='completed', provider_request_id=?, provider_receipt_id=?, result_ref=?, usage_json=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (provider_request_id, provider_receipt_id, result_ref, json.dumps(_dump(usage), sort_keys=True), when, when, delivery_attempt_id))
+            conn.execute("UPDATE provider_request_items SET status='completed', provider_request_id=?, provider_receipt_id=?, result_ref=?, usage_json=?, updated_at=? WHERE provider_request_item_id=?", (provider_request_id, provider_receipt_id, result_ref, json.dumps(_dump(usage), sort_keys=True), when, item["provider_request_item_id"]))
+            conn.execute("UPDATE physical_attempts SET status='validated', receipt_persisted_at=COALESCE(receipt_persisted_at,?), updated_at=? WHERE physical_attempt_id=?", (when, when, physical["physical_attempt_id"]))
+            conn.execute("UPDATE delivery_jobs SET status='completed', completed_at=?, updated_at=? WHERE delivery_job_id=?", (when, when, job["delivery_job_id"]))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
+    def settle_standard_failure(self, delivery_attempt_id: str, *, failure_class: str, message: str, ambiguous: bool, now: datetime | str) -> dict[str, Any]:
+        """Persist an unambiguous failure or an ambiguity hold without resend."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if attempt is None:
+                raise CatalogError("unknown Standard delivery attempt")
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+            job_status = "held" if ambiguous else "failed"
+            item_status = "send_ambiguous" if ambiguous else "failed"
+            attempt_status = "held" if ambiguous else "failed"
+            conn.execute("UPDATE provider_request_attempts SET status=?, failure_class=?, failure_message_redacted=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (attempt_status, failure_class, message[:512], when, when, delivery_attempt_id))
+            conn.execute("UPDATE provider_request_items SET status=?, updated_at=? WHERE provider_request_item_id=?", (item_status, when, attempt["provider_request_item_id"]))
+            conn.execute("UPDATE physical_attempts SET status=?, updated_at=? WHERE physical_attempt_id=?", ("held" if ambiguous else "failed", when, physical["physical_attempt_id"]))
+            conn.execute("UPDATE delivery_jobs SET status=?, completed_at=?, updated_at=? WHERE delivery_job_id=?", (job_status, when, when, attempt["delivery_job_id"]))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
     def get_provider_receipt(self, provider_receipt_id: str) -> dict[str, Any] | None:
         with self._connection() as conn:
             return _row(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())
