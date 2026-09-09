@@ -5,7 +5,7 @@ import pytest
 
 from charitygraph.contracts import EvidenceLocator
 from charitygraph.native_program_discovery import build_discovery_task_v2
-from charitygraph.phase5_evidence_addressing import canonical_discovery_proof_task, canonical_locator
+from charitygraph.phase5_evidence_addressing import canonical_discovery_proof_task, canonical_locator, direct_service_scope_candidates
 from charitygraph.phase5_semantic_contracts import executable_contract_for
 from charitygraph.runtime.catalog import CatalogError, SQLiteCatalog
 
@@ -67,3 +67,14 @@ def test_readiness_uses_canonical_production_discovery_identity():
     invalid = dict(task, task_profile_version="2")
     with pytest.raises(ValueError, match="no semantic contract"):
         executable_contract_for(invalid)
+
+
+def test_direct_service_scope_candidates_require_both_governed_source_families():
+    rows = [
+        {"subject_id": "subject:a", "status": "eligible", "source_family": "acnc_ais_bundle"},
+        {"subject_id": "subject:a", "status": "eligible", "source_family": "official_website"},
+        {"subject_id": "subject:b", "status": "eligible", "source_family": "acnc_ais_bundle"},
+        {"subject_id": "subject:c", "status": "not_available", "source_family": "official_website"},
+    ]
+    candidates = direct_service_scope_candidates(rows)
+    assert [row["subject_id"] for row in candidates] == ["subject:a"]

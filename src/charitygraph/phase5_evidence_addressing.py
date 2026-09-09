@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any
 
 from .contracts import EvidenceLocator
+from .contracts.knowledge import ScopeRecord
+from .contracts.ids import deterministic_id
 from .evidence_store import ContentAddressedArtifactStore
 from .native_program_discovery import build_discovery_task_v2
 from .phase5_execution_packet import ExecutionPacketUnready, materialize_execution_packet
@@ -82,6 +84,108 @@ def canonical_locator(row: dict[str, Any]) -> EvidenceLocator:
     artifact-index membership is deliberately not required for this projection.
     """
     return EvidenceLocator(kind="document", source_record_id=row["source_record_id"], locator=row["source_locator"])
+
+
+def direct_service_material_preflight(*, corpus_dir: Path, catalog_path: Path, store_roots: tuple[Path, ...]) -> list[dict[str, Any]]:
+    """Check all admitted Direct Service material without mutating state.
+
+    This deliberately addresses source records, not semantic claims.  Every
+    source record must retain an exact payload hash and recoverable bytes; PDF
+    representation readiness is reported separately and is never fabricated.
+    """
+    rows: list[dict[str, Any]] = []
+    catalog = SQLiteCatalog(catalog_path).open()
+    try:
+        with catalog._connection() as conn:
+            for manifest in _read_manifests(corpus_dir):
+                subject = str(manifest["subject_id"])
+                for member in sorted(manifest.get("material_members", []), key=lambda item: (item.get("source_family", ""), tuple(item.get("source_record_ids", [])))):
+                    source_ids = list(member.get("source_record_ids", []))
+                    artifact_ids = list(member.get("artifact_ids", []))
+                    if not source_ids and not artifact_ids:
+                        rows.append({"subject_id": subject, "status": "not_available", "reason": "material family has no retained source record or artifact", "source_family": member.get("source_family")})
+                        continue
+                    if len(source_ids) != len(artifact_ids):
+                        rows.append({"subject_id": subject, "status": "blocked", "reason": "retained material has non-corresponding source-record and artifact identities", "source_family": member.get("source_family")})
+                        continue
+                    for source_id_raw, artifact_id_raw in zip(source_ids, artifact_ids):
+                        source_id, artifact_id = str(source_id_raw), str(artifact_id_raw)
+                        source = conn.execute("SELECT source_record_id, source_family, source_role, source_locator, payload_ref, payload_hash FROM source_records WHERE source_record_id=?", (source_id,)).fetchone()
+                        try:
+                            if source is None:
+                                raise ValueError("governed source record is missing")
+                            if source["payload_ref"] != artifact_id or not source["payload_hash"]:
+                                raise ValueError("source payload/artifact/hash lineage disagrees")
+                            content = None
+                            for root in store_roots:
+                                try:
+                                    content = ContentAddressedArtifactStore(root, allowed_roots=(root.parent,)).read(artifact_id)
+                                    break
+                                except Exception:
+                                    continue
+                            if content is None or not content:
+                                raise ValueError("retained material is unavailable or empty")
+                            digest = hashlib.sha256(content).hexdigest()
+                            if digest != str(source["payload_hash"]) or digest != artifact_id.split(":", 1)[1]:
+                                raise ValueError("retained material hash mismatch")
+                            rows.append({"subject_id": subject, "status": "eligible", "source_record_id": source_id, "artifact_id": artifact_id, "source_family": source["source_family"], "source_role": source["source_role"], "source_locator": source["source_locator"], "material_hash": digest, "byte_count": len(content)})
+                        except Exception as exc:
+                            rows.append({"subject_id": subject, "status": "blocked", "source_record_id": source_id, "artifact_id": artifact_id, "source_family": source["source_family"] if source is not None else member.get("source_family"), "reason": str(exc)})
+    finally:
+        catalog.close()
+    return rows
+
+
+def address_direct_service_material(*, corpus_dir: Path, catalog_path: Path, store_roots: tuple[Path, ...], output_root: Path, now: str | None = None) -> dict[str, Any]:
+    """Atomically create/reuse source-record-backed locators for admitted material."""
+    rows = direct_service_material_preflight(corpus_dir=corpus_dir, catalog_path=catalog_path, store_roots=store_roots)
+    if not rows or any(row["status"] == "blocked" for row in rows):
+        raise RuntimeError("PHASE5_DIRECT_SERVICE_EVIDENCE_ADDRESSING_BLOCKED: cohort preflight failed")
+    timestamp = now or _utc_now()
+    catalog = SQLiteCatalog(catalog_path).open()
+    locator_rows: list[dict[str, Any]] = []
+    try:
+        for row in rows:
+            registered = catalog.register_evidence_locator(canonical_locator(row), now=timestamp)
+            locator_rows.append({**row, "evidence_locator_id": registered["evidence_locator_id"], "prospective_created_at": registered["created_at"]})
+    finally:
+        catalog.close()
+    projection = {"projection_version": "phase5-direct-service-addressed-v1", "parent_clean_corpus_profile": "phase5-top100-baseline-corpus-v1-clean", "addressing_operation": "prospective_source_record_backed_direct_service_material", "created_at": timestamp, "members": locator_rows}
+    projection["projection_hash"] = _sha({key: value for key, value in projection.items() if key != "projection_hash"})
+    output_root.mkdir(parents=True, exist_ok=True)
+    (output_root / "direct-service-addressed-projection.json").write_text(json.dumps(projection, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return projection
+
+
+def direct_service_scope_candidates(rows: list[dict[str, Any]], *, required_source_families: tuple[str, ...] = ("acnc_ais_bundle", "official_website")) -> list[dict[str, Any]]:
+    """Return subjects whose admitted material satisfies Direct Service applicability."""
+    by_subject: dict[str, set[str]] = {}
+    for row in rows:
+        if row.get("status") == "eligible":
+            by_subject.setdefault(str(row["subject_id"]), set()).add(str(row["source_family"]))
+    required = set(required_source_families)
+    return [{"subject_id": subject, "applicability": "applicable", "source_families": sorted(families)} for subject, families in sorted(by_subject.items()) if required.issubset(families)]
+
+
+def materialize_direct_service_scopes(*, candidates: list[dict[str, Any]], catalog_path: Path, now: str | None = None) -> list[dict[str, Any]]:
+    """Create/reuse only mechanically applicable organisation scopes."""
+    timestamp = datetime.fromisoformat(now) if now else datetime.now(timezone.utc)
+    catalog = SQLiteCatalog(catalog_path).open()
+    result: list[dict[str, Any]] = []
+    try:
+        for candidate in candidates:
+            subject_id = str(candidate["subject_id"])
+            subject = catalog.get_subject(subject_id)
+            if subject is None:
+                raise RuntimeError(f"direct-service scope subject is missing: {subject_id}")
+            label = f"Direct Service — {subject.get('display_name') or subject_id} organisation"
+            scope_id = deterministic_id("scope:", {"subject_id": subject_id, "claim_family_id": "direct-service-access-v1", "scope_kind": "organisation"})
+            scope = ScopeRecord(record_id=scope_id, created_at=timestamp, producer={"kind": "code", "producer_id": "phase5-direct-service-addressing", "version": "1"}, subject_id=subject_id, scope_kind="organisation", label=label, lifecycle_status="active")
+            registered = catalog.register_scope(scope)
+            result.append({"subject_id": subject_id, "scope_id": registered["scope_id"], "status": "addressed_and_active", "source_families": candidate["source_families"]})
+    finally:
+        catalog.close()
+    return result
 
 
 def canonical_discovery_proof_task(*, subject_id: str, evidence_corpus_hash: str, logical_task_id: str) -> dict[str, Any]:
