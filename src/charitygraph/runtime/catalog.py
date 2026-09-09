@@ -684,6 +684,48 @@ class SQLiteCatalog:
                 publication_policy TEXT NOT NULL, established_by TEXT NOT NULL, established_at TEXT NOT NULL,
                 expires_at TEXT, revoked_at TEXT, revoke_reason TEXT
             )""")
+            conn.execute("""CREATE TABLE IF NOT EXISTS execution_mandates (
+                mandate_id TEXT PRIMARY KEY,
+                manifest_hash TEXT NOT NULL UNIQUE,
+                authorization_text_hash TEXT NOT NULL,
+                scope_json TEXT NOT NULL,
+                aggregate_hard_aud TEXT NOT NULL,
+                per_request_hard_aud TEXT NOT NULL,
+                phase_scope TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('proposed','active','revoked','exhausted','terminated')),
+                supersedes_mandate_id TEXT,
+                created_at TEXT NOT NULL,
+                authorized_at TEXT,
+                revoked_at TEXT,
+                terminated_at TEXT,
+                terminal_reason TEXT,
+                actual_spend_aud TEXT NOT NULL DEFAULT '0',
+                unresolved_reserved_aud TEXT NOT NULL DEFAULT '0'
+            )""")
+            conn.execute("""CREATE TABLE IF NOT EXISTS execution_mandate_contracts (
+                mandate_id TEXT NOT NULL REFERENCES execution_mandates(mandate_id),
+                contract_key TEXT NOT NULL,
+                contract_json TEXT NOT NULL,
+                PRIMARY KEY(mandate_id, contract_key)
+            )""")
+            conn.execute("""CREATE TABLE IF NOT EXISTS execution_mandate_events (
+                event_id TEXT PRIMARY KEY,
+                mandate_id TEXT NOT NULL REFERENCES execution_mandates(mandate_id),
+                event_type TEXT NOT NULL,
+                event_hash TEXT NOT NULL UNIQUE,
+                event_json TEXT NOT NULL,
+                recorded_at TEXT NOT NULL
+            )""")
+            conn.execute("""CREATE TABLE IF NOT EXISTS execution_mandate_reservations (
+                mandate_id TEXT NOT NULL REFERENCES execution_mandates(mandate_id),
+                reservation_id TEXT NOT NULL,
+                reserved_aud TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('active','settled','ambiguous')),
+                actual_aud TEXT NOT NULL DEFAULT '0',
+                created_at TEXT NOT NULL,
+                settled_at TEXT,
+                PRIMARY KEY(mandate_id, reservation_id)
+            )""")
             if immediate:
                 conn.execute("BEGIN IMMEDIATE")
             yield conn
@@ -737,6 +779,130 @@ class SQLiteCatalog:
             if row is None: raise CatalogError("standing authorization does not exist")
             conn.execute("UPDATE standing_authorizations SET status='revoked', revoked_at=?, revoke_reason=? WHERE authorization_id=?", (now_s, reason, authorization_id)); self._commit(conn)
             return dict(conn.execute("SELECT * FROM standing_authorizations WHERE authorization_id=?", (authorization_id,)).fetchone())
+
+    def register_execution_mandate(self, *, mandate_id: str, manifest_hash: str, authorization_text_hash: str,
+                                   scope: Mapping[str, Any], contract_allowlist: tuple[Mapping[str, Any], ...],
+                                   aggregate_hard_aud: Any, per_request_hard_aud: Any, phase_scope: str,
+                                   now: datetime | str, supersedes_mandate_id: str | None = None) -> dict[str, Any]:
+        """Persist a proposed mandate and immutable exact contract allowlist."""
+        self._ensure_open(); self._require_migrated()
+        if not mandate_id.startswith("mandate:") or not manifest_hash or not authorization_text_hash or not phase_scope:
+            raise CatalogError("execution mandate identity and scope are required")
+        aggregate = _money_amount(aggregate_hard_aud, "aggregate_hard_aud")
+        per_request = _money_amount(per_request_hard_aud, "per_request_hard_aud")
+        if aggregate <= 0 or per_request <= 0 or per_request > aggregate:
+            raise CatalogError("invalid execution mandate economics")
+        when = _utc(now, "now")
+        scope_json = json.dumps(_dump(scope), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        contracts = tuple(_dump(item) for item in contract_allowlist)
+        with self._authorization_connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if existing is not None:
+                if existing["manifest_hash"] != manifest_hash or existing["scope_json"] != scope_json:
+                    raise ConflictError("execution mandate identity was reused with different material")
+                return dict(existing)
+            conn.execute("INSERT INTO execution_mandates(mandate_id,manifest_hash,authorization_text_hash,scope_json,aggregate_hard_aud,per_request_hard_aud,phase_scope,status,supersedes_mandate_id,created_at) VALUES (?,?,?,?,?,?,?,'proposed',?,?)", (mandate_id, manifest_hash, authorization_text_hash, scope_json, str(aggregate), str(per_request), phase_scope, supersedes_mandate_id, when))
+            for item in contracts:
+                key = str(item.get("contract_key") or item.get("contract_id") or "")
+                if not key:
+                    raise CatalogError("mandate contract allowlist entries require contract_key")
+                conn.execute("INSERT INTO execution_mandate_contracts(mandate_id,contract_key,contract_json) VALUES (?,?,?)", (mandate_id, key, json.dumps(item, ensure_ascii=False, sort_keys=True, separators=(",", ":"))))
+            event = {"mandate_id": mandate_id, "event_type": "proposed", "manifest_hash": manifest_hash, "contract_count": len(contracts)}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, mandate_id, "proposed", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def get_execution_mandate(self, mandate_id: str) -> dict[str, Any] | None:
+        self._ensure_open(); self._require_migrated()
+        with self._authorization_connection() as conn:
+            row = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if row is None:
+                return None
+            result = dict(row)
+            result["contracts"] = [dict(item) for item in conn.execute("SELECT contract_json FROM execution_mandate_contracts WHERE mandate_id=? ORDER BY contract_key", (mandate_id,)).fetchall()]
+            return result
+
+    def activate_execution_mandate(self, *, mandate_id: str, authorization_text_hash: str, authorized_by: str, now: datetime | str) -> dict[str, Any]:
+        """Explicit human-authorization boundary; never called by preparation."""
+        when = _utc(now, "now")
+        if not str(authorized_by).strip():
+            raise CatalogError("mandate activation requires an explicit authorizer")
+        with self._authorization_connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if row is None or row["status"] != "proposed":
+                raise ConflictError("only a proposed execution mandate can be activated")
+            if row["authorization_text_hash"] != authorization_text_hash:
+                raise ConflictError("mandate authorization text hash mismatch")
+            conn.execute("UPDATE execution_mandates SET status='active', authorized_at=? WHERE mandate_id=?", (when, mandate_id))
+            event = {"mandate_id": mandate_id, "event_type": "activated", "authorized_by": authorized_by, "authorization_text_hash": authorization_text_hash}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, mandate_id, "activated", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def revoke_execution_mandate(self, *, mandate_id: str, now: datetime | str, reason: str) -> dict[str, Any]:
+        when = _utc(now, "now")
+        if not str(reason).strip():
+            raise CatalogError("mandate revocation reason is required")
+        with self._authorization_connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if row is None:
+                raise CatalogError("execution mandate does not exist")
+            conn.execute("UPDATE execution_mandates SET status='revoked', revoked_at=?, terminal_reason=? WHERE mandate_id=?", (when, reason, mandate_id))
+            event = {"mandate_id": mandate_id, "event_type": "revoked", "reason": reason}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, mandate_id, "revoked", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def reserve_execution_mandate(self, *, mandate_id: str, reservation_id: str, amount_aud: Any, now: datetime | str) -> dict[str, Any]:
+        amount = _money_amount(amount_aud, "mandate reservation")
+        when = _utc(now, "now")
+        with self._authorization_connection(immediate=True) as conn:
+            mandate = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if mandate is None or mandate["status"] != "active":
+                raise ConflictError("execution mandate is not active")
+            existing = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, reservation_id)).fetchone()
+            if existing is not None:
+                if existing["reserved_aud"] != str(amount):
+                    raise ConflictError("mandate reservation identity conflict")
+                return dict(existing)
+            remaining = Decimal(mandate["aggregate_hard_aud"]) - Decimal(mandate["actual_spend_aud"]) - Decimal(mandate["unresolved_reserved_aud"])
+            if amount > Decimal(mandate["per_request_hard_aud"]):
+                raise BudgetExceededError("request exceeds execution mandate per-request ceiling")
+            if amount > remaining:
+                raise BudgetExceededError("execution mandate aggregate authority exhausted")
+            conn.execute("INSERT INTO execution_mandate_reservations(mandate_id,reservation_id,reserved_aud,status,created_at) VALUES (?,?,?,'active',?)", (mandate_id, reservation_id, str(amount), when))
+            conn.execute("UPDATE execution_mandates SET unresolved_reserved_aud=CAST(unresolved_reserved_aud AS DECIMAL)+? WHERE mandate_id=?", (str(amount), mandate_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, reservation_id)).fetchone())
+
+    def settle_execution_mandate_reservation(self, *, mandate_id: str, reservation_id: str, actual_aud: Any, ambiguous: bool, now: datetime | str) -> dict[str, Any]:
+        actual = _money_amount(actual_aud, "mandate actual cost")
+        when = _utc(now, "now")
+        with self._authorization_connection(immediate=True) as conn:
+            reservation = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, reservation_id)).fetchone()
+            mandate = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if reservation is None or mandate is None:
+                raise CatalogError("mandate reservation does not exist")
+            if reservation["status"] != "active":
+                if reservation["actual_aud"] != str(actual):
+                    raise ConflictError("mandate settlement identity conflict")
+                return dict(reservation)
+            reserved = Decimal(reservation["reserved_aud"])
+            if actual > reserved:
+                raise BudgetExceededError("mandate actual exceeds reserved exposure")
+            release = reserved - actual
+            status = "ambiguous" if ambiguous else "settled"
+            accounted_actual = Decimal("0") if ambiguous else actual
+            conn.execute("UPDATE execution_mandate_reservations SET status=?, actual_aud=?, settled_at=? WHERE mandate_id=? AND reservation_id=?", (status, str(accounted_actual), when, mandate_id, reservation_id))
+            conn.execute("UPDATE execution_mandates SET actual_spend_aud=CAST(actual_spend_aud AS DECIMAL)+?, unresolved_reserved_aud=CAST(unresolved_reserved_aud AS DECIMAL)-? WHERE mandate_id=?", (str(accounted_actual), str(Decimal("0") if ambiguous else reserved), mandate_id))
+            event = {"mandate_id": mandate_id, "event_type": "ambiguous_settlement" if ambiguous else "settlement", "reservation_id": reservation_id, "actual_aud": str(accounted_actual), "released_aud": "0" if ambiguous else str(release)}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, mandate_id, event["event_type"], event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
 
     def authorize_semantic_measurement(
         self, *, authorization_scope_hash: str, subject_id: str, task_family: str,

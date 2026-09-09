@@ -228,3 +228,13 @@ def test_pinned_schema_or_body_drift_fails_before_post(tmp_path: Path):
 
     assert result["counts"] == {"failed_pre_send": 1}
     assert result["provider_posts"] == 0
+
+
+def test_mandate_proof_failure_blocks_provider_boundary(tmp_path: Path):
+    row = _row(8)
+    catalog = FakeCatalog([row])
+    provider = FakeProvider()
+    result = StandardCampaignCoordinator(catalog=catalog, provider=provider, runtime_root=tmp_path, mandate_evaluator=lambda _: type("Decision", (), {"authorized": False})()).run([row])
+
+    assert result["counts"] == {"failed_pre_send": 1}
+    assert result["provider_posts"] == 0

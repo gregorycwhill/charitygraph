@@ -19,3 +19,29 @@ boundary. Historical task-specific authorizations remain unchanged.
 The actual product-owner standing authorization record must be established in
 private runtime state through the governed operational procedure. This
 document defines the contract only and is not consent itself.
+
+## ExecutionMandate control plane
+
+External-action authorization may be either one-off or standing.
+
+Standing authorization is a bounded, mechanically enforced delegation
+envelope. Human review is required when the envelope changes, not merely
+because another conforming campaign has been prepared.
+
+An `ExecutionMandate` is distinct from a campaign, request item, delivery
+attempt, physical attempt, reservation, receipt, or provider response. Every
+physical transmission must prove its provider, model, reasoning, delivery,
+contract/prompt/schema identities, request ceiling, and remaining aggregate
+authority against an active mandate immediately before send. Batch, Flex,
+fallbacks, retries, ambiguous resends, governed promotion, CanonicalObservations,
+adjudication, publication, source acquisition, and release remain outside the
+Phase-5 Standard Luna mandate.
+
+LLM autonomy can run right up to the irreversible external-action gate; a
+standing mandate may authorize a bounded class of crossings of that gate.
+
+Mandate amendments are append-only. New contract or provider-boundary
+identities, delivery/retry changes, cost-cap increases, and authorization or
+reservation semantic changes require fresh authorization or an explicit
+amendment. Historical one-off authorizations are never relabelled as mandate
+authorizations.

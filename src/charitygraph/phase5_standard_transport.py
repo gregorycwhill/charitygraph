@@ -129,7 +129,7 @@ class StandardRunResult:
 class StandardCampaignCoordinator:
     """Bounded feeder for one-shot Standard request items."""
 
-    def __init__(self, *, catalog: Any, provider: StandardProvider, runtime_root: Path, max_concurrency: int = 4, now: Any = None, validator: Callable[[dict[str, Any]], None] | None = None, on_reconciled: Callable[[dict[str, Any], StandardProviderResponse, dict[str, Any]], None] | None = None) -> None:
+    def __init__(self, *, catalog: Any, provider: StandardProvider, runtime_root: Path, max_concurrency: int = 4, now: Any = None, validator: Callable[[dict[str, Any]], None] | None = None, on_reconciled: Callable[[dict[str, Any], StandardProviderResponse, dict[str, Any]], None] | None = None, mandate_evaluator: Callable[[dict[str, Any]], Any] | None = None) -> None:
         if max_concurrency < 1:
             raise ValueError("max_concurrency must be positive")
         self.catalog = catalog
@@ -139,6 +139,7 @@ class StandardCampaignCoordinator:
         self.now = now
         self.validator = validator
         self.on_reconciled = on_reconciled
+        self.mandate_evaluator = mandate_evaluator
         self.max_observed_concurrency = 0
         self._active = 0
         self._active_lock = threading.Lock()
@@ -185,6 +186,10 @@ class StandardCampaignCoordinator:
         posted = False
         try:
             body = self._validate_pinned(row)
+            if self.mandate_evaluator is not None:
+                evaluation = self.mandate_evaluator(row)
+                if not bool(getattr(evaluation, "authorized", False)):
+                    raise StandardSystemic("execution mandate proof did not authorize this request")
             attempt_id = row["delivery_attempt_id"]
             raw_path = self.runtime_root / "standard-results" / f"{request_id.replace(':', '_')}.json"
             meta_path = raw_path.with_suffix(".meta.json")

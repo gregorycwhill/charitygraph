@@ -34,6 +34,22 @@ A useful default instruction is:
 
 > Implement the change, run the narrowest relevant tests, run the fixture build, inspect the generated diagnostics, and keep iterating until the tests and fixture publication validation pass.
 
+## Standing execution mandates
+
+External-action authorization may be either one-off or standing. Standing
+authorization is a bounded, mechanically enforced delegation envelope. Human
+review is required when the envelope changes, not merely because another
+conforming campaign has been prepared.
+
+LLM autonomy can run right up to the irreversible external-action gate; a
+standing mandate may authorize a bounded class of crossings of that gate.
+
+The Phase-5 mandate control plane is separate from semantic task and delivery
+identity. It allowlists exact reviewed contract/prompt/schema identities,
+provider/model/reasoning/delivery constraints, and conservative aggregate and
+per-request economics. Mandates do not authorize promotion, publication,
+adjudication, source acquisition, merges, or releases.
+
 ## Phase-5 delivery policy
 
 Build and calibration execution uses the explicit `DeliveryPolicy.build()`
