@@ -237,7 +237,10 @@ class StandardCampaignCoordinator:
             self.catalog.persist_provider_receipt(physical_attempt_id=self.catalog.get_provider_request_item(request_id)["physical_attempt_id"], provider_receipt_id=receipt_id, raw_result_ref=str(raw_path), usage=usage, now=self.now)
         self.catalog.complete_standard_delivery(attempt_id, provider_request_id=response.request_id, provider_receipt_id=receipt_id, raw_result_ref=str(raw_path), usage=usage, result_ref=result_ref, now=self.now)
         if self.on_reconciled is not None:
-            self.on_reconciled(row, response, usage)
+            try:
+                self.on_reconciled(row, response, usage)
+            except Exception as exc:
+                return StandardRunResult(request_id, "completed_accounting_failed", post_count, False, response_id=response.body["id"], error=str(exc)[:512])
         parse_status = "valid"
         if self.validator is not None:
             try:
