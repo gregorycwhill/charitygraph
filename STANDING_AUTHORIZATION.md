@@ -45,3 +45,10 @@ identities, delivery/retry changes, cost-cap increases, and authorization or
 reservation semantic changes require fresh authorization or an explicit
 amendment. Historical one-off authorizations are never relabelled as mandate
 authorizations.
+
+Monotone safety and accounting corrections are not authority expansions when
+provider, model, delivery, contracts, and ceilings remain unchanged. Active-
+reservation send gates, isolated rehearsal ledgers, append-only evidenced-spend
+corrections, and stricter fail-closed validation may therefore be applied
+without a new campaign approval. Authority-expanding changes still require
+fresh review.

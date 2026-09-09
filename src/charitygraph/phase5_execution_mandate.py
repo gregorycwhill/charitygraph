@@ -125,6 +125,13 @@ def evaluate_execution_against_mandate(catalog: Any, mandate_id: str, request: M
     remaining = Decimal(mandate["aggregate_hard_aud"]) - Decimal(mandate["actual_spend_aud"]) - Decimal(mandate["unresolved_reserved_aud"])
     if hard_cost > remaining:
         return MandateEvaluation(MandateDecision.MANDATE_EXHAUSTED, "request would exceed remaining aggregate mandate authority", remaining_aud=remaining, mandate_id=mandate_id)
+    reservation_id = request.get("mandate_reservation_id")
+    if not reservation_id:
+        return MandateEvaluation(MandateDecision.RESERVATION_NOT_AUTHORIZED, "exact physical attempt has no mandate reservation", remaining_aud=remaining, mandate_id=mandate_id)
+    with catalog._authorization_connection() as conn:
+        reservation = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, reservation_id)).fetchone()
+    if reservation is None or reservation["status"] != "active" or Decimal(reservation["reserved_aud"]) < hard_cost:
+        return MandateEvaluation(MandateDecision.RESERVATION_NOT_AUTHORIZED, "exact physical attempt does not have active sufficient mandate reservation", remaining_aud=remaining, mandate_id=mandate_id)
     return MandateEvaluation(MandateDecision.AUTHORIZED_BY_MANDATE, "request is within the active mandate", remaining_aud=remaining, mandate_id=mandate_id)
 
 

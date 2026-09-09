@@ -50,6 +50,12 @@ provider/model/reasoning/delivery constraints, and conservative aggregate and
 per-request economics. Mandates do not authorize promotion, publication,
 adjudication, source acquisition, merges, or releases.
 
+Monotone safety and accounting corrections do not require reauthorization when
+they only restore or tighten an unchanged mandate envelope: active-reservation
+send gates, isolated fake rehearsal ledgers, append-only evidenced-spend
+corrections, and stricter fail-closed checks. Changes that expand authority or
+weaken lifecycle, identity, or cost controls remain human decision boundaries.
+
 ## Phase-5 delivery policy
 
 Build and calibration execution uses the explicit `DeliveryPolicy.build()`

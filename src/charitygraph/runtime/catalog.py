@@ -904,6 +904,64 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
 
+    def correct_execution_mandate_settlement(self, *, mandate_id: str, reservation_id: str,
+                                              correction_id: str, evidenced_actual_aud: Any,
+                                              correction_event: Mapping[str, Any], now: datetime | str) -> dict[str, Any]:
+        """Append an evidenced correction to a previously settled reservation.
+
+        This never reopens or rewrites the original settlement.  The correction
+        is idempotent by ``correction_id`` and may only increase a settled
+        reservation's evidenced actual spend.
+        """
+        target = _money_amount(evidenced_actual_aud, "evidenced actual cost")
+        when = _utc(now, "now")
+        if not correction_id.startswith("mandatecorrection:"):
+            raise CatalogError("mandate correction identity is malformed")
+        if not isinstance(correction_event, Mapping):
+            raise CatalogError("mandate correction evidence is required")
+        with self._authorization_connection(immediate=True) as conn:
+            mandate = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            reservation = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, reservation_id)).fetchone()
+            if mandate is None or reservation is None:
+                raise CatalogError("mandate correction target does not exist")
+            if reservation["status"] != "settled":
+                raise ConflictError("only a settled mandate reservation may be corrected")
+            reserved = Decimal(reservation["reserved_aud"])
+            if target > reserved:
+                raise BudgetExceededError("mandate evidenced actual exceeds reserved exposure")
+            existing_event = conn.execute("SELECT event_json FROM execution_mandate_events WHERE event_id=?", (correction_id,)).fetchone()
+            if existing_event is not None:
+                return dict(mandate)
+            prior = Decimal(reservation["actual_aud"])
+            if target <= prior:
+                raise ConflictError("mandate correction must increase evidenced actual spend")
+            adjustment = target - prior
+            event = dict(_dump(correction_event))
+            event.update({"mandate_id": mandate_id, "reservation_id": reservation_id,
+                          "correction_id": correction_id, "prior_actual_aud": str(prior),
+                          "evidenced_actual_aud": str(target), "adjustment_aud": str(adjustment),
+                          "event_type": "evidenced_spend_adjustment"})
+            event_hash = _canonical_hash(event)
+            conn.execute("UPDATE execution_mandate_reservations SET actual_aud=? WHERE mandate_id=? AND reservation_id=?", (str(target), mandate_id, reservation_id))
+            conn.execute("UPDATE execution_mandates SET actual_spend_aud=CAST(actual_spend_aud AS DECIMAL)+? WHERE mandate_id=?", (str(adjustment), mandate_id))
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", (correction_id, mandate_id, "evidenced_spend_adjustment", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def append_execution_mandate_correction_annotation(self, *, mandate_id: str, annotation_id: str,
+                                                       annotation: Mapping[str, Any], now: datetime | str) -> None:
+        """Append a non-economic annotation correcting immutable correction metadata."""
+        when = _utc(now, "now")
+        with self._authorization_connection(immediate=True) as conn:
+            if conn.execute("SELECT 1 FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone() is None:
+                raise CatalogError("mandate does not exist")
+            if conn.execute("SELECT 1 FROM execution_mandate_events WHERE event_id=?", (annotation_id,)).fetchone() is not None:
+                return
+            event = dict(_dump(annotation)); event["event_type"] = "correction_metadata_annotation"; event["mandate_id"] = mandate_id
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", (annotation_id, mandate_id, "correction_metadata_annotation", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+
     def authorize_semantic_measurement(
         self, *, authorization_scope_hash: str, subject_id: str, task_family: str,
         material_hash: str, measurement_id: str, authorized_by: str,
