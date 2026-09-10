@@ -146,6 +146,8 @@ def address_direct_service_material(*, corpus_dir: Path, catalog_path: Path, sto
     locator_rows: list[dict[str, Any]] = []
     try:
         for row in rows:
+            if row["status"] != "eligible":
+                continue
             registered = catalog.register_evidence_locator(canonical_locator(row), now=timestamp)
             locator_rows.append({**row, "evidence_locator_id": registered["evidence_locator_id"], "prospective_created_at": registered["created_at"]})
     finally:

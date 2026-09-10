@@ -42,7 +42,7 @@ class FakeCatalog:
             self.failed.append((attempt_id, kwargs))
 
 
-def _row(index: int, *, terminal=False):
+def _row(index: int, *, terminal=False, schema_name="program_service_discovery_v2"):
     request_id = f"requestitem:{index:064x}"
     schema = {"type": "object", "properties": {"proposals": {"type": "array"}}, "required": ["proposals"], "additionalProperties": False}
     body = {
@@ -51,7 +51,7 @@ def _row(index: int, *, terminal=False):
         "max_output_tokens": 8000,
         "store": False,
         "input": [{"role": "user", "content": [{"type": "input_text", "text": "évidence — stable"}]}],
-        "text": {"format": {"type": "json_schema", "name": "program_service_discovery_v2", "strict": True, "schema": schema}},
+        "text": {"format": {"type": "json_schema", "name": schema_name, "strict": True, "schema": schema}},
         "metadata": {"logical_task_id": f"modeltask:{index:064x}", "semantic_contract_hash": "c" * 64},
     }
     raw = canonical_standard_body_bytes(body)
@@ -61,7 +61,7 @@ def _row(index: int, *, terminal=False):
         "delivery_mode": "standard",
         "model": "gpt-5.6-luna",
         "reasoning_effort": "low",
-        "provider_schema_name": "program_service_discovery_v2",
+        "provider_schema_name": schema_name,
         "provider_service_tier": None,
         "max_output_tokens": 8000,
         "logical_task_id": f"modeltask:{index:064x}",
@@ -238,3 +238,11 @@ def test_mandate_proof_failure_blocks_provider_boundary(tmp_path: Path):
 
     assert result["counts"] == {"failed_pre_send": 1}
     assert result["provider_posts"] == 0
+
+
+def test_standard_transport_pins_any_explicit_schema_name(tmp_path: Path):
+    row = _row(22, schema_name="direct_service_semantics_v1")
+    catalog = FakeCatalog([row])
+    catalog.items[row["provider_request_item_id"]]["attempt_id"] = row["delivery_attempt_id"]
+    result = StandardCampaignCoordinator(catalog=catalog, provider=FakeProvider(), runtime_root=tmp_path).run([row])
+    assert result["counts"] == {"completed": 1}

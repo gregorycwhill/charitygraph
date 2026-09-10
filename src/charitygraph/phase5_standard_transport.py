@@ -151,8 +151,9 @@ class StandardCampaignCoordinator:
         body = canonical_standard_body_bytes(request_body)
         if body_sha256(body) != row["request_body_sha256"]:
             raise StandardSystemic("pinned Standard request body hash mismatch")
-        if row.get("provider_schema_name") != "program_service_discovery_v2":
-            raise StandardSystemic("pinned provider schema mismatch")
+        provider_schema_name = row.get("provider_schema_name")
+        if not isinstance(provider_schema_name, str) or not provider_schema_name:
+            raise StandardSystemic("pinned provider schema is missing")
         if row.get("max_output_tokens") != 8000:
             raise StandardSystemic("pinned output ceiling mismatch")
         if row.get("provider_request_item_id", "").split(":", 1)[0] != "requestitem":
@@ -169,7 +170,7 @@ class StandardCampaignCoordinator:
         if not isinstance(metadata, dict) or metadata.get("logical_task_id") != row["logical_task_id"] or metadata.get("semantic_contract_hash") != row["semantic_contract_hash"]:
             raise StandardSystemic("provider body metadata does not match pinned semantic identity")
         text_format = request_body.get("text", {}).get("format", {})
-        if text_format.get("name") != row["provider_schema_name"] or text_format.get("type") != "json_schema" or text_format.get("strict") is not True:
+        if text_format.get("name") != provider_schema_name or text_format.get("type") != "json_schema" or text_format.get("strict") is not True:
             raise StandardSystemic("provider structured-output contract is not pinned")
         schema_bytes = json.dumps(text_format.get("schema"), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
         if hashlib.sha256(schema_bytes).hexdigest() != row["schema_hash"]:
