@@ -182,6 +182,17 @@ def materialize_direct_service_scopes(*, candidates: list[dict[str, Any]], catal
                 raise RuntimeError(f"direct-service scope subject is missing: {subject_id}")
             label = f"Direct Service — {subject.get('display_name') or subject_id} organisation"
             scope_id = deterministic_id("scope:", {"subject_id": subject_id, "claim_family_id": "direct-service-access-v1", "scope_kind": "organisation"})
+            existing = catalog.get_scope(scope_id)
+            if existing is not None:
+                # Scope identity is deterministic, but the existing row may
+                # carry historical label/producer/timestamp material.  A
+                # prospective preparation must reuse that governed scope,
+                # never re-characterise it merely to make replay metadata
+                # current.
+                if existing.get("subject_id") != subject_id or existing.get("scope_kind") != "organisation" or existing.get("lifecycle_status") != "active":
+                    raise RuntimeError(f"deterministic Direct Service scope conflicts: {scope_id}")
+                result.append({"subject_id": subject_id, "scope_id": scope_id, "status": "reused_active", "source_families": candidate["source_families"]})
+                continue
             scope = ScopeRecord(record_id=scope_id, created_at=timestamp, producer={"kind": "code", "producer_id": "phase5-direct-service-addressing", "version": "1"}, subject_id=subject_id, scope_kind="organisation", label=label, lifecycle_status="active")
             registered = catalog.register_scope(scope)
             result.append({"subject_id": subject_id, "scope_id": registered["scope_id"], "status": "addressed_and_active", "source_families": candidate["source_families"]})
