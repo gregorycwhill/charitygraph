@@ -8,9 +8,12 @@ from charitygraph.phase5_official_website_campaign import (
     AcquisitionCampaignError,
     DISCOVERY_REQUIRED_ABNS,
     build_campaign,
+    execute_row,
     rehearse_network_edge,
     validate_campaign,
 )
+from charitygraph.evidence_store import ContentAddressedArtifactStore
+from charitygraph.runtime import SQLiteCatalog
 
 
 def _inputs(tmp_path, *, count: int = 80):
@@ -81,3 +84,25 @@ def test_tamper_and_duplicate_attempt_identity_fail_before_network_boundary(tmp_
     manifest["manifest_sha256"] = __import__("hashlib").sha256(json.dumps({k: v for k, v in manifest.items() if k != "manifest_sha256"}, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
     with pytest.raises(AcquisitionCampaignError, match="duplicate"):
         rehearse_network_edge(manifest)
+
+
+def test_successful_fixture_retains_exact_bytes_and_lineage_once(tmp_path) -> None:
+    profiles, identities, inventory = _inputs(tmp_path)
+    row = build_campaign(profiles_path=profiles, identity_map_path=identities, inventory_path=inventory)["rows"][0]
+    body = b"<html><meta charset='utf-8'>Caf\xc3\xa9</html>"
+
+    class Ledger:
+        def fetch(self, **kwargs):
+            assert kwargs["url"] == row["normalized_initial_url"]
+            return {"ok": True, "body": body, "resolved_url": row["normalized_initial_url"], "media_type": "text/html", "event": {"outcome": "available"}}
+
+    catalog = SQLiteCatalog(tmp_path / "catalog.sqlite3").open(initialize=True)
+    try:
+        store = ContentAddressedArtifactStore(tmp_path / "runtime", allowed_roots=(tmp_path,))
+        result = execute_row(row=row, ledger=Ledger(), catalog=catalog, store=store)
+        assert result["outcome"] == "acquired_successfully"
+        assert store.read(result["lineage"]["artifact_id"]) == body
+        assert catalog.get_acquisition_receipt(result["lineage"]["acquisition_receipt_id"]) is not None
+        assert catalog.get_source_record(result["lineage"]["source_record_id"]) is not None
+    finally:
+        catalog.close()
