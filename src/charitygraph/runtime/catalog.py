@@ -2524,6 +2524,22 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
 
+    def reopen_pre_send_failure(self, delivery_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
+        """Reopen an exact local pre-send failure; never reopen a sent attempt."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if attempt is None or attempt["status"] != "failed" or attempt["failure_class"] != "pre_send_validation" or attempt["submitted_at"] is not None or attempt["provider_request_id"] is not None:
+                raise ConflictError("only an unsent pre-send validation failure can be reopened")
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+            if physical is None or physical["status"] != "failed" or physical["send_started_at"] is not None:
+                raise ConflictError("pre-send failure has crossed the physical send boundary")
+            conn.execute("UPDATE provider_request_attempts SET status='prepared',failure_class=NULL,failure_message_redacted=NULL,completed_at=NULL,updated_at=? WHERE delivery_attempt_id=?", (when, delivery_attempt_id))
+            conn.execute("UPDATE provider_request_items SET status='prepared',updated_at=? WHERE provider_request_item_id=?", (when, attempt["provider_request_item_id"]))
+            conn.execute("UPDATE physical_attempts SET status='prepared',updated_at=? WHERE physical_attempt_id=?", (when, physical["physical_attempt_id"]))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
     def get_provider_receipt(self, provider_receipt_id: str) -> dict[str, Any] | None:
         with self._connection() as conn:
             return _row(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())
