@@ -260,7 +260,7 @@ def main() -> int:
         (args.output_root / "candidate-results" / (row["provider_request_item_id"].replace(":", "_") + ".json")).write_text(json.dumps(parsed[row["provider_request_item_id"]] | {"output": output.model_dump(mode="json") if output else None}, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     def validate(body):
         DirectServiceWireOutput.model_validate_json(body["output_text"])
-    result=StandardCampaignCoordinator(catalog=catalog,provider=OpenAIHTTPStandardClient(),runtime_root=args.output_root,max_concurrency=4,now=NOW,validator=validate,on_reconciled=reconcile,mandate_evaluator=mandate).run(manifest)
+    result=StandardCampaignCoordinator(catalog=catalog,provider=OpenAIHTTPStandardClient(),runtime_root=args.output_root,max_concurrency=4,now=NOW,validator=validate,on_reconciled=reconcile,mandate_evaluator=mandate).run(rows)
     result["candidate_results"] = parsed
     (args.output_root/"execution.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n",encoding="utf-8"); print(json.dumps(result,sort_keys=True)); return 0
 
