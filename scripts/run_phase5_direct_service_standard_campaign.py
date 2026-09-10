@@ -127,7 +127,8 @@ def canonicalize_prepared_campaign_rows(manifest: dict, rows: list[dict]) -> lis
         if item.get("provider") is None:
             item["provider"] = "openai"
         item.setdefault("task_profile", "direct_service_semantics")
-        item.setdefault("task_profile_version", 1)
+        if item.get("task_profile_version") is None:
+            item["task_profile_version"] = "1"
         item.setdefault("prompt_sha256", "99b07ab4811e4489b87e0e7fa9077756f2fe5ac7517e052df901117c7373db83")
         item.setdefault("schema_id", "urn:charitygraph:builder:schema:direct-service-wire-output:1.0")
         item.setdefault("schema_version", "1.0")
