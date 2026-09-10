@@ -22,14 +22,14 @@ from charitygraph.phase5_standard_transport import OpenAIHTTPStandardClient, Sta
 from charitygraph.phase5_standard_transport import StandardProviderResponse
 from charitygraph.runtime import SQLiteCatalog
 
-MANDATE = "mandate:phase5-build-standard-luna-v1-amendment-1"
-RUN = "run:phase5-direct-service-v1-top100"
-COHORT = "cohort:phase5-direct-service-v1-top100"
-JOB = "deliveryjob:phase5-direct-service-v1-top100-standard"
+MANDATE = "mandate:phase5-build-standard-luna-v1-amendment-2"
+RUN = "run:phase5-direct-service-v1.1-post-acquisition"
+COHORT = "cohort:phase5-direct-service-v1.1-post-acquisition"
+JOB = "deliveryjob:phase5-direct-service-v1.1-standard"
 OWNER = "phase5-direct-service-v1-worker"
 NOW = "2026-09-10T00:00:00+00:00"
-AUTHORIZED_MANIFEST_SHA256 = "5f69817d347c51345799a5925fec24f8c2cb686a1d02ea07975727dabba5e8a7"
-AUTHORIZED_MANIFEST_BYTES = 1826231
+AUTHORIZED_MANIFEST_SHA256 = "b921382cdde3723c11ce8024f60d50f3d61bfae494b372cd00d56b07c930becd"
+AUTHORIZED_MANIFEST_BYTES = 31861240
 
 
 def validate_existing_authority(*, catalogue: Path, authority: Path, mandate_id: str = MANDATE, allow_reconciled_campaign: bool = False) -> None:
@@ -52,8 +52,8 @@ def validate_existing_authority(*, catalogue: Path, authority: Path, mandate_id:
             raise RuntimeError("authority lacks existing execution-mandate structures")
         mandate = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
         if mandate is None or mandate["status"] != "active":
-            raise RuntimeError("existing amendment-1 mandate is not active")
-        if (not allow_reconciled_campaign and mandate["actual_spend_aud"] != "0.480103") or (allow_reconciled_campaign and Decimal(mandate["actual_spend_aud"]) < Decimal("0.480103")):
+            raise RuntimeError("exact amendment-2 mandate is not active")
+        if Decimal(mandate["actual_spend_aud"]) < Decimal("0.649445"):
             raise RuntimeError("existing mandate accounting does not match the reconciled baseline")
         active_reservations = conn.execute(
             "SELECT er.reservation_id, er.reserved_aud, er.status FROM execution_mandate_reservations er JOIN budget_reservations br ON br.reservation_id=er.reservation_id WHERE er.mandate_id=? AND er.status IN ('active','ambiguous') AND br.run_id=?",
@@ -70,8 +70,8 @@ def validate_existing_authority(*, catalogue: Path, authority: Path, mandate_id:
         if active != 1:
             raise RuntimeError("unexpected number of active Phase-5 mandates")
         contracts = {row[0] for row in conn.execute("SELECT contract_key FROM execution_mandate_contracts WHERE mandate_id=?", (mandate_id,))}
-        if "urn:charitygraph:builder:semantic-contract:direct-service-v1:1.0" not in contracts:
-            raise RuntimeError("Direct Service V1 is not allowlisted by the existing mandate")
+        if "urn:charitygraph:builder:semantic-contract:direct-service-v1:1.1" not in contracts:
+            raise RuntimeError("Direct Service V1.1 is not allowlisted by the exact amendment")
     except sqlite3.Error as exc:
         raise RuntimeError("could not read existing authority store") from exc
     finally:
@@ -133,10 +133,36 @@ def canonicalize_prepared_campaign_rows(manifest: dict, rows: list[dict]) -> lis
 def load_canonical_prepared_campaign(catalog: SQLiteCatalog, path: Path, *, terminal: bool = False) -> tuple[dict, list[dict]]:
     """Load, join, and normalize an immutable campaign without writing it."""
     manifest = load_prepared_campaign(path)
-    rows = reconstruct_reconciliation_metadata(catalog, manifest, terminal=terminal)
+    rows = reconstruct_reconciliation_metadata(catalog, hydrate_manifest_lifecycle(catalog, manifest), terminal=terminal)
     rows = canonicalize_prepared_campaign_rows(manifest, rows)
     validate_prepared_campaign(catalog, manifest, rows)
     return manifest, rows
+
+
+def hydrate_manifest_lifecycle(catalog: SQLiteCatalog, manifest: dict) -> dict:
+    """Hydrate durable lifecycle rows from an immutable wire preparation.
+
+    This fills only execution identities absent from the private preparation
+    projection.  Request bodies, wire fingerprints, and preparation bytes are
+    never regenerated or rewritten.
+    """
+    catalog.register_cohort({"record_id": COHORT, "cohort_code": "PHASE5-DIRECT-SERVICE-V1.1-POST-ACQUISITION", "definition_version": "1", "membership_hash": sha("|".join(x["logical_task_id"] for x in manifest["request_items"]).encode()), "budget_cap": {"amount": "30.00", "currency": "AUD"}, "created_at": NOW})
+    catalog.register_run({"record_id": RUN, "cohort_id": COHORT, "run_kind": "phase5_direct_service_v1_1_standard", "status": "planned", "configuration_hash": sha(json.dumps([x["provider_request_item_id"] for x in manifest["request_items"]], sort_keys=True).encode()), "created_at": NOW})
+    catalog.create_delivery_job(delivery_job_id=JOB, run_id=RUN, provider_id="openai", model_route="gpt-5.6-luna", delivery_mode="standard", pricing_snapshot_id="pricing:phase5-openai-standard-v1", now=NOW)
+    hydrated = json.loads(json.dumps(manifest))
+    for item in hydrated["request_items"]:
+        rid = item["provider_request_item_id"]
+        physical = deterministic_id("taskrun:", {"kind": "direct_service_standard_physical", "run": RUN, "request": rid})
+        attempt = "deliveryattempt:" + sha(json.dumps({"run": RUN, "request": rid, "ordinal": 1}, sort_keys=True, separators=(",", ":")).encode())
+        reservation = deterministic_id("reservation:", {"run": RUN, "request": rid})
+        catalog.register_task({"record_id": item["logical_task_id"], "subject_id": item["subject_id"], "cohort_id": COHORT, "task_type": "direct_service_semantics", "task_schema": {"schema_id": "urn:charitygraph:builder:schema:direct-service-task:1.0"}, "cache_key": sha((item["packet_hash"] + item["logical_task_id"]).encode()), "provider_id": "openai", "model_snapshot": "gpt-5.6-luna"}, run_id=RUN, now=NOW)
+        catalog.reserve_cost({"record_id": reservation, "cohort_id": COHORT, "run_id": RUN, "reserved_aud": {"amount": item["hard_max_aud"], "currency": "AUD"}, "model_task_ids": (item["logical_task_id"],)}, now=NOW)
+        catalog.reserve_execution_mandate(mandate_id=MANDATE, reservation_id=reservation, amount_aud=item["hard_max_aud"], now=NOW)
+        catalog.prepare_physical_attempt(physical_attempt_id=physical, run_id=RUN, subject_id=item["subject_id"], delivery_mode="standard", provider_request_id=rid, model_task_ids=(item["logical_task_id"],), reservation_id=reservation, now=NOW)
+        catalog.create_provider_request_item(provider_request_item_id=rid, run_id=RUN, model_task_id=item["logical_task_id"], provider_id="openai", model_route="gpt-5.6-luna", requested_delivery_mode="standard", effective_service_tier="standard", delivery_job_id=JOB, physical_attempt_id=physical, now=NOW)
+        catalog.create_provider_request_attempt(delivery_attempt_id=attempt, provider_request_item_id=rid, physical_attempt_id=physical, delivery_job_id=JOB, attempt_ordinal=1, authorization_id=MANDATE, attempt_class="initial", predecessor_attempt_id=None, now=NOW)
+        item.update({"delivery_attempt_id": attempt, "physical_attempt_id": physical, "reservation_id": reservation, "mandate_reservation_id": reservation})
+    return hydrated
 
 
 def reconstruct_reconciliation_metadata(catalog: SQLiteCatalog, manifest: dict, *, terminal: bool = False) -> list[dict]:
@@ -184,13 +210,13 @@ def reconstruct_reconciliation_metadata(catalog: SQLiteCatalog, manifest: dict, 
 
 
 def validate_prepared_campaign(catalog: SQLiteCatalog, manifest: dict, rows: list[dict]) -> None:
-    if manifest.get("run_id") != RUN or manifest.get("mandate_id") != MANDATE or len(rows) != 8:
+    if manifest.get("run_id") != RUN or manifest.get("mandate_id") not in {MANDATE, MANDATE + "-proposed-inactive"} or len(rows) != 61:
         raise RuntimeError("prepared campaign identity is not the authorized Direct Service cohort")
     if {r["provider_request_item_id"] for r in rows} != {r["provider_request_item_id"] for r in manifest["request_items"]}:
         raise RuntimeError("prepared request-item set is inconsistent")
     if any(r["model"] != "gpt-5.6-luna" or r["reasoning_effort"] != "low" or r["delivery_mode"] != "standard" or r["max_output_tokens"] != 8000 or r["provider_service_tier"] is not None for r in rows):
         raise RuntimeError("prepared campaign route is inconsistent")
-    if sum(Decimal(r["hard_max_aud"]) for r in rows) != Decimal("0.247914"):
+    if sum(Decimal(r["hard_max_aud"]) for r in rows) != Decimal("3.253195"):
         raise RuntimeError("prepared campaign exposure is inconsistent")
     if any(sha(canonical_body_bytes(r["request_body"])) != r["request_body_sha256"] for r in rows):
         raise RuntimeError("prepared request body hash is inconsistent")
