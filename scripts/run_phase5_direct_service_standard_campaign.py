@@ -199,7 +199,7 @@ def reconstruct_reconciliation_metadata(catalog: SQLiteCatalog, manifest: dict, 
             allowed_reservation_status = {"active", "released"} if terminal else {"active"}
             if reservation is None or reservation["status"] not in allowed_reservation_status or reservation["reserved_aud"] != item["hard_max_aud"]:
                 raise RuntimeError(f"budget reservation is not exact: {rid}")
-            mandate_reservation = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (manifest["mandate_id"], item["mandate_reservation_id"])).fetchone()
+            mandate_reservation = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (MANDATE, item["mandate_reservation_id"])).fetchone()
             allowed_mandate_status = {"active", "settled"} if terminal else {"active"}
             if mandate_reservation is None or mandate_reservation["status"] not in allowed_mandate_status or mandate_reservation["reserved_aud"] != item["hard_max_aud"]:
                 raise RuntimeError(f"mandate reservation is not exact: {rid}")
