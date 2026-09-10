@@ -5,6 +5,7 @@ import pytest
 
 from charitygraph.contracts import EvidenceLocator
 from charitygraph.native_program_discovery import build_discovery_task_v2
+import charitygraph.phase5_evidence_addressing as addressing
 from charitygraph.phase5_evidence_addressing import canonical_discovery_proof_task, canonical_locator, direct_service_scope_candidates
 from charitygraph.phase5_semantic_contracts import executable_contract_for
 from charitygraph.runtime.catalog import CatalogError, SQLiteCatalog
@@ -78,3 +79,33 @@ def test_direct_service_scope_candidates_require_both_governed_source_families()
     ]
     candidates = direct_service_scope_candidates(rows)
     assert [row["subject_id"] for row in candidates] == ["subject:a"]
+
+
+def test_existing_deterministic_scope_is_reused_without_historical_metadata_rewrite(monkeypatch):
+    subject_id = "subject:" + "a" * 32
+    scope_id = "scope:" + "b" * 64
+
+    class ExistingCatalog:
+        def __init__(self, path):
+            self.path = path
+        def open(self):
+            return self
+        def close(self):
+            pass
+        def get_subject(self, value):
+            assert value == subject_id
+            return {"display_name": "Subject"}
+        def get_scope(self, value):
+            assert value == scope_id
+            return {"scope_id": scope_id, "subject_id": subject_id, "scope_kind": "organisation", "lifecycle_status": "active", "label": "historical label", "created_at": "historical"}
+        def register_scope(self, scope):
+            raise AssertionError("existing scope must not be rewritten")
+
+    monkeypatch.setattr(addressing, "deterministic_id", lambda *args: scope_id)
+    monkeypatch.setattr(addressing, "SQLiteCatalog", ExistingCatalog)
+    result = addressing.materialize_direct_service_scopes(
+        candidates=[{"subject_id": subject_id, "source_families": ["acnc_ais_bundle", "official_website"]}],
+        catalog_path="unused",
+        now="2026-09-10T00:00:00+00:00",
+    )
+    assert result == [{"subject_id": subject_id, "scope_id": scope_id, "status": "reused_active", "source_families": ["acnc_ais_bundle", "official_website"]}]
