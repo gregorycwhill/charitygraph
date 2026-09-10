@@ -856,6 +856,27 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
 
+    def carry_forward_execution_mandate_accounting(self, *, from_mandate_id: str, to_mandate_id: str, now: datetime | str) -> dict[str, Any]:
+        """Carry settled spend/exposure across an explicitly superseding mandate."""
+        when = _utc(now, "now")
+        with self._authorization_connection(immediate=True) as conn:
+            source = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (from_mandate_id,)).fetchone()
+            target = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (to_mandate_id,)).fetchone()
+            if source is None or target is None or target["supersedes_mandate_id"] != from_mandate_id:
+                raise ConflictError("mandate accounting carry-forward requires an exact supersession")
+            if source["status"] != "revoked" or target["status"] != "active":
+                raise ConflictError("mandate accounting carry-forward requires revoked source and active target")
+            if Decimal(target["actual_spend_aud"]) not in {Decimal("0"), Decimal(source["actual_spend_aud"])} or Decimal(target["unresolved_reserved_aud"]) not in {Decimal("0"), Decimal(source["unresolved_reserved_aud"])}:
+                raise ConflictError("mandate accounting carry-forward conflicts with existing target accounting")
+            if Decimal(target["actual_spend_aud"]) == Decimal(source["actual_spend_aud"]) and Decimal(target["unresolved_reserved_aud"]) == Decimal(source["unresolved_reserved_aud"]):
+                return dict(target)
+            conn.execute("UPDATE execution_mandates SET actual_spend_aud=?, unresolved_reserved_aud=? WHERE mandate_id=?", (source["actual_spend_aud"], source["unresolved_reserved_aud"], to_mandate_id))
+            event = {"event_type": "accounting_carried_forward", "from_mandate_id": from_mandate_id, "to_mandate_id": to_mandate_id, "actual_spend_aud": source["actual_spend_aud"], "unresolved_reserved_aud": source["unresolved_reserved_aud"]}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, to_mandate_id, "accounting_carried_forward", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (to_mandate_id,)).fetchone())
+
     def reserve_execution_mandate(self, *, mandate_id: str, reservation_id: str, amount_aud: Any, now: datetime | str) -> dict[str, Any]:
         amount = _money_amount(amount_aud, "mandate reservation")
         when = _utc(now, "now")
