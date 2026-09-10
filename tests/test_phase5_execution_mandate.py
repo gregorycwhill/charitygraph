@@ -12,6 +12,7 @@ from charitygraph.phase5_execution_mandate import (
     proposed_phase5_standard_luna_amendment_manifest,
 )
 from charitygraph.phase5_semantic_contracts import HISTORICAL_DISCOVERY_V2_CONTRACT, REGISTRY
+from charitygraph.phase5_openai_dry_run import conservative_standard_hard_max_aud, conservative_standard_hard_max_usd
 from charitygraph.runtime.catalog import BudgetExceededError, SQLiteCatalog
 
 
@@ -129,7 +130,7 @@ def test_evidenced_spend_correction_is_append_only_and_idempotent(tmp_path):
     assert catalog.get_execution_mandate(manifest["mandate_id"])["actual_spend_aud"] == "0.012345"
 
 
-def test_evidenced_spend_correction_cannot_expand_reservation(tmp_path):
+def test_evidenced_spend_correction_cannot_exceed_true_request_authority(tmp_path):
     catalog = _catalog(tmp_path); manifest, _ = _register(catalog)
     catalog.activate_execution_mandate(mandate_id=manifest["mandate_id"], authorization_text_hash="a" * 64, authorized_by="Greg", now=NOW)
     catalog.reserve_execution_mandate(mandate_id=manifest["mandate_id"], reservation_id="mandatereservation:bounded", amount_aud="0.010000", now=NOW)
@@ -137,9 +138,39 @@ def test_evidenced_spend_correction_cannot_expand_reservation(tmp_path):
     with pytest.raises(BudgetExceededError):
         catalog.correct_execution_mandate_settlement(
             mandate_id=manifest["mandate_id"], reservation_id="mandatereservation:bounded",
-            correction_id="mandatecorrection:bounded", evidenced_actual_aud="0.010001",
+            correction_id="mandatecorrection:bounded", evidenced_actual_aud="0.250001",
             correction_event={"reason": "over-ceiling"}, now=NOW,
         )
+
+
+def test_active_settlement_preserves_append_only_reservation_shortfall(tmp_path):
+    catalog = _catalog(tmp_path); manifest, _ = _register(catalog)
+    catalog.activate_execution_mandate(mandate_id=manifest["mandate_id"], authorization_text_hash="a" * 64, authorized_by="Greg", now=NOW)
+    catalog.reserve_execution_mandate(mandate_id=manifest["mandate_id"], reservation_id="mandatereservation:shortfall", amount_aud="0.20", now=NOW)
+    row = catalog.settle_execution_mandate_reservation(mandate_id=manifest["mandate_id"], reservation_id="mandatereservation:shortfall", actual_aud="0.21", ambiguous=False, now=NOW)
+    assert row["actual_spend_aud"] == "0.21"
+    with catalog._authorization_connection() as conn:
+        assert conn.execute("SELECT status FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (manifest["mandate_id"], "mandatereservation:shortfall")).fetchone()[0] == "settled"
+    assert catalog.get_execution_mandate(manifest["mandate_id"])["actual_spend_aud"] == "0.21"
+    with catalog._authorization_connection() as conn:
+        event = conn.execute("SELECT event_type,event_json FROM execution_mandate_events WHERE event_type='settlement_with_reservation_shortfall'").fetchone()
+    assert event is not None and "0.01" in event["event_json"]
+
+
+def test_active_settlement_rejects_true_per_request_authority_breach(tmp_path):
+    catalog = _catalog(tmp_path); manifest, _ = _register(catalog)
+    catalog.activate_execution_mandate(mandate_id=manifest["mandate_id"], authorization_text_hash="a" * 64, authorized_by="Greg", now=NOW)
+    catalog.reserve_execution_mandate(mandate_id=manifest["mandate_id"], reservation_id="mandatereservation:hard", amount_aud="0.20", now=NOW)
+    with pytest.raises(BudgetExceededError, match="per-request authority"):
+        catalog.settle_execution_mandate_reservation(mandate_id=manifest["mandate_id"], reservation_id="mandatereservation:hard", actual_aud="0.250001", ambiguous=False, now=NOW)
+
+
+def test_conservative_standard_exposure_expands_input_and_rounds_upward():
+    usd = conservative_standard_hard_max_usd(100000, 8000, input_bound_factor="1.60")
+    aud = conservative_standard_hard_max_aud(100000, 8000, "1.52", input_bound_factor="1.60")
+    assert usd == Decimal("0.041600")
+    assert aud == Decimal("0.063232")
+    assert conservative_standard_hard_max_usd(1, 0, input_bound_factor="1.60") == Decimal("0.000001")
 
 
 def test_fake_rehearsal_authority_isolated_from_live_mandate(tmp_path):

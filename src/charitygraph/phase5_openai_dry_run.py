@@ -18,6 +18,11 @@ DISCOVERY_MAX_OUTPUT_TOKENS = 8000
 LUNA, TERRA = "gpt-5.6-luna", "gpt-5.6-terra"
 PROVIDER_SCHEMA_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
 MONEY_QUANTUM = Decimal("0.000001")
+# Empirical lower bound for future Standard reservations.  The current
+# retained V1.1 run observed a maximum provider/local-input ratio of 1.582856;
+# 1.60 is the deliberately documented conservative bound until exact billing
+# tokenization is available.
+STANDARD_INPUT_BOUND_FACTOR = Decimal("1.60")
 
 
 class BatchPayloadError(ValueError):
@@ -84,6 +89,26 @@ def conservative_money_ceiling(value: Decimal | str, quantum: Decimal = MONEY_QU
 def conservative_member_aud_ceiling(usd_amount: Decimal | str, aud_per_usd: Decimal | str) -> Decimal:
     """Convert one member ceiling and round it upward before aggregation."""
     return conservative_money_ceiling(Decimal(str(usd_amount)) * Decimal(str(aud_per_usd)))
+
+
+def conservative_standard_hard_max_usd(input_tokens_estimate: int | Decimal | str, max_output_tokens: int, *, model: str = "gpt-5.6-luna", input_bound_factor: Decimal | str = STANDARD_INPUT_BOUND_FACTOR) -> Decimal:
+    """Return a conservative Standard exposure bound from pinned request data.
+
+    The input estimate is not treated as exact billing.  It is expanded by an
+    explicit empirically-derived bound, while the output cap is already a
+    mechanical provider limit.  Both components are calculated at Decimal
+    precision and the result is rounded upward only at ledger precision.
+    """
+    estimate = Decimal(str(input_tokens_estimate))
+    factor = Decimal(str(input_bound_factor))
+    if estimate < 0 or factor < 1 or max_output_tokens < 0:
+        raise ValueError("Standard hard exposure inputs are invalid")
+    price = PRICING[model]
+    return conservative_money_ceiling((estimate * factor * price["input"] + Decimal(max_output_tokens) * price["output"]) / Decimal(1_000_000), Decimal("0.000001"))
+
+
+def conservative_standard_hard_max_aud(input_tokens_estimate: int | Decimal | str, max_output_tokens: int, aud_per_usd: Decimal | str, *, model: str = "gpt-5.6-luna", input_bound_factor: Decimal | str = STANDARD_INPUT_BOUND_FACTOR) -> Decimal:
+    return conservative_money_ceiling(conservative_standard_hard_max_usd(input_tokens_estimate, max_output_tokens, model=model, input_bound_factor=input_bound_factor) * Decimal(str(aud_per_usd)))
 
 CAPABILITIES = {
     LUNA: {"provider": "openai", "responses": True, "batch": True, "flex": True, "structured_outputs": True, "reasoning_efforts": ["none", "low", "medium", "high", "xhigh", "max"], "context_window": 1_050_000, "max_output_tokens": 128_000, "batch_queue_tier1": 5_000_000},

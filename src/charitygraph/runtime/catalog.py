@@ -913,7 +913,20 @@ class SQLiteCatalog:
                 return dict(reservation)
             reserved = Decimal(reservation["reserved_aud"])
             if actual > reserved:
-                raise BudgetExceededError("mandate actual exceeds reserved exposure")
+                # Reservations are pre-send controls, not the per-request
+                # mandate itself. Preserve an evidenced shortfall when spend
+                # remains within the user's actual per-request authority.
+                if actual > Decimal(mandate["per_request_hard_aud"]):
+                    raise BudgetExceededError("mandate actual exceeds per-request authority")
+                status = "ambiguous" if ambiguous else "settled"
+                accounted_actual = Decimal("0") if ambiguous else actual
+                conn.execute("UPDATE execution_mandate_reservations SET status=?, actual_aud=?, settled_at=? WHERE mandate_id=? AND reservation_id=?", (status, str(accounted_actual), when, mandate_id, reservation_id))
+                conn.execute("UPDATE execution_mandates SET actual_spend_aud=CAST(actual_spend_aud AS DECIMAL)+?, unresolved_reserved_aud=CAST(unresolved_reserved_aud AS DECIMAL)-? WHERE mandate_id=?", (str(accounted_actual), str(Decimal("0") if ambiguous else reserved), mandate_id))
+                event = {"mandate_id": mandate_id, "event_type": "settlement_with_reservation_shortfall" if not ambiguous else "ambiguous_settlement", "reservation_id": reservation_id, "actual_aud": str(accounted_actual), "reserved_aud": str(reserved), "reservation_shortfall_aud": str(actual - reserved) if not ambiguous else "0", "released_aud": "0"}
+                event_hash = _canonical_hash(event)
+                conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, mandate_id, event["event_type"], event_hash, json.dumps(event, sort_keys=True), when))
+                self._commit(conn)
+                return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
             release = reserved - actual
             status = "ambiguous" if ambiguous else "settled"
             accounted_actual = Decimal("0") if ambiguous else actual

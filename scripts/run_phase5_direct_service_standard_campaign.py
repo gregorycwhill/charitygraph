@@ -16,7 +16,7 @@ from charitygraph.direct_service_recovery import (
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.phase5_execution_mandate import evaluate_execution_against_mandate
 from charitygraph.phase5_execution_packet import ExecutionPacketUnready, materialize_execution_packet
-from charitygraph.phase5_openai_dry_run import PRICING, estimate_tokens, serialize_execution_packet_request
+from charitygraph.phase5_openai_dry_run import PRICING, estimate_tokens, serialize_execution_packet_request, conservative_standard_hard_max_usd, conservative_standard_hard_max_aud
 from charitygraph.phase5_semantic_contracts import executable_contract_for
 from charitygraph.phase5_standard_transport import OpenAIHTTPStandardClient, StandardCampaignCoordinator
 from charitygraph.phase5_standard_transport import StandardProviderResponse
@@ -138,10 +138,10 @@ def canonicalize_prepared_campaign_rows(manifest: dict, rows: list[dict]) -> lis
     return canonical
 
 
-def load_canonical_prepared_campaign(catalog: SQLiteCatalog, path: Path, *, terminal: bool = False) -> tuple[dict, list[dict]]:
+def load_canonical_prepared_campaign(catalog: SQLiteCatalog, path: Path, *, terminal: bool = False, reconcile_only: bool = False) -> tuple[dict, list[dict]]:
     """Load, join, and normalize an immutable campaign without writing it."""
     manifest = load_prepared_campaign(path)
-    rows = reconstruct_reconciliation_metadata(catalog, hydrate_manifest_lifecycle(catalog, manifest), terminal=terminal)
+    rows = reconstruct_reconciliation_metadata(catalog, hydrate_manifest_lifecycle(catalog, manifest), terminal=terminal, reconcile_only=reconcile_only)
     rows = canonicalize_prepared_campaign_rows(manifest, rows)
     validate_prepared_campaign(catalog, manifest, rows)
     return manifest, rows
@@ -173,15 +173,15 @@ def hydrate_manifest_lifecycle(catalog: SQLiteCatalog, manifest: dict) -> dict:
     return hydrated
 
 
-def reconstruct_reconciliation_metadata(catalog: SQLiteCatalog, manifest: dict, *, terminal: bool = False) -> list[dict]:
+def reconstruct_reconciliation_metadata(catalog: SQLiteCatalog, manifest: dict, *, terminal: bool = False, reconcile_only: bool = False) -> list[dict]:
     """Join only through exact durable IDs and request-body evidence bindings."""
     rows = []
     with catalog._connection() as conn:
         for item in manifest["request_items"]:
             rid = item["provider_request_item_id"]
             durable = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (rid,)).fetchone()
-            expected_status = {"completed"} if terminal else {"prepared"}
-            expected_physical_status = {"validated"} if terminal else {"prepared"}
+            expected_status = {"completed"} if terminal else ({"prepared", "completed", "failed", "held", "send_ambiguous"} if reconcile_only else {"prepared"})
+            expected_physical_status = {"validated"} if terminal else ({"prepared", "validated", "failed"} if reconcile_only else {"prepared"})
             if durable is None or durable["status"] not in expected_status:
                 raise RuntimeError(f"prepared request item is not durably prepared: {rid}")
             attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE provider_request_item_id=?", (rid,)).fetchone()
@@ -204,11 +204,11 @@ def reconstruct_reconciliation_metadata(catalog: SQLiteCatalog, manifest: dict, 
             if len(set(evidence_ids)) != len(evidence_ids):
                 raise RuntimeError(f"request evidence bindings are not unique: {rid}")
             reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (item["reservation_id"],)).fetchone()
-            allowed_reservation_status = {"active", "released"} if terminal else {"active"}
+            allowed_reservation_status = ({"active", "released", "consumed"} if reconcile_only else ({"active", "released"} if terminal else {"active"}))
             if reservation is None or reservation["status"] not in allowed_reservation_status or reservation["reserved_aud"] != item["hard_max_aud"]:
                 raise RuntimeError(f"budget reservation is not exact: {rid}")
             mandate_reservation = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (MANDATE, item["mandate_reservation_id"])).fetchone()
-            allowed_mandate_status = {"active", "settled"} if terminal else {"active"}
+            allowed_mandate_status = ({"active", "settled", "ambiguous"} if reconcile_only else ({"active", "settled"} if terminal else {"active"}))
             if mandate_reservation is None or mandate_reservation["status"] not in allowed_mandate_status or mandate_reservation["reserved_aud"] != item["hard_max_aud"]:
                 raise RuntimeError(f"mandate reservation is not exact: {rid}")
             row = dict(item)
@@ -347,7 +347,7 @@ def load_rows(catalog: SQLiteCatalog, *, task_root: Path, corpus_dir: Path, runt
         packet=materialize_execution_packet(task=task, corpus={"subject_id":task["subject_id"],"material_members":members}, contract=contract, runtime_root=runtime_root, catalog_path=catalog.path, model="gpt-5.6-luna", reasoning_effort="low", service_tier="standard")
         request=serialize_execution_packet_request(task, packet, delivery_job_id=JOB, delivery_mode="standard")
         body_bytes=json.dumps(request.body,ensure_ascii=False,sort_keys=True,separators=(",",":")).encode("utf-8")
-        input_tokens=estimate_tokens(request.body); price=PRICING["gpt-5.6-luna"]; usd=(Decimal(input_tokens)*price["input"]+Decimal(8000)*price["output"])/Decimal(1_000_000); hard_aud=(usd*Decimal("1.52")).quantize(Decimal("0.000001"))
+        input_tokens=estimate_tokens(request.body); usd=conservative_standard_hard_max_usd(input_tokens, 8000); hard_aud=conservative_standard_hard_max_aud(input_tokens, 8000, Decimal("1.52"))
         rows.append({"task":task,"packet":packet,"contract":contract,"request":request,"request_body_sha256":sha(body_bytes),"input_tokens_estimate":input_tokens,"hard_max_usd":str(usd.quantize(Decimal("0.000001"))),"hard_max_aud":str(hard_aud),"scope_id":scope_id})
     return rows
 
@@ -395,12 +395,12 @@ def _cost(usage: dict) -> tuple[Decimal, Decimal]:
 
 
 def main() -> int:
-    ap=argparse.ArgumentParser(); ap.add_argument("--execute",action="store_true"); ap.add_argument("--reconcile-existing",action="store_true"); ap.add_argument("--recover-existing",action="store_true"); ap.add_argument("--catalogue",type=Path,default=Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3")); ap.add_argument("--authorization",type=Path,default=None); ap.add_argument("--task-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-factory-preflight-clean-v1")); ap.add_argument("--corpus-dir",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1-clean\corpora")); ap.add_argument("--runtime-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1")); ap.add_argument("--output-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-direct-service-v1-top100-standard")); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--execute",action="store_true"); ap.add_argument("--reconcile-existing",action="store_true"); ap.add_argument("--reconcile-only",action="store_true",help="reconcile retained terminal provider results; never invokes a provider"); ap.add_argument("--recover-existing",action="store_true"); ap.add_argument("--catalogue",type=Path,default=Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3")); ap.add_argument("--authorization",type=Path,default=None); ap.add_argument("--task-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-factory-preflight-clean-v1")); ap.add_argument("--corpus-dir",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1-clean\corpora")); ap.add_argument("--runtime-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1")); ap.add_argument("--output-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-direct-service-v1-top100-standard")); args=ap.parse_args()
     authority = args.authorization or args.catalogue
     validate_existing_authority(catalogue=args.catalogue, authority=authority, allow_reconciled_campaign=args.reconcile_existing or args.recover_existing)
     catalog=SQLiteCatalog(args.catalogue, authorization_path=authority).open()
-    if args.execute or args.reconcile_existing or args.recover_existing:
-        manifest, rows = load_canonical_prepared_campaign(catalog, args.output_root / "preparation.json", terminal=args.reconcile_existing or args.recover_existing)
+    if args.execute or args.reconcile_existing or args.reconcile_only or args.recover_existing:
+        manifest, rows = load_canonical_prepared_campaign(catalog, args.output_root / "preparation.json", terminal=args.reconcile_existing or args.recover_existing, reconcile_only=args.reconcile_only)
     else:
         catalog.migrate()
         rows=load_rows(catalog,task_root=args.task_root,corpus_dir=args.corpus_dir,runtime_root=args.runtime_root)
@@ -438,6 +438,30 @@ def main() -> int:
         (args.output_root / "candidate-results" / (row["provider_request_item_id"].replace(":", "_") + ".json")).write_text(json.dumps(parsed[row["provider_request_item_id"]] | {"output": output.model_dump(mode="json") if output else None}, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     def validate(body):
         DirectServiceWireOutput.model_validate_json(response_output_text(body))
+    if args.reconcile_only:
+        # This path intentionally never constructs or calls a provider. It
+        # repairs only active mandate settlements for already-completed raw
+        # responses, then disposes the known terminal 429 reservation.
+        repaired = 0
+        with catalog._connection() as conn:
+            active_ids = {r["provider_request_item_id"] for r in conn.execute("SELECT i.provider_request_item_id FROM provider_request_items i JOIN provider_request_attempts a ON a.provider_request_item_id=i.provider_request_item_id JOIN execution_mandate_reservations er ON er.reservation_id=(SELECT reservation_id FROM physical_attempts WHERE physical_attempt_id=i.physical_attempt_id) WHERE i.run_id=? AND i.status='completed' AND er.mandate_id=? AND er.status='active'", (RUN, MANDATE))}
+        for row in rows:
+            if row["provider_request_item_id"] not in active_ids:
+                continue
+            raw_path = args.output_root / "standard-results" / f"{row['provider_request_item_id'].replace(':', '_')}.json"
+            meta_path = raw_path.with_suffix(".meta.json")
+            raw = raw_path.read_bytes(); body = json.loads(raw.decode("utf-8")); meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            reconcile(row, StandardProviderResponse(int(meta["status_code"]), str(meta["request_id"]), body, raw), body.get("usage") or {})
+            repaired += 1
+        failed_id = "requestitem:a6e050084e44235fa11b9fe70357fe1df4835fb798fbc0168896385052014e1e"
+        failed = next(row for row in rows if row["provider_request_item_id"] == failed_id)
+        position = catalog.reservation_position(failed["reservation_id"])
+        if position["outstanding"] > 0:
+            catalog.release_cost(failed["reservation_id"], {"amount": str(position["outstanding"]), "currency": "AUD"}, now=NOW, entry_key="release:429:" + failed_id)
+        catalog.settle_execution_mandate_reservation(mandate_id=MANDATE, reservation_id=failed["mandate_reservation_id"], actual_aud="0", ambiguous=False, now=NOW)
+        result = {"reconciled_existing": 42, "reservation_shortfalls_repaired": repaired, "terminal_429_disposed": True, "provider_operations": 0}
+        (args.output_root / "reconcile-only.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(json.dumps(result, sort_keys=True)); return 0
     if args.recover_existing:
         print(json.dumps(recover_existing_results(rows, output_root=args.output_root), sort_keys=True))
         return 0
