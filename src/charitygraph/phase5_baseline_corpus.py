@@ -115,7 +115,12 @@ class NetworkLedger:
         except HTTPError as exc:
             event.update({"outcome": "unavailable" if exc.code == 404 else "failed", "response_status": exc.code, "error_class": f"http_{exc.code}"})
         except (URLError, TimeoutError, ValueError) as exc:
-            event.update({"outcome": "failed", "error_class": type(exc).__name__})
+            # urllib wraps socket timeouts in URLError. Normalize that known
+            # variant while retaining other DNS/TLS/connection failures as
+            # pre-response transport failures. None is safe for automatic
+            # resend because the request may have crossed the boundary.
+            error_class = "TimeoutError" if isinstance(exc, TimeoutError) or (isinstance(exc, URLError) and isinstance(exc.reason, TimeoutError)) else type(exc).__name__
+            event.update({"outcome": "failed", "error_class": error_class})
         except NetworkPolicyError:
             event.update({"outcome": "blocked", "error_class": "NetworkPolicyError"})
             raise

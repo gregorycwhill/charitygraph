@@ -24,20 +24,33 @@ def main() -> int:
     parser.add_argument("--catalogue", type=Path, default=Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3"))
     parser.add_argument("--execute", action="store_true", help="cross the network boundary; requires a separately reviewed host authorization")
     args = parser.parse_args()
-    manifest = build_campaign(profiles_path=args.profiles, identity_map_path=args.identity_map, inventory_path=args.inventory)
-    validate_campaign(manifest)
-    rehearsal = rehearse_network_edge(manifest)
+    historical_attempt_ids: set[str] = set()
     manifest_path = args.output_root / "acquisition-manifest.json"
     if manifest_path.exists():
         # A BOM changes byte identity but not JSON meaning.  Never rewrite an
         # already prepared artefact merely to normalise its encoding; accept it
-        # only when its parsed immutable object is exactly the candidate.
+        # only when its parsed immutable object is exactly the candidate for a
+        # fresh preparation. Resume uses the immutable manifest directly so a
+        # historical row rejected by current pre-send policy is never rebuilt
+        # or sent again.
         existing = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
-        if existing != manifest:
-            raise RuntimeError("existing acquisition manifest differs; refuse replacement")
-        manifest = existing
+        if args.execute:
+            state_path = args.output_root / "acquisition-runtime-state.json"
+            state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
+            historical_attempt_ids = set((state.get("attempts") or {}).keys())
+            validate_campaign(existing, historical_attempt_ids=historical_attempt_ids)
+            manifest = existing
+        else:
+            manifest = build_campaign(profiles_path=args.profiles, identity_map_path=args.identity_map, inventory_path=args.inventory)
+            validate_campaign(manifest)
+            if existing != manifest:
+                raise RuntimeError("existing acquisition manifest differs; refuse replacement")
+            manifest = existing
     else:
+        manifest = build_campaign(profiles_path=args.profiles, identity_map_path=args.identity_map, inventory_path=args.inventory)
+        validate_campaign(manifest)
         write_json(manifest_path, manifest)
+    rehearsal = rehearse_network_edge(manifest, historical_attempt_ids=historical_attempt_ids)
     write_json(args.output_root / "network-edge-rehearsal.json", {"manifest_sha256": manifest["manifest_sha256"], "rows": rehearsal, "network_operations": 0, "provider_operations": 0})
     if args.execute:
         execution = execute_campaign(manifest=manifest, runtime_root=args.output_root, catalog_path=args.catalogue)

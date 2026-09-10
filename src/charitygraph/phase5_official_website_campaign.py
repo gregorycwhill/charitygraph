@@ -48,11 +48,13 @@ def _json_hash(value: Any) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
-def _url(value: str) -> str:
+def _url(value: str, *, allow_historical_userinfo: bool = False) -> str:
     normalized = governed_website_url(value)
     parsed = urlsplit(normalized)
     if parsed.scheme not in {"http", "https"} or not parsed.hostname:
         raise AcquisitionCampaignError("governed official URL is not an absolute HTTP(S) locator")
+    if (parsed.username is not None or parsed.password is not None) and not allow_historical_userinfo:
+        raise AcquisitionCampaignError("governed official URL contains URL user-info and cannot cross the network boundary")
     return normalized
 
 
@@ -132,7 +134,7 @@ def build_campaign(*, profiles_path: Path, identity_map_path: Path, inventory_pa
     return immutable
 
 
-def validate_campaign(manifest: dict[str, Any]) -> None:
+def validate_campaign(manifest: dict[str, Any], *, historical_attempt_ids: set[str] | frozenset[str] = frozenset()) -> None:
     recorded = manifest.get("manifest_sha256")
     unsigned = {key: value for key, value in manifest.items() if key != "manifest_sha256"}
     if recorded != _json_hash(unsigned):
@@ -146,7 +148,10 @@ def validate_campaign(manifest: dict[str, Any]) -> None:
             raise AcquisitionCampaignError("campaign row expands the bounded acquisition policy")
         if row.get("abn") in DISCOVERY_REQUIRED_ABNS or row.get("abn") == RANK_67_ABN:
             raise AcquisitionCampaignError("campaign contains an excluded ABN")
-        normalized = _url(str(row.get("governed_url") or ""))
+        normalized = _url(
+            str(row.get("governed_url") or ""),
+            allow_historical_userinfo=row.get("acquisition_attempt_id") in historical_attempt_ids,
+        )
         if normalized != row.get("normalized_initial_url"):
             raise AcquisitionCampaignError("governed URL changed after manifest preparation")
         host = (urlsplit(normalized).hostname or "").casefold()
@@ -165,15 +170,18 @@ def request_arguments(row: dict[str, Any]) -> dict[str, Any]:
     return {"source_family": "official_website", "url": row["normalized_initial_url"], "allowed_hosts": set(row["permitted_redirect_hosts"]), "timeout_seconds": row["timeout_seconds"], "max_bytes": row["max_response_bytes"]}
 
 
-def rehearse_network_edge(manifest: dict[str, Any], *, boundary: Callable[..., Any] | None = None) -> list[dict[str, Any]]:
+def rehearse_network_edge(manifest: dict[str, Any], *, boundary: Callable[..., Any] | None = None, historical_attempt_ids: set[str] | frozenset[str] = frozenset()) -> list[dict[str, Any]]:
     """Validate every production transport invocation without crossing I/O.
 
     A boundary is supplied only by tests; the default validates arguments and
     deliberately never calls ``NetworkLedger.fetch``.
     """
-    validate_campaign(manifest)
+    validate_campaign(manifest, historical_attempt_ids=historical_attempt_ids)
     prepared = []
     for row in manifest["rows"]:
+        if row["acquisition_attempt_id"] in historical_attempt_ids:
+            prepared.append({"abn": row["abn"], "acquisition_attempt_id": row["acquisition_attempt_id"], "state": "REPLAY_NO_NETWORK"})
+            continue
         args = request_arguments(row)
         if boundary is not None:
             boundary(**args)
@@ -242,13 +250,16 @@ def execute_campaign(*, manifest: dict[str, Any], runtime_root: Path, catalog_pa
     state cannot be proven.  A ``response_durable`` row is safe to finish
     because ``NetworkLedger`` will reuse its durable cache rather than fetch.
     """
-    validate_campaign(manifest)
     runtime_root.mkdir(parents=True, exist_ok=True)
     state_path = runtime_root / "acquisition-runtime-state.json"
     state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {"manifest_sha256": manifest["manifest_sha256"], "attempts": {}}
     if state.get("manifest_sha256") != manifest["manifest_sha256"]:
         raise AcquisitionCampaignError("runtime acquisition state belongs to a different manifest")
     attempts: dict[str, dict[str, Any]] = state.setdefault("attempts", {})
+    # Historical rows that already crossed the boundary may retain their
+    # original governed locator for forensic replay.  New rows must pass the
+    # stricter pre-network URL policy.
+    validate_campaign(manifest, historical_attempt_ids=set(attempts))
     ledger = NetworkLedger(cache_root=runtime_root / "network-cache")
     catalog = SQLiteCatalog(catalog_path).open()
     store = ContentAddressedArtifactStore(runtime_root / "objects", allowed_roots=(runtime_root,))

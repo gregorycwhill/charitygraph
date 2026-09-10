@@ -7,6 +7,7 @@ import pytest
 from charitygraph.phase5_official_website_campaign import (
     AcquisitionCampaignError,
     DISCOVERY_REQUIRED_ABNS,
+    _failure_outcome,
     build_campaign,
     execute_row,
     rehearse_network_edge,
@@ -63,6 +64,22 @@ def test_known_url_must_be_governed_and_discovery_rows_cannot_leak(tmp_path) -> 
     profiles.write_text(json.dumps(raw), encoding="utf-8")
     with pytest.raises(AcquisitionCampaignError, match="not governed"):
         build_campaign(profiles_path=profiles, identity_map_path=identities, inventory_path=inventory)
+
+
+def test_userinfo_is_rejected_before_network_preparation(tmp_path) -> None:
+    profiles, identities, inventory = _inputs(tmp_path)
+    raw = json.loads(profiles.read_text(encoding="utf-8"))
+    raw["entities"]["90000000000"]["profile"]["data"]["Website"] = "https://user:secret@example.org/"
+    profiles.write_text(json.dumps(raw), encoding="utf-8")
+    with pytest.raises(AcquisitionCampaignError, match="URL user-info"):
+        build_campaign(profiles_path=profiles, identity_map_path=identities, inventory_path=inventory)
+
+
+def test_transport_failure_classes_are_terminal_and_never_automatic_resend() -> None:
+    assert _failure_outcome({"error_class": "TimeoutError"}) == "timeout"
+    assert _failure_outcome({"error_class": "URLError"}) == "transport_error_before_response"
+    assert _failure_outcome({"outcome": "blocked"}) == "host_policy_redirect_rejection"
+    assert _failure_outcome({"response_status": 404}) == "http_terminal_failure"
 
 
 def test_url_normalization_and_same_site_policy_are_deterministic(tmp_path) -> None:
