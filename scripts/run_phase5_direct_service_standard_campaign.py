@@ -124,7 +124,8 @@ def canonicalize_prepared_campaign_rows(manifest: dict, rows: list[dict]) -> lis
         if not isinstance(request_id, str) or ":" not in request_id:
             raise RuntimeError("prepared row has malformed provider request identity")
         item["contract_identity_hash"] = contract_hash
-        item.setdefault("provider", "openai")
+        if item.get("provider") is None:
+            item["provider"] = "openai"
         item["wire_fingerprint"] = request_id.split(":", 1)[1]
         item.pop("semantic_contract_hash", None)
         canonical.append(item)
