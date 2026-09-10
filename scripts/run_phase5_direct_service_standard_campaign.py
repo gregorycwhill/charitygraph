@@ -212,7 +212,7 @@ def reconstruct_reconciliation_metadata(catalog: SQLiteCatalog, manifest: dict, 
             if mandate_reservation is None or mandate_reservation["status"] not in allowed_mandate_status or mandate_reservation["reserved_aud"] != item["hard_max_aud"]:
                 raise RuntimeError(f"mandate reservation is not exact: {rid}")
             row = dict(item)
-            row.update({"scope_id": scopes[0]["scope_id"], "evidence_ids": evidence_ids})
+            row.update({"scope_id": scopes[0]["scope_id"], "evidence_ids": evidence_ids, "_durable_status": durable["status"]})
             rows.append(row)
     return rows
 
@@ -268,6 +268,7 @@ def recover_existing_results(rows: list[dict], *, output_root: Path) -> dict:
 
     classifications: dict[str, int] = {}
     records = []
+    rows = [row for row in rows if (output_root / "standard-results" / f"{row['provider_request_item_id'].replace(':', '_')}.json").is_file()]
     for row in rows:
         request_item_id = row["provider_request_item_id"]
         raw_path = output_root / "standard-results" / f"{request_item_id.replace(':', '_')}.json"
@@ -325,6 +326,31 @@ def recover_existing_results(rows: list[dict], *, output_root: Path) -> dict:
     }
     _append_only_json(output_root / "recovery-results" / "summary.json", summary)
     return summary
+
+
+def prepare_remaining_continuation(rows: list[dict], *, output_root: Path) -> dict:
+    """Pin the never-sent remainder without regenerating provider material."""
+    remaining = [row for row in rows if row["provider_request_item_id"] != "requestitem:a6e050084e44235fa11b9fe70357fe1df4835fb798fbc0168896385052014e1e" and row["provider_request_item_id"] and row["request_body"] and row["provider_request_item_id"]]
+    # Durable status is the authority for exclusion; only prepared rows may
+    # enter this continuation and their body bytes must remain immutable.
+    items = []
+    for row in remaining:
+        if row.get("_durable_status") != "prepared":
+            continue
+        body_bytes = canonical_body_bytes(row["request_body"])
+        hard_usd = conservative_standard_hard_max_usd(row["input_tokens_estimate"], 8000)
+        hard_aud = conservative_standard_hard_max_aud(row["input_tokens_estimate"], 8000, Decimal("1.52"))
+        items.append({"provider_request_item_id": row["provider_request_item_id"], "logical_task_id": row["logical_task_id"], "subject_id": row["subject_id"], "provider_request_item_id_body": row["provider_request_item_id"], "request_body_sha256": sha(body_bytes), "request_body": row["request_body"], "wire_fingerprint": row["wire_fingerprint"], "contract_id": row["contract_id"], "contract_version": row["contract_version"], "contract_identity_hash": row["contract_identity_hash"], "schema_hash": row["schema_hash"], "provider_schema_name": row["provider_schema_name"], "model": row["model"], "reasoning_effort": row["reasoning_effort"], "delivery_mode": row["delivery_mode"], "max_output_tokens": 8000, "input_tokens_estimate": row["input_tokens_estimate"], "corrected_hard_max_usd": str(hard_usd), "corrected_hard_max_aud": str(hard_aud)})
+    if len(items) != 18:
+        raise RuntimeError(f"expected exactly 18 prepared continuation items, found {len(items)}")
+    continuation = {"manifest_version": "phase5-direct-service-v1.1-continuation-v1", "source_preparation_sha256": AUTHORIZED_MANIFEST_SHA256, "run_id": RUN, "mandate_id": MANDATE, "provider": "openai", "model": "gpt-5.6-luna", "reasoning_effort": "low", "delivery_mode": "standard", "provider_service_tier": "omitted", "max_output_tokens": 8000, "max_concurrency": 4, "automatic_retries": 0, "semantic_retries": 0, "fallbacks": [], "ambiguous_resend": False, "excluded_terminal_429": "requestitem:a6e050084e44235fa11b9fe70357fe1df4835fb798fbc0168896385052014e1e", "request_items": sorted(items, key=lambda item: item["provider_request_item_id"]), "aggregate_corrected_hard_max_usd": str(sum((Decimal(item["corrected_hard_max_usd"]) for item in items), Decimal("0"))), "aggregate_corrected_hard_max_aud": str(sum((Decimal(item["corrected_hard_max_aud"]) for item in items), Decimal("0"))), "provider_operations": 0}
+    destination = output_root / "continuation-18.json"
+    encoded = (json.dumps(continuation, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    if destination.exists() and destination.read_bytes() != encoded:
+        raise RuntimeError("continuation manifest already exists with different material")
+    if not destination.exists():
+        destination.write_bytes(encoded)
+    return {"path": str(destination), "sha256": sha(encoded), "bytes": len(encoded), "request_item_count": len(items), "aggregate_corrected_hard_max_usd": continuation["aggregate_corrected_hard_max_usd"], "aggregate_corrected_hard_max_aud": continuation["aggregate_corrected_hard_max_aud"], "provider_operations": 0}
 
 
 def load_rows(catalog: SQLiteCatalog, *, task_root: Path, corpus_dir: Path, runtime_root: Path) -> list[dict]:
@@ -395,12 +421,12 @@ def _cost(usage: dict) -> tuple[Decimal, Decimal]:
 
 
 def main() -> int:
-    ap=argparse.ArgumentParser(); ap.add_argument("--execute",action="store_true"); ap.add_argument("--reconcile-existing",action="store_true"); ap.add_argument("--reconcile-only",action="store_true",help="reconcile retained terminal provider results; never invokes a provider"); ap.add_argument("--recover-existing",action="store_true"); ap.add_argument("--catalogue",type=Path,default=Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3")); ap.add_argument("--authorization",type=Path,default=None); ap.add_argument("--task-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-factory-preflight-clean-v1")); ap.add_argument("--corpus-dir",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1-clean\corpora")); ap.add_argument("--runtime-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1")); ap.add_argument("--output-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-direct-service-v1-top100-standard")); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--execute",action="store_true"); ap.add_argument("--reconcile-existing",action="store_true"); ap.add_argument("--reconcile-only",action="store_true",help="reconcile retained terminal provider results; never invokes a provider"); ap.add_argument("--recover-existing",action="store_true"); ap.add_argument("--recovery-only",action="store_true",help="derive append-only semantic recovery from retained results; never invokes a provider"); ap.add_argument("--prepare-continuation",action="store_true",help="pin prepared never-sent rows; never invokes a provider"); ap.add_argument("--catalogue",type=Path,default=Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3")); ap.add_argument("--authorization",type=Path,default=None); ap.add_argument("--task-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-factory-preflight-clean-v1")); ap.add_argument("--corpus-dir",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1-clean\corpora")); ap.add_argument("--runtime-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1")); ap.add_argument("--output-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-direct-service-v1-top100-standard")); args=ap.parse_args()
     authority = args.authorization or args.catalogue
     validate_existing_authority(catalogue=args.catalogue, authority=authority, allow_reconciled_campaign=args.reconcile_existing or args.recover_existing)
     catalog=SQLiteCatalog(args.catalogue, authorization_path=authority).open()
-    if args.execute or args.reconcile_existing or args.reconcile_only or args.recover_existing:
-        manifest, rows = load_canonical_prepared_campaign(catalog, args.output_root / "preparation.json", terminal=args.reconcile_existing or args.recover_existing, reconcile_only=args.reconcile_only)
+    if args.execute or args.reconcile_existing or args.reconcile_only or args.recover_existing or args.recovery_only or args.prepare_continuation:
+        manifest, rows = load_canonical_prepared_campaign(catalog, args.output_root / "preparation.json", terminal=args.reconcile_existing or args.recover_existing, reconcile_only=args.reconcile_only or args.recovery_only or args.prepare_continuation)
     else:
         catalog.migrate()
         rows=load_rows(catalog,task_root=args.task_root,corpus_dir=args.corpus_dir,runtime_root=args.runtime_root)
@@ -438,6 +464,12 @@ def main() -> int:
         (args.output_root / "candidate-results" / (row["provider_request_item_id"].replace(":", "_") + ".json")).write_text(json.dumps(parsed[row["provider_request_item_id"]] | {"output": output.model_dump(mode="json") if output else None}, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     def validate(body):
         DirectServiceWireOutput.model_validate_json(response_output_text(body))
+    if args.prepare_continuation:
+        result = prepare_remaining_continuation(rows, output_root=args.output_root)
+        print(json.dumps(result, sort_keys=True)); return 0
+    if args.recovery_only:
+        result = recover_existing_results(rows, output_root=args.output_root)
+        print(json.dumps(result, sort_keys=True)); return 0
     if args.reconcile_only:
         # This path intentionally never constructs or calls a provider. It
         # repairs only active mandate settlements for already-completed raw
