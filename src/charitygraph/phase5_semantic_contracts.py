@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -278,12 +279,60 @@ def _production_discovery() -> SemanticContract:
     )
 
 
+def direct_service_representation_schema_v1_2() -> dict[str, Any]:
+    """Build the future strict wire schema with section/type discrimination.
+
+    V1.1 exposed one broad proposition union and left the section/type pairing
+    to a post-parse validator.  These branches retain the same proposition
+    fields and domain vocabulary while making the observed cross-field error
+    impossible in provider output.
+    """
+    from .contracts.direct_service_wire import DirectServiceWireOutput
+    from .strict_schema import strictify_schema, validate_strict_schema
+    base = strictify_schema(DirectServiceWireOutput.model_json_schema())
+    allowed = {
+        "participation": ["participation_opportunity", "participation_measure"],
+        "capability_access_availability": ["service_offer", "eligibility", "access_pathway", "current_availability", "capacity_measure"],
+        "scheme_accreditation": ["scheme_membership", "accreditation"],
+    }
+    branches = []
+    for section, types in allowed.items():
+        branch = deepcopy(base)
+        branch["properties"]["section"] = {"const": section}
+        branch["$defs"]["DirectServiceWireProposition"]["properties"]["proposition_type"]["enum"] = types
+        branches.append(branch)
+    schema = {"oneOf": branches}
+    validate_strict_schema(schema)
+    return schema
+
+
+def _production_direct_service_v1_2() -> SemanticContract:
+    prior = _production_direct_service()
+    return SemanticContract(
+        contract_id=prior.contract_id, contract_version="1.2",
+        task_profile=prior.task_profile, task_profile_version=prior.task_profile_version,
+        claim_families=prior.claim_families,
+        prompt_template=prior.prompt_template + "\nThe schema structurally partitions proposition types by section; emit each proposition only in its corresponding section.",
+        prompt_id="direct-service-real-phase3:prompt:v3-representation",
+        output_schema=direct_service_representation_schema_v1_2(),
+        schema_id="urn:charitygraph:builder:schema:direct-service-wire-output:1.2",
+        schema_version="1.2-section-discriminated",
+        evidence_policy=prior.evidence_policy, grounding_requirements=prior.grounding_requirements,
+        adapter_id=prior.adapter_id, adapter_version="1.2", route_class=prior.route_class,
+        reasoning_policy=prior.reasoning_policy, authority_state=prior.authority_state,
+        publication_boundary=prior.publication_boundary, source_refs=prior.source_refs,
+        planner_prompt_policy_version="direct-service-access-v1:prompt-policy:v3-representation",
+        planner_schema_version=prior.planner_schema_version,
+        provider_schema_name="direct_service_semantics_v2",
+    )
+
+
 HISTORICAL_DISCOVERY_V2_CONTRACT = _historical_production_discovery()
 
 
 def build_registry() -> tuple[SemanticContract, ...]:
     contracts = [
-        _production_discovery(), _production_direct_service(),
+        _production_discovery(), _production_direct_service(), _production_direct_service_v1_2(),
         _draft("taxonomy-assignment-v1", "taxonomy_assignment", "taxonomy assignment", "lower_cost_constrained_semantic", "low", "src/charitygraph/contracts/semantic.py"),
         _draft("typed-relationship-role-v1", "relationship_role_extraction", "typed relationship-role extraction", "stronger_semantic_judgement", "high", "src/charitygraph/contracts/knowledge.py"),
         _draft("fundraising-practice-proposed-v1", "fundraising-practice-proposed-v1", "source-faithful fundraising practice", "stronger_semantic_judgement", "high", "src/charitygraph/phase5_preflight.py"),

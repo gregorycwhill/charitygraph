@@ -26,6 +26,7 @@ from charitygraph.direct_service_recovery import (
     recover_historical_wire,
     recovery_identity,
 )
+from charitygraph.phase5_semantic_contracts import direct_service_representation_schema_v1_2
 from charitygraph.contracts.semantic import TASK_OUTPUT_SCHEMAS
 
 
@@ -207,6 +208,16 @@ def test_recovery_identity_is_deterministic_and_materially_bound():
     second = recovery_identity(response_id="resp_x", old_wire_schema_sha="a" * 64, domain_schema_id=DIRECT_SERVICE_OUTPUT_SCHEMA.schema_id)
     assert first == second
     assert first != recovery_identity(response_id="resp_y", old_wire_schema_sha="a" * 64, domain_schema_id=DIRECT_SERVICE_OUTPUT_SCHEMA.schema_id)
+
+
+def test_v12_representation_schema_discriminates_section_and_proposition_type():
+    schema = direct_service_representation_schema_v1_2()
+    assert len(schema["oneOf"]) == 3
+    branches = {branch["properties"]["section"]["const"]: branch for branch in schema["oneOf"]}
+    assert branches["participation"]["$defs"]["DirectServiceWireProposition"]["properties"]["proposition_type"]["enum"] == ["participation_opportunity", "participation_measure"]
+    assert branches["capability_access_availability"]["$defs"]["DirectServiceWireProposition"]["properties"]["proposition_type"]["enum"] == ["service_offer", "eligibility", "access_pathway", "current_availability", "capacity_measure"]
+    assert branches["scheme_accreditation"]["$defs"]["DirectServiceWireProposition"]["properties"]["proposition_type"]["enum"] == ["scheme_membership", "accreditation"]
+    assert branches["participation"]["properties"]["section"] == {"const": "participation"}
 
 
 def test_wire_conversion_rejects_unknown_scope_and_evidence_locator():

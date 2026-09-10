@@ -899,6 +899,67 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, reservation_id)).fetchone())
 
+    def replace_pre_send_reservation(self, *, mandate_id: str, physical_attempt_id: str,
+                                     old_reservation_id: str, new_reservation_id: str,
+                                     new_amount_aud: Any, replacement_id: str,
+                                     now: datetime | str) -> dict[str, Any]:
+        """Atomically supersede one unused reservation before provider send.
+
+        The old amount and row are immutable.  Its local budget row is closed
+        by an append-only release entry and its mandate row is settled at zero
+        with a replacement event; the new row is the sole active authority for
+        the same still-prepared physical attempt.  Requiring co-located stores
+        keeps the lifecycle transactionally safe across both catalogues.
+        """
+        amount = _money_amount(new_amount_aud, "replacement reservation")
+        when = _utc(now, "now")
+        if not replacement_id.startswith("mandatereplacement:"):
+            raise CatalogError("reservation replacement identity is malformed")
+        if self.authorization_path is None or self.authorization_path.resolve() != self.path.resolve():
+            raise CatalogError("reservation replacement requires co-located catalogues")
+        with self._connection(immediate=True) as conn:
+            event_row = conn.execute("SELECT event_json FROM execution_mandate_events WHERE event_id=?", (replacement_id,)).fetchone()
+            if event_row is not None:
+                return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+            mandate = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            old = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, old_reservation_id)).fetchone()
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            budget = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (old_reservation_id,)).fetchone()
+            if mandate is None or old is None or budget is None or physical is None:
+                raise CatalogError("reservation replacement target does not exist")
+            if mandate["status"] != "active" or old["status"] != "active" or budget["status"] != "active":
+                raise ConflictError("only one active unused reservation may be replaced")
+            if physical["status"] != "prepared" or physical["reservation_id"] != old_reservation_id:
+                raise ConflictError("reservation replacement requires an unsent prepared physical attempt")
+            if Decimal(old["actual_aud"]) != 0 or conn.execute("SELECT 1 FROM cost_entries WHERE reservation_id=?", (old_reservation_id,)).fetchone() is not None:
+                raise ConflictError("reservation replacement target has provider or accounting history")
+            if amount > Decimal(mandate["per_request_hard_aud"]):
+                raise BudgetExceededError("replacement exceeds execution mandate per-request ceiling")
+            remaining = Decimal(mandate["aggregate_hard_aud"]) - Decimal(mandate["actual_spend_aud"]) - Decimal(mandate["unresolved_reserved_aud"]) + Decimal(old["reserved_aud"])
+            if amount > remaining:
+                raise BudgetExceededError("replacement exceeds remaining aggregate mandate authority")
+            existing_budget = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (new_reservation_id,)).fetchone()
+            existing_mandate = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, new_reservation_id)).fetchone()
+            if existing_budget is not None or existing_mandate is not None:
+                raise ConflictError("replacement identity is already in use")
+            release_key = "replacement-release:" + replacement_id
+            release_payload = {"entry_key": release_key, "reservation_id": old_reservation_id, "amount": str(old["reserved_aud"])}
+            release_hash = _canonical_hash(release_payload)
+            conn.execute("INSERT INTO cost_entries(entry_key,entry_hash,cohort_id,run_id,task_run_id,reservation_id,entry_type,paid_output_category,provider_amount,provider_currency,aud_amount,adjustment_direction,pricing_snapshot_id,fx_snapshot_id,usage_json,recorded_at) VALUES (?,?,?,?,NULL,?,'reservation_release',NULL,NULL,NULL,?,NULL,NULL,NULL,NULL,?)", (release_key, release_hash, budget["cohort_id"], budget["run_id"], old_reservation_id, old["reserved_aud"], when))
+            conn.execute("UPDATE budget_reservations SET status='released',updated_at=? WHERE reservation_id=?", (when, old_reservation_id))
+            material = {"record_id": new_reservation_id, "cohort_id": budget["cohort_id"], "run_id": budget["run_id"], "reserved_aud": {"amount": str(amount), "currency": "AUD"}, "model_task_ids": [x[0] for x in conn.execute("SELECT model_task_id FROM reservation_tasks WHERE reservation_id=? ORDER BY model_task_id", (old_reservation_id,))]}
+            conn.execute("INSERT INTO budget_reservations(reservation_id,cohort_id,run_id,reserved_aud,status,reserved_at,expires_at,updated_at,material_hash) VALUES (?,?,?,?, 'active',?,?,?,?)", (new_reservation_id, budget["cohort_id"], budget["run_id"], str(amount), when, budget["expires_at"], when, _canonical_hash(material)))
+            conn.execute("INSERT INTO reservation_tasks(reservation_id,model_task_id) SELECT ?,model_task_id FROM reservation_tasks WHERE reservation_id=?", (new_reservation_id, old_reservation_id))
+            conn.execute("INSERT INTO execution_mandate_reservations(mandate_id,reservation_id,reserved_aud,status,created_at) VALUES (?,?,?,'active',?)", (mandate_id, new_reservation_id, str(amount), when))
+            conn.execute("UPDATE execution_mandate_reservations SET status='settled',actual_aud='0',settled_at=? WHERE mandate_id=? AND reservation_id=?", (when, mandate_id, old_reservation_id))
+            conn.execute("UPDATE execution_mandates SET unresolved_reserved_aud=CAST(unresolved_reserved_aud AS DECIMAL)-?+? WHERE mandate_id=?", (old["reserved_aud"], str(amount), mandate_id))
+            conn.execute("UPDATE physical_attempts SET reservation_id=?,updated_at=? WHERE physical_attempt_id=?", (new_reservation_id, when, physical_attempt_id))
+            event = {"event_type": "reservation_replaced", "replacement_id": replacement_id, "mandate_id": mandate_id, "physical_attempt_id": physical_attempt_id, "old_reservation_id": old_reservation_id, "new_reservation_id": new_reservation_id, "old_reserved_aud": old["reserved_aud"], "new_reserved_aud": str(amount), "reason": "corrected pre-send hard exposure"}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", (replacement_id, mandate_id, "reservation_replaced", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
     def settle_execution_mandate_reservation(self, *, mandate_id: str, reservation_id: str, actual_aud: Any, ambiguous: bool, now: datetime | str) -> dict[str, Any]:
         actual = _money_amount(actual_aud, "mandate actual cost")
         when = _utc(now, "now")

@@ -173,6 +173,28 @@ def test_conservative_standard_exposure_expands_input_and_rounds_upward():
     assert conservative_standard_hard_max_usd(1, 0, input_bound_factor="1.60") == Decimal("0.000001")
 
 
+def test_pre_send_reservation_replacement_is_atomic_and_idempotent(tmp_path):
+    path = tmp_path / "co-located.sqlite3"
+    catalog = SQLiteCatalog(path, authorization_path=path).open(initialize=True)
+    manifest, _ = _register(catalog)
+    mandate = manifest["mandate_id"]
+    catalog.activate_execution_mandate(mandate_id=mandate, authorization_text_hash="a" * 64, authorized_by="Greg", now=NOW)
+    catalog.register_cohort({"record_id": "cohort:replace", "cohort_code": "replace", "definition_version": "1", "membership_hash": "b" * 64, "budget_cap": {"amount": "1", "currency": "AUD"}, "created_at": NOW})
+    catalog.register_run({"record_id": "run:replace", "cohort_id": "cohort:replace", "run_kind": "test", "status": "planned", "configuration_hash": "c" * 64, "created_at": NOW})
+    catalog.register_task({"record_id": "task:replace", "subject_id": "subject:replace", "cohort_id": "cohort:replace", "task_type": "test", "task_schema": {"schema_id": "schema:test"}, "cache_key": "d" * 64, "provider_id": "openai", "model_snapshot": "gpt-5.6-luna"}, run_id="run:replace", now=NOW)
+    catalog.reserve_cost({"record_id": "reservation:old", "cohort_id": "cohort:replace", "run_id": "run:replace", "reserved_aud": {"amount": "0.10", "currency": "AUD"}, "model_task_ids": ("task:replace",)}, now=NOW)
+    catalog.reserve_execution_mandate(mandate_id=mandate, reservation_id="reservation:old", amount_aud="0.10", now=NOW)
+    catalog.prepare_physical_attempt(physical_attempt_id="taskrun:replace", run_id="run:replace", subject_id="subject:replace", delivery_mode="standard", provider_request_id="request:replace", model_task_ids=("task:replace",), reservation_id="reservation:old", now=NOW)
+    first = catalog.replace_pre_send_reservation(mandate_id=mandate, physical_attempt_id="taskrun:replace", old_reservation_id="reservation:old", new_reservation_id="reservation:new", new_amount_aud="0.16", replacement_id="mandatereplacement:replace", now=NOW)
+    second = catalog.replace_pre_send_reservation(mandate_id=mandate, physical_attempt_id="taskrun:replace", old_reservation_id="reservation:old", new_reservation_id="reservation:new", new_amount_aud="0.16", replacement_id="mandatereplacement:replace", now=NOW)
+    assert first["unresolved_reserved_aud"] == second["unresolved_reserved_aud"]
+    assert catalog.get_reservation("reservation:old")["status"] == "released"
+    assert catalog.get_reservation("reservation:new")["status"] == "active"
+    with catalog._connection() as conn:
+        assert conn.execute("SELECT reservation_id FROM physical_attempts WHERE physical_attempt_id='taskrun:replace'").fetchone()[0] == "reservation:new"
+        assert conn.execute("SELECT COUNT(*) FROM execution_mandate_events WHERE event_type='reservation_replaced'").fetchone()[0] == 1
+
+
 def test_fake_rehearsal_authority_isolated_from_live_mandate(tmp_path):
     (tmp_path / "live").mkdir()
     (tmp_path / "rehearsal").mkdir()
