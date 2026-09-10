@@ -123,11 +123,14 @@ def direct_service_material_preflight(*, corpus_dir: Path, catalog_path: Path, s
                                     break
                                 except Exception:
                                     continue
-                            if content is None or not content:
-                                raise ValueError("retained material is unavailable or empty")
+                            if content is None:
+                                raise ValueError("retained material is unavailable")
                             digest = hashlib.sha256(content).hexdigest()
                             if digest != str(source["payload_hash"]) or digest != artifact_id.split(":", 1)[1]:
                                 raise ValueError("retained material hash mismatch")
+                            if not content:
+                                rows.append({"subject_id": subject, "status": "insufficient_content", "source_record_id": source_id, "artifact_id": artifact_id, "source_family": source["source_family"], "source_role": source["source_role"], "source_locator": source["source_locator"], "material_hash": digest, "byte_count": 0, "reason": "retained material is empty"})
+                                continue
                             rows.append({"subject_id": subject, "status": "eligible", "source_record_id": source_id, "artifact_id": artifact_id, "source_family": source["source_family"], "source_role": source["source_role"], "source_locator": source["source_locator"], "material_hash": digest, "byte_count": len(content)})
                         except Exception as exc:
                             rows.append({"subject_id": subject, "status": "blocked", "source_record_id": source_id, "artifact_id": artifact_id, "source_family": source["source_family"] if source is not None else member.get("source_family"), "reason": str(exc)})
