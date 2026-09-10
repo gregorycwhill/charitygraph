@@ -1,6 +1,6 @@
 import pytest
 
-from scripts.run_phase5_direct_service_standard_campaign import canonicalize_prepared_campaign_rows
+from scripts.run_phase5_direct_service_standard_campaign import canonicalize_prepared_campaign_rows, response_output_text
 
 
 def _row(**overrides):
@@ -34,3 +34,12 @@ def test_missing_contract_identity_alias_fails_closed():
             {"request_items": [{}]},
             [_row(semantic_contract_hash=None)],
         )
+
+
+def test_responses_output_text_is_extracted_from_standard_output_content():
+    assert response_output_text({"output": [{"type": "message", "content": [{"type": "output_text", "text": "{"}, {"type": "output_text", "text": "}"}]}]}) == "{}"
+
+
+def test_responses_output_text_fails_closed_when_missing():
+    with pytest.raises(ValueError, match="no output text"):
+        response_output_text({"output": []})

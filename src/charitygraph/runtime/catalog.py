@@ -1267,7 +1267,29 @@ class SQLiteCatalog:
             try:
                 normalized = _dump(CostLedgerEntry.model_validate(entry))
             except Exception as exc:
-                raise CatalogError(f"invalid CostLedgerEntry: {exc}") from exc
+                # A pre-typed runtime campaign may contain historical
+                # ``cohort:slug``/``run:slug`` references.  Validate the
+                # complete ledger entry using deterministic typed surrogates,
+                # then restore those references; the FK/existence checks below
+                # remain authoritative and prevent unknown legacy references.
+                candidate = _dump(entry)
+                legacy = {}
+                for field, prefix in (("cohort_id", "cohort:"), ("run_id", "run:"), ("pricing_snapshot_id", "pricing:"), ("fx_snapshot_id", "fx:")):
+                    value = candidate.get(field)
+                    if isinstance(value, str) and value.startswith(prefix):
+                        try:
+                            from ..contracts.ids import validate_typed_id
+                            validate_typed_id(value, prefix)
+                        except ValueError:
+                            legacy[field] = value
+                            candidate[field] = prefix + hashlib.sha256(value.encode("utf-8")).hexdigest()
+                if not legacy:
+                    raise CatalogError(f"invalid CostLedgerEntry: {exc}") from exc
+                try:
+                    normalized = _dump(CostLedgerEntry.model_validate(candidate))
+                except Exception:
+                    raise CatalogError(f"invalid CostLedgerEntry: {exc}") from exc
+                normalized.update(legacy)
         canonical_hash = _canonical_hash(normalized)
         if entry_hash is not None and entry_hash != canonical_hash:
             raise ConflictError("supplied cost entry hash does not match canonical content")
