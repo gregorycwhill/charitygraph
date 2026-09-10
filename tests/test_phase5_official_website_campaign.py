@@ -106,3 +106,25 @@ def test_successful_fixture_retains_exact_bytes_and_lineage_once(tmp_path) -> No
         assert catalog.get_source_record(result["lineage"]["source_record_id"]) is not None
     finally:
         catalog.close()
+
+
+def test_host_policy_failure_is_durably_receipted_without_retention(tmp_path) -> None:
+    profiles, identities, inventory = _inputs(tmp_path)
+    row = build_campaign(profiles_path=profiles, identity_map_path=identities, inventory_path=inventory)["rows"][0]
+    catalog = SQLiteCatalog(tmp_path / "catalog.sqlite3").open(initialize=True)
+    try:
+        store = ContentAddressedArtifactStore(tmp_path / "runtime", allowed_roots=(tmp_path,))
+        result = execute_row(
+            row=row,
+            ledger=None,  # fetched is already durable; no transport call is possible.
+            catalog=catalog,
+            store=store,
+            fetched={"ok": False, "event": {"outcome": "blocked", "error_class": "NetworkPolicyError"}},
+        )
+        assert result["outcome"] == "host_policy_redirect_rejection"
+        receipt_id = "acq:" + __import__("hashlib").sha256(
+            json.dumps({"attempt_id": row["acquisition_attempt_id"], "outcome": result["outcome"]}, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        assert catalog.get_acquisition_receipt(receipt_id) is not None
+    finally:
+        catalog.close()

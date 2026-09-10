@@ -251,7 +251,22 @@ def execute_campaign(*, manifest: dict[str, Any], runtime_root: Path, catalog_pa
                     fetched = ledger.fetch(**request_arguments(row))
                 except NetworkPolicyError:
                     event = ledger.events[-1] if ledger.events else {"outcome": "blocked", "error_class": "NetworkPolicyError"}
-                    attempts[attempt_id] = {"state": "host_policy_redirect_rejection", "abn": row["abn"], "event": event}
+                    # The transport raises for this fail-closed redirect
+                    # boundary, but it is still a completed, attributable
+                    # acquisition outcome.  Route it through the normal
+                    # receipt path rather than leaving a state-only event.
+                    result = execute_row(
+                        row=row,
+                        ledger=ledger,
+                        catalog=catalog,
+                        store=store,
+                        fetched={"ok": False, "event": event},
+                    )
+                    attempts[attempt_id] = {
+                        "state": result["outcome"],
+                        "abn": row["abn"],
+                        "result": result,
+                    }
                     _atomic_json(state_path, state)
                     continue
                 attempts[attempt_id] = {"state": "response_durable", "abn": row["abn"], "event": fetched.get("event")}
