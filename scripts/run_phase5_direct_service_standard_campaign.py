@@ -9,6 +9,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from charitygraph.contracts.direct_service_wire import DirectServiceWireOutput, wire_to_domain
+from charitygraph.direct_service_recovery import (
+    DIRECT_SERVICE_RESULT_RECOVERY_VERSION,
+    recover_direct_service_result,
+)
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.phase5_execution_mandate import evaluate_execution_against_mandate
 from charitygraph.phase5_execution_packet import ExecutionPacketUnready, materialize_execution_packet
@@ -213,6 +217,82 @@ def response_output_text(body: dict) -> str:
     return "".join(chunks)
 
 
+def _append_only_json(path: Path, value: dict) -> None:
+    """Write a derived recovery record once, or prove a replay is identical."""
+
+    encoded = (json.dumps(value, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    if path.exists():
+        if path.read_bytes() != encoded:
+            raise RuntimeError(f"append-only recovery record conflicts: {path.name}")
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(encoded)
+
+
+def recover_existing_results(rows: list[dict], *, output_root: Path) -> dict:
+    """Provider-free, append-only recovery replay for immutable raw responses."""
+
+    classifications: dict[str, int] = {}
+    records = []
+    for row in rows:
+        request_item_id = row["provider_request_item_id"]
+        raw_path = output_root / "standard-results" / f"{request_item_id.replace(':', '_')}.json"
+        if not raw_path.is_file():
+            raise RuntimeError(f"retained provider result is missing: {request_item_id}")
+        body = json.loads(raw_path.read_text(encoding="utf-8"))
+        output_text = response_output_text(body)
+        response_id = body.get("id")
+        if not isinstance(response_id, str) or not response_id:
+            raise RuntimeError(f"retained provider response has no response ID: {request_item_id}")
+        original = DirectServiceWireOutput.model_validate_json(output_text)
+        original_error = None
+        try:
+            wire_to_domain(original, allowed_scope_ids={row["scope_id"]}, evidence_locators=set(row["evidence_ids"]))
+        except Exception as exc:
+            original_error = str(exc)
+        recovered = recover_direct_service_result(
+            output_text,
+            response_id=response_id,
+            allowed_scope_ids={row["scope_id"]},
+            evidence_locators=set(row["evidence_ids"]),
+        )
+        if recovered.is_direct:
+            classification = "DIRECTLY_VALID"
+        elif recovered.is_usable:
+            classification = "DETERMINISTICALLY_RECOVERED"
+        else:
+            classification = "SEMANTICALLY_UNUSABLE"
+        classifications[classification] = classifications.get(classification, 0) + 1
+        record = {
+            "provider_request_item_id": request_item_id,
+            "response_id": response_id,
+            "raw_output_sha256": sha(output_text.encode("utf-8")),
+            "recovery_policy_version": DIRECT_SERVICE_RESULT_RECOVERY_VERSION,
+            "recovery_result_id": recovered.recovery_identity,
+            "original_validation_error": original_error,
+            "classification": classification,
+            "original_proposition_count": len(original.propositions),
+            "original_relationship_count": len(original.relationships),
+            "normalized_locator_count": recovered.normalized_locator_count,
+            "discarded_propositions": list(recovered.discarded_propositions),
+            "discarded_relationships": list(recovered.discarded_relationships),
+            "recovered_output": recovered.wire.model_dump(mode="json"),
+            "recovered_proposition_count": len(recovered.wire.propositions),
+            "recovered_relationship_count": len(recovered.wire.relationships),
+        }
+        _append_only_json(output_root / "recovery-results" / f"{request_item_id.replace(':', '_')}.json", record)
+        records.append(record)
+    summary = {
+        "replayed_existing": len(records),
+        "provider_operations": 0,
+        "recovery_policy_version": DIRECT_SERVICE_RESULT_RECOVERY_VERSION,
+        "classifications": classifications,
+        "records": records,
+    }
+    _append_only_json(output_root / "recovery-results" / "summary.json", summary)
+    return summary
+
+
 def load_rows(catalog: SQLiteCatalog, *, task_root: Path, corpus_dir: Path, runtime_root: Path) -> list[dict]:
     tasks = json.loads((task_root / "planned-logical-tasks.json").read_text(encoding="utf-8"))
     inv = {row["subject_id"]: row for row in json.loads((task_root / "semantic-reuse-inventory.json").read_text(encoding="utf-8"))}
@@ -281,12 +361,12 @@ def _cost(usage: dict) -> tuple[Decimal, Decimal]:
 
 
 def main() -> int:
-    ap=argparse.ArgumentParser(); ap.add_argument("--execute",action="store_true"); ap.add_argument("--reconcile-existing",action="store_true"); ap.add_argument("--catalogue",type=Path,default=Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3")); ap.add_argument("--authorization",type=Path,default=None); ap.add_argument("--task-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-factory-preflight-clean-v1")); ap.add_argument("--corpus-dir",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1-clean\corpora")); ap.add_argument("--runtime-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1")); ap.add_argument("--output-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-direct-service-v1-top100-standard")); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--execute",action="store_true"); ap.add_argument("--reconcile-existing",action="store_true"); ap.add_argument("--recover-existing",action="store_true"); ap.add_argument("--catalogue",type=Path,default=Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3")); ap.add_argument("--authorization",type=Path,default=None); ap.add_argument("--task-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-factory-preflight-clean-v1")); ap.add_argument("--corpus-dir",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1-clean\corpora")); ap.add_argument("--runtime-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1")); ap.add_argument("--output-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-direct-service-v1-top100-standard")); args=ap.parse_args()
     authority = args.authorization or args.catalogue
-    validate_existing_authority(catalogue=args.catalogue, authority=authority, allow_reconciled_campaign=args.reconcile_existing)
+    validate_existing_authority(catalogue=args.catalogue, authority=authority, allow_reconciled_campaign=args.reconcile_existing or args.recover_existing)
     catalog=SQLiteCatalog(args.catalogue, authorization_path=authority).open()
-    if args.execute or args.reconcile_existing:
-        manifest, rows = load_canonical_prepared_campaign(catalog, args.output_root / "preparation.json", terminal=args.reconcile_existing)
+    if args.execute or args.reconcile_existing or args.recover_existing:
+        manifest, rows = load_canonical_prepared_campaign(catalog, args.output_root / "preparation.json", terminal=args.reconcile_existing or args.recover_existing)
     else:
         catalog.migrate()
         rows=load_rows(catalog,task_root=args.task_root,corpus_dir=args.corpus_dir,runtime_root=args.runtime_root)
@@ -324,6 +404,9 @@ def main() -> int:
         (args.output_root / "candidate-results" / (row["provider_request_item_id"].replace(":", "_") + ".json")).write_text(json.dumps(parsed[row["provider_request_item_id"]] | {"output": output.model_dump(mode="json") if output else None}, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     def validate(body):
         DirectServiceWireOutput.model_validate_json(response_output_text(body))
+    if args.recover_existing:
+        print(json.dumps(recover_existing_results(rows, output_root=args.output_root), sort_keys=True))
+        return 0
     if args.reconcile_existing:
         for row in rows:
             raw_path = args.output_root / "standard-results" / f"{row['provider_request_item_id'].replace(':', '_')}.json"

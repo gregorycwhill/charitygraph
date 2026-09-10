@@ -20,7 +20,12 @@ from charitygraph.contracts import (
     validate_scope_bindings,
 )
 from charitygraph.strict_schema import strictify_schema, validate_strict_schema
-from charitygraph.direct_service_recovery import recover_historical_wire, recovery_identity
+from charitygraph.phase5_semantic_contracts import _production_direct_service
+from charitygraph.direct_service_recovery import (
+    recover_direct_service_result,
+    recover_historical_wire,
+    recovery_identity,
+)
 from charitygraph.contracts.semantic import TASK_OUTPUT_SCHEMAS
 
 
@@ -213,3 +218,81 @@ def test_wire_conversion_rejects_unknown_scope_and_evidence_locator():
         wire_to_domain(wire, allowed_scope_ids={"scope:" + "9" * 32}, evidence_locators={"evidence:S001:L0001"})
     with pytest.raises(ValueError, match="unknown proposition scope_id"):
         wire_to_domain(wire, allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"missing"})
+
+
+def _recovery_wire(*, section="capability_access_availability", proposition_type="service_offer", locator="locator:" + "a" * 64, **updates):
+    value = {
+        "section": section,
+        "propositions": [{
+            "proposition_type": proposition_type,
+            "scope_id": "scope:" + "1" * 32,
+            "scope_kind": "service",
+            "coverage_state": "supported",
+            "value": "offered",
+            "evidence": [{"locator": locator, "role": "supporting"}],
+        }],
+        "relationships": [],
+    }
+    value.update(updates)
+    return json.dumps(value)
+
+
+def test_result_recovery_restores_only_exact_authorized_locator_prefix():
+    raw = _recovery_wire(locator="a" * 64)
+    recovered = recover_direct_service_result(
+        raw, response_id="resp_test", allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"locator:" + "a" * 64},
+    )
+    assert recovered.is_usable
+    assert recovered.normalized_locator_count == 1
+    assert recovered.wire.propositions[0].evidence[0].locator == "locator:" + "a" * 64
+    assert recovered.discarded_propositions == ()
+
+
+def test_result_recovery_never_guesses_an_unrecognized_locator():
+    recovered = recover_direct_service_result(
+        _recovery_wire(locator="b" * 64), response_id="resp_test", allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"locator:" + "a" * 64},
+    )
+    assert not recovered.is_usable
+    assert recovered.discarded_propositions[0]["reason"] == "wire evidence locator is not present in the frozen packet"
+
+
+def test_result_recovery_retains_independently_valid_entries_without_reinterpreting_invalid_ones():
+    raw = _recovery_wire(
+        section="participation",
+        proposition_type="participation_measure",
+        locator="a" * 64,
+        propositions=[
+            {
+                "proposition_type": "participation_measure", "scope_id": "scope:" + "1" * 32,
+                "scope_kind": "service", "coverage_state": "supported", "value": 12,
+                "unit": "people", "evidence": [{"locator": "a" * 64, "role": "supporting"}],
+            },
+            {
+                "proposition_type": "service_offer", "scope_id": "scope:" + "1" * 32,
+                "scope_kind": "service", "coverage_state": "supported", "value": "offered",
+                "evidence": [{"locator": "a" * 64, "role": "supporting"}],
+            },
+        ],
+    )
+    recovered = recover_direct_service_result(
+        raw, response_id="resp_test", allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"locator:" + "a" * 64},
+    )
+    assert [item.proposition_type for item in recovered.wire.propositions] == ["participation_measure"]
+    assert "proposition type does not belong" in recovered.discarded_propositions[0]["reason"]
+
+
+def test_result_recovery_is_deterministic_and_does_not_rewrite_raw_semantics():
+    raw = _recovery_wire(locator="a" * 64)
+    kwargs = {"response_id": "resp_test", "allowed_scope_ids": {"scope:" + "1" * 32}, "evidence_locators": {"locator:" + "a" * 64}}
+    first = recover_direct_service_result(raw, **kwargs)
+    second = recover_direct_service_result(raw, **kwargs)
+    assert first.recovery_identity == second.recovery_identity
+    assert DirectServiceWireOutput.model_validate_json(raw).propositions[0].evidence[0].locator == "a" * 64
+
+
+def test_production_prompt_states_domain_section_and_locator_invariants():
+    contract = _production_direct_service()
+    assert contract.contract_version == "1.1"
+    assert "`locator:`\nprefix" in contract.prompt_template
+    assert "For `participation`, emit only" in contract.prompt_template
+    assert "provide its\nnon-empty `scheme_id`" in contract.prompt_template

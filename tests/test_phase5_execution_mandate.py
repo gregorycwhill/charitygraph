@@ -168,7 +168,7 @@ def test_representation_amendment_replaces_discovery_binding_only(tmp_path):
     assert discovery["contract_version"] == "2.1"
     assert discovery["schema_id"].endswith(":2.1")
     assert discovery["contract_identity_hash"] != HISTORICAL_DISCOVERY_V2_CONTRACT.identity_hash()
-    assert direct["contract_version"] == "1.0"
+    assert direct["contract_version"] == "1.1"
     assert direct["contract_identity_hash"] == next(c for c in REGISTRY if c.contract_id.endswith("direct-service-v1")).identity_hash()
     assert amended["supersedes_mandate_id"] == "mandate:phase5-build-standard-luna-v1-amendment-1"
 

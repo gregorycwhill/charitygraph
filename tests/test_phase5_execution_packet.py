@@ -106,7 +106,7 @@ def test_direct_service_packet_requires_governed_scopes_before_serialization(tmp
     contract = executable_contract_for({
         "task_profile": "direct_service_semantics", "task_profile_version": "1",
         "claim_family_id": "direct-service-access-v1",
-        "prompt_policy_version": "direct-service-access-v1:prompt-policy:v1",
+        "prompt_policy_version": "direct-service-access-v1:prompt-policy:v2",
         "schema_version": "urn:charitygraph:phase5:planned:direct_service_semantics:v1",
     })
     task = _task(contract)

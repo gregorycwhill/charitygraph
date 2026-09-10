@@ -226,6 +226,17 @@ asserted-absence proposition. Relationships are directed and must preserve opera
 funder, sponsor, partner, auspice and network_context as distinct roles. Do not inherit or propagate
 claims from parent, network, partner or funder scopes. Cite evidence for each relationship.
 
+The `section` is a hard output partition. For `participation`, emit only
+`participation_opportunity` or `participation_measure`; for
+`capability_access_availability`, emit only `service_offer`, `eligibility`,
+`access_pathway`, `current_availability`, or `capacity_measure`; for
+`scheme_accreditation`, emit only `scheme_membership` or `accreditation`.
+For every `scheme_membership` or `accreditation` proposition, provide its
+non-empty `scheme_id`. For every measure, provide its non-empty `unit`.
+Copy evidence locator strings exactly as supplied, including the `locator:`
+prefix; a bare hash is not an evidence locator. Do not emit a proposition or
+relationship unless its scope ID and every cited locator are supplied below.
+
 TASK-VISIBLE SCOPES:
 {scope_text}
 
@@ -233,16 +244,16 @@ PACKET EVIDENCE:
 {evidence}
 """
     return SemanticContract(
-        contract_id="urn:charitygraph:builder:semantic-contract:direct-service-v1", contract_version="1.0",
+        contract_id="urn:charitygraph:builder:semantic-contract:direct-service-v1", contract_version="1.1",
         task_profile="direct_service_semantics", task_profile_version="1", claim_families=("direct-service-access-v1",),
-        prompt_template=prompt, prompt_id="direct-service-real-phase3:prompt:v1", output_schema=strictify_schema(DirectServiceWireOutput.model_json_schema()),
+        prompt_template=prompt, prompt_id="direct-service-real-phase3:prompt:v2", output_schema=strictify_schema(DirectServiceWireOutput.model_json_schema()),
         schema_id="urn:charitygraph:builder:schema:direct-service-wire-output:1.0", schema_version="1.0",
         evidence_policy={"mode": "frozen_packet_locators", "outside_knowledge": False, "allowed_reference_field": "evidence.locator"},
         grounding_requirements=("evidence locator must be in frozen packet", "scope IDs must be task-visible", "supported states require evidence"),
         adapter_id="charitygraph.contracts.direct_service_wire.wire_to_domain", adapter_version="1.0",
         route_class="lower_cost_constrained_semantic", reasoning_policy="low", authority_state="production_bound",
         publication_boundary="domain validation and downstream governance required", source_refs=("src/charitygraph/contracts/direct_service_wire.py", "src/charitygraph/contracts/direct_service.py", "scripts/run_direct_service_real_phase3.py"),
-        planner_prompt_policy_version="direct-service-access-v1:prompt-policy:v1",
+        planner_prompt_policy_version="direct-service-access-v1:prompt-policy:v2",
         planner_schema_version="urn:charitygraph:phase5:planned:direct_service_semantics:v1",
         provider_schema_name="direct_service_semantics_v1",
     )
