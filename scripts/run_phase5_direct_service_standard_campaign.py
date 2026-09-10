@@ -91,6 +91,49 @@ def load_prepared_campaign(path: Path, *, expected_sha256: str = AUTHORIZED_MANI
     return value
 
 
+def _canonical_alias(row: dict, canonical: str, aliases: tuple[str, ...]) -> object:
+    """Resolve one historical serialized field without choosing conflicting values."""
+    values = [row[key] for key in (canonical, *aliases) if key in row and row[key] is not None]
+    if not values:
+        raise RuntimeError(f"prepared row is missing canonical field: {canonical}")
+    if any(value != values[0] for value in values[1:]):
+        raise RuntimeError(f"prepared row has conflicting aliases for: {canonical}")
+    return values[0]
+
+
+def canonicalize_prepared_campaign_rows(manifest: dict, rows: list[dict]) -> list[dict]:
+    """Convert immutable preparation rows to the canonical execution shape.
+
+    This is an in-memory/read-only boundary.  Historical manifests used
+    ``semantic_contract_hash`` for the contract identity that the mandate
+    evaluator calls ``contract_identity_hash``; the provider body remains
+    unchanged and continues to carry its existing metadata field.
+    """
+    if not isinstance(rows, list) or len(rows) != len(manifest.get("request_items", ())):
+        raise RuntimeError("prepared campaign row collection is inconsistent")
+    canonical = []
+    for row in rows:
+        item = dict(row)
+        contract_hash = _canonical_alias(item, "contract_identity_hash", ("semantic_contract_hash",))
+        request_id = item.get("provider_request_item_id")
+        if not isinstance(request_id, str) or ":" not in request_id:
+            raise RuntimeError("prepared row has malformed provider request identity")
+        item["contract_identity_hash"] = contract_hash
+        item["wire_fingerprint"] = request_id.split(":", 1)[1]
+        item.pop("semantic_contract_hash", None)
+        canonical.append(item)
+    return canonical
+
+
+def load_canonical_prepared_campaign(catalog: SQLiteCatalog, path: Path) -> tuple[dict, list[dict]]:
+    """Load, join, and normalize an immutable campaign without writing it."""
+    manifest = load_prepared_campaign(path)
+    rows = reconstruct_reconciliation_metadata(catalog, manifest)
+    rows = canonicalize_prepared_campaign_rows(manifest, rows)
+    validate_prepared_campaign(catalog, manifest, rows)
+    return manifest, rows
+
+
 def reconstruct_reconciliation_metadata(catalog: SQLiteCatalog, manifest: dict) -> list[dict]:
     """Join only through exact durable IDs and request-body evidence bindings."""
     rows = []
@@ -221,9 +264,7 @@ def main() -> int:
     validate_existing_authority(catalogue=args.catalogue, authority=authority)
     catalog=SQLiteCatalog(args.catalogue, authorization_path=authority).open()
     if args.execute:
-        manifest = load_prepared_campaign(args.output_root / "preparation.json")
-        rows = reconstruct_reconciliation_metadata(catalog, manifest)
-        validate_prepared_campaign(catalog, manifest, rows)
+        manifest, rows = load_canonical_prepared_campaign(catalog, args.output_root / "preparation.json")
     else:
         catalog.migrate()
         rows=load_rows(catalog,task_root=args.task_root,corpus_dir=args.corpus_dir,runtime_root=args.runtime_root)

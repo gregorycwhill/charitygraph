@@ -167,7 +167,8 @@ class StandardCampaignCoordinator:
         if row.get("provider_service_tier") is not None or "service_tier" in request_body:
             raise StandardSystemic("Standard request contains an unauthorized service tier")
         metadata = request_body.get("metadata")
-        if not isinstance(metadata, dict) or metadata.get("logical_task_id") != row["logical_task_id"] or metadata.get("semantic_contract_hash") != row["semantic_contract_hash"]:
+        contract_identity = row.get("contract_identity_hash", row.get("semantic_contract_hash"))
+        if not isinstance(metadata, dict) or metadata.get("logical_task_id") != row["logical_task_id"] or metadata.get("semantic_contract_hash") != contract_identity:
             raise StandardSystemic("provider body metadata does not match pinned semantic identity")
         text_format = request_body.get("text", {}).get("format", {})
         if text_format.get("name") != provider_schema_name or text_format.get("type") != "json_schema" or text_format.get("strict") is not True:
