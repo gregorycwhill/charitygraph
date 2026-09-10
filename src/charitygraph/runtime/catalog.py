@@ -2420,14 +2420,14 @@ class SQLiteCatalog:
                 raise ConflictError("Standard request item is not prepared")
             if physical is None or physical["status"] != "prepared" or physical["delivery_mode"] != "standard" or physical["provider_request_id"] != item["provider_request_item_id"]:
                 raise ConflictError("Standard physical attempt is not prepared")
-            if job is None or job["status"] != "prepared" or job["delivery_mode"] != "standard":
+            if job is None or job["status"] not in {"prepared", "submitted", "in_progress"} or job["delivery_mode"] != "standard":
                 raise ConflictError("Standard delivery job is not prepared")
             if reservation is None or reservation["status"] not in {"active", "partially_consumed"}:
                 raise ConflictError("Standard physical attempt lacks active reservation")
             conn.execute("UPDATE provider_request_attempts SET status='send_started', submitted_at=?, updated_at=? WHERE delivery_attempt_id=?", (when, when, delivery_attempt_id))
             conn.execute("UPDATE provider_request_items SET status='submitted', updated_at=? WHERE provider_request_item_id=?", (when, item["provider_request_item_id"]))
             conn.execute("UPDATE physical_attempts SET status='send_started', send_started_at=?, updated_at=? WHERE physical_attempt_id=?", (when, when, physical["physical_attempt_id"]))
-            conn.execute("UPDATE delivery_jobs SET status='submitted', submitted_at=?, updated_at=? WHERE delivery_job_id=?", (when, when, job["delivery_job_id"]))
+            conn.execute("UPDATE delivery_jobs SET status=CASE WHEN status='prepared' THEN 'submitted' ELSE status END, submitted_at=COALESCE(submitted_at,?), updated_at=? WHERE delivery_job_id=?", (when, when, job["delivery_job_id"]))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
 
@@ -2451,7 +2451,11 @@ class SQLiteCatalog:
             conn.execute("UPDATE provider_request_attempts SET status='completed', provider_request_id=?, provider_receipt_id=?, result_ref=?, usage_json=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (provider_request_id, provider_receipt_id, result_ref, json.dumps(_dump(usage), sort_keys=True), when, when, delivery_attempt_id))
             conn.execute("UPDATE provider_request_items SET status='completed', provider_request_id=?, provider_receipt_id=?, result_ref=?, usage_json=?, updated_at=? WHERE provider_request_item_id=?", (provider_request_id, provider_receipt_id, result_ref, json.dumps(_dump(usage), sort_keys=True), when, item["provider_request_item_id"]))
             conn.execute("UPDATE physical_attempts SET status='validated', receipt_persisted_at=COALESCE(receipt_persisted_at,?), updated_at=? WHERE physical_attempt_id=?", (when, when, physical["physical_attempt_id"]))
-            conn.execute("UPDATE delivery_jobs SET status='completed', completed_at=?, updated_at=? WHERE delivery_job_id=?", (when, when, job["delivery_job_id"]))
+            remaining = conn.execute("SELECT count(1) FROM provider_request_items WHERE delivery_job_id=? AND status IN ('prepared','submitted','in_progress','send_ambiguous')", (job["delivery_job_id"],)).fetchone()[0]
+            if remaining == 0:
+                conn.execute("UPDATE delivery_jobs SET status='completed', completed_at=?, updated_at=? WHERE delivery_job_id=?", (when, when, job["delivery_job_id"]))
+            else:
+                conn.execute("UPDATE delivery_jobs SET status='in_progress', updated_at=? WHERE delivery_job_id=?", (when, job["delivery_job_id"]))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
 
@@ -2469,7 +2473,11 @@ class SQLiteCatalog:
             conn.execute("UPDATE provider_request_attempts SET status=?, failure_class=?, failure_message_redacted=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (attempt_status, failure_class, message[:512], when, when, delivery_attempt_id))
             conn.execute("UPDATE provider_request_items SET status=?, updated_at=? WHERE provider_request_item_id=?", (item_status, when, attempt["provider_request_item_id"]))
             conn.execute("UPDATE physical_attempts SET status=?, updated_at=? WHERE physical_attempt_id=?", ("held" if ambiguous else "failed", when, physical["physical_attempt_id"]))
-            conn.execute("UPDATE delivery_jobs SET status=?, completed_at=?, updated_at=? WHERE delivery_job_id=?", (job_status, when, when, attempt["delivery_job_id"]))
+            remaining = conn.execute("SELECT count(1) FROM provider_request_items WHERE delivery_job_id=? AND status IN ('prepared','submitted','in_progress','send_ambiguous')", (attempt["delivery_job_id"],)).fetchone()[0]
+            if ambiguous or remaining == 0:
+                conn.execute("UPDATE delivery_jobs SET status=?, completed_at=?, updated_at=? WHERE delivery_job_id=?", (job_status, when, when, attempt["delivery_job_id"]))
+            else:
+                conn.execute("UPDATE delivery_jobs SET status='in_progress', updated_at=? WHERE delivery_job_id=?", (when, attempt["delivery_job_id"]))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
 

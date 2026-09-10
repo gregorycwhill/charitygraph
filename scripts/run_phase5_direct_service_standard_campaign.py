@@ -23,8 +23,8 @@ COHORT = "cohort:phase5-direct-service-v1-top100"
 JOB = "deliveryjob:phase5-direct-service-v1-top100-standard"
 OWNER = "phase5-direct-service-v1-worker"
 NOW = "2026-09-10T00:00:00+00:00"
-PARTIAL_RESERVATION = "reservation:bf19e58a620084541fdb1bb56a65361a2b28e3e3c0c69f8867a1f52ced919fd8"
-PARTIAL_RESERVATION_AUD = "0.032917"
+AUTHORIZED_MANIFEST_SHA256 = "5f69817d347c51345799a5925fec24f8c2cb686a1d02ea07975727dabba5e8a7"
+AUTHORIZED_MANIFEST_BYTES = 1826231
 
 
 def validate_existing_authority(*, catalogue: Path, authority: Path, mandate_id: str = MANDATE) -> None:
@@ -51,18 +51,14 @@ def validate_existing_authority(*, catalogue: Path, authority: Path, mandate_id:
         if mandate["actual_spend_aud"] != "0.480103":
             raise RuntimeError("existing mandate accounting does not match the reconciled baseline")
         active_reservations = conn.execute(
-            "SELECT reservation_id, reserved_aud, status FROM execution_mandate_reservations WHERE mandate_id=? AND status IN ('active','ambiguous')",
-            (mandate_id,),
+            "SELECT er.reservation_id, er.reserved_aud, er.status FROM execution_mandate_reservations er JOIN budget_reservations br ON br.reservation_id=er.reservation_id WHERE er.mandate_id=? AND er.status IN ('active','ambiguous') AND br.run_id=?",
+            (mandate_id, RUN),
         ).fetchall()
-        if active_reservations:
-            if len(active_reservations) != 1 or dict(active_reservations[0]) != {
-                "reservation_id": PARTIAL_RESERVATION,
-                "reserved_aud": PARTIAL_RESERVATION_AUD,
-                "status": "active",
-            }:
-                raise RuntimeError("unexpected unresolved mandate reservation")
+        all_active = conn.execute("SELECT count(1) FROM execution_mandate_reservations WHERE mandate_id=? AND status IN ('active','ambiguous')", (mandate_id,)).fetchone()[0]
+        if len(active_reservations) != all_active:
+            raise RuntimeError("unresolved mandate reservation is outside the authorized Direct Service run")
         unresolved = Decimal(mandate["unresolved_reserved_aud"])
-        expected_unresolved = Decimal(PARTIAL_RESERVATION_AUD) if active_reservations else Decimal("0")
+        expected_unresolved = sum((Decimal(row["reserved_aud"]) for row in active_reservations), Decimal("0"))
         if unresolved != expected_unresolved:
             raise RuntimeError("mandate unresolved exposure does not match durable reservations")
         active = conn.execute("SELECT count(1) FROM execution_mandates WHERE status='active' AND phase_scope='phase5-build-calibration'").fetchone()[0]
@@ -82,6 +78,74 @@ def validate_existing_authority(*, catalogue: Path, authority: Path, mandate_id:
 
 def sha(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
+
+
+def load_prepared_campaign(path: Path, *, expected_sha256: str = AUTHORIZED_MANIFEST_SHA256, expected_bytes: int = AUTHORIZED_MANIFEST_BYTES) -> dict:
+    """Load immutable preparation bytes; execution never regenerates them."""
+    raw = path.read_bytes()
+    if len(raw) != expected_bytes or sha(raw) != expected_sha256:
+        raise RuntimeError("prepared campaign bytes do not match the authorized immutable manifest")
+    value = json.loads(raw.decode("utf-8"))
+    if not isinstance(value, dict) or not isinstance(value.get("request_items"), list):
+        raise RuntimeError("prepared campaign manifest is malformed")
+    return value
+
+
+def reconstruct_reconciliation_metadata(catalog: SQLiteCatalog, manifest: dict) -> list[dict]:
+    """Join only through exact durable IDs and request-body evidence bindings."""
+    rows = []
+    with catalog._connection() as conn:
+        for item in manifest["request_items"]:
+            rid = item["provider_request_item_id"]
+            durable = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (rid,)).fetchone()
+            if durable is None or durable["status"] != "prepared":
+                raise RuntimeError(f"prepared request item is not durably prepared: {rid}")
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE provider_request_item_id=?", (rid,)).fetchone()
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (item["physical_attempt_id"],)).fetchone()
+            if attempt is None or attempt["delivery_attempt_id"] != item["delivery_attempt_id"] or attempt["status"] != "prepared":
+                raise RuntimeError(f"request attempt relationship is not exact: {rid}")
+            if physical is None or physical["status"] != "prepared" or physical["provider_request_id"] != rid:
+                raise RuntimeError(f"physical attempt relationship is not exact: {rid}")
+            scopes = conn.execute("SELECT scope_id FROM subject_scopes WHERE subject_id=? AND lifecycle_status='active' ORDER BY scope_id", (item["subject_id"],)).fetchall()
+            if not scopes:
+                raise RuntimeError(f"subject has no active scope: {item['subject_id']}")
+            # Preparation historically selected the first canonical scope in
+            # this same stable ordering; replay that durable rule, never output.
+            evidence_text = item["request_body"]["input"][1]["content"][0]["text"]
+            request_material = json.loads(evidence_text)
+            bindings = request_material.get("evidence_bindings")
+            if not isinstance(bindings, list) or not bindings or any(not isinstance(x, dict) or not x.get("evidence_id") for x in bindings):
+                raise RuntimeError(f"request evidence bindings are not recoverable: {rid}")
+            evidence_ids = [x["evidence_id"] for x in bindings]
+            if len(set(evidence_ids)) != len(evidence_ids):
+                raise RuntimeError(f"request evidence bindings are not unique: {rid}")
+            reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (item["reservation_id"],)).fetchone()
+            if reservation is None or reservation["status"] != "active" or reservation["reserved_aud"] != item["hard_max_aud"]:
+                raise RuntimeError(f"budget reservation is not exact: {rid}")
+            mandate_reservation = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (manifest["mandate_id"], item["mandate_reservation_id"])).fetchone()
+            if mandate_reservation is None or mandate_reservation["status"] != "active" or mandate_reservation["reserved_aud"] != item["hard_max_aud"]:
+                raise RuntimeError(f"mandate reservation is not exact: {rid}")
+            row = dict(item)
+            row.update({"scope_id": scopes[0]["scope_id"], "evidence_ids": evidence_ids})
+            rows.append(row)
+    return rows
+
+
+def validate_prepared_campaign(catalog: SQLiteCatalog, manifest: dict, rows: list[dict]) -> None:
+    if manifest.get("run_id") != RUN or manifest.get("mandate_id") != MANDATE or len(rows) != 8:
+        raise RuntimeError("prepared campaign identity is not the authorized Direct Service cohort")
+    if {r["provider_request_item_id"] for r in rows} != {r["provider_request_item_id"] for r in manifest["request_items"]}:
+        raise RuntimeError("prepared request-item set is inconsistent")
+    if any(r["model"] != "gpt-5.6-luna" or r["reasoning_effort"] != "low" or r["delivery_mode"] != "standard" or r["max_output_tokens"] != 8000 or r["provider_service_tier"] is not None for r in rows):
+        raise RuntimeError("prepared campaign route is inconsistent")
+    if sum(Decimal(r["hard_max_aud"]) for r in rows) != Decimal("0.247914"):
+        raise RuntimeError("prepared campaign exposure is inconsistent")
+    if any(sha(canonical_body_bytes(r["request_body"])) != r["request_body_sha256"] for r in rows):
+        raise RuntimeError("prepared request body hash is inconsistent")
+
+
+def canonical_body_bytes(body: dict) -> bytes:
+    return json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
 def load_rows(catalog: SQLiteCatalog, *, task_root: Path, corpus_dir: Path, runtime_root: Path) -> list[dict]:
@@ -155,8 +219,16 @@ def main() -> int:
     ap=argparse.ArgumentParser(); ap.add_argument("--execute",action="store_true"); ap.add_argument("--catalogue",type=Path,default=Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3")); ap.add_argument("--authorization",type=Path,default=None); ap.add_argument("--task-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-factory-preflight-clean-v1")); ap.add_argument("--corpus-dir",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1-clean\corpora")); ap.add_argument("--runtime-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1")); ap.add_argument("--output-root",type=Path,default=Path(r"C:\CharityGraph-runtime\phase5-direct-service-v1-top100-standard")); args=ap.parse_args()
     authority = args.authorization or args.catalogue
     validate_existing_authority(catalogue=args.catalogue, authority=authority)
-    catalog=SQLiteCatalog(args.catalogue, authorization_path=authority).open(); catalog.migrate(); rows=load_rows(catalog,task_root=args.task_root,corpus_dir=args.corpus_dir,runtime_root=args.runtime_root); manifest=prepare(catalog,rows,args.output_root/"preparation.json")
-    if not args.execute: print(json.dumps({"prepared":len(manifest),"provider_operations":0})); return 0
+    catalog=SQLiteCatalog(args.catalogue, authorization_path=authority).open()
+    if args.execute:
+        manifest = load_prepared_campaign(args.output_root / "preparation.json")
+        rows = reconstruct_reconciliation_metadata(catalog, manifest)
+        validate_prepared_campaign(catalog, manifest, rows)
+    else:
+        catalog.migrate()
+        rows=load_rows(catalog,task_root=args.task_root,corpus_dir=args.corpus_dir,runtime_root=args.runtime_root)
+        manifest=prepare(catalog,rows,args.output_root/"preparation.json")
+        print(json.dumps({"prepared":len(manifest),"provider_operations":0})); return 0
     def mandate(row): return evaluate_execution_against_mandate(catalog,MANDATE,row)
     parsed: dict[str, dict] = {}
     def reconcile(row, response, raw_usage):
