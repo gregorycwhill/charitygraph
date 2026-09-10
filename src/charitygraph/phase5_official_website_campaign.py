@@ -12,7 +12,7 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urlunsplit
 
 from .contracts import AcquisitionReceipt
 from .contracts.ids import deterministic_id
@@ -191,13 +191,29 @@ def _atomic_json(path: Path, value: Any) -> None:
 def _failure_outcome(event: dict[str, Any]) -> str:
     if event.get("outcome") == "blocked":
         return "host_policy_redirect_rejection"
-    if event.get("error_class") in {"TimeoutError", "URLError"}:
+    if event.get("error_class") == "TimeoutError":
         return "timeout"
     if event.get("error_class") == "response_too_large":
         return "oversized_response"
     if event.get("response_status"):
         return "http_terminal_failure"
     return "transport_error_before_response"
+
+
+def _receipt_locator(locator: str) -> str:
+    """Return a credential-free locator accepted by the receipt contract.
+
+    The exact attempted locator remains in the transport event and campaign
+    state.  Failure receipts must still be constructible if malformed legacy
+    governed input contains URL user-info, which the receipt model rejects.
+    """
+    parsed = urlsplit(locator)
+    if parsed.username is None and parsed.password is None:
+        return locator
+    host = parsed.hostname or ""
+    if parsed.port is not None:
+        host = f"{host}:{parsed.port}"
+    return urlunsplit((parsed.scheme, host, parsed.path, parsed.query, parsed.fragment))
 
 
 def execute_row(*, row: dict[str, Any], ledger: NetworkLedger, catalog: SQLiteCatalog, store: ContentAddressedArtifactStore, now: datetime | None = None, fetched: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -214,7 +230,7 @@ def execute_row(*, row: dict[str, Any], ledger: NetworkLedger, catalog: SQLiteCa
         return {"attempt_id": row["acquisition_attempt_id"], "outcome": "acquired_successfully", "lineage": persist_available(catalog=catalog, store=store, family="official_website", requested_url=row["normalized_initial_url"], resolved_url=fetched["resolved_url"], body=fetched["body"], media_type=fetched["media_type"], role="official_homepage", source_version=None, origin=MaterialOrigin.NEWLY_ACQUIRED, now=timestamp)}
     event = fetched["event"]
     outcome = _failure_outcome(event)
-    receipt = AcquisitionReceipt(record_id=deterministic_id("acq:", {"attempt_id": row["acquisition_attempt_id"], "outcome": outcome}), created_at=timestamp, producer={"kind": "code", "producer_id": CAMPAIGN_VERSION, "version": "1"}, source_definition_id=source_definition("official_website", timestamp).record_id, requested_locator=row["normalized_initial_url"], outcome="failed" if outcome != "http_terminal_failure" else "unavailable", response_status=event.get("response_status"), tool_id="urllib", tool_version="stdlib", error_class=str(event.get("error_class") or outcome))
+    receipt = AcquisitionReceipt(record_id=deterministic_id("acq:", {"attempt_id": row["acquisition_attempt_id"], "outcome": outcome}), created_at=timestamp, producer={"kind": "code", "producer_id": CAMPAIGN_VERSION, "version": "1"}, source_definition_id=source_definition("official_website", timestamp).record_id, requested_locator=_receipt_locator(row["normalized_initial_url"]), outcome="failed" if outcome != "http_terminal_failure" else "unavailable", response_status=event.get("response_status"), tool_id="urllib", tool_version="stdlib", error_class=str(event.get("error_class") or outcome))
     catalog.record_acquisition_receipt(receipt)
     return {"attempt_id": row["acquisition_attempt_id"], "outcome": outcome, "event": event}
 
