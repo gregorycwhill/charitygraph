@@ -63,6 +63,16 @@ def test_reviewed_transport_correction_is_append_only(tmp_path):
     assert catalog.list_provider_request_items(run)[0]["provider_request_item_id"] == item
 
 
+def test_pre_send_request_abandonment_is_idempotent_and_blocks_send(tmp_path):
+    catalog, run, task, item = _catalogue(tmp_path)
+    catalog.create_provider_request_attempt(delivery_attempt_id="deliveryattempt:old", provider_request_item_id=item, physical_attempt_id="physical:old", delivery_job_id="deliveryjob:old", attempt_ordinal=1, authorization_id="auth:old", attempt_class="initial", predecessor_attempt_id=None, now=NOW)
+    first = catalog.abandon_pre_send_provider_request(item, now=NOW, reason="superseded by V1.2 candidate")
+    second = catalog.abandon_pre_send_provider_request(item, now=NOW, reason="replay")
+    assert first["status"] == second["status"] == "cancelled"
+    assert catalog.get_provider_request_attempt("deliveryattempt:old")["status"] == "cancelled"
+    assert catalog.get_physical_attempt("physical:old")["status"] == "failed"
+
+
 class _UploadCapture:
     def __init__(self):
         self.payloads = []

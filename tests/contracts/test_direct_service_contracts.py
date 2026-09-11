@@ -12,9 +12,11 @@ from charitygraph.contracts import (
     DirectServiceSemanticOutput,
     DirectServiceRelationship,
     DirectServiceWireOutput,
+    DirectServiceV12WireOutput,
     DirectServiceWireProposition,
     DirectServiceWireEvidenceRef,
     wire_to_domain,
+    v12_wire_to_domain,
     project_observation,
     ModelTaskType,
     validate_scope_bindings,
@@ -212,12 +214,26 @@ def test_recovery_identity_is_deterministic_and_materially_bound():
 
 def test_v12_representation_schema_discriminates_section_and_proposition_type():
     schema = direct_service_representation_schema_v1_2()
-    assert len(schema["oneOf"]) == 3
-    branches = {branch["properties"]["section"]["const"]: branch for branch in schema["oneOf"]}
-    assert branches["participation"]["$defs"]["DirectServiceWireProposition"]["properties"]["proposition_type"]["enum"] == ["participation_opportunity", "participation_measure"]
-    assert branches["capability_access_availability"]["$defs"]["DirectServiceWireProposition"]["properties"]["proposition_type"]["enum"] == ["service_offer", "eligibility", "access_pathway", "current_availability", "capacity_measure"]
-    assert branches["scheme_accreditation"]["$defs"]["DirectServiceWireProposition"]["properties"]["proposition_type"]["enum"] == ["scheme_membership", "accreditation"]
-    assert branches["participation"]["properties"]["section"] == {"const": "participation"}
+    assert schema["type"] == "object"
+    assert "oneOf" not in schema
+    assert schema["properties"]["participation"]["items"]["properties"]["proposition_type"]["enum"] == ["participation_opportunity", "participation_measure"]
+    assert schema["properties"]["capability_access_availability"]["items"]["properties"]["proposition_type"]["enum"] == ["service_offer", "eligibility", "access_pathway", "current_availability", "capacity_measure"]
+    assert schema["properties"]["scheme_accreditation"]["items"]["properties"]["proposition_type"]["enum"] == ["scheme_membership", "accreditation"]
+
+
+def test_v12_wire_adapter_preserves_valid_types_and_rejects_cross_section_shapes():
+    valid = DirectServiceV12WireOutput(
+        section="participation",
+        participation=(DirectServiceWireProposition(proposition_type="participation_opportunity", scope_id="scope:" + "1" * 32, scope_kind="organisation"),),
+    )
+    domain = v12_wire_to_domain(valid, allowed_scope_ids={"scope:" + "1" * 32})
+    assert domain.section == "participation"
+    assert domain.propositions[0].proposition_type == "participation_opportunity"
+    with pytest.raises(ValidationError, match="section"):
+        DirectServiceV12WireOutput(
+            section="participation",
+            capability_access_availability=(DirectServiceWireProposition(proposition_type="service_offer", scope_id="scope:" + "1" * 32, scope_kind="service"),),
+        )
 
 
 def test_wire_conversion_rejects_unknown_scope_and_evidence_locator():

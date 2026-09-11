@@ -10,7 +10,7 @@ from decimal import Decimal, ROUND_CEILING
 from pathlib import Path
 from typing import Any, Iterable
 
-from .phase5_semantic_contracts import executable_contract_for, provider_request_identity
+from .phase5_semantic_contracts import executable_contract_for, provider_request_identity, resolve_contract
 from .phase5_execution_packet import ExecutionPacketUnready, SemanticExecutionPacket, render_packet_prompt
 
 RESPONSES_ENDPOINT = "/v1/responses"
@@ -292,6 +292,50 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
         }
         for item in packet.evidence_units
     ]
+    body = {
+        "model": model,
+        "reasoning": {"effort": effort},
+        "max_output_tokens": DISCOVERY_MAX_OUTPUT_TOKENS,
+        "store": False,
+        "input": [
+            {"role": "developer", "content": [{"type": "input_text", "text": prompt}]},
+            {"role": "user", "content": [{"type": "input_text", "text": json.dumps({"logical_task_id": task["logical_task_id"], "claim_family_id": task["claim_family_id"], "task_profile": task["task_profile"], "prompt_policy_version": task["prompt_policy_version"], "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract": contract.identity_payload(evidence_ids), "evidence_policy": contract.evidence_policy, "evidence_bindings": evidence_bindings}, ensure_ascii=False, sort_keys=True)}]},
+        ],
+        "text": {"format": {"type": "json_schema", "name": schema_name, "strict": True, "schema": schema}},
+        "metadata": {"logical_task_id": task["logical_task_id"], "provider_request_item_id": request_item_id, "delivery_job_id": delivery_job_id, "claim_family_id": task["claim_family_id"], "semantic_contract_id": contract.contract_id, "semantic_contract_hash": contract.identity_hash(evidence_ids)},
+    }
+    if provider_service_tier is not None:
+        body["service_tier"] = provider_service_tier
+    return CompiledRequest(task["logical_task_id"], request_item_id, delivery_job_id, model, delivery_mode, schema_name, body)
+
+
+def serialize_candidate_execution_packet_request(task: dict[str, Any], packet: SemanticExecutionPacket, *, delivery_job_id: str, delivery_mode: str) -> CompiledRequest:
+    """Compile a complete candidate contract without authorizing transmission.
+
+    This is intentionally separate from the production serializer.  It is
+    useful for offline schema/identity certification and future-ticket
+    preparation, but the normal execution entry point remains fail-closed on
+    ``executable_contract_for``.
+    """
+    contract = resolve_contract(task)
+    if contract.executable:
+        raise ValueError("candidate serializer requires a non-executable candidate contract")
+    contract.assert_complete()
+    model, effort = resolve_model(task)
+    evidence_ids = tuple(item.evidence_id for item in packet.evidence_units)
+    schema = contract.schema_for_evidence(evidence_ids)
+    _validate_schema(schema)
+    schema_name = validate_provider_schema_name(contract.provider_schema_name or "")
+    provider_service_tier = validate_provider_service_tier(provider_service_tier_for_delivery_mode(delivery_mode))
+    request_item_id = provider_request_identity(task, contract, model=model, reasoning_effort=effort, delivery_mode=delivery_mode, provider_schema_name=schema_name, schema_hash=contract.schema_hash_for_evidence(evidence_ids), evidence_ids=evidence_ids, max_output_tokens=DISCOVERY_MAX_OUTPUT_TOKENS)
+    prompt = render_packet_prompt(packet, contract)
+    evidence_bindings = [{
+        "evidence_id": item.evidence_id,
+        "artifact_id": item.artifact_id,
+        "content_hash": item.content_hash,
+        "byte_count": item.byte_count,
+        "source_record_id": item.source_record_id,
+    } for item in packet.evidence_units]
     body = {
         "model": model,
         "reasoning": {"effort": effort},

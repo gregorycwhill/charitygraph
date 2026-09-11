@@ -2871,6 +2871,39 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone())
 
+    def abandon_pre_send_provider_request(self, provider_request_item_id: str, *, now: datetime | str, reason: str) -> dict[str, Any]:
+        """Append-only quarantine for a prepared request superseded before send.
+
+        This is deliberately narrower than a retry or generic cancellation:
+        the item, its prepared delivery attempt and its physical attempt must
+        all still be pre-send, and no provider receipt/request identity may
+        exist.  A cancelled item can never pass the send-start transition.
+        Reservation release is a separate accounting operation so the caller
+        must reconcile both the Builder and mandate ledgers explicitly.
+        """
+        if not str(reason).strip():
+            raise CatalogError("pre-send abandonment requires a reason")
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
+            if item is None:
+                raise CatalogError("unknown provider request item")
+            if item["status"] == "cancelled":
+                return dict(item)
+            if item["status"] != "prepared" or item["provider_request_id"] is not None or item["provider_receipt_id"] is not None:
+                raise InvalidTransitionError("only an unsent prepared provider request can be abandoned")
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE provider_request_item_id=? ORDER BY attempt_ordinal", (provider_request_item_id,)).fetchall()
+            if len(attempt) != 1 or attempt[0]["status"] != "prepared" or attempt[0]["provider_request_id"] is not None or attempt[0]["provider_receipt_id"] is not None:
+                raise InvalidTransitionError("provider request must have exactly one unsent prepared attempt")
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (item["physical_attempt_id"],)).fetchone()
+            if physical is None or physical["status"] != "prepared":
+                raise InvalidTransitionError("provider request physical attempt is not prepared")
+            conn.execute("UPDATE provider_request_attempts SET status='cancelled', failure_class='superseded_pre_send', failure_message_redacted=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (str(reason)[:512], when, when, attempt[0]["delivery_attempt_id"]))
+            conn.execute("UPDATE provider_request_items SET status='cancelled', updated_at=? WHERE provider_request_item_id=?", (when, provider_request_item_id))
+            conn.execute("UPDATE physical_attempts SET status='failed', updated_at=? WHERE physical_attempt_id=?", (when, physical["physical_attempt_id"]))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone())
+
     def list_provider_request_items(self, run_id: str) -> list[dict[str, Any]]:
         with self._connection() as conn:
             return [dict(row) for row in conn.execute("SELECT * FROM provider_request_items WHERE run_id=? ORDER BY provider_request_item_id", (run_id,)).fetchall()]

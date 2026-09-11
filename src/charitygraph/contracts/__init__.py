@@ -31,7 +31,7 @@ from .direct_service import (
 from .direct_service_wire import (
     WireScalar, DirectServiceWireEvidenceRef, DirectServiceWireObservationTime,
     DirectServiceWireProposition, DirectServiceWireRelationship, DirectServiceWireOutput,
-    wire_to_domain,
+    DirectServiceV12WireOutput, wire_to_domain, v12_wire_to_domain,
 )
 from .conduct_compliance import (
     ConductPropositionClass, ConductProceduralStatus, PropositionOwnerKind,
@@ -81,7 +81,7 @@ __all__ = [
     "project_observation", "validate_scope_bindings",
     "WireScalar", "DirectServiceWireEvidenceRef", "DirectServiceWireObservationTime",
     "DirectServiceWireProposition", "DirectServiceWireRelationship", "DirectServiceWireOutput",
-    "wire_to_domain",
+    "DirectServiceV12WireOutput", "wire_to_domain", "v12_wire_to_domain",
     "ConductPropositionClass", "ConductProceduralStatus", "PropositionOwnerKind",
     "ConductComplianceWireTemporal", "ConductComplianceWireEvidenceRef",
     "ConductComplianceWireProposition", "ConductComplianceWireOutput",

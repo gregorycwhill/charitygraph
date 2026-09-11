@@ -280,12 +280,16 @@ def _production_discovery() -> SemanticContract:
 
 
 def direct_service_representation_schema_v1_2() -> dict[str, Any]:
-    """Build the future strict wire schema with section/type discrimination.
+    """Build the provider-safe V1.2 wire schema.
 
-    V1.1 exposed one broad proposition union and left the section/type pairing
-    to a post-parse validator.  These branches retain the same proposition
-    fields and domain vocabulary while making the observed cross-field error
-    impossible in provider output.
+    The first candidate used a root ``oneOf`` with repeated definitions.  A
+    local strict-schema walk can validate that shape, but the OpenAI strict
+    structured-output subset does not provide an offline certification that a
+    root union is accepted.  V1.2 therefore uses one closed root object with
+    section-named proposition arrays.  Each array has its own bounded enum,
+    so an illegal section/type pair cannot be emitted structurally.  The
+    semantic adapter still requires exactly one active section and preserves
+    the existing domain output shape.
     """
     from .contracts.direct_service_wire import DirectServiceWireOutput
     from .strict_schema import strictify_schema, validate_strict_schema
@@ -295,13 +299,23 @@ def direct_service_representation_schema_v1_2() -> dict[str, Any]:
         "capability_access_availability": ["service_offer", "eligibility", "access_pathway", "current_availability", "capacity_measure"],
         "scheme_accreditation": ["scheme_membership", "accreditation"],
     }
-    branches = []
+    schema = deepcopy(base)
+    schema["properties"]["section"] = {"type": "string", "enum": list(allowed)}
+    schema["properties"]["propositions"] = {
+        "type": "array",
+        "items": {"type": "object", "additionalProperties": False, "properties": {}, "required": []},
+    }
+    schema["properties"]["relationships"] = deepcopy(base["properties"]["relationships"])
+    common = deepcopy(base["$defs"]["DirectServiceWireProposition"])
+    common.pop("title", None)
+    schema["properties"].pop("propositions")
     for section, types in allowed.items():
-        branch = deepcopy(base)
-        branch["properties"]["section"] = {"const": section}
-        branch["$defs"]["DirectServiceWireProposition"]["properties"]["proposition_type"]["enum"] = types
-        branches.append(branch)
-    schema = {"oneOf": branches}
+        proposition = deepcopy(common)
+        proposition["properties"]["proposition_type"] = {"type": "string", "enum": types}
+        proposition["required"] = list(proposition["properties"])
+        schema["properties"][section] = {"type": "array", "items": proposition}
+    schema["properties"].pop("propositions", None)
+    schema["required"] = list(schema["properties"])
     validate_strict_schema(schema)
     return schema
 
@@ -310,7 +324,10 @@ def _production_direct_service_v1_2() -> SemanticContract:
     prior = _production_direct_service()
     return SemanticContract(
         contract_id=prior.contract_id, contract_version="1.2",
-        task_profile=prior.task_profile, task_profile_version=prior.task_profile_version,
+        # V1.2 is a new planner/task identity.  Keeping profile version 1
+        # would let this candidate displace the immutable V1.1 route in the
+        # profile index.
+        task_profile=prior.task_profile, task_profile_version="2",
         claim_families=prior.claim_families,
         prompt_template=prior.prompt_template + "\nThe schema structurally partitions proposition types by section; emit each proposition only in its corresponding section.",
         prompt_id="direct-service-real-phase3:prompt:v3-representation",
@@ -318,11 +335,11 @@ def _production_direct_service_v1_2() -> SemanticContract:
         schema_id="urn:charitygraph:builder:schema:direct-service-wire-output:1.2",
         schema_version="1.2-section-discriminated",
         evidence_policy=prior.evidence_policy, grounding_requirements=prior.grounding_requirements,
-        adapter_id=prior.adapter_id, adapter_version="1.2", route_class=prior.route_class,
-        reasoning_policy=prior.reasoning_policy, authority_state=prior.authority_state,
+        adapter_id="charitygraph.contracts.direct_service_wire.v12_wire_to_domain", adapter_version="1.2", route_class=prior.route_class,
+        reasoning_policy=prior.reasoning_policy, authority_state="candidate_for_review",
         publication_boundary=prior.publication_boundary, source_refs=prior.source_refs,
         planner_prompt_policy_version="direct-service-access-v1:prompt-policy:v3-representation",
-        planner_schema_version=prior.planner_schema_version,
+        planner_schema_version="urn:charitygraph:phase5:planned:direct_service_semantics:v2",
         provider_schema_name="direct_service_semantics_v2",
     )
 
@@ -389,6 +406,9 @@ def resolve_result_adapter(contract: SemanticContract) -> Callable[..., Any]:
     if contract.adapter_id == "charitygraph.contracts.direct_service_wire.wire_to_domain":
         from .contracts.direct_service_wire import wire_to_domain
         return wire_to_domain
+    if contract.adapter_id == "charitygraph.contracts.direct_service_wire.v12_wire_to_domain":
+        from .contracts.direct_service_wire import v12_wire_to_domain
+        return v12_wire_to_domain
     raise LookupError(f"semantic result adapter is not registered: {contract.adapter_id}")
 
 
