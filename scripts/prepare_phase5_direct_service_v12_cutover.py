@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import subprocess
 import sys
 from decimal import Decimal
 from pathlib import Path
@@ -149,7 +150,7 @@ def main() -> int:
         "preparation_manifest_bytes": len(prep_raw),
         "jsonl_sha256": sha_bytes(jsonl),
         "jsonl_bytes": len(jsonl),
-        "builder_commit_required": "working-branch-commit-to-be-recorded",
+        "builder_commit_required": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
         "mandate_id_required": MANDATE,
         "contract_identity": {"contract_id": contract.contract_id, "contract_version": contract.contract_version, "task_profile": "direct_service_semantics", "task_profile_version": "2", "provider_schema_name": "direct_service_semantics_v2"},
         "model": "gpt-5.6-luna", "reasoning_effort": "low", "delivery_mode": "standard", "max_concurrency": 4, "max_output_tokens": 8000,
