@@ -2898,9 +2898,31 @@ class SQLiteCatalog:
             physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (item["physical_attempt_id"],)).fetchone()
             if physical is None or physical["status"] != "prepared":
                 raise InvalidTransitionError("provider request physical attempt is not prepared")
+            mandate_row = None
+            if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='execution_mandate_reservations'").fetchone() is not None:
+                mandate_row = conn.execute(
+                    "SELECT mandate_id FROM execution_mandate_reservations WHERE reservation_id=?",
+                    (physical["reservation_id"],),
+                ).fetchone()
             conn.execute("UPDATE provider_request_attempts SET status='cancelled', failure_class='superseded_pre_send', failure_message_redacted=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (str(reason)[:512], when, when, attempt[0]["delivery_attempt_id"]))
             conn.execute("UPDATE provider_request_items SET status='cancelled', updated_at=? WHERE provider_request_item_id=?", (when, provider_request_item_id))
             conn.execute("UPDATE physical_attempts SET status='failed', updated_at=? WHERE physical_attempt_id=?", (when, physical["physical_attempt_id"]))
+            if mandate_row is not None:
+                event = {
+                    "event_type": "provider_request_superseded_pre_send",
+                    "mandate_id": mandate_row["mandate_id"],
+                    "provider_request_item_id": provider_request_item_id,
+                    "delivery_attempt_id": attempt[0]["delivery_attempt_id"],
+                    "physical_attempt_id": physical["physical_attempt_id"],
+                    "reservation_id": physical["reservation_id"],
+                    "reason": str(reason)[:512],
+                }
+                event_hash = _canonical_hash(event)
+                event_id = "mandateevent:pre-send-supersession:" + hashlib.sha256(provider_request_item_id.encode("utf-8")).hexdigest()
+                conn.execute(
+                    "INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)",
+                    (event_id, mandate_row["mandate_id"], event["event_type"], event_hash, json.dumps(event, sort_keys=True, separators=(",", ":")), when),
+                )
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone())
 
