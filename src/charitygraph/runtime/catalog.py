@@ -2614,6 +2614,65 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
 
+    def create_zero_crossing_pre_send_replacement(self, *, replacement_id: str,
+                                                   provider_request_item_id: str,
+                                                   new_physical_attempt_id: str,
+                                                   new_delivery_attempt_id: str,
+                                                   new_delivery_job_id: str,
+                                                   new_reservation_id: str,
+                                                   authorization_id: str,
+                                                   provider_material_sha256: str,
+                                                   expected_provider_material_sha256: str,
+                                                   reason: str,
+                                                   now: datetime | str) -> dict[str, Any]:
+        """Create an append-only replacement for an unsent local failure.
+
+        The old attempt is never reopened or rewritten.  The stable provider
+        request item remains the provider-significant identity; only physical
+        and delivery execution identities change.  The replacement is valid
+        only when the old attempt has provably crossed the provider boundary
+        zero times.
+        """
+        when = _utc(now, "now")
+        if not replacement_id.startswith("presendreplacement:") or not str(reason).strip():
+            raise CatalogError("replacement identity and reason are required")
+        if provider_material_sha256 != expected_provider_material_sha256:
+            raise ConflictError("zero-crossing replacement provider material is not byte-identical")
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM provider_pre_send_replacements WHERE replacement_id=?", (replacement_id,)).fetchone()
+            if existing is not None:
+                if existing["provider_request_item_id"] != provider_request_item_id or existing["provider_material_sha256"] != provider_material_sha256:
+                    raise ConflictError("pre-send replacement identity conflicts with durable material")
+                return dict(existing)
+            item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
+            if item is None or item["status"] != "failed":
+                raise ConflictError("replacement requires the terminal failed request item")
+            old_attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE provider_request_item_id=? ORDER BY attempt_ordinal", (provider_request_item_id,)).fetchall()
+            if len(old_attempt) != 1 or old_attempt[0]["status"] != "failed" or old_attempt[0]["failure_class"] != "pre_send_validation" or old_attempt[0]["submitted_at"] is not None or old_attempt[0]["provider_request_id"] is not None or old_attempt[0]["provider_receipt_id"] is not None:
+                raise ConflictError("replacement requires exactly one terminal zero-crossing pre-send attempt")
+            old = old_attempt[0]
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (old["physical_attempt_id"],)).fetchone()
+            if physical is None or physical["status"] != "failed" or physical["send_started_at"] is not None:
+                raise ConflictError("old physical attempt crossed the provider boundary")
+            job = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (new_delivery_job_id,)).fetchone()
+            reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (new_reservation_id,)).fetchone()
+            if job is None or job["status"] != "prepared" or reservation is None or reservation["status"] != "active" or reservation["run_id"] != job["run_id"]:
+                raise ConflictError("replacement requires a prepared job and active replacement reservation")
+            if conn.execute("SELECT 1 FROM provider_request_attempts WHERE delivery_attempt_id=? OR physical_attempt_id=?", (new_delivery_attempt_id, new_physical_attempt_id)).fetchone() is not None:
+                raise ConflictError("replacement execution identity is already in use")
+            new_provider_physical_id = "physical-request:" + hashlib.sha256((provider_request_item_id + ":" + new_physical_attempt_id).encode()).hexdigest()
+            conn.execute("INSERT INTO physical_attempts(physical_attempt_id,run_id,subject_id,delivery_mode,status,provider_request_id,reservation_id,provider_batch_id,created_at,updated_at) VALUES (?,?,?,?, 'prepared',?,?,?,?,?)", (new_physical_attempt_id, job["run_id"], physical["subject_id"], physical["delivery_mode"], new_provider_physical_id, new_reservation_id, None, when, when))
+            members = conn.execute("SELECT model_task_id FROM physical_attempt_members WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchall()
+            conn.executemany("INSERT INTO physical_attempt_members(physical_attempt_id,model_task_id) VALUES (?,?)", [(new_physical_attempt_id, row[0]) for row in members])
+            conn.execute("INSERT INTO provider_request_attempts(delivery_attempt_id,provider_request_item_id,physical_attempt_id,delivery_job_id,attempt_ordinal,authorization_id,attempt_class,predecessor_attempt_id,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?, 'prepared',?,?)", (new_delivery_attempt_id, provider_request_item_id, new_physical_attempt_id, new_delivery_job_id, int(old["attempt_ordinal"]) + 1, authorization_id, "reviewed_transport_correction", old["delivery_attempt_id"], when, when))
+            conn.execute("UPDATE provider_request_items SET physical_attempt_id=?,delivery_job_id=?,run_id=?,updated_at=? WHERE provider_request_item_id=?", (new_physical_attempt_id, new_delivery_job_id, job["run_id"], when, provider_request_item_id))
+            event = {"replacement_id": replacement_id, "event_type": "zero_crossing_pre_send_replacement", "provider_request_item_id": provider_request_item_id, "old_delivery_attempt_id": old["delivery_attempt_id"], "old_physical_attempt_id": old["physical_attempt_id"], "new_delivery_attempt_id": new_delivery_attempt_id, "new_physical_attempt_id": new_physical_attempt_id, "authorization_id": authorization_id, "provider_material_sha256": provider_material_sha256, "reason": reason}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO provider_pre_send_replacements(replacement_id,provider_request_item_id,old_delivery_attempt_id,old_physical_attempt_id,new_delivery_attempt_id,new_physical_attempt_id,authorization_id,provider_material_sha256,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (replacement_id, provider_request_item_id, old["delivery_attempt_id"], old["physical_attempt_id"], new_delivery_attempt_id, new_physical_attempt_id, authorization_id, provider_material_sha256, reason, when))
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + replacement_id, authorization_id, "zero_crossing_pre_send_replacement", event_hash, json.dumps(event, sort_keys=True, separators=(",", ":")), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_pre_send_replacements WHERE replacement_id=?", (replacement_id,)).fetchone())
+
     def get_provider_receipt(self, provider_receipt_id: str) -> dict[str, Any] | None:
         with self._connection() as conn:
             return _row(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())

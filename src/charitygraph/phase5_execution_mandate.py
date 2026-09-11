@@ -138,6 +138,21 @@ def proposed_phase5_standard_luna_v1_2_amendment_manifest() -> dict[str, Any]:
     return manifest
 
 
+def proposed_phase5_standard_luna_v1_2_amendment4_manifest() -> dict[str, Any]:
+    """Propose the narrow zero-crossing replacement authority for V1.2."""
+    manifest = proposed_phase5_standard_luna_v1_2_amendment_manifest()
+    manifest["mandate_id"] = "mandate:phase5-build-standard-luna-v1-amendment-4"
+    manifest["supersedes_mandate_id"] = "mandate:phase5-build-standard-luna-v1-amendment-3"
+    manifest["zero_crossing_pre_send_replacement"] = {
+        "allowed": True,
+        "max_replacements": 1,
+        "campaign": "phase5-direct-service-v1.2-cutover-v1",
+        "requires": ["terminal_pre_send_failure", "provider_crossing_count=0", "no_provider_request_id", "no_provider_receipt", "no_provider_usage", "provider_material_byte_identical"],
+        "provider_retry_or_resend": False,
+    }
+    return manifest
+
+
 def evaluate_execution_against_mandate(catalog: Any, mandate_id: str, request: Mapping[str, Any], *, now: Any = None) -> MandateEvaluation:
     mandate = catalog.get_execution_mandate(mandate_id)
     if mandate is None:
@@ -183,4 +198,4 @@ def evaluate_execution_against_mandate(catalog: Any, mandate_id: str, request: M
     return MandateEvaluation(MandateDecision.AUTHORIZED_BY_MANDATE, "request is within the active mandate", remaining_aud=remaining, mandate_id=mandate_id)
 
 
-__all__ = ["MandateDecision", "MandateEvaluation", "evaluate_execution_against_mandate", "manifest_hash", "proposed_phase5_standard_luna_manifest", "proposed_phase5_standard_luna_historical_manifest", "proposed_phase5_standard_luna_amendment_manifest", "proposed_phase5_standard_luna_v1_2_amendment_manifest"]
+__all__ = ["MandateDecision", "MandateEvaluation", "evaluate_execution_against_mandate", "manifest_hash", "proposed_phase5_standard_luna_manifest", "proposed_phase5_standard_luna_historical_manifest", "proposed_phase5_standard_luna_amendment_manifest", "proposed_phase5_standard_luna_v1_2_amendment_manifest", "proposed_phase5_standard_luna_v1_2_amendment4_manifest"]

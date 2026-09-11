@@ -733,6 +733,22 @@ JOIN physical_attempts p ON p.physical_attempt_id = i.physical_attempt_id
 WHERE i.physical_attempt_id IS NOT NULL AND i.delivery_job_id IS NOT NULL;
 """.strip() + "\n"
 
+CATALOGUE_SQL_V14 = """
+CREATE TABLE provider_pre_send_replacements (
+    replacement_id TEXT PRIMARY KEY,
+    provider_request_item_id TEXT NOT NULL REFERENCES provider_request_items(provider_request_item_id),
+    old_delivery_attempt_id TEXT NOT NULL REFERENCES provider_request_attempts(delivery_attempt_id),
+    old_physical_attempt_id TEXT NOT NULL REFERENCES physical_attempts(physical_attempt_id),
+    new_delivery_attempt_id TEXT NOT NULL UNIQUE REFERENCES provider_request_attempts(delivery_attempt_id),
+    new_physical_attempt_id TEXT NOT NULL UNIQUE REFERENCES physical_attempts(physical_attempt_id),
+    authorization_id TEXT NOT NULL,
+    provider_material_sha256 TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX provider_pre_send_replacements_item_idx ON provider_pre_send_replacements(provider_request_item_id);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -747,6 +763,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(11, "provider_delivery_jobs_and_request_items", CATALOGUE_SQL_V11),
     Migration(12, "provider_batch_file_identities", CATALOGUE_SQL_V12),
     Migration(13, "append_only_provider_delivery_attempts_and_payload_identity", CATALOGUE_SQL_V13),
+    Migration(14, "zero_crossing_pre_send_replacements", CATALOGUE_SQL_V14),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
