@@ -2645,14 +2645,14 @@ class SQLiteCatalog:
                     raise ConflictError("pre-send replacement identity conflicts with durable material")
                 return dict(existing)
             item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
-            if item is None or item["status"] != "failed":
-                raise ConflictError("replacement requires the terminal failed request item")
+            if item is None or item["status"] not in {"failed", "prepared"}:
+                raise ConflictError("replacement requires a terminal failed or prepared pre-send request item")
             old_attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE provider_request_item_id=? ORDER BY attempt_ordinal", (provider_request_item_id,)).fetchall()
-            if len(old_attempt) != 1 or old_attempt[0]["status"] != "failed" or old_attempt[0]["failure_class"] != "pre_send_validation" or old_attempt[0]["submitted_at"] is not None or old_attempt[0]["provider_request_id"] is not None or old_attempt[0]["provider_receipt_id"] is not None:
-                raise ConflictError("replacement requires exactly one terminal zero-crossing pre-send attempt")
+            if len(old_attempt) != 1 or old_attempt[0]["status"] not in {"failed", "prepared"} or (old_attempt[0]["status"] == "failed" and old_attempt[0]["failure_class"] != "pre_send_validation") or old_attempt[0]["submitted_at"] is not None or old_attempt[0]["provider_request_id"] is not None or old_attempt[0]["provider_receipt_id"] is not None:
+                raise ConflictError("replacement requires exactly one unsent pre-send attempt")
             old = old_attempt[0]
             physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (old["physical_attempt_id"],)).fetchone()
-            if physical is None or physical["status"] != "failed" or physical["send_started_at"] is not None:
+            if physical is None or physical["status"] not in {"failed", "prepared"} or physical["send_started_at"] is not None or physical["status"] != ("failed" if old["status"] == "failed" else "prepared"):
                 raise ConflictError("old physical attempt crossed the provider boundary")
             job = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (new_delivery_job_id,)).fetchone()
             reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (new_reservation_id,)).fetchone()
@@ -2664,9 +2664,14 @@ class SQLiteCatalog:
             conn.execute("INSERT INTO physical_attempts(physical_attempt_id,run_id,subject_id,delivery_mode,status,provider_request_id,reservation_id,provider_batch_id,created_at,updated_at) VALUES (?,?,?,?, 'prepared',?,?,?,?,?)", (new_physical_attempt_id, job["run_id"], physical["subject_id"], physical["delivery_mode"], new_provider_physical_id, new_reservation_id, None, when, when))
             members = conn.execute("SELECT model_task_id FROM physical_attempt_members WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchall()
             conn.executemany("INSERT INTO physical_attempt_members(physical_attempt_id,model_task_id) VALUES (?,?)", [(new_physical_attempt_id, row[0]) for row in members])
+            if old["status"] == "prepared":
+                conn.execute("UPDATE provider_request_attempts SET status='cancelled', failure_class='superseded_pre_send', failure_message_redacted='rebound under superseding mandate before provider send', completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (when, when, old["delivery_attempt_id"]))
+                conn.execute("UPDATE provider_request_items SET status='cancelled', updated_at=? WHERE provider_request_item_id=?", (when, provider_request_item_id))
+                conn.execute("UPDATE physical_attempts SET status='failed', updated_at=? WHERE physical_attempt_id=?", (when, physical["physical_attempt_id"]))
             conn.execute("INSERT INTO provider_request_attempts(delivery_attempt_id,provider_request_item_id,physical_attempt_id,delivery_job_id,attempt_ordinal,authorization_id,attempt_class,predecessor_attempt_id,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?, 'prepared',?,?)", (new_delivery_attempt_id, provider_request_item_id, new_physical_attempt_id, new_delivery_job_id, int(old["attempt_ordinal"]) + 1, authorization_id, "reviewed_transport_correction", old["delivery_attempt_id"], when, when))
             conn.execute("UPDATE provider_request_items SET physical_attempt_id=?,delivery_job_id=?,run_id=?,updated_at=? WHERE provider_request_item_id=?", (new_physical_attempt_id, new_delivery_job_id, job["run_id"], when, provider_request_item_id))
-            event = {"replacement_id": replacement_id, "event_type": "zero_crossing_pre_send_replacement", "provider_request_item_id": provider_request_item_id, "old_delivery_attempt_id": old["delivery_attempt_id"], "old_physical_attempt_id": old["physical_attempt_id"], "new_delivery_attempt_id": new_delivery_attempt_id, "new_physical_attempt_id": new_physical_attempt_id, "authorization_id": authorization_id, "provider_material_sha256": provider_material_sha256, "reason": reason}
+            event_type = "zero_crossing_pre_send_replacement" if old["status"] == "failed" else "prepared_pre_send_rebind"
+            event = {"replacement_id": replacement_id, "event_type": event_type, "provider_request_item_id": provider_request_item_id, "old_delivery_attempt_id": old["delivery_attempt_id"], "old_physical_attempt_id": old["physical_attempt_id"], "new_delivery_attempt_id": new_delivery_attempt_id, "new_physical_attempt_id": new_physical_attempt_id, "authorization_id": authorization_id, "provider_material_sha256": provider_material_sha256, "reason": reason}
             event_hash = _canonical_hash(event)
             conn.execute("INSERT INTO provider_pre_send_replacements(replacement_id,provider_request_item_id,old_delivery_attempt_id,old_physical_attempt_id,new_delivery_attempt_id,new_physical_attempt_id,authorization_id,provider_material_sha256,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (replacement_id, provider_request_item_id, old["delivery_attempt_id"], old["physical_attempt_id"], new_delivery_attempt_id, new_physical_attempt_id, authorization_id, provider_material_sha256, reason, when))
             conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + replacement_id, authorization_id, "zero_crossing_pre_send_replacement", event_hash, json.dumps(event, sort_keys=True, separators=(",", ":")), when))
