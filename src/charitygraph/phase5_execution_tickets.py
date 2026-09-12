@@ -295,6 +295,170 @@ def create_completed_canary_ticket(*, ticket_path: Path, **kwargs: Any) -> tuple
     return value, True
 
 
+def build_cost_cap_remainder_ticket(
+    *, predecessor_path: Path, predecessor_bytes: bytes, builder_commit: str,
+    preparation_bytes: bytes, jsonl_bytes: bytes,
+    eligible_requests: list[Mapping[str, Any]], excluded_requests: list[Mapping[str, Any]],
+    mandate_id: str, per_request_cap_aud: str = "0.25",
+) -> dict[str, Any]:
+    """Build a v4 append-only ticket containing only cost-eligible V1.2 work."""
+    if not predecessor_path.is_file() or predecessor_path.read_bytes() != predecessor_bytes:
+        raise ValueError("unknown or changed v3 predecessor ticket")
+    prior = json.loads(predecessor_bytes.decode("utf-8"))
+    prep = json.loads(preparation_bytes.decode("utf-8"))
+    if prior.get("ticket_version") != "phase5-execution-ticket-v3":
+        raise ValueError("cost-cap remainder requires the completed-canary v3 ticket")
+    if (prior.get("mandate_id_required") != mandate_id
+            or not builder_commit
+            or sha256(preparation_bytes) != prior.get("preparation", {}).get("sha256")
+            or len(preparation_bytes) != prior.get("preparation", {}).get("bytes")
+            or sha256(jsonl_bytes) != prior.get("original_jsonl", {}).get("sha256")
+            or len(jsonl_bytes) != prior.get("original_jsonl", {}).get("bytes")):
+        raise ValueError("v3 authority, Builder commit, or immutable request artifacts do not match")
+    previous_requests = prior.get("request_set", {}).get("requests")
+    outstanding = prior.get("request_set", {}).get("outstanding_request_item_ids")
+    canary = prior.get("request_set", {}).get("completed_canary")
+    canary_id = canary.get("request_item_id") if isinstance(canary, dict) else None
+    if (not isinstance(previous_requests, list) or len(previous_requests) != 17
+            or not isinstance(outstanding, list) or len(outstanding) != 16
+            or canary_id not in {r.get("provider_request_item_id") for r in previous_requests}
+            or canary.get("request_status") != "completed" or canary.get("provider_crossings") != 1):
+        raise ValueError("v3 ticket does not prove the completed historical canary and 16-item remainder")
+    if prep.get("mandate_id_required") != mandate_id:
+        raise ValueError("preparation is not bound to active Amendment 3")
+    original = {row.get("provider_request_item_id"): row for row in prep.get("request_items", [])}
+    previous = {row.get("provider_request_item_id"): row for row in previous_requests}
+    if len(previous) != 17 or set(previous) != {canary_id, *outstanding}:
+        raise ValueError("v3 membership is not the completed canary plus exact 16 outstanding requests")
+    line_rows = [json.loads(line) for line in jsonl_bytes.decode("utf-8", errors="strict").splitlines() if line]
+    lines = {line.get("custom_id"): line for line in line_rows}
+    if len(lines) != len(line_rows) or set(lines) != set(original):
+        raise ValueError("immutable JSONL identities do not match original preparation")
+    for rid, row in original.items():
+        if lines[rid].get("body") != row.get("request_body"):
+            raise ValueError(f"provider body changed in immutable JSONL: {rid}")
+        if sha256(canonical_bytes(row["request_body"])) != row.get("request_body_sha256"):
+            raise ValueError(f"pinned provider body hash is invalid: {rid}")
+
+    eligible = [dict(row) for row in eligible_requests]
+    excluded = [dict(row) for row in excluded_requests]
+    eligible_ids = [row.get("provider_request_item_id") for row in eligible]
+    excluded_ids = [row.get("provider_request_item_id") for row in excluded]
+    if (len(eligible_ids) != len(set(eligible_ids)) or len(excluded_ids) != len(set(excluded_ids))
+            or set(eligible_ids).intersection(excluded_ids)
+            or set(eligible_ids).union(excluded_ids) != set(outstanding)):
+        raise ValueError("eligible/excluded partition does not exactly cover the v3 outstanding set")
+    cap = Decimal(per_request_cap_aud)
+    for row in eligible:
+        rid = row.get("provider_request_item_id")
+        source = original.get(rid)
+        if (source is None or rid == canary_id
+                or any(row.get(k) != source.get(k) for k in ("logical_task_id", "subject_id", "request_body_sha256", "wire_fingerprint"))
+                or not row.get("active_reservation_id")
+                or Decimal(str(row.get("hard_max_aud", "-1"))) > cap):
+            raise ValueError(f"eligible ticket request has changed identity or exceeds cost authority: {rid}")
+        if Decimal(str(row.get("hard_max_usd", "-1"))) < 0:
+            raise ValueError(f"eligible ticket request has invalid USD bound: {rid}")
+    for row in excluded:
+        rid = row.get("provider_request_item_id")
+        source = original.get(rid)
+        if (source is None
+                or any(row.get(k) != source.get(k) for k in ("logical_task_id", "subject_id", "request_body_sha256", "wire_fingerprint"))
+                or row.get("classification") != "EXCLUDED_COST_CAP"
+                or row.get("reason") != "economic_authority_cap_exceeded"
+                or Decimal(str(row.get("hard_max_aud", "-1"))) <= cap
+                or row.get("provider_crossings") != 0
+                or row.get("provider_request_id") is not None
+                or row.get("provider_receipt_id") is not None
+                or row.get("usage") is not None
+                or Decimal(str(row.get("actual_aud", "-1"))) != 0
+                or row.get("builder_reservation_status") != "released"
+                or row.get("mandate_reservation_status") != "settled"):
+            raise ValueError(f"excluded ticket request lacks zero-crossing cost-cap evidence: {rid}")
+
+    ordered_eligible = [rid for rid in outstanding if rid in set(eligible_ids)]
+    by_eligible_id = {row["provider_request_item_id"]: row for row in eligible}
+    eligible = [by_eligible_id[rid] for rid in ordered_eligible]
+    ordered_excluded = [rid for rid in outstanding if rid in set(excluded_ids)]
+    by_excluded_id = {row["provider_request_item_id"]: row for row in excluded}
+    excluded = [by_excluded_id[rid] for rid in ordered_excluded]
+    aggregate_aud = sum((Decimal(str(row["hard_max_aud"])) for row in eligible), Decimal("0"))
+    aggregate_usd = sum((Decimal(str(row["hard_max_usd"])) for row in eligible), Decimal("0"))
+    material = [{"provider_request_item_id": r["provider_request_item_id"],
+                 "request_body_sha256": r["request_body_sha256"],
+                 "wire_fingerprint": r["wire_fingerprint"]} for r in eligible]
+    return {
+        "ticket_version": "phase5-execution-ticket-v4",
+        "ticket_status": "current_cost_cap_reduced_remainder",
+        "campaign": prior["campaign"], "run_id": prior["run_id"], "delivery_job_id": prior["delivery_job_id"],
+        "supersedes": {"path": str(predecessor_path.resolve()), "sha256": sha256(predecessor_bytes),
+                       "ticket_version": prior["ticket_version"], "builder_commit": prior["builder_commit_required"]},
+        "builder_commit_required": builder_commit,
+        "preparation": prior["preparation"], "original_jsonl": prior["original_jsonl"],
+        "mandate_id_required": mandate_id, "mandate_status_required": "active",
+        "semantic_contract": prior["semantic_contract"], "route": prior["route"],
+        "historical_completed_canary": canary,
+        "request_set": {
+            "count": len(eligible), "ordered_ids_sha256": sha256(canonical_bytes(ordered_eligible)),
+            "provider_material_sha256": sha256(canonical_bytes(material)),
+            "requests": eligible, "excluded_request_item_ids": ordered_excluded,
+            "excluded_request_item_ids_sha256": sha256(canonical_bytes(ordered_excluded)),
+            "excluded_cost_cap_requests": excluded,
+        },
+        "limits": {
+            **prior["limits"], "per_request_hard_max_aud": format(cap, ".2f"),
+            "aggregate_hard_max_aud": format(aggregate_aud, ".6f"),
+            "aggregate_hard_max_usd": format(aggregate_usd, ".6f"),
+            "automatic_retries": 0, "semantic_retries": 0, "fallbacks": [],
+            "already_transmitted_once": [canary_id],
+            "remaining_one_transmission_request_count": len(eligible),
+        },
+    }
+
+
+def validate_cost_cap_remainder_ticket(*, ticket_path: Path, predecessor_path: Path, **kwargs: Any) -> dict[str, Any]:
+    if ticket_path.resolve() == predecessor_path.resolve() or not ticket_path.is_file():
+        raise ValueError("current cost-cap ticket is missing or aliases its predecessor")
+    supplied_predecessor = kwargs.pop("predecessor_bytes", None)
+    predecessor_bytes = predecessor_path.read_bytes()
+    if supplied_predecessor is not None and supplied_predecessor != predecessor_bytes:
+        raise ValueError("unknown or changed v3 predecessor ticket")
+    expected = build_cost_cap_remainder_ticket(
+        predecessor_path=predecessor_path, predecessor_bytes=predecessor_bytes, **kwargs,
+    )
+    if ticket_path.read_bytes() != canonical_bytes(expected):
+        raise ValueError("current cost-cap ticket is stale or differs from runtime evidence")
+    successors = []
+    predecessor_sha = sha256(predecessor_bytes)
+    for candidate in ticket_path.parent.glob("future-execution-ticket*.json"):
+        if candidate.resolve() == predecessor_path.resolve() or not candidate.is_file():
+            continue
+        try:
+            item = json.loads(candidate.read_bytes().decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            continue
+        if item.get("supersedes", {}).get("sha256") == predecessor_sha:
+            successors.append(candidate.resolve())
+    if successors != [ticket_path.resolve()]:
+        raise ValueError("cost-cap ticket supersession has duplicate or ambiguous successors")
+    _validate_chain(ticket_path, expected)
+    return expected
+
+
+def create_cost_cap_remainder_ticket(*, ticket_path: Path, **kwargs: Any) -> tuple[dict[str, Any], bool]:
+    value = build_cost_cap_remainder_ticket(**kwargs)
+    raw = canonical_bytes(value)
+    if ticket_path.exists():
+        if ticket_path.read_bytes() != raw:
+            raise ValueError("cost-cap ticket path already contains different bytes")
+        validate_cost_cap_remainder_ticket(ticket_path=ticket_path, **kwargs)
+        return value, False
+    with ticket_path.open("xb") as stream:
+        stream.write(raw)
+        stream.flush()
+    return value, True
+
+
 def _validate_chain(ticket_path: Path, current: Mapping[str, Any]) -> None:
     seen = {ticket_path.resolve()}
     cursor = current

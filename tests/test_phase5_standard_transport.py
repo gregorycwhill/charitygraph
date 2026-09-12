@@ -141,6 +141,17 @@ def test_terminal_replay_is_noop_and_does_not_post(tmp_path: Path):
     assert result["provider_posts"] == 0
 
 
+def test_cost_cap_cancelled_request_is_terminal_and_never_posted(tmp_path: Path):
+    row = _row(19)
+    catalog = FakeCatalog([row])
+    catalog.items[row["provider_request_item_id"]]["status"] = "cancelled"
+    provider = FakeProvider()
+    result = StandardCampaignCoordinator(catalog=catalog, provider=provider, runtime_root=tmp_path).run([row])
+    assert result["counts"] == {"replayed_terminal": 1}
+    assert result["provider_posts"] == 0
+    assert provider.posts == []
+
+
 def test_saved_response_reconciles_without_post(tmp_path: Path):
     row = _row(2)
     catalog = FakeCatalog([row])

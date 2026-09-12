@@ -6,12 +6,15 @@ from pathlib import Path
 import pytest
 
 from charitygraph.phase5_execution_tickets import (
+    build_cost_cap_remainder_ticket,
     build_superseding_ticket,
     canonical_bytes,
     create_completed_canary_ticket,
+    create_cost_cap_remainder_ticket,
     create_superseding_ticket,
     sha256,
     validate_completed_canary_ticket,
+    validate_cost_cap_remainder_ticket,
     validate_superseding_ticket,
 )
 
@@ -182,3 +185,91 @@ def test_completed_canary_ticket_appends_checkpoint_and_retains_16_prepared_ids(
         jsonl_bytes=jsonl,
         completed_canary=completed,
     )
+
+
+def test_cost_cap_ticket_binds_13_eligible_3_excluded_and_historical_canary(tmp_path):
+    predecessor, _, prep_raw, jsonl_raw, _, old_kwargs = fixture_material(tmp_path)
+    v2_path = tmp_path / "future-execution-ticket-v2.json"
+    create_superseding_ticket(ticket_path=v2_path, **old_kwargs)
+    v2_raw = v2_path.read_bytes()
+    v2 = json.loads(v2_raw)
+    canary_id = v2["request_set"]["requests"][0]["provider_request_item_id"]
+    canary_evidence = {
+        "request_item_id": canary_id, "request_status": "completed",
+        "delivery_attempt_status": "completed", "provider_crossings": 1,
+        "provider_request_id": "req_canary", "provider_receipt_id": "receipt_canary",
+        "responses_id": "resp_canary", "raw_response_sha256": "d" * 64,
+        "corrected_interpretation": "directly_valid_v12_wire_and_domain",
+        "exact_evidence_validation": "valid", "provider_operations_during_reconciliation": 0,
+    }
+    v3_path = tmp_path / "future-execution-ticket-v3.json"
+    create_completed_canary_ticket(
+        ticket_path=v3_path, predecessor_path=v2_path, predecessor_bytes=v2_raw,
+        predecessor_sha256=sha256(v2_raw), builder_commit="canary-commit",
+        preparation_bytes=prep_raw, jsonl_bytes=jsonl_raw, completed_canary=canary_evidence,
+    )
+    v3_raw = v3_path.read_bytes()
+    v3 = json.loads(v3_raw)
+    original = {r["provider_request_item_id"]: r for r in json.loads(prep_raw)["request_items"]}
+    outstanding = v3["request_set"]["outstanding_request_item_ids"]
+    excluded_ids = set(outstanding[-3:])
+    eligible, excluded = [], []
+    for index, rid in enumerate(outstanding):
+        source = original[rid]
+        common = {k: source[k] for k in ("provider_request_item_id", "logical_task_id", "subject_id", "request_body_sha256", "wire_fingerprint")}
+        if rid in excluded_ids:
+            excluded.append(common | {
+                "classification": "EXCLUDED_COST_CAP", "reason": "economic_authority_cap_exceeded",
+                "hard_max_usd": "0.200000", "hard_max_aud": ("0.269531" if index == 13 else "0.300608" if index == 14 else "0.462635"),
+                "provider_crossings": 0, "provider_request_id": None, "provider_receipt_id": None,
+                "usage": None, "actual_aud": "0", "builder_reservation_status": "released",
+                "mandate_reservation_status": "settled",
+            })
+        else:
+            eligible.append(common | {
+                "old_reservation_id": f"reservation:old:{index}",
+                "active_reservation_id": f"reservation:new:{index}",
+                "hard_max_usd": "0.020000", "hard_max_aud": "0.030400",
+            })
+    kwargs = {
+        "predecessor_path": v3_path, "predecessor_bytes": v3_raw,
+        "builder_commit": "reduced-commit", "preparation_bytes": prep_raw,
+        "jsonl_bytes": jsonl_raw, "eligible_requests": eligible,
+        "excluded_requests": excluded, "mandate_id": "mandate:amendment-3",
+    }
+    v4_path = tmp_path / "future-execution-ticket-v4.json"
+    value, created = create_cost_cap_remainder_ticket(ticket_path=v4_path, **kwargs)
+    assert created is True
+    assert predecessor.read_bytes() != b"" and v3_path.read_bytes() == v3_raw
+    assert value["ticket_version"] == "phase5-execution-ticket-v4"
+    assert value["builder_commit_required"] == "reduced-commit"
+    assert value["request_set"]["count"] == 13
+    assert len(value["request_set"]["excluded_cost_cap_requests"]) == 3
+    assert value["historical_completed_canary"] == canary_evidence
+    assert set(value["request_set"]["excluded_request_item_ids"]) == excluded_ids
+    replay, created_again = create_cost_cap_remainder_ticket(ticket_path=v4_path, **kwargs)
+    assert created_again is False and replay == value
+    validate_cost_cap_remainder_ticket(ticket_path=v4_path, **kwargs)
+
+
+def test_cost_cap_ticket_rejects_an_over_cap_member_as_eligible(tmp_path):
+    predecessor, _, prep_raw, jsonl_raw, _, old_kwargs = fixture_material(tmp_path)
+    v2_path = tmp_path / "future-execution-ticket-v2.json"
+    create_superseding_ticket(ticket_path=v2_path, **old_kwargs)
+    v2_raw = v2_path.read_bytes()
+    v2 = json.loads(v2_raw)
+    canary_id = v2["request_set"]["requests"][0]["provider_request_item_id"]
+    v3_path = tmp_path / "future-execution-ticket-v3.json"
+    evidence = {"request_item_id": canary_id, "request_status": "completed", "delivery_attempt_status": "completed", "provider_crossings": 1, "provider_request_id": "req", "provider_receipt_id": "receipt", "responses_id": "resp", "raw_response_sha256": "e"*64, "corrected_interpretation": "directly_valid_v12_wire_and_domain", "exact_evidence_validation": "valid", "provider_operations_during_reconciliation": 0}
+    create_completed_canary_ticket(ticket_path=v3_path, predecessor_path=v2_path, predecessor_bytes=v2_raw, predecessor_sha256=sha256(v2_raw), builder_commit="canary-commit", preparation_bytes=prep_raw, jsonl_bytes=jsonl_raw, completed_canary=evidence)
+    v3=json.loads(v3_path.read_bytes()); outstanding=v3["request_set"]["outstanding_request_item_ids"]
+    original={r["provider_request_item_id"]:r for r in json.loads(prep_raw)["request_items"]}
+    eligible=[]; excluded=[]
+    for i,rid in enumerate(outstanding):
+        row={k:original[rid][k] for k in ("provider_request_item_id","logical_task_id","subject_id","request_body_sha256","wire_fingerprint")}
+        if i==len(outstanding)-1:
+            row.update({"classification":"EXCLUDED_COST_CAP","reason":"economic_authority_cap_exceeded","hard_max_aud":"0.300608","provider_crossings":0,"provider_request_id":None,"provider_receipt_id":None,"usage":None,"actual_aud":"0","builder_reservation_status":"released","mandate_reservation_status":"settled"}); excluded.append(row)
+        else:
+            row.update({"active_reservation_id":f"reservation:new:{i}","hard_max_usd":"0.2","hard_max_aud":"0.30"}); eligible.append(row)
+    with pytest.raises(ValueError, match="eligible ticket request has changed identity or exceeds cost authority"):
+        build_cost_cap_remainder_ticket(predecessor_path=v3_path, predecessor_bytes=v3_path.read_bytes(), builder_commit="commit", preparation_bytes=prep_raw, jsonl_bytes=jsonl_raw, eligible_requests=eligible, excluded_requests=excluded, mandate_id="mandate:amendment-3")

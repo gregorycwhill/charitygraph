@@ -185,7 +185,7 @@ class StandardCampaignCoordinator:
         durable = self.catalog.get_provider_request_item(request_id)
         if durable is None:
             return StandardRunResult(request_id, "failed_pre_send", 0, True, error="durable request item missing")
-        if durable["status"] in {"completed", "failed", "held", "send_ambiguous"}:
+        if durable["status"] in {"completed", "failed", "held", "send_ambiguous", "cancelled"}:
             return StandardRunResult(request_id, "replayed_terminal", 0)
         posted = False
         try:
