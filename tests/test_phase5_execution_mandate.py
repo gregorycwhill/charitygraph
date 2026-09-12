@@ -12,7 +12,7 @@ from charitygraph.phase5_execution_mandate import (
     proposed_phase5_standard_luna_amendment_manifest,
 )
 from charitygraph.phase5_semantic_contracts import HISTORICAL_DISCOVERY_V2_CONTRACT, REGISTRY
-from charitygraph.phase5_openai_dry_run import conservative_standard_hard_max_aud, conservative_standard_hard_max_usd
+from charitygraph.phase5_openai_dry_run import conservative_standard_hard_max_aud, conservative_standard_hard_max_usd, standard_actual_cost
 from charitygraph.runtime.catalog import BudgetExceededError, SQLiteCatalog
 
 
@@ -168,9 +168,33 @@ def test_active_settlement_rejects_true_per_request_authority_breach(tmp_path):
 def test_conservative_standard_exposure_expands_input_and_rounds_upward():
     usd = conservative_standard_hard_max_usd(100000, 8000, input_bound_factor="1.60")
     aud = conservative_standard_hard_max_aud(100000, 8000, "1.52", input_bound_factor="1.60")
-    assert usd == Decimal("0.041600")
-    assert aud == Decimal("0.063232")
+    assert usd == Decimal("0.049600")
+    assert aud == Decimal("0.075392")
     assert conservative_standard_hard_max_usd(1, 0, input_bound_factor="1.60") == Decimal("0.000001")
+
+
+def test_standard_hard_exposure_includes_long_context_multiplier():
+    at_threshold = conservative_standard_hard_max_usd(170000, 8000, input_bound_factor="1.60")
+    above_threshold = conservative_standard_hard_max_usd(170001, 8000, input_bound_factor="1.60")
+    assert at_threshold == Decimal("0.077600")
+    assert above_threshold == Decimal("0.150401")
+
+
+def test_standard_actual_cost_uses_usage_cache_write_and_long_context_details():
+    usd, aud = standard_actual_cost({
+        "input_tokens": 67925,
+        "input_tokens_details": {"cache_write_tokens": 67922, "cached_tokens": 0},
+        "output_tokens": 896,
+    }, "1.52")
+    assert usd == Decimal("0.018057")
+    assert aud == Decimal("0.027447")
+    long_usd, long_aud = standard_actual_cost({
+        "input_tokens": 272001,
+        "input_tokens_details": {"cache_write_tokens": 272001},
+        "output_tokens": 1,
+    }, "1.52")
+    assert long_usd == Decimal("0.136003")
+    assert long_aud == Decimal("0.206725")
 
 
 def test_pre_send_reservation_replacement_is_atomic_and_idempotent(tmp_path):

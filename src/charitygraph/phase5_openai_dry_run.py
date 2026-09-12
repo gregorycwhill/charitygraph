@@ -18,11 +18,13 @@ DISCOVERY_MAX_OUTPUT_TOKENS = 8000
 LUNA, TERRA = "gpt-5.6-luna", "gpt-5.6-terra"
 PROVIDER_SCHEMA_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
 MONEY_QUANTUM = Decimal("0.000001")
-# Empirical lower bound for future Standard reservations.  The current
-# retained V1.1 run observed a maximum provider/local-input ratio of 1.582856;
-# 1.60 is the deliberately documented conservative bound until exact billing
-# tokenization is available.
+# Empirical upper bound for future Standard reservations.  The retained V1.1
+# run observed a maximum provider/local-input ratio of 1.582856; 1.60 remains
+# the conservative token expansion until exact billing tokenization is used.
 STANDARD_INPUT_BOUND_FACTOR = Decimal("1.60")
+STANDARD_LONG_CONTEXT_INPUT_THRESHOLD = 272_000
+STANDARD_LONG_CONTEXT_INPUT_MULTIPLIER = Decimal("2")
+STANDARD_LONG_CONTEXT_OUTPUT_MULTIPLIER = Decimal("1.5")
 
 
 class BatchPayloadError(ValueError):
@@ -94,17 +96,26 @@ def conservative_member_aud_ceiling(usd_amount: Decimal | str, aud_per_usd: Deci
 def conservative_standard_hard_max_usd(input_tokens_estimate: int | Decimal | str, max_output_tokens: int, *, model: str = "gpt-5.6-luna", input_bound_factor: Decimal | str = STANDARD_INPUT_BOUND_FACTOR) -> Decimal:
     """Return a conservative Standard exposure bound from pinned request data.
 
-    The input estimate is not treated as exact billing.  It is expanded by an
-    explicit empirically-derived bound, while the output cap is already a
-    mechanical provider limit.  Both components are calculated at Decimal
-    precision and the result is rounded upward only at ledger precision.
+    The input estimate is not treated as exact billing. It is expanded by an
+    explicit empirically-derived bound and priced at the model's highest
+    input rate (including cache writes). If that upper input bound can cross
+    the long-context threshold, the full-request long-context multipliers are
+    applied to both input and output. The output cap is a mechanical provider
+    limit. The result is rounded upward at ledger precision.
     """
     estimate = Decimal(str(input_tokens_estimate))
     factor = Decimal(str(input_bound_factor))
     if estimate < 0 or factor < 1 or max_output_tokens < 0:
         raise ValueError("Standard hard exposure inputs are invalid")
     price = PRICING[model]
-    return conservative_money_ceiling((estimate * factor * price["input"] + Decimal(max_output_tokens) * price["output"]) / Decimal(1_000_000), Decimal("0.000001"))
+    upper_input = estimate * factor
+    long_context = upper_input > STANDARD_LONG_CONTEXT_INPUT_THRESHOLD
+    input_rate = max(price["input"], price.get("cache_write_input", price["input"]))
+    input_multiplier = STANDARD_LONG_CONTEXT_INPUT_MULTIPLIER if long_context else Decimal(1)
+    output_multiplier = STANDARD_LONG_CONTEXT_OUTPUT_MULTIPLIER if long_context else Decimal(1)
+    usd = (upper_input * input_rate * input_multiplier
+           + Decimal(max_output_tokens) * price["output"] * output_multiplier) / Decimal(1_000_000)
+    return conservative_money_ceiling(usd, Decimal("0.000001"))
 
 
 def conservative_standard_hard_max_aud(input_tokens_estimate: int | Decimal | str, max_output_tokens: int, aud_per_usd: Decimal | str, *, model: str = "gpt-5.6-luna", input_bound_factor: Decimal | str = STANDARD_INPUT_BOUND_FACTOR) -> Decimal:
@@ -116,9 +127,42 @@ CAPABILITIES = {
 }
 
 PRICING = {
-    LUNA: {"input": Decimal("0.20"), "cached_input": Decimal("0.02"), "output": Decimal("1.20")},
-    TERRA: {"input": Decimal("2.00"), "cached_input": Decimal("0.20"), "output": Decimal("12.00")},
+    LUNA: {"input": Decimal("0.20"), "cached_input": Decimal("0.02"), "cache_write_input": Decimal("0.25"), "output": Decimal("1.20")},
+    TERRA: {"input": Decimal("2.00"), "cached_input": Decimal("0.20"), "cache_write_input": Decimal("2.50"), "output": Decimal("12.00")},
 }
+
+
+def standard_actual_cost(usage: dict[str, Any], aud_per_usd: Decimal | str, *, model: str = LUNA) -> tuple[Decimal, Decimal]:
+    """Calculate Standard actual cost from Responses token detail at pinned rates.
+
+    Cache-write and cached counts are treated as mutually exclusive subsets
+    of input_tokens. Long-context pricing applies to the full request once the
+    input total exceeds the documented threshold. Both ledger amounts round
+    upward so reconciliation cannot understate provider exposure.
+    """
+    price = PRICING[model]
+    input_tokens = Decimal(str(usage.get("input_tokens", 0)))
+    output_tokens = Decimal(str(usage.get("output_tokens", 0)))
+    details = usage.get("input_tokens_details")
+    details = details if isinstance(details, dict) else {}
+    cached_tokens = Decimal(str(details.get("cached_tokens", 0)))
+    cache_write_tokens = Decimal(str(details.get("cache_write_tokens", 0)))
+    values = (input_tokens, output_tokens, cached_tokens, cache_write_tokens)
+    if any(not value.is_finite() or value < 0 for value in values):
+        raise ValueError("Standard usage token counts must be finite and non-negative")
+    if cached_tokens + cache_write_tokens > input_tokens:
+        raise ValueError("Standard cached and cache-write tokens exceed total input tokens")
+    uncached_tokens = input_tokens - cached_tokens - cache_write_tokens
+    input_usd = (uncached_tokens * price["input"]
+                 + cached_tokens * price["cached_input"]
+                 + cache_write_tokens * price.get("cache_write_input", price["input"]))
+    output_usd = output_tokens * price["output"]
+    if input_tokens > STANDARD_LONG_CONTEXT_INPUT_THRESHOLD:
+        input_usd *= STANDARD_LONG_CONTEXT_INPUT_MULTIPLIER
+        output_usd *= STANDARD_LONG_CONTEXT_OUTPUT_MULTIPLIER
+    usd = conservative_money_ceiling((input_usd + output_usd) / Decimal(1_000_000))
+    aud = conservative_money_ceiling(usd * Decimal(str(aud_per_usd)))
+    return usd, aud
 
 @dataclass(frozen=True)
 class CompiledRequest:

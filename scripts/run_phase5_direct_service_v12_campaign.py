@@ -13,6 +13,7 @@ from charitygraph.contracts.direct_service_wire import DirectServiceV12WireOutpu
 from charitygraph.phase5_execution_mandate import manifest_hash, evaluate_execution_against_mandate, proposed_phase5_standard_luna_v1_2_amendment_manifest
 from charitygraph.phase5_standard_transport import OpenAIHTTPStandardClient, StandardCampaignCoordinator, StandardProviderResponse, body_sha256
 from charitygraph.contracts.tasks import ProviderUsage
+from charitygraph.phase5_openai_dry_run import standard_actual_cost
 from charitygraph.runtime import SQLiteCatalog
 
 MANDATE = "mandate:phase5-build-standard-luna-v1-amendment-3"
@@ -162,7 +163,7 @@ def reconcile(catalog: SQLiteCatalog, row: dict, response: StandardProviderRespo
         proposals = len(domain.propositions)
     except Exception as exc:
         valid = False; error = str(exc)[:500]
-    inp = Decimal(str(usage.get("input_tokens", 0))); out = Decimal(str(usage.get("output_tokens", 0))); usd = ((inp * Decimal("1.60")) + (out * Decimal("5.00"))) / Decimal(1000000); aud = (usd * Decimal("1.52")).quantize(Decimal("0.000001"))
+    usd, aud = standard_actual_cost(usage, Decimal("1.52"), model=MODEL)
     catalog.record_cost_entry({"cohort_id": COHORT, "run_id": RUN, "task_run_id": row["physical_attempt_id"], "reservation_id": row["reservation_id"], "entry_type": "actual", "paid_output_category": "semantic_judgement", "provider_cost": {"amount": str(usd.quantize(Decimal("0.000001"))), "currency": "USD"}, "aud_cost": {"amount": str(aud), "currency": "AUD"}, "usage": provider_usage_for_cost_ledger(usage), "recorded_at": timestamp, "pricing_snapshot_id": "pricing:phase5-openai-standard-v1", "fx_snapshot_id": "fx:phase5-usd-aud-1.52"}, entry_key="actual:" + row["physical_attempt_id"])
     pos = catalog.reservation_position(row["reservation_id"]); reserved = Decimal(row["hard_max_aud"])
     if pos["outstanding"] > aud: catalog.release_cost(row["reservation_id"], {"amount": str(Decimal(str(pos["outstanding"])) - aud), "currency": "AUD"}, now=timestamp, entry_key="release:" + row["physical_attempt_id"])
