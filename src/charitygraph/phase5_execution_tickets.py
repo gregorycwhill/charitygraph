@@ -176,6 +176,125 @@ def validate_superseding_ticket(
     return expected
 
 
+def build_completed_canary_ticket(
+    *, predecessor_path: Path, predecessor_bytes: bytes, predecessor_sha256: str,
+    builder_commit: str, preparation_bytes: bytes, jsonl_bytes: bytes,
+    completed_canary: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Append a same-scope execution checkpoint after one already-completed canary."""
+    if not predecessor_path.is_file() or predecessor_path.read_bytes() != predecessor_bytes:
+        raise ValueError("v2 predecessor ticket is missing or changed")
+    if sha256(predecessor_bytes) != predecessor_sha256:
+        raise ValueError("v2 predecessor ticket hash differs from pinned checkpoint")
+    prior = json.loads(predecessor_bytes.decode("utf-8"))
+    if prior.get("ticket_version") != "phase5-execution-ticket-v2":
+        raise ValueError("completed-canary ticket requires the approved v2 predecessor")
+    if (sha256(preparation_bytes) != prior.get("preparation", {}).get("sha256")
+            or len(preparation_bytes) != prior.get("preparation", {}).get("bytes")
+            or sha256(jsonl_bytes) != prior.get("original_jsonl", {}).get("sha256")
+            or len(jsonl_bytes) != prior.get("original_jsonl", {}).get("bytes")):
+        raise ValueError("immutable preparation or original JSONL differs from v2")
+    if not builder_commit:
+        raise ValueError("current Builder commit is required")
+    requests = prior.get("request_set", {}).get("requests")
+    if prior.get("request_set", {}).get("count") != 17 or not isinstance(requests, list) or len(requests) != 17:
+        raise ValueError("v2 ticket does not contain the exact 17 authorized survivors")
+    ids = [r.get("provider_request_item_id") for r in requests]
+    if len(set(ids)) != 17:
+        raise ValueError("v2 request identities are malformed")
+    evidence = dict(completed_canary)
+    canary_id = evidence.get("request_item_id")
+    if (canary_id not in ids or evidence.get("request_status") != "completed"
+            or evidence.get("delivery_attempt_status") != "completed"
+            or evidence.get("provider_crossings") != 1
+            or not evidence.get("provider_request_id") or not evidence.get("provider_receipt_id")
+            or not evidence.get("responses_id") or not evidence.get("raw_response_sha256")
+            or evidence.get("corrected_interpretation") != "directly_valid_v12_wire_and_domain"
+            or evidence.get("exact_evidence_validation") != "valid"
+            or evidence.get("provider_operations_during_reconciliation") != 0):
+        raise ValueError("completed canary evidence is incomplete or does not match the pinned V1.2 contract")
+    outstanding = [rid for rid in ids if rid != canary_id]
+    if len(outstanding) != 16:
+        raise ValueError("exactly 16 authorized request items must remain")
+    return {
+        "ticket_version": "phase5-execution-ticket-v3",
+        "ticket_status": "current_same_scope_continuation_after_completed_canary",
+        "campaign": prior["campaign"], "run_id": prior["run_id"], "delivery_job_id": prior["delivery_job_id"],
+        "supersedes": {"path": str(predecessor_path.resolve()), "sha256": sha256(predecessor_bytes),
+                       "ticket_version": prior["ticket_version"],
+                       "builder_commit": prior["builder_commit_required"]},
+        "builder_commit_required": builder_commit,
+        "preparation": prior["preparation"], "original_jsonl": prior["original_jsonl"],
+        "request_set": {
+            "count": 17, "ordered_ids_sha256": prior["request_set"]["ordered_ids_sha256"],
+            "provider_material_sha256": prior["request_set"]["provider_material_sha256"],
+            "requests": requests, "completed_canary": evidence,
+            "outstanding_request_item_ids": outstanding,
+            "outstanding_request_item_ids_sha256": sha256(canonical_bytes(outstanding)),
+        },
+        "semantic_contract": prior["semantic_contract"], "route": prior["route"],
+        "mandate_id_required": prior["mandate_id_required"],
+        "limits": {**prior["limits"], "already_transmitted_once": [canary_id],
+                   "remaining_one_transmission_request_count": 16},
+    }
+
+
+def validate_completed_canary_ticket(
+    *, ticket_path: Path, predecessor_path: Path, predecessor_sha256: str,
+    builder_commit: str, preparation_bytes: bytes, jsonl_bytes: bytes,
+    completed_canary: Mapping[str, Any],
+) -> dict[str, Any]:
+    if ticket_path.resolve() == predecessor_path.resolve() or not ticket_path.is_file():
+        raise ValueError("current v3 ticket is missing or aliases its predecessor")
+    expected = build_completed_canary_ticket(
+        predecessor_path=predecessor_path, predecessor_bytes=predecessor_path.read_bytes(),
+        predecessor_sha256=predecessor_sha256, builder_commit=builder_commit,
+        preparation_bytes=preparation_bytes, jsonl_bytes=jsonl_bytes,
+        completed_canary=completed_canary,
+    )
+    if ticket_path.read_bytes() != canonical_bytes(expected):
+        raise ValueError("current v3 ticket is stale or differs from completed-canary evidence")
+    successors = []
+    for candidate in ticket_path.parent.glob("future-execution-ticket*.json"):
+        if candidate.resolve() == predecessor_path.resolve() or not candidate.is_file():
+            continue
+        try:
+            value = json.loads(candidate.read_bytes().decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            continue
+        if value.get("supersedes", {}).get("sha256") == predecessor_sha256:
+            successors.append(candidate.resolve())
+    if successors != [ticket_path.resolve()]:
+        raise ValueError("v3 ticket supersession has duplicate or ambiguous successors")
+    _validate_chain(ticket_path, expected)
+    return expected
+
+
+def create_completed_canary_ticket(*, ticket_path: Path, **kwargs: Any) -> tuple[dict[str, Any], bool]:
+    predecessor_path = kwargs["predecessor_path"]
+    if ticket_path.resolve() == predecessor_path.resolve():
+        raise ValueError("v3 ticket path must be distinct from its predecessor")
+    value = build_completed_canary_ticket(**kwargs)
+    raw = canonical_bytes(value)
+    if ticket_path.exists():
+        if ticket_path.read_bytes() != raw:
+            raise ValueError("v3 ticket path already contains different bytes")
+        validate_completed_canary_ticket(
+            ticket_path=ticket_path,
+            predecessor_path=predecessor_path,
+            predecessor_sha256=kwargs["predecessor_sha256"],
+            builder_commit=kwargs["builder_commit"],
+            preparation_bytes=kwargs["preparation_bytes"],
+            jsonl_bytes=kwargs["jsonl_bytes"],
+            completed_canary=kwargs["completed_canary"],
+        )
+        return value, False
+    with ticket_path.open("xb") as stream:
+        stream.write(raw)
+        stream.flush()
+    return value, True
+
+
 def _validate_chain(ticket_path: Path, current: Mapping[str, Any]) -> None:
     seen = {ticket_path.resolve()}
     cursor = current
@@ -210,4 +329,4 @@ def create_superseding_ticket(*, ticket_path: Path, **kwargs: Any) -> tuple[dict
     return value, True
 
 
-__all__ = ["build_superseding_ticket", "canonical_bytes", "create_superseding_ticket", "sha256", "validate_superseding_ticket"]
+__all__ = ["build_completed_canary_ticket", "build_superseding_ticket", "canonical_bytes", "create_completed_canary_ticket", "create_superseding_ticket", "sha256", "validate_completed_canary_ticket", "validate_superseding_ticket"]

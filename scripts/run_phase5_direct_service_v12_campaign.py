@@ -9,9 +9,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from charitygraph.contracts.ids import deterministic_id
-from charitygraph.contracts.direct_service_wire import DirectServiceWireOutput, wire_to_domain
+from charitygraph.contracts.direct_service_wire import DirectServiceV12WireOutput, v12_wire_to_domain
 from charitygraph.phase5_execution_mandate import manifest_hash, evaluate_execution_against_mandate, proposed_phase5_standard_luna_v1_2_amendment_manifest
 from charitygraph.phase5_standard_transport import OpenAIHTTPStandardClient, StandardCampaignCoordinator, StandardProviderResponse, body_sha256
+from charitygraph.contracts.tasks import ProviderUsage
 from charitygraph.runtime import SQLiteCatalog
 
 MANDATE = "mandate:phase5-build-standard-luna-v1-amendment-3"
@@ -117,17 +118,52 @@ def visible_scope(request_body: dict) -> str:
     return match.group(1)
 
 
-def reconcile(catalog: SQLiteCatalog, row: dict, response: StandardProviderResponse, root: Path, timestamp: str, parsed: dict) -> None:
+def provider_usage_for_cost_ledger(usage: dict) -> dict:
+    """Project OpenAI's richer Responses usage envelope onto the strict ledger DTO.
+
+    The complete provider usage object remains in the immutable receipt and
+    request-attempt rows. The cost-ledger contract accepts only billable token
+    totals and cached-input subset; details such as reasoning/cache-write are
+    retained in those raw usage records, not discarded from provider history.
+    """
+    input_details = usage.get("input_tokens_details") if isinstance(usage.get("input_tokens_details"), dict) else {}
+    return ProviderUsage.model_validate({
+        "input_tokens": usage.get("input_tokens", 0),
+        "cached_input_tokens": input_details.get("cached_tokens", 0),
+        "output_tokens": usage.get("output_tokens", 0),
+    }).model_dump(mode="json")
+
+
+def parse_v12_response(body: dict, row: dict):
+    """Validate the pinned V1.2 schema, section-array DTO, and exact bindings."""
+    request_body = row["request_body"]
+    fmt = request_body.get("text", {}).get("format", {})
+    schema = fmt.get("schema")
+    if (fmt.get("type") != "json_schema" or fmt.get("strict") is not True
+            or fmt.get("name") != row.get("provider_schema_name")
+            or not isinstance(schema, dict)
+            or sha(json.dumps(schema, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()) != row.get("schema_hash")):
+        raise ValueError("retained V1.2 response request does not match its pinned strict schema identity")
+    wire = DirectServiceV12WireOutput.model_validate_json(output_text(body))
+    packet = json.loads(row["request_body"]["input"][1]["content"][0]["text"])
+    domain = v12_wire_to_domain(
+        wire,
+        allowed_scope_ids={visible_scope(row["request_body"])},
+        evidence_locators={item["evidence_id"] for item in packet["evidence_bindings"]},
+    )
+    return wire, domain
+
+
+def reconcile(catalog: SQLiteCatalog, row: dict, response: StandardProviderResponse, root: Path, timestamp: str, parsed: dict, *, result_dir: Path | None = None) -> None:
     usage = response.body.get("usage") or {}; raw_text = output_text(response.body); result_id = "modelresult:" + sha((row["physical_attempt_id"] + response.body["id"] + sha(raw_text.encode())).encode())
     valid = True; error = None; proposals = 0
     try:
-        wire = DirectServiceWireOutput.model_validate_json(raw_text)
-        domain = wire_to_domain(wire, allowed_scope_ids={visible_scope(row["request_body"])}, evidence_locators={x["evidence_id"] for x in json.loads(row["request_body"]["input"][1]["content"][0]["text"])["evidence_bindings"]})
+        wire, domain = parse_v12_response(response.body, row)
         proposals = len(domain.propositions)
     except Exception as exc:
         valid = False; error = str(exc)[:500]
     inp = Decimal(str(usage.get("input_tokens", 0))); out = Decimal(str(usage.get("output_tokens", 0))); usd = ((inp * Decimal("1.60")) + (out * Decimal("5.00"))) / Decimal(1000000); aud = (usd * Decimal("1.52")).quantize(Decimal("0.000001"))
-    catalog.record_cost_entry({"cohort_id": COHORT, "run_id": RUN, "task_run_id": row["physical_attempt_id"], "reservation_id": row["reservation_id"], "entry_type": "actual", "paid_output_category": "semantic_judgement", "provider_cost": {"amount": str(usd.quantize(Decimal("0.000001"))), "currency": "USD"}, "aud_cost": {"amount": str(aud), "currency": "AUD"}, "usage": usage, "recorded_at": timestamp, "pricing_snapshot_id": "pricing:phase5-openai-standard-v1", "fx_snapshot_id": "fx:phase5-usd-aud-1.52"}, entry_key="actual:" + row["physical_attempt_id"])
+    catalog.record_cost_entry({"cohort_id": COHORT, "run_id": RUN, "task_run_id": row["physical_attempt_id"], "reservation_id": row["reservation_id"], "entry_type": "actual", "paid_output_category": "semantic_judgement", "provider_cost": {"amount": str(usd.quantize(Decimal("0.000001"))), "currency": "USD"}, "aud_cost": {"amount": str(aud), "currency": "AUD"}, "usage": provider_usage_for_cost_ledger(usage), "recorded_at": timestamp, "pricing_snapshot_id": "pricing:phase5-openai-standard-v1", "fx_snapshot_id": "fx:phase5-usd-aud-1.52"}, entry_key="actual:" + row["physical_attempt_id"])
     pos = catalog.reservation_position(row["reservation_id"]); reserved = Decimal(row["hard_max_aud"])
     if pos["outstanding"] > aud: catalog.release_cost(row["reservation_id"], {"amount": str(Decimal(str(pos["outstanding"])) - aud), "currency": "AUD"}, now=timestamp, entry_key="release:" + row["physical_attempt_id"])
     catalog.settle_execution_mandate_reservation(mandate_id=MANDATE, reservation_id=row["mandate_reservation_id"], actual_aud=aud, ambiguous=False, now=timestamp)
@@ -137,7 +173,14 @@ def reconcile(catalog: SQLiteCatalog, row: dict, response: StandardProviderRespo
         if valid: catalog.finish_successful_attempt(row["physical_attempt_id"], owner=owner, completed_at=timestamp, result_artifact_id=result_id, provider_request_id=response.request_id, usage=usage, pricing_snapshot_id="pricing:phase5-openai-standard-v1", fx_snapshot_id="fx:phase5-usd-aud-1.52")
         else: catalog.finish_failed_attempt(row["physical_attempt_id"], owner=owner, completed_at=timestamp, retryable=False, error_class="output_validation", error_message_redacted="Direct Service V1.2 output validation failed", result_artifact_id=result_id, provider_request_id=response.request_id, usage=usage, pricing_snapshot_id="pricing:phase5-openai-standard-v1", fx_snapshot_id="fx:phase5-usd-aud-1.52")
     parsed[row["provider_request_item_id"]] = {"valid": valid, "error": error, "proposals": proposals, "response_id": response.body.get("id"), "provider_request_id": response.request_id, "usage": usage, "actual_aud": str(aud)}
-    (root / "candidate-results").mkdir(exist_ok=True); (root / "candidate-results" / (row["provider_request_item_id"].replace(":", "_") + ".json")).write_text(json.dumps(parsed[row["provider_request_item_id"]], indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    results_dir = result_dir or (root / "candidate-results")
+    results_dir.mkdir(exist_ok=True)
+    result_path = results_dir / (row["provider_request_item_id"].replace(":", "_") + ".json")
+    result_bytes = (json.dumps(parsed[row["provider_request_item_id"]], indent=2, sort_keys=True) + "\n").encode("utf-8")
+    if result_path.exists() and result_path.read_bytes() != result_bytes:
+        raise RuntimeError("append-only candidate result path conflicts with deterministic reconciliation")
+    if not result_path.exists():
+        result_path.write_bytes(result_bytes)
 
 
 def main() -> int:
@@ -150,7 +193,7 @@ def main() -> int:
         row["scope_id"] = visible_scope(row["request_body"])
     parsed: dict = {}
     def mandate(row): return evaluate_execution_against_mandate(catalog, MANDATE, {**row, "provider": "openai", "logical_task_id": row["logical_task_id"], "contract_identity_hash": row["contract_identity_hash"]})
-    def validator(body): DirectServiceWireOutput.model_validate_json(output_text(body))
+    def validator(body): DirectServiceV12WireOutput.model_validate_json(output_text(body))
     def on_reconciled(row, response, usage): reconcile(catalog, row, response, args.root, timestamp, parsed)
     provider = OpenAIHTTPStandardClient()
     canary = StandardCampaignCoordinator(catalog=catalog, provider=provider, runtime_root=args.root, max_concurrency=1, now=timestamp, validator=validator, on_reconciled=on_reconciled, mandate_evaluator=mandate).run([rows[0]])

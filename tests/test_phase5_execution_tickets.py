@@ -8,8 +8,10 @@ import pytest
 from charitygraph.phase5_execution_tickets import (
     build_superseding_ticket,
     canonical_bytes,
+    create_completed_canary_ticket,
     create_superseding_ticket,
     sha256,
+    validate_completed_canary_ticket,
     validate_superseding_ticket,
 )
 
@@ -129,3 +131,54 @@ def test_ticket_rejects_body_mismatch_even_when_jsonl_pin_is_updated(tmp_path):
     prior.write_bytes(new_prior)
     with pytest.raises(ValueError, match="provider body differs"):
         build_superseding_ticket(**{**kwargs, "predecessor_bytes": new_prior, "jsonl_bytes": bad_lines})
+
+
+def test_completed_canary_ticket_appends_checkpoint_and_retains_16_prepared_ids(tmp_path):
+    prior, prior_raw, prep, jsonl, _, kwargs = fixture_material(tmp_path)
+    v2_path = tmp_path / "future-execution-ticket-v2.json"
+    create_superseding_ticket(ticket_path=v2_path, **kwargs)
+    v2_raw = v2_path.read_bytes()
+    v2_value = json.loads(v2_raw)
+    canary_id = v2_value["request_set"]["requests"][0]["provider_request_item_id"]
+    completed = {
+        "request_item_id": canary_id,
+        "request_status": "completed",
+        "delivery_attempt_status": "completed",
+        "provider_crossings": 1,
+        "provider_request_id": "req_fixture",
+        "provider_receipt_id": "receipt_fixture",
+        "responses_id": "resp_fixture",
+        "raw_response_sha256": "a" * 64,
+        "corrected_interpretation": "directly_valid_v12_wire_and_domain",
+        "exact_evidence_validation": "valid",
+        "provider_operations_during_reconciliation": 0,
+    }
+    ticket_path = tmp_path / "future-execution-ticket-v3.json"
+    ticket_kwargs = {
+        "predecessor_path": v2_path,
+        "predecessor_bytes": v2_raw,
+        "predecessor_sha256": sha256(v2_raw),
+        "builder_commit": "recovered-commit",
+        "preparation_bytes": prep,
+        "jsonl_bytes": jsonl,
+        "completed_canary": completed,
+    }
+    value, created = create_completed_canary_ticket(ticket_path=ticket_path, **ticket_kwargs)
+    assert created is True
+    assert prior.read_bytes() == prior_raw
+    assert v2_path.read_bytes() == v2_raw
+    assert value["request_set"]["count"] == 17
+    assert len(value["request_set"]["outstanding_request_item_ids"]) == 16
+    assert canary_id not in value["request_set"]["outstanding_request_item_ids"]
+    again, created_again = create_completed_canary_ticket(ticket_path=ticket_path, **ticket_kwargs)
+    assert created_again is False
+    assert again == value
+    validate_completed_canary_ticket(
+        ticket_path=ticket_path,
+        predecessor_path=v2_path,
+        predecessor_sha256=sha256(v2_raw),
+        builder_commit="recovered-commit",
+        preparation_bytes=prep,
+        jsonl_bytes=jsonl,
+        completed_canary=completed,
+    )
