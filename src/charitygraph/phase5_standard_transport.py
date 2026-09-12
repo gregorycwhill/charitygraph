@@ -81,7 +81,9 @@ class OpenAIHTTPStandardClient:
                 return self._decode(response.status, response.headers, response.read())
         except HTTPError as exc:
             raw = exc.read(8192)
-            if exc.code == 429 or exc.code >= 500:
+            # These failures invalidate campaign-wide execution authority or
+            # routing; stop the feeder before launching more independent rows.
+            if exc.code in {401, 402, 403, 404, 408, 429} or exc.code >= 500:
                 raise StandardSystemic(f"provider systemic HTTP {exc.code}", status_code=exc.code) from None
             try:
                 detail = json.loads(raw.decode("utf-8"))
@@ -226,10 +228,20 @@ class StandardCampaignCoordinator:
             return StandardRunResult(request_id, status, int(posted), exc.ambiguous or exc.systemic, error=str(exc))
         except Exception as exc:
             try:
-                self.catalog.settle_standard_failure(row["delivery_attempt_id"], failure_class="pre_send_or_lifecycle", message=str(exc), ambiguous=False, now=self.now)
+                # Once POST may have begun, an unclassified exception cannot
+                # prove that OpenAI did not accept it. Quarantine and stop;
+                # never make it eligible for a resend.
+                self.catalog.settle_standard_failure(
+                    row["delivery_attempt_id"],
+                    failure_class="ambiguous_transport" if posted else "pre_send_or_lifecycle",
+                    message=str(exc), ambiguous=posted, now=self.now,
+                )
             except Exception:
                 pass
-            return StandardRunResult(request_id, "failed_pre_send", 0, True, error=str(exc)[:512])
+            return StandardRunResult(
+                request_id, "ambiguous" if posted else "failed_pre_send", int(posted), True,
+                error=str(exc)[:512],
+            )
 
     def _finish_response(self, row: dict[str, Any], attempt_id: str, response: StandardProviderResponse, *, posted: bool, raw_path: Path) -> StandardRunResult:
         request_id = row["provider_request_item_id"]

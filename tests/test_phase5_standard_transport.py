@@ -3,10 +3,14 @@ import json
 import threading
 import time
 from pathlib import Path
+from urllib.error import HTTPError
+
+import pytest
 
 from charitygraph.phase5_standard_transport import (
     StandardCampaignCoordinator,
     StandardAmbiguous,
+    OpenAIHTTPStandardClient,
     StandardProviderResponse,
     StandardTransportError,
     StandardSystemic,
@@ -196,6 +200,29 @@ def test_ambiguous_send_holds_and_does_not_resend(tmp_path: Path):
     assert result["provider_posts"] <= 4
 
 
+def test_unclassified_exception_after_post_is_quarantined_as_ambiguous(tmp_path: Path):
+    row = _row(23)
+    catalog = FakeCatalog([row])
+
+    class CrashingProvider:
+        calls = 0
+
+        def create_response_once(self, body):
+            self.calls += 1
+            raise RuntimeError("unexpected transport interruption")
+
+        def retrieve_response(self, response_id):
+            raise AssertionError("must not retrieve or resend")
+
+    provider = CrashingProvider()
+    result = StandardCampaignCoordinator(catalog=catalog, provider=provider, runtime_root=tmp_path).run([row])
+    assert result["counts"] == {"ambiguous": 1}
+    assert result["stop_campaign"] is True
+    assert result["provider_posts"] == 1
+    assert provider.calls == 1
+    assert catalog.failed[0][1]["ambiguous"] is True
+
+
 def test_reconciliation_callback_runs_after_durable_success(tmp_path: Path):
     row = _row(9)
     catalog = FakeCatalog([row])
@@ -246,3 +273,31 @@ def test_standard_transport_pins_any_explicit_schema_name(tmp_path: Path):
     catalog.items[row["provider_request_item_id"]]["attempt_id"] = row["delivery_attempt_id"]
     result = StandardCampaignCoordinator(catalog=catalog, provider=FakeProvider(), runtime_root=tmp_path).run([row])
     assert result["counts"] == {"completed": 1}
+
+
+@pytest.mark.parametrize("status", [401, 402, 403, 404, 408, 429, 500, 503])
+def test_auth_budget_routing_and_systemic_http_failures_stop_campaign(monkeypatch, status):
+    import charitygraph.phase5_standard_transport as transport
+
+    def fail(*args, **kwargs):
+        raise HTTPError("https://api.openai.com/v1/responses", status, "failure", {}, None)
+
+    monkeypatch.setattr(transport, "urlopen", fail)
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only")
+    with pytest.raises(StandardSystemic) as exc:
+        OpenAIHTTPStandardClient().create_response_once(b"{}")
+    assert exc.value.status_code == status
+
+
+def test_http_400_remains_a_definite_item_terminal_failure(monkeypatch):
+    import charitygraph.phase5_standard_transport as transport
+
+    def fail(*args, **kwargs):
+        raise HTTPError("https://api.openai.com/v1/responses", 400, "bad request", {}, None)
+
+    monkeypatch.setattr(transport, "urlopen", fail)
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only")
+    with pytest.raises(StandardTransportError) as exc:
+        OpenAIHTTPStandardClient().create_response_once(b"{}")
+    assert exc.value.systemic is False
+    assert exc.value.status_code == 400

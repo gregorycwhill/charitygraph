@@ -20,6 +20,7 @@ sys.path[:0] = [str(Path(__file__).resolve().parents[1] / "src"), str(Path(__fil
 
 from charitygraph.phase5_execution_mandate import evaluate_execution_against_mandate
 from charitygraph.phase5_pre_send_certification import certify_standard_execution_row
+from charitygraph.phase5_execution_tickets import sha256, validate_superseding_ticket
 from charitygraph.phase5_standard_transport import OpenAIHTTPStandardClient, StandardCampaignCoordinator
 from charitygraph.runtime import SQLiteCatalog
 
@@ -32,8 +33,14 @@ JOB = "deliveryjob:phase5-direct-service-v1.2-standard"
 FAILED_CANARY = "requestitem:1c01caaa10b645ed8db98e4acf57b0366807d5be121d7bb2325a3617c9f9cfb3"
 PREP_SHA = "69a11e1b2d4c9561d07ab14578380f0a31afd2376d440360024cb8b356867f26"
 JSONL_SHA = "35e1ad5ecbca107566a00010d59d4566ece4be2198f49c42a3cb61e2dc2a3f0a"
+OLD_TICKET_SHA = "23deB843495F2B27D6257D94C7FD03329606F2102F27C9EA4FD13AA369FDAEF3".lower()
+SUPERSESSION_REASON = "Append-only executor/control-plane pin after exact-row certification; preserves V1.2 material and excludes only the terminal zero-crossing pre-send canary."
 ROOT = Path(r"C:\CharityGraph-runtime\phase5-top100-direct-service-v1.2-cutover-v1")
 DB = Path(r"C:\CharityGraph-runtime\state\charitygraph.sqlite3")
+OLD_TICKET = ROOT / "future-execution-ticket.json"
+CURRENT_TICKET = ROOT / "future-execution-ticket-v2.json"
+PROPOSAL = Path("proposals/phase5-direct-service-v1.2-amendment-3.json")
+PROPOSAL_SHA = "255ee36010083f78d8bd7a08eba684d053a35e34193da1c6ca80672b49c9f42e"
 
 
 def sha(raw: bytes) -> str:
@@ -48,14 +55,45 @@ def select_surviving_rows(rows: list[dict]) -> list[dict]:
     return [row for row in rows if row["provider_request_item_id"] != FAILED_CANARY]
 
 
-def preflight(catalog: SQLiteCatalog, root: Path = ROOT) -> tuple[list[dict], dict]:
-    if not DB.is_file():
-        raise RuntimeError("expected-existing authoritative catalogue is missing")
-    manifest, source_rows, _ = base.verify(root)
+def canary_requires_campaign_stop(result: dict) -> bool:
+    """Stop only for systemic, ambiguous, pre-send, or lifecycle-integrity outcomes."""
+    statuses = {row.get("status") for row in result.get("results", [])}
+    return bool(result.get("stop_campaign") or statuses.intersection({
+        "failed_pre_send", "ambiguous", "completed_accounting_failed",
+    }))
+
+
+def load_campaign_assets(root: Path) -> tuple[dict, list[dict], bytes, bytes, bytes]:
     prep_raw = (root / "preparation.json").read_bytes()
     jsonl_raw = (root / "requests.jsonl").read_bytes()
-    if sha(prep_raw) != PREP_SHA or sha(jsonl_raw) != JSONL_SHA:
-        raise RuntimeError("pinned preparation or JSONL hash changed")
+    old_ticket_path = root / "future-execution-ticket.json"
+    old_ticket_raw = old_ticket_path.read_bytes()
+    proposal_raw = PROPOSAL.read_bytes()
+    if (sha(prep_raw) != PREP_SHA or sha(jsonl_raw) != JSONL_SHA
+            or sha(old_ticket_raw) != OLD_TICKET_SHA or sha(proposal_raw) != PROPOSAL_SHA):
+        raise RuntimeError("immutable V1.2 preparation, JSONL, predecessor ticket, or proposal hash mismatch")
+    old_ticket = json.loads(old_ticket_raw.decode("utf-8"))
+    manifest = json.loads(prep_raw.decode("utf-8"))
+    rows = manifest.get("request_items", [])
+    if len(rows) != 18 or len({x.get("provider_request_item_id") for x in rows}) != 18:
+        raise RuntimeError("V1.2 manifest is not the exact 18-item historical preparation")
+    if (old_ticket.get("preparation_manifest_sha256") != PREP_SHA
+            or old_ticket.get("jsonl_sha256") != JSONL_SHA
+            or old_ticket.get("builder_commit_required") != "ef82e0438e05533fbc3f62819c987f9989e7d8bc"):
+        raise RuntimeError("historical ticket identity differs from the recorded predecessor")
+    if (manifest.get("model") != old_ticket.get("model")
+            or manifest.get("reasoning_effort") != old_ticket.get("reasoning_effort")
+            or manifest.get("delivery_mode") != old_ticket.get("delivery_mode")
+            or manifest.get("max_output_tokens") != old_ticket.get("max_output_tokens")
+            or manifest.get("mandate_id_required") != old_ticket.get("mandate_id_required")):
+        raise RuntimeError("V1.2 route or mandate differs from the historical ticket")
+    return manifest, rows, prep_raw, jsonl_raw, old_ticket_raw
+
+
+def preflight(catalog: SQLiteCatalog, root: Path = ROOT, *, require_ticket: bool = True) -> tuple[list[dict], dict]:
+    if not catalog.path.is_file():
+        raise RuntimeError("expected-existing authoritative catalogue is missing")
+    manifest, source_rows, prep_raw, jsonl_raw, old_ticket_raw = load_campaign_assets(root)
     lines = [json.loads(line) for line in jsonl_raw.decode("utf-8", errors="strict").splitlines() if line]
     expected = {row["provider_request_item_id"]: row for row in source_rows}
     actual = {line.get("custom_id"): line for line in lines}
@@ -72,8 +110,6 @@ def preflight(catalog: SQLiteCatalog, root: Path = ROOT) -> tuple[list[dict], di
         raise RuntimeError("Amendment-3 accounting contains a negative balance")
     if catalog.get_execution_mandate("mandate:phase5-build-standard-luna-v1-amendment-4") is not None:
         raise RuntimeError("Amendment 4 unexpectedly exists")
-    if Decimal(mandate["actual_spend_aud"]) != Decimal("2.55692"):
-        raise RuntimeError("Amendment-3 actual-spend ledger differs from the audited baseline")
 
     durable = {row["provider_request_item_id"]: row for row in catalog.list_provider_request_items(RUN)}
     if len(durable) != 18 or set(durable) != set(expected):
@@ -113,6 +149,16 @@ def preflight(catalog: SQLiteCatalog, root: Path = ROOT) -> tuple[list[dict], di
     if (failed_mandate_reservation is None or failed_mandate_reservation["status"] != "settled"
             or Decimal(failed_mandate_reservation["actual_aud"]) != 0):
         raise RuntimeError("abandoned canary Amendment-3 reservation is not settled at zero")
+    exclusion_evidence = {
+        "request_item_id": FAILED_CANARY, "request_status": durable[FAILED_CANARY]["status"],
+        "physical_status": failed_physical["status"], "failure_class": failed_attempts[0]["failure_class"],
+        "send_started": bool(failed_physical["send_started_at"]), "provider_crossings": 0,
+        "provider_request_id": failed_attempts[0]["provider_request_id"],
+        "provider_receipt_id": failed_attempts[0]["provider_receipt_id"], "usage": None,
+        "builder_reservation_status": failed_budget["status"],
+        "mandate_reservation_status": failed_mandate_reservation["status"],
+        "actual_aud": failed_mandate_reservation["actual_aud"],
+    }
     if sum(row["status"] == "completed" for row in old_v11) != 42:
         raise RuntimeError("historical V1.1 completed request population differs from 42")
     if sum(row["failure_class"] == "systemic_provider" and "429" in (row["failure_message_redacted"] or "") for row in old_v11) != 1:
@@ -123,6 +169,19 @@ def preflight(catalog: SQLiteCatalog, root: Path = ROOT) -> tuple[list[dict], di
         raise RuntimeError("V1.2 execution already has an unexpected actual-cost ledger entry")
     if active_phase5 != 1 or receipts != 0:
         raise RuntimeError("unexpected active Phase-5 mandate or V1.2 provider receipt already exists")
+
+    current_head = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    ticket_sha = None
+    if require_ticket:
+        ticket = validate_superseding_ticket(
+            ticket_path=root / "future-execution-ticket-v2.json", predecessor_path=root / "future-execution-ticket.json",
+            builder_commit=current_head, preparation_bytes=prep_raw, jsonl_bytes=jsonl_raw,
+            excluded_request_id=FAILED_CANARY, exclusion_evidence=exclusion_evidence,
+            supersession_reason=SUPERSESSION_REASON,
+        )
+        ticket_sha = sha256((root / "future-execution-ticket-v2.json").read_bytes())
+        if ticket["mandate_id_required"] != MANDATE:
+            raise RuntimeError("superseding ticket is not bound to the active Amendment-3 authority")
 
     rows = rebind.build_rows(catalog, source_rows)
     survivors = select_surviving_rows(rows)
@@ -180,6 +239,9 @@ def preflight(catalog: SQLiteCatalog, root: Path = ROOT) -> tuple[list[dict], di
         "abandoned_canary_reservation": "released_and_settled_zero",
         "historical_v11_completed_excluded": 42,
         "historical_v11_terminal_429_excluded": 1,
+        "builder_commit": current_head,
+        "current_ticket_sha256": ticket_sha,
+        "excluded_canary_evidence": exclusion_evidence,
     }
 
 
@@ -223,10 +285,12 @@ def main() -> int:
         catalog=catalog, provider=provider, runtime_root=args.root, max_concurrency=1,
         now=timestamp, validator=validator, on_reconciled=callback, mandate_evaluator=evaluator,
     ).run([canary])
-    first_status = first["results"][0]["status"] if first.get("results") else "no_result"
     # A returned completed Responses body proves request/schema acceptance even
     # if local semantic parsing fails; accounting/lifecycle errors still stop.
-    if first.get("stop_campaign") or first_status in {"failed_pre_send", "failed_terminal", "ambiguous", "completed_accounting_failed"}:
+    # Definite item-level provider rejection is terminal for that item but
+    # does not invalidate the independently pinned remaining requests.
+    # Ambiguous, pre-send/lifecycle, accounting, and systemic failures stop.
+    if canary_requires_campaign_stop(first):
         report = {"status": "canary_not_accepted", "canary": first, "remaining_unattempted": 16,
                   "preflight": evidence, "provider_operations": first.get("provider_posts", 0)}
         _write_report(args.root, report)

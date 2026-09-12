@@ -51,3 +51,12 @@ def test_continuation_entry_point_does_not_activate_or_reprepare_authority():
         "create_zero_crossing_pre_send_replacement",
     }
     assert not called.intersection(forbidden)
+
+
+def test_terminal_item_canary_failure_does_not_block_independent_remainder():
+    assert _module.canary_requires_campaign_stop({"results": [{"status": "failed_terminal"}]}) is False
+    assert _module.canary_requires_campaign_stop({"results": [{"status": "completed_parse_failed"}]}) is False
+    assert _module.canary_requires_campaign_stop({"results": [{"status": "ambiguous"}]}) is True
+    assert _module.canary_requires_campaign_stop({"results": [{"status": "failed_pre_send"}]}) is True
+    assert _module.canary_requires_campaign_stop({"results": [{"status": "completed_accounting_failed"}]}) is True
+    assert _module.canary_requires_campaign_stop({"stop_campaign": True, "results": []}) is True
