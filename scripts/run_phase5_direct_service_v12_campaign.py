@@ -155,6 +155,17 @@ def parse_v12_response(body: dict, row: dict):
     return wire, domain
 
 
+def release_unused_reservation(catalog: SQLiteCatalog, row: dict, timestamp: str) -> Decimal:
+    """Append a release for the full unused Builder reservation after actual cost."""
+    outstanding = catalog.reservation_position(row["reservation_id"])["outstanding"]
+    if outstanding > 0:
+        catalog.release_cost(
+            row["reservation_id"], {"amount": str(outstanding), "currency": "AUD"},
+            now=timestamp, entry_key="release-unused:" + row["physical_attempt_id"],
+        )
+    return outstanding
+
+
 def reconcile(catalog: SQLiteCatalog, row: dict, response: StandardProviderResponse, root: Path, timestamp: str, parsed: dict, *, result_dir: Path | None = None) -> None:
     usage = response.body.get("usage") or {}; raw_text = output_text(response.body); result_id = "modelresult:" + sha((row["physical_attempt_id"] + response.body["id"] + sha(raw_text.encode())).encode())
     valid = True; error = None; proposals = 0
@@ -165,8 +176,7 @@ def reconcile(catalog: SQLiteCatalog, row: dict, response: StandardProviderRespo
         valid = False; error = str(exc)[:500]
     usd, aud = standard_actual_cost(usage, Decimal("1.52"), model=MODEL)
     catalog.record_cost_entry({"cohort_id": COHORT, "run_id": RUN, "task_run_id": row["physical_attempt_id"], "reservation_id": row["reservation_id"], "entry_type": "actual", "paid_output_category": "semantic_judgement", "provider_cost": {"amount": str(usd.quantize(Decimal("0.000001"))), "currency": "USD"}, "aud_cost": {"amount": str(aud), "currency": "AUD"}, "usage": provider_usage_for_cost_ledger(usage), "recorded_at": timestamp, "pricing_snapshot_id": "pricing:phase5-openai-standard-v1", "fx_snapshot_id": "fx:phase5-usd-aud-1.52"}, entry_key="actual:" + row["physical_attempt_id"])
-    pos = catalog.reservation_position(row["reservation_id"]); reserved = Decimal(row["hard_max_aud"])
-    if pos["outstanding"] > aud: catalog.release_cost(row["reservation_id"], {"amount": str(Decimal(str(pos["outstanding"])) - aud), "currency": "AUD"}, now=timestamp, entry_key="release:" + row["physical_attempt_id"])
+    release_unused_reservation(catalog, row, timestamp)
     catalog.settle_execution_mandate_reservation(mandate_id=MANDATE, reservation_id=row["mandate_reservation_id"], actual_aud=aud, ambiguous=False, now=timestamp)
     owner = OWNER; lease = (datetime.fromisoformat(timestamp) + timedelta(hours=1)).isoformat()
     if catalog.claim_task(row["catalog_model_task_id"], owner=owner, lease_expires_at=lease, now=timestamp):
