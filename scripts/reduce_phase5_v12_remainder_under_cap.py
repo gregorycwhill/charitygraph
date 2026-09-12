@@ -112,7 +112,15 @@ def _request_rows(catalog: SQLiteCatalog, preparation: dict, audit: dict, prep_r
     return rows, rows_by_id
 
 
-def _starting_state(catalog: SQLiteCatalog, rows_by_id: dict[str, dict], prep_rows: list[dict]) -> dict:
+def _replacement_ids(row: dict) -> tuple[str, str]:
+    identity = {"run": RUN, "request": row["provider_request_item_id"],
+                "recalibration": "phase5-v1.2-cost-cap-2026-09-12"}
+    new_res = deterministic_id("reservation:", identity)
+    replacement_id = "mandatereplacement:" + sha256(canonical_bytes({"mandate": MANDATE, **identity}))
+    return new_res, replacement_id
+
+
+def _starting_state(catalog: SQLiteCatalog, rows_by_id: dict[str, dict], eligible: list[dict], excluded: list[dict]) -> dict:
     mandate = catalog.get_execution_mandate(MANDATE)
     if mandate is None or mandate["status"] != "active":
         raise RuntimeError("Amendment 3 is not active")
@@ -142,26 +150,80 @@ def _starting_state(catalog: SQLiteCatalog, rows_by_id: dict[str, dict], prep_ro
             or receipt_count != 1):
         raise RuntimeError("historical V1.2 canary accounting is not the settled one-crossing result")
     task_states = {}
+    eligible_ids = {row["provider_request_item_id"] for row in eligible}
+    excluded_ids = {row["provider_request_item_id"] for row in excluded}
+    active_reservation_ids: set[str] = set()
     for row in rows_by_id.values():
         durable = row["durable"]
         physical = row["physical"]
         attempts = row["attempts"]
-        if (durable["status"] != "prepared" or physical is None or physical["status"] != "prepared"
-                or len(attempts) != 1 or attempts[0]["status"] != "prepared"
+        rid = row["provider_request_item_id"]
+        new_res, replacement_id = _replacement_ids(row)
+        if (physical is None or len(attempts) != 1
                 or durable["provider_request_id"] or durable["provider_receipt_id"] or durable["usage_json"]
                 or attempts[0]["provider_request_id"] or attempts[0]["provider_receipt_id"] or attempts[0]["usage_json"]
                 or physical["send_started_at"] or physical["receipt_persisted_at"]):
-            raise RuntimeError(f"unsent prepared request has crossing evidence or changed status: {row['provider_request_item_id']}")
-        if physical["reservation_id"] != row["old_reservation_id"]:
-            raise RuntimeError(f"audit reservation does not match current physical reservation: {row['provider_request_item_id']}")
-        budget = catalog.get_reservation(row["old_reservation_id"])
+            raise RuntimeError(f"unsent request has crossing evidence or missing execution state: {rid}")
+        expected_reservation_id = physical["reservation_id"]
+        if rid in eligible_ids:
+            if (durable["status"] != "prepared" or physical["status"] != "prepared"
+                    or attempts[0]["status"] != "prepared" or expected_reservation_id not in {row["old_reservation_id"], new_res}):
+                raise RuntimeError(f"eligible request has unexpected pre-send or reservation state: {rid}")
+            if expected_reservation_id == row["old_reservation_id"]:
+                budget = catalog.get_reservation(row["old_reservation_id"])
+                with catalog._authorization_connection() as conn:
+                    mandate_res = conn.execute("SELECT status,reserved_aud,actual_aud FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (MANDATE, row["old_reservation_id"])).fetchone()
+                if (budget is None or budget["status"] != "active" or mandate_res is None
+                        or mandate_res["status"] != "active" or Decimal(mandate_res["actual_aud"]) != 0):
+                    raise RuntimeError(f"eligible old reservation is not still active and unused: {rid}")
+                active_reservation_ids.add(row["old_reservation_id"])
+            else:
+                budget = catalog.get_reservation(new_res)
+                old_budget = catalog.get_reservation(row["old_reservation_id"])
+                with catalog._authorization_connection() as conn:
+                    mandate_res = conn.execute("SELECT status,reserved_aud,actual_aud FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (MANDATE, new_res)).fetchone()
+                    old_mandate_res = conn.execute("SELECT status,actual_aud FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (MANDATE, row["old_reservation_id"])).fetchone()
+                    replacement_event = conn.execute("SELECT 1 FROM execution_mandate_events WHERE event_id=? AND event_type='reservation_replaced'", (replacement_id,)).fetchone()
+                if (budget is None or budget["status"] != "active" or old_budget is None or old_budget["status"] != "released"
+                        or mandate_res is None or mandate_res["status"] != "active"
+                        or Decimal(mandate_res["reserved_aud"]) != row["corrected_hard_max_aud"]
+                        or old_mandate_res is None or old_mandate_res["status"] != "settled"
+                        or Decimal(old_mandate_res["actual_aud"]) != 0 or replacement_event is None):
+                    raise RuntimeError(f"eligible replacement state is incomplete or inconsistent: {rid}")
+                active_reservation_ids.add(new_res)
+        elif rid in excluded_ids:
+            if durable["status"] == "prepared":
+                if (physical["status"] != "prepared" or attempts[0]["status"] != "prepared"
+                        or expected_reservation_id != row["old_reservation_id"]):
+                    raise RuntimeError(f"not-yet-excluded request has unexpected state: {rid}")
+                budget = catalog.get_reservation(row["old_reservation_id"])
+                with catalog._authorization_connection() as conn:
+                    mandate_res = conn.execute("SELECT status,reserved_aud,actual_aud FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (MANDATE, row["old_reservation_id"])).fetchone()
+                if (budget is None or budget["status"] != "active" or mandate_res is None
+                        or mandate_res["status"] != "active" or Decimal(mandate_res["actual_aud"]) != 0):
+                    raise RuntimeError(f"excluded original reservation is not active and unused: {rid}")
+                active_reservation_ids.add(row["old_reservation_id"])
+            elif durable["status"] == "cancelled":
+                budget = catalog.get_reservation(row["old_reservation_id"])
+                with catalog._authorization_connection() as conn:
+                    mandate_res = conn.execute("SELECT status,actual_aud FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (MANDATE, row["old_reservation_id"])).fetchone()
+                if (physical["status"] != "failed" or attempts[0]["status"] != "cancelled"
+                        or attempts[0]["failure_message_redacted"] != "economic_authority_cap_exceeded"
+                        or expected_reservation_id != row["old_reservation_id"]
+                        or budget is None or budget["status"] != "released" or mandate_res is None
+                        or mandate_res["status"] != "settled" or Decimal(mandate_res["actual_aud"]) != 0):
+                    raise RuntimeError(f"existing cost-cap exclusion evidence is inconsistent: {rid}")
+            else:
+                raise RuntimeError(f"excluded request has unexpected state: {rid}")
+        else:
+            raise RuntimeError(f"request is outside the cost-cap partition: {rid}")
         with catalog._authorization_connection() as conn:
-            mandate_res = conn.execute("SELECT status,reserved_aud,actual_aud FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (MANDATE, row["old_reservation_id"])).fetchone()
-        if (budget is None or budget["status"] != "active" or mandate_res is None or mandate_res["status"] != "active"
-                or Decimal(budget["reserved_aud"]) != row["old_reserved_aud"]
-                or Decimal(mandate_res["reserved_aud"]) != row["old_reserved_aud"]
-                or Decimal(mandate_res["actual_aud"]) != 0):
-            raise RuntimeError(f"starting reservation is not active unused authority: {row['provider_request_item_id']}")
+            mandate_res = conn.execute("SELECT status,reserved_aud,actual_aud FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (MANDATE, expected_reservation_id)).fetchone() if expected_reservation_id in active_reservation_ids else None
+        if mandate_res is not None and Decimal(mandate_res["actual_aud"]) != 0:
+            raise RuntimeError(f"active reservation has nonzero actual spend: {rid}")
+        if expected_reservation_id == row["old_reservation_id"] and durable["status"] == "prepared":
+            if Decimal(budget["reserved_aud"]) != row["old_reserved_aud"] or Decimal(mandate_res["reserved_aud"]) != row["old_reserved_aud"]:
+                raise RuntimeError(f"starting reservation amount differs from audit: {rid}")
         task = catalog.get_task(durable["model_task_id"])
         if task is None:
             raise RuntimeError(f"request task is missing: {row['provider_request_item_id']}")
@@ -170,11 +232,17 @@ def _starting_state(catalog: SQLiteCatalog, rows_by_id: dict[str, dict], prep_ro
         rows_count = conn.execute("SELECT count(*) FROM provider_request_items WHERE run_id=? AND status='prepared'", (RUN,)).fetchone()[0]
         actual_entries = conn.execute("SELECT count(*) FROM cost_entries WHERE run_id=? AND entry_type='actual'", (RUN,)).fetchone()[0]
         replacement_events = conn.execute("SELECT count(*) FROM execution_mandate_events WHERE mandate_id=? AND event_type='reservation_replaced'", (MANDATE,)).fetchone()[0]
-    if rows_count != 16 or actual_entries != 1 or replacement_events != 0:
-        raise RuntimeError("starting V1.2 state is not exactly 16 unsent requests and one canary actual")
+        active_ids = {row[0] for row in conn.execute("SELECT reservation_id FROM execution_mandate_reservations WHERE mandate_id=? AND status='active'", (MANDATE,)).fetchall()}
+        active_total = sum((Decimal(row[0]) for row in conn.execute("SELECT reserved_aud FROM execution_mandate_reservations WHERE mandate_id=? AND status='active'", (MANDATE,)).fetchall()), Decimal("0"))
+    prepared_target_count = sum(catalog.get_provider_request_item(rid)["status"] == "prepared" for rid in rows_by_id)
+    original_unresolved = sum((row["old_reserved_aud"] for row in rows_by_id.values()), Decimal("0"))
+    if (rows_count != prepared_target_count or actual_entries != 1 or replacement_events > len(eligible)
+            or active_ids != active_reservation_ids or active_total != Decimal(mandate["unresolved_reserved_aud"])):
+        raise RuntimeError("starting V1.2 state is not an idempotently resumable zero-crossing reduction")
     return {
         "actual_spend_aud": Decimal(mandate["actual_spend_aud"]),
-        "unresolved_reserved_aud": Decimal(mandate["unresolved_reserved_aud"]),
+        "unresolved_reserved_aud": original_unresolved,
+        "current_unresolved_before_resume_aud": Decimal(mandate["unresolved_reserved_aud"]),
         "canary_reservation_id": canary_reservation,
         "canary_actual_aud": Decimal(canary_actuals[0]["aud_amount"]),
         "canary_actual_usd": Decimal(canary_actuals[0]["provider_amount"]),
@@ -215,8 +283,7 @@ def _apply_partition(catalog: SQLiteCatalog, eligible: list[dict], excluded: lis
     for row in eligible:
         rid = row["provider_request_item_id"]
         old_res = row["old_reservation_id"]
-        new_res = deterministic_id("reservation:", {"run": RUN, "request": rid, "recalibration": "phase5-v1.2-cost-cap-2026-09-12"})
-        replacement_id = deterministic_id("mandatereplacement:", {"mandate": MANDATE, "request": rid, "recalibration": "phase5-v1.2-cost-cap-2026-09-12"})
+        new_res, replacement_id = _replacement_ids(row)
         physical = catalog.get_physical_attempt(row["physical"]["physical_attempt_id"])
         if physical["reservation_id"] == old_res:
             catalog.replace_pre_send_reservation(mandate_id=MANDATE, physical_attempt_id=physical["physical_attempt_id"],
@@ -227,7 +294,8 @@ def _apply_partition(catalog: SQLiteCatalog, eligible: list[dict], excluded: lis
         elif physical["reservation_id"] != new_res:
             raise RuntimeError(f"eligible physical attempt points to an unexpected reservation: {rid}")
         row["new_reservation_id"] = new_res
-    return replacement_count
+    with catalog._authorization_connection() as conn:
+        return conn.execute("SELECT count(*) FROM execution_mandate_events WHERE mandate_id=? AND event_type='reservation_replaced'", (MANDATE,)).fetchone()[0]
 
 
 def _verify_final(catalog: SQLiteCatalog, eligible: list[dict], excluded: list[dict], rows_by_id: dict[str, dict], start: dict) -> dict:
@@ -243,7 +311,7 @@ def _verify_final(catalog: SQLiteCatalog, eligible: list[dict], excluded: list[d
         replacement_events = conn.execute("SELECT event_json FROM execution_mandate_events WHERE mandate_id=? AND event_type='reservation_replaced'", (MANDATE,)).fetchall()
     active_by_id = {row["reservation_id"]: Decimal(row["reserved_aud"]) for row in active_rows}
     expected_reservations = {row["new_reservation_id"]: row["corrected_hard_max_aud"] for row in eligible}
-    if active_by_id != expected_reservations:
+    if active_by_id != expected_reservations or len(replacement_events) != len(eligible):
         raise RuntimeError("postcondition failed: active Amendment-3 reservations do not exactly match the eligible 13")
     total_aud = sum((row["corrected_hard_max_aud"] for row in eligible), Decimal("0"))
     total_usd = sum((row["corrected_hard_max_usd"] for row in eligible), Decimal("0"))
@@ -339,7 +407,7 @@ def main() -> int:
         raise RuntimeError("partition is not derived from the verified audit set")
     if not eligible or any(row["corrected_hard_max_aud"] > CAP for row in eligible) or any(row["corrected_hard_max_aud"] <= CAP for row in excluded):
         raise RuntimeError("mechanical cost-cap partition is invalid")
-    start = _starting_state(catalog, rows_by_id, preparation["request_items"])
+    start = _starting_state(catalog, rows_by_id, eligible, excluded)
     prior_ticket_path = args.root / PREDECESSOR_TICKET
     prior_ticket_raw = prior_ticket_path.read_bytes()
     prior_ticket = json.loads(prior_ticket_raw)
