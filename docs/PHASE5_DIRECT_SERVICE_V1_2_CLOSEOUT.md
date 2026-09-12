@@ -89,12 +89,14 @@ closeout does not start a Factory redesign or implement new control-plane work.
 ## Project sequencing
 
 The Direct Service experimental tranche is complete. The existing roadmap's
-Phase 6, “Risk-gated depth and specialist profiles,” remains the named successor
-only after the broader Phase 5 Top-100 full-card exit criteria. This experiment
-does not meet those criteria. Which already-planned work tranche should follow
-within remaining Phase 5 scope is unresolved; this closeout does not select a
-new product direction or begin the next implementation phase. Discovery V2
-remains complete and is not reopened.
+Phase 6, “Risk-gated depth and specialist profiles,” is undergoing bounded
+Tranches 0-1 exploration alongside the broader Phase 5 Top-100 full-card
+objective; this experiment does not meet Phase 5 exit criteria. The shared
+Data-repository [Phase 6 capability inventory](https://github.com/gregorycwhill/charitygraph-data/blob/phase5-direct-service-v1.2-closeout/PHASE6_CAPABILITY_INVENTORY_2026-09-12.md)
+records the baseline and shortlist recommendation. No live reality slice,
+provider call, new source acquisition, semantic experiment, production
+implementation or product-owner selection is authorized by this closeout.
+Discovery V2 remains complete and is not reopened.
 
 ## Primary empirical source
 
