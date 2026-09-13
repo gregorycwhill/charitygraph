@@ -410,13 +410,17 @@ def prepare_v6_review_packet(source_dir: Path, run_dir: Path, v4_review_dir: Pat
             "V5 replay passed for all 12 propositions; human review rejected proposition 11 as an observed outcome because the report gave no indicator, method, comparator, structured assessment, or reported observation basis."
         )
         comparisons.append({"abn": row["abn"], "v4_response_sha256": V4_RESPONSE_SHA256[row["abn"]], "v6_response_sha256": _sha(response_file.read_bytes()), "v4_human_review_result": prior_result, "v6_candidate_proposition_count": len(candidate["propositions"]), "comparison_note": "Reviewer should compare independently; this packet makes no human adjudication."})
-        _write_atomic(review_dir / "v4-comparison" / old_path.name, old_path.read_bytes())
-        _write_atomic(review_dir / "v4-comparison" / old_replay.name, old_replay.read_bytes())
+        _write_atomic(review_dir / "v4-comparison" / f"v4-response-{old_path.name}", old_path.read_bytes())
+        _write_atomic(review_dir / "v4-comparison" / f"v5-replay-{old_replay.name}", old_replay.read_bytes())
     with (review_dir / "proposition-adjudication-worksheet.csv").open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(worksheet[0]) if worksheet else [])
         writer.writeheader(); writer.writerows(worksheet)
     analyst = {"reviewer_fields_blank": True, "tasks": [task.get("analyst_questions", []) for task in (tasks[("outcomes", abn)] for _, abn in ATTEMPTS)]}
     _write_atomic(review_dir / "analyst-task-material.json", _canonical(analyst) + b"\n")
+    replay_path = run_dir / "v4-v6-offline-replay.json"
+    if not replay_path.is_file():
+        raise ValueError("V6 offline replay report is required in the comparison packet")
+    _write_atomic(review_dir / "v4-comparison" / "v6-offline-replay.json", replay_path.read_bytes())
     report = {"packet_status": "READY_FOR_HUMAN_REVIEW", "review_type": "independent proposition and analyst-task review", "contract_version": V6_CONTRACT_VERSION, "subjects": comparisons, "condition_a_manifest_sha256": CONDITION_A_MANIFEST_SHA256, "reviewer_fields_initially_blank": True, "human_adjudication_performed": False, "governed_promotions": 0, "source_acquisitions": 0, "provider_calls_during_packet_preparation": 0, "smith_unknown_exposure_retained_separately": "0.042120", "limitations": ["Two-subject bounded confirmation only; does not satisfy the original six-subject usefulness denominator.", "The V4 and V5 results remain immutable historical records.", "This packet does not establish Outcomes advancement; independent human adjudication remains required."]}
     _write_atomic(review_dir / "review-packet-manifest.json", _canonical(report) + b"\n")
     return report
