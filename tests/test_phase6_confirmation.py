@@ -135,6 +135,9 @@ def test_execute_is_one_shot_and_review_packets_leave_reviewer_fields_blank(tmp_
     _write_export(export, monkeypatch)
     run = tmp_path / "run"
     prepare_run(export, run)
+    preflight = execute_run(run, export, dry_run=True)
+    assert preflight["preflight"] == "passed_no_provider_crossing"
+    assert preflight["provider_calls"] == 0
     monkeypatch.setenv("OPENAI_API_KEY", "fake-test-key")
 
     class FakeClient:

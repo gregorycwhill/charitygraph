@@ -448,10 +448,8 @@ def _mechanical_validate(row: dict[str, Any], packet: dict[str, Any]) -> Phase6S
     return parsed
 
 
-def execute_run(run_dir: Path, export_dir: Path) -> dict[str, Any]:
+def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False) -> dict[str, Any]:
     """Execute prepared one-shot requests in order; stop on any uncertain crossing."""
-    if not os.environ.get("OPENAI_API_KEY"):
-        raise RuntimeError("OPENAI_API_KEY is unavailable; no provider attempt started")
     manifest_path = run_dir / "execution-manifest.json"
     manifest = json.loads(manifest_path.read_bytes().decode("utf-8"))
     if manifest.get("run_id") != RUN_ID or manifest.get("execution_status") != "prepared_not_sent" or manifest.get("provider_calls") != 0:
@@ -534,6 +532,23 @@ def execute_run(run_dir: Path, export_dir: Path) -> dict[str, Any]:
     for folder in (run_dir / "responses", run_dir / "candidate-packets"):
         if folder.exists() and any(folder.iterdir()):
             raise ValueError("prior response/candidate artifacts exist; previous provider crossing is uncertain")
+    if dry_run:
+        return {
+            "run_id": RUN_ID,
+            "preflight": "passed_no_provider_crossing",
+            "task_count": len(manifest["tasks"]),
+            "request_tickets_unique": True,
+            "physical_attempts_unique": True,
+            "condition_a_manifest_sha256": CONDITION_A_MANIFEST_SHA256,
+            "model": MODEL,
+            "reasoning_effort": REASONING_EFFORT,
+            "delivery_mode": "standard",
+            "conservative_exposure_total_aud": manifest["conservative_exposure_total_aud"],
+            "provider_calls": 0,
+            "source_acquisitions": 0,
+        }
+    if not os.environ.get("OPENAI_API_KEY"):
+        raise RuntimeError("OPENAI_API_KEY is unavailable; no provider attempt started")
     results: list[dict[str, Any]] = []
     client = OpenAIHTTPStandardClient()
     stopped_slices: set[str] = set()
@@ -777,6 +792,9 @@ def main() -> int:
     execute = sub.add_parser("execute")
     execute.add_argument("--run-dir", type=Path, required=True)
     execute.add_argument("--condition-a", type=Path, required=True)
+    preflight = sub.add_parser("preflight")
+    preflight.add_argument("--run-dir", type=Path, required=True)
+    preflight.add_argument("--condition-a", type=Path, required=True)
     review = sub.add_parser("prepare-review-materials")
     review.add_argument("--condition-a", type=Path, required=True)
     review.add_argument("--run-dir", type=Path, required=True)
@@ -785,6 +803,8 @@ def main() -> int:
         result = prepare_run(args.condition_a, args.run_dir)
     elif args.command == "execute":
         result = execute_run(args.run_dir, args.condition_a)
+    elif args.command == "preflight":
+        result = execute_run(args.run_dir, args.condition_a, dry_run=True)
     else:
         result = prepare_review_materials(args.run_dir, args.condition_a)
     print(json.dumps(result, sort_keys=True))
