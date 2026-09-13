@@ -20,6 +20,7 @@ from charitygraph.phase6_confirmation import (
     preflight_provider_rights,
 )
 from charitygraph.phase6_semantic_contracts import Phase6SemanticOutput, Phase6SemanticOutputV2
+from charitygraph.phase6_v4_resume import _ensure_transport_columns
 
 
 ABN = "12345678901"
@@ -30,6 +31,15 @@ SCOPE = {
     "label": "Test Charity",
     "resolution": "private_experiment_candidate_only",
 }
+
+
+def test_v4_ticket_migration_adds_classified_exception_fields(tmp_path):
+    db_path = tmp_path / "tickets.sqlite3"
+    with sqlite3.connect(db_path) as db:
+        db.execute("CREATE TABLE tickets (request_item_id TEXT PRIMARY KEY)")
+        _ensure_transport_columns(db)
+        columns = {row[1] for row in db.execute("PRAGMA table_info(tickets)")}
+    assert {"transport_exception_type", "transport_cause_type", "transport_errno", "transport_elapsed_seconds", "transport_state"} <= columns
 
 
 def _write_export(root: Path, monkeypatch, *, slice_id="outcomes", repeat=True):

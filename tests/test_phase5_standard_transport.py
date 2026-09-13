@@ -1,6 +1,8 @@
 import hashlib
 import io
 import json
+import socket
+import ssl
 import threading
 import time
 from pathlib import Path
@@ -382,18 +384,21 @@ def test_openai_transport_sends_client_trace_and_retains_server_request_id(monke
     response = OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-test-trace", request_started_at="2026-09-13T10:00:00+00:00")
     assert captured["client_request_id"] == "cgpa-test-trace"
     assert captured["authorization"] == "Bearer test-only-secret"
-    assert captured["timeout"] == 120
+    assert captured["timeout"] == transport.STANDARD_SOCKET_TIMEOUT_SECONDS == 300
     assert response.client_request_id == "cgpa-test-trace"
     assert response.server_request_id == "req_server_123"
     assert response.endpoint == "https://api.openai.com/v1/responses"
     assert response.request_started_at == "2026-09-13T10:00:00+00:00"
     assert response.response_headers_received is True
+    assert response.elapsed_seconds is not None and response.elapsed_seconds >= 0
 
 
 def test_ambiguous_transport_retains_trace_without_claiming_response_headers(monkeypatch):
     import charitygraph.phase5_standard_transport as transport
 
+    calls = []
     def fail(_request, timeout):
+        calls.append(timeout)
         raise URLError("synthetic socket timeout")
 
     monkeypatch.setattr(transport, "urlopen", fail)
@@ -405,3 +410,103 @@ def test_ambiguous_transport_retains_trace_without_claiming_response_headers(mon
     assert exc.value.request_started_at == "2026-09-13T10:00:00+00:00"
     assert exc.value.response_headers_received is False
     assert exc.value.request_id is None
+    assert calls == [300]
+
+
+@pytest.mark.parametrize(("error", "state", "ambiguous"), [
+    (socket.gaierror(-2, "name lookup failed"), "DNS_FAILURE", False),
+    (ConnectionRefusedError(111, "connection refused"), "CONNECT_FAILURE", False),
+    (PermissionError(10013, "socket access denied"), "LOCAL_SOCKET_PERMISSION_DENIED", False),
+    (ssl.SSLError("TLS handshake failed"), "TLS_SETUP_FAILURE", False),
+    (TimeoutError("timed out"), "SOCKET_TIMEOUT_PHASE_UNKNOWN", True),
+    (ConnectionResetError(104, "connection reset"), "REMOTE_DISCONNECT_OR_WRITE_FAILURE", True),
+])
+def test_transport_exception_classification_preserves_nested_cause(monkeypatch, error, state, ambiguous):
+    import charitygraph.phase5_standard_transport as transport
+    if isinstance(error, PermissionError):
+        error.winerror = 10013
+
+    def fail(_request, timeout):
+        raise URLError(error)
+
+    monkeypatch.setattr(transport, "urlopen", fail)
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only")
+    with pytest.raises(StandardTransportError) as caught:
+        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-classify")
+    assert caught.value.transport_state == state
+    assert caught.value.ambiguous is ambiguous
+    assert caught.value.cause_type == type(error).__name__
+    assert caught.value.elapsed_seconds is not None
+    assert type(error).__name__ in str(caught.value)
+
+
+def test_models_get_is_single_authenticated_traceable_non_generation_request(monkeypatch):
+    import charitygraph.phase5_standard_transport as transport
+
+    calls = []
+
+    class Response:
+        status = 200
+        headers = {"x-request-id": "req_models_test"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return b'{"data":[]}'
+
+    def fake_urlopen(request, timeout):
+        calls.append((request.full_url, request.get_method(), request.get_header("X-client-request-id"), request.get_header("Authorization"), timeout))
+        return Response()
+
+    monkeypatch.setattr(transport, "urlopen", fake_urlopen)
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only")
+    status, headers, raw, elapsed = OpenAIHTTPStandardClient().list_models_once(client_request_id="cgpa-models-test")
+    assert status == 200 and headers.get("x-request-id") == "req_models_test"
+    assert raw == b'{"data":[]}' and elapsed >= 0
+    assert calls == [("https://api.openai.com/v1/models", "GET", "cgpa-models-test", "Bearer test-only", 300)]
+    assert not isinstance((status, headers, raw, elapsed), StandardProviderResponse)
+
+
+def test_read_failure_after_http_headers_is_not_called_ambiguous_or_rejected(monkeypatch):
+    import charitygraph.phase5_standard_transport as transport
+
+    class Response:
+        status = 200
+        headers = {"x-request-id": "req_headers_arrived"}
+        def __enter__(self): return self
+        def __exit__(self, *_args): return False
+        def read(self): raise TimeoutError("response body stalled")
+
+    monkeypatch.setattr(transport, "urlopen", lambda *_args, **_kwargs: Response())
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only")
+    with pytest.raises(StandardSystemic) as caught:
+        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-body-read")
+    assert caught.value.transport_state == "PROVIDER_RESPONSE_BODY_READ_FAILURE"
+    assert caught.value.status_code == 200
+    assert caught.value.request_id == "req_headers_arrived"
+    assert caught.value.response_headers_received is True
+    assert caught.value.ambiguous is False
+
+
+def test_unparseable_http_response_is_recorded_as_response_body_failure(monkeypatch):
+    import charitygraph.phase5_standard_transport as transport
+
+    class Response:
+        status = 200
+        headers = {"x-request-id": "req_invalid_body"}
+        def __enter__(self): return self
+        def __exit__(self, *_args): return False
+        def read(self): return b"not-json"
+
+    monkeypatch.setattr(transport, "urlopen", lambda *_args, **_kwargs: Response())
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only")
+    with pytest.raises(StandardSystemic) as caught:
+        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-body-parse")
+    assert caught.value.transport_state == "PROVIDER_RESPONSE_BODY_PARSE_FAILURE"
+    assert caught.value.status_code == 200
+    assert caught.value.raw_bytes == b"not-json"
+    assert caught.value.response_headers_received is True

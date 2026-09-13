@@ -6,10 +6,14 @@ reconstructs or retries them.
 """
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import os
+import socket
+import ssl
 import threading
+import time
 from concurrent.futures import Future, ThreadPoolExecutor, wait, FIRST_COMPLETED
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -19,8 +23,14 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
+# The historic semantic Responses path used a 300-second socket timeout. Keep
+# a bounded timeout appropriate for model generation; urllib applies it to
+# connect and individual socket operations, not as an overall wall-clock cap.
+STANDARD_SOCKET_TIMEOUT_SECONDS = 300
+
+
 class StandardTransportError(RuntimeError):
-    def __init__(self, message: str, *, ambiguous: bool = False, systemic: bool = False, status_code: int | None = None, raw_bytes: bytes | None = None, request_id: str | None = None, client_request_id: str | None = None, endpoint: str | None = None, request_started_at: str | None = None, response_headers_received: bool = False) -> None:
+    def __init__(self, message: str, *, ambiguous: bool = False, systemic: bool = False, status_code: int | None = None, raw_bytes: bytes | None = None, request_id: str | None = None, client_request_id: str | None = None, endpoint: str | None = None, request_started_at: str | None = None, response_headers_received: bool = False, transport_state: str | None = None, exception_type: str | None = None, cause_type: str | None = None, error_number: int | None = None, elapsed_seconds: float | None = None) -> None:
         super().__init__(message)
         self.ambiguous = ambiguous
         self.systemic = systemic
@@ -31,16 +41,21 @@ class StandardTransportError(RuntimeError):
         self.endpoint = endpoint
         self.request_started_at = request_started_at
         self.response_headers_received = response_headers_received
+        self.transport_state = transport_state
+        self.exception_type = exception_type
+        self.cause_type = cause_type
+        self.error_number = error_number
+        self.elapsed_seconds = elapsed_seconds
 
 
 class StandardAmbiguous(StandardTransportError):
-    def __init__(self, message: str = "Standard POST outcome is ambiguous", *, status_code: int | None = None, raw_bytes: bytes | None = None, request_id: str | None = None, client_request_id: str | None = None, endpoint: str | None = None, request_started_at: str | None = None, response_headers_received: bool = False) -> None:
-        super().__init__(message, ambiguous=True, systemic=False, status_code=status_code, raw_bytes=raw_bytes, request_id=request_id, client_request_id=client_request_id, endpoint=endpoint, request_started_at=request_started_at, response_headers_received=response_headers_received)
+    def __init__(self, message: str = "Standard POST outcome is ambiguous", *, status_code: int | None = None, raw_bytes: bytes | None = None, request_id: str | None = None, client_request_id: str | None = None, endpoint: str | None = None, request_started_at: str | None = None, response_headers_received: bool = False, transport_state: str = "PROVIDER_CROSSING_AMBIGUOUS", exception_type: str | None = None, cause_type: str | None = None, error_number: int | None = None, elapsed_seconds: float | None = None) -> None:
+        super().__init__(message, ambiguous=True, systemic=False, status_code=status_code, raw_bytes=raw_bytes, request_id=request_id, client_request_id=client_request_id, endpoint=endpoint, request_started_at=request_started_at, response_headers_received=response_headers_received, transport_state=transport_state, exception_type=exception_type, cause_type=cause_type, error_number=error_number, elapsed_seconds=elapsed_seconds)
 
 
 class StandardSystemic(StandardTransportError):
-    def __init__(self, message: str, *, status_code: int | None = None, raw_bytes: bytes | None = None, request_id: str | None = None, client_request_id: str | None = None, endpoint: str | None = None, request_started_at: str | None = None, response_headers_received: bool = False) -> None:
-        super().__init__(message, systemic=True, status_code=status_code, raw_bytes=raw_bytes, request_id=request_id, client_request_id=client_request_id, endpoint=endpoint, request_started_at=request_started_at, response_headers_received=response_headers_received)
+    def __init__(self, message: str, *, status_code: int | None = None, raw_bytes: bytes | None = None, request_id: str | None = None, client_request_id: str | None = None, endpoint: str | None = None, request_started_at: str | None = None, response_headers_received: bool = False, transport_state: str | None = None, exception_type: str | None = None, cause_type: str | None = None, error_number: int | None = None, elapsed_seconds: float | None = None) -> None:
+        super().__init__(message, systemic=True, status_code=status_code, raw_bytes=raw_bytes, request_id=request_id, client_request_id=client_request_id, endpoint=endpoint, request_started_at=request_started_at, response_headers_received=response_headers_received, transport_state=transport_state, exception_type=exception_type, cause_type=cause_type, error_number=error_number, elapsed_seconds=elapsed_seconds)
 
 
 @dataclass(frozen=True)
@@ -54,6 +69,7 @@ class StandardProviderResponse:
     endpoint: str | None = None
     request_started_at: str | None = None
     response_headers_received: bool = True
+    elapsed_seconds: float | None = None
 
 
 class StandardProvider(Protocol):
@@ -62,10 +78,45 @@ class StandardProvider(Protocol):
     def retrieve_response(self, response_id: str) -> StandardProviderResponse: ...
 
 
+def classify_transport_exception(error: BaseException) -> tuple[str, bool]:
+    """Classify known pre-send failures; keep uncertain socket failures ambiguous."""
+    if isinstance(error, PermissionError) and getattr(error, "winerror", None) == 10013:
+        return "LOCAL_SOCKET_PERMISSION_DENIED", False
+    if isinstance(error, ssl.SSLError):
+        return "TLS_SETUP_FAILURE", False
+    if isinstance(error, socket.gaierror):
+        return "DNS_FAILURE", False
+    if isinstance(error, (ConnectionRefusedError,)) or getattr(error, "errno", None) in {
+        errno.ECONNREFUSED, errno.ENETUNREACH, errno.EHOSTUNREACH, errno.EADDRNOTAVAIL,
+    }:
+        return "CONNECT_FAILURE", False
+    if isinstance(error, (TimeoutError, socket.timeout)):
+        # urllib exposes one per-socket timeout and does not report whether a
+        # timeout happened during connect, write, or response read.
+        return "SOCKET_TIMEOUT_PHASE_UNKNOWN", True
+    if isinstance(error, (ConnectionResetError, ConnectionAbortedError, BrokenPipeError)) or getattr(error, "errno", None) in {errno.ECONNRESET, errno.ECONNABORTED, errno.EPIPE}:
+        return "REMOTE_DISCONNECT_OR_WRITE_FAILURE", True
+    return "TRANSPORT_PHASE_UNKNOWN", True
+
+
+def _safe_exception_detail(outer: BaseException, root: BaseException) -> str:
+    """Keep exception type and bounded reason while excluding credential-like strings."""
+    import re
+
+    root_name = type(root).__name__
+    detail = f"{type(outer).__name__} -> {root_name}: {str(root) or root_name}"[:300]
+    detail = re.sub(r"(?i)bearer\s+\S+", "Bearer [redacted]", detail)
+    detail = re.sub(r"(?i)(https?://)[^/@\s]+@", r"\1[redacted]@", detail)
+    detail = re.sub(r"(?i)(https?://[^?\s#]+)\?[^\s#]*", r"\1?[redacted]", detail)
+    detail = re.sub(r"(?i)(?:sk|sess|api[_-]?key)[-_A-Za-z0-9]{8,}", "[redacted]", detail)
+    return detail
+
+
 class OpenAIHTTPStandardClient:
     """Exactly-one-POST OpenAI Responses adapter."""
 
     base_url = "https://api.openai.com/v1/responses"
+    socket_timeout_seconds = STANDARD_SOCKET_TIMEOUT_SECONDS
 
     def _key(self) -> str:
         key = os.environ.get("OPENAI_API_KEY")
@@ -74,16 +125,16 @@ class OpenAIHTTPStandardClient:
         return key
 
     @staticmethod
-    def _decode(status_code: int, headers: Any, raw: bytes, *, client_request_id: str, endpoint: str, request_started_at: str) -> StandardProviderResponse:
+    def _decode(status_code: int, headers: Any, raw: bytes, *, client_request_id: str | None = None, endpoint: str | None = None, request_started_at: str | None = None, elapsed_seconds: float | None = None) -> StandardProviderResponse:
         server_request_id = headers.get("x-request-id")
         try:
             body = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-            raise StandardAmbiguous("provider returned an unreadable response body", status_code=status_code, raw_bytes=raw, request_id=server_request_id, client_request_id=client_request_id, endpoint=endpoint, request_started_at=request_started_at, response_headers_received=True) from exc
+            raise StandardSystemic("provider response body could not be decoded", status_code=status_code, raw_bytes=raw, request_id=server_request_id, client_request_id=client_request_id, endpoint=endpoint, request_started_at=request_started_at, response_headers_received=True, transport_state="PROVIDER_RESPONSE_BODY_PARSE_FAILURE", exception_type=type(exc).__name__, cause_type=type(exc).__name__) from exc
         if not isinstance(body, dict) or not isinstance(body.get("id"), str) or not body["id"]:
-            raise StandardAmbiguous("provider response did not contain a trustworthy response ID", status_code=status_code, raw_bytes=raw, request_id=server_request_id, client_request_id=client_request_id, endpoint=endpoint, request_started_at=request_started_at, response_headers_received=True)
+            raise StandardSystemic("provider response did not contain a trustworthy response ID", status_code=status_code, raw_bytes=raw, request_id=server_request_id, client_request_id=client_request_id, endpoint=endpoint, request_started_at=request_started_at, response_headers_received=True, transport_state="PROVIDER_RESPONSE_BODY_PARSE_FAILURE")
         request_id = server_request_id or body["id"]
-        return StandardProviderResponse(status_code, str(request_id), body, raw, client_request_id, server_request_id, endpoint, request_started_at, True)
+        return StandardProviderResponse(status_code, str(request_id), body, raw, client_request_id, server_request_id, endpoint, request_started_at, True, elapsed_seconds)
 
     def create_response_once(self, body: bytes, *, client_request_id: str, request_started_at: str | None = None) -> StandardProviderResponse:
         if not isinstance(body, bytes) or not body:
@@ -93,13 +144,17 @@ class OpenAIHTTPStandardClient:
         request = Request(self.base_url, data=body, method="POST", headers={"Authorization": f"Bearer {self._key()}", "Content-Type": "application/json; charset=utf-8", "X-Client-Request-Id": client_request_id})
         response_headers_received = False
         response_headers = None
+        response_status = None
+        monotonic_started = time.monotonic()
         try:
-            response = urlopen(request, timeout=120)
+            response = urlopen(request, timeout=self.socket_timeout_seconds)
             response_headers_received = True
             response_headers = response.headers
+            response_status = response.status
             with response:
                 raw = response.read()
-                return self._decode(response.status, response.headers, raw, client_request_id=client_request_id, endpoint=self.base_url, request_started_at=started)
+                elapsed = round(time.monotonic() - monotonic_started, 6)
+                return self._decode(response.status, response.headers, raw, client_request_id=client_request_id, endpoint=self.base_url, request_started_at=started, elapsed_seconds=elapsed)
         except HTTPError as exc:
             raw = exc.read()
             provider_request_id = exc.headers.get("x-request-id") if exc.headers else None
@@ -115,7 +170,39 @@ class OpenAIHTTPStandardClient:
             raise StandardTransportError(str(message)[:512], status_code=exc.code, raw_bytes=raw, request_id=provider_request_id, client_request_id=client_request_id, endpoint=self.base_url, request_started_at=started, response_headers_received=True) from None
         except (URLError, TimeoutError, OSError) as exc:
             server_request_id = response_headers.get("x-request-id") if response_headers is not None else None
-            raise StandardAmbiguous("Standard POST connection outcome is ambiguous", request_id=server_request_id, client_request_id=client_request_id, endpoint=self.base_url, request_started_at=started, response_headers_received=response_headers_received) from exc
+            root = exc.reason if isinstance(exc, URLError) else exc
+            root = root if isinstance(root, BaseException) else exc
+            state, could_have_crossed = ("PROVIDER_RESPONSE_BODY_READ_FAILURE", False) if response_headers_received else classify_transport_exception(root)
+            detail = _safe_exception_detail(exc, root)
+            message = f"Standard POST transport failure: {state}; {detail}"
+            elapsed = round(time.monotonic() - monotonic_started, 6)
+            if response_headers_received:
+                raise StandardSystemic(message, status_code=response_status, request_id=server_request_id, client_request_id=client_request_id, endpoint=self.base_url, request_started_at=started, response_headers_received=True, transport_state=state, exception_type=type(exc).__name__, cause_type=type(root).__name__, error_number=getattr(root, "errno", None), elapsed_seconds=elapsed) from exc
+            if could_have_crossed:
+                raise StandardAmbiguous(message, request_id=server_request_id, client_request_id=client_request_id, endpoint=self.base_url, request_started_at=started, response_headers_received=response_headers_received, transport_state=state, exception_type=type(exc).__name__, cause_type=type(root).__name__, error_number=getattr(root, "errno", None), elapsed_seconds=elapsed) from exc
+            raise StandardSystemic(message, client_request_id=client_request_id, endpoint=self.base_url, request_started_at=started, response_headers_received=False, transport_state=state, exception_type=type(exc).__name__, cause_type=type(root).__name__, error_number=getattr(root, "errno", None), elapsed_seconds=elapsed) from exc
+
+    def list_models_once(self, *, client_request_id: str, request_started_at: str | None = None) -> tuple[int, Any, bytes, float]:
+        """Authenticated, non-generative connectivity probe on the same urllib stack."""
+        validate_client_request_id(client_request_id)
+        endpoint = "https://api.openai.com/v1/models"
+        started = request_started_at or datetime.now(timezone.utc).isoformat(timespec="microseconds")
+        request = Request(endpoint, method="GET", headers={"Authorization": f"Bearer {self._key()}", "X-Client-Request-Id": client_request_id})
+        monotonic_started = time.monotonic()
+        try:
+            with urlopen(request, timeout=self.socket_timeout_seconds) as response:
+                raw = response.read()
+                return response.status, response.headers, raw, round(time.monotonic() - monotonic_started, 6)
+        except HTTPError as exc:
+            # A definite HTTP status is valuable diagnostic evidence; retain
+            # only bytes in the caller's private diagnostic artifact.
+            return exc.code, exc.headers, exc.read(), round(time.monotonic() - monotonic_started, 6)
+        except (URLError, TimeoutError, OSError) as exc:
+            root = exc.reason if isinstance(exc, URLError) else exc
+            root = root if isinstance(root, BaseException) else exc
+            state, _ = classify_transport_exception(root)
+            detail = _safe_exception_detail(exc, root)
+            raise StandardTransportError(f"Models GET transport failure: {state}; {detail}", ambiguous=False, systemic=True, client_request_id=client_request_id, endpoint=endpoint, request_started_at=started, transport_state=state, exception_type=type(exc).__name__, cause_type=type(root).__name__, error_number=getattr(root, "errno", None), elapsed_seconds=round(time.monotonic() - monotonic_started, 6)) from exc
 
     def retrieve_response(self, response_id: str) -> StandardProviderResponse:
         if not response_id or any(ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for ch in response_id):

@@ -108,6 +108,10 @@ def _ensure_transport_columns(db: sqlite3.Connection) -> None:
         "server_request_id": "TEXT",
         "transport_exception": "TEXT",
         "transport_state": "TEXT",
+        "transport_exception_type": "TEXT",
+        "transport_cause_type": "TEXT",
+        "transport_errno": "INTEGER",
+        "transport_elapsed_seconds": "REAL",
         "actual_cost_usd": "TEXT",
         "actual_cost_aud": "TEXT",
     }
@@ -533,10 +537,13 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
         try:
             response = client.create_response_once(body_bytes, client_request_id=expected_client_id, request_started_at=started_at)
         except StandardTransportError as exc:
-            state = "PROVIDER_CROSSING_AMBIGUOUS" if exc.ambiguous else "PROVIDER_REJECTED"
+            state = "PROVIDER_CROSSING_AMBIGUOUS" if exc.ambiguous else (
+                "PRE_PROVIDER_FAILURE" if exc.transport_state in {"DNS_FAILURE", "CONNECT_FAILURE", "TLS_SETUP_FAILURE", "LOCAL_SOCKET_PERMISSION_DENIED"}
+                else ("PROVIDER_RESPONSE_BODY_FAILURE" if exc.response_headers_received else "PROVIDER_REJECTED")
+            )
             if exc.ambiguous:
                 ambiguous_count += 1
-            else:
+            elif state == "PROVIDER_REJECTED":
                 definitely_rejected += 1
             if exc.raw_bytes is not None:
                 _write_atomic(continuation_dir / "responses" / f"{row['request_item_id'].replace(':', '_')}.json", exc.raw_bytes)
@@ -546,15 +553,20 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
                 "response_headers_received": exc.response_headers_received,
                 "server_x_request_id": exc.request_id,
                 "transport_exception": str(exc),
+                "transport_exception_type": exc.exception_type,
+                "transport_cause_type": exc.cause_type,
+                "transport_errno": exc.error_number,
+                "transport_elapsed_seconds": exc.elapsed_seconds,
                 "http_status": exc.status_code,
                 "raw_response_sha256": None if exc.raw_bytes is None else _sha(exc.raw_bytes),
             }
             _write_atomic(meta_path, _canonical(transport) + b"\n")
             if exc.ambiguous:
                 _write_atomic(continuation_dir / "support-packets" / f"{row['request_item_id'].replace(':', '_')}.json", _canonical(_build_support_packet(row=row, client_request_id=expected_client_id, endpoint=ENDPOINT, request_started_at=metadata.get("request_started_at"), transport_exception=str(exc), response_headers_received=exc.response_headers_received, server_request_id=exc.request_id)) + b"\n")
-            _atomic_db_update(db_path, "UPDATE tickets SET state=?,transport_state=?,response_headers_received=?,server_request_id=?,transport_exception=?,completed_at=? WHERE request_item_id=?", ("ambiguous" if exc.ambiguous else "provider_rejected", state, int(exc.response_headers_received), exc.request_id, str(exc)[:512], datetime.now(timezone.utc).isoformat(), row["request_item_id"]))
+            durable_state = "ambiguous" if exc.ambiguous else ("pre_provider_failure" if state == "PRE_PROVIDER_FAILURE" else ("response_body_failure" if state == "PROVIDER_RESPONSE_BODY_FAILURE" else "provider_rejected"))
+            _atomic_db_update(db_path, "UPDATE tickets SET state=?,transport_state=?,provider_posts=CASE WHEN ?='PRE_PROVIDER_FAILURE' THEN 0 ELSE provider_posts END,response_headers_received=?,server_request_id=?,transport_exception=?,transport_exception_type=?,transport_cause_type=?,transport_errno=?,transport_elapsed_seconds=?,completed_at=? WHERE request_item_id=?", (durable_state, state, state, int(exc.response_headers_received), exc.request_id, str(exc)[:512], exc.exception_type, exc.cause_type, exc.error_number, exc.elapsed_seconds, datetime.now(timezone.utc).isoformat(), row["request_item_id"]))
             _append_fsynced(audit_path, {"event": "provider_crossing_outcome", **transport})
-            outcomes.append({"request_item_id": row["request_item_id"], "physical_attempt_id": row["physical_attempt_id"], "client_request_id": expected_client_id, "state": state, "provider_posts": 1, "response_headers_received": exc.response_headers_received, "server_x_request_id": exc.request_id, "http_status": exc.status_code, "error": str(exc)[:512], "conservative_exposure_aud": row["conservative_exposure_aud"]})
+            outcomes.append({"request_item_id": row["request_item_id"], "physical_attempt_id": row["physical_attempt_id"], "client_request_id": expected_client_id, "state": state, "provider_posts": 0 if state == "PRE_PROVIDER_FAILURE" else 1, "response_headers_received": exc.response_headers_received, "server_x_request_id": exc.request_id, "http_status": exc.status_code, "error": str(exc)[:512], "conservative_exposure_aud": row["conservative_exposure_aud"]})
             if exc.ambiguous or exc.systemic:
                 if exc.ambiguous:
                     # The first historical ambiguity plus any continuation
@@ -568,9 +580,9 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
         except Exception as exc:
             # Any unclassified exception after CROSSING_STARTED is ambiguous.
             ambiguous_count = 2
-            transport = {**metadata, "state": "PROVIDER_CROSSING_AMBIGUOUS", "response_headers_received": False, "server_x_request_id": None, "transport_exception": f"{type(exc).__name__}: {exc}"[:512]}
+            transport = {**metadata, "state": "PROVIDER_CROSSING_AMBIGUOUS", "response_headers_received": False, "server_x_request_id": None, "transport_exception": f"{type(exc).__name__}: {exc}"[:512], "transport_exception_type": type(exc).__name__, "transport_cause_type": type(exc.__cause__).__name__ if exc.__cause__ else None, "transport_errno": getattr(exc.__cause__ or exc, "errno", None)}
             _write_atomic(meta_path, _canonical(transport) + b"\n")
-            _atomic_db_update(db_path, "UPDATE tickets SET state='ambiguous',transport_state=?,response_headers_received=0,transport_exception=?,completed_at=? WHERE request_item_id=?", ("PROVIDER_CROSSING_AMBIGUOUS", transport["transport_exception"], datetime.now(timezone.utc).isoformat(), row["request_item_id"]))
+            _atomic_db_update(db_path, "UPDATE tickets SET state='ambiguous',transport_state=?,response_headers_received=0,transport_exception=?,transport_exception_type=?,transport_cause_type=?,transport_errno=?,completed_at=? WHERE request_item_id=?", ("PROVIDER_CROSSING_AMBIGUOUS", transport["transport_exception"], transport["transport_exception_type"], transport["transport_cause_type"], transport["transport_errno"], datetime.now(timezone.utc).isoformat(), row["request_item_id"]))
             _append_fsynced(audit_path, {"event": "provider_crossing_outcome", **transport})
             outcomes.append({"request_item_id": row["request_item_id"], "physical_attempt_id": row["physical_attempt_id"], "client_request_id": expected_client_id, "state": "PROVIDER_CROSSING_AMBIGUOUS", "provider_posts": 1, "response_headers_received": False, "error": transport["transport_exception"], "conservative_exposure_aud": row["conservative_exposure_aud"]})
             continue
