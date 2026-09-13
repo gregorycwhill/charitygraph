@@ -36,6 +36,7 @@ from .phase6_semantic_contracts import (
     Phase6SemanticOutput,
     validate_scope_bindings,
 )
+from .source_rights import ArtifactRightsDecision, require_provider_rights
 
 
 RUN_ID = "phase6-corrected-confirmation-20260913-v3"
@@ -806,7 +807,28 @@ def preflight_campaign(run_dir: Path, export_dir: Path) -> dict[str, Any]:
     return report
 
 
-def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False) -> dict[str, Any]:
+def preflight_provider_rights(export_dir: Path, rights_decisions_path: Path | None) -> dict[str, Any]:
+    """Check rights separately from schema certification, without altering V3 bytes."""
+    if rights_decisions_path is None or not rights_decisions_path.is_file():
+        return {"rights_preflight": "failed_closed", "authorized_task_count": 0,
+                "blocked_task_count": 0, "failures": [{"task_id": "campaign", "error": "rights decisions are absent"}],
+                "provider_calls": 0}
+    raw = json.loads(rights_decisions_path.read_text(encoding="utf-8"))
+    if not isinstance(raw, list):
+        raise ValueError("rights decisions must be a JSON list")
+    decisions = [ArtifactRightsDecision.model_validate(item) for item in raw]
+    _manifest, tasks = _load_approved_source_export(export_dir)
+    results = []
+    for task in tasks.values():
+        blockers = require_provider_rights(decisions, task["sources"])
+        results.append({"task_id": task["task_id"], "status": "authorized" if not blockers else "blocked", "blockers": blockers})
+    return {"rights_preflight": "passed" if all(item["status"] == "authorized" for item in results) else "failed_closed",
+            "authorized_task_count": sum(item["status"] == "authorized" for item in results),
+            "blocked_task_count": sum(item["status"] == "blocked" for item in results), "tasks": results,
+            "provider_calls": 0}
+
+
+def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False, rights_decisions_path: Path | None = None) -> dict[str, Any]:
     """Execute prepared one-shot requests in order; stop on any uncertain crossing."""
     preflight, body_cache = _preflight_campaign(run_dir, export_dir)
     if preflight["campaign_preflight"] == "failed_local_pre_send":
@@ -817,6 +839,9 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False) -> di
         return preflight
     if not V3_EXECUTION_AUTHORIZED:
         return {**preflight, "execution_status": "not_authorized_for_v3_provider_calls", "provider_calls": 0}
+    rights = preflight_provider_rights(export_dir, rights_decisions_path)
+    if rights["rights_preflight"] != "passed":
+        return {**preflight, **rights, "execution_status": "blocked_by_source_rights", "provider_calls": 0}
     if not os.environ.get("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY is unavailable; no provider attempt started")
     results: list[dict[str, Any]] = []

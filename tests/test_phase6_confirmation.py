@@ -1,6 +1,7 @@
 import hashlib
 import json
 import sqlite3
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,7 @@ from charitygraph.phase6_confirmation import (
     prepare_review_materials,
     prepare_run,
     provider_schema,
+    preflight_provider_rights,
 )
 from charitygraph.phase6_semantic_contracts import Phase6SemanticOutput, Phase6SemanticOutputV2
 
@@ -79,6 +81,21 @@ def _write_export(root: Path, monkeypatch, *, slice_id="outcomes", repeat=True):
     monkeypatch.setattr("charitygraph.phase6_confirmation.CONDITION_A_MANIFEST_SHA256", hashlib.sha256(manifest_raw).hexdigest())
     monkeypatch.setattr("charitygraph.phase6_confirmation.COHORTS", {slice_id: {ABN: ("test boundary", repeat)}})
     return task, manifest
+
+
+def _rights_decisions(export: Path, path: Path) -> Path:
+    task = json.loads((export / "tasks" / "task.json").read_text(encoding="utf-8"))
+    rows = []
+    for source in task["sources"]:
+        artifact_id = source.get("source_artifact_id") or source["source_record_id"]
+        rows.append({"decision_id": "rights:" + artifact_id, "source_artifact_id": artifact_id,
+            "transmitted_representation_sha256": hashlib.sha256(source["exact_transmitted_representation"].encode()).hexdigest(),
+            "rights_policy_id": "test-open", "provider_processing_policy_id": "test-provider", "rights_basis": "explicit_open_license",
+            "evidence_locator": "https://example.test/licence", "evidence_sha256": "a" * 64, "assessed_on": str(date.today()),
+            "assessment_scope": "private provider", "local_retention_allowed": True, "provider_transmission_allowed": True,
+            "public_redistribution_allowed": False})
+    path.write_text(json.dumps(rows), encoding="utf-8")
+    return path
 
 
 def _walk_schema(schema):
@@ -236,7 +253,7 @@ def test_execute_is_one_shot_and_review_packets_leave_reviewer_fields_blank(tmp_
 
     client = FakeClient()
     monkeypatch.setattr("charitygraph.phase6_confirmation.OpenAIHTTPStandardClient", lambda: client)
-    result = execute_run(run, export)
+    result = execute_run(run, export, rights_decisions_path=_rights_decisions(export, tmp_path / "rights.json"))
     assert result["provider_calls"] == 2
     assert client.calls == 2
     with open(run / "execution-manifest.json", encoding="utf-8") as manifest_file:
@@ -281,7 +298,7 @@ def test_campaign_preflight_fails_closed_before_all_posts_on_any_schema_failure(
         return original_certify(schema, contract_version=contract_version)
 
     monkeypatch.setattr(confirmation, "certify_provider_schema", fail_second_scheduled_schema)
-    result = execute_run(run, export)
+    result = execute_run(run, export, rights_decisions_path=_rights_decisions(export, tmp_path / "rights.json"))
     assert certified == 2  # The entire campaign was preflighted after the first failure.
     assert result["campaign_preflight"] == "failed_local_pre_send"
     assert result["provider_calls"] == 0
@@ -313,7 +330,7 @@ def test_ambiguous_transport_is_not_retried(tmp_path, monkeypatch):
 
     client = AmbiguousClient()
     monkeypatch.setattr("charitygraph.phase6_confirmation.OpenAIHTTPStandardClient", lambda: client)
-    result = execute_run(run, export)
+    result = execute_run(run, export, rights_decisions_path=_rights_decisions(export, tmp_path / "rights.json"))
     assert result["provider_calls"] == 1
     assert client.calls == 1
     with sqlite3.connect(run / "tickets.sqlite3") as db:
@@ -345,3 +362,11 @@ def test_v3_readiness_manifest_cannot_cross_provider_without_new_authority(tmp_p
     assert client.calls == 0
     with sqlite3.connect(run / "tickets.sqlite3") as db:
         assert db.execute("select state,provider_posts from tickets").fetchall() == [("prepared", 0)]
+
+
+def test_provider_rights_preflight_fails_closed_without_artifact_decisions(tmp_path, monkeypatch):
+    export = tmp_path / "approved-export"
+    _write_export(export, monkeypatch, repeat=False)
+    result = preflight_provider_rights(export, None)
+    assert result["rights_preflight"] == "failed_closed"
+    assert result["provider_calls"] == 0

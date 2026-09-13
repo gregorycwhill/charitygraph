@@ -56,10 +56,11 @@ from .source import (
     AcquisitionReceipt, DocumentLocator, EvidenceLocator, PropositionAuthorityRole,
     SourceDefinition, StructuredFieldLocator, TextSpanLocator,
 )
+from ..source_rights import ArtifactRightsDecision
 
 __all__ = [
     'AcquisitionReceipt', 'DocumentLocator', 'EvidenceLocator', 'PropositionAuthorityRole', 'SourceDefinition',
-    'StructuredFieldLocator', 'TextSpanLocator',
+    'StructuredFieldLocator', 'TextSpanLocator', 'ArtifactRightsDecision',
     "ArtifactRecord", "ArtifactRef", "AutomationAuthority", "BudgetCohort", "CandidateObservation",
     "CanonicalObservation", "CanonicalObject", "CanonicalScalar", "CanonicalValue", "CostLedger",
     "CostLedgerEntry", "CostReservation", "DecisionAuthority", "DecisionRecord", "DerivativeArtifact",
