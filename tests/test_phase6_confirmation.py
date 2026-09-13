@@ -17,6 +17,8 @@ from charitygraph.phase6_confirmation import (
     prepare_review_materials,
     prepare_run,
     provider_schema,
+    provider_schema_v6_outcomes,
+    prompt_v6_outcomes,
     preflight_provider_rights,
 )
 from charitygraph.phase6_v5_campaign import compare_greenpeace_repeats
@@ -197,6 +199,25 @@ def test_provider_decimal_string_branch_is_locally_validated_after_pattern_remov
     with pytest.raises(Exception) as exc:
         Phase6SemanticOutput.model_validate(invalid)
     assert any(item["type"] == "decimal_parsing" for item in exc.value.errors(include_input=False))
+
+
+def test_v6_outcomes_schema_is_certified_and_prompt_names_observation_boundary():
+    schema = provider_schema_v6_outcomes("subject:test-v6", SCOPE, ["locator:test"])
+    certification = certify_provider_schema(schema, contract_version="phase6-corrected-contracts-v6")
+    observed = schema["$defs"]["OutcomeObservedReportedV6"]
+    assert certification["certification_status"] == "certified"
+    assert observed["properties"]["observation_basis"]["enum"] == [
+        "quantitative_measurement", "qualitative_assessment",
+        "monitoring_or_observation_result", "evaluation_result",
+    ]
+    assert {"observation_basis", "observation_details"} <= set(observed["required"])
+    prompt = prompt_v6_outcomes({
+        "slice_id": "outcomes", "abn": "28004778081", "subject_name": "Test Charity",
+        "analyst_questions": [], "allowed_scope_ids": [SCOPE], "unavailable_sources": [], "sources": [],
+    })
+    assert "Through our management of fire, ferals and weeds, we sustained ecosystem health." in prompt
+    assert "actual observation" in prompt
+    assert "first_party_measure_reported" in prompt
 
 
 def test_historical_commitments_failure_is_reproduced_and_v3_reports_only_contract_errors():

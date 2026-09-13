@@ -21,10 +21,12 @@ from charitygraph.phase6_semantic_contracts import (
     ImplementationActivitySelfReported,
     IntendedBeneficiaryGroup,
     OutcomeObservedReported,
+    OutcomeObservedReportedV6,
     Phase6EvidenceRef,
     Phase6Scope,
     Phase6SemanticOutput,
     Phase6SemanticOutputV5,
+    Phase6SemanticOutputV6,
     ReachReported,
     ResourceOrWorkforceMeasure,
     ServiceScaleMeasure,
@@ -167,6 +169,115 @@ def test_activity_and_resource_counts_do_not_become_outcomes_or_capacity():
     assert activity.proposition_type == "activity_reported"
     assert expenditure.proposition_type != "capacity_limit_or_capacity_measure"
     assert homes.proposition_type != "capacity_limit_or_capacity_measure"
+
+
+def test_v6_observed_outcome_requires_a_reported_observation_basis():
+    base = {
+        "proposition_type": "outcome_observed_reported",
+        "scope": ORG.model_dump(),
+        "epistemic_class": "first_party_measure_reported",
+        "evidence": [FIRST_PARTY.model_dump(mode="json")],
+        "measured_subject_kind": "target_system_condition",
+        "outcome_domain": "ecological_condition",
+        "population": "managed reserves",
+        "indicator": "ecosystem health",
+        "measured_result": "sustained",
+        "unit": "qualitative report",
+        "measurement_period": "2024-25",
+    }
+    with pytest.raises(ValidationError, match="observation_basis"):
+        Phase6SemanticOutputV6.model_validate({
+            "slice_id": "outcomes", "subject_id": "subject:test-v6", "propositions": [base],
+        })
+
+    with pytest.raises(ValidationError, match="observation_basis"):
+        OutcomeObservedReportedV6(**base)
+
+
+@pytest.mark.parametrize(
+    ("basis", "details", "result", "unit"),
+    [
+        ("quantitative_measurement", "Reading-age change measured at endline", "3 months", "reading-age months"),
+        ("qualitative_assessment", "Documented structured beneficiary assessment", "Improved confidence", "assessment category"),
+        ("monitoring_or_observation_result", "Ecological monitoring recorded ground-cover change", "Increase recorded", "ground-cover indicator"),
+        ("evaluation_result", "Evaluation survey result for the assessed cohort", "Reported increase", "survey response share"),
+    ],
+)
+def test_v6_actual_quantitative_or_qualitative_observation_is_allowed(basis, details, result, unit):
+    observed = OutcomeObservedReportedV6(
+        proposition_type="outcome_observed_reported", scope=ORG,
+        epistemic_class="first_party_measure_reported", evidence=(FIRST_PARTY,),
+        measured_subject_kind="beneficiary_state", outcome_domain="education",
+        population="reported cohort", indicator="reported result", measured_result=result,
+        unit=unit, measurement_period="FY2025", observation_basis=basis,
+        observation_details=details,
+    )
+    assert observed.observation_basis == basis
+    assert observed.epistemic_class == "first_party_measure_reported"
+
+
+def test_v6_activity_linked_claim_is_contribution_not_observed_outcome_or_causal_evidence():
+    from charitygraph.phase6_semantic_contracts import ContributionClaimReported
+
+    claim = ContributionClaimReported(
+        proposition_type="contribution_claim_reported", scope=ORG,
+        epistemic_class="first_party_claim", evidence=(FIRST_PARTY,),
+        outcome_domain="ecological_condition", population="managed reserves",
+        activity="management of fire, ferals and weeds", claimed_relation="contributed_to",
+    )
+    assert claim.proposition_type == "contribution_claim_reported"
+    assert claim.proposition_type != "outcome_observed_reported"
+    assert claim.proposition_type != "causal_evidence_supported"
+
+
+def test_v6_first_party_measure_does_not_assert_independent_verification():
+    observed = OutcomeObservedReportedV6(
+        proposition_type="outcome_observed_reported", scope=ORG,
+        epistemic_class="first_party_measure_reported", evidence=(FIRST_PARTY,),
+        measured_subject_kind="beneficiary_state", outcome_domain="education",
+        population="students surveyed", indicator="reading age change", measured_result="improved",
+        unit="reading-age months", measurement_period="FY2025",
+        observation_basis="quantitative_measurement", observation_details="Reported pre/post reading-age measure",
+    )
+    assert observed.epistemic_class != "independent_finding_reported"
+
+
+def test_world_vision_reach_and_participation_remain_non_outcomes():
+    for proposition_type, population, count, unit in (
+        ("reach_or_participation_reported", "people receiving support", 5000, "people reached"),
+        ("reach_or_participation_reported", "children participating in programs", 2400, "participants"),
+    ):
+        claim = ReachReported(
+            proposition_type=proposition_type, scope=ORG,
+            epistemic_class="first_party_measure_reported", evidence=(FIRST_PARTY,),
+            population=population, count=count, unit=unit, reporting_period="FY2025",
+        )
+        assert claim.proposition_type != "outcome_observed_reported"
+
+
+def test_accounting_and_scale_facts_are_not_beneficiary_outcomes():
+    from charitygraph.phase6_semantic_contracts import OutputReported
+
+    for proposition_type in ("activity_reported", "output_reported"):
+        assert proposition_type != "outcome_observed_reported"
+    expenditure = ResourceOrWorkforceMeasure(
+        proposition_type="resource_or_workforce_measure", scope=ORG,
+        epistemic_class="first_party_measure_reported", evidence=(FIRST_PARTY,),
+        resource_kind="expenditure", measure=Decimal("100000"), unit="AUD", period="FY2025",
+    )
+    scale = ServiceScaleMeasure(
+        proposition_type="service_scale_measure", scope=ORG,
+        epistemic_class="first_party_measure_reported", evidence=(FIRST_PARTY,),
+        scale_kind="homes", measure=Decimal("7000"), unit="homes", period="FY2025",
+    )
+    output = OutputReported(
+        proposition_type="output_reported", scope=ORG,
+        epistemic_class="first_party_measure_reported", evidence=(FIRST_PARTY,),
+        output_kind="hectares_managed", measure=500, unit="hectares", reporting_period="FY2025",
+    )
+    assert expenditure.proposition_type != "outcome_observed_reported"
+    assert scale.proposition_type != "outcome_observed_reported"
+    assert output.proposition_type != "outcome_observed_reported"
     with pytest.raises(ValidationError):
         CapacityLimitOrMeasure(
             proposition_type="capacity_limit_or_capacity_measure", scope=ORG,

@@ -37,6 +37,7 @@ from .phase6_semantic_contracts import (
     Phase6SemanticOutput,
     Phase6SemanticOutputV5,
     Phase6SemanticOutputV5Replay,
+    Phase6SemanticOutputV6,
     validate_scope_bindings,
 )
 from .source_rights import ArtifactRightsDecision, require_provider_rights
@@ -62,6 +63,8 @@ BUILDER_CONTRACT_COMMIT = "7896e6e41423f5a17612eece0d2665e58913fe07"
 AUTHORIZATION_SOURCE_SHA256 = "48a3484e952c7c7013f8a49dbb5c12877f9a7d5a54008530dea32b425abdfd1d"
 V5_CONTRACT_VERSION = "phase6-corrected-contracts-v5"
 V5_SUPERSEDES_CONTRACT_VERSION = CONTRACT_VERSION
+V6_CONTRACT_VERSION = "phase6-corrected-contracts-v6"
+V6_SUPERSEDES_CONTRACT_VERSION = V5_CONTRACT_VERSION
 
 # One predeclared hard-case repeat in each capability cohort. It adds no new
 # subject and directly exercises the boundary named in the approved design.
@@ -418,6 +421,51 @@ def prompt_v5(task: dict[str, Any]) -> str:
         "activity belong to their own substantive proposition types."
     )
     return _prompt(task) + clarification
+
+
+def provider_schema_v6_outcomes(subject_id: str, scope: dict[str, Any], locators: list[str]) -> dict[str, Any]:
+    """Certifiable, task-bound schema for the bounded Outcomes V6 request."""
+    schema = provider_schema(
+        "outcomes", subject_id, scope, locators,
+        output_model=Phase6SemanticOutputV6,
+        contract_version=V6_CONTRACT_VERSION,
+    )
+    for definition in schema["$defs"].values():
+        properties = definition.get("properties", {})
+        if "epistemic_class" in properties:
+            properties["epistemic_class"]["description"] = (
+                "Assertion status, separate from evidence.source_role. A first-party outcome measure "
+                "remains a first-party report and is not independent verification."
+            )
+        if "evidence" in properties:
+            properties["evidence"]["description"] = (
+                "Record carrier for this assertion. Preserve the frozen source role; it does not determine "
+                "whether the claimant is first-party or independent."
+            )
+    return schema
+
+
+def prompt_v6_outcomes(task: dict[str, Any]) -> str:
+    """V6 alignment for an actual observation basis versus an outcome-shaped claim."""
+    clarification = (
+        "\n\nOutcomes V6 observation rule: use outcome_observed_reported only when the source reports an "
+        "actual observation, measurement, monitoring result, structured assessment, indicator result, or "
+        "equivalent evidentiary basis concerning the outcome state. State observation_basis and enough "
+        "observation_details to identify what was actually observed. Numeric values are not required when "
+        "the source reports a qualitative assessment or observation. Do not use a claim-only basis. "
+        "An outcome-shaped assertion linked to activity is not an observation. INVALID observed outcome: "
+        "‘Through our management of fire, ferals and weeds, we sustained ecosystem health.’ This asserts "
+        "an outcome/contribution but reports no observed or measured ecosystem-health result; represent "
+        "it as the appropriate contribution claim or source-attributed causal claim. VALID observed-outcome "
+        "forms include a reported measured change in reading age; a reported survey result; a reported "
+        "ecological monitoring indicator; or a documented qualitative assessment where the assessment "
+        "itself is reported. A first-party annual report may report an observed measure, but its epistemic "
+        "class remains first_party_measure_reported unless independently corroborated. Reach, participation, "
+        "projects, service delivery, hectares managed or protected, expenditure, surplus, and organisational "
+        "scale are not beneficiary outcomes. Keep source role, epistemic class, substantive outcome type, "
+        "and organisation scope distinct."
+    )
+    return prompt_v5(task) + clarification
 
 
 def _load_approved_source_export(export_dir: Path) -> tuple[dict[str, Any], dict[tuple[str, str], dict[str, Any]]]:

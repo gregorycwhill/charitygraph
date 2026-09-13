@@ -178,6 +178,21 @@ class OutcomeObservedReported(_EvidenceBound):
         return self
 
 
+class OutcomeObservedReportedV6(OutcomeObservedReported):
+    """V6 requires the reported observation basis to be named explicitly."""
+
+    observation_basis: Literal[
+        "quantitative_measurement", "qualitative_assessment",
+        "monitoring_or_observation_result", "evaluation_result",
+    ]
+    observation_details: StrictStr
+
+    @field_validator("observation_details")
+    @classmethod
+    def _observation_is_described(cls, value: str) -> str:
+        return require_nonblank(value, "observation_details")
+
+
 class ContributionClaimReported(_EvidenceBound):
     proposition_type: Literal["contribution_claim_reported"]
     epistemic_class: Literal["first_party_claim", "independent_finding_reported"]
@@ -225,6 +240,13 @@ class CausalEvidenceSupported(_EvidenceBound):
         for field_name in ("population", "intervention", "comparator", "measured_result", "study_period"):
             require_nonblank(getattr(self, field_name), field_name)
         return self
+
+
+OutcomeClaimV6 = Annotated[
+    Union[ActivityReported, OutputReported, ReachReported, OutcomeObservedReportedV6,
+          ContributionClaimReported, CausalAttributionClaimReported, CausalEvidenceSupported],
+    Field(discriminator="proposition_type"),
+]
 
 
 OutcomeClaim = Annotated[
@@ -499,6 +521,12 @@ _V5_SLICE_CLAIM_ADAPTERS = {
     "capacity": TypeAdapter(list[CapacityClaim]),
 }
 
+_V6_SLICE_CLAIM_ADAPTERS = {
+    "outcomes": TypeAdapter(list[OutcomeClaimV6]),
+    "commitments": TypeAdapter(list[CommitmentClaimV5]),
+    "capacity": TypeAdapter(list[CapacityClaim]),
+}
+
 
 class Phase6SemanticOutput(StrictModel):
     """V3 slice-routed output; keeps cross-field semantic validation local."""
@@ -606,6 +634,34 @@ class Phase6SemanticOutputV5Replay(_Phase6SemanticOutputV5Base):
     contract_version: Literal["phase6-corrected-contracts-v3"]
 
 
+class _Phase6SemanticOutputV6Base(_Phase6SemanticOutputV5Base):
+    """V6 keeps the V5 carrier rules and tightens only observed Outcomes."""
+
+    propositions: tuple[OutcomeClaimV6 | CommitmentClaimV5 | CapacityClaim, ...] = ()
+
+    @field_validator("propositions", mode="before")
+    @classmethod
+    def _parse_for_selected_slice(cls, value: Any, info: ValidationInfo) -> Any:
+        slice_id = info.data.get("slice_id")
+        adapter = _V6_SLICE_CLAIM_ADAPTERS.get(slice_id)
+        if adapter is None or not isinstance(value, (list, tuple)):
+            return value
+        with phase6_v5_validation_context():
+            return tuple(adapter.validate_python(value))
+
+
+class Phase6SemanticOutputV6(_Phase6SemanticOutputV6Base):
+    """Provider-facing Outcomes V6 contract; unrelated V5 slices are unchanged."""
+
+    contract_version: Literal["phase6-corrected-contracts-v6"] = "phase6-corrected-contracts-v6"
+
+
+class Phase6SemanticOutputV6Replay(_Phase6SemanticOutputV6Base):
+    """Read-only parser for unchanged V4 response bytes under V6 semantics."""
+
+    contract_version: Literal["phase6-corrected-contracts-v3"]
+
+
 def validate_scope_bindings(output: Phase6SemanticOutput, allowed_scope_ids: set[str]) -> None:
     """Require all proposition scopes to be explicitly present in the task packet."""
 
@@ -647,9 +703,9 @@ def validate_current_availability_freshness(
 
 
 __all__ = [
-    "Phase6Scope", "Phase6EvidenceRef", "Phase6SemanticOutput", "Phase6SemanticOutputV5", "Phase6SemanticOutputV5Replay", "OutcomeClaim", "CommitmentClaim", "CommitmentClaimV5",
+    "Phase6Scope", "Phase6EvidenceRef", "Phase6SemanticOutput", "Phase6SemanticOutputV5", "Phase6SemanticOutputV5Replay", "Phase6SemanticOutputV6", "Phase6SemanticOutputV6Replay", "OutcomeClaim", "OutcomeClaimV6", "CommitmentClaim", "CommitmentClaimV5",
     "CapacityClaim", "validate_scope_bindings", "validate_current_availability_freshness",
-    "ActivityReported", "OutputReported", "ReachReported", "OutcomeObservedReported",
+    "ActivityReported", "OutputReported", "ReachReported", "OutcomeObservedReported", "OutcomeObservedReportedV6",
     "ContributionClaimReported", "CausalAttributionClaimReported", "CausalEvidenceSupported",
     "CommitmentStated", "PolicyOrStandardAdopted", "ImplementationActivitySelfReported",
     "ImplementationActivityIndependentlyObserved", "ImplementationEvidenceExternal", "ImplementationOutcomeReported", "ImplementationOutcomeReportedV5",
