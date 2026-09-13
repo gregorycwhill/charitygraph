@@ -241,7 +241,7 @@ def test_execute_is_one_shot_and_review_packets_leave_reviewer_fields_blank(tmp_
         calls = 0
         sent_hashes = []
 
-        def create_response_once(self, body_bytes):
+        def create_response_once(self, body_bytes, *, client_request_id, request_started_at=None):
             self.calls += 1
             assert len(guarded) == self.calls
             self.sent_hashes.append(hashlib.sha256(body_bytes).hexdigest())
@@ -256,7 +256,7 @@ def test_execute_is_one_shot_and_review_packets_leave_reviewer_fields_blank(tmp_
                 "usage": {"input_tokens": 100, "output_tokens": 20, "input_tokens_details": {"cached_tokens": 0, "cache_write_tokens": 0}},
             }
             raw = json.dumps(body).encode()
-            return StandardProviderResponse(200, f"req_test_{self.calls}", body, raw)
+            return StandardProviderResponse(200, f"req_test_{self.calls}", body, raw, client_request_id, f"req_test_{self.calls}", "https://api.openai.com/v1/responses", request_started_at, True)
 
     client = FakeClient()
     monkeypatch.setattr("charitygraph.phase6_confirmation.OpenAIHTTPStandardClient", lambda: client)
@@ -295,7 +295,7 @@ def test_pre_send_guard_failure_stops_all_posts_before_ticket_crossing(tmp_path,
     class NeverCalledClient:
         calls = 0
 
-        def create_response_once(self, _body):
+        def create_response_once(self, _body, **_kwargs):
             self.calls += 1
 
     client = NeverCalledClient()
@@ -362,7 +362,7 @@ def test_ambiguous_transport_is_not_retried(tmp_path, monkeypatch):
     class AmbiguousClient:
         calls = 0
 
-        def create_response_once(self, _body):
+        def create_response_once(self, _body, **_kwargs):
             self.calls += 1
             raise StandardAmbiguous("synthetic timeout after POST")
 
@@ -388,7 +388,7 @@ def test_v3_readiness_manifest_cannot_cross_provider_without_new_authority(tmp_p
     class NeverCalledClient:
         calls = 0
 
-        def create_response_once(self, _body):
+        def create_response_once(self, _body, **_kwargs):
             self.calls += 1
             raise AssertionError("provider call is forbidden by the v3 readiness manifest")
 

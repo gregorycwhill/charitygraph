@@ -88,7 +88,7 @@ def test_excluded_cost_cap_request_is_terminal_and_certification_refuses(tmp_pat
     assert len(attempts) == 1 and attempts[0]["status"] == "cancelled"
     assert attempts[0]["failure_message_redacted"] == "economic_authority_cap_exceeded"
     with pytest.raises(InvalidTransitionError, match="prepared delivery attempt"):
-        catalog.mark_standard_send_started(row["delivery_attempt_id"], now=NOW)
+        catalog.mark_standard_send_started(row["delivery_attempt_id"], client_request_id="cgpa-test-physical-attempt", now=NOW)
     catalog.abandon_pre_send_provider_request(item, now=NOW, reason="economic_authority_cap_exceeded")
     catalog.release_cost(reservation, {"amount": "0.20", "currency": "AUD"}, now=NOW, entry_key="release:cost-cap:" + item)
     catalog.settle_execution_mandate_reservation(mandate_id=mandate, reservation_id=reservation, actual_aud="0", ambiguous=False, now=NOW)

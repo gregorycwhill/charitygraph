@@ -749,6 +749,26 @@ CREATE TABLE provider_pre_send_replacements (
 CREATE INDEX provider_pre_send_replacements_item_idx ON provider_pre_send_replacements(provider_request_item_id);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V15 = """
+CREATE TABLE standard_transport_traces (
+    physical_attempt_id TEXT PRIMARY KEY REFERENCES physical_attempts(physical_attempt_id),
+    delivery_attempt_id TEXT NOT NULL UNIQUE REFERENCES provider_request_attempts(delivery_attempt_id),
+    client_request_id TEXT NOT NULL UNIQUE,
+    endpoint TEXT NOT NULL,
+    request_body_sha256 TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('NOT_SENT','CROSSING_STARTED','LOCAL_PRE_SEND_FAILURE','PROVIDER_CROSSING_AMBIGUOUS','PROVIDER_REJECTED','PROVIDER_RESPONSE_RECEIVED','COMPLETED')),
+    request_started_at TEXT,
+    response_headers_received INTEGER NOT NULL DEFAULT 0 CHECK(response_headers_received IN (0,1)),
+    server_request_id TEXT,
+    response_identity TEXT,
+    provider_model_identity TEXT,
+    usage_json TEXT,
+    transport_exception TEXT,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX standard_transport_traces_status_idx ON standard_transport_traces(status);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -764,6 +784,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(12, "provider_batch_file_identities", CATALOGUE_SQL_V12),
     Migration(13, "append_only_provider_delivery_attempts_and_payload_identity", CATALOGUE_SQL_V13),
     Migration(14, "zero_crossing_pre_send_replacements", CATALOGUE_SQL_V14),
+    Migration(15, "standard_transport_request_trace_ids", CATALOGUE_SQL_V15),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

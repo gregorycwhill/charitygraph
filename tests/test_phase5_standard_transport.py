@@ -5,6 +5,7 @@ import threading
 import time
 from pathlib import Path
 from urllib.error import HTTPError
+from urllib.error import URLError
 
 import pytest
 
@@ -17,6 +18,8 @@ from charitygraph.phase5_standard_transport import (
     StandardSystemic,
     body_sha256,
     canonical_standard_body_bytes,
+    client_request_id_for_physical_attempt,
+    validate_client_request_id,
 )
 
 
@@ -31,9 +34,15 @@ class FakeCatalog:
     def get_provider_request_item(self, request_id):
         return self.items.get(request_id)
 
-    def mark_standard_send_started(self, attempt_id, *, now):
+    def prepare_standard_transport_trace(self, attempt_id, **kwargs):
+        return kwargs
+
+    def mark_standard_send_started(self, attempt_id, *, client_request_id, now):
         with self._lock:
-            self.started.append(attempt_id)
+            self.started.append((attempt_id, client_request_id, now))
+
+    def record_standard_transport_outcome(self, physical_attempt_id, **kwargs):
+        return kwargs
 
     def complete_standard_delivery(self, attempt_id, **kwargs):
         with self._lock:
@@ -63,6 +72,7 @@ def _row(index: int, *, terminal=False, schema_name="program_service_discovery_v
     return {
         "provider_request_item_id": request_id,
         "delivery_attempt_id": f"deliveryattempt:{index:064x}",
+        "physical_attempt_id": f"physicalattempt:{index:064x}",
         "delivery_mode": "standard",
         "model": "gpt-5.6-luna",
         "reasoning_effort": "low",
@@ -89,7 +99,7 @@ class FakeProvider:
         self.max_active = 0
         self._lock = threading.Lock()
 
-    def create_response_once(self, body):
+    def create_response_once(self, body, *, client_request_id, request_started_at=None):
         with self._lock:
             self.posts.append(body)
             index = len(self.posts)
@@ -100,12 +110,12 @@ class FakeProvider:
                 raise StandardSystemic("synthetic rate limit")
             if self.terminal_at == index:
                 raise StandardTransportError("synthetic item failure")
-            if self.ambiguous_at == index:
+            if self.ambiguous_at == index or (isinstance(self.ambiguous_at, (set, tuple, list)) and index in self.ambiguous_at):
                 raise StandardAmbiguous("synthetic connection loss")
             time.sleep(self.delay)
             response_body = {"id": f"resp_{index}", "status": "completed", "incomplete_details": None, "usage": {"input_tokens": 10, "output_tokens": 2}}
             raw = json.dumps(response_body, separators=(",", ":")).encode()
-            return StandardProviderResponse(200, f"req_{index}", response_body, raw)
+            return StandardProviderResponse(200, f"req_{index}", response_body, raw, client_request_id, f"req_{index}", "https://api.openai.com/v1/responses", request_started_at, True)
         finally:
             with self._lock:
                 self.active -= 1
@@ -199,17 +209,31 @@ def test_item_terminal_failure_does_not_stop_independent_items(tmp_path: Path):
     assert result["counts"].get("completed") == 19
 
 
-def test_ambiguous_send_holds_and_does_not_resend(tmp_path: Path):
+def test_first_ambiguous_crossing_is_quarantined_while_independent_attempts_continue(tmp_path: Path):
     rows = [_row(index) for index in range(20)]
     catalog = FakeCatalog(rows)
     for row in rows:
         catalog.items[row["provider_request_item_id"]]["attempt_id"] = row["delivery_attempt_id"]
     provider = FakeProvider(ambiguous_at=1)
-    result = StandardCampaignCoordinator(catalog=catalog, provider=provider, runtime_root=tmp_path, max_concurrency=4).run(rows)
+    result = StandardCampaignCoordinator(catalog=catalog, provider=provider, runtime_root=tmp_path, max_concurrency=1).run(rows)
 
+    assert result["stop_campaign"] is False
+    assert result["unattempted"] == 0
+    assert result["provider_posts"] == len(rows)
+    assert result["ambiguous_crossings"] == 1
+
+
+def test_second_ambiguous_crossing_trips_circuit_breaker(tmp_path: Path):
+    rows = [_row(index) for index in range(8)]
+    catalog = FakeCatalog(rows)
+    for row in rows:
+        catalog.items[row["provider_request_item_id"]]["attempt_id"] = row["delivery_attempt_id"]
+    provider = FakeProvider(ambiguous_at={1, 2})
+    result = StandardCampaignCoordinator(catalog=catalog, provider=provider, runtime_root=tmp_path, max_concurrency=1).run(rows)
     assert result["stop_campaign"] is True
-    assert result["unattempted"] > 0
-    assert result["provider_posts"] <= 4
+    assert result["ambiguous_crossings"] == 2
+    assert result["provider_posts"] == 2
+    assert result["unattempted"] == 6
 
 
 def test_unclassified_exception_after_post_is_quarantined_as_ambiguous(tmp_path: Path):
@@ -219,7 +243,7 @@ def test_unclassified_exception_after_post_is_quarantined_as_ambiguous(tmp_path:
     class CrashingProvider:
         calls = 0
 
-        def create_response_once(self, body):
+        def create_response_once(self, body, *, client_request_id, request_started_at=None):
             self.calls += 1
             raise RuntimeError("unexpected transport interruption")
 
@@ -297,7 +321,7 @@ def test_auth_budget_routing_and_systemic_http_failures_stop_campaign(monkeypatc
     monkeypatch.setattr(transport, "urlopen", fail)
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
     with pytest.raises(StandardSystemic) as exc:
-        OpenAIHTTPStandardClient().create_response_once(b"{}")
+        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-test")
     assert exc.value.status_code == status
 
 
@@ -311,8 +335,73 @@ def test_http_400_remains_a_definite_item_terminal_failure(monkeypatch):
     monkeypatch.setattr(transport, "urlopen", fail)
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
     with pytest.raises(StandardTransportError) as exc:
-        OpenAIHTTPStandardClient().create_response_once(b"{}")
+        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-test")
     assert exc.value.systemic is False
     assert exc.value.status_code == 400
     assert exc.value.raw_bytes == raw
     assert exc.value.request_id == "req_test_terminal"
+
+
+def test_client_request_id_is_stable_unique_ascii_and_bounded():
+    first = client_request_id_for_physical_attempt("physicalattempt:one")
+    assert first == client_request_id_for_physical_attempt("physicalattempt:one")
+    assert first != client_request_id_for_physical_attempt("physicalattempt:two")
+    assert first.isascii() and len(first) <= 512
+    with pytest.raises(ValueError, match="ASCII"):
+        validate_client_request_id("é")
+    with pytest.raises(ValueError, match="512"):
+        validate_client_request_id("a" * 513)
+
+
+def test_openai_transport_sends_client_trace_and_retains_server_request_id(monkeypatch):
+    import charitygraph.phase5_standard_transport as transport
+
+    captured = {}
+
+    class Response:
+        status = 200
+        headers = {"x-request-id": "req_server_123"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return b'{"id":"resp_123","model":"gpt-5.6-luna","status":"completed"}'
+
+    def fake_urlopen(request, timeout):
+        captured["client_request_id"] = request.get_header("X-client-request-id")
+        captured["authorization"] = request.get_header("Authorization")
+        captured["timeout"] = timeout
+        return Response()
+
+    monkeypatch.setattr(transport, "urlopen", fake_urlopen)
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only-secret")
+    response = OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-test-trace", request_started_at="2026-09-13T10:00:00+00:00")
+    assert captured["client_request_id"] == "cgpa-test-trace"
+    assert captured["authorization"] == "Bearer test-only-secret"
+    assert captured["timeout"] == 120
+    assert response.client_request_id == "cgpa-test-trace"
+    assert response.server_request_id == "req_server_123"
+    assert response.endpoint == "https://api.openai.com/v1/responses"
+    assert response.request_started_at == "2026-09-13T10:00:00+00:00"
+    assert response.response_headers_received is True
+
+
+def test_ambiguous_transport_retains_trace_without_claiming_response_headers(monkeypatch):
+    import charitygraph.phase5_standard_transport as transport
+
+    def fail(_request, timeout):
+        raise URLError("synthetic socket timeout")
+
+    monkeypatch.setattr(transport, "urlopen", fail)
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only-secret")
+    with pytest.raises(StandardAmbiguous) as exc:
+        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-ambiguous-trace", request_started_at="2026-09-13T10:00:00+00:00")
+    assert exc.value.client_request_id == "cgpa-ambiguous-trace"
+    assert exc.value.endpoint == "https://api.openai.com/v1/responses"
+    assert exc.value.request_started_at == "2026-09-13T10:00:00+00:00"
+    assert exc.value.response_headers_received is False
+    assert exc.value.request_id is None

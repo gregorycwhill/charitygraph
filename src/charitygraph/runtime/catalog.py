@@ -2522,7 +2522,54 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
 
-    def mark_standard_send_started(self, delivery_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
+    def prepare_standard_transport_trace(self, delivery_attempt_id: str, *, client_request_id: str, endpoint: str, request_body_sha256: str, now: datetime | str) -> dict[str, Any]:
+        """Persist one immutable client trace ID before a Standard POST starts."""
+        when = _utc(now, "now")
+        if not isinstance(client_request_id, str) or not client_request_id or len(client_request_id) > 512 or not client_request_id.isascii():
+            raise ValueError("client request trace ID must be non-empty ASCII and at most 512 characters")
+        if not isinstance(request_body_sha256, str) or len(request_body_sha256) != 64 or any(c not in "0123456789abcdef" for c in request_body_sha256):
+            raise ValueError("request body hash must be lowercase SHA-256")
+        if endpoint != "https://api.openai.com/v1/responses":
+            raise ValueError("Standard transport endpoint is not the approved OpenAI Responses endpoint")
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if attempt is None or attempt["status"] != "prepared":
+                raise InvalidTransitionError("transport trace requires a prepared physical attempt")
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+            if physical is None or physical["status"] != "prepared" or physical["delivery_mode"] != "standard":
+                raise ConflictError("transport trace physical-attempt identity is not prepared Standard")
+            existing = conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchone()
+            if existing is not None:
+                expected = (delivery_attempt_id, client_request_id, endpoint, request_body_sha256)
+                actual = (existing["delivery_attempt_id"], existing["client_request_id"], existing["endpoint"], existing["request_body_sha256"])
+                if actual != expected:
+                    raise ConflictError("physical attempt already has a different immutable client trace mapping")
+                return dict(existing)
+            conn.execute("INSERT INTO standard_transport_traces(physical_attempt_id,delivery_attempt_id,client_request_id,endpoint,request_body_sha256,status,updated_at) VALUES (?,?,?,?,?,'NOT_SENT',?)", (physical["physical_attempt_id"], delivery_attempt_id, client_request_id, endpoint, request_body_sha256, when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchone())
+
+    def record_standard_transport_outcome(self, physical_attempt_id: str, *, status: str, response_headers_received: bool, server_request_id: str | None = None, response_identity: str | None = None, provider_model_identity: str | None = None, usage: Any | None = None, transport_exception: str | None = None, now: datetime | str) -> dict[str, Any]:
+        """Append the observable outcome metadata for a Standard crossing."""
+        when = _utc(now, "now")
+        allowed = {"LOCAL_PRE_SEND_FAILURE", "PROVIDER_CROSSING_AMBIGUOUS", "PROVIDER_REJECTED", "PROVIDER_RESPONSE_RECEIVED", "COMPLETED"}
+        if status not in allowed:
+            raise ValueError("invalid Standard transport outcome state")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            if row is None:
+                raise CatalogError("Standard transport outcome has no pre-POST trace record")
+            if status == "LOCAL_PRE_SEND_FAILURE" and row["status"] not in {"NOT_SENT", "LOCAL_PRE_SEND_FAILURE"}:
+                raise InvalidTransitionError("only an unsent Standard attempt can have a local pre-send failure")
+            if status == "COMPLETED" and row["status"] != "PROVIDER_RESPONSE_RECEIVED":
+                raise InvalidTransitionError("completed transport state requires a recorded provider response")
+            if status not in {"LOCAL_PRE_SEND_FAILURE", "COMPLETED"} and row["status"] != "CROSSING_STARTED":
+                raise InvalidTransitionError("provider outcome requires exactly one started Standard crossing")
+            conn.execute("UPDATE standard_transport_traces SET status=?,response_headers_received=?,server_request_id=?,response_identity=?,provider_model_identity=?,usage_json=?,transport_exception=?,updated_at=? WHERE physical_attempt_id=?", (status, int(response_headers_received), server_request_id, response_identity, provider_model_identity, None if usage is None else json.dumps(_dump(usage), sort_keys=True), transport_exception[:512] if transport_exception else None, when, physical_attempt_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def mark_standard_send_started(self, delivery_attempt_id: str, *, client_request_id: str, now: datetime | str) -> dict[str, Any]:
         """Atomically cross the one-request Standard send boundary."""
         when = _utc(now, "now")
         with self._connection(immediate=True) as conn:
@@ -2537,6 +2584,9 @@ class SQLiteCatalog:
                 raise ConflictError("Standard request item is not prepared")
             if physical is None or physical["status"] != "prepared" or physical["delivery_mode"] != "standard" or physical["provider_request_id"] != item["provider_request_item_id"]:
                 raise ConflictError("Standard physical attempt is not prepared")
+            trace = conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchone()
+            if trace is None or trace["status"] != "NOT_SENT" or trace["client_request_id"] != client_request_id:
+                raise ConflictError("Standard send requires its pre-recorded immutable client request ID")
             if job is None or job["status"] not in {"prepared", "submitted", "in_progress"} or job["delivery_mode"] != "standard":
                 raise ConflictError("Standard delivery job is not prepared")
             if reservation is None or reservation["status"] not in {"active", "partially_consumed"}:
@@ -2544,6 +2594,7 @@ class SQLiteCatalog:
             conn.execute("UPDATE provider_request_attempts SET status='send_started', submitted_at=?, updated_at=? WHERE delivery_attempt_id=?", (when, when, delivery_attempt_id))
             conn.execute("UPDATE provider_request_items SET status='submitted', updated_at=? WHERE provider_request_item_id=?", (when, item["provider_request_item_id"]))
             conn.execute("UPDATE physical_attempts SET status='send_started', send_started_at=?, updated_at=? WHERE physical_attempt_id=?", (when, when, physical["physical_attempt_id"]))
+            conn.execute("UPDATE standard_transport_traces SET status='CROSSING_STARTED', request_started_at=?, updated_at=? WHERE physical_attempt_id=?", (when, when, physical["physical_attempt_id"]))
             conn.execute("UPDATE delivery_jobs SET status=CASE WHEN status='prepared' THEN 'submitted' ELSE status END, submitted_at=COALESCE(submitted_at,?), updated_at=? WHERE delivery_job_id=?", (when, when, job["delivery_job_id"]))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())

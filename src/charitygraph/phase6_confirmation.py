@@ -30,6 +30,7 @@ from .phase5_standard_transport import (
     StandardTransportError,
     body_sha256,
     canonical_standard_body_bytes,
+    client_request_id_for_physical_attempt,
 )
 from .phase6_semantic_contracts import (
     CurrentAvailability,
@@ -44,6 +45,7 @@ CONTRACT_VERSION = "phase6-corrected-contracts-v3"
 SUPERSEDES_CONTRACT_VERSION = "phase6-corrected-contracts-v2"
 PROVIDER_SCHEMA_VERSION = "charitygraph-openai-structured-output-subset-v1"
 PROVIDER_SCHEMA_SUBSET_VERSION = "openai-responses-structured-output-subset-2026-09"
+STANDARD_RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses"
 V3_EXECUTION_AUTHORIZED = False
 NOT_AUTHORIZED_STATUS = "not_authorized_for_v3_provider_calls"
 PRE_SEND_GUARD: Callable[[dict[str, Any], bytes], dict[str, Any] | None] | None = None
@@ -570,7 +572,7 @@ def prepare_run(export_dir: Path, run_dir: Path) -> dict[str, Any]:
     (run_dir / "tickets.sqlite3").touch()
     with sqlite3.connect(run_dir / "tickets.sqlite3") as db:
         db.execute("PRAGMA journal_mode=WAL")
-        db.execute("CREATE TABLE IF NOT EXISTS tickets (request_item_id TEXT PRIMARY KEY, physical_attempt_id TEXT UNIQUE NOT NULL, request_body_sha256 TEXT NOT NULL, state TEXT NOT NULL, provider_posts INTEGER NOT NULL DEFAULT 0, send_started_at TEXT, completed_at TEXT, response_id TEXT, provider_request_id TEXT, usage_json TEXT, failure_class TEXT, failure_message TEXT, provider_schema_version TEXT, provider_schema_sha256 TEXT, certification_sha256 TEXT, certification_status TEXT, preflight_error TEXT)")
+        db.execute("CREATE TABLE IF NOT EXISTS tickets (request_item_id TEXT PRIMARY KEY, physical_attempt_id TEXT UNIQUE NOT NULL, request_body_sha256 TEXT NOT NULL, state TEXT NOT NULL, provider_posts INTEGER NOT NULL DEFAULT 0, send_started_at TEXT, completed_at TEXT, response_id TEXT, provider_request_id TEXT, usage_json TEXT, failure_class TEXT, failure_message TEXT, provider_schema_version TEXT, provider_schema_sha256 TEXT, certification_sha256 TEXT, certification_status TEXT, preflight_error TEXT, client_request_id TEXT UNIQUE, endpoint TEXT, response_headers_received INTEGER, server_request_id TEXT, transport_exception TEXT)")
         db.executemany(
             "INSERT INTO tickets(request_item_id,physical_attempt_id,request_body_sha256,state,provider_schema_version,provider_schema_sha256,certification_sha256,certification_status) VALUES(?,?,?,?,?,?,?,?)",
             [(row["request_item_id"], row["physical_attempt_id"], row["request_body_sha256"], row["state"], row["provider_schema_version"], row["schema_sha256"], row["schema_certification"]["certification_sha256"], row["schema_certification"]["certification_status"]) for row in rows],
@@ -880,25 +882,27 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False, right
             continue
         body_bytes = body_cache[row["request_item_id"]]
         body = json.loads(body_bytes.decode("utf-8"))
+        client_request_id = client_request_id_for_physical_attempt(row["physical_attempt_id"])
+        request_started_at = _now()
         with sqlite3.connect(tickets_path, isolation_level=None) as db:
             db.execute("BEGIN IMMEDIATE")
-            ticket = db.execute("SELECT state,request_body_sha256 FROM tickets WHERE request_item_id=? AND physical_attempt_id=?", (row["request_item_id"], row["physical_attempt_id"])).fetchone()
-            if ticket is None or ticket[0] != "prepared" or ticket[1] != row["request_body_sha256"]:
+            ticket = db.execute("SELECT state,request_body_sha256,client_request_id FROM tickets WHERE request_item_id=? AND physical_attempt_id=?", (row["request_item_id"], row["physical_attempt_id"])).fetchone()
+            if ticket is None or ticket[0] != "prepared" or ticket[1] != row["request_body_sha256"] or ticket[2] not in (None, client_request_id):
                 db.execute("ROLLBACK")
                 raise ValueError("execution ticket is non-unique, changed, or already crossed; no resend")
             pre_send_attestation = None
             try:
                 if PRE_SEND_GUARD is not None:
-                    pre_send_attestation = PRE_SEND_GUARD(row, body_bytes)
+                        pre_send_attestation = PRE_SEND_GUARD({**row, "client_request_id": client_request_id, "endpoint": STANDARD_RESPONSES_ENDPOINT, "request_started_at": request_started_at}, body_bytes)
             except Exception as exc:
                 db.execute("ROLLBACK")
                 results.append({"request_item_id": row["request_item_id"], "state": "failed_local_pre_send", "provider_posts": 0, "error": str(exc)[:512]})
                 global_stop = True
                 continue
-            db.execute("UPDATE tickets SET state='send_started',send_started_at=?,provider_posts=1 WHERE request_item_id=? AND state='prepared'", (_now(), row["request_item_id"]))
+            db.execute("UPDATE tickets SET state='send_started',send_started_at=?,provider_posts=1,client_request_id=?,endpoint=?,response_headers_received=0 WHERE request_item_id=? AND state='prepared'", (request_started_at, client_request_id, STANDARD_RESPONSES_ENDPOINT, row["request_item_id"]))
             db.execute("COMMIT")
         try:
-            response = client.create_response_once(body_bytes)
+            response = client.create_response_once(body_bytes, client_request_id=client_request_id, request_started_at=request_started_at)
         except StandardTransportError as exc:
             state = "ambiguous" if exc.ambiguous else "failed_terminal"
             if exc.raw_bytes is not None:
@@ -908,13 +912,19 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False, right
                 response_file.with_suffix(".meta.json").write_bytes(_canonical({
                     "status_code": exc.status_code,
                     "provider_request_id": exc.request_id,
+                    "server_x_request_id": exc.request_id,
+                    "client_request_id": client_request_id,
+                    "endpoint": exc.endpoint or STANDARD_RESPONSES_ENDPOINT,
+                    "request_started_at": exc.request_started_at or request_started_at,
+                    "response_headers_received": exc.response_headers_received,
+                    "transport_exception": str(exc),
                     "raw_response_sha256": _sha(exc.raw_bytes),
                     "provider_policy_attestation": pre_send_attestation,
                     "transport_outcome": state,
                 }) + b"\n")
             with sqlite3.connect(tickets_path) as db:
-                db.execute("UPDATE tickets SET state=?,completed_at=?,failure_class=?,failure_message=? WHERE request_item_id=? AND state='send_started'", (state, _now(), "ambiguous_transport" if exc.ambiguous else "terminal_provider", str(exc)[:512], row["request_item_id"]))
-            results.append({"request_item_id": row["request_item_id"], "state": state, "provider_posts": 1, "provider_policy_attestation_sha256": (pre_send_attestation or {}).get("attestation_sha256"), "error": str(exc)[:512]})
+                db.execute("UPDATE tickets SET state=?,completed_at=?,failure_class=?,failure_message=?,response_headers_received=?,server_request_id=?,transport_exception=? WHERE request_item_id=? AND state='send_started'", (state, _now(), "ambiguous_transport" if exc.ambiguous else "terminal_provider", str(exc)[:512], int(exc.response_headers_received), exc.request_id, str(exc)[:512], row["request_item_id"]))
+            results.append({"request_item_id": row["request_item_id"], "state": state, "provider_posts": 1, "client_request_id": client_request_id, "server_x_request_id": exc.request_id, "endpoint": exc.endpoint or STANDARD_RESPONSES_ENDPOINT, "request_started_at": exc.request_started_at or request_started_at, "response_headers_received": exc.response_headers_received, "provider_policy_attestation_sha256": (pre_send_attestation or {}).get("attestation_sha256"), "error": str(exc)[:512]})
             if exc.ambiguous or exc.systemic:
                 global_stop = True
             else:
@@ -922,14 +932,16 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False, right
             continue
         except Exception as exc:
             with sqlite3.connect(tickets_path) as db:
-                db.execute("UPDATE tickets SET state='ambiguous',failure_class='transport_after_send_started',failure_message=? WHERE request_item_id=? AND state='send_started'", (str(exc)[:512], row["request_item_id"]))
-            results.append({"request_item_id": row["request_item_id"], "state": "ambiguous", "provider_posts": 1, "error": str(exc)[:512]})
+                db.execute("UPDATE tickets SET state='ambiguous',failure_class='transport_after_send_started',failure_message=?,transport_exception=?,response_headers_received=0 WHERE request_item_id=? AND state='send_started'", (str(exc)[:512], str(exc)[:512], row["request_item_id"]))
+            results.append({"request_item_id": row["request_item_id"], "state": "ambiguous", "provider_posts": 1, "client_request_id": client_request_id, "endpoint": STANDARD_RESPONSES_ENDPOINT, "request_started_at": request_started_at, "response_headers_received": False, "error": str(exc)[:512]})
             global_stop = True
             continue
         response_file = run_dir / "responses" / f"{row['request_item_id'].replace(':', '_')}.json"
         response_file.parent.mkdir(exist_ok=True)
         response_file.write_bytes(response.raw_bytes)
-        response_meta = {"status_code": response.status_code, "provider_request_id": response.request_id,
+        response_meta = {"status_code": response.status_code, "provider_request_id": response.request_id, "server_x_request_id": response.server_request_id,
+                         "client_request_id": response.client_request_id or client_request_id, "endpoint": response.endpoint or STANDARD_RESPONSES_ENDPOINT,
+                         "request_started_at": response.request_started_at or request_started_at, "response_headers_received": response.response_headers_received,
                          "raw_response_sha256": _sha(response.raw_bytes), "provider_policy_attestation": pre_send_attestation}
         response_file.with_suffix(".meta.json").write_bytes(_canonical(response_meta) + b"\n")
         response_id = response.body.get("id")
@@ -959,8 +971,8 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False, right
             state = "completed_parse_failed"
             error = str(exc)[:512]
         with sqlite3.connect(tickets_path) as db:
-            db.execute("UPDATE tickets SET state=?,completed_at=?,response_id=?,provider_request_id=?,usage_json=?,failure_class=?,failure_message=? WHERE request_item_id=? AND state='send_started'", (
-                state, _now(), response_id, response.request_id, json.dumps(usage, sort_keys=True), "mechanical_validation" if error else None, error, row["request_item_id"],
+            db.execute("UPDATE tickets SET state=?,completed_at=?,response_id=?,provider_request_id=?,server_request_id=?,response_headers_received=?,usage_json=?,failure_class=?,failure_message=? WHERE request_item_id=? AND state='send_started'", (
+                state, _now(), response_id, response.request_id, response.server_request_id, int(response.response_headers_received), json.dumps(usage, sort_keys=True), "mechanical_validation" if error else None, error, row["request_item_id"],
             ))
         if output is not None:
             candidate = {
@@ -972,6 +984,8 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False, right
                 "logical_task_id": row["logical_task_id"],
                 "physical_attempt_id": row["physical_attempt_id"],
                 "provider_response_id": response_id,
+                "client_request_id": client_request_id,
+                "server_x_request_id": response.server_request_id,
                 "contract_commit": BUILDER_CONTRACT_COMMIT,
                 "contract_version": CONTRACT_VERSION,
                 "supersedes_contract_version": SUPERSEDES_CONTRACT_VERSION,
@@ -988,9 +1002,9 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False, right
             candidate_path = run_dir / "candidate-packets" / f"{row['request_item_id'].replace(':', '_')}.json"
             candidate_path.parent.mkdir(exist_ok=True)
             candidate_path.write_bytes(_canonical(candidate) + b"\n")
-            results.append({"request_item_id": row["request_item_id"], "state": state, "provider_posts": 1, "proposition_count": len(output.propositions), "input_tokens": usage.get("input_tokens"), "output_tokens": usage.get("output_tokens"), "provider_cost_usd": str(actual_cost_usd) if actual_cost_usd is not None else None, "provider_cost_aud": str(actual_cost_aud) if actual_cost_aud is not None else None, "response_id": response_id, "response_body_sha256": _sha(response.raw_bytes), "provider_policy_attestation_sha256": (pre_send_attestation or {}).get("attestation_sha256")})
+            results.append({"request_item_id": row["request_item_id"], "state": state, "provider_posts": 1, "client_request_id": client_request_id, "server_x_request_id": response.server_request_id, "proposition_count": len(output.propositions), "input_tokens": usage.get("input_tokens"), "output_tokens": usage.get("output_tokens"), "provider_cost_usd": str(actual_cost_usd) if actual_cost_usd is not None else None, "provider_cost_aud": str(actual_cost_aud) if actual_cost_aud is not None else None, "response_id": response_id, "response_body_sha256": _sha(response.raw_bytes), "provider_policy_attestation_sha256": (pre_send_attestation or {}).get("attestation_sha256")})
         else:
-            results.append({"request_item_id": row["request_item_id"], "state": state, "provider_posts": 1, "input_tokens": usage.get("input_tokens"), "output_tokens": usage.get("output_tokens"), "provider_cost_usd": str(actual_cost_usd) if actual_cost_usd is not None else None, "provider_cost_aud": str(actual_cost_aud) if actual_cost_aud is not None else None, "response_id": response_id, "provider_policy_attestation_sha256": (pre_send_attestation or {}).get("attestation_sha256"), "error": error})
+            results.append({"request_item_id": row["request_item_id"], "state": state, "provider_posts": 1, "client_request_id": client_request_id, "server_x_request_id": response.server_request_id, "input_tokens": usage.get("input_tokens"), "output_tokens": usage.get("output_tokens"), "provider_cost_usd": str(actual_cost_usd) if actual_cost_usd is not None else None, "provider_cost_aud": str(actual_cost_aud) if actual_cost_aud is not None else None, "response_id": response_id, "provider_policy_attestation_sha256": (pre_send_attestation or {}).get("attestation_sha256"), "error": error})
         if state != "completed":
             stopped_slices.add(row["slice_id"])
     report = {
