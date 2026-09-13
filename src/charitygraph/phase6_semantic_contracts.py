@@ -20,6 +20,20 @@ from .contracts.common import StrictModel, require_nonblank
 
 
 ScopeKind = Literal["organisation", "program", "service", "study_population", "site"]
+ReviewedEvidenceSourceStatus = Literal[
+    "reviewed", "source_silent", "not_processed", "source_unavailable", "not_acquired", "processing_failed", "unknown",
+]
+ReviewedEvidenceCoverageState = Literal[
+    "evidence_present", "not_found_in_reviewed_sources", "source_silent", "not_processed",
+    "source_unavailable", "not_acquired", "processing_failed", "unknown", "not_applicable",
+]
+ReviewedEvidenceCoverageFamily = Literal["outcomes", "commitments"]
+ReviewedEvidenceCoverageField = Literal[
+    "observed_outcome_measure", "evaluation_assessment", "evaluator_identity", "method",
+    "comparator_counterfactual", "limitations", "implementation_evidence",
+    "independent_implementation_verification", "implementation_outcome",
+    "affirmative_non_implementation_evidence",
+]
 SourceRole = Literal[
     "official_homepage", "annual_report", "financial_report", "first_party_policy",
     "historical_frozen_regulator_material", "regulator_record", "court_or_inquiry_record",
@@ -83,6 +97,140 @@ class Phase6EvidenceRef(StrictModel):
     @classmethod
     def _locator(cls, value: str) -> str:
         return require_nonblank(value, "locator_id")
+
+
+class ReviewedEvidenceSource(StrictModel):
+    """One source's processing/review status within a named evidence universe."""
+
+    source_record_id: StrictStr
+    status: ReviewedEvidenceSourceStatus
+
+    @field_validator("source_record_id")
+    @classmethod
+    def _source_record_id(cls, value: str) -> str:
+        return require_nonblank(value, "source_record_id")
+
+
+class ReviewedEvidenceUniverse(StrictModel):
+    """A finite, explicitly scoped set of source records for coverage statements."""
+
+    universe_id: StrictStr
+    subject_id: StrictStr
+    scope: Phase6Scope
+    sources: tuple[ReviewedEvidenceSource, ...] = Field(min_length=1)
+
+    @field_validator("universe_id", "subject_id")
+    @classmethod
+    def _universe_identity(cls, value: str) -> str:
+        return require_nonblank(value)
+
+    @model_validator(mode="after")
+    def _unique_sources(self):
+        source_ids = [source.source_record_id for source in self.sources]
+        if len(source_ids) != len(set(source_ids)):
+            raise ValueError("reviewed evidence universe source IDs must be unique")
+        return self
+
+
+class ReviewedEvidenceCoverageEvidence(StrictModel):
+    """Evidence locator bound to one source record in the reviewed universe."""
+
+    source_record_id: StrictStr
+    locator_id: StrictStr
+
+    @field_validator("source_record_id", "locator_id")
+    @classmethod
+    def _evidence_identity(cls, value: str) -> str:
+        return require_nonblank(value)
+
+
+class ReviewedEvidenceCoverageItem(StrictModel):
+    """Coverage for one named field, bounded to a particular reviewed universe."""
+
+    universe_id: StrictStr
+    field: ReviewedEvidenceCoverageField
+    state: ReviewedEvidenceCoverageState
+    evidence: tuple[ReviewedEvidenceCoverageEvidence, ...] = ()
+    reviewed_source_record_ids: tuple[StrictStr, ...] = ()
+    applicable_source_record_ids: tuple[StrictStr, ...] = ()
+    rationale: StrictStr | None = None
+
+    @field_validator("universe_id", "reviewed_source_record_ids", "applicable_source_record_ids")
+    @classmethod
+    def _nonblank_ids(cls, value):
+        if isinstance(value, str):
+            return require_nonblank(value)
+        return tuple(require_nonblank(item) for item in value)
+
+    @field_validator("rationale")
+    @classmethod
+    def _rationale(cls, value: str | None) -> str | None:
+        return None if value is None else require_nonblank(value)
+
+    @model_validator(mode="after")
+    def _coverage_evidence_shape(self):
+        if len({item.locator_id for item in self.evidence}) != len(self.evidence):
+            raise ValueError("coverage evidence locator IDs must be unique")
+        if len(set(self.reviewed_source_record_ids)) != len(self.reviewed_source_record_ids):
+            raise ValueError("reviewed source record IDs must be unique")
+        if len(set(self.applicable_source_record_ids)) != len(self.applicable_source_record_ids):
+            raise ValueError("applicable source record IDs must be unique")
+        if self.state == "evidence_present" and not self.evidence:
+            raise ValueError("evidence_present coverage requires evidence locators")
+        if self.state == "not_found_in_reviewed_sources":
+            if not self.reviewed_source_record_ids:
+                raise ValueError("not_found_in_reviewed_sources requires reviewed source IDs")
+            if self.evidence:
+                raise ValueError("not_found_in_reviewed_sources cannot carry positive evidence locators")
+        if self.state == "not_applicable" and self.rationale is None:
+            raise ValueError("not_applicable coverage requires a scope-specific rationale")
+        if self.state not in {"evidence_present", "not_found_in_reviewed_sources"} and self.evidence:
+            raise ValueError("non-present coverage states cannot carry positive evidence locators")
+        return self
+
+
+_OUTCOMES_COVERAGE_FIELDS = {
+    "observed_outcome_measure", "evaluation_assessment", "evaluator_identity", "method",
+    "comparator_counterfactual", "limitations",
+}
+_COMMITMENTS_COVERAGE_FIELDS = {
+    "implementation_evidence", "independent_implementation_verification", "implementation_outcome",
+    "affirmative_non_implementation_evidence",
+}
+
+
+class ReviewedEvidenceCoverage(StrictModel):
+    """Shared Outcomes/Commitments coverage, never a claim about sources outside its universe."""
+
+    family: ReviewedEvidenceCoverageFamily
+    universe: ReviewedEvidenceUniverse
+    items: tuple[ReviewedEvidenceCoverageItem, ...]
+
+    @model_validator(mode="after")
+    def _scope_items_to_universe(self):
+        expected = _OUTCOMES_COVERAGE_FIELDS if self.family == "outcomes" else _COMMITMENTS_COVERAGE_FIELDS
+        fields = [item.field for item in self.items]
+        if set(fields) != expected or len(fields) != len(expected):
+            raise ValueError(f"{self.family} coverage must state each required field exactly once")
+        source_status = {source.source_record_id: source.status for source in self.universe.sources}
+        for item in self.items:
+            if item.universe_id != self.universe.universe_id:
+                raise ValueError("coverage item must reference its containing reviewed evidence universe")
+            for evidence in item.evidence:
+                if evidence.source_record_id not in source_status or source_status[evidence.source_record_id] != "reviewed":
+                    raise ValueError("coverage evidence must bind to a reviewed source in this universe")
+            if any(source_id not in source_status or source_status[source_id] != "reviewed" for source_id in item.reviewed_source_record_ids):
+                raise ValueError("not-found coverage is limited to reviewed sources in this universe")
+            if item.state == "not_found_in_reviewed_sources" and item.applicable_source_record_ids:
+                if not set(item.applicable_source_record_ids).issubset(item.reviewed_source_record_ids):
+                    raise ValueError("not-found applicability cannot exceed the reviewed source set")
+            if item.state in {"source_silent", "not_processed", "source_unavailable", "not_acquired", "processing_failed", "unknown"}:
+                expected_status = item.state
+                if not item.applicable_source_record_ids:
+                    raise ValueError(f"{item.state} coverage requires source IDs in the defined evidence universe")
+                if any(source_status.get(source_id) != expected_status for source_id in item.applicable_source_record_ids):
+                    raise ValueError(f"{item.state} coverage requires only matching source statuses in the universe")
+        return self
 
 
 class _EvidenceBound(StrictModel):

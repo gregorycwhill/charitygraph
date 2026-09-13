@@ -27,6 +27,10 @@ from charitygraph.phase6_semantic_contracts import (
     Phase6SemanticOutput,
     Phase6SemanticOutputV5,
     Phase6SemanticOutputV6,
+    ReviewedEvidenceCoverage,
+    ReviewedEvidenceCoverageItem,
+    ReviewedEvidenceUniverse,
+    ReviewedEvidenceSource,
     ReachReported,
     ResourceOrWorkforceMeasure,
     ServiceScaleMeasure,
@@ -194,6 +198,32 @@ def test_v6_observed_outcome_requires_a_reported_observation_basis():
         OutcomeObservedReportedV6(**base)
 
 
+def test_generic_monitoring_and_evaluation_statement_is_not_an_observed_outcome():
+    # "Monitoring and evaluation occurs" reports a practice, not a measured result.
+    with pytest.raises(ValidationError, match="observation_basis"):
+        OutcomeObservedReportedV6(
+            proposition_type="outcome_observed_reported", scope=ORG,
+            epistemic_class="first_party_measure_reported", evidence=(FIRST_PARTY,),
+            measured_subject_kind="target_system_condition", outcome_domain="ecological_condition",
+            population="managed reserves", indicator="ecosystem health", measured_result="sustained",
+            unit="qualitative report", measurement_period="FY2025",
+        )
+
+
+def test_bush_heritage_management_attribution_is_not_an_observed_outcome():
+    attributed = CausalAttributionClaimReported(
+        proposition_type="causal_attribution_claim_reported", scope=ORG,
+        epistemic_class="source_claimed_causation", evidence=(FIRST_PARTY,),
+        outcome_domain="ecological_condition", population="managed reserves",
+        intervention="year-on-year fire, feral-animal and weed management",
+        attributed_result="ecosystem health was sustained",
+    )
+    assert attributed.proposition_type == "causal_attribution_claim_reported"
+    assert attributed.epistemic_class == "source_claimed_causation"
+    assert attributed.proposition_type != "outcome_observed_reported"
+    assert attributed.proposition_type != "causal_evidence_supported"
+
+
 @pytest.mark.parametrize(
     ("basis", "details", "result", "unit"),
     [
@@ -240,6 +270,84 @@ def test_v6_first_party_measure_does_not_assert_independent_verification():
         observation_basis="quantitative_measurement", observation_details="Reported pre/post reading-age measure",
     )
     assert observed.epistemic_class != "independent_finding_reported"
+
+
+def _coverage(family="outcomes", *, item_overrides=None, sources=None):
+    from charitygraph.phase6_semantic_contracts import ReviewedEvidenceCoverageEvidence
+
+    fields = (
+        ("observed_outcome_measure", "evaluation_assessment", "evaluator_identity", "method", "comparator_counterfactual", "limitations")
+        if family == "outcomes" else
+        ("implementation_evidence", "independent_implementation_verification", "implementation_outcome", "affirmative_non_implementation_evidence")
+    )
+    source_values = sources or (ReviewedEvidenceSource(source_record_id="srcrec:annual", status="reviewed"),)
+    items = []
+    for field in fields:
+        values = {"universe_id": "universe:reviewed-1", "field": field, "state": "not_found_in_reviewed_sources", "reviewed_source_record_ids": ("srcrec:annual",)}
+        if field == fields[0] and item_overrides is None:
+            values = {**values, "state": "evidence_present", "reviewed_source_record_ids": (), "evidence": (ReviewedEvidenceCoverageEvidence(source_record_id="srcrec:annual", locator_id="locator:1"),)}
+        values.update((item_overrides or {}).get(field, {}))
+        items.append(ReviewedEvidenceCoverageItem(**values))
+    return ReviewedEvidenceCoverage(
+        family=family,
+        universe=ReviewedEvidenceUniverse(
+            universe_id="universe:reviewed-1", subject_id="subject:1", scope=ORG, sources=source_values,
+        ),
+        items=tuple(items),
+    )
+
+
+def test_reviewed_evidence_coverage_is_explicit_and_does_not_infer_global_absence():
+    coverage = _coverage()
+    missing = next(item for item in coverage.items if item.field == "comparator_counterfactual")
+    assert missing.state == "not_found_in_reviewed_sources"
+    assert missing.reviewed_source_record_ids == ("srcrec:annual",)
+    assert coverage.universe.universe_id == missing.universe_id
+    assert "anywhere" not in (missing.rationale or "")
+
+
+def test_not_found_coverage_must_be_bound_to_the_defined_reviewed_universe():
+    with pytest.raises(ValidationError, match="containing reviewed evidence universe"):
+        _coverage(item_overrides={"method": {"universe_id": "universe:other"}})
+    with pytest.raises(ValidationError, match="limited to reviewed sources"):
+        _coverage(item_overrides={"method": {"reviewed_source_record_ids": ("srcrec:outside",)}})
+
+
+@pytest.mark.parametrize(
+    ("state", "source_status"),
+    [("source_unavailable", "source_unavailable"), ("not_processed", "not_processed"), ("processing_failed", "processing_failed"), ("not_acquired", "not_acquired"), ("unknown", "unknown")],
+)
+def test_unavailable_unprocessed_failed_and_unacquired_are_not_not_found(state, source_status):
+    with pytest.raises(ValidationError, match="matching source status"):
+        _coverage(item_overrides={"method": {"state": state, "applicable_source_record_ids": ("srcrec:annual",), "reviewed_source_record_ids": ()}})
+    coverage = _coverage(
+        item_overrides={"method": {"state": state, "applicable_source_record_ids": ("srcrec:special",), "reviewed_source_record_ids": ()}},
+        sources=(ReviewedEvidenceSource(source_record_id="srcrec:annual", status="reviewed"), ReviewedEvidenceSource(source_record_id="srcrec:special", status=source_status)),
+    )
+    assert next(item for item in coverage.items if item.field == "method").state == state
+
+
+def test_source_silence_is_distinct_from_source_unavailability():
+    coverage = _coverage(
+        item_overrides={"method": {"state": "source_silent", "applicable_source_record_ids": ("srcrec:silent",), "reviewed_source_record_ids": ()}},
+        sources=(ReviewedEvidenceSource(source_record_id="srcrec:annual", status="reviewed"), ReviewedEvidenceSource(source_record_id="srcrec:silent", status="source_silent")),
+    )
+    assert next(item for item in coverage.items if item.field == "method").state == "source_silent"
+    with pytest.raises(ValidationError, match="matching source status"):
+        _coverage(item_overrides={"method": {"state": "source_silent", "applicable_source_record_ids": ("srcrec:annual",), "reviewed_source_record_ids": ()}})
+
+
+def test_commitments_missing_independent_verification_is_not_proof_of_nonexistence():
+    coverage = _coverage("commitments")
+    verification = next(item for item in coverage.items if item.field == "independent_implementation_verification")
+    nonimplementation = next(item for item in coverage.items if item.field == "affirmative_non_implementation_evidence")
+    assert verification.state == nonimplementation.state == "not_found_in_reviewed_sources"
+    assert verification.reviewed_source_record_ids == nonimplementation.reviewed_source_record_ids
+
+
+def test_reviewed_coverage_rejects_measure_or_m_and_e_claim_without_locator():
+    with pytest.raises(ValidationError, match="requires evidence locators"):
+        _coverage(item_overrides={"observed_outcome_measure": {"state": "evidence_present", "reviewed_source_record_ids": ()}})
 
 
 def test_world_vision_reach_and_participation_remain_non_outcomes():
