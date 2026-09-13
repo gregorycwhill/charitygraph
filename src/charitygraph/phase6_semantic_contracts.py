@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Annotated, Literal, Union
+from typing import Annotated, Any, Literal, Union
 
-from pydantic import Field, StrictStr, field_validator, model_validator
+from pydantic import Field, StrictStr, TypeAdapter, ValidationInfo, field_validator, model_validator
 
 from .contracts.common import StrictModel, require_nonblank
 
@@ -393,8 +393,8 @@ CapacityClaim = Annotated[
 ]
 
 
-class Phase6SemanticOutput(StrictModel):
-    """One slice-local, unreviewed candidate output; never a persisted decision."""
+class Phase6SemanticOutputV2(StrictModel):
+    """Historical v2 response DTO retained to reproduce the stopped-run failure."""
 
     slice_id: Literal["outcomes", "commitments", "capacity"]
     subject_id: StrictStr
@@ -407,6 +407,58 @@ class Phase6SemanticOutput(StrictModel):
 
     @model_validator(mode="after")
     def _slice_types(self):
+        expected = {
+            "outcomes": OutcomeKind.__args__,
+            "commitments": (
+                "commitment_stated", "policy_or_standard_adopted", "implementation_activity_self_reported",
+                "implementation_activity_independently_observed", "implementation_evidence_regulatory_or_external",
+                "implementation_outcome_reported",
+            ),
+            "capacity": (
+                "service_exists", "intended_beneficiary_group", "formal_eligibility_rule", "access_information",
+                "access_pathway", "historical_activity_volume", "resource_or_workforce_measure", "service_scale_measure",
+                "capacity_limit_or_capacity_measure", "availability_reported_as_of_date", "current_availability", "availability_unknown",
+            ),
+        }[self.slice_id]
+        if any(item.proposition_type not in expected for item in self.propositions):
+            raise ValueError("proposition type does not belong to the selected Phase 6 slice")
+        return self
+
+
+_SLICE_CLAIM_ADAPTERS = {
+    "outcomes": TypeAdapter(list[OutcomeClaim]),
+    "commitments": TypeAdapter(list[CommitmentClaim]),
+    "capacity": TypeAdapter(list[CapacityClaim]),
+}
+
+
+class Phase6SemanticOutput(StrictModel):
+    """V3 slice-routed output; keeps cross-field semantic validation local."""
+
+    contract_version: Literal["phase6-corrected-contracts-v3"] = "phase6-corrected-contracts-v3"
+    slice_id: Literal["outcomes", "commitments", "capacity"]
+    subject_id: StrictStr
+    propositions: tuple[OutcomeClaim | CommitmentClaim | CapacityClaim, ...] = ()
+
+    @field_validator("subject_id")
+    @classmethod
+    def _subject(cls, value: str) -> str:
+        return require_nonblank(value, "subject_id")
+
+    @field_validator("propositions", mode="before")
+    @classmethod
+    def _parse_for_selected_slice(cls, value: Any, info: ValidationInfo) -> Any:
+        slice_id = info.data.get("slice_id")
+        adapter = _SLICE_CLAIM_ADAPTERS.get(slice_id)
+        if adapter is None or not isinstance(value, (list, tuple)):
+            return value
+        # Dispatch before the broad Python union is tried. This preserves the
+        # selected slice's tagged-union diagnostics and prevents irrelevant
+        # union_tag_invalid errors from other capabilities.
+        return tuple(adapter.validate_python(value))
+
+    @model_validator(mode="after")
+    def _version_and_slice_types(self):
         expected = {
             "outcomes": OutcomeKind.__args__,
             "commitments": (

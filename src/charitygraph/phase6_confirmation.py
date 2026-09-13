@@ -38,7 +38,12 @@ from .phase6_semantic_contracts import (
 )
 
 
-RUN_ID = "phase6-corrected-confirmation-20260913-v2"
+RUN_ID = "phase6-corrected-confirmation-20260913-v3"
+CONTRACT_VERSION = "phase6-corrected-contracts-v3"
+SUPERSEDES_CONTRACT_VERSION = "phase6-corrected-contracts-v2"
+PROVIDER_SCHEMA_VERSION = "charitygraph-openai-structured-output-subset-v1"
+PROVIDER_SCHEMA_SUBSET_VERSION = "openai-responses-structured-output-subset-2026-09"
+V3_EXECUTION_AUTHORIZED = False
 MODEL = "gpt-5.6-luna"
 REASONING_EFFORT = "low"
 MAX_OUTPUT_TOKENS = 8000
@@ -143,6 +148,146 @@ def _reachable_definitions(definitions: dict[str, Any], roots: list[str]) -> dic
     return selected
 
 
+_PROVIDER_SCHEMA_KEYS = {
+    "$defs", "$ref", "type", "enum", "anyOf", "properties", "required",
+    "additionalProperties", "items", "format", "description", "minLength",
+    "maxLength", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
+    "multipleOf", "minItems", "maxItems",
+}
+_PROVIDER_SCHEMA_TYPES = {"string", "number", "integer", "boolean", "object", "array", "null"}
+_PROVIDER_SCHEMA_FORMATS = {"date-time", "time", "date", "duration", "email", "hostname", "ipv4", "ipv6", "uuid"}
+_PYDANTIC_DECIMAL_PATTERN = r"^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$"
+
+
+class ProviderSchemaCertificationError(ValueError):
+    """A provider request schema is outside the locally certified subset."""
+
+
+def certify_provider_schema(schema: dict[str, Any], *, contract_version: str = CONTRACT_VERSION) -> dict[str, Any]:
+    """Certify one exact schema against CharityGraph's conservative provider subset.
+
+    Patterns are intentionally excluded from this subset even though Structured
+    Outputs documents a pattern keyword: the semantic model keeps its stronger
+    Decimal validation locally, while this boundary avoids regex-dialect drift.
+    """
+    errors: list[str] = []
+    property_count = 0
+    enum_count = 0
+    enum_string_chars = 0
+    name_chars = sum(len(name) for name in (schema.get("$defs") or {}))
+    maximum_depth = 0
+    definitions = schema.get("$defs")
+
+    def visit(node: Any, path: str, depth: int) -> None:
+        nonlocal property_count, enum_count, enum_string_chars, name_chars, maximum_depth
+        maximum_depth = max(maximum_depth, depth)
+        if not isinstance(node, dict):
+            errors.append(f"{path}: schema node must be an object")
+            return
+        for key in node:
+            if key not in _PROVIDER_SCHEMA_KEYS and key != "pattern":
+                errors.append(f"{path}: unsupported keyword {key}")
+        if "pattern" in node:
+            errors.append(f"{path}.pattern: regular-expression patterns are excluded from the certified subset")
+        kind = node.get("type")
+        if isinstance(kind, str):
+            kinds = [kind]
+        elif isinstance(kind, list) and kind and all(isinstance(item, str) for item in kind):
+            kinds = kind
+        else:
+            kinds = []
+        if kind is not None and (not kinds or any(item not in _PROVIDER_SCHEMA_TYPES for item in kinds)):
+            errors.append(f"{path}.type: unsupported or malformed type")
+        if node.get("format") is not None and node["format"] not in _PROVIDER_SCHEMA_FORMATS:
+            errors.append(f"{path}.format: unsupported format {node['format']}")
+        for keyword in ("format", "minLength", "maxLength"):
+            if keyword in node and "string" not in kinds:
+                errors.append(f"{path}.{keyword}: string constraint is attached to a non-string schema")
+        for keyword in ("minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf"):
+            if keyword in node and not ({"number", "integer"} & set(kinds)):
+                errors.append(f"{path}.{keyword}: numeric constraint is attached to a non-numeric schema")
+        for keyword in ("minItems", "maxItems"):
+            if keyword in node and "array" not in kinds:
+                errors.append(f"{path}.{keyword}: array constraint is attached to a non-array schema")
+        if "$ref" in node:
+            ref = node["$ref"]
+            if not isinstance(ref, str) or not ref.startswith("#/$defs/") or ref.rsplit("/", 1)[-1] not in (definitions or {}):
+                errors.append(f"{path}.$ref: unresolved local definition reference")
+            if set(node) != {"$ref"}:
+                errors.append(f"{path}.$ref: reference siblings are not in the certified subset")
+        if "enum" in node:
+            values = node["enum"]
+            if not isinstance(values, list) or not values:
+                errors.append(f"{path}.enum: enum must be a non-empty list")
+            else:
+                enum_count += len(values)
+                enum_string_chars += sum(len(item) for item in values if isinstance(item, str))
+                if any(not isinstance(item, (str, int, float, bool)) and item is not None for item in values):
+                    errors.append(f"{path}.enum: unsupported enum value type")
+        if "anyOf" in node:
+            if not isinstance(node["anyOf"], list) or not node["anyOf"]:
+                errors.append(f"{path}.anyOf: anyOf must be a non-empty list")
+        if "properties" in node or "object" in kinds:
+            properties = node.get("properties")
+            if not isinstance(properties, dict):
+                errors.append(f"{path}.properties: object properties must be an object")
+                properties = {}
+            property_count += len(properties)
+            name_chars += sum(len(name) for name in properties)
+            if node.get("additionalProperties") is not False:
+                errors.append(f"{path}.additionalProperties: object schemas must set false")
+            required = node.get("required")
+            if not isinstance(required, list) or len(required) != len(set(required)) or set(required) != set(properties):
+                errors.append(f"{path}.required: all declared object properties must be required exactly once")
+            for name, child in properties.items():
+                visit(child, f"{path}.properties.{name}", depth + 1)
+        if "array" in kinds:
+            if not isinstance(node.get("items"), dict):
+                errors.append(f"{path}.items: array schema must declare items")
+        if isinstance(node.get("items"), dict):
+            visit(node["items"], f"{path}.items", depth + 1)
+        if isinstance(node.get("anyOf"), list):
+            for index, child in enumerate(node["anyOf"]):
+                visit(child, f"{path}.anyOf[{index}]", depth + 1)
+
+    if schema.get("type") != "object":
+        errors.append("$: root schema must be an object")
+    if not isinstance(definitions, dict):
+        errors.append("$.$defs: root definitions must be an object")
+        definitions = {}
+    root = {key: value for key, value in schema.items() if key != "$defs"}
+    visit(root, "$", 1)
+    for name, definition in definitions.items():
+        visit(definition, f"$.$defs.{name}", 1)
+    if maximum_depth > 10:
+        errors.append(f"$: schema nesting depth {maximum_depth} exceeds 10")
+    if property_count > 5000:
+        errors.append(f"$: schema property count {property_count} exceeds 5000")
+    if enum_count > 1000:
+        errors.append(f"$: enum value count {enum_count} exceeds 1000")
+    if enum_string_chars > 120_000:
+        errors.append(f"$: total enum string length {enum_string_chars} exceeds 120000")
+    if name_chars + enum_string_chars > 120_000:
+        errors.append(f"$: property/definition/enum string length {name_chars + enum_string_chars} exceeds 120000")
+    if enum_count > 250 and enum_string_chars > 15_000:
+        errors.append(f"$: enum string length {enum_string_chars} exceeds 15000 for an enum-heavy schema")
+    if errors:
+        raise ProviderSchemaCertificationError("; ".join(errors))
+    schema_hash = _sha(_canonical(schema))
+    details = {
+        "contract_version": contract_version,
+        "provider_schema_version": PROVIDER_SCHEMA_VERSION,
+        "supported_subset_version": PROVIDER_SCHEMA_SUBSET_VERSION,
+        "schema_sha256": schema_hash,
+        "object_property_count": property_count,
+        "enum_value_count": enum_count,
+        "maximum_depth": maximum_depth,
+        "property_definition_enum_string_chars": name_chars + enum_string_chars,
+        "certification_status": "certified",
+    }
+    return {**details, "certification_sha256": _sha(_canonical(details))}
+
+
 def provider_schema(slice_id: str, subject_id: str, scope: dict[str, Any], locators: list[str]) -> dict[str, Any]:
     """Make a strict, task-bound provider schema from the approved Pydantic models."""
     if slice_id not in COHORTS or not locators or len(locators) != len(set(locators)):
@@ -154,6 +299,7 @@ def provider_schema(slice_id: str, subject_id: str, scope: dict[str, Any], locat
         if key not in {"$defs", "title", "description"}
     }
     root["properties"]["slice_id"] = {"type": "string", "enum": [slice_id]}
+    root["properties"]["contract_version"] = {"type": "string", "enum": [CONTRACT_VERSION]}
     root["properties"]["subject_id"] = {"type": "string", "enum": [subject_id]}
     root["properties"]["propositions"]["items"] = {
         "anyOf": [{"$ref": f"#/$defs/{name}"} for name in names]
@@ -179,6 +325,11 @@ def provider_schema(slice_id: str, subject_id: str, scope: dict[str, Any], locat
             value.pop("discriminator", None)
             if "const" in value:
                 value["enum"] = [value.pop("const")]
+            # Pydantic Decimal's string branch emits a lookahead pattern. The
+            # provider receives a simple string type; Decimal still validates
+            # the actual value strictly after the response.
+            if value.get("pattern") == _PYDANTIC_DECIMAL_PATTERN:
+                value.pop("pattern")
             if "oneOf" in value:
                 raise ValueError("provider schema unexpectedly contains oneOf")
             if value.get("type") == "object" and isinstance(value.get("properties"), dict):
@@ -273,11 +424,13 @@ def prepare_run(export_dir: Path, run_dir: Path) -> dict[str, Any]:
             for ordinal in repeats:
                 prompt_text = _prompt(task)
                 schema = provider_schema(slice_id, task["subject_id"], scope, locators)
-                schema_hash = _sha(_canonical(schema))
+                certification = certify_provider_schema(schema)
+                schema_hash = certification["schema_sha256"]
                 prompt_hash = _sha(prompt_text.encode("utf-8"))
                 contract_hash = _sha(_canonical({
                     "builder_commit": BUILDER_CONTRACT_COMMIT,
-                    "contract": "phase6-semantic-correction-v2-confirmation",
+                    "contract": CONTRACT_VERSION,
+                    "supersedes": SUPERSEDES_CONTRACT_VERSION,
                     "slice_id": slice_id,
                     "schema_sha256": schema_hash,
                     "prompt_sha256": prompt_hash,
@@ -291,7 +444,7 @@ def prepare_run(export_dir: Path, run_dir: Path) -> dict[str, Any]:
                     "input": [{"role": "user", "content": [{"type": "input_text", "text": prompt_text}]}],
                     "text": {"format": {
                         "type": "json_schema",
-                        "name": f"phase6_{slice_id}_confirmation_v2",
+                        "name": f"phase6_{slice_id}_confirmation_v3",
                         "strict": True,
                         "schema": schema,
                     }},
@@ -310,6 +463,8 @@ def prepare_run(export_dir: Path, run_dir: Path) -> dict[str, Any]:
                 physical_id = "physicalattempt:" + _sha((request_id + ":physical:1").encode())
                 row = {
                     "run_id": RUN_ID,
+                    "contract_version": CONTRACT_VERSION,
+                    "supersedes_contract_version": SUPERSEDES_CONTRACT_VERSION,
                     "slice_id": slice_id,
                     "abn": abn,
                     "subject_id": task["subject_id"],
@@ -324,7 +479,9 @@ def prepare_run(export_dir: Path, run_dir: Path) -> dict[str, Any]:
                     "reasoning_effort": REASONING_EFFORT,
                     "delivery_mode": "standard",
                     "max_output_tokens": MAX_OUTPUT_TOKENS,
-                    "provider_schema_name": f"phase6_{slice_id}_confirmation_v2",
+                    "provider_schema_name": f"phase6_{slice_id}_confirmation_v3",
+                    "provider_schema_version": PROVIDER_SCHEMA_VERSION,
+                    "schema_certification": certification,
                     "semantic_contract_hash": contract_hash,
                     "schema_sha256": schema_hash,
                     "prompt_sha256": prompt_hash,
@@ -369,8 +526,14 @@ def prepare_run(export_dir: Path, run_dir: Path) -> dict[str, Any]:
     public_rows = [{key: value for key, value in row.items() if key != "body"} for row in rows]
     manifest = {
         "run_id": RUN_ID,
+        "contract_version": CONTRACT_VERSION,
+        "supersedes_contract_version": SUPERSEDES_CONTRACT_VERSION,
+        "provider_schema_version": PROVIDER_SCHEMA_VERSION,
         "execution_status": "prepared_not_sent",
-        "authorization_request_sha256": AUTHORIZATION_SOURCE_SHA256,
+        "authorization_status": "not_authorized_for_v3_provider_calls",
+        "execution_authorized": False,
+        "authorization_request_sha256": None,
+        "superseded_v2_authorization_request_sha256": AUTHORIZATION_SOURCE_SHA256,
         "authorization_scope": {
             "capabilities": ["outcomes", "commitments", "capacity"],
             "provider": "openai",
@@ -404,10 +567,10 @@ def prepare_run(export_dir: Path, run_dir: Path) -> dict[str, Any]:
     (run_dir / "tickets.sqlite3").touch()
     with sqlite3.connect(run_dir / "tickets.sqlite3") as db:
         db.execute("PRAGMA journal_mode=WAL")
-        db.execute("CREATE TABLE IF NOT EXISTS tickets (request_item_id TEXT PRIMARY KEY, physical_attempt_id TEXT UNIQUE NOT NULL, request_body_sha256 TEXT NOT NULL, state TEXT NOT NULL, provider_posts INTEGER NOT NULL DEFAULT 0, send_started_at TEXT, completed_at TEXT, response_id TEXT, provider_request_id TEXT, usage_json TEXT, failure_class TEXT, failure_message TEXT)")
+        db.execute("CREATE TABLE IF NOT EXISTS tickets (request_item_id TEXT PRIMARY KEY, physical_attempt_id TEXT UNIQUE NOT NULL, request_body_sha256 TEXT NOT NULL, state TEXT NOT NULL, provider_posts INTEGER NOT NULL DEFAULT 0, send_started_at TEXT, completed_at TEXT, response_id TEXT, provider_request_id TEXT, usage_json TEXT, failure_class TEXT, failure_message TEXT, provider_schema_version TEXT, provider_schema_sha256 TEXT, certification_sha256 TEXT, certification_status TEXT, preflight_error TEXT)")
         db.executemany(
-            "INSERT INTO tickets(request_item_id,physical_attempt_id,request_body_sha256,state) VALUES(?,?,?,?)",
-            [(row["request_item_id"], row["physical_attempt_id"], row["request_body_sha256"], row["state"]) for row in rows],
+            "INSERT INTO tickets(request_item_id,physical_attempt_id,request_body_sha256,state,provider_schema_version,provider_schema_sha256,certification_sha256,certification_status) VALUES(?,?,?,?,?,?,?,?)",
+            [(row["request_item_id"], row["physical_attempt_id"], row["request_body_sha256"], row["state"], row["provider_schema_version"], row["schema_sha256"], row["schema_certification"]["certification_sha256"], row["schema_certification"]["certification_status"]) for row in rows],
         )
         db.commit()
     return {
@@ -422,6 +585,8 @@ def prepare_run(export_dir: Path, run_dir: Path) -> dict[str, Any]:
 
 
 def _mechanical_validate(row: dict[str, Any], packet: dict[str, Any]) -> Phase6SemanticOutput:
+    if packet.get("contract_version") != CONTRACT_VERSION:
+        raise ValueError("response contract version is missing or differs from the certified request")
     parsed = Phase6SemanticOutput.model_validate(packet)
     if parsed.slice_id != row["slice_id"] or parsed.subject_id != row["subject_id"]:
         raise ValueError("response task identity mismatch")
@@ -448,22 +613,108 @@ def _mechanical_validate(row: dict[str, Any], packet: dict[str, Any]) -> Phase6S
     return parsed
 
 
-def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False) -> dict[str, Any]:
-    """Execute prepared one-shot requests in order; stop on any uncertain crossing."""
-    manifest_path = run_dir / "execution-manifest.json"
-    manifest = json.loads(manifest_path.read_bytes().decode("utf-8"))
+def _preflight_request(
+    row: dict[str, Any],
+    manifest: dict[str, Any],
+    condition_a_manifest: dict[str, Any],
+    frozen_tasks: dict[tuple[str, str], dict[str, Any]],
+    ticket_map: dict[str, tuple[str, str, str]],
+    run_dir: Path,
+) -> tuple[bytes, dict[str, Any]]:
+    """Validate and certify one fully materialized request without side effects."""
+    expected_ticket = ticket_map.get(row["request_item_id"])
+    if expected_ticket is None or expected_ticket[:2] != (row["physical_attempt_id"], row["request_body_sha256"]):
+        raise ValueError("ticket identity/body binding mismatch")
+    expected_state = "prepared" if row["state"] == "prepared" else "economic_exclusion"
+    if row["state"] not in {"prepared", "economic_exclusion"} or expected_ticket[2] != expected_state:
+        raise ValueError("request has an ambiguous, prior, or mismatched ticket state")
+    if Decimal(row["conservative_exposure_aud"]) > Decimal(PER_REQUEST_LIMIT_AUD):
+        raise ValueError("per-request conservative exposure exceeds the owner limit")
+    task = frozen_tasks.get((row["slice_id"], row["abn"]))
+    if task is None or task["subject_id"] != row["subject_id"] or task.get("condition") != "A_source_only":
+        raise ValueError("approved source subject identity mismatch")
+    if task.get("allowed_scope_ids") != [row["allowed_scope"]]:
+        raise ValueError("approved organization scope identity mismatch")
+    if row["allowed_scope"].get("scope_kind") != "organisation":
+        raise ValueError("confirmation scope is not the approved organization scope")
+    source_task_row = next((item for item in condition_a_manifest["tasks"] if item["task_id"] == task["task_id"]), None)
+    if source_task_row is None or source_task_row["task_sha256"] != row["source_export_task_sha256"]:
+        raise ValueError("source task hash mismatch")
+    source_hashes = [_sha(source["exact_transmitted_representation"].encode("utf-8")) for source in task["sources"]]
+    if source_hashes != row["source_content_sha256"]:
+        raise ValueError("frozen source representation identity mismatch")
+    locators = [source["evidence_locator_id"] for source in task["sources"]]
+    if locators != row["allowed_locators"] or len(locators) != len(set(locators)):
+        raise ValueError("frozen source locator allow-list mismatch")
+    metadata = [{"evidence_locator_id": source["evidence_locator_id"], "source_role": source["source_role"]} for source in task["sources"]]
+    if metadata != row["source_metadata"]:
+        raise ValueError("frozen source locator/role identity mismatch")
+    if row.get("contract_version") != CONTRACT_VERSION or row.get("supersedes_contract_version") != SUPERSEDES_CONTRACT_VERSION:
+        raise ValueError("semantic contract version/lineage mismatch")
+    if row.get("provider_schema_version") != PROVIDER_SCHEMA_VERSION:
+        raise ValueError("provider schema version mismatch")
+    if manifest.get("contract_version") != CONTRACT_VERSION or manifest.get("supersedes_contract_version") != SUPERSEDES_CONTRACT_VERSION:
+        raise ValueError("campaign semantic contract version/lineage mismatch")
+    if manifest.get("provider_schema_version") != PROVIDER_SCHEMA_VERSION:
+        raise ValueError("campaign provider schema version mismatch")
+
+    body_path = run_dir / "requests" / f"{row['request_item_id'].replace(':', '_')}.json"
+    body_bytes = body_path.read_bytes()
+    if body_sha256(body_bytes) != row["request_body_sha256"]:
+        raise ValueError("frozen request body hash mismatch")
+    body = json.loads(body_bytes.decode("utf-8"))
+    if canonical_standard_body_bytes(body) != body_bytes:
+        raise ValueError("request serialization is not canonical")
+    if body.get("model") != MODEL or body.get("reasoning", {}).get("effort") != REASONING_EFFORT or body.get("max_output_tokens") != MAX_OUTPUT_TOKENS:
+        raise ValueError("provider request route mismatch")
+    if "service_tier" in body:
+        raise ValueError("request contains an unauthorized service tier")
+    if body.get("metadata") != {"logical_task_id": row["logical_task_id"], "semantic_contract_hash": row["semantic_contract_hash"]}:
+        raise ValueError("request metadata identity mismatch")
+    if row["request_item_id"] != _ticket_id(row["logical_task_id"], row["request_body_sha256"]):
+        raise ValueError("request execution-ticket construction mismatch")
+    expected_physical_id = "physicalattempt:" + _sha((row["request_item_id"] + ":physical:1").encode())
+    if row["physical_attempt_id"] != expected_physical_id:
+        raise ValueError("physical attempt ticket construction mismatch")
+    input_text = body.get("input", [{}])[0].get("content", [{}])[0].get("text")
+    prompt_hash = _sha(input_text.encode("utf-8")) if isinstance(input_text, str) else None
+    if prompt_hash != row["prompt_sha256"] or input_text != _prompt(task):
+        raise ValueError("pinned prompt/source packet identity mismatch")
+    text_format = body.get("text", {}).get("format", {})
+    if text_format.get("type") != "json_schema" or text_format.get("strict") is not True or text_format.get("name") != row["provider_schema_name"] or text_format.get("name") != f"phase6_{row['slice_id']}_confirmation_v3":
+        raise ValueError("provider structured-output route/version mismatch")
+    expected_schema = provider_schema(row["slice_id"], row["subject_id"], row["allowed_scope"], row["allowed_locators"])
+    if text_format.get("schema") != expected_schema:
+        raise ValueError("materialized provider schema does not match the pinned contract")
+    certification = certify_provider_schema(text_format["schema"])
+    if certification["schema_sha256"] != row["schema_sha256"] or certification != row["schema_certification"]:
+        raise ValueError("provider schema certification/hash mismatch")
+    expected_contract_hash = _sha(_canonical({
+        "builder_commit": BUILDER_CONTRACT_COMMIT,
+        "contract": CONTRACT_VERSION,
+        "supersedes": SUPERSEDES_CONTRACT_VERSION,
+        "slice_id": row["slice_id"],
+        "schema_sha256": row["schema_sha256"],
+        "prompt_sha256": row["prompt_sha256"],
+    }))
+    if row["semantic_contract_hash"] != expected_contract_hash:
+        raise ValueError("semantic contract/request hash binding mismatch")
+    return body_bytes, certification
+
+
+def _preflight_campaign(run_dir: Path, export_dir: Path) -> tuple[dict[str, Any], dict[str, bytes]]:
+    """Certify every scheduled request before any ticket can cross the provider boundary."""
+    manifest = json.loads((run_dir / "execution-manifest.json").read_bytes().decode("utf-8"))
     if manifest.get("run_id") != RUN_ID or manifest.get("execution_status") != "prepared_not_sent" or manifest.get("provider_calls") != 0:
         raise ValueError("run manifest is not an unsent prepared manifest")
-    if manifest.get("authorization_request_sha256") != AUTHORIZATION_SOURCE_SHA256:
-        raise ValueError("one-off provider authorization identity does not match the owner request")
+    if manifest.get("authorization_status") != "not_authorized_for_v3_provider_calls" or manifest.get("execution_authorized") is not False or manifest.get("authorization_request_sha256") is not None:
+        raise ValueError("v3 execution authorization state is inconsistent")
+    if manifest.get("superseded_v2_authorization_request_sha256") != AUTHORIZATION_SOURCE_SHA256:
+        raise ValueError("v2 authorization lineage identity mismatch")
     if manifest.get("condition_a_manifest_sha256") != CONDITION_A_MANIFEST_SHA256:
         raise ValueError("approved Condition A identity changed")
     if manifest.get("model") != MODEL or manifest.get("reasoning_effort") != REASONING_EFFORT or manifest.get("delivery_mode") != "standard":
         raise ValueError("approved model route does not match the prepared manifest")
-    tickets_path = run_dir / "tickets.sqlite3"
-    if not tickets_path.is_file():
-        raise ValueError("execution tickets are absent")
-    _condition_a_manifest, frozen_tasks = _load_approved_source_export(export_dir)
     if len({row["request_item_id"] for row in manifest["tasks"]}) != len(manifest["tasks"]):
         raise ValueError("request ticket IDs are not unique")
     if len({row["physical_attempt_id"] for row in manifest["tasks"]}) != len(manifest["tasks"]):
@@ -474,79 +725,98 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False) -> di
         for abn, (_focus, repeat) in subjects.items()
         for ordinal in ((1, 2) if repeat else (1,))
     }
-    actual_tasks = {(row["slice_id"], row["abn"], row["replicate_ordinal"]) for row in manifest["tasks"]}
-    if actual_tasks != expected_tasks:
+    if {(row["slice_id"], row["abn"], row["replicate_ordinal"]) for row in manifest["tasks"]} != expected_tasks:
         raise ValueError("manifest cohort/repeat set differs from the explicit owner authorization")
-    if any(Decimal(row["conservative_exposure_aud"]) > Decimal(PER_REQUEST_LIMIT_AUD) for row in manifest["tasks"] if row["state"] == "prepared"):
-        raise ValueError("per-request conservative exposure exceeds the owner limit")
-    if sum((Decimal(row["conservative_exposure_aud"]) for row in manifest["tasks"] if row["state"] == "prepared"), Decimal("0")) > Decimal(AGGREGATE_LIMIT_AUD):
+    prepared_exposure = sum((Decimal(row["conservative_exposure_aud"]) for row in manifest["tasks"] if row["state"] == "prepared"), Decimal("0"))
+    if prepared_exposure > Decimal(AGGREGATE_LIMIT_AUD):
         raise ValueError("prepared requests exceed the approved aggregate exposure")
-    body_cache: dict[str, bytes] = {}
+    if str(prepared_exposure) != manifest["conservative_exposure_total_aud"]:
+        raise ValueError("campaign conservative exposure total mismatch")
+    tickets_path = run_dir / "tickets.sqlite3"
+    if not tickets_path.is_file():
+        raise ValueError("execution tickets are absent")
+    condition_a_manifest, frozen_tasks = _load_approved_source_export(export_dir)
     with sqlite3.connect(tickets_path) as db:
         existing_tickets = db.execute("SELECT request_item_id,physical_attempt_id,request_body_sha256,state FROM tickets").fetchall()
     if len(existing_tickets) != len(manifest["tasks"]):
-        raise ValueError("ticket count does not match frozen manifest; no send")
+        raise ValueError("ticket count does not match frozen manifest")
     ticket_map = {item[0]: item[1:] for item in existing_tickets}
     for row in manifest["tasks"]:
-        expected_ticket = ticket_map.get(row["request_item_id"])
-        if expected_ticket is None or expected_ticket[:2] != (row["physical_attempt_id"], row["request_body_sha256"]):
+        ticket = ticket_map.get(row["request_item_id"])
+        expected_state = "prepared" if row["state"] == "prepared" else "economic_exclusion"
+        if ticket is None or ticket[:2] != (row["physical_attempt_id"], row["request_body_sha256"]):
             raise ValueError("ticket identity/body binding mismatch; no send")
-        if row["state"] == "prepared" and expected_ticket[2] != "prepared":
-            raise ValueError("request has an ambiguous or prior provider crossing; no send")
-        if row["state"] == "economic_exclusion":
-            continue
-        task = frozen_tasks.get((row["slice_id"], row["abn"]))
-        if task is None or task["subject_id"] != row["subject_id"]:
-            raise ValueError("approved source subject identity mismatch; no send")
-        source_task_row = next((item for item in _condition_a_manifest["tasks"] if item["task_id"] == task["task_id"]), None)
-        if source_task_row is None or source_task_row["task_sha256"] != row["source_export_task_sha256"]:
-            raise ValueError("source task hash mismatch; no send")
-        source_hashes = [_sha(source["exact_transmitted_representation"].encode("utf-8")) for source in task["sources"]]
-        if source_hashes != row["source_content_sha256"]:
-            raise ValueError("frozen source representation identity mismatch; no send")
-        metadata = [{"evidence_locator_id": source["evidence_locator_id"], "source_role": source["source_role"]} for source in task["sources"]]
-        if metadata != row["source_metadata"]:
-            raise ValueError("frozen source locator/role identity mismatch; no send")
-        row["source_texts"] = [source["exact_transmitted_representation"] for source in task["sources"]]
-        body_path = run_dir / "requests" / f"{row['request_item_id'].replace(':', '_')}.json"
-        body_bytes = body_path.read_bytes()
-        if body_sha256(body_bytes) != row["request_body_sha256"]:
-            raise ValueError("frozen request body hash mismatch; no send")
-        body = json.loads(body_bytes.decode("utf-8"))
-        if body.get("model") != MODEL or body.get("reasoning", {}).get("effort") != REASONING_EFFORT or body.get("max_output_tokens") != MAX_OUTPUT_TOKENS:
-            raise ValueError("provider request route mismatch; no send")
-        if "service_tier" in body:
-            raise ValueError("request contains an unauthorized service tier; no send")
-        if body.get("metadata") != {"logical_task_id": row["logical_task_id"], "semantic_contract_hash": row["semantic_contract_hash"]}:
-            raise ValueError("request metadata identity mismatch; no send")
-        input_text = body.get("input", [{}])[0].get("content", [{}])[0].get("text")
-        if not isinstance(input_text, str) or _sha(input_text.encode("utf-8")) != row["prompt_sha256"] or input_text != _prompt(task):
-            raise ValueError("pinned prompt/source packet identity mismatch; no send")
-        text_format = body.get("text", {}).get("format", {})
-        if text_format.get("type") != "json_schema" or text_format.get("strict") is not True or text_format.get("name") != row["provider_schema_name"]:
-            raise ValueError("provider structured-output route mismatch; no send")
-        expected_schema = provider_schema(row["slice_id"], row["subject_id"], row["allowed_scope"], row["allowed_locators"])
-        if text_format.get("schema") != expected_schema or _sha(_canonical(expected_schema)) != row["schema_sha256"]:
-            raise ValueError("provider schema identity mismatch; no send")
-        body_cache[row["request_item_id"]] = body_bytes
+        if row["state"] not in {"prepared", "economic_exclusion"} or ticket[2] != expected_state:
+            raise ValueError("prior provider crossing or ticket state mismatch; no send")
+    certified_rows: list[dict[str, Any]] = []
+    failures: list[dict[str, str]] = []
+    body_cache: dict[str, bytes] = {}
+    for row in manifest["tasks"]:
+        try:
+            body_bytes, certificate = _preflight_request(row, manifest, condition_a_manifest, frozen_tasks, ticket_map, run_dir)
+            body_cache[row["request_item_id"]] = body_bytes
+            certified_rows.append({"request_item_id": row["request_item_id"], "status": "certified", "schema_sha256": certificate["schema_sha256"], "certification_sha256": certificate["certification_sha256"], "request_body_sha256": row["request_body_sha256"], "state": row["state"]})
+        except Exception as exc:
+            failures.append({"request_item_id": row.get("request_item_id", "unknown"), "error": str(exc)[:512]})
+            certified_rows.append({"request_item_id": row.get("request_item_id", "unknown"), "status": "failed_local_pre_send", "state": row.get("state")})
     for folder in (run_dir / "responses", run_dir / "candidate-packets"):
         if folder.exists() and any(folder.iterdir()):
-            raise ValueError("prior response/candidate artifacts exist; previous provider crossing is uncertain")
+            failures.append({"request_item_id": "campaign", "error": "prior response/candidate artifacts exist; previous provider crossing is uncertain"})
+    status = "failed_local_pre_send" if failures else "certified_no_provider_crossing"
+    report = {
+        "run_id": RUN_ID,
+        "contract_version": CONTRACT_VERSION,
+        "supersedes_contract_version": SUPERSEDES_CONTRACT_VERSION,
+        "provider_schema_version": PROVIDER_SCHEMA_VERSION,
+        "supported_subset_version": PROVIDER_SCHEMA_SUBSET_VERSION,
+        "campaign_preflight": status,
+        "preflight": "failed_local_pre_send" if failures else "passed_no_provider_crossing",
+        "scheduled_request_count": len(manifest["tasks"]),
+        "task_count": len(manifest["tasks"]),
+        "certified_request_count": sum(item["status"] == "certified" for item in certified_rows),
+        "failed_request_count": len(failures),
+        "requests": certified_rows,
+        "failures": failures,
+        "provider_calls": 0,
+        "source_acquisitions": 0,
+        "attempt_authority_consumed": 0,
+        "request_tickets_unique": True,
+        "physical_attempts_unique": True,
+        "condition_a_manifest_sha256": CONDITION_A_MANIFEST_SHA256,
+        "model": MODEL,
+        "reasoning_effort": REASONING_EFFORT,
+        "delivery_mode": "standard",
+        "conservative_exposure_total_aud": manifest["conservative_exposure_total_aud"],
+    }
+    with sqlite3.connect(tickets_path) as db:
+        for item in certified_rows:
+            if item["status"] == "certified":
+                db.execute("UPDATE tickets SET provider_schema_version=?,provider_schema_sha256=?,certification_sha256=?,certification_status='certified',preflight_error=NULL WHERE request_item_id=?", (PROVIDER_SCHEMA_VERSION, item["schema_sha256"], item["certification_sha256"], item["request_item_id"]))
+            else:
+                error = next((entry["error"] for entry in failures if entry["request_item_id"] == item["request_item_id"]), "campaign-level preflight failed")
+                db.execute("UPDATE tickets SET certification_status='failed_local_pre_send',preflight_error=? WHERE request_item_id=?", (error, item["request_item_id"]))
+        db.commit()
+    (run_dir / "preflight-report.json").write_bytes(_canonical(report) + b"\n")
+    return report, body_cache
+
+
+def preflight_campaign(run_dir: Path, export_dir: Path) -> dict[str, Any]:
+    """Certify a campaign without exposing the request bodies to callers."""
+    report, _body_cache = _preflight_campaign(run_dir, export_dir)
+    return report
+
+
+def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False) -> dict[str, Any]:
+    """Execute prepared one-shot requests in order; stop on any uncertain crossing."""
+    preflight, body_cache = _preflight_campaign(run_dir, export_dir)
+    if preflight["campaign_preflight"] == "failed_local_pre_send":
+        return preflight
+    manifest = json.loads((run_dir / "execution-manifest.json").read_bytes().decode("utf-8"))
+    tickets_path = run_dir / "tickets.sqlite3"
     if dry_run:
-        return {
-            "run_id": RUN_ID,
-            "preflight": "passed_no_provider_crossing",
-            "task_count": len(manifest["tasks"]),
-            "request_tickets_unique": True,
-            "physical_attempts_unique": True,
-            "condition_a_manifest_sha256": CONDITION_A_MANIFEST_SHA256,
-            "model": MODEL,
-            "reasoning_effort": REASONING_EFFORT,
-            "delivery_mode": "standard",
-            "conservative_exposure_total_aud": manifest["conservative_exposure_total_aud"],
-            "provider_calls": 0,
-            "source_acquisitions": 0,
-        }
+        return preflight
+    if not V3_EXECUTION_AUTHORIZED:
+        return {**preflight, "execution_status": "not_authorized_for_v3_provider_calls", "provider_calls": 0}
     if not os.environ.get("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY is unavailable; no provider attempt started")
     results: list[dict[str, Any]] = []
@@ -637,6 +907,8 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False) -> di
                 "physical_attempt_id": row["physical_attempt_id"],
                 "provider_response_id": response_id,
                 "contract_commit": BUILDER_CONTRACT_COMMIT,
+                "contract_version": CONTRACT_VERSION,
+                "supersedes_contract_version": SUPERSEDES_CONTRACT_VERSION,
                 "semantic_contract_hash": row["semantic_contract_hash"],
                 "source_task_sha256": row["source_export_task_sha256"],
                 "source_input_hashes": row["source_input_hashes"],
