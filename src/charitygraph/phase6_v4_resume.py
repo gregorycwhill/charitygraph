@@ -47,6 +47,7 @@ CONTINUATION_ID = "continuation-2026-09-13-client-request-id"
 ENDPOINT = "https://api.openai.com/v1/responses"
 AGGREGATE_LIMIT_AUD = Decimal("1.50")
 PRIOR_AMBIGUOUS_REQUEST_ID = "requestitem:247cea23c9565b92cc82da50e146dea4a93d7c77bbdd5fad467cacdd77dd82de"
+PRIOR_SMITH_REPEAT_REQUEST_ID = "requestitem:c2b58b6694ddd7fa91bf2fb2c9046e8080b052ff81e007f3536183d5dbc06890"
 AUTHORIZED_REMAINING = (
     ("outcomes", "28000030179", 2),
     ("outcomes", "28004778081", 1),
@@ -120,8 +121,11 @@ def _ensure_transport_columns(db: sqlite3.Connection) -> None:
             db.execute(f"ALTER TABLE tickets ADD COLUMN {name} {sql_type}")
 
 
-def recertify_v4(run_dir: Path, campaign_dir: Path) -> dict[str, Any]:
+def recertify_v4(run_dir: Path, campaign_dir: Path, *, prior_ambiguous_request_ids: tuple[str, ...] = (PRIOR_AMBIGUOUS_REQUEST_ID,), prior_response_continuation_dir: Path | None = None) -> dict[str, Any]:
     """Recheck exact identities, rights, route and remaining-ticket state offline."""
+    prior_ambiguous_ids = set(prior_ambiguous_request_ids)
+    if PRIOR_AMBIGUOUS_REQUEST_ID not in prior_ambiguous_ids or not prior_ambiguous_ids <= {PRIOR_AMBIGUOUS_REQUEST_ID, PRIOR_SMITH_REPEAT_REQUEST_ID}:
+        raise ValueError("only the two retained Smith ambiguities may be excluded as prior crossings")
     manifest_path = run_dir / "execution-manifest.json"
     manifest_raw = manifest_path.read_bytes()
     if _sha(manifest_raw) != PINNED_EXECUTION_MANIFEST_SHA256:
@@ -241,9 +245,56 @@ def recertify_v4(run_dir: Path, campaign_dir: Path) -> dict[str, Any]:
         raise ValueError("historical Smith physical attempt is not preserved as ambiguous")
     if ambiguous["client_request_id"] is not None:
         raise ValueError("historical Smith client trace ID cannot be invented retrospectively")
+    if PRIOR_SMITH_REPEAT_REQUEST_ID in prior_ambiguous_ids:
+        smith_repeat = tickets.get(PRIOR_SMITH_REPEAT_REQUEST_ID)
+        repeat_row = next((row for row in manifest["tasks"] if row["request_item_id"] == PRIOR_SMITH_REPEAT_REQUEST_ID), None)
+        if repeat_row is None or smith_repeat is None or smith_repeat["physical_attempt_id"] != repeat_row["physical_attempt_id"] or smith_repeat["request_body_sha256"] != repeat_row["request_body_sha256"] or smith_repeat["state"] != "ambiguous" or smith_repeat["provider_posts"] != 1 or smith_repeat["response_id"] is not None or smith_repeat["provider_request_id"] is not None:
+            raise ValueError("second historical Smith attempt is not preserved exactly as ambiguous")
+        if smith_repeat["client_request_id"] != client_request_id_for_physical_attempt(repeat_row["physical_attempt_id"]) or smith_repeat["response_headers_received"] not in (0, None):
+            raise ValueError("second historical Smith trace or no-header status changed")
+    with sqlite3.connect(db_path) as db:
+        observed_ambiguous_ids = {row[0] for row in db.execute("SELECT request_item_id FROM tickets WHERE state='ambiguous'")}
+    if observed_ambiguous_ids != prior_ambiguous_ids:
+        raise ValueError("V4 ambiguous-ticket set differs from the explicitly retained Smith attempts")
+    prior_response_outcomes: dict[str, dict[str, Any]] = {}
+    if prior_response_continuation_dir is not None:
+        prior_results_path = prior_response_continuation_dir / "execution-results.json"
+        prior_ledger_path = prior_response_continuation_dir / "recertification.json"
+        if not prior_results_path.is_file() or not prior_ledger_path.is_file():
+            raise ValueError("prior response continuation lacks its durable execution result or recertification")
+        prior_ledger = _read_json(prior_ledger_path)
+        prior_results = _read_json(prior_results_path)
+        if prior_results.get("continuation_id") != prior_ledger.get("continuation_id") or prior_ledger.get("execution_manifest_sha256") != PINNED_EXECUTION_MANIFEST_SHA256:
+            raise ValueError("prior response continuation lineage does not match the frozen campaign")
+        prior_schedule = {item["request_item_id"]: item for item in prior_ledger.get("scheduled_attempts", [])}
+        for outcome in prior_results.get("outcomes", []):
+            if not outcome.get("provider_posts"):
+                continue
+            request_id = outcome.get("request_item_id")
+            row = next((item for item in manifest["tasks"] if item["request_item_id"] == request_id), None)
+            prior_attempt = prior_schedule.get(request_id)
+            expected_client_id = None if row is None else client_request_id_for_physical_attempt(row["physical_attempt_id"])
+            if row is None or prior_attempt is None or prior_attempt.get("physical_attempt_id") != row["physical_attempt_id"] or prior_attempt.get("client_request_id") != expected_client_id or outcome.get("client_request_id") != expected_client_id or request_id in prior_ambiguous_ids or outcome.get("state") not in {"completed_parse_failed", "completed", "completed_economic_stop"}:
+                raise ValueError("prior response continuation contains an unrecognized or ambiguous crossing")
+            ticket = tickets.get(request_id)
+            if ticket is None or ticket["physical_attempt_id"] != row["physical_attempt_id"] or ticket["request_body_sha256"] != row["request_body_sha256"] or ticket["state"] != outcome["state"] or ticket["provider_posts"] != 1 or ticket["response_id"] != outcome.get("response_id") or ticket["provider_request_id"] != outcome.get("server_x_request_id"):
+                raise ValueError("prior provider response ticket differs from its recorded execution outcome")
+            stem = request_id.replace(":", "_")
+            transport = _read_json(prior_response_continuation_dir / "transport" / f"{stem}.json")
+            raw = (prior_response_continuation_dir / "responses" / f"{stem}.json").read_bytes()
+            response_body = json.loads(raw.decode("utf-8"))
+            if transport.get("client_request_id") != expected_client_id or transport.get("state") != "PROVIDER_RESPONSE_RECEIVED" or transport.get("response_body_sha256") != _sha(raw) or transport.get("response_id") != outcome.get("response_id") or response_body.get("id") != outcome.get("response_id") or response_body.get("model") != MODEL or transport.get("provider_model_identity") != MODEL:
+                raise ValueError("prior provider response bytes or model identity failed continuity verification")
+            if request_id in prior_response_outcomes:
+                raise ValueError("prior continuation repeats a physical request outcome")
+            prior_response_outcomes[request_id] = outcome
     ready: list[dict[str, Any]] = []
     for key in AUTHORIZED_REMAINING:
         row = rows_by_key[key]
+        if row["request_item_id"] in prior_ambiguous_ids:
+            continue
+        if row["request_item_id"] in prior_response_outcomes:
+            continue
         ticket = tickets.get(row["request_item_id"])
         if ticket is None or ticket["physical_attempt_id"] != row["physical_attempt_id"] or ticket["request_body_sha256"] != row["request_body_sha256"]:
             raise ValueError("V4 request ticket identity/body hash mismatch")
@@ -255,16 +306,20 @@ def recertify_v4(run_dir: Path, campaign_dir: Path) -> dict[str, Any]:
         row["body"] = json.loads(Path(row["body_path"]).read_bytes().decode("utf-8"))
         ready.append(row)
     remaining_reserved = sum((Decimal(row["conservative_exposure_aud"]) for row in ready), Decimal("0"))
-    ambiguous_reserve = Decimal(ambiguous["request_body_sha256"] == "bfbadff17f4a8d11fa1248a93141d1ab555563933c3e043b08aaa812666a3e0e") * Decimal("0.021060")
-    if ambiguous_reserve + remaining_reserved > AGGREGATE_LIMIT_AUD:
+    ambiguous_reserve = sum((Decimal(rows_by_key[key]["conservative_exposure_aud"]) for key in rows_by_key if rows_by_key[key]["request_item_id"] in prior_ambiguous_ids), Decimal("0"))
+    prior_response_reserve = sum((Decimal(row["conservative_exposure_aud"]) for row in manifest["tasks"] if row["request_item_id"] in prior_response_outcomes), Decimal("0"))
+    if ambiguous_reserve + prior_response_reserve + remaining_reserved > AGGREGATE_LIMIT_AUD:
         raise ValueError("ambiguous Smith reserve plus all remaining worst-case costs exceeds campaign ceiling")
     return {
         "manifest": manifest,
         "rows": ready,
         "tickets": tickets,
         "ambiguous_exposure_reserved_aud": str(ambiguous_reserve),
+        "prior_response_request_ids": sorted(prior_response_outcomes),
+        "prior_response_exposure_reserved_aud": str(prior_response_reserve),
+        "prior_ambiguous_request_ids": sorted(prior_ambiguous_ids),
         "remaining_exposure_reserved_aud": str(remaining_reserved),
-        "campaign_worst_case_aud": str(ambiguous_reserve + remaining_reserved),
+        "campaign_worst_case_aud": str(ambiguous_reserve + prior_response_reserve + remaining_reserved),
         "campaign_ceiling_aud": str(AGGREGATE_LIMIT_AUD),
         "provider_calls": 0,
         "source_acquisitions": 0,
@@ -306,7 +361,7 @@ def _build_support_packet(*, row: dict[str, Any], client_request_id: str | None,
     }
 
 
-def _pre_send_guard(run_dir: Path, campaign_dir: Path, continuation_dir: Path, row: dict[str, Any], expected_client_id: str) -> None:
+def _pre_send_guard(run_dir: Path, campaign_dir: Path, continuation_dir: Path, row: dict[str, Any], expected_client_id: str, *, prior_ambiguous_request_ids: tuple[str, ...]) -> None:
     """Recheck mutable local inputs immediately before this physical POST."""
     if _sha((run_dir / "execution-manifest.json").read_bytes()) != PINNED_EXECUTION_MANIFEST_SHA256:
         raise ValueError("execution manifest changed at the per-request gate")
@@ -342,16 +397,16 @@ def _pre_send_guard(run_dir: Path, campaign_dir: Path, continuation_dir: Path, r
         raise ValueError("client trace mapping changed at the per-request gate")
     with sqlite3.connect(run_dir / "tickets.sqlite3") as db:
         ticket = db.execute("SELECT state,provider_posts,physical_attempt_id,request_body_sha256,client_request_id FROM tickets WHERE request_item_id=?", (row["request_item_id"],)).fetchone()
-        other_ambiguous = db.execute("SELECT COUNT(*) FROM tickets WHERE state='ambiguous' AND request_item_id<>?", (PRIOR_AMBIGUOUS_REQUEST_ID,)).fetchone()[0]
+        ambiguous_ids = {item[0] for item in db.execute("SELECT request_item_id FROM tickets WHERE state='ambiguous'")}
     if ticket is None or ticket != ("prepared", 0, row["physical_attempt_id"], row["request_body_sha256"], expected_client_id):
         raise ValueError("physical-attempt ticket changed or was previously crossed")
-    if other_ambiguous:
-        raise ValueError("a second ambiguous provider crossing has already occurred")
+    if ambiguous_ids != set(prior_ambiguous_request_ids):
+        raise ValueError("ambiguous provider crossings changed after offline recertification")
 
 
-def prepare_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Path) -> dict[str, Any]:
+def prepare_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Path, *, continuation_id: str = CONTINUATION_ID, prior_ambiguous_request_ids: tuple[str, ...] = (PRIOR_AMBIGUOUS_REQUEST_ID,), prior_response_continuation_dir: Path | None = None) -> dict[str, Any]:
     """Offline recertify and immutably assign IDs before any resumed POST."""
-    cert = recertify_v4(run_dir, campaign_dir)
+    cert = recertify_v4(run_dir, campaign_dir, prior_ambiguous_request_ids=prior_ambiguous_request_ids, prior_response_continuation_dir=prior_response_continuation_dir)
     continuation_dir.mkdir(parents=True, exist_ok=True)
     body_records = []
     for row in cert["rows"]:
@@ -373,12 +428,12 @@ def prepare_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
         old = _read_json(recertification_path)
         old_ids = [(item.get("request_item_id"), item.get("physical_attempt_id"), item.get("client_request_id")) for item in old.get("scheduled_attempts", [])]
         new_ids = [(item["request_item_id"], item["physical_attempt_id"], item["client_request_id"]) for item in body_records]
-        if old.get("continuation_id") != CONTINUATION_ID or old.get("execution_manifest_sha256") != PINNED_EXECUTION_MANIFEST_SHA256 or old_ids != new_ids:
+        if old.get("continuation_id") != continuation_id or old.get("execution_manifest_sha256") != PINNED_EXECUTION_MANIFEST_SHA256 or old_ids != new_ids:
             raise ValueError("existing continuation has different or changed immutable trace assignments")
         if (continuation_dir / "transport-audit.jsonl").exists():
             raise ValueError("transport execution has begun; continuation preparation cannot be repeated")
     ledger = {
-        "continuation_id": CONTINUATION_ID,
+        "continuation_id": continuation_id,
         "campaign_id": CAMPAIGN_ID,
         "execution_manifest_sha256": PINNED_EXECUTION_MANIFEST_SHA256,
         "condition_a_manifest_sha256": PINNED_CONDITION_A_MANIFEST_SHA256,
@@ -387,7 +442,10 @@ def prepare_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
         "rights_lineage_file_sha256": PINNED_RIGHTS_LINEAGE_FILE_SHA256,
         "preflight_status": "passed_before_any_resumed_provider_crossing",
         "scheduled_attempts": body_records,
+        "prior_ambiguous_request_ids": sorted(prior_ambiguous_request_ids),
+        "prior_response_request_ids": cert["prior_response_request_ids"],
         "ambiguous_prior_reserved_exposure_aud": cert["ambiguous_exposure_reserved_aud"],
+        "prior_response_reserved_exposure_aud": cert["prior_response_exposure_reserved_aud"],
         "remaining_reserved_exposure_aud": cert["remaining_exposure_reserved_aud"],
         "worst_case_campaign_exposure_aud": cert["campaign_worst_case_aud"],
         "aggregate_limit_aud": str(AGGREGATE_LIMIT_AUD),
@@ -423,11 +481,11 @@ def prepare_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
     return ledger
 
 
-def _write_candidate(continuation_dir: Path, row: dict[str, Any], response: Any, output: Any, usage: dict[str, Any], cost_usd: Decimal | None, cost_aud: Decimal | None, client_id: str) -> dict[str, Any]:
+def _write_candidate(continuation_dir: Path, row: dict[str, Any], response: Any, output: Any, usage: dict[str, Any], cost_usd: Decimal | None, cost_aud: Decimal | None, client_id: str, continuation_id: str) -> dict[str, Any]:
     candidate = {
         "candidate_status": "unreviewed_mechanical_candidate",
         "campaign_id": CAMPAIGN_ID,
-        "continuation_id": CONTINUATION_ID,
+        "continuation_id": continuation_id,
         "slice_id": row["slice_id"],
         "subject_id": row["subject_id"],
         "abn": row["abn"],
@@ -463,13 +521,15 @@ def _atomic_db_update(db_path: Path, sql: str, args: tuple[Any, ...]) -> None:
         db.commit()
 
 
-def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Path, *, client: Any | None = None) -> dict[str, Any]:
-    """Sequentially execute the seven unused tickets; a second ambiguity stops all."""
+def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Path, *, client: Any | None = None, continuation_id: str = CONTINUATION_ID, prior_ambiguous_request_ids: tuple[str, ...] = (PRIOR_AMBIGUOUS_REQUEST_ID,), prior_response_continuation_dir: Path | None = None) -> dict[str, Any]:
+    """Execute the recertified unused tickets serially; any new ambiguity stops all."""
     if not (continuation_dir / "recertification.json").is_file():
         raise ValueError("continuation must be prepared and offline-certified first")
-    cert = recertify_v4(run_dir, campaign_dir)
+    cert = recertify_v4(run_dir, campaign_dir, prior_ambiguous_request_ids=prior_ambiguous_request_ids, prior_response_continuation_dir=prior_response_continuation_dir)
     ledger = _read_json(continuation_dir / "recertification.json")
-    if ledger.get("execution_manifest_sha256") != PINNED_EXECUTION_MANIFEST_SHA256 or ledger.get("preflight_status") != "passed_before_any_resumed_provider_crossing":
+    expected_schedule = [(row["request_item_id"], row["physical_attempt_id"], client_request_id_for_physical_attempt(row["physical_attempt_id"])) for row in cert["rows"]]
+    ledger_schedule = [(item.get("request_item_id"), item.get("physical_attempt_id"), item.get("client_request_id")) for item in ledger.get("scheduled_attempts", [])]
+    if ledger.get("continuation_id") != continuation_id or ledger.get("prior_ambiguous_request_ids") != sorted(prior_ambiguous_request_ids) or ledger.get("prior_response_request_ids") != cert["prior_response_request_ids"] or ledger_schedule != expected_schedule or ledger.get("execution_manifest_sha256") != PINNED_EXECUTION_MANIFEST_SHA256 or ledger.get("preflight_status") != "passed_before_any_resumed_provider_crossing":
         raise ValueError("continuation recertification lineage/status is invalid")
     db_path = run_dir / "tickets.sqlite3"
     client = client or OpenAIHTTPStandardClient()
@@ -479,10 +539,14 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
     if result_path.exists():
         raise FileExistsError("continuation result already exists; refusing replay or overwrite")
     outcomes: list[dict[str, Any]] = []
-    stopped_slices: set[str] = set()
-    ambiguous_count = 1  # The quarantined Smith attempt is the prior ambiguity.
+    new_ambiguity = False
+    economic_stop = False
     actual_cost_known = Decimal("0")
     actual_cost_known_usd = Decimal("0")
+    if prior_response_continuation_dir is not None:
+        prior_result = _read_json(prior_response_continuation_dir / "execution-results.json")
+        actual_cost_known += sum((Decimal(item["actual_cost_aud"]) for item in prior_result["outcomes"] if item.get("provider_posts") and item.get("actual_cost_aud") is not None), Decimal("0"))
+        actual_cost_known_usd += sum((Decimal(item["actual_cost_usd"]) for item in prior_result["outcomes"] if item.get("provider_posts") and item.get("actual_cost_usd") is not None), Decimal("0"))
     accepted = 0
     definitely_rejected = 0
     local_pre_send_failures = 0
@@ -490,11 +554,11 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
     audit_path = continuation_dir / "transport-audit.jsonl"
 
     for row in cert["rows"]:
-        if ambiguous_count >= 2:
-            outcomes.append({"request_item_id": row["request_item_id"], "state": "not_attempted_after_second_ambiguity", "provider_posts": 0})
+        if new_ambiguity:
+            outcomes.append({"request_item_id": row["request_item_id"], "state": "not_attempted_after_new_ambiguity", "provider_posts": 0})
             continue
-        if row["slice_id"] in stopped_slices:
-            outcomes.append({"request_item_id": row["request_item_id"], "state": "not_attempted_after_capability_stop", "provider_posts": 0})
+        if economic_stop:
+            outcomes.append({"request_item_id": row["request_item_id"], "state": "not_attempted_after_economic_stop", "provider_posts": 0})
             continue
         meta_path = _transport_meta_path(continuation_dir, row["request_item_id"])
         metadata = _read_json(meta_path)
@@ -502,7 +566,7 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
         if metadata.get("client_request_id") != expected_client_id or metadata.get("state") != "NOT_SENT":
             raise ValueError("pre-recorded client request ID is absent, changed, or already used")
         body_path = Path(row["body_path"])
-        _pre_send_guard(run_dir, campaign_dir, continuation_dir, row, expected_client_id)
+        _pre_send_guard(run_dir, campaign_dir, continuation_dir, row, expected_client_id, prior_ambiguous_request_ids=prior_ambiguous_request_ids)
         body_bytes = body_path.read_bytes()
         if body_sha256(body_bytes) != row["request_body_sha256"]:
             raise ValueError("request bytes changed after final recertification")
@@ -541,8 +605,11 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
                 "PRE_PROVIDER_FAILURE" if exc.transport_state in {"DNS_FAILURE", "CONNECT_FAILURE", "TLS_SETUP_FAILURE", "LOCAL_SOCKET_PERMISSION_DENIED"}
                 else ("PROVIDER_RESPONSE_BODY_FAILURE" if exc.response_headers_received else "PROVIDER_REJECTED")
             )
+            # Under this campaign authorization only a new ambiguous crossing
+            # stops later POSTs. Definite provider outcomes are recorded and
+            # the next untouched physical attempt remains eligible.
             if exc.ambiguous:
-                ambiguous_count += 1
+                new_ambiguity = True
             elif state == "PROVIDER_REJECTED":
                 definitely_rejected += 1
             if exc.raw_bytes is not None:
@@ -567,19 +634,12 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
             _atomic_db_update(db_path, "UPDATE tickets SET state=?,transport_state=?,provider_posts=CASE WHEN ?='PRE_PROVIDER_FAILURE' THEN 0 ELSE provider_posts END,response_headers_received=?,server_request_id=?,transport_exception=?,transport_exception_type=?,transport_cause_type=?,transport_errno=?,transport_elapsed_seconds=?,completed_at=? WHERE request_item_id=?", (durable_state, state, state, int(exc.response_headers_received), exc.request_id, str(exc)[:512], exc.exception_type, exc.cause_type, exc.error_number, exc.elapsed_seconds, datetime.now(timezone.utc).isoformat(), row["request_item_id"]))
             _append_fsynced(audit_path, {"event": "provider_crossing_outcome", **transport})
             outcomes.append({"request_item_id": row["request_item_id"], "physical_attempt_id": row["physical_attempt_id"], "client_request_id": expected_client_id, "state": state, "provider_posts": 0 if state == "PRE_PROVIDER_FAILURE" else 1, "response_headers_received": exc.response_headers_received, "server_x_request_id": exc.request_id, "http_status": exc.status_code, "error": str(exc)[:512], "conservative_exposure_aud": row["conservative_exposure_aud"]})
-            if exc.ambiguous or exc.systemic:
-                if exc.ambiguous:
-                    # The first historical ambiguity plus any continuation
-                    # ambiguity triggers the transport-health stop.
-                    ambiguous_count = 2
-                else:
-                    stopped_slices.update({item["slice_id"] for item in cert["rows"]})
-            else:
-                stopped_slices.add(row["slice_id"])
+            if exc.ambiguous:
+                new_ambiguity = True
             continue
         except Exception as exc:
             # Any unclassified exception after CROSSING_STARTED is ambiguous.
-            ambiguous_count = 2
+            new_ambiguity = True
             transport = {**metadata, "state": "PROVIDER_CROSSING_AMBIGUOUS", "response_headers_received": False, "server_x_request_id": None, "transport_exception": f"{type(exc).__name__}: {exc}"[:512], "transport_exception_type": type(exc).__name__, "transport_cause_type": type(exc.__cause__).__name__ if exc.__cause__ else None, "transport_errno": getattr(exc.__cause__ or exc, "errno", None)}
             _write_atomic(meta_path, _canonical(transport) + b"\n")
             _atomic_db_update(db_path, "UPDATE tickets SET state='ambiguous',transport_state=?,response_headers_received=0,transport_exception=?,transport_exception_type=?,transport_cause_type=?,transport_errno=?,completed_at=? WHERE request_item_id=?", ("PROVIDER_CROSSING_AMBIGUOUS", transport["transport_exception"], transport["transport_exception_type"], transport["transport_cause_type"], transport["transport_errno"], datetime.now(timezone.utc).isoformat(), row["request_item_id"]))
@@ -627,7 +687,9 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
         except Exception as exc:
             state = "completed_parse_failed"
             failure = str(exc)[:512]
-            stopped_slices.add(row["slice_id"])
+            # Keep the exact response as a failed attempt, but do not add a
+            # capability stop: the owner authorized continuing after definite
+            # responses unless an ambiguity or the economic gate stops us.
         exposure_for_gate = Decimal(row["conservative_exposure_aud"])
         known_cost = actual_aud if actual_aud is not None else exposure_for_gate
         prior_crossed_exposure = sum((
@@ -635,7 +697,7 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
             else Decimal(item["conservative_exposure_aud"]) if item.get("provider_posts", 0) else Decimal("0")
             for item in outcomes
         ), Decimal("0"))
-        projected_worst = Decimal("0.021060") + prior_crossed_exposure + known_cost + sum(
+        projected_worst = Decimal(cert["ambiguous_exposure_reserved_aud"]) + Decimal(cert["prior_response_exposure_reserved_aud"]) + prior_crossed_exposure + known_cost + sum(
             (Decimal(other["conservative_exposure_aud"]) for other in cert["rows"] if other["request_item_id"] not in {item["request_item_id"] for item in outcomes} and other["request_item_id"] != row["request_item_id"]), Decimal("0")
         )
         if actual_aud is not None:
@@ -645,10 +707,10 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
         if (actual_aud is not None and actual_aud > Decimal(PER_REQUEST_LIMIT_AUD)) or projected_worst > AGGREGATE_LIMIT_AUD:
             state = "completed_economic_stop"
             failure = "actual or projected worst-case provider cost exceeds authorized economic controls"
-            stopped_slices.update({item["slice_id"] for item in cert["rows"]})
+            economic_stop = True
         candidate = None
         if output is not None and state == "completed":
-            candidate = _write_candidate(continuation_dir, row, response, output, usage, actual_usd, actual_aud, expected_client_id)
+            candidate = _write_candidate(continuation_dir, row, response, output, usage, actual_usd, actual_aud, expected_client_id, continuation_id)
         _atomic_db_update(db_path, "UPDATE tickets SET state=?,transport_state=?,failure_class=?,failure_message=?,completed_at=? WHERE request_item_id=?", ("completed" if state == "completed" else state, "COMPLETED" if state == "completed" else "PROVIDER_RESPONSE_RECEIVED", "mechanical_validation" if failure else None, failure, datetime.now(timezone.utc).isoformat(), row["request_item_id"]))
         outcome = {
             "request_item_id": row["request_item_id"],
@@ -674,13 +736,14 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
 
     final = {
         "campaign_id": CAMPAIGN_ID,
-        "continuation_id": CONTINUATION_ID,
+        "continuation_id": continuation_id,
         "execution_manifest_sha256": PINNED_EXECUTION_MANIFEST_SHA256,
         "condition_a_manifest_sha256": PINNED_CONDITION_A_MANIFEST_SHA256,
         "model_requested": MODEL,
         "reasoning_effort": REASONING_EFFORT,
         "delivery_mode": "standard",
-        "prior_ambiguous_attempt_count": 1,
+        "prior_ambiguous_attempt_count": len(prior_ambiguous_request_ids),
+        "prior_response_attempt_count": len(cert["prior_response_request_ids"]),
         "resumed_authorized_attempts": len(cert["rows"]),
         "provider_calls_this_continuation": sum(row.get("provider_posts", 0) for row in outcomes),
         "completed": sum(row["state"] == "completed" for row in outcomes),
@@ -691,18 +754,18 @@ def execute_continuation(run_dir: Path, campaign_dir: Path, continuation_dir: Pa
         "outcomes": outcomes,
         "actual_cost_known_aud": str(actual_cost_known),
         "actual_cost_known_usd": str(actual_cost_known_usd),
-        "unknown_cost_exposure_aud": str(Decimal("0.021060") + sum((Decimal(row["conservative_exposure_aud"]) for row in outcomes if row.get("provider_posts", 0) and row.get("actual_cost_aud") is None), Decimal("0"))),
+        "unknown_cost_exposure_aud": str(Decimal(cert["ambiguous_exposure_reserved_aud"]) + sum((Decimal(row["conservative_exposure_aud"]) for row in outcomes if row.get("provider_posts", 0) and row.get("actual_cost_aud") is None), Decimal("0"))),
         "worst_case_campaign_ceiling_aud": str(AGGREGATE_LIMIT_AUD),
         "campaign_worst_case_at_start_aud": cert["campaign_worst_case_aud"],
         "source_acquisitions": 0,
         "governed_promotions": 0,
     }
     _write_atomic(result_path, _canonical(final) + b"\n")
-    _prepare_review_packet(run_dir, continuation_dir, cert["rows"], outcomes)
+    _prepare_review_packet(run_dir, continuation_dir, cert["rows"], outcomes, continuation_id=continuation_id)
     return final
 
 
-def _prepare_review_packet(run_dir: Path, continuation_dir: Path, rows: list[dict[str, Any]], outcomes: list[dict[str, Any]]) -> None:
+def _prepare_review_packet(run_dir: Path, continuation_dir: Path, rows: list[dict[str, Any]], outcomes: list[dict[str, Any]], *, continuation_id: str = CONTINUATION_ID) -> None:
     candidate_dir = continuation_dir / "candidate-packets"
     candidates = {}
     for path in candidate_dir.glob("*.json"):
