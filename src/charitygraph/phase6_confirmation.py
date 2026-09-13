@@ -35,6 +35,8 @@ from .phase5_standard_transport import (
 from .phase6_semantic_contracts import (
     CurrentAvailability,
     Phase6SemanticOutput,
+    Phase6SemanticOutputV5,
+    Phase6SemanticOutputV5Replay,
     validate_scope_bindings,
 )
 from .source_rights import ArtifactRightsDecision, require_provider_rights
@@ -58,6 +60,8 @@ AGGREGATE_LIMIT_AUD = "1.50"
 CONDITION_A_MANIFEST_SHA256 = "62fa35105741f92fc5f297183745b798062b36eb41653a231a159d5acc3cfd81"
 BUILDER_CONTRACT_COMMIT = "7896e6e41423f5a17612eece0d2665e58913fe07"
 AUTHORIZATION_SOURCE_SHA256 = "48a3484e952c7c7013f8a49dbb5c12877f9a7d5a54008530dea32b425abdfd1d"
+V5_CONTRACT_VERSION = "phase6-corrected-contracts-v5"
+V5_SUPERSEDES_CONTRACT_VERSION = CONTRACT_VERSION
 
 # One predeclared hard-case repeat in each capability cohort. It adds no new
 # subject and directly exercises the boundary named in the approved design.
@@ -293,18 +297,18 @@ def certify_provider_schema(schema: dict[str, Any], *, contract_version: str = C
     return {**details, "certification_sha256": _sha(_canonical(details))}
 
 
-def provider_schema(slice_id: str, subject_id: str, scope: dict[str, Any], locators: list[str]) -> dict[str, Any]:
+def provider_schema(slice_id: str, subject_id: str, scope: dict[str, Any], locators: list[str], *, output_model: type[Phase6SemanticOutput] = Phase6SemanticOutput, contract_version: str = CONTRACT_VERSION) -> dict[str, Any]:
     """Make a strict, task-bound provider schema from the approved Pydantic models."""
     if slice_id not in COHORTS or not locators or len(locators) != len(set(locators)):
         raise ValueError("invalid capability or evidence-locator allow-list")
-    schema = Phase6SemanticOutput.model_json_schema()
+    schema = output_model.model_json_schema()
     names = _definition_names_for_slice(schema, slice_id)
     root = {
         key: value for key, value in schema.items()
         if key not in {"$defs", "title", "description"}
     }
     root["properties"]["slice_id"] = {"type": "string", "enum": [slice_id]}
-    root["properties"]["contract_version"] = {"type": "string", "enum": [CONTRACT_VERSION]}
+    root["properties"]["contract_version"] = {"type": "string", "enum": [contract_version]}
     root["properties"]["subject_id"] = {"type": "string", "enum": [subject_id]}
     root["properties"]["propositions"]["items"] = {
         "anyOf": [{"$ref": f"#/$defs/{name}"} for name in names]
@@ -351,6 +355,32 @@ def provider_schema(slice_id: str, subject_id: str, scope: dict[str, Any], locat
     return root
 
 
+def provider_schema_v5(slice_id: str, subject_id: str, scope: dict[str, Any], locators: list[str]) -> dict[str, Any]:
+    """V5 schema keeps claim content, evidence carrier, and status distinct."""
+    schema = provider_schema(
+        slice_id,
+        subject_id,
+        scope,
+        locators,
+        output_model=Phase6SemanticOutputV5,
+        contract_version=V5_CONTRACT_VERSION,
+    )
+    for definition in schema["$defs"].values():
+        properties = definition.get("properties", {})
+        if "epistemic_class" in properties:
+            properties["epistemic_class"]["description"] = (
+                "Assertion status, separate from evidence.source_role. first_party_* means the organisation "
+                "reported the assertion; its carrier may be an organisation report or regulator material. "
+                "It never means independently observed."
+            )
+        if "evidence" in properties:
+            properties["evidence"]["description"] = (
+                "Each evidence source_role identifies the record carrier. Preserve it exactly; do not use it "
+                "to upgrade an organisation-reported assertion to independent evidence."
+            )
+    return schema
+
+
 def _prompt(task: dict[str, Any]) -> str:
     intro = (
         "You are performing a bounded CharityGraph Phase 6 semantic confirmation on frozen evidence only. "
@@ -372,6 +402,22 @@ def _prompt(task: dict[str, Any]) -> str:
         f"Frozen evidence records: {json.dumps(task['sources'], ensure_ascii=False, sort_keys=True)}"
     )
     return intro + "\n\n" + question
+
+
+def prompt_v5(task: dict[str, Any]) -> str:
+    """V5 provider-facing clarification; it does not alter frozen V4 prompts."""
+    clarification = (
+        "\n\nV5 assertion/evidence rule: proposition_type says WHAT is reported; evidence.source_role says "
+        "which record carries it; epistemic_class says CharityGraph's status for the assertion. These are "
+        "separate fields. Regulator material can carry an organisation's submitted claim or measure, so keep "
+        "its source_role as regulator material and use first_party_claim or first_party_measure_reported when "
+        "the organisation is the claimant. Do not label such material independently observed. A first-party "
+        "outcome measure is still an observed outcome reported by the organisation, not independent verification. "
+        "For implementation_outcome_reported, emit it only for a measured change with a named indicator, unit, "
+        "measurement period, and the required evidence-strength field; reach, participation, donations, and "
+        "activity belong to their own substantive proposition types."
+    )
+    return _prompt(task) + clarification
 
 
 def _load_approved_source_export(export_dir: Path) -> tuple[dict[str, Any], dict[tuple[str, str], dict[str, Any]]]:
@@ -614,6 +660,49 @@ def _mechanical_validate(row: dict[str, Any], packet: dict[str, Any]) -> Phase6S
         # not a semantic classifier.
         for value in _iter_strings(proposition.model_dump(mode="json")):
             if len(value) >= 48 and any(value in source_text for source_text in row["source_texts"]):
+                raise ValueError("candidate contains a verbatim source excerpt; no candidate packet emitted")
+    return parsed
+
+
+def mechanical_validate_v5_replay(row: dict[str, Any], packet: dict[str, Any]) -> Phase6SemanticOutputV5Replay:
+    """Assess unmodified V4 response JSON under V5 semantics, without a provider call.
+
+    The V4 contract echo remains mandatory here. This is a compatibility parser
+    for diagnosis, not a claim that the historical response was generated under
+    V5 or a transformation into a V5 candidate.
+    """
+    if packet.get("contract_version") != CONTRACT_VERSION:
+        raise ValueError("historical response contract version is missing or differs from V4")
+    # The replay accepts either the materialized execution row or the immutable
+    # Condition A source task.  Both have the same permitted scope and locator
+    # bindings; normalising here keeps replay read-only.
+    allowed_scope = row.get("allowed_scope") or row["allowed_scope_ids"][0]
+    source_metadata = row.get("source_metadata") or row["sources"]
+    allowed_locators = row.get("allowed_locators") or {
+        source["evidence_locator_id"] for source in source_metadata
+    }
+    source_texts = row.get("source_texts") or [
+        source["exact_transmitted_representation"] for source in source_metadata
+    ]
+    parsed = Phase6SemanticOutputV5Replay.model_validate(packet)
+    if parsed.slice_id != row["slice_id"] or parsed.subject_id != row["subject_id"]:
+        raise ValueError("response task identity mismatch")
+    validate_scope_bindings(parsed, {allowed_scope["scope_id"]})
+    for proposition in parsed.propositions:
+        if proposition.scope.scope_kind != allowed_scope["scope_kind"] or proposition.scope.scope_label != allowed_scope["label"]:
+            raise ValueError("scope ID, kind, or label does not match the frozen organization scope")
+        if isinstance(proposition, CurrentAvailability):
+            raise ValueError("current_availability is prohibited: frozen evidence lacks a mechanical contemporaneous-date binding")
+        for evidence in getattr(proposition, "evidence", ()):
+            if evidence.locator_id not in allowed_locators:
+                raise ValueError("evidence locator is outside the task's frozen source allow-list")
+            source = next((item for item in source_metadata if item["evidence_locator_id"] == evidence.locator_id), None)
+            if source is None or evidence.source_role != source["source_role"]:
+                raise ValueError("source-role/locator binding mismatch")
+            if evidence.source_date is not None or evidence.retrieved_at is not None:
+                raise ValueError("source date/retrieval timestamp is not present in the frozen packet")
+        for value in _iter_strings(proposition.model_dump(mode="json")):
+            if len(value) >= 48 and any(value in source_text for source_text in source_texts):
                 raise ValueError("candidate contains a verbatim source excerpt; no candidate packet emitted")
     return parsed
 

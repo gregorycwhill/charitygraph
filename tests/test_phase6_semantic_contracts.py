@@ -24,6 +24,7 @@ from charitygraph.phase6_semantic_contracts import (
     Phase6EvidenceRef,
     Phase6Scope,
     Phase6SemanticOutput,
+    Phase6SemanticOutputV5,
     ReachReported,
     ResourceOrWorkforceMeasure,
     ServiceScaleMeasure,
@@ -85,6 +86,32 @@ def test_first_party_report_cannot_be_typed_as_independent_observation():
         evidence=(FIRST_PARTY,), commitment_kind="target", instrument="published target", stated_period="by 2030",
     )
     assert commitment.proposition_type != self_report.proposition_type
+
+
+def test_v5_distinguishes_regulator_record_carrier_from_claimant_without_relaxing_v3():
+    regulator_carried = {
+        "locator_id": "locator:regulated-copy",
+        "source_role": "historical_frozen_regulator_material",
+    }
+    packet = {
+        "contract_version": "phase6-corrected-contracts-v3",
+        "slice_id": "commitments",
+        "subject_id": "subject:test-phase6-carrier",
+        "propositions": [{
+            "proposition_type": "implementation_activity_self_reported",
+            "scope": ORG.model_dump(),
+            "epistemic_class": "first_party_claim",
+            "evidence": [regulator_carried],
+            "activity": "reported delivery activity",
+            "activity_status": "reported_completed",
+            "reporting_period": "FY2025",
+        }],
+    }
+    with pytest.raises(ValidationError, match="conflicts with source role"):
+        Phase6SemanticOutput.model_validate(packet)
+    packet["contract_version"] = "phase6-corrected-contracts-v5"
+    parsed = Phase6SemanticOutputV5.model_validate(packet)
+    assert parsed.propositions[0].epistemic_class == "first_party_claim"
 
 
 def test_source_native_and_independent_classes_require_compatible_roles():

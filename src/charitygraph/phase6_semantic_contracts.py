@@ -8,6 +8,8 @@ natural-language classification in Python.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Annotated, Any, Literal, Union
@@ -31,6 +33,29 @@ EpistemicClass = Literal[
 FIRST_PARTY_ROLES = {"official_homepage", "annual_report", "financial_report", "first_party_policy"}
 REGULATOR_ROLES = {"historical_frozen_regulator_material", "regulator_record", "court_or_inquiry_record"}
 INDEPENDENT_ROLES = {"independent_evaluation", "external_authoritative", "court_or_inquiry_record"}
+
+# V5 corrects a V4 category error without changing V4's historical parser.
+# A source role identifies the carrier of a record; a first-party epistemic
+# class identifies the organisation as the claimant. Regulator material can
+# faithfully carry an organisation's own submitted report, so it is a valid
+# carrier for an organisation-reported assertion but never makes that assertion
+# independently observed.
+V5_ORGANISATION_REPORTED_CARRIER_ROLES = FIRST_PARTY_ROLES | REGULATOR_ROLES
+_V5_VALIDATION = ContextVar("phase6_v5_validation", default=False)
+
+
+@contextmanager
+def phase6_v5_validation_context():
+    """Apply V5 carrier/claimant semantics while validating V5 models only."""
+    token = _V5_VALIDATION.set(True)
+    try:
+        yield
+    finally:
+        _V5_VALIDATION.reset(token)
+
+
+def _organisation_reported_roles() -> set[str]:
+    return V5_ORGANISATION_REPORTED_CARRIER_ROLES if _V5_VALIDATION.get() else FIRST_PARTY_ROLES
 
 
 class Phase6Scope(StrictModel):
@@ -70,7 +95,7 @@ class _EvidenceBound(StrictModel):
         if len({item.locator_id for item in self.evidence}) != len(self.evidence):
             raise ValueError("evidence locator IDs must be unique")
         if self.epistemic_class in {"first_party_claim", "first_party_measure_reported"}:
-            _require_any_role(self.evidence, FIRST_PARTY_ROLES, "first-party epistemic class conflicts with source role")
+            _require_any_role(self.evidence, _organisation_reported_roles(), "first-party epistemic class conflicts with source role")
         elif self.epistemic_class == "source_native_record":
             _require_any_role(self.evidence, REGULATOR_ROLES, "source-native record requires regulator/source-native evidence")
         elif self.epistemic_class == "independent_finding_reported":
@@ -149,7 +174,7 @@ class OutcomeObservedReported(_EvidenceBound):
         if self.epistemic_class == "independent_finding_reported":
             _require_any_role(self.evidence, INDEPENDENT_ROLES, "independent outcome finding requires independent evidence")
         else:
-            _require_any_role(self.evidence, FIRST_PARTY_ROLES, "first-party outcome measure must be labelled as a first-party report")
+            _require_any_role(self.evidence, _organisation_reported_roles(), "first-party outcome measure must be labelled as a first-party report")
         return self
 
 
@@ -163,7 +188,7 @@ class ContributionClaimReported(_EvidenceBound):
 
     @model_validator(mode="after")
     def _roles(self):
-        roles = INDEPENDENT_ROLES if self.epistemic_class == "independent_finding_reported" else FIRST_PARTY_ROLES
+        roles = INDEPENDENT_ROLES if self.epistemic_class == "independent_finding_reported" else _organisation_reported_roles()
         _require_any_role(self.evidence, roles, "contribution claim epistemic class conflicts with source role")
         return self
 
@@ -236,7 +261,7 @@ class ImplementationActivitySelfReported(_EvidenceBound):
 
     @model_validator(mode="after")
     def _first_party_only(self):
-        _require_any_role(self.evidence, FIRST_PARTY_ROLES, "self-reported implementation requires first-party evidence")
+        _require_any_role(self.evidence, _organisation_reported_roles(), "self-reported implementation requires organisation-reported evidence")
         return self
 
 
@@ -275,10 +300,45 @@ class ImplementationOutcomeReported(_EvidenceBound):
     reporting_period: StrictStr
 
 
+class ImplementationOutcomeReportedV5(_EvidenceBound):
+    """V5 separates a measured implementation outcome from reach/activity."""
+
+    proposition_type: Literal["implementation_outcome_reported"]
+    epistemic_class: Literal["first_party_measure_reported", "independent_finding_reported"]
+    outcome_domain: OutcomeDomain
+    population: StrictStr
+    indicator: StrictStr
+    measured_result: Decimal | StrictStr
+    unit: StrictStr
+    measurement_period: StrictStr
+    evidence_strength: Literal["organisation_reported_measure", "independent_evaluation_finding"]
+
+    @model_validator(mode="after")
+    def _measured_outcome_basis(self):
+        for field_name in ("population", "indicator", "unit", "measurement_period"):
+            require_nonblank(getattr(self, field_name), field_name)
+        if self.epistemic_class == "independent_finding_reported":
+            if self.evidence_strength != "independent_evaluation_finding":
+                raise ValueError("independent implementation outcome requires independent evidence strength")
+            _require_any_role(self.evidence, INDEPENDENT_ROLES, "independent implementation outcome requires independent evidence")
+        else:
+            if self.evidence_strength != "organisation_reported_measure":
+                raise ValueError("organisation-reported implementation outcome requires organisation-reported evidence strength")
+            _require_any_role(self.evidence, _organisation_reported_roles(), "organisation-reported implementation outcome requires an organisation-report carrier")
+        return self
+
+
 CommitmentClaim = Annotated[
     Union[CommitmentStated, PolicyOrStandardAdopted, ImplementationActivitySelfReported,
           ImplementationActivityIndependentlyObserved, ImplementationEvidenceExternal,
           ImplementationOutcomeReported],
+    Field(discriminator="proposition_type"),
+]
+
+CommitmentClaimV5 = Annotated[
+    Union[CommitmentStated, PolicyOrStandardAdopted, ImplementationActivitySelfReported,
+          ImplementationActivityIndependentlyObserved, ImplementationEvidenceExternal,
+          ImplementationOutcomeReportedV5],
     Field(discriminator="proposition_type"),
 ]
 
@@ -431,6 +491,14 @@ _SLICE_CLAIM_ADAPTERS = {
     "capacity": TypeAdapter(list[CapacityClaim]),
 }
 
+_V5_SLICE_CLAIM_ADAPTERS = {
+    "outcomes": TypeAdapter(list[OutcomeClaim]),
+    "commitments": TypeAdapter(list[CommitmentClaimV5]),
+    # Capacity is intentionally outside the V5 correction scope. Keeping its
+    # existing adapter prevents V5 from silently broadening that experiment.
+    "capacity": TypeAdapter(list[CapacityClaim]),
+}
+
 
 class Phase6SemanticOutput(StrictModel):
     """V3 slice-routed output; keeps cross-field semantic validation local."""
@@ -477,6 +545,67 @@ class Phase6SemanticOutput(StrictModel):
         return self
 
 
+class _Phase6SemanticOutputV5Base(StrictModel):
+    """V5 slice routing with the corrected carrier/claimant interpretation."""
+
+    slice_id: Literal["outcomes", "commitments", "capacity"]
+    subject_id: StrictStr
+    propositions: tuple[OutcomeClaim | CommitmentClaimV5 | CapacityClaim, ...] = ()
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def _use_v5_carrier_rules(cls, value: Any, handler: Any) -> Any:
+        """Keep the V5 carrier interpretation active through union revalidation."""
+        with phase6_v5_validation_context():
+            return handler(value)
+
+    @field_validator("subject_id")
+    @classmethod
+    def _subject(cls, value: str) -> str:
+        return require_nonblank(value, "subject_id")
+
+    @field_validator("propositions", mode="before")
+    @classmethod
+    def _parse_for_selected_slice(cls, value: Any, info: ValidationInfo) -> Any:
+        slice_id = info.data.get("slice_id")
+        adapter = _V5_SLICE_CLAIM_ADAPTERS.get(slice_id)
+        if adapter is None or not isinstance(value, (list, tuple)):
+            return value
+        with phase6_v5_validation_context():
+            return tuple(adapter.validate_python(value))
+
+    @model_validator(mode="after")
+    def _slice_types(self):
+        expected = {
+            "outcomes": OutcomeKind.__args__,
+            "commitments": (
+                "commitment_stated", "policy_or_standard_adopted", "implementation_activity_self_reported",
+                "implementation_activity_independently_observed", "implementation_evidence_regulatory_or_external",
+                "implementation_outcome_reported",
+            ),
+            "capacity": (
+                "service_exists", "intended_beneficiary_group", "formal_eligibility_rule", "access_information",
+                "access_pathway", "historical_activity_volume", "resource_or_workforce_measure", "service_scale_measure",
+                "capacity_limit_or_capacity_measure", "availability_reported_as_of_date", "current_availability", "availability_unknown",
+            ),
+        }[self.slice_id]
+        if any(item.proposition_type not in expected for item in self.propositions):
+            raise ValueError("proposition type does not belong to the selected Phase 6 slice")
+        return self
+
+
+class Phase6SemanticOutputV5(_Phase6SemanticOutputV5Base):
+    """Provider-facing V5 contract; V4 remains immutable historical evidence."""
+
+    contract_version: Literal["phase6-corrected-contracts-v5"] = "phase6-corrected-contracts-v5"
+
+
+class Phase6SemanticOutputV5Replay(_Phase6SemanticOutputV5Base):
+    """Read-only V4-response parser under V5 rules; it never rewrites V4 bytes."""
+
+    contract_version: Literal["phase6-corrected-contracts-v3"]
+
+
 def validate_scope_bindings(output: Phase6SemanticOutput, allowed_scope_ids: set[str]) -> None:
     """Require all proposition scopes to be explicitly present in the task packet."""
 
@@ -518,12 +647,12 @@ def validate_current_availability_freshness(
 
 
 __all__ = [
-    "Phase6Scope", "Phase6EvidenceRef", "Phase6SemanticOutput", "OutcomeClaim", "CommitmentClaim",
+    "Phase6Scope", "Phase6EvidenceRef", "Phase6SemanticOutput", "Phase6SemanticOutputV5", "Phase6SemanticOutputV5Replay", "OutcomeClaim", "CommitmentClaim", "CommitmentClaimV5",
     "CapacityClaim", "validate_scope_bindings", "validate_current_availability_freshness",
     "ActivityReported", "OutputReported", "ReachReported", "OutcomeObservedReported",
     "ContributionClaimReported", "CausalAttributionClaimReported", "CausalEvidenceSupported",
     "CommitmentStated", "PolicyOrStandardAdopted", "ImplementationActivitySelfReported",
-    "ImplementationActivityIndependentlyObserved", "ImplementationEvidenceExternal", "ImplementationOutcomeReported",
+    "ImplementationActivityIndependentlyObserved", "ImplementationEvidenceExternal", "ImplementationOutcomeReported", "ImplementationOutcomeReportedV5",
     "ServiceExists", "IntendedBeneficiaryGroup", "FormalEligibilityRule", "AccessInformation",
     "AccessPathway", "HistoricalActivityVolume", "ResourceOrWorkforceMeasure", "ServiceScaleMeasure",
     "CapacityLimitOrMeasure", "AvailabilityReportedAsOf", "CurrentAvailability", "AvailabilityUnknown",
