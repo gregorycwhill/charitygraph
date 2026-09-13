@@ -221,6 +221,8 @@ def test_execute_is_one_shot_and_review_packets_leave_reviewer_fields_blank(tmp_
     assert preflight["provider_calls"] == 0
     monkeypatch.setenv("OPENAI_API_KEY", "fake-test-key")
     monkeypatch.setattr("charitygraph.phase6_confirmation.V3_EXECUTION_AUTHORIZED", True)
+    guarded = []
+    monkeypatch.setattr("charitygraph.phase6_confirmation.PRE_SEND_GUARD", lambda row, body: guarded.append((row["request_item_id"], hashlib.sha256(body).hexdigest())) or {"attestation_sha256": "b" * 64})
     original_preflight_request = confirmation._preflight_request
     changed_request = False
 
@@ -241,6 +243,7 @@ def test_execute_is_one_shot_and_review_packets_leave_reviewer_fields_blank(tmp_
 
         def create_response_once(self, body_bytes):
             self.calls += 1
+            assert len(guarded) == self.calls
             self.sent_hashes.append(hashlib.sha256(body_bytes).hexdigest())
             req = json.loads(body_bytes)
             packet = {"contract_version": CONTRACT_VERSION, "slice_id": "outcomes", "subject_id": SUBJECT_ID, "propositions": []}
@@ -260,10 +263,13 @@ def test_execute_is_one_shot_and_review_packets_leave_reviewer_fields_blank(tmp_
     result = execute_run(run, export, rights_decisions_path=_rights_decisions(export, tmp_path / "rights.json"))
     assert result["provider_calls"] == 2
     assert client.calls == 2
+    assert len(guarded) == 2
     with open(run / "execution-manifest.json", encoding="utf-8") as manifest_file:
         manifest = json.load(manifest_file)
     assert set(client.sent_hashes) == {row["request_body_sha256"] for row in manifest["tasks"]}
     assert list((run / "candidate-packets").glob("*.json"))
+    assert all(json.loads(path.read_text(encoding="utf-8"))["provider_policy_attestation_sha256"] == "b" * 64 for path in (run / "candidate-packets").glob("*.json"))
+    assert all(json.loads(path.read_text(encoding="utf-8"))["provider_policy_attestation"]["attestation_sha256"] == "b" * 64 for path in (run / "responses").glob("*.meta.json"))
     with sqlite3.connect(run / "tickets.sqlite3") as db:
         assert db.execute("select count(*) from tickets where state='completed' and provider_posts=1").fetchone()[0] == 2
     materials = prepare_review_materials(run, export)
@@ -273,6 +279,34 @@ def test_execute_is_one_shot_and_review_packets_leave_reviewer_fields_blank(tmp_
     with pytest.raises(ValueError, match="prior provider crossing"):
         execute_run(run, export)
     assert client.calls == 2
+
+
+def test_pre_send_guard_failure_stops_all_posts_before_ticket_crossing(tmp_path, monkeypatch):
+    import charitygraph.phase6_confirmation as confirmation
+
+    export = tmp_path / "approved-export"
+    _write_export(export, monkeypatch, repeat=True)
+    run = tmp_path / "run"
+    prepare_run(export, run)
+    monkeypatch.setenv("OPENAI_API_KEY", "fake-test-key")
+    monkeypatch.setattr(confirmation, "V3_EXECUTION_AUTHORIZED", True)
+    monkeypatch.setattr(confirmation, "PRE_SEND_GUARD", lambda _row, _body: (_ for _ in ()).throw(ValueError("attestation changed")))
+
+    class NeverCalledClient:
+        calls = 0
+
+        def create_response_once(self, _body):
+            self.calls += 1
+
+    client = NeverCalledClient()
+    monkeypatch.setattr(confirmation, "OpenAIHTTPStandardClient", lambda: client)
+    result = execute_run(run, export, rights_decisions_path=_rights_decisions(export, tmp_path / "rights.json"))
+    assert result["provider_calls"] == 0
+    assert client.calls == 0
+    assert result["results"][0]["state"] == "failed_local_pre_send"
+    assert all(row["state"] == "not_attempted_after_global_stop" for row in result["results"][1:])
+    with sqlite3.connect(run / "tickets.sqlite3") as db:
+        assert db.execute("select count(*) from tickets where state='prepared' and provider_posts=0").fetchone()[0] == 2
 
 
 @pytest.mark.parametrize("packet", [{}, {"contract_version": "phase6-corrected-contracts-v2"}])

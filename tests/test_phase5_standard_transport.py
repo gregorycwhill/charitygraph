@@ -1,4 +1,5 @@
 import hashlib
+import io
 import json
 import threading
 import time
@@ -302,9 +303,10 @@ def test_auth_budget_routing_and_systemic_http_failures_stop_campaign(monkeypatc
 
 def test_http_400_remains_a_definite_item_terminal_failure(monkeypatch):
     import charitygraph.phase5_standard_transport as transport
+    raw = b'{"error":{"message":"bad request"}}'
 
     def fail(*args, **kwargs):
-        raise HTTPError("https://api.openai.com/v1/responses", 400, "bad request", {}, None)
+        raise HTTPError("https://api.openai.com/v1/responses", 400, "bad request", {"x-request-id": "req_test_terminal"}, io.BytesIO(raw))
 
     monkeypatch.setattr(transport, "urlopen", fail)
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
@@ -312,3 +314,5 @@ def test_http_400_remains_a_definite_item_terminal_failure(monkeypatch):
         OpenAIHTTPStandardClient().create_response_once(b"{}")
     assert exc.value.systemic is False
     assert exc.value.status_code == 400
+    assert exc.value.raw_bytes == raw
+    assert exc.value.request_id == "req_test_terminal"

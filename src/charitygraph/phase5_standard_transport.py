@@ -19,21 +19,23 @@ from urllib.request import Request, urlopen
 
 
 class StandardTransportError(RuntimeError):
-    def __init__(self, message: str, *, ambiguous: bool = False, systemic: bool = False, status_code: int | None = None) -> None:
+    def __init__(self, message: str, *, ambiguous: bool = False, systemic: bool = False, status_code: int | None = None, raw_bytes: bytes | None = None, request_id: str | None = None) -> None:
         super().__init__(message)
         self.ambiguous = ambiguous
         self.systemic = systemic
         self.status_code = status_code
+        self.raw_bytes = raw_bytes
+        self.request_id = request_id
 
 
 class StandardAmbiguous(StandardTransportError):
-    def __init__(self, message: str = "Standard POST outcome is ambiguous") -> None:
-        super().__init__(message, ambiguous=True, systemic=True)
+    def __init__(self, message: str = "Standard POST outcome is ambiguous", *, status_code: int | None = None, raw_bytes: bytes | None = None, request_id: str | None = None) -> None:
+        super().__init__(message, ambiguous=True, systemic=True, status_code=status_code, raw_bytes=raw_bytes, request_id=request_id)
 
 
 class StandardSystemic(StandardTransportError):
-    def __init__(self, message: str, *, status_code: int | None = None) -> None:
-        super().__init__(message, systemic=True, status_code=status_code)
+    def __init__(self, message: str, *, status_code: int | None = None, raw_bytes: bytes | None = None, request_id: str | None = None) -> None:
+        super().__init__(message, systemic=True, status_code=status_code, raw_bytes=raw_bytes, request_id=request_id)
 
 
 @dataclass(frozen=True)
@@ -66,9 +68,9 @@ class OpenAIHTTPStandardClient:
         try:
             body = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-            raise StandardAmbiguous("provider returned an unreadable response body") from exc
+            raise StandardAmbiguous("provider returned an unreadable response body", status_code=status_code, raw_bytes=raw, request_id=headers.get("x-request-id")) from exc
         if not isinstance(body, dict) or not isinstance(body.get("id"), str) or not body["id"]:
-            raise StandardAmbiguous("provider response did not contain a trustworthy response ID")
+            raise StandardAmbiguous("provider response did not contain a trustworthy response ID", status_code=status_code, raw_bytes=raw, request_id=headers.get("x-request-id"))
         request_id = headers.get("x-request-id") or body["id"]
         return StandardProviderResponse(status_code, str(request_id), body, raw)
 
@@ -80,17 +82,18 @@ class OpenAIHTTPStandardClient:
             with urlopen(request, timeout=120) as response:
                 return self._decode(response.status, response.headers, response.read())
         except HTTPError as exc:
-            raw = exc.read(8192)
+            raw = exc.read()
+            provider_request_id = exc.headers.get("x-request-id") if exc.headers else None
             # These failures invalidate campaign-wide execution authority or
             # routing; stop the feeder before launching more independent rows.
             if exc.code in {401, 402, 403, 404, 408, 429} or exc.code >= 500:
-                raise StandardSystemic(f"provider systemic HTTP {exc.code}", status_code=exc.code) from None
+                raise StandardSystemic(f"provider systemic HTTP {exc.code}", status_code=exc.code, raw_bytes=raw, request_id=provider_request_id) from None
             try:
                 detail = json.loads(raw.decode("utf-8"))
                 message = detail.get("error", {}).get("message", "provider terminal request failure") if isinstance(detail, dict) else "provider terminal request failure"
             except Exception:
                 message = "provider terminal request failure"
-            raise StandardTransportError(str(message)[:512], status_code=exc.code) from None
+            raise StandardTransportError(str(message)[:512], status_code=exc.code, raw_bytes=raw, request_id=provider_request_id) from None
         except (URLError, TimeoutError, OSError) as exc:
             raise StandardAmbiguous("Standard POST connection outcome is ambiguous") from exc
 
