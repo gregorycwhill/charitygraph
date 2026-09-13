@@ -45,6 +45,7 @@ SUPERSEDES_CONTRACT_VERSION = "phase6-corrected-contracts-v2"
 PROVIDER_SCHEMA_VERSION = "charitygraph-openai-structured-output-subset-v1"
 PROVIDER_SCHEMA_SUBSET_VERSION = "openai-responses-structured-output-subset-2026-09"
 V3_EXECUTION_AUTHORIZED = False
+NOT_AUTHORIZED_STATUS = "not_authorized_for_v3_provider_calls"
 MODEL = "gpt-5.6-luna"
 REASONING_EFFORT = "low"
 MAX_OUTPUT_TOKENS = 8000
@@ -531,7 +532,7 @@ def prepare_run(export_dir: Path, run_dir: Path) -> dict[str, Any]:
         "supersedes_contract_version": SUPERSEDES_CONTRACT_VERSION,
         "provider_schema_version": PROVIDER_SCHEMA_VERSION,
         "execution_status": "prepared_not_sent",
-        "authorization_status": "not_authorized_for_v3_provider_calls",
+        "authorization_status": NOT_AUTHORIZED_STATUS,
         "execution_authorized": False,
         "authorization_request_sha256": None,
         "superseded_v2_authorization_request_sha256": AUTHORIZATION_SOURCE_SHA256,
@@ -708,8 +709,8 @@ def _preflight_campaign(run_dir: Path, export_dir: Path) -> tuple[dict[str, Any]
     manifest = json.loads((run_dir / "execution-manifest.json").read_bytes().decode("utf-8"))
     if manifest.get("run_id") != RUN_ID or manifest.get("execution_status") != "prepared_not_sent" or manifest.get("provider_calls") != 0:
         raise ValueError("run manifest is not an unsent prepared manifest")
-    if manifest.get("authorization_status") != "not_authorized_for_v3_provider_calls" or manifest.get("execution_authorized") is not False or manifest.get("authorization_request_sha256") is not None:
-        raise ValueError("v3 execution authorization state is inconsistent")
+    if manifest.get("authorization_status") != NOT_AUTHORIZED_STATUS or manifest.get("execution_authorized") is not False or manifest.get("authorization_request_sha256") is not None:
+        raise ValueError("campaign execution authorization state is inconsistent")
     if manifest.get("superseded_v2_authorization_request_sha256") != AUTHORIZATION_SOURCE_SHA256:
         raise ValueError("v2 authorization lineage identity mismatch")
     if manifest.get("condition_a_manifest_sha256") != CONDITION_A_MANIFEST_SHA256:
@@ -856,7 +857,7 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False, right
     if dry_run:
         return preflight
     if not V3_EXECUTION_AUTHORIZED:
-        return {**preflight, "execution_status": "not_authorized_for_v3_provider_calls", "provider_calls": 0}
+        return {**preflight, "execution_status": NOT_AUTHORIZED_STATUS, "provider_calls": 0}
     rights = preflight_provider_rights(run_dir, export_dir, rights_decisions_path)
     if rights["rights_preflight"] != "passed":
         return {**preflight, **rights, "execution_status": "blocked_by_source_rights", "provider_calls": 0}
