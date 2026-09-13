@@ -19,6 +19,7 @@ from charitygraph.phase6_confirmation import (
     provider_schema,
     preflight_provider_rights,
 )
+from charitygraph.phase6_v5_campaign import compare_greenpeace_repeats
 from charitygraph.phase6_semantic_contracts import Phase6SemanticOutput, Phase6SemanticOutputV2
 from charitygraph.phase6_v4_resume import _ensure_transport_columns
 
@@ -140,6 +141,29 @@ def test_provider_schema_is_slice_bound_strict_supported_anyof(slice_id, expecte
             assert set(value["required"]) == set(value["properties"])
     if slice_id == "capacity":
         assert "CurrentAvailability" not in schema["$defs"]
+
+
+def test_v5_greenpeace_repeat_comparison_keeps_attempts_independent_and_review_blank():
+    first = {"propositions": [{
+        "proposition_type": "commitment_stated", "epistemic_class": "first_party_claim",
+        "scope": {"scope_id": "scope:org"},
+        "evidence": [{"locator_id": "locator:a", "source_role": "historical_frozen_regulator_material"}],
+        "commitment_kind": "target", "instrument": "published target", "stated_period": "FY2026",
+    }]}
+    second = {"propositions": [{
+        "proposition_type": "implementation_activity_self_reported", "epistemic_class": "first_party_claim",
+        "scope": {"scope_id": "scope:org"},
+        "evidence": [{"locator_id": "locator:b", "source_role": "financial_report"}],
+        "activity": "reported delivery", "activity_status": "reported_completed", "reporting_period": "FY2026",
+    }]}
+    comparison = compare_greenpeace_repeats(first, second)
+    assert comparison["reconciled"] is False
+    assert comparison["human_stability_judgment"] is None
+    assert len(comparison["exact_unique_to_attempt_1"]) == 1
+    assert len(comparison["exact_unique_to_attempt_2"]) == 1
+    assert comparison["contradiction_review"]["status"] == "human_review_required"
+    assert comparison["contradiction_review"]["free_text_semantic_contradictions_inferred"] is False
+    assert comparison["answer_changing_structural_differences"]
 
 
 def test_previously_rejected_v2_provider_schemas_fail_certification():
