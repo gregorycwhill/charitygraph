@@ -47,8 +47,10 @@ def _write_export(root: Path, monkeypatch, *, slice_id="outcomes", repeat=True):
         "scope_note": "Organization scope only.",
         "sources": [{
             "source_record_id": "srcrec:test",
+            "source_artifact_id": "srcblob:test",
             "source_family": "official_website",
             "source_role": "official_homepage",
+            "source_locator": "https://example.test/public",
             "evidence_locator_id": "locator:test",
             "source_date": "unknown unless stated in supplied text",
             "retrieved_at": "not recorded in clean corpus manifest",
@@ -87,13 +89,15 @@ def _rights_decisions(export: Path, path: Path) -> Path:
     task = json.loads((export / "tasks" / "task.json").read_text(encoding="utf-8"))
     rows = []
     for source in task["sources"]:
-        artifact_id = source.get("source_artifact_id") or source["source_record_id"]
+        artifact_id = source["source_artifact_id"]
         rows.append({"decision_id": "rights:" + artifact_id, "source_artifact_id": artifact_id,
+            "source_record_id": source["source_record_id"], "source_origin_url": source["source_locator"], "source_role": source["source_role"],
+            "acquisition_lineage_ids": ["acq:test"],
             "transmitted_representation_sha256": hashlib.sha256(source["exact_transmitted_representation"].encode()).hexdigest(),
-            "rights_policy_id": "test-open", "provider_processing_policy_id": "test-provider", "rights_basis": "explicit_open_license",
+            "rights_policy_id": "CC_BY_4_0_V1", "provider_processing_policy_id": "test-provider", "rights_basis": "explicit_open_license",
             "evidence_locator": "https://example.test/licence", "evidence_sha256": "a" * 64, "assessed_on": str(date.today()),
             "assessment_scope": "private provider", "local_retention_allowed": True, "provider_transmission_allowed": True,
-            "public_redistribution_allowed": False})
+            "public_redistribution_allowed": False, "licence_identifier": "CC BY 4.0", "licence_or_terms_url": "https://creativecommons.org/licenses/by/4.0/"})
     path.write_text(json.dumps(rows), encoding="utf-8")
     return path
 
@@ -192,7 +196,7 @@ def test_prepare_pins_exact_repeat_identity_cost_and_unique_tickets(tmp_path, mo
     assert result["task_count"] == 2
     assert result["provider_calls"] == 0
     assert result["source_acquisitions"] == 0
-    assert result["conservative_exposure_total_aud"] == "0.032346"
+    assert result["conservative_exposure_total_aud"] == "0.032374"
     assert len({row["request_item_id"] for row in prepared["tasks"]}) == 2
     assert len({row["physical_attempt_id"] for row in prepared["tasks"]}) == 2
     first, second = prepared["tasks"]
@@ -367,6 +371,36 @@ def test_v3_readiness_manifest_cannot_cross_provider_without_new_authority(tmp_p
 def test_provider_rights_preflight_fails_closed_without_artifact_decisions(tmp_path, monkeypatch):
     export = tmp_path / "approved-export"
     _write_export(export, monkeypatch, repeat=False)
-    result = preflight_provider_rights(export, None)
+    run = tmp_path / "run"
+    prepare_run(export, run)
+    result = preflight_provider_rights(run, export, None)
     assert result["rights_preflight"] == "failed_closed"
+    assert result["blocked_attempt_count"] == 1
     assert result["provider_calls"] == 0
+
+
+def test_any_unauthorized_artifact_stops_campaign_before_provider_client(tmp_path, monkeypatch):
+    import charitygraph.phase6_confirmation as confirmation
+
+    export = tmp_path / "approved-export"
+    _write_export(export, monkeypatch, repeat=False)
+    run = tmp_path / "run"
+    prepare_run(export, run)
+    rights_path = _rights_decisions(export, tmp_path / "rights.json")
+    decisions = json.loads(rights_path.read_text(encoding="utf-8"))
+    decisions[0]["provider_transmission_allowed"] = False
+    rights_path.write_text(json.dumps(decisions), encoding="utf-8")
+    monkeypatch.setenv("OPENAI_API_KEY", "fake-test-key")
+    monkeypatch.setattr(confirmation, "V3_EXECUTION_AUTHORIZED", True)
+
+    class NeverCalledClient:
+        def __init__(self):
+            raise AssertionError("rights failure must happen before provider client construction")
+
+    monkeypatch.setattr(confirmation, "OpenAIHTTPStandardClient", NeverCalledClient)
+    result = execute_run(run, export, rights_decisions_path=rights_path)
+    assert result["execution_status"] == "blocked_by_source_rights"
+    assert result["blocked_attempt_count"] == 1
+    assert result["provider_calls"] == 0
+    with sqlite3.connect(run / "tickets.sqlite3") as db:
+        assert db.execute("select state,provider_posts from tickets").fetchall() == [("prepared", 0)]

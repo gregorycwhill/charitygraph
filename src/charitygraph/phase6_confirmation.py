@@ -807,24 +807,42 @@ def preflight_campaign(run_dir: Path, export_dir: Path) -> dict[str, Any]:
     return report
 
 
-def preflight_provider_rights(export_dir: Path, rights_decisions_path: Path | None) -> dict[str, Any]:
-    """Check rights separately from schema certification, without altering V3 bytes."""
+def preflight_provider_rights(run_dir: Path, export_dir: Path, rights_decisions_path: Path | None) -> dict[str, Any]:
+    """Check every scheduled attempt against rights, without altering V3 bytes."""
     if rights_decisions_path is None or not rights_decisions_path.is_file():
-        return {"rights_preflight": "failed_closed", "authorized_task_count": 0,
-                "blocked_task_count": 0, "failures": [{"task_id": "campaign", "error": "rights decisions are absent"}],
+        manifest = json.loads((run_dir / "execution-manifest.json").read_bytes().decode("utf-8"))
+        rows = [{"request_item_id": row["request_item_id"], "slice_id": row["slice_id"], "abn": row["abn"],
+                 "status": "blocked", "artifacts": [], "blockers": ["rights decisions are absent"]}
+                for row in manifest["tasks"]]
+        return {"rights_preflight": "failed_closed", "authorized_attempt_count": 0,
+                "blocked_attempt_count": len(rows), "attempts": rows,
                 "provider_calls": 0}
     raw = json.loads(rights_decisions_path.read_text(encoding="utf-8"))
     if not isinstance(raw, list):
         raise ValueError("rights decisions must be a JSON list")
     decisions = [ArtifactRightsDecision.model_validate(item) for item in raw]
     _manifest, tasks = _load_approved_source_export(export_dir)
+    manifest = json.loads((run_dir / "execution-manifest.json").read_bytes().decode("utf-8"))
     results = []
-    for task in tasks.values():
-        blockers = require_provider_rights(decisions, task["sources"])
-        results.append({"task_id": task["task_id"], "status": "authorized" if not blockers else "blocked", "blockers": blockers})
+    for row in manifest["tasks"]:
+        task = tasks.get((row["slice_id"], row["abn"]))
+        blockers = ["approved source task is missing"] if task is None else require_provider_rights(decisions, task["sources"])
+        artifact_results = []
+        if task is not None:
+            for source in task["sources"]:
+                import hashlib
+                artifact_id = source.get("source_artifact_id") or source.get("artifact_id")
+                representation_hash = hashlib.sha256(source.get("exact_transmitted_representation", "").encode("utf-8")).hexdigest()
+                matched = next((item for item in decisions if item.source_artifact_id == artifact_id and str(item.transmitted_representation_sha256) == representation_hash), None)
+                artifact_results.append({"source_artifact_id": artifact_id, "source_record_id": source.get("source_record_id"),
+                    "representation_sha256": representation_hash, "rights_basis": matched.rights_basis if matched else None,
+                    "decision_id": matched.decision_id if matched else None,
+                    "provider_transmission_allowed": bool(matched and matched.provider_transmission_allowed)})
+        results.append({"request_item_id": row["request_item_id"], "slice_id": row["slice_id"], "abn": row["abn"],
+            "status": "authorized" if not blockers else "blocked", "artifacts": artifact_results, "blockers": blockers})
     return {"rights_preflight": "passed" if all(item["status"] == "authorized" for item in results) else "failed_closed",
-            "authorized_task_count": sum(item["status"] == "authorized" for item in results),
-            "blocked_task_count": sum(item["status"] == "blocked" for item in results), "tasks": results,
+            "authorized_attempt_count": sum(item["status"] == "authorized" for item in results),
+            "blocked_attempt_count": sum(item["status"] == "blocked" for item in results), "attempts": results,
             "provider_calls": 0}
 
 
@@ -839,7 +857,7 @@ def execute_run(run_dir: Path, export_dir: Path, *, dry_run: bool = False, right
         return preflight
     if not V3_EXECUTION_AUTHORIZED:
         return {**preflight, "execution_status": "not_authorized_for_v3_provider_calls", "provider_calls": 0}
-    rights = preflight_provider_rights(export_dir, rights_decisions_path)
+    rights = preflight_provider_rights(run_dir, export_dir, rights_decisions_path)
     if rights["rights_preflight"] != "passed":
         return {**preflight, **rights, "execution_status": "blocked_by_source_rights", "provider_calls": 0}
     if not os.environ.get("OPENAI_API_KEY"):
