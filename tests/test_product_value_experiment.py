@@ -72,6 +72,13 @@ def test_experiment_item_requires_exact_candidate_and_independent_human_acceptan
     assert item.source_record_id == cand.source_record_id
     assert item.representation_sha256 == cand.representation_sha256
 
+    greg_item = create_experiment_governed_item(
+        cand, decision(cand, adjudicator_role="HUMAN_ADJUDICATOR", adjudicator_id="Greg")
+    )
+    assert greg_item is not None
+    assert greg_item.adjudicator_id == "Greg"
+    assert greg_item.adjudicator_role == "HUMAN_ADJUDICATOR"
+
     with pytest.raises(ValueError, match="hash"):
         verify_candidate_bytes(cand, b"changed candidate")
     with pytest.raises(ValueError, match="exact immutable candidate"):

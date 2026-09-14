@@ -77,7 +77,7 @@ class PropositionAdjudication(StrictModel):
     candidate_content_sha256: Sha256
     disposition: AdjudicationDisposition
     adjudicator_id: str
-    adjudicator_role: Literal["independent_human_proposition_adjudicator"]
+    adjudicator_role: Literal["independent_human_proposition_adjudicator", "HUMAN_ADJUDICATOR"]
     adjudicated_at: datetime
     adjudication_version: str
     rationale: str
@@ -145,7 +145,7 @@ class ExperimentGovernedItem(StrictModel):
     source_period_end: date | None
     adjudication_disposition: Literal["ACCEPT", "ACCEPT_MINOR_CORRECTION"]
     adjudicator_id: str
-    adjudicator_role: Literal["independent_human_proposition_adjudicator"]
+    adjudicator_role: Literal["independent_human_proposition_adjudicator", "HUMAN_ADJUDICATOR"]
     adjudicated_at: datetime
     adjudication_version: str
     corrected_atom_index: int | None = None
