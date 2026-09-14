@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from charitygraph.contracts.common import ArtifactRef, ProducerRef, SchemaRef
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.contracts.knowledge import RelationshipStatement, ScopeRecord, SubjectRecord
-from charitygraph.integrated_card import CardEvidence, IntegratedGraph, project_subject
+from charitygraph.integrated_card import CardEvidence, IntegratedGraph, NORTH_STAR_PROJECTION_V0_1, project_subject
 
 
 NOW = datetime(2026, 9, 6, tzinfo=timezone.utc)
@@ -32,7 +32,7 @@ def test_real_shape_projects_relationship_id_into_section_12_without_copying_rel
         producer=ProducerRef(kind="code", producer_id="relationship-proof", version="1"),
     )
     graph = IntegratedGraph(subjects=(source, target), scopes=(scope,), observations=(), relationships=(relation,), evidence=())
-    card = project_subject(graph, source.subject_id)
+    card = project_subject(graph, source.subject_id, projection_contract=NORTH_STAR_PROJECTION_V0_1)
     section12 = card["sections"][11]
     assert section12["relationship_ids"] == [relation.record_id]
     assert "relationship_type" not in section12
