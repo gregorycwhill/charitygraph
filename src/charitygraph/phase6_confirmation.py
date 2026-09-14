@@ -61,7 +61,7 @@ AGGREGATE_LIMIT_AUD = "1.50"
 CONDITION_A_MANIFEST_SHA256 = "62fa35105741f92fc5f297183745b798062b36eb41653a231a159d5acc3cfd81"
 BUILDER_CONTRACT_COMMIT = "7896e6e41423f5a17612eece0d2665e58913fe07"
 AUTHORIZATION_SOURCE_SHA256 = "48a3484e952c7c7013f8a49dbb5c12877f9a7d5a54008530dea32b425abdfd1d"
-V5_CONTRACT_VERSION = "phase6-corrected-contracts-v5"
+V5_CONTRACT_VERSION = "phase6-corrected-contracts-v5.1"
 V5_SUPERSEDES_CONTRACT_VERSION = CONTRACT_VERSION
 V6_CONTRACT_VERSION = "phase6-corrected-contracts-v6"
 V6_SUPERSEDES_CONTRACT_VERSION = V5_CONTRACT_VERSION
@@ -354,6 +354,13 @@ def provider_schema(slice_id: str, subject_id: str, scope: dict[str, Any], locat
                 strict_subset(child)
 
     root["$defs"] = definitions
+    if output_model is Phase6SemanticOutputV5:
+        # The provider subset has no oneOf. The V5.1 commitment content union
+        # is tagged by literal representation_type and revalidated locally.
+        commitment_definition = root["$defs"].get("CommitmentStatedV5", {})
+        content_union = commitment_definition.get("properties", {}).get("commitment_content")
+        if isinstance(content_union, dict) and "oneOf" in content_union:
+            content_union["anyOf"] = content_union.pop("oneOf")
     strict_subset(root)
     return root
 
@@ -408,7 +415,7 @@ def _prompt(task: dict[str, Any]) -> str:
 
 
 def prompt_v5(task: dict[str, Any]) -> str:
-    """V5 provider-facing clarification; it does not alter frozen V4 prompts."""
+    """V5.1 provider-facing clarification; it does not alter frozen V4/V5 prompts."""
     clarification = (
         "\n\nV5 assertion/evidence rule: proposition_type says WHAT is reported; evidence.source_role says "
         "which record carries it; epistemic_class says CharityGraph's status for the assertion. These are "
@@ -420,6 +427,14 @@ def prompt_v5(task: dict[str, Any]) -> str:
         "measurement period, and the required evidence-strength field; reach, participation, donations, and "
         "activity belong to their own substantive proposition types."
     )
+    if task["slice_id"] == "commitments":
+        clarification += (
+            " For every commitment_stated proposition, populate commitment_content with either source_text "
+            "containing the substantive commitment itself, or structured_equivalent containing both the "
+            "committed_action_or_state and its object_or_result. Kind, instrument, strategy, scope and dates "
+            "are metadata and cannot substitute for this substantive WHAT. Preserve a supported temporal "
+            "qualifier separately in stated_period; do not infer one from a surrounding strategy period."
+        )
     return _prompt(task) + clarification
 
 

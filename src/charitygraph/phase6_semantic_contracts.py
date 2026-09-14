@@ -415,6 +415,53 @@ class CommitmentStated(_EvidenceBound):
     stated_period: StrictStr | None = None
 
 
+class CommitmentTextContent(StrictModel):
+    """Substantive commitment wording retained from its cited source."""
+
+    representation_type: Literal["source_text"]
+    text: StrictStr
+
+    @field_validator("text")
+    @classmethod
+    def _text_nonblank(cls, value: str) -> str:
+        return require_nonblank(value, "commitment_content.text")
+
+
+class CommitmentStructuredContent(StrictModel):
+    """Typed equivalent that states both the committed action/state and WHAT it concerns."""
+
+    representation_type: Literal["structured_equivalent"]
+    committed_action_or_state: StrictStr
+    object_or_result: StrictStr
+
+    @field_validator("committed_action_or_state", "object_or_result")
+    @classmethod
+    def _structured_content_nonblank(cls, value: str) -> str:
+        return require_nonblank(value, "commitment_content")
+
+
+CommitmentContent = Annotated[
+    Union[CommitmentTextContent, CommitmentStructuredContent],
+    Field(discriminator="representation_type"),
+]
+
+
+class CommitmentStatedV5(_EvidenceBound):
+    """Strengthened V5.1 commitment assertion with a mandatory substantive WHAT."""
+
+    proposition_type: Literal["commitment_stated"]
+    epistemic_class: Literal["first_party_claim", "source_native_record"]
+    commitment_kind: CommitmentKind
+    instrument: StrictStr
+    commitment_content: CommitmentContent
+    stated_period: StrictStr | None = None
+
+    @field_validator("stated_period")
+    @classmethod
+    def _period_nonblank_if_present(cls, value: str | None) -> str | None:
+        return None if value is None else require_nonblank(value, "stated_period")
+
+
 class PolicyOrStandardAdopted(_EvidenceBound):
     proposition_type: Literal["policy_or_standard_adopted"]
     epistemic_class: Literal["first_party_claim", "source_native_record"]
@@ -506,7 +553,7 @@ CommitmentClaim = Annotated[
 ]
 
 CommitmentClaimV5 = Annotated[
-    Union[CommitmentStated, PolicyOrStandardAdopted, ImplementationActivitySelfReported,
+    Union[CommitmentStatedV5, PolicyOrStandardAdopted, ImplementationActivitySelfReported,
           ImplementationActivityIndependentlyObserved, ImplementationEvidenceExternal,
           ImplementationOutcomeReportedV5],
     Field(discriminator="proposition_type"),
@@ -771,15 +818,64 @@ class _Phase6SemanticOutputV5Base(StrictModel):
 
 
 class Phase6SemanticOutputV5(_Phase6SemanticOutputV5Base):
-    """Provider-facing V5 contract; V4 remains immutable historical evidence."""
+    """Provider-facing V5.1 contract; earlier V4/V5 bytes remain immutable evidence."""
 
-    contract_version: Literal["phase6-corrected-contracts-v5"] = "phase6-corrected-contracts-v5"
+    contract_version: Literal["phase6-corrected-contracts-v5.1"] = "phase6-corrected-contracts-v5.1"
 
 
 class Phase6SemanticOutputV5Replay(_Phase6SemanticOutputV5Base):
     """Read-only V4-response parser under V5 rules; it never rewrites V4 bytes."""
 
     contract_version: Literal["phase6-corrected-contracts-v3"]
+
+
+class Phase6SemanticOutputV5HistoricalReplay(StrictModel):
+    """Read-only parser for already-retained V5 bytes under their original shape."""
+
+    contract_version: Literal["phase6-corrected-contracts-v5"]
+    slice_id: Literal["outcomes", "commitments", "capacity"]
+    subject_id: StrictStr
+    propositions: tuple[OutcomeClaim | CommitmentClaim | CapacityClaim, ...] = ()
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def _use_v5_carrier_rules(cls, value: Any, handler: Any) -> Any:
+        with phase6_v5_validation_context():
+            return handler(value)
+
+    @field_validator("subject_id")
+    @classmethod
+    def _subject(cls, value: str) -> str:
+        return require_nonblank(value, "subject_id")
+
+    @field_validator("propositions", mode="before")
+    @classmethod
+    def _parse_historical_v5_for_selected_slice(cls, value: Any, info: ValidationInfo) -> Any:
+        slice_id = info.data.get("slice_id")
+        adapter = _SLICE_CLAIM_ADAPTERS.get(slice_id)
+        if adapter is None or not isinstance(value, (list, tuple)):
+            return value
+        with phase6_v5_validation_context():
+            return tuple(adapter.validate_python(value))
+
+    @model_validator(mode="after")
+    def _slice_types(self):
+        expected = {
+            "outcomes": OutcomeKind.__args__,
+            "commitments": (
+                "commitment_stated", "policy_or_standard_adopted", "implementation_activity_self_reported",
+                "implementation_activity_independently_observed", "implementation_evidence_regulatory_or_external",
+                "implementation_outcome_reported",
+            ),
+            "capacity": (
+                "service_exists", "intended_beneficiary_group", "formal_eligibility_rule", "access_information",
+                "access_pathway", "historical_activity_volume", "resource_or_workforce_measure", "service_scale_measure",
+                "capacity_limit_or_capacity_measure", "availability_reported_as_of_date", "current_availability", "availability_unknown",
+            ),
+        }[self.slice_id]
+        if any(item.proposition_type not in expected for item in self.propositions):
+            raise ValueError("proposition type does not belong to the selected Phase 6 slice")
+        return self
 
 
 class _Phase6SemanticOutputV6Base(_Phase6SemanticOutputV5Base):
@@ -851,7 +947,7 @@ def validate_current_availability_freshness(
 
 
 __all__ = [
-    "Phase6Scope", "Phase6EvidenceRef", "Phase6SemanticOutput", "Phase6SemanticOutputV5", "Phase6SemanticOutputV5Replay", "Phase6SemanticOutputV6", "Phase6SemanticOutputV6Replay", "OutcomeClaim", "OutcomeClaimV6", "CommitmentClaim", "CommitmentClaimV5",
+    "Phase6Scope", "Phase6EvidenceRef", "Phase6SemanticOutput", "Phase6SemanticOutputV5", "Phase6SemanticOutputV5Replay", "Phase6SemanticOutputV5HistoricalReplay", "Phase6SemanticOutputV6", "Phase6SemanticOutputV6Replay", "OutcomeClaim", "OutcomeClaimV6", "CommitmentClaim", "CommitmentClaimV5", "CommitmentContent", "CommitmentTextContent", "CommitmentStructuredContent", "CommitmentStatedV5",
     "CapacityClaim", "validate_scope_bindings", "validate_current_availability_freshness",
     "ActivityReported", "OutputReported", "ReachReported", "OutcomeObservedReported", "OutcomeObservedReportedV6",
     "ContributionClaimReported", "CausalAttributionClaimReported", "CausalEvidenceSupported",

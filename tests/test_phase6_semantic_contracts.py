@@ -15,6 +15,7 @@ from charitygraph.phase6_semantic_contracts import (
     CausalAttributionClaimReported,
     CausalEvidenceSupported,
     CommitmentStated,
+    CommitmentStatedV5,
     CurrentAvailability,
     FormalEligibilityRule,
     ImplementationActivityIndependentlyObserved,
@@ -26,6 +27,7 @@ from charitygraph.phase6_semantic_contracts import (
     Phase6Scope,
     Phase6SemanticOutput,
     Phase6SemanticOutputV5,
+    Phase6SemanticOutputV5HistoricalReplay,
     Phase6SemanticOutputV6,
     ReviewedEvidenceCoverage,
     ReviewedEvidenceCoverageItem,
@@ -94,6 +96,82 @@ def test_first_party_report_cannot_be_typed_as_independent_observation():
     assert commitment.proposition_type != self_report.proposition_type
 
 
+def _v5_commitment(content, *, stated_period=None):
+    return {
+        "proposition_type": "commitment_stated",
+        "scope": ORG.model_dump(),
+        "epistemic_class": "first_party_claim",
+        "evidence": [FIRST_PARTY.model_dump(mode="json")],
+        "commitment_kind": "goal",
+        "instrument": "published strategy",
+        "commitment_content": content,
+        "stated_period": stated_period,
+    }
+
+
+@pytest.mark.parametrize(
+    "content, period",
+    [
+        ({"representation_type": "source_text", "text": "secure the Earth's ability to nurture and sustain life in its diversity"}, None),
+        ({"representation_type": "source_text", "text": "keep climate change below 1.5\u00b0C"}, "by the end of the century"),
+        ({"representation_type": "source_text", "text": "Australia steps up as a leader on climate and nature protection"}, "2024\u201326"),
+        ({"representation_type": "source_text", "text": "ending deforestation in Australia from agriculture and logging"}, "by 2026"),
+    ],
+)
+def test_v5_1_commitments_require_substantive_content_and_preserve_source_period(content, period):
+    packet = {
+        "contract_version": "phase6-corrected-contracts-v5.1",
+        "slice_id": "commitments",
+        "subject_id": "subject:test-commitment-content",
+        "propositions": [_v5_commitment(content, stated_period=period)],
+    }
+    parsed = Phase6SemanticOutputV5.model_validate(packet)
+    proposition = parsed.propositions[0]
+    assert isinstance(proposition, CommitmentStatedV5)
+    assert proposition.commitment_content.model_dump(mode="json") == content
+    assert proposition.stated_period == period
+
+
+def test_v5_1_rejects_metadata_only_commitment_with_diagnostic():
+    metadata_only = _v5_commitment(None, stated_period="2024–26")
+    metadata_only.pop("commitment_content")
+    packet = {
+        "contract_version": "phase6-corrected-contracts-v5.1",
+        "slice_id": "commitments",
+        "subject_id": "subject:greenpeace-metadata-only-historical-shape",
+        "propositions": [metadata_only],
+    }
+    with pytest.raises(ValidationError) as error:
+        Phase6SemanticOutputV5.model_validate(packet)
+    assert any("commitment_content" in str(item["loc"]) for item in error.value.errors())
+
+    # The version-pinned legacy parser remains available for immutable V5
+    # history; success there is explicitly not V5.1 acceptance.
+    historical = {**packet, "contract_version": "phase6-corrected-contracts-v5"}
+    parsed_history = Phase6SemanticOutputV5HistoricalReplay.model_validate(historical)
+    assert parsed_history.propositions[0].proposition_type == "commitment_stated"
+
+
+def test_v5_1_accepts_typed_structured_what_but_not_a_metadata_bag():
+    structured = {
+        "representation_type": "structured_equivalent",
+        "committed_action_or_state": "end",
+        "object_or_result": "deforestation in Australia from agriculture and logging",
+    }
+    packet = {
+        "contract_version": "phase6-corrected-contracts-v5.1",
+        "slice_id": "commitments",
+        "subject_id": "subject:structured-commitment-content",
+        "propositions": [_v5_commitment(structured, stated_period="by 2026")],
+    }
+    parsed = Phase6SemanticOutputV5.model_validate(packet)
+    assert parsed.propositions[0].commitment_content.model_dump(mode="json") == structured
+
+    metadata_bag = _v5_commitment({"representation_type": "structured_equivalent"}, stated_period="2024–26")
+    with pytest.raises(ValidationError, match="committed_action_or_state|object_or_result"):
+        CommitmentStatedV5.model_validate(metadata_bag)
+
+
 def test_v5_distinguishes_regulator_record_carrier_from_claimant_without_relaxing_v3():
     regulator_carried = {
         "locator_id": "locator:regulated-copy",
@@ -115,7 +193,7 @@ def test_v5_distinguishes_regulator_record_carrier_from_claimant_without_relaxin
     }
     with pytest.raises(ValidationError, match="conflicts with source role"):
         Phase6SemanticOutput.model_validate(packet)
-    packet["contract_version"] = "phase6-corrected-contracts-v5"
+    packet["contract_version"] = "phase6-corrected-contracts-v5.1"
     parsed = Phase6SemanticOutputV5.model_validate(packet)
     assert parsed.propositions[0].epistemic_class == "first_party_claim"
 

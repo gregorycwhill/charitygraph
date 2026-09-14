@@ -9,6 +9,7 @@ import pytest
 from charitygraph.phase5_standard_transport import StandardAmbiguous, StandardProviderResponse
 from charitygraph.phase6_confirmation import (
     CONTRACT_VERSION,
+    V5_CONTRACT_VERSION,
     ProviderSchemaCertificationError,
     _canonical,
     _mechanical_validate,
@@ -17,7 +18,9 @@ from charitygraph.phase6_confirmation import (
     prepare_review_materials,
     prepare_run,
     provider_schema,
+    provider_schema_v5,
     provider_schema_v6_outcomes,
+    prompt_v5,
     prompt_v6_outcomes,
     preflight_provider_rights,
 )
@@ -166,6 +169,23 @@ def test_v5_greenpeace_repeat_comparison_keeps_attempts_independent_and_review_b
     assert comparison["contradiction_review"]["status"] == "human_review_required"
     assert comparison["contradiction_review"]["free_text_semantic_contradictions_inferred"] is False
     assert comparison["answer_changing_structural_differences"]
+
+
+def test_v5_1_commitment_schema_and_prompt_require_substantive_what():
+    schema = provider_schema_v5("commitments", SUBJECT_ID, SCOPE, ["locator:test"])
+    certification = certify_provider_schema(schema, contract_version=V5_CONTRACT_VERSION)
+    commitment = next(
+        definition for definition in schema["$defs"].values()
+        if definition.get("properties", {}).get("proposition_type", {}).get("enum") == ["commitment_stated"]
+    )
+    assert V5_CONTRACT_VERSION == "phase6-corrected-contracts-v5.1"
+    assert "commitment_content" in commitment["required"]
+    assert certification["certification_status"] == "certified"
+    prompt = prompt_v5({
+        "slice_id": "commitments", "abn": "65159324697", "subject_name": "Test Charity",
+        "analyst_questions": [], "allowed_scope_ids": [SCOPE], "unavailable_sources": [], "sources": [],
+    })
+    assert "metadata and cannot substitute for this substantive WHAT" in prompt
 
 
 def test_previously_rejected_v2_provider_schemas_fail_certification():
