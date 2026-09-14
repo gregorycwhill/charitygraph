@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, StrictInt, model_validator
 
 from .contracts.common import Sha256, StrictModel, require_nonblank
 
@@ -121,6 +121,80 @@ class ArtifactRightsDecision(StrictModel):
             "explicit_open_license", "explicit_terms_permission", "direct_permission", "public_facts_only", "statutory_exception",
         }:
             raise ValueError("provider transmission requires an affirmative rights basis")
+        return self
+
+
+# Local analytical retention is a separate, versioned decision.  Keeping it
+# separate from ArtifactRightsDecision preserves V1.0's frozen meaning and
+# makes it impossible to infer retention from provider permission.
+LOCAL_RETENTION_POLICY_ID = "CG_BOUNDED_LOCAL_ANALYTICAL_RETENTION_V1"
+LOCAL_RETENTION_POLICY_VERSION = "1.0.0"
+
+
+class BoundedLocalRetentionDecision(StrictModel):
+    """Fail-closed, exact-representation authorization for private retention."""
+
+    decision_id: str
+    source_artifact_id: str
+    source_record_id: str
+    source_role: str
+    acquisition_lineage_ids: tuple[str, ...]
+    representation_sha256: Sha256
+    rights_policy_id: str = LOCAL_RETENTION_POLICY_ID
+    rights_policy_version: str = LOCAL_RETENTION_POLICY_VERSION
+    rights_basis: Literal["statutory_exception", "explicit_open_license", "explicit_terms_permission", "direct_permission"]
+    representation_class: Literal["bounded_excerpt", "structured_factual"]
+    purpose: Literal[
+        "research", "semantic_analysis", "adjudication", "provenance",
+        "governed_evidence_construction", "bounded_experiment_reproducibility",
+        "governed_proposition_audit",
+    ]
+    scope: str
+    selected_page_count: StrictInt | None = None
+    source_page_count: StrictInt | None = None
+    one_source_native_entity_record: bool = False
+    lawful_access_confirmed: bool
+    circumvention_used: bool
+    explicit_prohibition_found: bool
+    retention_status: Literal["authorized", "blocked", "unknown"]
+    lifecycle_status: Literal["active_until_review", "review_due", "deleted", "blocked"]
+    review_due_on: date
+    provider_transmission_decision_id: str | None = None
+    provider_transmission_status: Literal["authorized", "blocked", "unknown", "not_assessed"]
+    public_redistribution_status: Literal["not_authorized", "authorized_under_separate_basis"] = "not_authorized"
+    public_redistribution_decision_id: str | None = None
+
+    @model_validator(mode="after")
+    def _fail_closed(self) -> "BoundedLocalRetentionDecision":
+        for name in ("decision_id", "source_artifact_id", "source_record_id", "source_role", "scope"):
+            require_nonblank(getattr(self, name), name)
+        if not self.acquisition_lineage_ids or any(not item.strip() for item in self.acquisition_lineage_ids):
+            raise ValueError("local retention requires recorded acquisition lineage")
+        if self.rights_policy_id != LOCAL_RETENTION_POLICY_ID or self.rights_policy_version != LOCAL_RETENTION_POLICY_VERSION:
+            raise ValueError("local retention requires the approved, versioned CharityGraph policy")
+        if self.retention_status == "authorized":
+            if not self.lawful_access_confirmed or self.circumvention_used or self.explicit_prohibition_found:
+                raise ValueError("retention authorization requires lawful access, no circumvention, and no explicit prohibition")
+            if self.lifecycle_status not in {"active_until_review", "review_due"}:
+                raise ValueError("authorized retention requires an auditable active review lifecycle")
+            if self.representation_class == "bounded_excerpt":
+                if (
+                    self.selected_page_count is None or self.source_page_count is None
+                    or self.selected_page_count < 1 or self.selected_page_count > 5
+                    or self.source_page_count < 1
+                    or self.selected_page_count / self.source_page_count > 0.20
+                ):
+                    raise ValueError("bounded report retention must be at most five selected pages and 20 percent of the source")
+            elif not self.one_source_native_entity_record:
+                raise ValueError("structured factual retention is limited to one source-native entity record")
+        if self.provider_transmission_status == "authorized" and not self.provider_transmission_decision_id:
+            raise ValueError("provider authorization requires its separate provider-rights decision ID")
+        if self.provider_transmission_status != "authorized" and self.provider_transmission_decision_id:
+            raise ValueError("provider decision ID may appear only when provider transmission is separately authorized")
+        if self.public_redistribution_status == "authorized_under_separate_basis" and not self.public_redistribution_decision_id:
+            raise ValueError("public redistribution requires its own separate rights decision ID")
+        if self.public_redistribution_status == "not_authorized" and self.public_redistribution_decision_id:
+            raise ValueError("public rights decision ID is valid only when separate redistribution is authorized")
         return self
 
 
