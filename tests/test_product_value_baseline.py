@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import pytest
 
@@ -14,6 +15,8 @@ from charitygraph.product_value_baseline import (
     ProviderPolicyAttestation,
     ProviderRightsRevalidation,
     lock_source_only_baseline,
+    import_and_lock_model_assisted_baseline,
+    certify_five_request_campaign_shape,
     require_campaign_ready,
     validate_campaign_budget,
     validate_source_only_packet,
@@ -237,6 +240,33 @@ def test_provider_policy_rights_revalidation_freshness_and_budget_gates(tmp_path
         require_campaign_ready(**{**base, "attempts": uncertified})
 
 
+def test_offline_campaign_shape_is_exactly_five_fixed_outcomes_and_commitments_requests():
+    assert baseline.PROPOSED_CAPABILITY_BY_ABN == {
+        "28004778081": "outcomes",
+        "78053639115": "outcomes",
+        "50169561394": "commitments",
+        "61002643852": "commitments",
+        "65159324697": "commitments",
+    }
+    assert certify_five_request_campaign_shape(attempts()) == Decimal("1.25")
+    assert not set(baseline.PROPOSED_CAPABILITY_BY_ABN) & {"32565549842", "80009663478", "57057493017"}
+
+    with pytest.raises(BaselineGateError, match="exactly the five"):
+        certify_five_request_campaign_shape(attempts(count=4))
+    capacity_subject = [*attempts()]
+    capacity_subject[4] = CampaignAttempt("32565549842", "capacity", "request:capacity", Decimal("0.10"))
+    with pytest.raises(BaselineGateError, match="fixed five-subject"):
+        certify_five_request_campaign_shape(capacity_subject)
+    wrong_capability = [*attempts()]
+    wrong_capability[0] = replace(wrong_capability[0], capability="commitments")
+    with pytest.raises(BaselineGateError, match="capability routes"):
+        certify_five_request_campaign_shape(wrong_capability)
+    duplicate_request_id = [*attempts()]
+    duplicate_request_id[1] = replace(duplicate_request_id[1], request_id=duplicate_request_id[0].request_id)
+    with pytest.raises(BaselineGateError, match="identities must be unique"):
+        certify_five_request_campaign_shape(duplicate_request_id)
+
+
 def test_aggregate_campaign_budget_cap_is_enforced_independently():
     over_aggregate = [CampaignAttempt(ABNS[i % 5], "outcomes" if i % 5 < 2 else "commitments",
                                      f"request:budget-{i}", Decimal("0.25")) for i in range(9)]
@@ -259,3 +289,77 @@ def test_candidate_generation_must_postdate_lock_and_request_ids_are_unique(tmp_
     wrong_route = [CampaignAttempt(ABNS[0], "commitments", "request:pv-0", Decimal("0.10"))]
     with pytest.raises(BaselineGateError, match="identities or capability"):
         require_campaign_ready(**{**args, "attempts": wrong_route}, candidate_generation_at=NOW + timedelta(milliseconds=1))
+
+
+def test_only_exact_approved_model_assisted_zip_can_import_and_lock(tmp_path):
+    original = make_packet(tmp_path / "original" / "source-only")
+    complete_answers(original)
+    projection = original.parent / "projection-evaluation" / "PROJECTION_REVIEW_FORM.md"
+    projection.parent.mkdir(parents=True)
+    projection.write_text("Fixed projection evaluation fixture.\n", encoding="utf-8")
+    manifest = json.loads((original / "manifest.json").read_text(encoding="utf-8"))
+    answer_hashes = {Path(rel).name: digest((original / rel).read_bytes()) for rel in manifest["answer_files"]}
+    note = (
+        "# Model-assisted source-only baseline completion\n\n"
+        "Reviewer: ChatGPT / `MODEL_ASSISTED_SOURCE_ONLY_REVIEWER`.\n"
+        "No product-value candidate output, projection or outside knowledge was used.\n"
+        "No baseline lock was created.\n"
+    ).encode()
+    entries = {
+        "MODEL_ASSISTED_ANSWER_HASHES.json": (json.dumps(answer_hashes, sort_keys=True) + "\n").encode(),
+        "MODEL_ASSISTED_COMPLETION_NOTE.md": note,
+        "projection-evaluation/PROJECTION_REVIEW_FORM.md": projection.read_bytes(),
+    }
+    for path in original.rglob("*"):
+        if path.is_file():
+            entries[f"source-only/{path.relative_to(original).as_posix()}"] = path.read_bytes()
+    zip_path = tmp_path / "completed.zip"
+    with ZipFile(zip_path, "w", ZIP_DEFLATED) as archive:
+        for name, raw in entries.items():
+            archive.writestr(f"product-value-baseline-2026-09-14-model-assisted-completed/{name}", raw)
+    baseline.APPROVED_MODEL_ASSISTED_ZIP_SHA256 = digest(zip_path.read_bytes())
+    destination = tmp_path / "model-assisted-import"
+    bad_zip = tmp_path / "altered.zip"
+    bad_zip.write_bytes(zip_path.read_bytes() + b"altered")
+    with pytest.raises(BaselineGateError, match="specifically approved"):
+        import_and_lock_model_assisted_baseline(bad_zip, original, destination,
+                                                 accepted_by="Greg", accepted_at=NOW)
+    assert not destination.exists()
+
+    result = import_and_lock_model_assisted_baseline(zip_path, original, destination,
+                                                      accepted_by="Greg", accepted_at=NOW)
+    packet = destination / "source-only"
+    lock = json.loads((packet / "source-only-baseline.lock.json").read_text(encoding="utf-8"))
+    assert result["lock_sha256"] == digest((packet / "source-only-baseline.lock.json").read_bytes())
+    assert lock["status"] == "MODEL_ASSISTED_SOURCE_ONLY_BASELINE_LOCKED_BEFORE_NEW_CANDIDATE_GENERATION"
+    assert lock["reviewer_role"] == "MODEL_ASSISTED_SOURCE_ONLY_REVIEWER"
+    assert lock["product_owner_acceptance"]["accepted"] is True
+    assert "statement" not in lock
+
+    selected = attempts()
+    ready = dict(packet_dir=packet, candidate_generation_at=NOW + timedelta(seconds=1),
+                 provider_attestation=attestation(), provider_rights_revalidated=rights(packet, selected),
+                 certified_request_ids=frozenset(a.request_id for a in selected), attempts=selected,
+                 now=NOW + timedelta(seconds=2))
+    assert require_campaign_ready(**ready)
+    answer = packet / "answers" / f"inspect-{ABNS[0]}.md"
+    answer_original = answer.read_bytes()
+    answer.write_bytes(answer_original + b"changed after model lock\n")
+    with pytest.raises(BaselineGateError, match="changed after baseline completion"):
+        require_campaign_ready(**ready)
+    answer.write_bytes(answer_original)
+
+    source = packet / "representations" / ABNS[0] / "acnc.txt"
+    source_original = source.read_bytes()
+    source.write_bytes(source_original + b"changed after model lock\n")
+    with pytest.raises(BaselineGateError, match="source representation hash mismatch"):
+        require_campaign_ready(**ready)
+    source.write_bytes(source_original)
+
+    task_form = packet / "forms" / f"inspect-{ABNS[0]}.md"
+    task_original = task_form.read_bytes()
+    task_form.write_bytes(task_original + b"changed after model lock\n")
+    with pytest.raises(BaselineGateError, match="fixed task form hash mismatch"):
+        require_campaign_ready(**ready)
+    task_form.write_bytes(task_original)
+    assert require_campaign_ready(**ready)

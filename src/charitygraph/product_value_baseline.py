@@ -11,6 +11,10 @@ import hashlib
 import json
 import os
 import re
+import shutil
+import stat
+import tempfile
+import zipfile
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -40,6 +44,10 @@ EXPECTED_SUBJECT_NAMES = {
     "57057493017": "The Leukaemia Foundation of Australia Limited",
 }
 APPROVED_PACKET_MANIFEST_SHA256 = "7204d5e696494064691a17def69210f0ef3985dd18fccca79c746f1b277c8f9f"
+APPROVED_MODEL_ASSISTED_ZIP_SHA256 = "db493574c062f1505589d273629c20202de916978388740379724d9a37ce7d15"
+MODEL_ASSISTED_LOCK_STATUS = "MODEL_ASSISTED_SOURCE_ONLY_BASELINE_LOCKED_BEFORE_NEW_CANDIDATE_GENERATION"
+MODEL_ASSISTED_REVIEWER_ROLE = "MODEL_ASSISTED_SOURCE_ONLY_REVIEWER"
+EXPERIMENT_ID = "product-value-experiment-2026-09-14"
 PROPOSED_CAPABILITY_BY_ABN = {
     "28004778081": "outcomes", "78053639115": "outcomes",
     "50169561394": "commitments", "61002643852": "commitments",
@@ -211,6 +219,183 @@ def _answer_hashes(root: Path, manifest: Mapping) -> dict[str, str]:
     return hashes
 
 
+def import_and_lock_model_assisted_baseline(
+    zip_path: str | Path,
+    approved_packet_dir: str | Path,
+    destination_dir: str | Path,
+    *,
+    accepted_by: str,
+    accepted_at: datetime,
+) -> dict[str, str]:
+    """Validate the one approved completion archive, import privately, and lock once.
+
+    Archive bytes are fully checked in memory before the destination is created.
+    The source-only subtree receives only the original packet files, completed
+    answers, and the lock. The note, answer-hash list, and projection form remain
+    alongside it in the private import directory.
+    """
+    archive_path = Path(zip_path).resolve(strict=True)
+    original = Path(approved_packet_dir).resolve(strict=True)
+    destination = Path(destination_dir).resolve()
+    if destination.exists():
+        raise BaselineGateError("model-assisted baseline destination already exists; import is one-time")
+    if accepted_by != "Greg" or accepted_at.tzinfo is None or accepted_at.utcoffset() is None:
+        raise BaselineGateError("a timezone-aware product-owner acceptance by Greg is required")
+    if _sha256(archive_path.read_bytes()) != APPROVED_MODEL_ASSISTED_ZIP_SHA256:
+        raise BaselineGateError("completed ZIP does not match the specifically approved model-assisted archive")
+
+    manifest_hash = validate_source_only_packet(original)
+    manifest, _ = _manifest(original)
+    prefix = "product-value-baseline-2026-09-14-model-assisted-completed/"
+    try:
+        with zipfile.ZipFile(archive_path, "r") as archive:
+            infos = archive.infolist()
+            names = [info.filename for info in infos]
+            if len(names) != len(set(names)) or any(info.is_dir() for info in infos):
+                raise BaselineGateError("completed ZIP has duplicate entries or unexpected directories")
+            if sum(info.file_size for info in infos) > 1_000_000 or len(infos) > 64:
+                raise BaselineGateError("completed ZIP exceeds the fixed packet size or file-count bound")
+            archive_files: dict[str, bytes] = {}
+            for info in infos:
+                posix = Path(info.filename.replace("\\", "/"))
+                if (not info.filename.startswith(prefix) or posix.is_absolute()
+                        or ".." in posix.parts or stat.S_ISLNK(info.external_attr >> 16)):
+                    raise BaselineGateError("completed ZIP contains an unsafe or unexpected path")
+                relative = info.filename[len(prefix):]
+                if not relative:
+                    raise BaselineGateError("completed ZIP contains an empty path")
+                archive_files[relative] = archive.read(info)
+    except (OSError, zipfile.BadZipFile, RuntimeError) as exc:
+        raise BaselineGateError("completed ZIP is unreadable or corrupt") from exc
+
+    packet_files = {"source-only/README.md", "source-only/manifest.json", "source-only/manifest.sha256",
+                    "source-only/" + manifest["source_metadata_path"]}
+    packet_files.update("source-only/" + row["path"] for row in manifest["sources"])
+    packet_files.update("source-only/" + row["path"] for row in manifest["task_forms"])
+    packet_files.update("source-only/" + rel for rel in manifest["answer_files"])
+    allowed_archive_files = packet_files | {
+        "MODEL_ASSISTED_ANSWER_HASHES.json", "MODEL_ASSISTED_COMPLETION_NOTE.md",
+        "projection-evaluation/PROJECTION_REVIEW_FORM.md",
+    }
+    if set(archive_files) != allowed_archive_files:
+        extra = sorted(set(archive_files) - allowed_archive_files)
+        missing = sorted(allowed_archive_files - set(archive_files))
+        raise BaselineGateError(f"completed ZIP membership differs from the approved allowlist; extra={extra}; missing={missing}")
+
+    completed_packet = {rel.removeprefix("source-only/"): archive_files[rel] for rel in packet_files}
+    if _sha256(completed_packet["manifest.json"]) != APPROVED_PACKET_MANIFEST_SHA256:
+        raise BaselineGateError("embedded original manifest is not the approved packet manifest")
+    sidecar_parts = completed_packet["manifest.sha256"].decode("ascii").strip().split()
+    if not sidecar_parts or sidecar_parts[0] != manifest_hash:
+        raise BaselineGateError("embedded manifest sidecar differs from the approved source-only packet")
+    if _sha256(completed_packet[manifest["source_metadata_path"]]) != manifest["source_metadata_sha256"]:
+        raise BaselineGateError("embedded source metadata hash differs from the approved packet")
+
+    answer_hash_record = _read_json_bytes(archive_files["MODEL_ASSISTED_ANSWER_HASHES.json"], "MODEL_ASSISTED_ANSWER_HASHES.json")
+    expected_answer_names = {Path(rel).name for rel in manifest["answer_files"]}
+    if set(answer_hash_record) != expected_answer_names:
+        raise BaselineGateError("model-assisted answer hash list does not contain exactly eleven approved answers")
+    answer_hashes: dict[str, str] = {}
+    for rel in manifest["answer_files"]:
+        name = Path(rel).name
+        raw = completed_packet[rel]
+        if _sha256(raw) != answer_hash_record[name]:
+            raise BaselineGateError(f"completed answer hash does not match the supplied answer list: {name}")
+        try:
+            answer_text = raw.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise BaselineGateError(f"completed answer is not UTF-8: {name}") from exc
+        if ("**Answer status:** `COMPLETE`" not in answer_text
+                or f"**Packet manifest SHA-256:** `{manifest_hash}`" not in answer_text
+                or "[[REQUIRED]]" in answer_text):
+            raise BaselineGateError(f"completed answer is incomplete or not bound to the approved manifest: {name}")
+        answer_hashes[rel] = answer_hash_record[name]
+
+    # Source representations and frozen task definitions must match the original
+    # approved packet byte-for-byte; no archive content is interpreted or repaired.
+    for rel in [row["path"] for row in manifest["sources"]] + [row["path"] for row in manifest["task_forms"]]:
+        if completed_packet[rel] != (original / rel).read_bytes():
+            raise BaselineGateError(f"completed ZIP changed a source representation or fixed task form: {rel}")
+    for row in manifest["sources"]:
+        if _sha256(completed_packet[row["path"]]) != row["representation_sha256"]:
+            raise BaselineGateError(f"completed ZIP source hash differs from the original manifest: {row['path']}")
+    for row in manifest["task_forms"]:
+        if _sha256(completed_packet[row["path"]]) != row["sha256"]:
+            raise BaselineGateError(f"completed ZIP task hash differs from the original manifest: {row['path']}")
+
+    note_raw = archive_files["MODEL_ASSISTED_COMPLETION_NOTE.md"]
+    try:
+        note = note_raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise BaselineGateError("completion note is not UTF-8") from exc
+    if (MODEL_ASSISTED_REVIEWER_ROLE not in note or "No product-value candidate output" not in note
+            or "No baseline lock was created." not in note):
+        raise BaselineGateError("completion note does not establish the approved model-assisted role and no-candidate history")
+    projection_path = original.parent / "projection-evaluation" / "PROJECTION_REVIEW_FORM.md"
+    if archive_files["projection-evaluation/PROJECTION_REVIEW_FORM.md"] != projection_path.read_bytes():
+        raise BaselineGateError("projection evaluation form differs from the approved fixed template")
+
+    source_rows = _read_json_bytes(completed_packet[manifest["source_metadata_path"]], "source-metadata.json")["sources"]
+    source_hashes = {row["representation_path"]: row["representation_sha256"] for row in source_rows}
+    task_hashes = {row["path"]: row["sha256"] for row in manifest["task_forms"]}
+    lock = {
+        "status": MODEL_ASSISTED_LOCK_STATUS,
+        "experiment_id": EXPERIMENT_ID,
+        "source_packet_manifest_sha256": manifest_hash,
+        "completed_zip_sha256": APPROVED_MODEL_ASSISTED_ZIP_SHA256,
+        "completed_answer_sha256": answer_hashes,
+        "source_representation_sha256": source_hashes,
+        "task_form_sha256": task_hashes,
+        "reviewer": "ChatGPT",
+        "reviewer_role": MODEL_ASSISTED_REVIEWER_ROLE,
+        "completion_note_sha256": _sha256(note_raw),
+        "answer_hash_list_sha256": _sha256(archive_files["MODEL_ASSISTED_ANSWER_HASHES.json"]),
+        "product_owner_acceptance": {"accepted": True, "identity": "Greg", "date": accepted_at.date().isoformat()},
+        "lock_timestamp": accepted_at.astimezone(timezone.utc).isoformat(),
+        "no_new_product_value_candidate_generation_preceded_lock": True,
+    }
+    lock_raw = (json.dumps(lock, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+    lock_hash = _sha256(lock_raw)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    staging = Path(tempfile.mkdtemp(prefix=".pv-baseline-import-", dir=destination.parent))
+    try:
+        for rel, raw in archive_files.items():
+            output = staging.joinpath(*Path(rel).parts)
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_bytes(raw)
+        lock_path = staging / "source-only" / "source-only-baseline.lock.json"
+        with lock_path.open("xb") as stream:
+            stream.write(lock_raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        lock_path.chmod(0o444)
+        validate_source_only_packet(staging / "source-only")
+        if (staging / "source-only" / "source-only-baseline.lock.json").read_bytes() != lock_raw:
+            raise BaselineGateError("model-assisted baseline lock changed during import")
+        os.replace(staging, destination)
+    except Exception:
+        if staging.exists():
+            shutil.rmtree(staging)
+        raise
+    return {
+        "destination": str(destination),
+        "source_packet_manifest_sha256": manifest_hash,
+        "completed_zip_sha256": APPROVED_MODEL_ASSISTED_ZIP_SHA256,
+        "lock_sha256": lock_hash,
+        "lock_status": MODEL_ASSISTED_LOCK_STATUS,
+    }
+
+
+def _read_json_bytes(raw: bytes, name: str) -> dict:
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise BaselineGateError(f"invalid UTF-8 JSON: {name}") from exc
+    if not isinstance(value, dict):
+        raise BaselineGateError(f"expected JSON object: {name}")
+    return value
+
+
 def lock_source_only_baseline(
     packet_dir: str | Path, *, completed_at: datetime, analyst_identity: str = "Greg",
 ) -> str:
@@ -284,6 +469,25 @@ def validate_campaign_budget(attempts: Sequence[CampaignAttempt]) -> Decimal:
     return total
 
 
+def certify_five_request_campaign_shape(attempts: Sequence[CampaignAttempt]) -> Decimal:
+    """Certify the fixed initial product-value plan, excluding sparse controls."""
+    if len(attempts) != len(PROPOSED_CAPABILITY_BY_ABN):
+        raise BaselineGateError("offline campaign must contain exactly the five approved subject requests")
+    subjects = [attempt.subject_abn for attempt in attempts]
+    request_ids = [attempt.request_id for attempt in attempts]
+    if len(set(subjects)) != len(subjects):
+        raise BaselineGateError("offline campaign permits one request per approved subject")
+    if set(subjects) != set(PROPOSED_CAPABILITY_BY_ABN):
+        raise BaselineGateError("offline campaign subjects must match the fixed five-subject cohort")
+    if any(attempt.capability != PROPOSED_CAPABILITY_BY_ABN[attempt.subject_abn] for attempt in attempts):
+        raise BaselineGateError("offline campaign capability routes must match the fixed Outcomes/Commitments plan")
+    if any(not isinstance(request_id, str) or not request_id.strip() for request_id in request_ids):
+        raise BaselineGateError("offline campaign requests require immutable request identities")
+    if len(set(request_ids)) != len(request_ids):
+        raise BaselineGateError("offline campaign request identities must be unique")
+    return validate_campaign_budget(attempts)
+
+
 def require_campaign_ready(
     packet_dir: str | Path,
     *,
@@ -302,12 +506,39 @@ def require_campaign_ready(
     if not lock_path.is_file():
         raise BaselineGateError("candidate generation is blocked until the source-only baseline is locked")
     lock = _read_json(lock_path)
-    if (lock.get("status") != "SOURCE_ONLY_BASELINE_LOCKED" or lock.get("statement") != LOCK_STATEMENT
-            or lock.get("source_packet_manifest_sha256") != manifest_hash):
+    lock_status = lock.get("status")
+    if lock.get("source_packet_manifest_sha256") != manifest_hash:
         raise BaselineGateError("baseline lock does not bind the exact current packet manifest")
+    if lock_status == MODEL_ASSISTED_LOCK_STATUS:
+        acceptance = lock.get("product_owner_acceptance", {})
+        note_path = root.parent / "MODEL_ASSISTED_COMPLETION_NOTE.md"
+        hash_list_path = root.parent / "MODEL_ASSISTED_ANSWER_HASHES.json"
+        current_sources = {
+            row["representation_path"]: row["representation_sha256"]
+            for row in _read_json(root / manifest["source_metadata_path"])["sources"]
+        }
+        current_tasks = {row["path"]: row["sha256"] for row in manifest["task_forms"]}
+        if (lock.get("completed_zip_sha256") != APPROVED_MODEL_ASSISTED_ZIP_SHA256
+                or lock.get("experiment_id") != EXPERIMENT_ID
+                or lock.get("reviewer_role") != MODEL_ASSISTED_REVIEWER_ROLE
+                or lock.get("reviewer") != "ChatGPT"
+                or acceptance != {"accepted": True, "identity": "Greg", "date": "2026-09-14"}
+                or lock.get("no_new_product_value_candidate_generation_preceded_lock") is not True
+                or lock.get("source_representation_sha256") != current_sources
+                or lock.get("task_form_sha256") != current_tasks
+                or not note_path.is_file() or _sha256(note_path.read_bytes()) != lock.get("completion_note_sha256")
+                or not hash_list_path.is_file() or _sha256(hash_list_path.read_bytes()) != lock.get("answer_hash_list_sha256")):
+            raise BaselineGateError("model-assisted baseline lock lacks the exact ZIP, reviewer, acceptance, source/task or note binding")
+        if lock.get("statement") is not None:
+            raise BaselineGateError("model-assisted source-only baseline must not be represented by the human-lock statement")
+        locked_at_value = lock.get("lock_timestamp")
+    elif lock_status == "SOURCE_ONLY_BASELINE_LOCKED" and lock.get("statement") == LOCK_STATEMENT:
+        locked_at_value = lock.get("completion_timestamp")
+    else:
+        raise BaselineGateError("baseline lock status is not an explicitly accepted human or model-assisted mode")
     if lock.get("completed_answer_sha256") != _answer_hashes(root, manifest):
         raise BaselineGateError("locked answer files changed after baseline completion")
-    locked_at = datetime.fromisoformat(lock["completion_timestamp"])
+    locked_at = datetime.fromisoformat(locked_at_value)
     if candidate_generation_at.tzinfo is None or now.tzinfo is None:
         raise BaselineGateError("candidate-generation and current timestamps must include timezones")
     if candidate_generation_at <= locked_at or candidate_generation_at > now:
