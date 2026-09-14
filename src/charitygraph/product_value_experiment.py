@@ -82,6 +82,9 @@ class PropositionAdjudication(StrictModel):
     adjudication_version: str
     rationale: str
     corrected_governed_representation: CanonicalObject | None = None
+    corrected_governed_representations: tuple[CanonicalObject, ...] = ()
+    reviewer_id: str | None = None
+    reviewer_role: Literal["MODEL_ASSISTED_REVIEWER"] | None = None
     independent_of_candidate_producer: bool
 
     @field_validator("adjudication_id", "candidate_id", "adjudicator_id", "adjudication_version", "rationale")
@@ -98,10 +101,21 @@ class PropositionAdjudication(StrictModel):
     def _disposition_shape(self) -> "PropositionAdjudication":
         if not self.independent_of_candidate_producer:
             raise ValueError("experiment governance requires independent proposition-level human adjudication")
-        if self.disposition == "ACCEPT_MINOR_CORRECTION" and not self.corrected_governed_representation:
+        if self.reviewer_id is not None:
+            require_nonblank(self.reviewer_id, "reviewer_id")
+        if self.reviewer_id == self.adjudicator_id:
+            raise ValueError("model-assisted reviewer cannot satisfy the human adjudicator role")
+        if self.corrected_governed_representation is not None and self.corrected_governed_representations:
+            raise ValueError("use either the legacy single corrected representation or the plural form")
+        corrections = self.corrected_governed_representations or (
+            (self.corrected_governed_representation,) if self.corrected_governed_representation else ()
+        )
+        if self.disposition == "ACCEPT_MINOR_CORRECTION" and not corrections:
             raise ValueError("minor correction requires a preserved corrected governed representation")
-        if self.disposition != "ACCEPT_MINOR_CORRECTION" and self.corrected_governed_representation is not None:
+        if self.disposition != "ACCEPT_MINOR_CORRECTION" and corrections:
             raise ValueError("corrected representation is only valid for ACCEPT_MINOR_CORRECTION")
+        if any(not correction for correction in corrections):
+            raise ValueError("corrected governed representations cannot be empty")
         return self
 
 
@@ -120,6 +134,7 @@ class ExperimentGovernedItem(StrictModel):
     representation_sha256: Sha256
     retention_decision_id: str
     proposition_type: str
+    governed_proposition_type: str
     governed_representation: CanonicalObject
     evidence_locator_ids: tuple[str, ...]
     source_carrier_role: str
@@ -133,6 +148,9 @@ class ExperimentGovernedItem(StrictModel):
     adjudicator_role: Literal["independent_human_proposition_adjudicator"]
     adjudicated_at: datetime
     adjudication_version: str
+    corrected_atom_index: int | None = None
+    reviewer_id: str | None = None
+    reviewer_role: Literal["MODEL_ASSISTED_REVIEWER"] | None = None
     provider_request_id: str | None = None
     canonical_public: Literal[False] = False
 
@@ -141,7 +159,7 @@ class ExperimentGovernedItem(StrictModel):
         for name in (
             "item_id", "candidate_id", "adjudication_id", "subject_id", "scope_id",
             "source_artifact_id", "source_record_id", "retention_decision_id",
-            "proposition_type", "source_carrier_role", "epistemic_status",
+            "proposition_type", "governed_proposition_type", "source_carrier_role", "epistemic_status",
             "reviewed_evidence_universe_id", "adjudicator_id", "adjudication_version",
         ):
             require_nonblank(getattr(self, name), name)
@@ -151,6 +169,15 @@ class ExperimentGovernedItem(StrictModel):
             raise ValueError("governed evidence locator IDs must be unique")
         if self.coverage_state == "evidence_present" and not self.evidence_locator_ids:
             raise ValueError("positive governed coverage requires an evidence locator")
+        if self.adjudication_disposition == "ACCEPT_MINOR_CORRECTION":
+            if self.corrected_atom_index is None or self.corrected_atom_index < 1:
+                raise ValueError("corrected governed atoms require a positive atom index")
+        elif self.corrected_atom_index is not None:
+            raise ValueError("only corrected governed atoms may carry an atom index")
+        if self.reviewer_id is not None:
+            require_nonblank(self.reviewer_id, "reviewer_id")
+        if self.reviewer_id == self.adjudicator_id:
+            raise ValueError("model-assisted reviewer cannot satisfy the human adjudicator role")
         if self.source_period_start and self.source_period_end and self.source_period_end < self.source_period_start:
             raise ValueError("source period end cannot precede its start")
         return self
@@ -159,45 +186,75 @@ class ExperimentGovernedItem(StrictModel):
 def create_experiment_governed_item(
     candidate: ExperimentCandidate, adjudication: PropositionAdjudication
 ) -> ExperimentGovernedItem | None:
-    """Create only from an independently accepted candidate; reject means no item."""
+    """Compatibility wrapper for one accepted item; use the plural API for corrections."""
+    items = create_experiment_governed_items(candidate, adjudication)
+    if not items:
+        return None
+    if len(items) != 1:
+        raise ValueError("adjudication creates multiple atoms; use create_experiment_governed_items")
+    return items[0]
+
+
+def create_experiment_governed_items(
+    candidate: ExperimentCandidate, adjudication: PropositionAdjudication
+) -> tuple[ExperimentGovernedItem, ...]:
+    """Create one or more governed atoms from one exact candidate and human decision."""
     if adjudication.candidate_id != candidate.candidate_id or adjudication.candidate_content_sha256 != candidate.candidate_content_sha256:
         raise ValueError("adjudication must bind the exact immutable candidate identity and hash")
     if adjudication.adjudicator_id == candidate.candidate_producer_id:
         raise ValueError("candidate producer cannot adjudicate their own candidate")
     if adjudication.disposition not in {"ACCEPT", "ACCEPT_MINOR_CORRECTION"}:
-        return None
-    representation = adjudication.corrected_governed_representation or candidate.proposition
+        return ()
+    if adjudication.disposition == "ACCEPT_MINOR_CORRECTION":
+        representations = adjudication.corrected_governed_representations or (
+            (adjudication.corrected_governed_representation,)
+            if adjudication.corrected_governed_representation else ()
+        )
+    else:
+        representations = (candidate.proposition,)
     kind = "coverage_state" if candidate.coverage_state is not None else "proposition"
-    return ExperimentGovernedItem(
-        namespace_id="product_value_experiment_2026_09_14",
-        item_id=f"expitem:{candidate.candidate_id.removeprefix('candidate:')}",
-        item_kind=kind,
-        candidate_id=candidate.candidate_id,
-        candidate_content_sha256=candidate.candidate_content_sha256,
-        adjudication_id=adjudication.adjudication_id,
-        subject_id=candidate.subject_id,
-        scope_id=candidate.scope_id,
-        scope_kind=candidate.scope_kind,
-        source_artifact_id=candidate.source_artifact_id,
-        source_record_id=candidate.source_record_id,
-        representation_sha256=candidate.representation_sha256,
-        retention_decision_id=candidate.retention_decision_id,
-        proposition_type=candidate.proposition_type,
-        governed_representation=representation,
-        evidence_locator_ids=candidate.evidence_locator_ids,
-        source_carrier_role=candidate.source_carrier_role,
-        epistemic_status=candidate.epistemic_status,
-        reviewed_evidence_universe_id=candidate.reviewed_evidence_universe_id,
-        coverage_state=candidate.coverage_state,
-        source_period_start=candidate.source_period_start,
-        source_period_end=candidate.source_period_end,
-        adjudication_disposition=adjudication.disposition,
-        adjudicator_id=adjudication.adjudicator_id,
-        adjudicator_role=adjudication.adjudicator_role,
-        adjudicated_at=adjudication.adjudicated_at,
-        adjudication_version=adjudication.adjudication_version,
-        provider_request_id=candidate.provider_request_id,
-    )
+    result = []
+    for index, representation in enumerate(representations, start=1):
+        if representation is None:
+            raise ValueError("minor correction requires a preserved corrected governed representation")
+        base_item_id = f"expitem:{candidate.candidate_id.removeprefix('candidate:')}"
+        atom_index = index if adjudication.disposition == "ACCEPT_MINOR_CORRECTION" else None
+        item_id = f"{base_item_id}:atom-{index:02d}" if atom_index is not None else base_item_id
+        result.append(ExperimentGovernedItem(
+            namespace_id="product_value_experiment_2026_09_14",
+            item_id=item_id,
+            item_kind=kind,
+            candidate_id=candidate.candidate_id,
+            candidate_content_sha256=candidate.candidate_content_sha256,
+            adjudication_id=adjudication.adjudication_id,
+            subject_id=candidate.subject_id,
+            scope_id=candidate.scope_id,
+            scope_kind=candidate.scope_kind,
+            source_artifact_id=candidate.source_artifact_id,
+            source_record_id=candidate.source_record_id,
+            representation_sha256=candidate.representation_sha256,
+            retention_decision_id=candidate.retention_decision_id,
+            proposition_type=candidate.proposition_type,
+            governed_proposition_type=str(representation.get("proposition_type", candidate.proposition_type)),
+            governed_representation=representation,
+            evidence_locator_ids=candidate.evidence_locator_ids,
+            source_carrier_role=candidate.source_carrier_role,
+            epistemic_status=candidate.epistemic_status,
+            reviewed_evidence_universe_id=candidate.reviewed_evidence_universe_id,
+            coverage_state=candidate.coverage_state,
+            source_period_start=candidate.source_period_start,
+            source_period_end=candidate.source_period_end,
+            adjudication_disposition=adjudication.disposition,
+            adjudicator_id=adjudication.adjudicator_id,
+            adjudicator_role=adjudication.adjudicator_role,
+            adjudicated_at=adjudication.adjudicated_at,
+            adjudication_version=adjudication.adjudication_version,
+            corrected_atom_index=atom_index,
+            reviewer_id=adjudication.reviewer_id,
+            reviewer_role=adjudication.reviewer_role,
+            provider_request_id=candidate.provider_request_id,
+        ))
+    return tuple(result)
 
 
 class ExperimentProjection(StrictModel):

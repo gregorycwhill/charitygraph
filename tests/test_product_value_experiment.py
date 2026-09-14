@@ -8,6 +8,7 @@ from charitygraph.product_value_experiment import (
     ExperimentCandidate,
     PropositionAdjudication,
     create_experiment_governed_item,
+    create_experiment_governed_items,
     project_experiment_items,
     verify_candidate_bytes,
 )
@@ -95,8 +96,24 @@ def test_rejected_candidate_never_enters_governed_namespace_and_minor_fix_is_sep
     assert item.governed_representation == fixed
     assert cand.proposition == {"statement": "source-reported commitment"}
 
+    atoms = ({"proposition_type": "stated_purpose", "statement": "purpose"}, {"proposition_type": "reported_activity", "statement": "activity"})
+    multi = decision(cand, disposition="ACCEPT_MINOR_CORRECTION", corrected_governed_representations=atoms)
+    governed_atoms = create_experiment_governed_items(cand, multi)
+    assert len(governed_atoms) == 2
+    assert [item.corrected_atom_index for item in governed_atoms] == [1, 2]
+    assert len({item.item_id for item in governed_atoms}) == 2
+    assert all(item.candidate_id == cand.candidate_id for item in governed_atoms)
+    assert all(item.candidate_content_sha256 == cand.candidate_content_sha256 for item in governed_atoms)
+    assert [item.governed_proposition_type for item in governed_atoms] == ["stated_purpose", "reported_activity"]
+    assert cand.proposition == {"statement": "source-reported commitment"}
+
+    with pytest.raises(ValueError, match="multiple atoms"):
+        create_experiment_governed_item(cand, multi)
+
     with pytest.raises(ValidationError, match="corrected governed representation"):
         decision(cand, disposition="ACCEPT_MINOR_CORRECTION")
+    with pytest.raises(ValidationError, match="cannot satisfy the human adjudicator role"):
+        decision(cand, adjudicator_id="ChatGPT", reviewer_id="ChatGPT", reviewer_role="MODEL_ASSISTED_REVIEWER")
 
 
 def test_local_retention_is_orthogonal_and_fails_closed():
