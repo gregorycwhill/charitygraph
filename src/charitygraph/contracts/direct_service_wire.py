@@ -11,7 +11,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import StrictBool, StrictFloat, StrictInt, StrictStr, field_validator
+from pydantic import StrictBool, StrictFloat, StrictInt, StrictStr, field_validator, model_validator
 
 from .common import StrictModel, require_nonblank
 from .direct_service import (
@@ -91,6 +91,41 @@ class DirectServiceWireOutput(StrictModel):
     section: DirectServiceSection
     propositions: tuple[DirectServiceWireProposition, ...] = ()
     relationships: tuple[DirectServiceWireRelationship, ...] = ()
+
+
+class DirectServiceV12WireOutput(StrictModel):
+    """Provider-safe V1.2 representation with section-specific arrays.
+
+    The wire shape deliberately avoids a root ``oneOf``.  Empty arrays are
+    required by the strict provider contract; exactly one section may contain
+    propositions, and the section marker must agree with that array.
+    """
+
+    section: DirectServiceSection
+    participation: tuple[DirectServiceWireProposition, ...] = ()
+    capability_access_availability: tuple[DirectServiceWireProposition, ...] = ()
+    scheme_accreditation: tuple[DirectServiceWireProposition, ...] = ()
+    relationships: tuple[DirectServiceWireRelationship, ...] = ()
+
+    @model_validator(mode="after")
+    def _section_shape(self) -> "DirectServiceV12WireOutput":
+        values = {
+            "participation": self.participation,
+            "capability_access_availability": self.capability_access_availability,
+            "scheme_accreditation": self.scheme_accreditation,
+        }
+        active = [key for key, items in values.items() if items]
+        if len(active) > 1 or (active and active[0] != self.section):
+            raise ValueError("V1.2 section must match its only non-empty proposition array")
+        allowed = {
+            "participation": {"participation_opportunity", "participation_measure"},
+            "capability_access_availability": {"service_offer", "eligibility", "access_pathway", "current_availability", "capacity_measure"},
+            "scheme_accreditation": {"scheme_membership", "accreditation"},
+        }
+        for section, items in values.items():
+            if any(item.proposition_type not in allowed[section] for item in items):
+                raise ValueError("V1.2 proposition type does not belong to its section array")
+        return self
 
 
 def _temporal(value: DirectServiceWireObservationTime | None) -> dict | None:
@@ -182,8 +217,25 @@ def wire_to_domain(
     return domain
 
 
+def v12_wire_to_domain(
+    wire: DirectServiceV12WireOutput,
+    *,
+    allowed_scope_ids: set[str] | None = None,
+    evidence_locators: set[str] | None = None,
+) -> DirectServiceSemanticOutput:
+    """Convert the V1.2 section-array wire form to the stable domain form."""
+
+    selected = {
+        "participation": wire.participation,
+        "capability_access_availability": wire.capability_access_availability,
+        "scheme_accreditation": wire.scheme_accreditation,
+    }[wire.section]
+    legacy = DirectServiceWireOutput(section=wire.section, propositions=selected, relationships=wire.relationships)
+    return wire_to_domain(legacy, allowed_scope_ids=allowed_scope_ids, evidence_locators=evidence_locators)
+
+
 __all__ = [
     "WireScalar", "DirectServiceWireEvidenceRef", "DirectServiceWireObservationTime",
     "DirectServiceWireProposition", "DirectServiceWireRelationship", "DirectServiceWireOutput",
-    "wire_to_domain",
+    "DirectServiceV12WireOutput", "wire_to_domain", "v12_wire_to_domain",
 ]

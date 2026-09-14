@@ -597,6 +597,178 @@ CATALOGUE_SQL_V7 = """
 ALTER TABLE program_candidates ADD COLUMN model_result_item_key TEXT;
 """.strip() + "\n"
 
+CATALOGUE_SQL_V10 = """
+CREATE TABLE physical_attempts (
+    physical_attempt_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    subject_id TEXT NOT NULL,
+    delivery_mode TEXT NOT NULL CHECK(delivery_mode IN ('standard','flex','batch')),
+    status TEXT NOT NULL CHECK(status IN ('prepared','send_started','receipt_persisted','validated','held','failed')),
+    provider_request_id TEXT NOT NULL UNIQUE,
+    reservation_id TEXT REFERENCES budget_reservations(reservation_id),
+    provider_batch_id TEXT,
+    created_at TEXT NOT NULL,
+    send_started_at TEXT,
+    receipt_persisted_at TEXT,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE physical_attempt_members (
+    physical_attempt_id TEXT NOT NULL REFERENCES physical_attempts(physical_attempt_id),
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    PRIMARY KEY(physical_attempt_id, model_task_id)
+);
+CREATE TABLE provider_receipts (
+    provider_receipt_id TEXT PRIMARY KEY,
+    physical_attempt_id TEXT NOT NULL UNIQUE REFERENCES physical_attempts(physical_attempt_id),
+    provider_request_id TEXT NOT NULL,
+    raw_result_ref TEXT NOT NULL,
+    usage_json TEXT NOT NULL,
+    received_at TEXT NOT NULL
+);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V11 = """
+CREATE TABLE delivery_jobs (
+    delivery_job_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    provider_id TEXT NOT NULL,
+    model_route TEXT NOT NULL,
+    delivery_mode TEXT NOT NULL CHECK(delivery_mode IN ('batch','flex','standard')),
+    provider_batch_id TEXT UNIQUE,
+    status TEXT NOT NULL CHECK(status IN ('prepared','submitted','in_progress','completed','expired','cancelled','failed','held')),
+    pricing_snapshot_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    submitted_at TEXT,
+    completed_at TEXT,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE provider_request_items (
+    provider_request_item_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    physical_attempt_id TEXT REFERENCES physical_attempts(physical_attempt_id),
+    delivery_job_id TEXT REFERENCES delivery_jobs(delivery_job_id),
+    provider_id TEXT NOT NULL,
+    model_route TEXT NOT NULL,
+    requested_delivery_mode TEXT NOT NULL CHECK(requested_delivery_mode IN ('batch','flex','standard')),
+    effective_service_tier TEXT NOT NULL CHECK(effective_service_tier IN ('batch','flex','standard')),
+    status TEXT NOT NULL CHECK(status IN ('prepared','submitted','in_progress','send_ambiguous','completed','failed','expired','cancelled','held')),
+    provider_request_id TEXT UNIQUE,
+    provider_receipt_id TEXT UNIQUE,
+    result_ref TEXT,
+    usage_json TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(run_id, model_task_id)
+);
+CREATE INDEX provider_request_items_job_idx ON provider_request_items(delivery_job_id, status);
+CREATE INDEX provider_request_items_task_idx ON provider_request_items(model_task_id);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V12 = """
+ALTER TABLE delivery_jobs ADD COLUMN provider_input_file_id TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN provider_output_file_id TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN provider_error_file_id TEXT;
+""".strip() + "\n"
+
+CATALOGUE_SQL_V13 = """
+ALTER TABLE delivery_jobs ADD COLUMN payload_sha256 TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN payload_bytes INTEGER;
+ALTER TABLE delivery_jobs ADD COLUMN payload_encoding TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN payload_newline TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN payload_local_ref TEXT;
+CREATE TABLE provider_request_attempts (
+    delivery_attempt_id TEXT PRIMARY KEY,
+    provider_request_item_id TEXT NOT NULL REFERENCES provider_request_items(provider_request_item_id),
+    physical_attempt_id TEXT NOT NULL UNIQUE REFERENCES physical_attempts(physical_attempt_id),
+    delivery_job_id TEXT NOT NULL REFERENCES delivery_jobs(delivery_job_id),
+    attempt_ordinal INTEGER NOT NULL,
+    authorization_id TEXT NOT NULL,
+    attempt_class TEXT NOT NULL CHECK(attempt_class IN ('initial','reviewed_transport_correction')),
+    predecessor_attempt_id TEXT REFERENCES provider_request_attempts(delivery_attempt_id),
+    status TEXT NOT NULL CHECK(status IN ('prepared','send_started','submitted','in_progress','receipt_persisted','completed','failed','expired','cancelled','held')),
+    provider_request_id TEXT UNIQUE,
+    provider_receipt_id TEXT UNIQUE,
+    result_ref TEXT,
+    usage_json TEXT,
+    failure_class TEXT,
+    failure_message_redacted TEXT,
+    created_at TEXT NOT NULL,
+    submitted_at TEXT,
+    completed_at TEXT,
+    updated_at TEXT NOT NULL,
+    UNIQUE(provider_request_item_id, attempt_ordinal),
+    UNIQUE(delivery_job_id, provider_request_item_id)
+);
+CREATE INDEX provider_request_attempts_item_idx ON provider_request_attempts(provider_request_item_id, attempt_ordinal);
+CREATE INDEX provider_request_attempts_job_idx ON provider_request_attempts(delivery_job_id, status);
+INSERT INTO provider_request_attempts(
+    delivery_attempt_id, provider_request_item_id, physical_attempt_id, delivery_job_id,
+    attempt_ordinal, authorization_id, attempt_class, predecessor_attempt_id, status,
+    provider_request_id, provider_receipt_id, result_ref, usage_json,
+    failure_class, failure_message_redacted, created_at, submitted_at, completed_at, updated_at
+)
+SELECT
+    'deliveryattempt:historical:' || i.provider_request_item_id,
+    i.provider_request_item_id,
+    i.physical_attempt_id,
+    i.delivery_job_id,
+    1,
+    'historical:backfill',
+    'initial',
+    NULL,
+    CASE WHEN i.status = 'send_ambiguous' THEN 'held' ELSE i.status END,
+    p.provider_request_id,
+    i.provider_receipt_id,
+    i.result_ref,
+    i.usage_json,
+    CASE WHEN i.status IN ('failed','expired','cancelled','held') THEN 'historical_terminal' ELSE NULL END,
+    NULL,
+    p.created_at,
+    p.send_started_at,
+    CASE WHEN p.status IN ('receipt_persisted','validated','failed','held') THEN p.updated_at ELSE NULL END,
+    i.updated_at
+FROM provider_request_items i
+JOIN physical_attempts p ON p.physical_attempt_id = i.physical_attempt_id
+WHERE i.physical_attempt_id IS NOT NULL AND i.delivery_job_id IS NOT NULL;
+""".strip() + "\n"
+
+CATALOGUE_SQL_V14 = """
+CREATE TABLE provider_pre_send_replacements (
+    replacement_id TEXT PRIMARY KEY,
+    provider_request_item_id TEXT NOT NULL REFERENCES provider_request_items(provider_request_item_id),
+    old_delivery_attempt_id TEXT NOT NULL REFERENCES provider_request_attempts(delivery_attempt_id),
+    old_physical_attempt_id TEXT NOT NULL REFERENCES physical_attempts(physical_attempt_id),
+    new_delivery_attempt_id TEXT NOT NULL UNIQUE REFERENCES provider_request_attempts(delivery_attempt_id),
+    new_physical_attempt_id TEXT NOT NULL UNIQUE REFERENCES physical_attempts(physical_attempt_id),
+    authorization_id TEXT NOT NULL,
+    provider_material_sha256 TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX provider_pre_send_replacements_item_idx ON provider_pre_send_replacements(provider_request_item_id);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V15 = """
+CREATE TABLE standard_transport_traces (
+    physical_attempt_id TEXT PRIMARY KEY REFERENCES physical_attempts(physical_attempt_id),
+    delivery_attempt_id TEXT NOT NULL UNIQUE REFERENCES provider_request_attempts(delivery_attempt_id),
+    client_request_id TEXT NOT NULL UNIQUE,
+    endpoint TEXT NOT NULL,
+    request_body_sha256 TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('NOT_SENT','CROSSING_STARTED','LOCAL_PRE_SEND_FAILURE','PROVIDER_CROSSING_AMBIGUOUS','PROVIDER_REJECTED','PROVIDER_RESPONSE_RECEIVED','COMPLETED')),
+    request_started_at TEXT,
+    response_headers_received INTEGER NOT NULL DEFAULT 0 CHECK(response_headers_received IN (0,1)),
+    server_request_id TEXT,
+    response_identity TEXT,
+    provider_model_identity TEXT,
+    usage_json TEXT,
+    transport_exception TEXT,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX standard_transport_traces_status_idx ON standard_transport_traces(status);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -607,6 +779,12 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(7, "model_result_item_lineage", CATALOGUE_SQL_V7),
     Migration(8, "durable_semantic_measurement_authorizations", CATALOGUE_SQL_V8),
     Migration(9, "structured_relationship_roles", CATALOGUE_SQL_V9),
+    Migration(10, "physical_factory_attempts", CATALOGUE_SQL_V10),
+    Migration(11, "provider_delivery_jobs_and_request_items", CATALOGUE_SQL_V11),
+    Migration(12, "provider_batch_file_identities", CATALOGUE_SQL_V12),
+    Migration(13, "append_only_provider_delivery_attempts_and_payload_identity", CATALOGUE_SQL_V13),
+    Migration(14, "zero_crossing_pre_send_replacements", CATALOGUE_SQL_V14),
+    Migration(15, "standard_transport_request_trace_ids", CATALOGUE_SQL_V15),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

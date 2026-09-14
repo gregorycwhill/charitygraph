@@ -16,7 +16,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
-from .contracts import (DISCOVERY_OUTPUT_SCHEMA_V2, ModelResult, ModelTask, ProgramServiceDiscoveryOutput, ProgramServiceDiscoveryOutputV2, discovery_schema, discovery_schema_v2)
+from .contracts import (DISCOVERY_OUTPUT_SCHEMA_V2, DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED, ModelResult, ModelTask, ProgramServiceDiscoveryOutput, ProgramServiceDiscoveryOutputV2, discovery_schema, discovery_schema_v2)
 from .contracts.ids import deterministic_id
 from .openai_client import ApiResult, estimate_response_cost, responses_create
 from .runtime import SQLiteCatalog
@@ -32,7 +32,12 @@ MAX_OUTPUT_TOKENS = 8000
 DISCOVERY_PROMPT = """Identify program-, service-, project-, campaign- or other program/service-like subjects actually supported by the supplied evidence.\n\nA program or service is an identifiable delivered offering or operating subject; a proper or trademarked name is not required, and a stable descriptive service may qualify. Navigation headings, themes, portfolios, capability labels, topic areas, partnerships and organisational practices do not qualify merely because they appear as headings. Distinguish projects and campaigns from durable programs/services. A pilot may be a project or service depending on what the evidence establishes. Do not infer effectiveness, outcome achievement, causal impact or ROI. First-party evidence supports claims about what the organisation says it operates; it does not automatically prove outcomes. Every proposal must cite one or more supplied evidence IDs and preserve uncertainty.\n\nReturn only the strict JSON object matching the supplied schema.\n\nSUBJECT: {subject_id}\n\nEVIDENCE:\n{evidence}"""
 
 DISCOVERY_PROMPT_V2 = """Identify program-, service-, project-, campaign- or other program/service-like subjects supported by the supplied evidence. Current availability is not subject identity: report operational status separately as current, closing_or_winding_down, historical, or unknown. A program or service is an identifiable delivered offering or operating subject; headings, themes, portfolios, capabilities, topics, partnerships and organisational practices do not qualify merely because they appear as headings. Distinguish projects and campaigns from programs/services. Do not infer outcomes, impact or ROI. Every proposal must cite supplied evidence IDs and preserve uncertainty. Return only the strict JSON object matching the supplied schema.\n\nSUBJECT: {subject_id}\n\nEVIDENCE:\n{evidence}"""
+DISCOVERY_PROMPT_V2_CORRECTED = DISCOVERY_PROMPT_V2.replace(
+    "Every proposal must cite supplied evidence IDs and preserve uncertainty.",
+    "Every proposal must cite supplied evidence IDs and preserve uncertainty. Each evidence locator may appear at most once within a proposal. If one locator supports multiple distinct roles or interpretations, use one evidence entry, put the first meaning in role/note, and put every other distinct meaning in additional_meanings. Never repeat an evidence_id to express another meaning, and do not discard competing or context meanings merely to satisfy uniqueness.",
+)
 PROMPT_TEMPLATE_VERSION_V2 = "v2"
+PROMPT_TEMPLATE_VERSION_V2_CORRECTED = "v2.1"
 
 
 @dataclass(frozen=True)
@@ -60,15 +65,21 @@ def _json_text(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def render_discovery_prompt(subject_id: str, evidence_items: Sequence[tuple[str, str]], *, v2: bool = False) -> str:
+    """Render the frozen discovery prompt from ordered evidence units."""
+    chunks = [f"[{evidence_id}]\n{content}" for evidence_id, content in evidence_items]
+    prompt = DISCOVERY_PROMPT_V2 if v2 else DISCOVERY_PROMPT
+    return prompt.format(subject_id=subject_id, evidence="\n\n".join(chunks))
+
+
 def build_prompt(task: ModelTask, evidence_content: Mapping[str, str], *, v2: bool = False) -> str:
     """Render the versioned frozen prompt with evidence in task order only."""
-    chunks = []
+    items = []
     for item in task.evidence_inputs:
         if item.evidence_id not in evidence_content:
             raise ValueError(f"missing private evidence content for {item.evidence_id}")
-        chunks.append(f"[{item.evidence_id}]\n{evidence_content[item.evidence_id]}")
-    prompt = DISCOVERY_PROMPT_V2 if v2 else DISCOVERY_PROMPT
-    return prompt.format(subject_id=task.subject_id, evidence="\n\n".join(chunks))
+        items.append((item.evidence_id, evidence_content[item.evidence_id]))
+    return render_discovery_prompt(task.subject_id, items, v2=v2)
 
 
 def _parse_discovery_output(
@@ -76,7 +87,7 @@ def _parse_discovery_output(
 ) -> tuple[ProgramServiceDiscoveryOutput | ProgramServiceDiscoveryOutputV2, tuple[str, ...]]:
     """Validate a response with the output model selected by the task version."""
     task_v2 = task.task_schema.schema_id == "urn:charitygraph:builder:schema:program-service-discovery-task:2.0"
-    output_v2 = task.output_schema.schema_id == DISCOVERY_OUTPUT_SCHEMA_V2.schema_id
+    output_v2 = task.output_schema.schema_id in {DISCOVERY_OUTPUT_SCHEMA_V2.schema_id, DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED.schema_id}
     if task_v2 != output_v2:
         raise ValueError("v2 discovery requires matching task and output schema identities")
     output_type = ProgramServiceDiscoveryOutputV2 if task_v2 else ProgramServiceDiscoveryOutput
@@ -84,6 +95,14 @@ def _parse_discovery_output(
         return output_type.model_validate_json(output_text), ()
     except Exception as exc:
         return output_type(proposals=()), (str(exc)[:500],)
+
+
+def validate_discovery_output_evidence(output: ProgramServiceDiscoveryOutput | ProgramServiceDiscoveryOutputV2, allowed_evidence_ids: set[str] | frozenset[str]) -> None:
+    """Enforce the packet evidence boundary after typed provider parsing."""
+    for proposal in output.proposals:
+        unknown = {item.evidence_id for item in proposal.evidence} - set(allowed_evidence_ids)
+        if unknown:
+            raise ValueError("discovery output references evidence outside the supplied governed packet")
 
 def execute_native_discovery(
     catalog: SQLiteCatalog,

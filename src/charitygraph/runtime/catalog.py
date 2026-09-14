@@ -684,6 +684,48 @@ class SQLiteCatalog:
                 publication_policy TEXT NOT NULL, established_by TEXT NOT NULL, established_at TEXT NOT NULL,
                 expires_at TEXT, revoked_at TEXT, revoke_reason TEXT
             )""")
+            conn.execute("""CREATE TABLE IF NOT EXISTS execution_mandates (
+                mandate_id TEXT PRIMARY KEY,
+                manifest_hash TEXT NOT NULL UNIQUE,
+                authorization_text_hash TEXT NOT NULL,
+                scope_json TEXT NOT NULL,
+                aggregate_hard_aud TEXT NOT NULL,
+                per_request_hard_aud TEXT NOT NULL,
+                phase_scope TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('proposed','active','revoked','exhausted','terminated')),
+                supersedes_mandate_id TEXT,
+                created_at TEXT NOT NULL,
+                authorized_at TEXT,
+                revoked_at TEXT,
+                terminated_at TEXT,
+                terminal_reason TEXT,
+                actual_spend_aud TEXT NOT NULL DEFAULT '0',
+                unresolved_reserved_aud TEXT NOT NULL DEFAULT '0'
+            )""")
+            conn.execute("""CREATE TABLE IF NOT EXISTS execution_mandate_contracts (
+                mandate_id TEXT NOT NULL REFERENCES execution_mandates(mandate_id),
+                contract_key TEXT NOT NULL,
+                contract_json TEXT NOT NULL,
+                PRIMARY KEY(mandate_id, contract_key)
+            )""")
+            conn.execute("""CREATE TABLE IF NOT EXISTS execution_mandate_events (
+                event_id TEXT PRIMARY KEY,
+                mandate_id TEXT NOT NULL REFERENCES execution_mandates(mandate_id),
+                event_type TEXT NOT NULL,
+                event_hash TEXT NOT NULL UNIQUE,
+                event_json TEXT NOT NULL,
+                recorded_at TEXT NOT NULL
+            )""")
+            conn.execute("""CREATE TABLE IF NOT EXISTS execution_mandate_reservations (
+                mandate_id TEXT NOT NULL REFERENCES execution_mandates(mandate_id),
+                reservation_id TEXT NOT NULL,
+                reserved_aud TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('active','settled','ambiguous')),
+                actual_aud TEXT NOT NULL DEFAULT '0',
+                created_at TEXT NOT NULL,
+                settled_at TEXT,
+                PRIMARY KEY(mandate_id, reservation_id)
+            )""")
             if immediate:
                 conn.execute("BEGIN IMMEDIATE")
             yield conn
@@ -737,6 +779,283 @@ class SQLiteCatalog:
             if row is None: raise CatalogError("standing authorization does not exist")
             conn.execute("UPDATE standing_authorizations SET status='revoked', revoked_at=?, revoke_reason=? WHERE authorization_id=?", (now_s, reason, authorization_id)); self._commit(conn)
             return dict(conn.execute("SELECT * FROM standing_authorizations WHERE authorization_id=?", (authorization_id,)).fetchone())
+
+    def register_execution_mandate(self, *, mandate_id: str, manifest_hash: str, authorization_text_hash: str,
+                                   scope: Mapping[str, Any], contract_allowlist: tuple[Mapping[str, Any], ...],
+                                   aggregate_hard_aud: Any, per_request_hard_aud: Any, phase_scope: str,
+                                   now: datetime | str, supersedes_mandate_id: str | None = None) -> dict[str, Any]:
+        """Persist a proposed mandate and immutable exact contract allowlist."""
+        self._ensure_open(); self._require_migrated()
+        if not mandate_id.startswith("mandate:") or not manifest_hash or not authorization_text_hash or not phase_scope:
+            raise CatalogError("execution mandate identity and scope are required")
+        aggregate = _money_amount(aggregate_hard_aud, "aggregate_hard_aud")
+        per_request = _money_amount(per_request_hard_aud, "per_request_hard_aud")
+        if aggregate <= 0 or per_request <= 0 or per_request > aggregate:
+            raise CatalogError("invalid execution mandate economics")
+        when = _utc(now, "now")
+        scope_json = json.dumps(_dump(scope), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        contracts = tuple(_dump(item) for item in contract_allowlist)
+        with self._authorization_connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if existing is not None:
+                if existing["manifest_hash"] != manifest_hash or existing["scope_json"] != scope_json:
+                    raise ConflictError("execution mandate identity was reused with different material")
+                return dict(existing)
+            conn.execute("INSERT INTO execution_mandates(mandate_id,manifest_hash,authorization_text_hash,scope_json,aggregate_hard_aud,per_request_hard_aud,phase_scope,status,supersedes_mandate_id,created_at) VALUES (?,?,?,?,?,?,?,'proposed',?,?)", (mandate_id, manifest_hash, authorization_text_hash, scope_json, str(aggregate), str(per_request), phase_scope, supersedes_mandate_id, when))
+            for item in contracts:
+                key = str(item.get("contract_key") or item.get("contract_id") or "")
+                if not key:
+                    raise CatalogError("mandate contract allowlist entries require contract_key")
+                conn.execute("INSERT INTO execution_mandate_contracts(mandate_id,contract_key,contract_json) VALUES (?,?,?)", (mandate_id, key, json.dumps(item, ensure_ascii=False, sort_keys=True, separators=(",", ":"))))
+            event = {"mandate_id": mandate_id, "event_type": "proposed", "manifest_hash": manifest_hash, "contract_count": len(contracts)}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, mandate_id, "proposed", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def get_execution_mandate(self, mandate_id: str) -> dict[str, Any] | None:
+        self._ensure_open(); self._require_migrated()
+        with self._authorization_connection() as conn:
+            row = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if row is None:
+                return None
+            result = dict(row)
+            result["contracts"] = [dict(item) for item in conn.execute("SELECT contract_json FROM execution_mandate_contracts WHERE mandate_id=? ORDER BY contract_key", (mandate_id,)).fetchall()]
+            return result
+
+    def activate_execution_mandate(self, *, mandate_id: str, authorization_text_hash: str, authorized_by: str, now: datetime | str) -> dict[str, Any]:
+        """Explicit human-authorization boundary; never called by preparation."""
+        when = _utc(now, "now")
+        if not str(authorized_by).strip():
+            raise CatalogError("mandate activation requires an explicit authorizer")
+        with self._authorization_connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if row is None or row["status"] != "proposed":
+                raise ConflictError("only a proposed execution mandate can be activated")
+            if row["authorization_text_hash"] != authorization_text_hash:
+                raise ConflictError("mandate authorization text hash mismatch")
+            conn.execute("UPDATE execution_mandates SET status='active', authorized_at=? WHERE mandate_id=?", (when, mandate_id))
+            event = {"mandate_id": mandate_id, "event_type": "activated", "authorized_by": authorized_by, "authorization_text_hash": authorization_text_hash}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, mandate_id, "activated", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def revoke_execution_mandate(self, *, mandate_id: str, now: datetime | str, reason: str) -> dict[str, Any]:
+        when = _utc(now, "now")
+        if not str(reason).strip():
+            raise CatalogError("mandate revocation reason is required")
+        with self._authorization_connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if row is None:
+                raise CatalogError("execution mandate does not exist")
+            conn.execute("UPDATE execution_mandates SET status='revoked', revoked_at=?, terminal_reason=? WHERE mandate_id=?", (when, reason, mandate_id))
+            event = {"mandate_id": mandate_id, "event_type": "revoked", "reason": reason}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, mandate_id, "revoked", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def carry_forward_execution_mandate_accounting(self, *, from_mandate_id: str, to_mandate_id: str, now: datetime | str) -> dict[str, Any]:
+        """Carry settled spend/exposure across an explicitly superseding mandate."""
+        when = _utc(now, "now")
+        with self._authorization_connection(immediate=True) as conn:
+            source = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (from_mandate_id,)).fetchone()
+            target = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (to_mandate_id,)).fetchone()
+            if source is None or target is None or target["supersedes_mandate_id"] != from_mandate_id:
+                raise ConflictError("mandate accounting carry-forward requires an exact supersession")
+            if source["status"] != "revoked" or target["status"] != "active":
+                raise ConflictError("mandate accounting carry-forward requires revoked source and active target")
+            if Decimal(target["actual_spend_aud"]) not in {Decimal("0"), Decimal(source["actual_spend_aud"])} or Decimal(target["unresolved_reserved_aud"]) not in {Decimal("0"), Decimal(source["unresolved_reserved_aud"])}:
+                raise ConflictError("mandate accounting carry-forward conflicts with existing target accounting")
+            if Decimal(target["actual_spend_aud"]) == Decimal(source["actual_spend_aud"]) and Decimal(target["unresolved_reserved_aud"]) == Decimal(source["unresolved_reserved_aud"]):
+                return dict(target)
+            conn.execute("UPDATE execution_mandates SET actual_spend_aud=?, unresolved_reserved_aud=? WHERE mandate_id=?", (source["actual_spend_aud"], source["unresolved_reserved_aud"], to_mandate_id))
+            event = {"event_type": "accounting_carried_forward", "from_mandate_id": from_mandate_id, "to_mandate_id": to_mandate_id, "actual_spend_aud": source["actual_spend_aud"], "unresolved_reserved_aud": source["unresolved_reserved_aud"]}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, to_mandate_id, "accounting_carried_forward", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (to_mandate_id,)).fetchone())
+
+    def reserve_execution_mandate(self, *, mandate_id: str, reservation_id: str, amount_aud: Any, now: datetime | str) -> dict[str, Any]:
+        amount = _money_amount(amount_aud, "mandate reservation")
+        when = _utc(now, "now")
+        with self._authorization_connection(immediate=True) as conn:
+            mandate = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if mandate is None or mandate["status"] != "active":
+                raise ConflictError("execution mandate is not active")
+            existing = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, reservation_id)).fetchone()
+            if existing is not None:
+                if existing["reserved_aud"] != str(amount):
+                    raise ConflictError("mandate reservation identity conflict")
+                return dict(existing)
+            remaining = Decimal(mandate["aggregate_hard_aud"]) - Decimal(mandate["actual_spend_aud"]) - Decimal(mandate["unresolved_reserved_aud"])
+            if amount > Decimal(mandate["per_request_hard_aud"]):
+                raise BudgetExceededError("request exceeds execution mandate per-request ceiling")
+            if amount > remaining:
+                raise BudgetExceededError("execution mandate aggregate authority exhausted")
+            conn.execute("INSERT INTO execution_mandate_reservations(mandate_id,reservation_id,reserved_aud,status,created_at) VALUES (?,?,?,'active',?)", (mandate_id, reservation_id, str(amount), when))
+            conn.execute("UPDATE execution_mandates SET unresolved_reserved_aud=CAST(unresolved_reserved_aud AS DECIMAL)+? WHERE mandate_id=?", (str(amount), mandate_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, reservation_id)).fetchone())
+
+    def replace_pre_send_reservation(self, *, mandate_id: str, physical_attempt_id: str,
+                                     old_reservation_id: str, new_reservation_id: str,
+                                     new_amount_aud: Any, replacement_id: str,
+                                     now: datetime | str) -> dict[str, Any]:
+        """Atomically supersede one unused reservation before provider send.
+
+        The old amount and row are immutable.  Its local budget row is closed
+        by an append-only release entry and its mandate row is settled at zero
+        with a replacement event; the new row is the sole active authority for
+        the same still-prepared physical attempt.  Requiring co-located stores
+        keeps the lifecycle transactionally safe across both catalogues.
+        """
+        amount = _money_amount(new_amount_aud, "replacement reservation")
+        when = _utc(now, "now")
+        if not replacement_id.startswith("mandatereplacement:"):
+            raise CatalogError("reservation replacement identity is malformed")
+        if self.authorization_path is None or self.authorization_path.resolve() != self.path.resolve():
+            raise CatalogError("reservation replacement requires co-located catalogues")
+        with self._connection(immediate=True) as conn:
+            event_row = conn.execute("SELECT event_json FROM execution_mandate_events WHERE event_id=?", (replacement_id,)).fetchone()
+            if event_row is not None:
+                return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+            mandate = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            old = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, old_reservation_id)).fetchone()
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            budget = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (old_reservation_id,)).fetchone()
+            if mandate is None or old is None or budget is None or physical is None:
+                raise CatalogError("reservation replacement target does not exist")
+            if mandate["status"] != "active" or old["status"] != "active" or budget["status"] != "active":
+                raise ConflictError("only one active unused reservation may be replaced")
+            if physical["status"] != "prepared" or physical["reservation_id"] != old_reservation_id:
+                raise ConflictError("reservation replacement requires an unsent prepared physical attempt")
+            if Decimal(old["actual_aud"]) != 0 or conn.execute("SELECT 1 FROM cost_entries WHERE reservation_id=?", (old_reservation_id,)).fetchone() is not None:
+                raise ConflictError("reservation replacement target has provider or accounting history")
+            if amount > Decimal(mandate["per_request_hard_aud"]):
+                raise BudgetExceededError("replacement exceeds execution mandate per-request ceiling")
+            remaining = Decimal(mandate["aggregate_hard_aud"]) - Decimal(mandate["actual_spend_aud"]) - Decimal(mandate["unresolved_reserved_aud"]) + Decimal(old["reserved_aud"])
+            if amount > remaining:
+                raise BudgetExceededError("replacement exceeds remaining aggregate mandate authority")
+            existing_budget = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (new_reservation_id,)).fetchone()
+            existing_mandate = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, new_reservation_id)).fetchone()
+            if existing_budget is not None or existing_mandate is not None:
+                raise ConflictError("replacement identity is already in use")
+            release_key = "replacement-release:" + replacement_id
+            release_payload = {"entry_key": release_key, "reservation_id": old_reservation_id, "amount": str(old["reserved_aud"])}
+            release_hash = _canonical_hash(release_payload)
+            conn.execute("INSERT INTO cost_entries(entry_key,entry_hash,cohort_id,run_id,task_run_id,reservation_id,entry_type,paid_output_category,provider_amount,provider_currency,aud_amount,adjustment_direction,pricing_snapshot_id,fx_snapshot_id,usage_json,recorded_at) VALUES (?,?,?,?,NULL,?,'reservation_release',NULL,NULL,NULL,?,NULL,NULL,NULL,NULL,?)", (release_key, release_hash, budget["cohort_id"], budget["run_id"], old_reservation_id, old["reserved_aud"], when))
+            conn.execute("UPDATE budget_reservations SET status='released',updated_at=? WHERE reservation_id=?", (when, old_reservation_id))
+            material = {"record_id": new_reservation_id, "cohort_id": budget["cohort_id"], "run_id": budget["run_id"], "reserved_aud": {"amount": str(amount), "currency": "AUD"}, "model_task_ids": [x[0] for x in conn.execute("SELECT model_task_id FROM reservation_tasks WHERE reservation_id=? ORDER BY model_task_id", (old_reservation_id,))]}
+            conn.execute("INSERT INTO budget_reservations(reservation_id,cohort_id,run_id,reserved_aud,status,reserved_at,expires_at,updated_at,material_hash) VALUES (?,?,?,?, 'active',?,?,?,?)", (new_reservation_id, budget["cohort_id"], budget["run_id"], str(amount), when, budget["expires_at"], when, _canonical_hash(material)))
+            conn.execute("INSERT INTO reservation_tasks(reservation_id,model_task_id) SELECT ?,model_task_id FROM reservation_tasks WHERE reservation_id=?", (new_reservation_id, old_reservation_id))
+            conn.execute("INSERT INTO execution_mandate_reservations(mandate_id,reservation_id,reserved_aud,status,created_at) VALUES (?,?,?,'active',?)", (mandate_id, new_reservation_id, str(amount), when))
+            conn.execute("UPDATE execution_mandate_reservations SET status='settled',actual_aud='0',settled_at=? WHERE mandate_id=? AND reservation_id=?", (when, mandate_id, old_reservation_id))
+            conn.execute("UPDATE execution_mandates SET unresolved_reserved_aud=CAST(unresolved_reserved_aud AS DECIMAL)-?+? WHERE mandate_id=?", (old["reserved_aud"], str(amount), mandate_id))
+            conn.execute("UPDATE physical_attempts SET reservation_id=?,updated_at=? WHERE physical_attempt_id=?", (new_reservation_id, when, physical_attempt_id))
+            event = {"event_type": "reservation_replaced", "replacement_id": replacement_id, "mandate_id": mandate_id, "physical_attempt_id": physical_attempt_id, "old_reservation_id": old_reservation_id, "new_reservation_id": new_reservation_id, "old_reserved_aud": old["reserved_aud"], "new_reserved_aud": str(amount), "reason": "corrected pre-send hard exposure"}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", (replacement_id, mandate_id, "reservation_replaced", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def settle_execution_mandate_reservation(self, *, mandate_id: str, reservation_id: str, actual_aud: Any, ambiguous: bool, now: datetime | str) -> dict[str, Any]:
+        actual = _money_amount(actual_aud, "mandate actual cost")
+        when = _utc(now, "now")
+        with self._authorization_connection(immediate=True) as conn:
+            reservation = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, reservation_id)).fetchone()
+            mandate = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if reservation is None or mandate is None:
+                raise CatalogError("mandate reservation does not exist")
+            if reservation["status"] != "active":
+                if reservation["actual_aud"] != str(actual):
+                    raise ConflictError("mandate settlement identity conflict")
+                return dict(reservation)
+            reserved = Decimal(reservation["reserved_aud"])
+            if actual > reserved:
+                # Reservations are pre-send controls, not the per-request
+                # mandate itself. Preserve an evidenced shortfall when spend
+                # remains within the user's actual per-request authority.
+                if actual > Decimal(mandate["per_request_hard_aud"]):
+                    raise BudgetExceededError("mandate actual exceeds per-request authority")
+                status = "ambiguous" if ambiguous else "settled"
+                accounted_actual = Decimal("0") if ambiguous else actual
+                conn.execute("UPDATE execution_mandate_reservations SET status=?, actual_aud=?, settled_at=? WHERE mandate_id=? AND reservation_id=?", (status, str(accounted_actual), when, mandate_id, reservation_id))
+                conn.execute("UPDATE execution_mandates SET actual_spend_aud=CAST(actual_spend_aud AS DECIMAL)+?, unresolved_reserved_aud=CAST(unresolved_reserved_aud AS DECIMAL)-? WHERE mandate_id=?", (str(accounted_actual), str(Decimal("0") if ambiguous else reserved), mandate_id))
+                event = {"mandate_id": mandate_id, "event_type": "settlement_with_reservation_shortfall" if not ambiguous else "ambiguous_settlement", "reservation_id": reservation_id, "actual_aud": str(accounted_actual), "reserved_aud": str(reserved), "reservation_shortfall_aud": str(actual - reserved) if not ambiguous else "0", "released_aud": "0"}
+                event_hash = _canonical_hash(event)
+                conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, mandate_id, event["event_type"], event_hash, json.dumps(event, sort_keys=True), when))
+                self._commit(conn)
+                return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+            release = reserved - actual
+            status = "ambiguous" if ambiguous else "settled"
+            accounted_actual = Decimal("0") if ambiguous else actual
+            conn.execute("UPDATE execution_mandate_reservations SET status=?, actual_aud=?, settled_at=? WHERE mandate_id=? AND reservation_id=?", (status, str(accounted_actual), when, mandate_id, reservation_id))
+            conn.execute("UPDATE execution_mandates SET actual_spend_aud=CAST(actual_spend_aud AS DECIMAL)+?, unresolved_reserved_aud=CAST(unresolved_reserved_aud AS DECIMAL)-? WHERE mandate_id=?", (str(accounted_actual), str(Decimal("0") if ambiguous else reserved), mandate_id))
+            event = {"mandate_id": mandate_id, "event_type": "ambiguous_settlement" if ambiguous else "settlement", "reservation_id": reservation_id, "actual_aud": str(accounted_actual), "released_aud": "0" if ambiguous else str(release)}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + event_hash, mandate_id, event["event_type"], event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def correct_execution_mandate_settlement(self, *, mandate_id: str, reservation_id: str,
+                                              correction_id: str, evidenced_actual_aud: Any,
+                                              correction_event: Mapping[str, Any], now: datetime | str) -> dict[str, Any]:
+        """Append an evidenced correction to a previously settled reservation.
+
+        This never reopens or rewrites the original settlement.  The correction
+        is idempotent by ``correction_id`` and may only increase a settled
+        reservation's evidenced actual spend.
+        """
+        target = _money_amount(evidenced_actual_aud, "evidenced actual cost")
+        when = _utc(now, "now")
+        if not correction_id.startswith("mandatecorrection:"):
+            raise CatalogError("mandate correction identity is malformed")
+        if not isinstance(correction_event, Mapping):
+            raise CatalogError("mandate correction evidence is required")
+        with self._authorization_connection(immediate=True) as conn:
+            mandate = conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            reservation = conn.execute("SELECT * FROM execution_mandate_reservations WHERE mandate_id=? AND reservation_id=?", (mandate_id, reservation_id)).fetchone()
+            if mandate is None or reservation is None:
+                raise CatalogError("mandate correction target does not exist")
+            if reservation["status"] != "settled":
+                raise ConflictError("only a settled mandate reservation may be corrected")
+            reserved = Decimal(reservation["reserved_aud"])
+            if target > reserved:
+                raise BudgetExceededError("mandate evidenced actual exceeds reserved exposure")
+            existing_event = conn.execute("SELECT event_json FROM execution_mandate_events WHERE event_id=?", (correction_id,)).fetchone()
+            if existing_event is not None:
+                return dict(mandate)
+            prior = Decimal(reservation["actual_aud"])
+            if target <= prior:
+                raise ConflictError("mandate correction must increase evidenced actual spend")
+            adjustment = target - prior
+            event = dict(_dump(correction_event))
+            event.update({"mandate_id": mandate_id, "reservation_id": reservation_id,
+                          "correction_id": correction_id, "prior_actual_aud": str(prior),
+                          "evidenced_actual_aud": str(target), "adjustment_aud": str(adjustment),
+                          "event_type": "evidenced_spend_adjustment"})
+            event_hash = _canonical_hash(event)
+            conn.execute("UPDATE execution_mandate_reservations SET actual_aud=? WHERE mandate_id=? AND reservation_id=?", (str(target), mandate_id, reservation_id))
+            conn.execute("UPDATE execution_mandates SET actual_spend_aud=CAST(actual_spend_aud AS DECIMAL)+? WHERE mandate_id=?", (str(adjustment), mandate_id))
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", (correction_id, mandate_id, "evidenced_spend_adjustment", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def append_execution_mandate_correction_annotation(self, *, mandate_id: str, annotation_id: str,
+                                                       annotation: Mapping[str, Any], now: datetime | str) -> None:
+        """Append a non-economic annotation correcting immutable correction metadata."""
+        when = _utc(now, "now")
+        with self._authorization_connection(immediate=True) as conn:
+            if conn.execute("SELECT 1 FROM execution_mandates WHERE mandate_id=?", (mandate_id,)).fetchone() is None:
+                raise CatalogError("mandate does not exist")
+            if conn.execute("SELECT 1 FROM execution_mandate_events WHERE event_id=?", (annotation_id,)).fetchone() is not None:
+                return
+            event = dict(_dump(annotation)); event["event_type"] = "correction_metadata_annotation"; event["mandate_id"] = mandate_id
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", (annotation_id, mandate_id, "correction_metadata_annotation", event_hash, json.dumps(event, sort_keys=True), when))
+            self._commit(conn)
 
     def authorize_semantic_measurement(
         self, *, authorization_scope_hash: str, subject_id: str, task_family: str,
@@ -1043,7 +1362,29 @@ class SQLiteCatalog:
             try:
                 normalized = _dump(CostLedgerEntry.model_validate(entry))
             except Exception as exc:
-                raise CatalogError(f"invalid CostLedgerEntry: {exc}") from exc
+                # A pre-typed runtime campaign may contain historical
+                # ``cohort:slug``/``run:slug`` references.  Validate the
+                # complete ledger entry using deterministic typed surrogates,
+                # then restore those references; the FK/existence checks below
+                # remain authoritative and prevent unknown legacy references.
+                candidate = _dump(entry)
+                legacy = {}
+                for field, prefix in (("cohort_id", "cohort:"), ("run_id", "run:"), ("pricing_snapshot_id", "pricing:"), ("fx_snapshot_id", "fx:")):
+                    value = candidate.get(field)
+                    if isinstance(value, str) and value.startswith(prefix):
+                        try:
+                            from ..contracts.ids import validate_typed_id
+                            validate_typed_id(value, prefix)
+                        except ValueError:
+                            legacy[field] = value
+                            candidate[field] = prefix + hashlib.sha256(value.encode("utf-8")).hexdigest()
+                if not legacy:
+                    raise CatalogError(f"invalid CostLedgerEntry: {exc}") from exc
+                try:
+                    normalized = _dump(CostLedgerEntry.model_validate(candidate))
+                except Exception:
+                    raise CatalogError(f"invalid CostLedgerEntry: {exc}") from exc
+                normalized.update(legacy)
         canonical_hash = _canonical_hash(normalized)
         if entry_hash is not None and entry_hash != canonical_hash:
             raise ConflictError("supplied cost entry hash does not match canonical content")
@@ -2127,3 +2468,626 @@ class SQLiteCatalog:
             }
 
     knowledge_history = reconstruct_knowledge_history
+
+    def prepare_physical_attempt(self, *, physical_attempt_id: str, run_id: str, subject_id: str, delivery_mode: str, provider_request_id: str, model_task_ids: tuple[str, ...], reservation_id: str | None, now: datetime | str, provider_batch_id: str | None = None) -> dict[str, Any]:
+        """Persist a package before its provider send boundary can be crossed."""
+        when = _utc(now, "now")
+        if delivery_mode not in {"standard", "flex", "batch"} or not model_task_ids:
+            raise CatalogError("physical attempt needs a delivery mode and members")
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            if existing:
+                return dict(existing)
+            for task_id in model_task_ids:
+                task = conn.execute("SELECT run_id, subject_id FROM tasks WHERE model_task_id=?", (task_id,)).fetchone()
+                if task is None or task["run_id"] != run_id or task["subject_id"] != subject_id:
+                    raise ConflictError("physical attempt members must belong to its run and subject")
+            conn.execute("INSERT INTO physical_attempts(physical_attempt_id,run_id,subject_id,delivery_mode,status,provider_request_id,reservation_id,provider_batch_id,created_at,updated_at) VALUES (?,?,?,?, 'prepared',?,?,?,?,?)", (physical_attempt_id,run_id,subject_id,delivery_mode,provider_request_id,reservation_id,provider_batch_id,when,when))
+            conn.executemany("INSERT INTO physical_attempt_members(physical_attempt_id,model_task_id) VALUES (?,?)", [(physical_attempt_id, task_id) for task_id in model_task_ids])
+            self._commit(conn); return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def mark_physical_send_started(self, physical_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
+        when=_utc(now,"now")
+        with self._connection(immediate=True) as conn:
+            row=conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?",(physical_attempt_id,)).fetchone()
+            if row is None or row["status"] != "prepared": raise InvalidTransitionError("only prepared physical attempts can send")
+            conn.execute("UPDATE physical_attempts SET status='send_started',send_started_at=?,updated_at=? WHERE physical_attempt_id=?",(when,when,physical_attempt_id)); self._commit(conn)
+            return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?",(physical_attempt_id,)).fetchone())
+
+    def persist_provider_receipt(self, *, physical_attempt_id: str, provider_receipt_id: str, raw_result_ref: str, usage: Any, now: datetime | str) -> dict[str, Any]:
+        when=_utc(now,"now")
+        with self._connection(immediate=True) as conn:
+            prior=conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone()
+            if prior is not None:
+                if prior["physical_attempt_id"] != physical_attempt_id: raise ConflictError("provider receipt is already bound to another physical attempt")
+                return dict(prior)
+            row=conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?",(physical_attempt_id,)).fetchone()
+            if row is None or row["status"] != "send_started": raise InvalidTransitionError("receipt requires send_started physical attempt")
+            conn.execute("INSERT INTO provider_receipts(provider_receipt_id,physical_attempt_id,provider_request_id,raw_result_ref,usage_json,received_at) VALUES (?,?,?,?,?,?)",(provider_receipt_id,physical_attempt_id,row["provider_request_id"],raw_result_ref,json.dumps(_dump(usage),sort_keys=True),when))
+            conn.execute("UPDATE physical_attempts SET status='receipt_persisted',receipt_persisted_at=?,updated_at=? WHERE physical_attempt_id=?",(when,when,physical_attempt_id)); self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())
+
+    def mark_physical_failed(self, physical_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
+        """Close a physical attempt when its provider item has a terminal failure."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown physical attempt")
+            if row["status"] == "failed":
+                return dict(row)
+            if row["status"] != "send_started":
+                raise InvalidTransitionError("only send_started physical attempts can fail")
+            conn.execute("UPDATE physical_attempts SET status='failed', updated_at=? WHERE physical_attempt_id=?", (when, physical_attempt_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def prepare_standard_transport_trace(self, delivery_attempt_id: str, *, client_request_id: str, endpoint: str, request_body_sha256: str, now: datetime | str) -> dict[str, Any]:
+        """Persist one immutable client trace ID before a Standard POST starts."""
+        when = _utc(now, "now")
+        if not isinstance(client_request_id, str) or not client_request_id or len(client_request_id) > 512 or not client_request_id.isascii():
+            raise ValueError("client request trace ID must be non-empty ASCII and at most 512 characters")
+        if not isinstance(request_body_sha256, str) or len(request_body_sha256) != 64 or any(c not in "0123456789abcdef" for c in request_body_sha256):
+            raise ValueError("request body hash must be lowercase SHA-256")
+        if endpoint != "https://api.openai.com/v1/responses":
+            raise ValueError("Standard transport endpoint is not the approved OpenAI Responses endpoint")
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if attempt is None or attempt["status"] != "prepared":
+                raise InvalidTransitionError("transport trace requires a prepared physical attempt")
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+            if physical is None or physical["status"] != "prepared" or physical["delivery_mode"] != "standard":
+                raise ConflictError("transport trace physical-attempt identity is not prepared Standard")
+            existing = conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchone()
+            if existing is not None:
+                expected = (delivery_attempt_id, client_request_id, endpoint, request_body_sha256)
+                actual = (existing["delivery_attempt_id"], existing["client_request_id"], existing["endpoint"], existing["request_body_sha256"])
+                if actual != expected:
+                    raise ConflictError("physical attempt already has a different immutable client trace mapping")
+                return dict(existing)
+            conn.execute("INSERT INTO standard_transport_traces(physical_attempt_id,delivery_attempt_id,client_request_id,endpoint,request_body_sha256,status,updated_at) VALUES (?,?,?,?,?,'NOT_SENT',?)", (physical["physical_attempt_id"], delivery_attempt_id, client_request_id, endpoint, request_body_sha256, when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchone())
+
+    def record_standard_transport_outcome(self, physical_attempt_id: str, *, status: str, response_headers_received: bool, server_request_id: str | None = None, response_identity: str | None = None, provider_model_identity: str | None = None, usage: Any | None = None, transport_exception: str | None = None, now: datetime | str) -> dict[str, Any]:
+        """Append the observable outcome metadata for a Standard crossing."""
+        when = _utc(now, "now")
+        allowed = {"LOCAL_PRE_SEND_FAILURE", "PROVIDER_CROSSING_AMBIGUOUS", "PROVIDER_REJECTED", "PROVIDER_RESPONSE_RECEIVED", "COMPLETED"}
+        if status not in allowed:
+            raise ValueError("invalid Standard transport outcome state")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            if row is None:
+                raise CatalogError("Standard transport outcome has no pre-POST trace record")
+            if status == "LOCAL_PRE_SEND_FAILURE" and row["status"] not in {"NOT_SENT", "LOCAL_PRE_SEND_FAILURE"}:
+                raise InvalidTransitionError("only an unsent Standard attempt can have a local pre-send failure")
+            if status == "COMPLETED" and row["status"] != "PROVIDER_RESPONSE_RECEIVED":
+                raise InvalidTransitionError("completed transport state requires a recorded provider response")
+            if status not in {"LOCAL_PRE_SEND_FAILURE", "COMPLETED"} and row["status"] != "CROSSING_STARTED":
+                raise InvalidTransitionError("provider outcome requires exactly one started Standard crossing")
+            conn.execute("UPDATE standard_transport_traces SET status=?,response_headers_received=?,server_request_id=?,response_identity=?,provider_model_identity=?,usage_json=?,transport_exception=?,updated_at=? WHERE physical_attempt_id=?", (status, int(response_headers_received), server_request_id, response_identity, provider_model_identity, None if usage is None else json.dumps(_dump(usage), sort_keys=True), transport_exception[:512] if transport_exception else None, when, physical_attempt_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def mark_standard_send_started(self, delivery_attempt_id: str, *, client_request_id: str, now: datetime | str) -> dict[str, Any]:
+        """Atomically cross the one-request Standard send boundary."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if attempt is None or attempt["status"] != "prepared":
+                raise InvalidTransitionError("Standard send requires a prepared delivery attempt")
+            item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (attempt["provider_request_item_id"],)).fetchone()
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+            job = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (attempt["delivery_job_id"],)).fetchone()
+            reservation = conn.execute("SELECT status FROM budget_reservations WHERE reservation_id=?", (physical["reservation_id"],)).fetchone() if physical else None
+            if item is None or item["status"] != "prepared" or item["requested_delivery_mode"] != "standard" or item["effective_service_tier"] != "standard":
+                raise ConflictError("Standard request item is not prepared")
+            if physical is None or physical["status"] != "prepared" or physical["delivery_mode"] != "standard" or physical["provider_request_id"] != item["provider_request_item_id"]:
+                raise ConflictError("Standard physical attempt is not prepared")
+            trace = conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchone()
+            if trace is None or trace["status"] != "NOT_SENT" or trace["client_request_id"] != client_request_id:
+                raise ConflictError("Standard send requires its pre-recorded immutable client request ID")
+            if job is None or job["status"] not in {"prepared", "submitted", "in_progress"} or job["delivery_mode"] != "standard":
+                raise ConflictError("Standard delivery job is not prepared")
+            if reservation is None or reservation["status"] not in {"active", "partially_consumed"}:
+                raise ConflictError("Standard physical attempt lacks active reservation")
+            conn.execute("UPDATE provider_request_attempts SET status='send_started', submitted_at=?, updated_at=? WHERE delivery_attempt_id=?", (when, when, delivery_attempt_id))
+            conn.execute("UPDATE provider_request_items SET status='submitted', updated_at=? WHERE provider_request_item_id=?", (when, item["provider_request_item_id"]))
+            conn.execute("UPDATE physical_attempts SET status='send_started', send_started_at=?, updated_at=? WHERE physical_attempt_id=?", (when, when, physical["physical_attempt_id"]))
+            conn.execute("UPDATE standard_transport_traces SET status='CROSSING_STARTED', request_started_at=?, updated_at=? WHERE physical_attempt_id=?", (when, when, physical["physical_attempt_id"]))
+            conn.execute("UPDATE delivery_jobs SET status=CASE WHEN status='prepared' THEN 'submitted' ELSE status END, submitted_at=COALESCE(submitted_at,?), updated_at=? WHERE delivery_job_id=?", (when, when, job["delivery_job_id"]))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
+    def complete_standard_delivery(self, delivery_attempt_id: str, *, provider_request_id: str, provider_receipt_id: str, raw_result_ref: str, usage: Any, result_ref: str, now: datetime | str) -> dict[str, Any]:
+        """Persist a Standard receipt and terminal success as one durable closeout."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if attempt is None or attempt["status"] not in {"send_started", "submitted", "in_progress", "receipt_persisted"}:
+                raise InvalidTransitionError("Standard completion requires an active delivery attempt")
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+            item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (attempt["provider_request_item_id"],)).fetchone()
+            job = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (attempt["delivery_job_id"],)).fetchone()
+            if physical is None or item is None or job is None or physical["status"] not in {"send_started", "receipt_persisted"}:
+                raise ConflictError("Standard completion has inconsistent durable state")
+            prior = conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?", (provider_receipt_id,)).fetchone()
+            if prior is None:
+                conn.execute("INSERT INTO provider_receipts(provider_receipt_id,physical_attempt_id,provider_request_id,raw_result_ref,usage_json,received_at) VALUES (?,?,?,?,?,?)", (provider_receipt_id, physical["physical_attempt_id"], physical["provider_request_id"], raw_result_ref, json.dumps(_dump(usage), sort_keys=True), when))
+            elif prior["physical_attempt_id"] != physical["physical_attempt_id"]:
+                raise ConflictError("Standard provider receipt is bound to another physical attempt")
+            conn.execute("UPDATE provider_request_attempts SET status='completed', provider_request_id=?, provider_receipt_id=?, result_ref=?, usage_json=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (provider_request_id, provider_receipt_id, result_ref, json.dumps(_dump(usage), sort_keys=True), when, when, delivery_attempt_id))
+            conn.execute("UPDATE provider_request_items SET status='completed', provider_request_id=?, provider_receipt_id=?, result_ref=?, usage_json=?, updated_at=? WHERE provider_request_item_id=?", (provider_request_id, provider_receipt_id, result_ref, json.dumps(_dump(usage), sort_keys=True), when, item["provider_request_item_id"]))
+            conn.execute("UPDATE physical_attempts SET status='validated', receipt_persisted_at=COALESCE(receipt_persisted_at,?), updated_at=? WHERE physical_attempt_id=?", (when, when, physical["physical_attempt_id"]))
+            remaining = conn.execute("SELECT count(1) FROM provider_request_items WHERE delivery_job_id=? AND status IN ('prepared','submitted','in_progress','send_ambiguous')", (job["delivery_job_id"],)).fetchone()[0]
+            if remaining == 0:
+                conn.execute("UPDATE delivery_jobs SET status='completed', completed_at=?, updated_at=? WHERE delivery_job_id=?", (when, when, job["delivery_job_id"]))
+            else:
+                conn.execute("UPDATE delivery_jobs SET status='in_progress', updated_at=? WHERE delivery_job_id=?", (when, job["delivery_job_id"]))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
+    def settle_standard_failure(self, delivery_attempt_id: str, *, failure_class: str, message: str, ambiguous: bool, now: datetime | str) -> dict[str, Any]:
+        """Persist an unambiguous failure or an ambiguity hold without resend."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if attempt is None:
+                raise CatalogError("unknown Standard delivery attempt")
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+            job_status = "held" if ambiguous else "failed"
+            item_status = "send_ambiguous" if ambiguous else "failed"
+            attempt_status = "held" if ambiguous else "failed"
+            conn.execute("UPDATE provider_request_attempts SET status=?, failure_class=?, failure_message_redacted=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (attempt_status, failure_class, message[:512], when, when, delivery_attempt_id))
+            conn.execute("UPDATE provider_request_items SET status=?, updated_at=? WHERE provider_request_item_id=?", (item_status, when, attempt["provider_request_item_id"]))
+            conn.execute("UPDATE physical_attempts SET status=?, updated_at=? WHERE physical_attempt_id=?", ("held" if ambiguous else "failed", when, physical["physical_attempt_id"]))
+            remaining = conn.execute("SELECT count(1) FROM provider_request_items WHERE delivery_job_id=? AND status IN ('prepared','submitted','in_progress','send_ambiguous')", (attempt["delivery_job_id"],)).fetchone()[0]
+            if ambiguous or remaining == 0:
+                conn.execute("UPDATE delivery_jobs SET status=?, completed_at=?, updated_at=? WHERE delivery_job_id=?", (job_status, when, when, attempt["delivery_job_id"]))
+            else:
+                conn.execute("UPDATE delivery_jobs SET status='in_progress', updated_at=? WHERE delivery_job_id=?", (when, attempt["delivery_job_id"]))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
+    def reopen_pre_send_failure(self, delivery_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
+        """Reopen an exact local pre-send failure; never reopen a sent attempt."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if attempt is None or attempt["status"] != "failed" or attempt["failure_class"] != "pre_send_validation" or attempt["submitted_at"] is not None or attempt["provider_request_id"] is not None:
+                raise ConflictError("only an unsent pre-send validation failure can be reopened")
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+            if physical is None or physical["status"] != "failed" or physical["send_started_at"] is not None:
+                raise ConflictError("pre-send failure has crossed the physical send boundary")
+            conn.execute("UPDATE provider_request_attempts SET status='prepared',failure_class=NULL,failure_message_redacted=NULL,completed_at=NULL,updated_at=? WHERE delivery_attempt_id=?", (when, delivery_attempt_id))
+            conn.execute("UPDATE provider_request_items SET status='prepared',updated_at=? WHERE provider_request_item_id=?", (when, attempt["provider_request_item_id"]))
+            conn.execute("UPDATE physical_attempts SET status='prepared',updated_at=? WHERE physical_attempt_id=?", (when, physical["physical_attempt_id"]))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
+    def create_zero_crossing_pre_send_replacement(self, *, replacement_id: str,
+                                                   provider_request_item_id: str,
+                                                   new_physical_attempt_id: str,
+                                                   new_delivery_attempt_id: str,
+                                                   new_delivery_job_id: str,
+                                                   new_reservation_id: str,
+                                                   authorization_id: str,
+                                                   provider_material_sha256: str,
+                                                   expected_provider_material_sha256: str,
+                                                   reason: str,
+                                                   now: datetime | str) -> dict[str, Any]:
+        """Create an append-only replacement for an unsent local failure.
+
+        The old attempt is never reopened or rewritten.  The stable provider
+        request item remains the provider-significant identity; only physical
+        and delivery execution identities change.  The replacement is valid
+        only when the old attempt has provably crossed the provider boundary
+        zero times.
+        """
+        when = _utc(now, "now")
+        if not replacement_id.startswith("presendreplacement:") or not str(reason).strip():
+            raise CatalogError("replacement identity and reason are required")
+        if provider_material_sha256 != expected_provider_material_sha256:
+            raise ConflictError("zero-crossing replacement provider material is not byte-identical")
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM provider_pre_send_replacements WHERE replacement_id=?", (replacement_id,)).fetchone()
+            if existing is not None:
+                if existing["provider_request_item_id"] != provider_request_item_id or existing["provider_material_sha256"] != provider_material_sha256:
+                    raise ConflictError("pre-send replacement identity conflicts with durable material")
+                return dict(existing)
+            item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
+            if item is None or item["status"] not in {"failed", "prepared"}:
+                raise ConflictError("replacement requires a terminal failed or prepared pre-send request item")
+            old_attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE provider_request_item_id=? ORDER BY attempt_ordinal", (provider_request_item_id,)).fetchall()
+            if len(old_attempt) != 1 or old_attempt[0]["status"] not in {"failed", "prepared"} or (old_attempt[0]["status"] == "failed" and old_attempt[0]["failure_class"] != "pre_send_validation") or old_attempt[0]["submitted_at"] is not None or old_attempt[0]["provider_request_id"] is not None or old_attempt[0]["provider_receipt_id"] is not None:
+                raise ConflictError("replacement requires exactly one unsent pre-send attempt")
+            old = old_attempt[0]
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (old["physical_attempt_id"],)).fetchone()
+            if physical is None or physical["status"] not in {"failed", "prepared"} or physical["send_started_at"] is not None or physical["status"] != ("failed" if old["status"] == "failed" else "prepared"):
+                raise ConflictError("old physical attempt crossed the provider boundary")
+            job = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (new_delivery_job_id,)).fetchone()
+            reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (new_reservation_id,)).fetchone()
+            if job is None or job["status"] != "prepared" or reservation is None or reservation["status"] != "active" or reservation["run_id"] != job["run_id"]:
+                raise ConflictError("replacement requires a prepared job and active replacement reservation")
+            if conn.execute("SELECT 1 FROM provider_request_attempts WHERE delivery_attempt_id=? OR physical_attempt_id=?", (new_delivery_attempt_id, new_physical_attempt_id)).fetchone() is not None:
+                raise ConflictError("replacement execution identity is already in use")
+            new_provider_physical_id = "physical-request:" + hashlib.sha256((provider_request_item_id + ":" + new_physical_attempt_id).encode()).hexdigest()
+            conn.execute("INSERT INTO physical_attempts(physical_attempt_id,run_id,subject_id,delivery_mode,status,provider_request_id,reservation_id,provider_batch_id,created_at,updated_at) VALUES (?,?,?,?, 'prepared',?,?,?,?,?)", (new_physical_attempt_id, job["run_id"], physical["subject_id"], physical["delivery_mode"], new_provider_physical_id, new_reservation_id, None, when, when))
+            members = conn.execute("SELECT model_task_id FROM physical_attempt_members WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchall()
+            conn.executemany("INSERT INTO physical_attempt_members(physical_attempt_id,model_task_id) VALUES (?,?)", [(new_physical_attempt_id, row[0]) for row in members])
+            if old["status"] == "prepared":
+                conn.execute("UPDATE provider_request_attempts SET status='cancelled', failure_class='superseded_pre_send', failure_message_redacted='rebound under superseding mandate before provider send', completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (when, when, old["delivery_attempt_id"]))
+                conn.execute("UPDATE provider_request_items SET status='cancelled', updated_at=? WHERE provider_request_item_id=?", (when, provider_request_item_id))
+                conn.execute("UPDATE physical_attempts SET status='failed', updated_at=? WHERE physical_attempt_id=?", (when, physical["physical_attempt_id"]))
+            conn.execute("INSERT INTO provider_request_attempts(delivery_attempt_id,provider_request_item_id,physical_attempt_id,delivery_job_id,attempt_ordinal,authorization_id,attempt_class,predecessor_attempt_id,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?, 'prepared',?,?)", (new_delivery_attempt_id, provider_request_item_id, new_physical_attempt_id, new_delivery_job_id, int(old["attempt_ordinal"]) + 1, authorization_id, "reviewed_transport_correction", old["delivery_attempt_id"], when, when))
+            conn.execute("UPDATE provider_request_items SET physical_attempt_id=?,delivery_job_id=?,run_id=?,updated_at=? WHERE provider_request_item_id=?", (new_physical_attempt_id, new_delivery_job_id, job["run_id"], when, provider_request_item_id))
+            event_type = "zero_crossing_pre_send_replacement" if old["status"] == "failed" else "prepared_pre_send_rebind"
+            event = {"replacement_id": replacement_id, "event_type": event_type, "provider_request_item_id": provider_request_item_id, "old_delivery_attempt_id": old["delivery_attempt_id"], "old_physical_attempt_id": old["physical_attempt_id"], "new_delivery_attempt_id": new_delivery_attempt_id, "new_physical_attempt_id": new_physical_attempt_id, "authorization_id": authorization_id, "provider_material_sha256": provider_material_sha256, "reason": reason}
+            event_hash = _canonical_hash(event)
+            conn.execute("INSERT INTO provider_pre_send_replacements(replacement_id,provider_request_item_id,old_delivery_attempt_id,old_physical_attempt_id,new_delivery_attempt_id,new_physical_attempt_id,authorization_id,provider_material_sha256,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (replacement_id, provider_request_item_id, old["delivery_attempt_id"], old["physical_attempt_id"], new_delivery_attempt_id, new_physical_attempt_id, authorization_id, provider_material_sha256, reason, when))
+            conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + replacement_id, authorization_id, "zero_crossing_pre_send_replacement", event_hash, json.dumps(event, sort_keys=True, separators=(",", ":")), when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_pre_send_replacements WHERE replacement_id=?", (replacement_id,)).fetchone())
+
+    def get_provider_receipt(self, provider_receipt_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())
+
+    def get_physical_attempt(self, physical_attempt_id: str) -> dict[str, Any] | None:
+        """Return a physical Factory attempt without changing its recovery state."""
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def get_physical_receipt(self, physical_attempt_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM provider_receipts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def mark_physical_validated(self, physical_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
+        """Close the receipt-to-child-validation boundary exactly once."""
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown physical attempt")
+            if row["status"] == "validated":
+                return dict(row)
+            if row["status"] != "receipt_persisted":
+                raise InvalidTransitionError("only receipt_persisted physical attempts can validate")
+            conn.execute("UPDATE physical_attempts SET status='validated', updated_at=? WHERE physical_attempt_id=?", (when, physical_attempt_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def mark_delivery_physical_attempts_send_started(self, delivery_job_id: str, request_item_ids: tuple[str, ...], *, now: datetime | str) -> list[dict[str, Any]]:
+        """Atomically cross the provider-send boundary for every item in a Batch job."""
+        when = _utc(now, "now")
+        expected = tuple(dict.fromkeys(request_item_ids))
+        if not expected or len(expected) != len(request_item_ids):
+            raise ConflictError("Batch send-start requires unique request items")
+        with self._connection(immediate=True) as conn:
+            job = conn.execute("SELECT run_id, status FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if job is None or job["status"] != "prepared":
+                raise InvalidTransitionError("Batch send-start requires a prepared delivery job")
+            placeholders = ",".join("?" for _ in expected)
+            selected = conn.execute(f"SELECT * FROM provider_request_items WHERE delivery_job_id=? AND provider_request_item_id IN ({placeholders})", (delivery_job_id, *expected)).fetchall()
+            if len(selected) != len(expected) or {row["provider_request_item_id"] for row in selected} != set(expected):
+                raise ConflictError("Batch request-item membership is incomplete or inconsistent")
+            by_id = {row["provider_request_item_id"]: row for row in selected}
+            rows = [by_id[item_id] for item_id in expected]
+            attempt_ids = [row["physical_attempt_id"] for row in rows]
+            if any(not item for item in attempt_ids) or len(set(attempt_ids)) != len(attempt_ids):
+                raise ConflictError("Batch request items require distinct physical attempts")
+            attempts = [conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (item,)).fetchone() for item in attempt_ids]
+            if any(item is None for item in attempts):
+                raise ConflictError("Batch physical attempt is missing")
+            for item, attempt in zip(rows, attempts):
+                if item["status"] != "prepared" or item["provider_id"] != "openai" or item["requested_delivery_mode"] != "batch" or item["effective_service_tier"] != "batch":
+                    raise ConflictError("Batch request item is not prepared for Batch delivery")
+                if item["run_id"] != job["run_id"] or attempt["run_id"] != job["run_id"] or attempt["status"] != "prepared" or attempt["delivery_mode"] != "batch" or attempt["provider_request_id"] != item["provider_request_item_id"]:
+                    raise ConflictError("Batch physical attempt is not prepared for this delivery job")
+                membership = conn.execute("SELECT 1 FROM physical_attempt_members WHERE physical_attempt_id=? AND model_task_id=?", (attempt["physical_attempt_id"], item["model_task_id"])).fetchone()
+                task = conn.execute("SELECT subject_id FROM tasks WHERE model_task_id=?", (item["model_task_id"],)).fetchone()
+                if membership is None or task is None or task["subject_id"] != attempt["subject_id"]:
+                    raise ConflictError("Batch physical attempt does not match its request-item task")
+                reservation = conn.execute("SELECT status FROM budget_reservations WHERE reservation_id=?", (attempt["reservation_id"],)).fetchone() if attempt["reservation_id"] else None
+                if reservation is None or reservation["status"] not in {"active", "partially_consumed"}:
+                    raise ConflictError("Batch physical attempt lacks an active reservation")
+            for attempt in attempts:
+                conn.execute("UPDATE physical_attempts SET status='send_started', send_started_at=?, updated_at=? WHERE physical_attempt_id=?", (when, when, attempt["physical_attempt_id"]))
+            self._commit(conn)
+            return [dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (item,)).fetchone()) for item in attempt_ids]
+
+    def bind_delivery_physical_attempts_batch(self, delivery_job_id: str, provider_batch_id: str, *, now: datetime | str) -> list[dict[str, Any]]:
+        """Bind one provider Batch identity idempotently to all member attempts."""
+        when = _utc(now, "now")
+        if not str(provider_batch_id).strip():
+            raise CatalogError("provider Batch ID is required")
+        with self._connection(immediate=True) as conn:
+            job = conn.execute("SELECT provider_batch_id FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if job is None:
+                raise CatalogError("unknown delivery job")
+            if job["provider_batch_id"] not in (None, provider_batch_id):
+                raise ConflictError("delivery job already has a different provider Batch ID")
+            rows = conn.execute("SELECT physical_attempt_id, provider_batch_id, status FROM physical_attempts WHERE physical_attempt_id IN (SELECT physical_attempt_id FROM provider_request_items WHERE delivery_job_id=?)", (delivery_job_id,)).fetchall()
+            if not rows:
+                raise CatalogError("Batch has no physical attempts")
+            if any(row["provider_batch_id"] not in (None, provider_batch_id) for row in rows):
+                raise ConflictError("physical attempt already has a different provider Batch ID")
+            if any(row["status"] not in {"send_started", "receipt_persisted", "validated", "failed"} for row in rows):
+                raise InvalidTransitionError("Batch physical attempts must have crossed send-start before Batch binding")
+            conn.execute("UPDATE physical_attempts SET provider_batch_id=?, updated_at=? WHERE physical_attempt_id IN (SELECT physical_attempt_id FROM provider_request_items WHERE delivery_job_id=?)", (provider_batch_id, when, delivery_job_id))
+            self._commit(conn)
+            return [dict(row) for row in conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id IN (SELECT physical_attempt_id FROM provider_request_items WHERE delivery_job_id=?) ORDER BY physical_attempt_id", (delivery_job_id,)).fetchall()]
+
+    def create_delivery_job(self, *, delivery_job_id: str, run_id: str, provider_id: str, model_route: str, delivery_mode: str, pricing_snapshot_id: str, now: datetime | str) -> dict[str, Any]:
+        """Persist a provider delivery aggregation separately from request items."""
+        if delivery_mode not in {"batch", "flex", "standard"}:
+            raise CatalogError("unknown delivery mode")
+        when = _utc(now, "now")
+        material = {"delivery_job_id": delivery_job_id, "run_id": run_id, "provider_id": provider_id, "model_route": model_route, "delivery_mode": delivery_mode, "pricing_snapshot_id": pricing_snapshot_id}
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if existing:
+                return dict(existing)
+            if conn.execute("SELECT 1 FROM runs WHERE run_id=?", (run_id,)).fetchone() is None:
+                raise CatalogError("delivery job run does not exist")
+            conn.execute("INSERT INTO delivery_jobs(delivery_job_id,run_id,provider_id,model_route,delivery_mode,status,pricing_snapshot_id,created_at,updated_at) VALUES (?,?,?,?,?,'prepared',?,?,?)", (delivery_job_id,run_id,provider_id,model_route,delivery_mode,pricing_snapshot_id,when,when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
+
+    def transition_delivery_job(self, delivery_job_id: str, status: str, *, now: datetime | str, provider_batch_id: str | None = None) -> dict[str, Any]:
+        allowed = {"prepared": {"submitted", "cancelled", "held"}, "submitted": {"in_progress", "held", "failed", "cancelled"}, "in_progress": {"completed", "expired", "failed", "cancelled", "held"}, "completed": set(), "expired": set(), "failed": set(), "cancelled": set(), "held": set()}
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown delivery job")
+            if row["status"] != status and status not in allowed[row["status"]]:
+                raise InvalidTransitionError(f"cannot transition delivery job {row['status']} to {status}")
+            conn.execute("UPDATE delivery_jobs SET status=?, provider_batch_id=COALESCE(?,provider_batch_id), submitted_at=CASE WHEN ?='submitted' THEN ? ELSE submitted_at END, completed_at=CASE WHEN ? IN ('completed','expired','failed','cancelled','held') THEN ? ELSE completed_at END, updated_at=? WHERE delivery_job_id=?", (status,provider_batch_id,status,when,status,when,when,delivery_job_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
+
+    def persist_delivery_file_id(self, delivery_job_id: str, file_kind: str, provider_file_id: str, *, now: datetime | str) -> dict[str, Any]:
+        """Persist an OpenAI Batch file identity exactly once and idempotently."""
+        columns = {
+            "input": "provider_input_file_id",
+            "output": "provider_output_file_id",
+            "error": "provider_error_file_id",
+        }
+        column = columns.get(file_kind)
+        if column is None or not str(provider_file_id).strip():
+            raise CatalogError("delivery file kind and provider file ID are required")
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown delivery job")
+            existing = row[column]
+            if existing is not None and existing != provider_file_id:
+                raise ConflictError("delivery file identity conflicts with the durable value")
+            if existing is None:
+                conn.execute(f"UPDATE delivery_jobs SET {column}=?, updated_at=? WHERE delivery_job_id=?", (provider_file_id, when, delivery_job_id))
+                self._commit(conn)
+            return dict(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
+
+    def persist_delivery_payload_identity(self, delivery_job_id: str, *, payload_sha256: str, payload_bytes: int, payload_local_ref: str, now: datetime | str) -> dict[str, Any]:
+        """Pin the exact local bytes authorized for one delivery job."""
+        if len(payload_sha256) != 64 or any(ch not in "0123456789abcdef" for ch in payload_sha256.lower()):
+            raise CatalogError("payload SHA-256 must be lowercase hexadecimal")
+        if payload_bytes < 0 or not str(payload_local_ref).strip():
+            raise CatalogError("payload byte length and local reference are required")
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown delivery job")
+            values = {"payload_sha256": payload_sha256, "payload_bytes": int(payload_bytes), "payload_encoding": "UTF-8", "payload_newline": "LF", "payload_local_ref": str(payload_local_ref)}
+            if row["payload_sha256"] is not None and any(row[key] != value for key, value in values.items()):
+                raise ConflictError("delivery payload identity conflicts with its durable value")
+            if row["payload_sha256"] is None:
+                conn.execute("UPDATE delivery_jobs SET payload_sha256=?, payload_bytes=?, payload_encoding=?, payload_newline=?, payload_local_ref=?, updated_at=? WHERE delivery_job_id=?", (values["payload_sha256"], values["payload_bytes"], values["payload_encoding"], values["payload_newline"], values["payload_local_ref"], when, delivery_job_id))
+                self._commit(conn)
+            return dict(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
+
+    def create_provider_request_attempt(self, *, delivery_attempt_id: str, provider_request_item_id: str, physical_attempt_id: str, delivery_job_id: str, attempt_ordinal: int, authorization_id: str, attempt_class: str, predecessor_attempt_id: str | None, now: datetime | str) -> dict[str, Any]:
+        if attempt_class not in {"initial", "reviewed_transport_correction"}:
+            raise CatalogError("unsupported provider delivery attempt class")
+        if attempt_ordinal < 1 or not str(authorization_id).strip():
+            raise CatalogError("provider delivery attempt ordinal and authorization are required")
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if existing:
+                material = {"provider_request_item_id": provider_request_item_id, "physical_attempt_id": physical_attempt_id, "delivery_job_id": delivery_job_id, "attempt_ordinal": attempt_ordinal, "authorization_id": authorization_id, "attempt_class": attempt_class, "predecessor_attempt_id": predecessor_attempt_id}
+                if any(existing[key] != value for key, value in material.items()):
+                    raise ConflictError("provider delivery attempt identity conflicts with durable material")
+                return dict(existing)
+            item = conn.execute("SELECT provider_request_item_id FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
+            physical = conn.execute("SELECT physical_attempt_id FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            job = conn.execute("SELECT delivery_job_id FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if item is None or physical is None or job is None:
+                raise CatalogError("provider delivery attempt references an unknown durable object")
+            if predecessor_attempt_id is not None and conn.execute("SELECT 1 FROM provider_request_attempts WHERE delivery_attempt_id=? AND provider_request_item_id=?", (predecessor_attempt_id, provider_request_item_id)).fetchone() is None:
+                raise ConflictError("provider delivery attempt predecessor must belong to the same stable request item")
+            conn.execute("INSERT INTO provider_request_attempts(delivery_attempt_id,provider_request_item_id,physical_attempt_id,delivery_job_id,attempt_ordinal,authorization_id,attempt_class,predecessor_attempt_id,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?, 'prepared',?,?)", (delivery_attempt_id, provider_request_item_id, physical_attempt_id, delivery_job_id, attempt_ordinal, authorization_id, attempt_class, predecessor_attempt_id, when, when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
+    def get_provider_request_attempt(self, delivery_attempt_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
+    def list_provider_request_attempts(self, *, provider_request_item_id: str | None = None, delivery_job_id: str | None = None) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            if provider_request_item_id is not None:
+                return [dict(row) for row in conn.execute("SELECT * FROM provider_request_attempts WHERE provider_request_item_id=? ORDER BY attempt_ordinal", (provider_request_item_id,)).fetchall()]
+            if delivery_job_id is not None:
+                return [dict(row) for row in conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_job_id=? ORDER BY delivery_attempt_id", (delivery_job_id,)).fetchall()]
+            return [dict(row) for row in conn.execute("SELECT * FROM provider_request_attempts ORDER BY delivery_attempt_id").fetchall()]
+
+    def transition_provider_request_attempt(self, delivery_attempt_id: str, status: str, *, now: datetime | str, provider_request_id: str | None = None, provider_receipt_id: str | None = None, result_ref: str | None = None, usage: Any | None = None, failure_class: str | None = None, failure_message_redacted: str | None = None) -> dict[str, Any]:
+        allowed = {"prepared": {"send_started", "submitted", "failed", "cancelled"}, "send_started": {"submitted", "failed", "cancelled"}, "submitted": {"in_progress", "failed", "expired", "cancelled", "held"}, "in_progress": {"receipt_persisted", "completed", "failed", "expired", "held"}, "receipt_persisted": {"completed", "failed", "held"}, "completed": set(), "failed": set(), "expired": set(), "cancelled": set(), "held": set()}
+        if status not in allowed:
+            raise CatalogError("unknown provider delivery attempt status")
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown provider delivery attempt")
+            if row["status"] != status and status not in allowed[row["status"]]:
+                raise InvalidTransitionError(f"cannot transition provider delivery attempt {row['status']} to {status}")
+            terminal_at = when if status in {"completed", "failed", "expired", "cancelled", "held"} else row["completed_at"]
+            submitted_at = row["submitted_at"] or (when if status in {"submitted", "in_progress"} else None)
+            conn.execute("UPDATE provider_request_attempts SET status=?, provider_request_id=COALESCE(?,provider_request_id), provider_receipt_id=COALESCE(?,provider_receipt_id), result_ref=COALESCE(?,result_ref), usage_json=COALESCE(?,usage_json), failure_class=COALESCE(?,failure_class), failure_message_redacted=COALESCE(?,failure_message_redacted), submitted_at=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (status, provider_request_id, provider_receipt_id, result_ref, json.dumps(_dump(usage), sort_keys=True) if usage is not None else None, failure_class, failure_message_redacted, submitted_at, terminal_at, when, delivery_attempt_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
+    def create_provider_request_item(self, *, provider_request_item_id: str, run_id: str, model_task_id: str, provider_id: str, model_route: str, requested_delivery_mode: str, effective_service_tier: str, now: datetime | str, delivery_job_id: str | None = None, physical_attempt_id: str | None = None) -> dict[str, Any]:
+        if requested_delivery_mode not in {"batch", "flex", "standard"} or effective_service_tier not in {"batch", "flex", "standard"}:
+            raise CatalogError("unknown request item delivery mode")
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
+            if existing:
+                conflicts = {
+                    "run_id": run_id,
+                    "model_task_id": model_task_id,
+                    "provider_id": provider_id,
+                    "model_route": model_route,
+                    "requested_delivery_mode": requested_delivery_mode,
+                    "effective_service_tier": effective_service_tier,
+                }
+                if delivery_job_id is not None:
+                    conflicts["delivery_job_id"] = delivery_job_id
+                if physical_attempt_id is not None:
+                    conflicts["physical_attempt_id"] = physical_attempt_id
+                if any(existing[key] != value for key, value in conflicts.items()):
+                    raise ConflictError("provider request item identity conflicts with its durable material attributes")
+                return dict(existing)
+            task = conn.execute("SELECT run_id FROM tasks WHERE model_task_id=?", (model_task_id,)).fetchone()
+            if task is None or task["run_id"] != run_id:
+                raise ConflictError("provider request item task must belong to its run")
+            if delivery_job_id and conn.execute("SELECT 1 FROM delivery_jobs WHERE delivery_job_id=? AND run_id=?", (delivery_job_id,run_id)).fetchone() is None:
+                raise ConflictError("provider request item delivery job must belong to its run")
+            conn.execute("INSERT INTO provider_request_items(provider_request_item_id,run_id,model_task_id,physical_attempt_id,delivery_job_id,provider_id,model_route,requested_delivery_mode,effective_service_tier,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,'prepared',?,?)", (provider_request_item_id,run_id,model_task_id,physical_attempt_id,delivery_job_id,provider_id,model_route,requested_delivery_mode,effective_service_tier,when,when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone())
+
+    def transition_provider_request_item(self, provider_request_item_id: str, status: str, *, now: datetime | str, provider_request_id: str | None = None, provider_receipt_id: str | None = None, result_ref: str | None = None, usage: Any | None = None) -> dict[str, Any]:
+        allowed = {"prepared": {"submitted", "send_ambiguous", "cancelled"}, "submitted": {"in_progress", "send_ambiguous", "failed", "cancelled"}, "in_progress": {"completed", "failed", "expired", "held"}, "send_ambiguous": {"completed", "held"}, "completed": set(), "failed": set(), "expired": set(), "cancelled": set(), "held": set()}
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
+            if row is None:
+                raise CatalogError("unknown provider request item")
+            if row["status"] != status and status not in allowed[row["status"]]:
+                raise InvalidTransitionError(f"cannot transition provider request item {row['status']} to {status}")
+            conn.execute("UPDATE provider_request_items SET status=?, provider_request_id=COALESCE(?,provider_request_id), provider_receipt_id=COALESCE(?,provider_receipt_id), result_ref=COALESCE(?,result_ref), usage_json=COALESCE(?,usage_json), updated_at=? WHERE provider_request_item_id=?", (status,provider_request_id,provider_receipt_id,result_ref,json.dumps(_dump(usage),sort_keys=True) if usage is not None else None,when,provider_request_item_id))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone())
+
+    def abandon_pre_send_provider_request(self, provider_request_item_id: str, *, now: datetime | str, reason: str) -> dict[str, Any]:
+        """Append-only quarantine for a prepared request superseded before send.
+
+        This is deliberately narrower than a retry or generic cancellation:
+        the item, its prepared delivery attempt and its physical attempt must
+        all still be pre-send, and no provider receipt/request identity may
+        exist.  A cancelled item can never pass the send-start transition.
+        Reservation release is a separate accounting operation so the caller
+        must reconcile both the Builder and mandate ledgers explicitly.
+        """
+        if not str(reason).strip():
+            raise CatalogError("pre-send abandonment requires a reason")
+        when = _utc(now, "now")
+        with self._connection(immediate=True) as conn:
+            item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
+            if item is None:
+                raise CatalogError("unknown provider request item")
+            if item["status"] == "cancelled":
+                return dict(item)
+            if item["status"] != "prepared" or item["provider_request_id"] is not None or item["provider_receipt_id"] is not None:
+                raise InvalidTransitionError("only an unsent prepared provider request can be abandoned")
+            attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE provider_request_item_id=? ORDER BY attempt_ordinal", (provider_request_item_id,)).fetchall()
+            if len(attempt) != 1 or attempt[0]["status"] != "prepared" or attempt[0]["provider_request_id"] is not None or attempt[0]["provider_receipt_id"] is not None:
+                raise InvalidTransitionError("provider request must have exactly one unsent prepared attempt")
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (item["physical_attempt_id"],)).fetchone()
+            if physical is None or physical["status"] != "prepared":
+                raise InvalidTransitionError("provider request physical attempt is not prepared")
+            mandate_row = None
+            if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='execution_mandate_reservations'").fetchone() is not None:
+                mandate_row = conn.execute(
+                    "SELECT mandate_id FROM execution_mandate_reservations WHERE reservation_id=?",
+                    (physical["reservation_id"],),
+                ).fetchone()
+            conn.execute("UPDATE provider_request_attempts SET status='cancelled', failure_class='superseded_pre_send', failure_message_redacted=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (str(reason)[:512], when, when, attempt[0]["delivery_attempt_id"]))
+            conn.execute("UPDATE provider_request_items SET status='cancelled', updated_at=? WHERE provider_request_item_id=?", (when, provider_request_item_id))
+            conn.execute("UPDATE physical_attempts SET status='failed', updated_at=? WHERE physical_attempt_id=?", (when, physical["physical_attempt_id"]))
+            if mandate_row is not None:
+                event = {
+                    "event_type": "provider_request_superseded_pre_send",
+                    "mandate_id": mandate_row["mandate_id"],
+                    "provider_request_item_id": provider_request_item_id,
+                    "delivery_attempt_id": attempt[0]["delivery_attempt_id"],
+                    "physical_attempt_id": physical["physical_attempt_id"],
+                    "reservation_id": physical["reservation_id"],
+                    "reason": str(reason)[:512],
+                }
+                event_hash = _canonical_hash(event)
+                event_id = "mandateevent:pre-send-supersession:" + hashlib.sha256(provider_request_item_id.encode("utf-8")).hexdigest()
+                conn.execute(
+                    "INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)",
+                    (event_id, mandate_row["mandate_id"], event["event_type"], event_hash, json.dumps(event, sort_keys=True, separators=(",", ":")), when),
+                )
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone())
+
+    def list_provider_request_items(self, run_id: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            return [dict(row) for row in conn.execute("SELECT * FROM provider_request_items WHERE run_id=? ORDER BY provider_request_item_id", (run_id,)).fetchall()]
+
+    def get_provider_request_item(self, provider_request_item_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone())
+
+    def mark_provider_delivery_attempts_send_started(self, delivery_job_id: str, delivery_attempt_ids: tuple[str, ...], *, now: datetime | str) -> list[dict[str, Any]]:
+        when = _utc(now, "now")
+        expected = tuple(dict.fromkeys(delivery_attempt_ids))
+        if not expected or len(expected) != len(delivery_attempt_ids):
+            raise ConflictError("Batch send-start requires unique delivery attempts")
+        with self._connection(immediate=True) as conn:
+            job = conn.execute("SELECT run_id, status FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone()
+            if job is None or job["status"] != "prepared":
+                raise InvalidTransitionError("Batch send-start requires a prepared delivery job")
+            placeholders=",".join("?" for _ in expected)
+            attempts=conn.execute(f"SELECT * FROM provider_request_attempts WHERE delivery_job_id=? AND delivery_attempt_id IN ({placeholders})", (delivery_job_id,*expected)).fetchall()
+            if len(attempts)!=len(expected) or {row["delivery_attempt_id"] for row in attempts}!=set(expected):
+                raise ConflictError("Batch delivery-attempt membership is incomplete or inconsistent")
+            for attempt in attempts:
+                if attempt["status"]!="prepared": raise ConflictError("Batch delivery attempt is not prepared")
+                physical=conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (attempt["physical_attempt_id"],)).fetchone()
+                reservation=conn.execute("SELECT status FROM budget_reservations WHERE reservation_id=?", (physical["reservation_id"],)).fetchone() if physical else None
+                if physical is None or physical["status"]!="prepared" or physical["delivery_mode"]!="batch" or reservation is None or reservation["status"] not in {"active","partially_consumed"}:
+                    raise ConflictError("Batch delivery attempt physical state is not ready")
+            for attempt in attempts:
+                conn.execute("UPDATE provider_request_attempts SET status='send_started', updated_at=? WHERE delivery_attempt_id=?", (when,attempt["delivery_attempt_id"]))
+                conn.execute("UPDATE physical_attempts SET status='send_started', send_started_at=?, updated_at=? WHERE physical_attempt_id=?", (when,when,attempt["physical_attempt_id"]))
+            self._commit(conn)
+            return [dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (item,)).fetchone()) for item in expected]
+
+    def bind_provider_delivery_attempts_batch(self, delivery_job_id: str, provider_batch_id: str, *, now: datetime | str) -> list[dict[str, Any]]:
+        when=_utc(now,"now")
+        with self._connection(immediate=True) as conn:
+            existing=conn.execute("SELECT provider_batch_id FROM delivery_jobs WHERE delivery_job_id=?",(delivery_job_id,)).fetchone()
+            if existing is None: raise CatalogError("unknown delivery job")
+            if existing[0] is not None and existing[0]!=provider_batch_id: raise ConflictError("delivery Batch identity conflicts")
+            conn.execute("UPDATE physical_attempts SET provider_batch_id=?, updated_at=? WHERE physical_attempt_id IN (SELECT physical_attempt_id FROM provider_request_attempts WHERE delivery_job_id=?)",(provider_batch_id,when,delivery_job_id))
+            self._commit(conn)
+            return [dict(row) for row in conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_job_id=? ORDER BY delivery_attempt_id",(delivery_job_id,)).fetchall()]
+
+    def get_delivery_job(self, delivery_job_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (delivery_job_id,)).fetchone())
+
+    def list_delivery_jobs(self, run_id: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            return [dict(row) for row in conn.execute("SELECT * FROM delivery_jobs WHERE run_id=? ORDER BY delivery_job_id", (run_id,)).fetchall()]

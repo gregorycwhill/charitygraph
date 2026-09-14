@@ -1,7 +1,8 @@
 import json
 
+import pytest
 
-from charitygraph.native_discovery_executor import DISCOVERY_PROMPT, _parse_discovery_output, build_prompt
+from charitygraph.native_discovery_executor import DISCOVERY_PROMPT, _parse_discovery_output, build_prompt, validate_discovery_output_evidence
 from charitygraph.contracts import ProgramServiceDiscoveryOutput, ProgramServiceDiscoveryOutputV2, discovery_output_schema_ref_v2
 from charitygraph.native_program_discovery import TASK_SCHEMA_V2
 
@@ -57,6 +58,17 @@ def test_parser_uses_v2_model_and_preserves_operational_status():
     assert isinstance(output, ProgramServiceDiscoveryOutputV2)
     assert output.proposals[0].operational_status == "historical"
     assert errors == ()
+
+
+def test_parsed_discovery_output_rejects_unknown_packet_evidence():
+    output, errors = _parse_discovery_output(_v2_task(), json.dumps({"proposals": [{
+        "proposal_key": "p", "label": "Service", "disposition": "service", "operational_status": "current",
+        "evidence": [{"evidence_id": "evidence:outside", "role": "supporting", "note": None}],
+        "rationale": "Direct evidence", "confidence": "high", "competing_interpretation": None,
+    }]}))
+    assert errors == ()
+    with pytest.raises(ValueError, match="outside"):
+        validate_discovery_output_evidence(output, {"evidence:inside"})
 
 
 def test_parser_invalid_response_returns_typed_v2_empty_output_without_name_error():

@@ -11,6 +11,7 @@ from .contracts import (
     SchemaRef,
     discovery_output_schema_ref,
     discovery_output_schema_ref_v2,
+    discovery_output_schema_ref_v2_corrected,
     model_task_cache_key,
 )
 from .contracts.ids import deterministic_id
@@ -131,7 +132,7 @@ def build_discovery_task_v2(
                 raise CatalogError(f"evidence {evidence_id} has no recoverable content hash")
             inputs.append(EvidenceInput(evidence_id=evidence_id, content_hash=content_hash, selection_hash=str(row["material_hash"])))
     evidence = tuple(inputs)
-    output_schema = discovery_output_schema_ref_v2(ordered_ids)
+    output_schema = discovery_output_schema_ref_v2_corrected(ordered_ids)
     task_parameters = parameters or {}
     cache_key = model_task_cache_key(task_type="semantic_interpretation", task_schema=TASK_SCHEMA_V2, output_schema=output_schema, evidence_inputs=evidence, prompt_template_id=prompt_template_id, prompt_template_version=prompt_template_version, policy_refs=(), provider_id=provider_id, model_snapshot=model_snapshot, parameters=task_parameters, material_tool_versions=())
     record_id = deterministic_id("modeltask:", {"subject_id": subject_id, "scope_id": None, "task_type": "semantic_interpretation", "cache_key": cache_key, "output_schema": output_schema})
