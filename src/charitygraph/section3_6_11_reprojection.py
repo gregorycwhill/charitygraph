@@ -7,6 +7,7 @@ obtain cross-section propagation by supplying a different numeric section.
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import field_validator, model_validator
@@ -18,7 +19,7 @@ from .integrated_card import CardEvidence, CoverageInput
 
 
 Section3611Predicate = Literal[
-    "program_or_service_scope_reported", "coordination_source_reported", "operating_division_reported",
+    "program_or_service_scope_reported", "coordination_source_reported",
     "participation_opportunity_reported", "participation_role_reported", "participation_episode_reported",
     "aggregate_participation_measure_reported", "volunteer_contribution_hours_reported",
     "organisational_scale_measure_reported", "resource_or_infrastructure_fact_reported", "capability_source_reported",
@@ -26,7 +27,7 @@ Section3611Predicate = Literal[
 ClaimBasis = Literal["source_fact", "source_interpretation"]
 ScopeKind = Literal["organisation", "program", "service", "project", "site", "reporting_group", "other"]
 _SECTION = {
-    "program_or_service_scope_reported": 3, "coordination_source_reported": 3, "operating_division_reported": 3,
+    "program_or_service_scope_reported": 3, "coordination_source_reported": 3,
     "participation_opportunity_reported": 6, "participation_role_reported": 6,
     "participation_episode_reported": 6, "aggregate_participation_measure_reported": 6,
     "volunteer_contribution_hours_reported": 6,
@@ -37,6 +38,7 @@ _MISSINGNESS = {
     "not_found": ("NOT_FOUND", "unknown_history"), "source_silent": ("SOURCE_SILENT", "processed_source_silent"),
     "source_unavailable": ("SOURCE_UNAVAILABLE", "source_unavailable"), "not_acquired": ("NOT_ACQUIRED", "not_acquired"),
     "not_processed": ("NOT_PROCESSED", "no_domain_result"), "not_reviewed": ("NOT_REVIEWED", "not_reviewed"),
+    "processing_failed": ("PROCESSING_FAILED", "processing_failed"), "not_attempted": ("NOT_ATTEMPTED", "not_attempted"),
     "not_applicable": ("NOT_APPLICABLE", "not_applicable"), "withheld": ("WITHHELD", "withheld"),
     "stale": ("STALE", "unknown_history"), "unknown": ("UNKNOWN", "unknown_history"),
 }
@@ -59,7 +61,7 @@ class Section3611ProjectionInput(StrictModel):
     value: CanonicalValue | None = None
     unit: str | None = None
     participant_population: str | None = None
-    scope_role: Literal["program_or_service", "coordination", "operating_division"] | None = None
+    scope_role: Literal["program_or_service", "coordination"] | None = None
 
     @field_validator("subject_id", "scope_id", "detail", "unit", "participant_population")
     @classmethod
@@ -75,6 +77,8 @@ class Section3611ProjectionInput(StrictModel):
 
     @model_validator(mode="after")
     def _bounded_semantics(self) -> "Section3611ProjectionInput":
+        if self.coverage_state in {"asserted_none", "observed_absent"}:
+            raise ValueError("absence claims require a separately authorised evidence-bound representation")
         if self.coverage_state == "supported" and (not self.evidence_locator_ids or not self.source_record_ids or not self.lineage_ids or self.observation_time is None):
             raise ValueError("supported propositions require time, locator, source and lineage")
         if self.predicate == "program_or_service_scope_reported":
@@ -83,9 +87,6 @@ class Section3611ProjectionInput(StrictModel):
         elif self.predicate == "coordination_source_reported":
             if self.scope_role != "coordination":
                 raise ValueError("coordination requires an explicit coordination scope role")
-        elif self.predicate == "operating_division_reported":
-            if self.scope_kind != "other" or self.scope_role != "operating_division":
-                raise ValueError("operating division remains an other scope with explicit role")
         elif self.scope_role is not None:
             raise ValueError("scope_role is limited to section-3 scope predicates")
         if self.predicate in {"aggregate_participation_measure_reported", "participation_episode_reported", "volunteer_contribution_hours_reported"}:
@@ -97,6 +98,9 @@ class Section3611ProjectionInput(StrictModel):
             raise ValueError("qualitative capability is only a detailed source interpretation")
         if self.predicate != "capability_source_reported" and self.claim_basis != "source_fact":
             raise ValueError("only qualitative capability may use source_interpretation")
+        if self.predicate == "organisational_scale_measure_reported":
+            if isinstance(self.value, bool) or not isinstance(self.value, (int, Decimal)) or self.unit is None:
+                raise ValueError("organisational scale requires a numeric value and unit")
         return self
 
 
