@@ -15,7 +15,7 @@ from typing import Any
 from charitygraph.contracts.knowledge import Observation, ObservationTime, SubjectRecord
 from charitygraph.contracts.common import ArtifactRef, ProducerRef, SchemaRef
 from charitygraph.contracts.ids import deterministic_id
-from charitygraph.integrated_card import CardEvidence, CoverageInput, IntegratedGraph, SECTION_TITLES, compile_coverage, compile_matrix, project_subject
+from charitygraph.integrated_card import CardEvidence, CoverageInput, IntegratedGraph, NORTH_STAR_PROJECTION_V0_1, SECTION_TITLES_V0_1, compile_coverage, compile_matrix, project_subject
 
 
 RUNTIME = Path(r"C:\CharityGraph-runtime")
@@ -133,21 +133,21 @@ def main() -> None:
                 unresolved_relationships.append({"target": target_name, "relationship_type": relation.get("relationship_type"), "direction": relation.get("direction"), "evidence": relation.get("evidence", []), "reason": "retained evidence supplies a name and proposition but no durable endpoint identity record"})
 
         assigned_sections = {section for item in evidence if item.observation_id in {obs.record_id for obs in observations if obs.subject_id == subject.subject_id} for section in item.section_ids}
-        for section_id in SECTION_TITLES:
+        for section_id in SECTION_TITLES_V0_1:
             if section_id in assigned_sections:
                 continue
             legacy_unprocessed = root_name != "section18-smith-20260902" and section_id >= 9
             coverage_inputs.append(CoverageInput(subject_id=subject.subject_id, section_id=section_id, state="NOT_PROCESSED" if legacy_unprocessed else "UNKNOWN", basis="no_domain_result" if legacy_unprocessed else "unknown_history", note="Historical numeric assignment incompatible with current contract" if legacy_unprocessed else "No retained current-state coverage basis."))
 
     graph = IntegratedGraph(subjects=tuple(subjects), scopes=(), observations=tuple(observations), evidence=tuple(evidence), coverage_inputs=tuple(coverage_inputs))
-    coverage = compile_coverage(graph, subject_id=subjects[0].subject_id)
-    matrix = compile_matrix(graph)
+    coverage = compile_coverage(graph, subject_id=subjects[0].subject_id, projection_contract=NORTH_STAR_PROJECTION_V0_1)
+    matrix = compile_matrix(graph, projection_contract=NORTH_STAR_PROJECTION_V0_1)
     (OUTPUT / "selection-inventory.json").write_text(json.dumps({"data_commit": "6bd1622f4a34d88ab10a77c8b06b95da1720778d", "provider_calls": 0, "new_source_acquisition": 0, "selected": selection, "sources": source_rows}, indent=2, ensure_ascii=False), encoding="utf-8")
     (OUTPUT / "integrated-graph.json").write_text(json.dumps(graph.model_dump(mode="json"), indent=2, ensure_ascii=False), encoding="utf-8")
     (OUTPUT / "coverage-matrix.json").write_text(json.dumps(matrix, indent=2, ensure_ascii=False), encoding="utf-8")
     (OUTPUT / "section-assignment-verification.json").write_text(json.dumps(assignment_checks, indent=2, ensure_ascii=False), encoding="utf-8")
     for item in subjects:
-        card = project_subject(graph, item.subject_id)
+        card = project_subject(graph, item.subject_id, projection_contract=NORTH_STAR_PROJECTION_V0_1)
         card_name = f"card-{item.subject_id.split(':', 1)[1]}"
         (OUTPUT / f"{card_name}.json").write_text(json.dumps(card, indent=2, ensure_ascii=False), encoding="utf-8")
         card_lines = [f"# {item.display_name}", "", f"Subject ID: `{item.subject_id}`", "", "This private projection references durable observation IDs; it does not duplicate observation content.", "", "| Section | Status | Observations |", "|---:|---|---:|"]

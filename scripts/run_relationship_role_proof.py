@@ -10,7 +10,7 @@ from charitygraph.contracts import (
     ProducerRef, RelationshipStatement, SchemaRef, ScopeRecord, SubjectRecord,
 )
 from charitygraph.contracts.ids import deterministic_id
-from charitygraph.integrated_card import CardEvidence, IntegratedGraph, project_subject
+from charitygraph.integrated_card import CardEvidence, IntegratedGraph, NORTH_STAR_PROJECTION_V0_1, project_subject
 from charitygraph.runtime import SQLiteCatalog
 
 
@@ -89,7 +89,7 @@ def main() -> None:
         subjects=(source, target), scopes=(scope,), observations=(observation,), relationships=(relationship,),
         evidence=(CardEvidence(observation_id=observation_id, disposition="REUSABLE_EXPERIMENTAL_INPUT", assignment_contract="UNRESOLVED", note="Relationship source is retained experimental output; relation is not promoted."),),
     )
-    card = project_subject(graph, source_subject_id)
+    card = project_subject(graph, source_subject_id, projection_contract=NORTH_STAR_PROJECTION_V0_1)
     section12 = card["sections"][11]
     role_rows = [
         {"role": "operator", "real_retained_proposition_found": "YES", "endpoints_resolved": "YES", "persisted": "YES", "projected": "YES"},
