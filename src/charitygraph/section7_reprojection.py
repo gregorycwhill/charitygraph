@@ -7,13 +7,14 @@ state.
 """
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import field_validator, model_validator
 
-from .contracts.common import CanonicalValue, StrictModel, require_nonblank
+from .contracts.common import CanonicalValue, LineageEdge, ProducerRef, StrictModel, require_nonblank
 from .contracts.direct_service import CoverageState, DirectServiceProposition
-from .contracts.knowledge import ObservationTime
+from .contracts.knowledge import Observation, ObservationTime
 from .integrated_card import CardEvidence, CoverageInput
 
 
@@ -128,9 +129,23 @@ class Section7V02Reprojection:
     def section_ids(self) -> tuple[Literal[7], ...]:
         return (7,)
 
-    def card_evidence(self, observation_id: str) -> CardEvidence:
+    def observation(
+        self,
+        *,
+        record_id: str,
+        created_at: datetime,
+        producer: ProducerRef | dict,
+    ) -> Observation:
+        """Create the append-only observation owned by this v0.2 predicate."""
+        return project_section7_v02_observation(
+            self.projection, record_id=record_id, created_at=created_at, producer=producer,
+        )
+
+    def card_evidence(self, observation: Observation) -> CardEvidence:
+        """Bind section evidence only to this predicate's created observation."""
+        _assert_v02_observation_matches(self.projection, observation)
         return CardEvidence(
-            observation_id=observation_id,
+            observation_id=observation.record_id,
             disposition="REUSABLE_EXPERIMENTAL_INPUT",
             section_ids=self.section_ids,
             projection_contract_id=self.projection_contract_id,
@@ -141,6 +156,88 @@ class Section7V02Reprojection:
 def reproject_section7_v02(projection: Section7V02ProjectionInput) -> Section7V02Reprojection:
     """Assign one new explicit v0.2 §7 predicate without rewriting V1.2."""
     return Section7V02Reprojection(projection)
+
+
+def _v02_outcome_state(coverage_state: CoverageState) -> str:
+    return {
+        "supported": "supported", "asserted_none": "resolved", "observed_absent": "resolved",
+        "processing_failed": "extraction_failure", "not_applicable": "not_applicable",
+        "withheld": "withheld", "unknown": "unknown", "not_attempted": "not_attempted",
+        "source_unavailable": "not_attempted", "not_acquired": "not_attempted",
+        "not_processed": "not_attempted", "not_reviewed": "unknown", "not_found": "unknown",
+        "source_silent": "unknown", "stale": "unknown",
+    }[coverage_state]
+
+
+def project_section7_v02_observation(
+    projection: Section7V02ProjectionInput,
+    *,
+    record_id: str,
+    created_at: datetime,
+    producer: ProducerRef | dict,
+) -> Observation:
+    """Project one explicit v0.2 §7 predicate into the existing Observation.
+
+    The semantic role stays in the predicate string and in the immutable value
+    payload; lineage edges run from the created observation to each supplied
+    lineage artifact. This is deterministic projection, never extraction.
+    """
+    value = _v02_observation_value(projection)
+    return Observation(
+        record_id=record_id,
+        created_at=created_at,
+        producer=producer,
+        about_subject_ids=(projection.subject_id,),
+        lineage=tuple(
+            LineageEdge(edge_type="projected_as", source_artifact_id=record_id, target_artifact_id=item)
+            for item in projection.lineage_ids
+        ),
+        subject_id=projection.subject_id,
+        scope_id=projection.scope_id,
+        predicate=f"north_star_v02.section7.{projection.predicate}",
+        value=value,
+        outcome_state=_v02_outcome_state(projection.coverage_state),
+        evidence_locator_ids=projection.evidence_locator_ids,
+        source_record_ids=projection.source_record_ids,
+        observation_time=projection.observation_time or ObservationTime(observed_at=created_at),
+        method="north_star_v02_section7_reprojection",
+    )
+
+
+def _v02_observation_value(projection: Section7V02ProjectionInput) -> dict[str, CanonicalValue]:
+    """The immutable payload used by both projection and binding verification."""
+    value: dict[str, CanonicalValue] = {
+        "north_star_projection_contract": "north-star-v0.2",
+        "section_id": 7,
+        "section7_predicate": projection.predicate,
+        "coverage_state": projection.coverage_state,
+        "source_role": projection.source_role,
+        "freshness_state": projection.freshness_state,
+    }
+    for key in ("freshness_policy_id", "availability_status", "value", "unit", "detail"):
+        item = getattr(projection, key)
+        if item is not None:
+            value[key] = item
+    return value
+
+
+def _assert_v02_observation_matches(projection: Section7V02ProjectionInput, observation: Observation) -> None:
+    if (
+        observation.subject_id != projection.subject_id
+        or observation.scope_id != projection.scope_id
+        or observation.about_subject_ids != (projection.subject_id,)
+        or observation.predicate != f"north_star_v02.section7.{projection.predicate}"
+        or observation.value != _v02_observation_value(projection)
+        or observation.outcome_state != _v02_outcome_state(projection.coverage_state)
+        or observation.evidence_locator_ids != projection.evidence_locator_ids
+        or observation.source_record_ids != projection.source_record_ids
+        or observation.observation_time != projection.observation_time
+        or observation.method != "north_star_v02_section7_reprojection"
+    ):
+        raise ValueError("section-7 CardEvidence requires the matching projected observation")
+    targets = tuple(edge.target_artifact_id for edge in observation.lineage if edge.edge_type == "projected_as")
+    if targets != projection.lineage_ids:
+        raise ValueError("section-7 CardEvidence requires matching observation lineage")
 
 
 class Section7Reprojection:
@@ -209,4 +306,5 @@ def section7_missingness(
 __all__ = [
     "Section7Reprojection", "reproject_section7", "section7_missingness",
     "Section7V02ProjectionInput", "Section7V02Reprojection", "reproject_section7_v02",
+    "project_section7_v02_observation",
 ]

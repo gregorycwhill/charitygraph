@@ -160,7 +160,7 @@ def _v02(predicate: str, **updates) -> Section7V02ProjectionInput:
         "predicate": predicate,
         "subject_id": _subject().subject_id,
         "scope_id": RETAINED_SERVICE_OFFER_SCOPE,
-        "scope_kind": "service",
+        "scope_kind": "organisation",
         "coverage_state": "supported",
         "source_role": "supporting",
         "evidence_locator_ids": ("locator:architecture-fixture",),
@@ -220,7 +220,53 @@ def test_v02_supported_time_sensitive_predicates_require_time(predicate, updates
 
 def test_v02_predicate_assigns_only_active_section7():
     replay = reproject_section7_v02(_v02("delivery_evidence", detail="delivery event reported"))
-    evidence = replay.card_evidence("observation:" + "3" * 64)
+    observation = replay.observation(record_id="observation:" + "3" * 64, created_at=NOW, producer=PRODUCER)
+    evidence = replay.card_evidence(observation)
     assert evidence.projection_contract_id == "north-star-v0.2"
     assert evidence.section_ids == (7,)
     assert "section-11" in evidence.note
+
+
+@pytest.mark.parametrize("predicate, updates, identifier", [
+    ("advertised_availability", {"availability_status": "available"}, "5"),
+    ("throughput", {"value": 18, "unit": "appointments per week"}, "6"),
+    ("staffing_constraint", {"detail": "staff vacancy reported"}, "7"),
+    ("delivery_evidence", {"detail": "delivery event reported"}, "8"),
+])
+def test_v02_predicates_survive_governed_observation_and_integrated_projection(predicate, updates, identifier):
+    """Synthetic architecture fixture; it asserts no retained empirical fact."""
+    subject = _subject()
+    scope = _scope(subject)
+    replay = reproject_section7_v02(_v02(predicate, **updates))
+    observation = replay.observation(
+        record_id="observation:" + identifier * 64,
+        created_at=NOW,
+        producer=PRODUCER,
+    )
+    evidence = replay.card_evidence(observation)
+    graph = IntegratedGraph(
+        subjects=(subject,), scopes=(scope,), observations=(observation,), evidence=(evidence,),
+    )
+    active = project_subject(graph, subject.subject_id, projection_contract=NORTH_STAR_PROJECTION_VNEXT)
+    historical = project_subject(graph, subject.subject_id, projection_contract=NORTH_STAR_PROJECTION_V0_1)
+    active_sections = {item["section_id"]: item for item in active["sections"]}
+    assert observation.predicate == f"north_star_v02.section7.{predicate}"
+    assert observation.value["section7_predicate"] == predicate
+    assert observation.subject_id == subject.subject_id
+    assert observation.scope_id == scope.record_id
+    assert observation.observation_time == ObservationTime(observed_at=NOW)
+    assert observation.evidence_locator_ids == ("locator:architecture-fixture",)
+    assert observation.source_record_ids == (SOURCE,)
+    assert observation.lineage[0].target_artifact_id == "lineage:architecture-fixture"
+    assert active_sections[7]["observation_ids"] == [observation.record_id]
+    assert active_sections[11]["observation_ids"] == []
+    assert all(observation.record_id not in item["observation_ids"] for item in historical["sections"])
+
+
+def test_v02_card_evidence_rejects_an_unrelated_observation():
+    advertised = reproject_section7_v02(_v02("advertised_availability", availability_status="available"))
+    unrelated = reproject_section7_v02(_v02("delivery_evidence", detail="delivery event reported")).observation(
+        record_id="observation:" + "4" * 64, created_at=NOW, producer=PRODUCER,
+    )
+    with pytest.raises(ValueError, match="matching projected observation"):
+        advertised.card_evidence(unrelated)
