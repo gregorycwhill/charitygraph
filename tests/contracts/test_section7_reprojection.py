@@ -10,7 +10,10 @@ from charitygraph.integrated_card import (
     CardEvidence, IntegratedGraph, NORTH_STAR_PROJECTION_V0_1,
     NORTH_STAR_PROJECTION_VNEXT, project_subject,
 )
-from charitygraph.section7_reprojection import reproject_section7, section7_missingness
+from charitygraph.section7_reprojection import (
+    Section7V02ProjectionInput, reproject_section7, reproject_section7_v02,
+    section7_missingness,
+)
 
 
 NOW = datetime(2026, 9, 15, tzinfo=timezone.utc)
@@ -149,3 +152,75 @@ def test_not_processed_survives_as_v02_coverage_without_negative_assertion():
 def test_non_service_direct_service_types_cannot_project_to_section7():
     with pytest.raises(ValueError, match="only direct-service"):
         reproject_section7(_proposition("scheme_membership", scheme_id="scheme:x"))
+
+
+def _v02(predicate: str, **updates) -> Section7V02ProjectionInput:
+    """Synthetic architecture fixture; it asserts no retained empirical fact."""
+    value = {
+        "predicate": predicate,
+        "subject_id": _subject().subject_id,
+        "scope_id": RETAINED_SERVICE_OFFER_SCOPE,
+        "scope_kind": "service",
+        "coverage_state": "supported",
+        "source_role": "supporting",
+        "evidence_locator_ids": ("locator:architecture-fixture",),
+        "source_record_ids": (SOURCE,),
+        "lineage_ids": ("lineage:architecture-fixture",),
+        "observation_time": ObservationTime(observed_at=NOW),
+    }
+    value.update(updates)
+    return Section7V02ProjectionInput(**value)
+
+
+def test_v02_advertised_availability_is_not_current_availability_and_never_claims_freshness():
+    item = _v02("advertised_availability", availability_status="available")
+    replay = reproject_section7_v02(item)
+    assert replay.projection.predicate == "advertised_availability"
+    assert replay.projection.freshness_state == "unassessed"
+    with pytest.raises(ValueError, match="freshness policy"):
+        _v02("advertised_availability", availability_status="available", freshness_state="fresh")
+
+
+def test_v02_operating_hours_is_not_current_availability():
+    item = _v02("operating_hours", detail="09:00-17:00 weekdays")
+    assert reproject_section7_v02(item).projection.predicate == "operating_hours"
+
+
+def test_v02_throughput_is_not_capacity_measure():
+    item = _v02("throughput", value=18, unit="appointments per week")
+    assert reproject_section7_v02(item).projection.predicate == "throughput"
+
+
+def test_v02_waitlist_is_not_capacity_merely_by_existing():
+    item = _v02("waitlist", detail="waitlist reported")
+    assert reproject_section7_v02(item).projection.predicate == "waitlist"
+
+
+@pytest.mark.parametrize("predicate", ["staffing_constraint", "resource_constraint"])
+def test_v02_constraints_are_not_positive_capacity_measures(predicate):
+    item = _v02(predicate, detail="constraint reported")
+    assert reproject_section7_v02(item).projection.predicate == predicate
+
+
+def test_v02_delivery_evidence_is_not_a_generic_service_offer():
+    item = _v02("delivery_evidence", detail="delivery event reported")
+    assert reproject_section7_v02(item).projection.predicate == "delivery_evidence"
+
+
+@pytest.mark.parametrize("predicate, updates", [
+    ("advertised_availability", {"availability_status": "available", "observation_time": None}),
+    ("operating_hours", {"detail": "09:00-17:00", "observation_time": None}),
+    ("throughput", {"value": 2, "unit": "people/day", "observation_time": None}),
+    ("waitlist", {"detail": "reported", "observation_time": None}),
+])
+def test_v02_supported_time_sensitive_predicates_require_time(predicate, updates):
+    with pytest.raises(ValueError, match="require observation_time"):
+        _v02(predicate, **updates)
+
+
+def test_v02_predicate_assigns_only_active_section7():
+    replay = reproject_section7_v02(_v02("delivery_evidence", detail="delivery event reported"))
+    evidence = replay.card_evidence("observation:" + "3" * 64)
+    assert evidence.projection_contract_id == "north-star-v0.2"
+    assert evidence.section_ids == (7,)
+    assert "section-11" in evidence.note
