@@ -93,12 +93,12 @@ Missingness = Literal[
     "GOVERNED_PRESENT", "EXPERIMENTAL_REVIEW", "ASSERTED_NONE", "OBSERVED_ABSENT",
     "NOT_FOUND", "SOURCE_SILENT", "SOURCE_UNAVAILABLE", "NOT_ACQUIRED",
     "NOT_PROCESSED", "PROCESSING_FAILED", "NOT_REVIEWED", "NOT_APPLICABLE",
-    "WITHHELD", "STALE", "UNKNOWN",
+    "WITHHELD", "STALE", "UNKNOWN", "NOT_ATTEMPTED",
 ]
 CoverageBasis = Literal[
     "observed_present", "processed_source_silent", "no_domain_result",
     "unknown_history", "source_unavailable", "not_acquired", "not_reviewed",
-    "not_applicable", "withheld",
+    "not_applicable", "withheld", "processing_failed", "not_attempted",
 ]
 AssignmentContract = Literal["CANONICAL_COMPATIBLE", "LEGACY_COMPATIBLE_SUBSET", "UNRESOLVED"]
 
@@ -145,6 +145,7 @@ class CoverageInput(_Strict):
             raise ValueError(f"section_id must exist in {self.projection_contract_id}")
         required = {
             "SOURCE_SILENT": "processed_source_silent", "NOT_PROCESSED": "no_domain_result",
+            "PROCESSING_FAILED": "processing_failed", "NOT_ATTEMPTED": "not_attempted",
             "UNKNOWN": "unknown_history", "SOURCE_UNAVAILABLE": "source_unavailable",
             "NOT_ACQUIRED": "not_acquired", "NOT_REVIEWED": "not_reviewed",
             "NOT_APPLICABLE": "not_applicable", "WITHHELD": "withheld",
