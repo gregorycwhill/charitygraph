@@ -32,14 +32,14 @@ class SectionAssignmentVNext(_Strict):
     @model_validator(mode="after")
     def valid_sections(self):
         if any(section not in NORTH_STAR_PROJECTION_VNEXT.section_titles for section in self.section_ids):
-            raise ValueError("section IDs must exist in north-star-vNext")
+            raise ValueError("section IDs must exist in north-star-v0.2")
         if len(set(self.section_ids)) != len(self.section_ids):
             raise ValueError("section IDs must be unique")
         return self
 
 
 class NorthStarLensOutputVNext(_Strict):
-    projection_contract_id: Literal["north-star-vNext"]
+    projection_contract_id: Literal["north-star-v0.2"]
     assignments: tuple[SectionAssignmentVNext, ...]
 
 

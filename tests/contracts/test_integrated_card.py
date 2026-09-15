@@ -162,7 +162,7 @@ def test_old_numeric_assignments_are_bound_to_v01_and_never_remapped():
         observation_id=observation.record_id,
         disposition="REUSABLE_GOVERNED",
         section_ids=(7,),
-        projection_contract_id="north-star-vNext",
+        projection_contract_id="north-star-v0.2",
     )
     graph_with_both = IntegratedGraph(
         subjects=(subject,), scopes=(), observations=(observation,),
@@ -170,7 +170,7 @@ def test_old_numeric_assignments_are_bound_to_v01_and_never_remapped():
     )
     next_card = project_subject(graph_with_both, subject.subject_id, projection_contract=NORTH_STAR_PROJECTION_VNEXT)
     next_section_7 = next_card["sections"][6]
-    assert next_card["projection_contract_id"] == "north-star-vNext"
+    assert next_card["projection_contract_id"] == "north-star-v0.2"
     assert next_section_7["title"] == "Direct service / capacity"
     assert next_section_7["observation_ids"] == [observation.record_id]
     assert graph_with_both.observations[0].record_id == observation.record_id
@@ -179,12 +179,12 @@ def test_old_numeric_assignments_are_bound_to_v01_and_never_remapped():
 def test_projection_calls_require_explicit_contract_and_lens_outputs_are_versioned():
     assert NorthStarLensOutput.projection_contract_id == "north-star-v0.1"
     assert "projection_contract_id" not in LENS_SCHEMA["properties"]
-    assert LENS_SCHEMA_VNEXT["properties"]["projection_contract_id"]["const"] == "north-star-vNext"
+    assert LENS_SCHEMA_VNEXT["properties"]["projection_contract_id"]["const"] == "north-star-v0.2"
     assert "projection_contract_id" in LENS_SCHEMA_VNEXT["required"]
     with pytest.raises(TypeError):
         compile_coverage(IntegratedGraph(subjects=(), scopes=(), observations=(), evidence=()))
     forged = NorthStarProjectionContract(
-        projection_contract_id="north-star-vNext",
+        projection_contract_id="north-star-v0.2",
         section_titles={**dict(SECTION_TITLES_VNEXT), 7: "Fundraising"},
         relationship_section_id=12,
     )
@@ -198,13 +198,13 @@ def test_projection_calls_require_explicit_contract_and_lens_outputs_are_version
     with pytest.raises(ValueError):
         NorthStarLensOutputVNext.model_validate({"assignments": [{"observation_key": "O001", "section_ids": [7]}]})
     active = NorthStarLensOutputVNext.model_validate({
-        "projection_contract_id": "north-star-vNext",
+        "projection_contract_id": "north-star-v0.2",
         "assignments": [{"observation_key": "O001", "section_ids": [7]}],
     })
-    assert active.projection_contract_id == "north-star-vNext"
+    assert active.projection_contract_id == "north-star-v0.2"
     with pytest.raises(ValueError):
         NorthStarLensOutputVNext.model_validate({
-            "projection_contract_id": "north-star-vNext",
+            "projection_contract_id": "north-star-v0.2",
             "assignments": [{"observation_key": "O001", "section_ids": [21]}],
         })
 
@@ -213,7 +213,7 @@ def test_explicit_missingness_survives_active_projection_contract():
     subject = _subject("Example Charity", "12345678901")
     coverage_input = CoverageInput(
         subject_id=subject.subject_id, section_id=14,
-        projection_contract_id="north-star-vNext", state="SOURCE_SILENT",
+        projection_contract_id="north-star-v0.2", state="SOURCE_SILENT",
         basis="processed_source_silent",
     )
     graph = IntegratedGraph(
@@ -223,5 +223,5 @@ def test_explicit_missingness_survives_active_projection_contract():
     coverage = compile_coverage(graph, projection_contract=NORTH_STAR_PROJECTION_VNEXT)
     section_14 = coverage[13]
     assert section_14.title == "Funding / dependencies"
-    assert section_14.projection_contract_id == "north-star-vNext"
+    assert section_14.projection_contract_id == "north-star-v0.2"
     assert section_14.missingness == "SOURCE_SILENT"

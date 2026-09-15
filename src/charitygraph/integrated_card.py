@@ -16,7 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from .contracts.knowledge import Observation, RelationshipStatement, ScopeRecord, SubjectRecord
 
 
-ProjectionContractId = Literal["north-star-v0.1", "north-star-vNext"]
+ProjectionContractId = Literal["north-star-v0.1", "north-star-v0.2"]
 
 
 @dataclass(frozen=True)
@@ -65,7 +65,7 @@ NORTH_STAR_PROJECTION_V0_1 = NorthStarProjectionContract(
     relationship_section_id=12,
 )
 NORTH_STAR_PROJECTION_VNEXT = NorthStarProjectionContract(
-    projection_contract_id="north-star-vNext",
+    projection_contract_id="north-star-v0.2",
     section_titles=SECTION_TITLES_VNEXT,
     relationship_section_id=12,
 )
