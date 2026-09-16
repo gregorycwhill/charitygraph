@@ -46,6 +46,10 @@ _SUBSTANTIVE = frozenset({
     "claimed_implementation_observed", "observed_practice_observed", "verified_completion_observed",
 })
 _EFFECTIVE_ASSIGNMENTS = frozenset({"accepted", "narrowed"})
+_LIFECYCLE_WHAT = frozenset({
+    "commitment_stated_observed", "claimed_implementation_observed",
+    "observed_practice_observed", "verified_completion_observed",
+})
 
 
 class SpecialistInput(StrictModel):
@@ -67,6 +71,8 @@ class SpecialistInput(StrictModel):
     lineage_ids: tuple[str, ...] = ()
     observation_time: ObservationTime | None = None
     detail: str | None = None
+    action: str | None = None
+    object_or_result: str | None = None
     taxonomy_id: str | None = None
     taxonomy_version: str | None = None
     concept_id: str | None = None
@@ -77,7 +83,7 @@ class SpecialistInput(StrictModel):
     upstream_artifact_ids: tuple[str, ...] = ()
     value: CanonicalValue | None = None
 
-    @field_validator("subject_id", "scope_id", "detail", "taxonomy_id", "taxonomy_version", "concept_id", "method", "signal_type", "query_or_profile")
+    @field_validator("subject_id", "scope_id", "detail", "action", "object_or_result", "taxonomy_id", "taxonomy_version", "concept_id", "method", "signal_type", "query_or_profile")
     @classmethod
     def _text(cls, value: str | None) -> str | None:
         return None if value is None else require_nonblank(value)
@@ -115,6 +121,10 @@ class SpecialistInput(StrictModel):
             raise ValueError("discovery fields are limited to discovery signals")
         if self.predicate in _SUBSTANTIVE and self.coverage_state == "supported" and self.detail is None:
             raise ValueError(f"{self.predicate} requires substantive detail")
+        if self.predicate in _LIFECYCLE_WHAT and self.coverage_state == "supported" and (self.action is None or self.object_or_result is None):
+            raise ValueError(f"{self.predicate} requires explicit action and object_or_result")
+        if self.predicate not in _LIFECYCLE_WHAT and (self.action is not None or self.object_or_result is not None):
+            raise ValueError("action and object_or_result are limited to commitment lifecycle predicates")
         expected_basis = {
             "ethos_self_description_observed": "source_interpretation", "commitment_stated_observed": "source_interpretation",
             "claimed_implementation_observed": "source_interpretation", "activity_observed": "source_fact",
@@ -139,7 +149,7 @@ def _payload(item: SpecialistInput) -> dict[str, CanonicalValue]:
         "specialist_predicate": item.predicate, "coverage_state": item.coverage_state,
         "source_role": item.source_role, "epistemic_basis": item.epistemic_basis,
     }
-    for key in ("detail", "taxonomy_id", "taxonomy_version", "concept_id", "assignment_status", "method", "signal_type", "query_or_profile", "value"):
+    for key in ("detail", "action", "object_or_result", "taxonomy_id", "taxonomy_version", "concept_id", "assignment_status", "method", "signal_type", "query_or_profile", "value"):
         value = getattr(item, key)
         if value is not None:
             result[key] = value

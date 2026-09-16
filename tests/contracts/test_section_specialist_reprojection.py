@@ -6,6 +6,8 @@ from charitygraph.section_specialist_reprojection import SpecialistInput, projec
 NOW=datetime(2026,9,17,tzinfo=timezone.utc); S="subject:"+"a"*64; C="scope:"+"b"*64; R="srcrec:"+"c"*64; L="evidence:"+"d"*64
 def item(predicate="activity_observed", **kw):
     values=dict(predicate=predicate,subject_id=S,scope_id=C,coverage_state="supported",source_role="supporting",epistemic_basis="source_fact",evidence_locator_ids=("[x:p1]",),source_record_ids=(R,),lineage_ids=(L,),observation_time=ObservationTime(observed_at=NOW),detail="bounded retained fact")
+    if predicate in {"commitment_stated_observed", "claimed_implementation_observed", "observed_practice_observed", "verified_completion_observed"}:
+        values.update(action="deliver service", object_or_result="the stated community program")
     values.update(kw); return SpecialistInput(**values)
 def obs(value): return project_specialist_observation(value,record_id="observation:"+"f"*64,created_at=NOW,producer={"kind":"code","producer_id":"test"})
 def test_activity_and_taxonomy_are_independent_and_v02_only():
@@ -83,3 +85,16 @@ def test_created_at_cannot_be_used_as_specialist_observation_time():
     value=item(coverage_state="unknown",observation_time=None)
     with pytest.raises(ValueError,match="created_at"):
         obs(value)
+
+
+@pytest.mark.parametrize("predicate,basis", [
+    ("commitment_stated_observed", "source_interpretation"),
+    ("claimed_implementation_observed", "source_interpretation"),
+    ("observed_practice_observed", "source_fact"),
+    ("verified_completion_observed", "source_fact"),
+])
+def test_commitment_lifecycle_requires_typed_action_and_object(predicate,basis):
+    with pytest.raises(ValueError, match="action and object_or_result"):
+        item(predicate, epistemic_basis=basis, action=None)
+    with pytest.raises(ValueError, match="action and object_or_result"):
+        item(predicate, epistemic_basis=basis, object_or_result=None)
