@@ -5,6 +5,7 @@ from charitygraph.contracts import (
     DirectServiceEvidenceRef,
     DirectServiceProposition,
     EvidenceLocator,
+    ObservationTime,
     ScopeRecord,
     SubjectRecord,
     project_observation,
@@ -61,6 +62,7 @@ def test_direct_service_projection_preserves_scope_evidence_and_missingness(tmp_
         scope_kind="service",
         scope_label="Crisis support service",
         coverage_state="source_silent",
+        observation_time=ObservationTime(observed_at=NOW),
         evidence=(),
     )
     # A source-silent state is explicit and remains distinct in the value
@@ -113,6 +115,7 @@ def test_contextual_party_role_projection_is_evidence_bound_and_replayable(tmp_p
         source_scope_kind="organisation", source_scope_id=organisation_scope.record_id,
         source_label="source", target_scope_kind="service", target_scope_id=service_scope.record_id,
         target_label="target", role="operator", direction="source_to_target",
+        observation_time=ObservationTime(observed_at=NOW),
         evidence=({"locator": locator, "role": "supporting"},),
     )
     observation, party_role = build_party_role_projection(
