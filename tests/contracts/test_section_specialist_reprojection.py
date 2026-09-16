@@ -20,6 +20,11 @@ def test_source_reported_and_assessed_classification_do_not_collapse():
 def test_commitment_is_not_implementation_or_completion():
     c=obs(item("commitment_stated_observed",epistemic_basis="source_interpretation")); i=obs(item("claimed_implementation_observed",epistemic_basis="source_interpretation")); v=obs(item("verified_completion_observed"))
     assert len({c.predicate,i.predicate,v.predicate})==3
+def test_fundraising_practice_and_campaign_are_distinct_from_finance_and_dependency():
+    practice=obs(item("fundraising_practice_observed")); campaign=obs(item("fundraising_campaign_observed"))
+    assert practice.predicate.startswith("north_star_v02.section8")
+    assert campaign.predicate.startswith("north_star_v02.section8")
+    assert "finance" not in practice.value and "dependency" not in campaign.value
 def test_card_evidence_fails_closed_on_scope_and_lineage():
     value=item(); o=obs(value)
     with pytest.raises(ValueError,match="matching projected"):
