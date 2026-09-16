@@ -196,6 +196,9 @@ class IntegratedGraph(_Strict):
             raise ValueError("relationships must reference durable subjects")
         if any(item.subject_id not in subject_ids for item in self.coverage_inputs):
             raise ValueError("coverage inputs must reference durable subjects")
+        coverage_keys = {(item.subject_id, item.projection_contract_id, item.section_id) for item in self.coverage_inputs}
+        if len(coverage_keys) != len(self.coverage_inputs):
+            raise ValueError("each subject, projection contract and section may have one explicit coverage input")
         return self
 
 
