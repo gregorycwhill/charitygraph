@@ -213,6 +213,8 @@ def project_observation(
     """Project one proposition into the existing append-only observation model."""
     if not source_record_ids:
         raise ValueError("conduct observations require source record IDs")
+    if proposition.observation_time is None:
+        raise ValueError("conduct projection requires explicit observation_time; created_at is record metadata")
     payload: dict[str, CanonicalValue] = {
         "statement": proposition.statement,
         "procedural_status": proposition.procedural_status,
@@ -233,7 +235,7 @@ def project_observation(
         outcome_state="supported",
         evidence_locator_ids=tuple(item.locator for item in proposition.evidence),
         source_record_ids=source_record_ids,
-        observation_time=proposition.observation_time or {"observed_at": created_at},
+        observation_time=proposition.observation_time,
         method="conduct_compliance_semantic_task",
     )
 

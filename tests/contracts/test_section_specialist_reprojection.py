@@ -31,3 +31,55 @@ def test_card_evidence_fails_closed_on_scope_and_lineage():
         specialist_card_evidence(value,o.model_copy(update={"scope_id":"scope:"+"9"*64}))
     with pytest.raises(ValueError,match="matching lineage"):
         specialist_card_evidence(value,o.model_copy(update={"lineage":()}))
+
+
+@pytest.mark.parametrize("predicate,basis", [
+    ("activity_observed", "source_fact"),
+    ("fundraising_practice_observed", "source_fact"),
+    ("fundraising_campaign_observed", "source_fact"),
+    ("ethos_self_description_observed", "source_interpretation"),
+    ("ethos_affiliation_observed", "source_fact"),
+    ("commitment_stated_observed", "source_interpretation"),
+    ("claimed_implementation_observed", "source_interpretation"),
+    ("observed_practice_observed", "source_fact"),
+    ("verified_completion_observed", "source_fact"),
+])
+def test_supported_specialist_positive_requires_substantive_what(predicate,basis):
+    with pytest.raises(ValueError, match="substantive detail"):
+        item(predicate, epistemic_basis=basis, detail=None)
+
+
+@pytest.mark.parametrize("status", ["candidate", "rejected", "abstained", "superseded"])
+def test_non_effective_taxonomy_history_stays_traceable_but_cannot_be_card_content(status):
+    value=item("assessed_classification_observed",epistemic_basis="governed_event",taxonomy_id="un-sdg",taxonomy_version="2015",concept_id="sdg:4",assignment_status=status,method="retained-review")
+    observed=obs(value)
+    assert observed.outcome_state == "unknown"
+    assert observed.value["effective_assignment"] is False
+    with pytest.raises(ValueError,match="non-effective"):
+        specialist_card_evidence(value,observed)
+
+
+def test_accepted_and_narrowed_taxonomy_assignments_are_effective_only_at_stated_concept_scope():
+    for status, concept in (("accepted", "sdg:4"), ("narrowed", "sdg:4.1")):
+        value=item("assessed_classification_observed",epistemic_basis="governed_event",taxonomy_id="un-sdg",taxonomy_version="2015",concept_id=concept,assignment_status=status,method="retained-review")
+        observed=obs(value)
+        assert observed.outcome_state == "supported"
+        assert observed.value["effective_assignment"] is True
+        assert specialist_card_evidence(value,observed).section_ids == (19,)
+
+
+def test_discovery_signal_is_derived_and_never_card_evidence():
+    value=item("discovery_signal_observed",epistemic_basis="derived_signal",method="embedding-v1",signal_type="similarity",query_or_profile="sdg-profile-v1",upstream_artifact_ids=("document:retained",))
+    observed=obs(value)
+    assert observed.outcome_state == "unknown"
+    assert observed.value["epistemic_basis"] == "derived_signal"
+    with pytest.raises(ValueError,match="retrieval inputs"):
+        specialist_card_evidence(value,observed)
+    with pytest.raises(ValueError,match="derived_signal"):
+        item("discovery_signal_observed",epistemic_basis="source_fact",method="embedding-v1",signal_type="similarity",query_or_profile="sdg-profile-v1",upstream_artifact_ids=("document:retained",))
+
+
+def test_created_at_cannot_be_used_as_specialist_observation_time():
+    value=item(coverage_state="unknown",observation_time=None)
+    with pytest.raises(ValueError,match="created_at"):
+        obs(value)

@@ -60,6 +60,7 @@ def _proposition(kind: str = "service_offer", **updates) -> DirectServiceProposi
         "scope_kind": "organisation",
         "coverage_state": "supported",
         "value": "retained fact",
+        "observation_time": ObservationTime(observed_at=NOW),
         "evidence": (DirectServiceEvidenceRef(locator=RETAINED_SERVICE_OFFER_LOCATOR, role="supporting"),),
     }
     value.update(updates)

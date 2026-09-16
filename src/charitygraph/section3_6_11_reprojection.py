@@ -81,6 +81,11 @@ class Section3611ProjectionInput(StrictModel):
             raise ValueError("absence claims require a separately authorised evidence-bound representation")
         if self.coverage_state == "supported" and (not self.evidence_locator_ids or not self.source_record_ids or not self.lineage_ids or self.observation_time is None):
             raise ValueError("supported propositions require time, locator, source and lineage")
+        if self.coverage_state == "supported" and self.predicate in {
+            "program_or_service_scope_reported", "coordination_source_reported", "participation_opportunity_reported",
+            "participation_role_reported", "resource_or_infrastructure_fact_reported",
+        } and self.detail is None:
+            raise ValueError("supported section-3/6/11 qualitative propositions require substantive detail")
         if self.predicate == "program_or_service_scope_reported":
             if self.scope_kind not in {"program", "service", "project"} or self.scope_role != "program_or_service":
                 raise ValueError("program/service scope requires a child scope and explicit scope role")
@@ -119,12 +124,14 @@ def _payload(item: Section3611ProjectionInput) -> dict[str, CanonicalValue]:
 
 def project_section3611_observation(item: Section3611ProjectionInput, *, record_id: str, created_at: datetime, producer: ProducerRef | dict) -> Observation:
     """Project one bounded fact with an immutable v0.2 section owner."""
+    if item.observation_time is None:
+        raise ValueError("section-3/6/11 reprojection requires explicit observation_time; created_at is record metadata")
     outcome = "supported" if item.coverage_state == "supported" else "unknown"
     return Observation(record_id=record_id, created_at=created_at, producer=producer, about_subject_ids=(item.subject_id,),
         lineage=tuple(LineageEdge(edge_type="projected_as", source_artifact_id=record_id, target_artifact_id=x) for x in item.lineage_ids),
         subject_id=item.subject_id, scope_id=item.scope_id, predicate=f"north_star_v02.section{_SECTION[item.predicate]}.{item.predicate}",
         value=_payload(item), outcome_state=outcome, evidence_locator_ids=item.evidence_locator_ids,
-        source_record_ids=item.source_record_ids, observation_time=item.observation_time or ObservationTime(observed_at=created_at),
+        source_record_ids=item.source_record_ids, observation_time=item.observation_time,
         method="north_star_v02_section3611_reprojection")
 
 

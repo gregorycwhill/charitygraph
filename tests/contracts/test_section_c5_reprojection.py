@@ -18,7 +18,7 @@ def scope():
     return ScopeRecord(record_id=SCOPE, created_at=NOW, producer={"kind":"code", "producer_id":"test"}, subject_id=SUBJECT, scope_kind="organisation")
 
 def item(predicate="identity_role_observed", **updates):
-    values = dict(predicate=predicate, subject_id=SUBJECT, scope_id=SCOPE, coverage_state="supported", source_role="supporting", epistemic_basis="source_fact", evidence_locator_ids=("[ARC:p2]",), source_record_ids=(SRC,), lineage_ids=(LINEAGE,), observation_time=ObservationTime(observed_at=NOW), identity_role="operating_unit")
+    values = dict(predicate=predicate, subject_id=SUBJECT, scope_id=SCOPE, coverage_state="supported", source_role="supporting", epistemic_basis="source_fact", evidence_locator_ids=("[ARC:p2]",), source_record_ids=(SRC,), lineage_ids=(LINEAGE,), observation_time=ObservationTime(observed_at=NOW), identity_role="operating_unit", detail="retained substantive fixture")
     values.update(updates)
     return SectionC5Input(**values)
 
@@ -30,7 +30,7 @@ def graph(value):
     ("identity_role_observed", {"identity_role":"operating_unit"}, 1),
     ("population_role_observed", {"identity_role":None,"population_role":"served","value":2605}, 5),
     ("geography_role_observed", {"identity_role":None,"geography_role":"observed_reach","detail":"Victoria"}, 5),
-    ("governance_role_observed", {"identity_role":None,"governance_role":"board_member"}, 9),
+    ("governance_role_observed", {"identity_role":None,"governance_role":"board_member", "detail":"named board role"}, 9),
     ("workforce_measure_observed", {"identity_role":None,"workforce_role":"volunteer","workforce_measure":"headcount","value":30}, 10),
     ("historical_event_observed", {"identity_role":None,"event_type":"milestone","detail":"dated report event"}, 17),
     ("provenance_event_observed", {"identity_role":None,"provenance_event":"source_supersession","detail":"source explicitly supersedes prior edition"}, 20),

@@ -71,6 +71,10 @@ class Section14FundingInput(StrictModel):
         if self.coverage_state == "supported":
             if not self.evidence_locator_ids or not self.source_record_ids or not self.lineage_ids or self.observation_time is None:
                 raise ValueError("supported funding propositions require time, locator, source and lineage")
+            if self.predicate not in {"concentration_measure", "amount_observed"} and self.detail is None:
+                raise ValueError("supported funding propositions require substantive detail")
+            if self.predicate == "amount_observed" and self.value is None:
+                raise ValueError("supported funding amount requires a substantive value")
         if self.predicate == "stage_observed":
             if self.stage is None:
                 raise ValueError("funding stage requires an explicit stage")
@@ -104,12 +108,14 @@ def _payload(item: Section14FundingInput) -> dict[str, CanonicalValue]:
 
 def project_section14_observation(item: Section14FundingInput, *, record_id: str, created_at: datetime, producer: ProducerRef | dict) -> Observation:
     """Project one atomic §14 fact without inferring relation or dependency."""
+    if item.observation_time is None:
+        raise ValueError("section-14 reprojection requires explicit observation_time; created_at is record metadata")
     outcome = "supported" if item.coverage_state == "supported" else "unknown"
     return Observation(record_id=record_id, created_at=created_at, producer=producer, about_subject_ids=(item.subject_id,),
         lineage=tuple(LineageEdge(edge_type="projected_as", source_artifact_id=record_id, target_artifact_id=x) for x in item.lineage_ids),
         subject_id=item.subject_id, scope_id=item.scope_id, predicate=f"north_star_v02.section14.{item.predicate}",
         value=_payload(item), outcome_state=outcome, evidence_locator_ids=item.evidence_locator_ids,
-        source_record_ids=item.source_record_ids, observation_time=item.observation_time or ObservationTime(observed_at=created_at),
+        source_record_ids=item.source_record_ids, observation_time=item.observation_time,
         method="north_star_v02_section14_reprojection")
 
 

@@ -161,12 +161,14 @@ def _payload(item: Section13FinanceInput) -> dict[str, CanonicalValue]:
 
 def project_section13_finance_observation(item: Section13FinanceInput, *, record_id: str, created_at: datetime, producer: ProducerRef | dict) -> Observation:
     """Project one bounded §13 fact; it cannot create §8 or §14 evidence."""
+    if item.observation_time is None:
+        raise ValueError("section-13 reprojection requires explicit observation_time; created_at is record metadata")
     outcome = "supported" if item.coverage_state == "supported" else "unknown"
     return Observation(record_id=record_id, created_at=created_at, producer=producer, about_subject_ids=(item.subject_id,),
         lineage=tuple(LineageEdge(edge_type="projected_as", source_artifact_id=record_id, target_artifact_id=x) for x in item.lineage_ids),
         subject_id=item.subject_id, scope_id=item.scope_id, predicate=f"north_star_v02.section13.{item.predicate}", value=_payload(item),
         outcome_state=outcome, evidence_locator_ids=item.evidence_locator_ids, source_record_ids=item.source_record_ids,
-        observation_time=item.observation_time or ObservationTime(observed_at=created_at), method="north_star_v02_section13_finance_reprojection")
+        observation_time=item.observation_time, method="north_star_v02_section13_finance_reprojection")
 
 
 def section13_finance_card_evidence(item: Section13FinanceInput, observation: Observation) -> CardEvidence:

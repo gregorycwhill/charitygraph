@@ -104,14 +104,16 @@ class DirectServiceProposition(StrictModel):
             item.role == "supporting" for item in self.evidence
         ):
             raise ValueError("supported or observed absence propositions require supporting evidence")
+        if self.coverage_state == "supported" and self.value is None and self.proposition_type not in {"participation_measure", "capacity_measure"}:
+            raise ValueError("supported direct-service propositions require a substantive value")
         if self.proposition_type in {"scheme_membership", "accreditation"} and self.scheme_id is None:
             raise ValueError("scheme and accreditation propositions require scheme_id")
         if self.proposition_type not in {"scheme_membership", "accreditation"} and any(
             value is not None for value in (self.scheme_id, self.scheme_version, self.scheme_status, self.scheme_identifier)
         ):
             raise ValueError("scheme fields are limited to membership/accreditation propositions")
-        if self.proposition_type in {"participation_measure", "capacity_measure"} and self.unit is None:
-            raise ValueError("measure propositions require a unit")
+        if self.proposition_type in {"participation_measure", "capacity_measure"} and (self.unit is None or self.value is None):
+            raise ValueError("measure propositions require value and unit")
         return self
 
 
@@ -182,6 +184,8 @@ def project_observation(
 
     if not source_record_ids:
         raise ValueError("direct-service observations require source record IDs")
+    if proposition.observation_time is None:
+        raise ValueError("direct-service projection requires explicit observation_time; created_at is record metadata")
     payload: dict[str, CanonicalValue] = {"coverage_state": proposition.coverage_state, "value": proposition.value}
     for key, value in (
         ("unit", proposition.unit),
@@ -208,7 +212,7 @@ def project_observation(
         outcome_state=outcome_state,
         evidence_locator_ids=tuple(item.locator for item in proposition.evidence),
         source_record_ids=source_record_ids,
-        observation_time=proposition.observation_time or {"observed_at": created_at},
+        observation_time=proposition.observation_time,
         method=method,
     )
 

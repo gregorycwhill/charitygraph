@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from charitygraph.contracts import DirectServiceRelationship, ScopeRecord
+from charitygraph.contracts import DirectServiceRelationship, ObservationTime, ScopeRecord
 from charitygraph.direct_service_relationship_projection import (
     ARCHITECTURE_GAP,
     PARTY_ROLE_IN_SCOPE,
@@ -40,6 +40,7 @@ def _relationship(source_scope_id=ORG_SCOPE, target_scope_id=SERVICE, role="oper
         target_label="arbitrary target label",
         role=role,
         direction="source_to_target",
+        observation_time=ObservationTime(observed_at=NOW),
         evidence=({"locator": "S001:L0001", "role": "supporting"},),
     )
 

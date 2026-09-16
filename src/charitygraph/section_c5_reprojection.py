@@ -75,6 +75,8 @@ class SectionC5Input(StrictModel):
             raise ValueError("substantive absence is not generic C5 missingness")
         if self.coverage_state == "supported" and (not self.evidence_locator_ids or not self.source_record_ids or not self.lineage_ids or self.observation_time is None):
             raise ValueError("supported C5 propositions require locator, source, lineage and time")
+        if self.coverage_state == "supported" and self.predicate in {"identity_role_observed", "population_role_observed", "geography_role_observed", "governance_role_observed"} and self.detail is None and self.value is None:
+            raise ValueError("supported C5 role propositions require substantive detail or value")
         needed = {"identity_role_observed": ("identity_role",), "population_role_observed": ("population_role",),
                   "geography_role_observed": ("geography_role",), "governance_role_observed": ("governance_role",),
                   "workforce_measure_observed": ("workforce_role", "workforce_measure", "value"),
@@ -112,11 +114,13 @@ def _payload(item: SectionC5Input) -> dict[str, CanonicalValue]:
     return result
 
 def project_section_c5_observation(item: SectionC5Input, *, record_id: str, created_at: datetime, producer: ProducerRef | dict) -> Observation:
+    if item.observation_time is None:
+        raise ValueError("C5 reprojection requires explicit observation_time; created_at is record metadata")
     return Observation(record_id=record_id, created_at=created_at, producer=producer, about_subject_ids=(item.subject_id,),
         lineage=tuple(LineageEdge(edge_type="projected_as", source_artifact_id=record_id, target_artifact_id=x) for x in item.lineage_ids),
         subject_id=item.subject_id, scope_id=item.scope_id, predicate=f"north_star_v02.section{_SECTION[item.predicate]}.{item.predicate}", value=_payload(item),
         outcome_state="supported" if item.coverage_state == "supported" else "unknown", evidence_locator_ids=item.evidence_locator_ids,
-        source_record_ids=item.source_record_ids, observation_time=item.observation_time or ObservationTime(observed_at=created_at), method="north_star_v02_c5_reprojection")
+        source_record_ids=item.source_record_ids, observation_time=item.observation_time, method="north_star_v02_c5_reprojection")
 
 def section_c5_card_evidence(item: SectionC5Input, observation: Observation) -> CardEvidence:
     expected_outcome = "supported" if item.coverage_state == "supported" else "unknown"
