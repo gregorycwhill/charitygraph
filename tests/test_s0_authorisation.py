@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from charitygraph.s0_authorisation import ScalePreflightError, load_authorisation_package, validate_authorisation_package
+from charitygraph.s0_authorisation import ScalePreflightError, load_authorisation_package, plan_task_instances, validate_authorisation_package
 
 
 DATA_PACKAGE = Path(__file__).resolve().parents[2] / ".s0-policy-data"
@@ -31,3 +31,12 @@ def test_policy_hash_substitution_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "SCALE_S0_SHADOW_MANDATE_V2.yaml").write_text((DATA_PACKAGE / "SCALE_S0_SHADOW_MANDATE_V2.yaml").read_text(encoding="utf-8"), encoding="utf-8")
     with pytest.raises(ScalePreflightError, match="hash"):
         load_authorisation_package(tmp_path)
+
+
+def test_offline_task_planner_enumerates_the_full_registry_cartesian_product() -> None:
+    instances = plan_task_instances(DATA_PACKAGE)
+    assert len(instances) == 168
+    assert sum(item["kind"] == "deterministic" for item in instances) == 24
+    assert sum(item["kind"] == "semantic" for item in instances) == 136
+    assert sum(item["kind"] == "human_only" for item in instances) == 8
+    assert {item["applicability"] for item in instances} == {"CONDITIONAL_PENDING_SOURCE"}

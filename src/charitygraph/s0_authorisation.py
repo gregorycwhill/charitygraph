@@ -87,3 +87,26 @@ def validate_authorisation_package(package_root: str | Path, *, synthetic_approv
     mandate.validate()
     ScaleS0Preflight(mandate, registry, routing, {}, HaltController(), packets={}, policies=policies, economics=None)
     return mandate
+
+
+def plan_task_instances(package_root: str | Path) -> list[dict[str, object]]:
+    """Enumerate the offline plan; source-dependent applicability stays unknown."""
+    mandate, registry, _routing, _sampling, _policies = load_authorisation_package(package_root)
+    groups = {
+        "regulator_structured_finance": {"identity_regulatory", "finance_source_native"},
+        "first_party_service": {"purpose_cause", "program_service", "activity_source_reported", "population_geography", "participation", "direct_service"},
+        "organisation": {"governance", "workforce", "scale_capability"},
+        "fundraising_ethos": {"fundraising", "ethos_commitments"},
+        "relationships": {"relationships"}, "dependency": {"funding_dependency"},
+        "outcomes": {"outcomes_evaluation"}, "conduct": {"conduct_adverse"},
+        "taxonomy_after_candidates": {"assessed_taxonomy"}, "history": {"notable_history"},
+        "coverage_discovery": {"discovery_signals", "evidence_coverage"},
+    }
+    result: list[dict[str, object]] = []
+    for subject in mandate.subject_ids:
+        for task in registry.contracts:
+            group = next(name for name, members in groups.items() if task.family in members)
+            kind = "deterministic" if task.default_routing == RoutingClass.DETERMINISTIC else "human_only" if task.default_routing == RoutingClass.HUMAN_DECISION else "semantic"
+            dependencies = ["all semantic candidate instances for subject"] if task.family == "assessed_taxonomy" else ["all source-dependent instances for subject"] if task.family == "evidence_coverage" else []
+            result.append({"subject": subject, "task_id": task.task_id, "task_version": task.version, "applicability": "CONDITIONAL_PENDING_SOURCE", "applicability_basis": "no source acquisition in offline preflight", "kind": kind, "default_route": task.default_routing.value, "potential_escalation_triggers": sorted(task.escalation_triggers), "upstream_dependencies": dependencies, "candidate_physical_bundle": group})
+    return result
