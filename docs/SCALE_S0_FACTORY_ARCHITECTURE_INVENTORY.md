@@ -27,4 +27,25 @@ The implementation does not create a second execution ledger, reservation accoun
 
 `charitygraph.scale_s0` provides immutable versioned mandate, logical task registry, provider-independent routing, sampling, acquisition/rights, representation, review, halt and promotion contracts. It is fail-closed for absent policy references, frozen-population drift, unauthorised sources, missing reservations, hard halts, duplicate paid attempts, inadequate representations, processing failures, missing review, rejected review, stale task/scope bindings and direct semantic-candidate promotion.
 
+## Durable S0 restart authority
+
+Migration 17 persists the missing S0 control-plane identities without
+duplicating an existing canonical store. `scale_s0_mandates` carries complete
+immutable mandate material and the exact task-registry, routing, policy and
+source-authorisation snapshot used to reconstruct preflight. Frozen packets
+bind that mandate and slice to their task/profile/schema, subject/scope,
+source snapshot set, route, provider-request identity, content hash and freeze
+time. Candidate material, review items, append-only review decisions and
+promotion authorisation/result references are likewise immutable and
+idempotent by material hash.
+
+`ScaleS0Preflight.from_catalog` reconstructs a new preflight from these
+records, including a durable reference to the existing reservation/accounting
+state. A same ID with different material fails closed. The existing physical
+attempt/request/response ledger still decides whether a provider crossing is
+already complete or ambiguous; it is never copied into an S0 table. Promotion
+uses a durable authorisation followed by one deterministic result reference to
+the existing governed-observation authority, so recovery before persistence is
+safe and recovery after persistence cannot create duplicate knowledge.
+
 The deterministic source-native boundary is narrow: only a task registered with `deterministic_source_native_audited` may use it, and it remains source/evidence/lineage bound. Semantic candidates always require a review decision even when sampling would otherwise not select them.

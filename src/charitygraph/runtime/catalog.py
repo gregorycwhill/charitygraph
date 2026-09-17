@@ -347,6 +347,245 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM scale_s0_halts WHERE halt_id=?", (halt_id,)).fetchone())
 
+    # S0 durable authority.  This intentionally stores immutable control-plane
+    # material only; source bodies, provider responses, reservations, attempts,
+    # and governed observations remain owned by their existing canonical stores.
+    @staticmethod
+    def _scale_s0_row(row: sqlite3.Row | None) -> dict[str, Any] | None:
+        if row is None:
+            return None
+        result = dict(row)
+        for key in ("material_json", "authority_json"):
+            if key in result:
+                result[key.removesuffix("_json")] = json.loads(result[key])
+        return result
+
+    def register_scale_s0_mandate(self, mandate: Mapping[str, Any], *, authority: Mapping[str, Any]) -> dict[str, Any]:
+        """Register one immutable executable authority snapshot, idempotently."""
+        self._require_migrated()
+        mandate_id = _text(mandate.get("mandate_id"), "mandate_id")
+        mandate_version = _text(mandate.get("mandate_version"), "mandate_version")
+        slice_id = _text(mandate.get("slice_id"), "slice_id")
+        created_at = _utc(mandate.get("created_at"), "created_at")
+        mandate_hash = _canonical_hash(mandate)
+        material = {"mandate": mandate, "authority": authority}
+        material_hash = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            prior = conn.execute("SELECT * FROM scale_s0_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("Scale S0 mandate identity conflict")
+                return self._scale_s0_row(prior) or {}
+            conn.execute("INSERT INTO scale_s0_mandates(mandate_id,mandate_version,slice_id,mandate_hash,material_json,authority_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?,?)", (mandate_id, mandate_version, slice_id, mandate_hash, self._json(mandate), self._json(authority), material_hash, created_at))
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()) or {}
+
+    def get_scale_s0_mandate(self, mandate_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
+
+    def register_scale_s0_frozen_packet(self, packet: Mapping[str, Any]) -> dict[str, Any]:
+        self._require_migrated()
+        packet_id = _text(packet.get("packet_id"), "packet_id")
+        mandate_id = _text(packet.get("mandate_id"), "mandate_id")
+        required = ("slice_id", "task_key", "subject_id", "scope_id", "content_hash", "frozen_at", "binding_hash", "task_id", "task_version", "source_ids", "source_snapshot_hashes", "input_profile_id", "output_schema_id", "routing_class", "provider_request_identity")
+        if any(not packet.get(key) for key in required):
+            raise CatalogError("Scale S0 frozen packet lacks immutable binding")
+        material_hash = _canonical_hash(packet)
+        with self._connection(immediate=True) as conn:
+            mandate = conn.execute("SELECT mandate_hash,slice_id FROM scale_s0_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if mandate is None or mandate["slice_id"] != packet["slice_id"] or packet.get("mandate_hash") != mandate["mandate_hash"]:
+                raise ConflictError("Scale S0 packet is not bound to its registered mandate")
+            prior = conn.execute("SELECT * FROM scale_s0_frozen_packets WHERE packet_id=?", (packet_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("Scale S0 frozen packet identity conflict")
+                return self._scale_s0_row(prior) or {}
+            conn.execute("INSERT INTO scale_s0_frozen_packets(packet_id,mandate_id,slice_id,task_key,subject_id,scope_id,content_hash,material_json,material_hash,frozen_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (packet_id, mandate_id, packet["slice_id"], packet["task_key"], packet["subject_id"], packet["scope_id"], packet["content_hash"], self._json(packet), material_hash, _utc(packet["frozen_at"], "frozen_at")))
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_frozen_packets WHERE packet_id=?", (packet_id,)).fetchone()) or {}
+
+    def get_scale_s0_frozen_packet(self, packet_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_frozen_packets WHERE packet_id=?", (packet_id,)).fetchone())
+
+    def record_scale_s0_reservation_binding(self, state: Mapping[str, Any], *, recorded_at: datetime | str) -> dict[str, Any]:
+        """Reference existing reservation/accounting state without duplicating its ledger."""
+        self._require_migrated()
+        required = ("reservation_id", "reservation_mandate_id", "reservation_slice_id", "reservation_task_key", "reservation_currency")
+        if any(not state.get(key) for key in required) or not state.get("reservation_active"):
+            raise CatalogError("Scale S0 reservation binding is not active and fully scoped")
+        reservation_id = _text(state.get("reservation_id"), "reservation_id")
+        mandate_id = _text(state.get("reservation_mandate_id"), "reservation_mandate_id")
+        slice_id = _text(state.get("reservation_slice_id"), "reservation_slice_id")
+        task_key = _text(state.get("reservation_task_key"), "reservation_task_key")
+        when = _utc(recorded_at, "recorded_at")
+        material = {"state": state, "recorded_at": when}
+        digest = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            mandate = conn.execute("SELECT slice_id FROM scale_s0_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if mandate is None or mandate["slice_id"] != slice_id:
+                raise ConflictError("Scale S0 reservation binding is outside its mandate")
+            prior = conn.execute("SELECT * FROM scale_s0_reservation_bindings WHERE reservation_id=?", (reservation_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != digest:
+                    raise ConflictError("Scale S0 reservation binding identity conflict")
+                result = dict(prior); result["state"] = json.loads(result["state_json"]); return result
+            conn.execute("INSERT INTO scale_s0_reservation_bindings(reservation_id,mandate_id,slice_id,task_key,state_json,material_hash,recorded_at) VALUES (?,?,?,?,?,?,?)", (reservation_id, mandate_id, slice_id, task_key, self._json(state), digest, when))
+            self._commit(conn)
+            result = dict(conn.execute("SELECT * FROM scale_s0_reservation_bindings WHERE reservation_id=?", (reservation_id,)).fetchone())
+            result["state"] = json.loads(result["state_json"])
+            return result
+
+    def get_scale_s0_reservation_binding(self, *, mandate_id: str, slice_id: str, task_key: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            row = conn.execute("SELECT * FROM scale_s0_reservation_bindings WHERE mandate_id=? AND slice_id=? AND task_key=? ORDER BY recorded_at DESC LIMIT 1", (mandate_id, slice_id, task_key)).fetchone()
+            if row is None:
+                return None
+            result = dict(row); result["state"] = json.loads(result["state_json"]); return result
+
+    def register_scale_s0_candidate(self, candidate: Mapping[str, Any]) -> dict[str, Any]:
+        self._require_migrated()
+        candidate_id = _text(candidate.get("candidate_id"), "candidate_id")
+        mandate_id = _text(candidate.get("mandate_id"), "mandate_id")
+        packet_id = _text(candidate.get("packet_id"), "packet_id")
+        required = ("subject_id", "scope_id", "task_key", "created_at", "material_hash")
+        if any(not candidate.get(key) for key in required):
+            raise CatalogError("Scale S0 candidate lacks immutable binding")
+        material_hash = _canonical_hash(candidate)
+        with self._connection(immediate=True) as conn:
+            packet = conn.execute("SELECT mandate_id,subject_id,scope_id,task_key FROM scale_s0_frozen_packets WHERE packet_id=?", (packet_id,)).fetchone()
+            if packet is None or tuple(packet) != (mandate_id, candidate["subject_id"], candidate["scope_id"], candidate["task_key"]):
+                raise ConflictError("Scale S0 candidate is not bound to its packet")
+            predecessor = candidate.get("supersedes_candidate_id")
+            if predecessor:
+                previous = conn.execute("SELECT mandate_id FROM scale_s0_candidates WHERE candidate_id=?", (predecessor,)).fetchone()
+                if predecessor == candidate_id or previous is None or previous["mandate_id"] != mandate_id:
+                    raise ConflictError("Scale S0 corrected-candidate lineage is invalid")
+                seen = {candidate_id}
+                cursor = predecessor
+                while cursor:
+                    if cursor in seen:
+                        raise ConflictError("Scale S0 corrected-candidate lineage cycles")
+                    seen.add(cursor)
+                    row = conn.execute("SELECT supersedes_candidate_id FROM scale_s0_candidates WHERE candidate_id=?", (cursor,)).fetchone()
+                    cursor = row["supersedes_candidate_id"] if row else None
+            prior = conn.execute("SELECT * FROM scale_s0_candidates WHERE candidate_id=?", (candidate_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("Scale S0 candidate identity conflict")
+                return self._scale_s0_row(prior) or {}
+            conn.execute("INSERT INTO scale_s0_candidates(candidate_id,mandate_id,packet_id,supersedes_candidate_id,subject_id,scope_id,task_key,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (candidate_id, mandate_id, packet_id, predecessor, candidate["subject_id"], candidate["scope_id"], candidate["task_key"], self._json(candidate), material_hash, _utc(candidate["created_at"], "created_at")))
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_candidates WHERE candidate_id=?", (candidate_id,)).fetchone()) or {}
+
+    def get_scale_s0_candidate(self, candidate_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_candidates WHERE candidate_id=?", (candidate_id,)).fetchone())
+
+    def register_scale_s0_review_item(self, item: Mapping[str, Any]) -> dict[str, Any]:
+        self._require_migrated()
+        review_id = _text(item.get("review_id"), "review_id")
+        candidate_id = _text(item.get("candidate_id"), "candidate_id")
+        candidate_hash = _text(item.get("candidate_material_hash"), "candidate_material_hash")
+        material_hash = _canonical_hash(item)
+        with self._connection(immediate=True) as conn:
+            candidate = conn.execute("SELECT material_hash FROM scale_s0_candidates WHERE candidate_id=?", (candidate_id,)).fetchone()
+            if candidate is None or candidate["material_hash"] != candidate_hash:
+                raise ConflictError("Scale S0 review item is stale or orphaned")
+            prior = conn.execute("SELECT * FROM scale_s0_review_items WHERE review_id=?", (review_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("Scale S0 review item identity conflict")
+                return self._scale_s0_row(prior) or {}
+            conn.execute("INSERT INTO scale_s0_review_items(review_id,candidate_id,candidate_material_hash,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?)", (review_id, candidate_id, candidate_hash, self._json(item), material_hash, _utc(item.get("created_at"), "created_at")))
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_review_items WHERE review_id=?", (review_id,)).fetchone()) or {}
+
+    def register_scale_s0_review_decision(self, decision: Mapping[str, Any]) -> dict[str, Any]:
+        self._require_migrated()
+        decision_id = _text(decision.get("decision_id"), "decision_id")
+        review_id = _text(decision.get("review_id"), "review_id")
+        candidate_id = _text(decision.get("candidate_id"), "candidate_id")
+        candidate_hash = _text(decision.get("candidate_material_hash"), "candidate_material_hash")
+        disposition = _text(decision.get("disposition"), "disposition")
+        if disposition not in {"promote", "narrow_or_correct", "reject", "escalate", "defer_unknown", "duplicate_superseded"}:
+            raise CatalogError("invalid Scale S0 review disposition")
+        material_hash = _canonical_hash(decision)
+        with self._connection(immediate=True) as conn:
+            item = conn.execute("SELECT candidate_id,candidate_material_hash FROM scale_s0_review_items WHERE review_id=?", (review_id,)).fetchone()
+            candidate = conn.execute("SELECT material_hash,mandate_id FROM scale_s0_candidates WHERE candidate_id=?", (candidate_id,)).fetchone()
+            if item is None or candidate is None or tuple(item) != (candidate_id, candidate_hash) or candidate["material_hash"] != candidate_hash:
+                raise ConflictError("Scale S0 review decision is stale or orphaned")
+            corrected = decision.get("corrected_candidate_id")
+            if disposition == "narrow_or_correct":
+                replacement = conn.execute("SELECT mandate_id,supersedes_candidate_id FROM scale_s0_candidates WHERE candidate_id=?", (corrected,)).fetchone() if corrected else None
+                if replacement is None or replacement["mandate_id"] != candidate["mandate_id"] or replacement["supersedes_candidate_id"] != candidate_id:
+                    raise ConflictError("Scale S0 correction must name a distinct corrected candidate")
+            elif corrected is not None:
+                raise ConflictError("only narrow/correct may name a replacement candidate")
+            prior = conn.execute("SELECT * FROM scale_s0_review_decisions WHERE decision_id=?", (decision_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("Scale S0 review decision identity conflict")
+                return self._scale_s0_row(prior) or {}
+            if conn.execute("SELECT 1 FROM scale_s0_review_decisions WHERE review_id=?", (review_id,)).fetchone() is not None:
+                raise ConflictError("contradictory Scale S0 terminal review decision")
+            conn.execute("INSERT INTO scale_s0_review_decisions(decision_id,review_id,candidate_id,candidate_material_hash,corrected_candidate_id,supersedes_decision_id,disposition,material_json,material_hash,decided_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (decision_id, review_id, candidate_id, candidate_hash, corrected, decision.get("supersedes_decision_id"), disposition, self._json(decision), material_hash, _utc(decision.get("decided_at"), "decided_at")))
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_review_decisions WHERE decision_id=?", (decision_id,)).fetchone()) or {}
+
+    def effective_scale_s0_review(self, candidate_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            rows = conn.execute("SELECT d.* FROM scale_s0_review_decisions d JOIN scale_s0_review_items i ON i.review_id=d.review_id WHERE d.candidate_id=? AND i.candidate_id=? ORDER BY d.decided_at", (candidate_id, candidate_id)).fetchall()
+            if len(rows) > 1:
+                raise ConflictError("contradictory Scale S0 review history")
+            return self._scale_s0_row(rows[0]) if rows else None
+
+    def authorise_scale_s0_promotion(self, *, authorisation_id: str, candidate_id: str, decision_id: str | None, governed_artifact_id: str, authorised_at: datetime | str) -> dict[str, Any]:
+        self._require_migrated()
+        when = _utc(authorised_at, "authorised_at")
+        material = {"authorisation_id": authorisation_id, "candidate_id": candidate_id, "decision_id": decision_id, "governed_artifact_id": governed_artifact_id, "authorised_at": when}
+        digest = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            if conn.execute("SELECT 1 FROM scale_s0_candidates WHERE candidate_id=?", (candidate_id,)).fetchone() is None:
+                raise CatalogError("Scale S0 promotion candidate does not exist")
+            if decision_id is not None:
+                decision = conn.execute("SELECT candidate_id,disposition FROM scale_s0_review_decisions WHERE decision_id=?", (decision_id,)).fetchone()
+                if decision is None or decision["candidate_id"] != candidate_id or decision["disposition"] != "promote":
+                    raise ConflictError("Scale S0 promotion lacks an effective approval")
+            prior = conn.execute("SELECT * FROM scale_s0_promotion_authorisations WHERE candidate_id=?", (candidate_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != digest:
+                    raise ConflictError("Scale S0 promotion authorisation conflict")
+                return dict(prior)
+            conn.execute("INSERT INTO scale_s0_promotion_authorisations(authorisation_id,candidate_id,decision_id,governed_artifact_id,material_hash,authorised_at) VALUES (?,?,?,?,?,?)", (authorisation_id, candidate_id, decision_id, governed_artifact_id, digest, when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM scale_s0_promotion_authorisations WHERE candidate_id=?", (candidate_id,)).fetchone())
+
+    def record_scale_s0_promotion_result(self, *, candidate_id: str, authorisation_id: str, governed_artifact_id: str, persisted_at: datetime | str) -> dict[str, Any]:
+        self._require_migrated()
+        when = _utc(persisted_at, "persisted_at")
+        with self._connection(immediate=True) as conn:
+            authorisation = conn.execute("SELECT * FROM scale_s0_promotion_authorisations WHERE authorisation_id=? AND candidate_id=?", (authorisation_id, candidate_id)).fetchone()
+            if authorisation is None or authorisation["governed_artifact_id"] != governed_artifact_id:
+                raise ConflictError("Scale S0 promotion result does not match authorisation")
+            material = {"candidate_id": candidate_id, "authorisation_id": authorisation_id, "decision_id": authorisation["decision_id"], "governed_artifact_id": governed_artifact_id}
+            digest = _canonical_hash(material)
+            prior = conn.execute("SELECT * FROM scale_s0_promotion_results WHERE candidate_id=?", (candidate_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != digest:
+                    raise ConflictError("Scale S0 promotion result conflict")
+                return dict(prior)
+            conn.execute("INSERT INTO scale_s0_promotion_results(candidate_id,authorisation_id,decision_id,governed_artifact_id,material_hash,persisted_at) VALUES (?,?,?,?,?,?)", (candidate_id, authorisation_id, authorisation["decision_id"], governed_artifact_id, digest, when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM scale_s0_promotion_results WHERE candidate_id=?", (candidate_id,)).fetchone())
+
+    def get_scale_s0_promotion_result(self, candidate_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            row = conn.execute("SELECT * FROM scale_s0_promotion_results WHERE candidate_id=?", (candidate_id,)).fetchone()
+            return None if row is None else dict(row)
+
     def _require_migrated(self) -> None:
         with self._connection() as conn:
             try:
