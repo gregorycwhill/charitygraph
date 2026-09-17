@@ -769,6 +769,34 @@ CREATE TABLE standard_transport_traces (
 CREATE INDEX standard_transport_traces_status_idx ON standard_transport_traces(status);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V16 = """
+CREATE TABLE scale_s0_halts (
+    halt_id TEXT PRIMARY KEY,
+    slice_id TEXT NOT NULL,
+    scope TEXT NOT NULL CHECK(scope IN ('task','subject','slice')),
+    task_key TEXT,
+    subject_id TEXT,
+    reason TEXT NOT NULL,
+    hard INTEGER NOT NULL CHECK(hard IN (0,1)),
+    created_at TEXT NOT NULL,
+    recovery_actor TEXT,
+    recovery_rationale TEXT,
+    recovered_at TEXT,
+    material_hash TEXT NOT NULL,
+    CHECK((scope='slice' AND task_key IS NULL AND subject_id IS NULL) OR (scope='task' AND task_key IS NOT NULL) OR (scope='subject' AND subject_id IS NOT NULL))
+);
+CREATE INDEX scale_s0_halts_active_idx ON scale_s0_halts(slice_id, scope, task_key, subject_id, recovered_at);
+CREATE TABLE scale_s0_halt_events (
+    event_id TEXT PRIMARY KEY,
+    halt_id TEXT NOT NULL REFERENCES scale_s0_halts(halt_id),
+    event_type TEXT NOT NULL CHECK(event_type IN ('halted','recovered')),
+    actor TEXT,
+    rationale TEXT,
+    recorded_at TEXT NOT NULL,
+    material_hash TEXT NOT NULL
+);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -785,6 +813,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(13, "append_only_provider_delivery_attempts_and_payload_identity", CATALOGUE_SQL_V13),
     Migration(14, "zero_crossing_pre_send_replacements", CATALOGUE_SQL_V14),
     Migration(15, "standard_transport_request_trace_ids", CATALOGUE_SQL_V15),
+    Migration(16, "durable_scale_s0_halt_controller", CATALOGUE_SQL_V16),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
