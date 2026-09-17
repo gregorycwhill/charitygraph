@@ -182,6 +182,8 @@ def project_section7_v02_observation(
     payload; lineage edges run from the created observation to each supplied
     lineage artifact. This is deterministic projection, never extraction.
     """
+    if projection.observation_time is None:
+        raise ValueError("section-7 reprojection requires explicit observation_time; created_at is record metadata")
     value = _v02_observation_value(projection)
     return Observation(
         record_id=record_id,
@@ -199,7 +201,7 @@ def project_section7_v02_observation(
         outcome_state=_v02_outcome_state(projection.coverage_state),
         evidence_locator_ids=projection.evidence_locator_ids,
         source_record_ids=projection.source_record_ids,
-        observation_time=projection.observation_time or ObservationTime(observed_at=created_at),
+        observation_time=projection.observation_time,
         method="north_star_v02_section7_reprojection",
     )
 

@@ -22,7 +22,7 @@ def item(predicate="program_or_service_scope_reported", **updates):
     values = dict(predicate=predicate, subject_id=SUBJECT, scope_id=SCOPE, scope_kind="program",
         coverage_state="supported", claim_basis="source_fact", source_role="supporting", evidence_locator_ids=("locator:fixture",),
         source_record_ids=(SOURCE,), lineage_ids=("artifact:fixture",), observation_time=ObservationTime(observed_at=NOW),
-        scope_role="program_or_service")
+        scope_role="program_or_service", detail="retained substantive fixture")
     values.update(updates)
     return Section3611ProjectionInput(**values)
 

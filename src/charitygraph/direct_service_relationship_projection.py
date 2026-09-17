@@ -92,6 +92,8 @@ def build_party_role_projection(
     }
     observation_id = deterministic_id("observation:", {"relationship_projection": identity})
     role_id = deterministic_id("partyrole:", {"relationship_projection": identity})
+    if relationship.observation_time is None:
+        raise ValueError("direct-service relationship projection requires explicit observation_time; created_at is record metadata")
     evidence_ids = tuple(item.locator for item in relationship.evidence)
     observation = Observation(
         record_id=observation_id,
@@ -111,7 +113,7 @@ def build_party_role_projection(
         outcome_state="supported",
         evidence_locator_ids=evidence_ids,
         source_record_ids=source_record_ids,
-        observation_time=relationship.observation_time or {"observed_at": created_at},
+        observation_time=relationship.observation_time,
         method="direct_service_relationship_projection_v1",
         lineage=(
             LineageEdge(edge_type="derived_from", source_artifact_id=observation_id, target_artifact_id=recovery_result_id),
