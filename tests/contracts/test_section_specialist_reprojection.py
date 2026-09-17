@@ -11,12 +11,26 @@ def item(predicate="activity_observed", **kw):
     values.update(kw); return SpecialistInput(**values)
 def obs(value): return project_specialist_observation(value,record_id="observation:"+"f"*64,created_at=NOW,producer={"kind":"code","producer_id":"test"})
 def test_activity_and_taxonomy_are_independent_and_v02_only():
-    a=obs(item()); t=obs(item("assessed_classification_observed",epistemic_basis="governed_event",taxonomy_id="un-sdg",taxonomy_version="2015",concept_id="sdg:4",assignment_status="accepted",method="retained-review"))
+    a=obs(item()); t=obs(item("assessed_classification_observed",epistemic_basis="governed_event",taxonomy_id="un-sdg",taxonomy_version="2015",concept_id="sdg:4",classification_authority="charitygraph_assessed",assignment_status="accepted",method="retained-review"))
     assert a.predicate.startswith("north_star_v02.section4") and t.predicate.startswith("north_star_v02.section19")
     assert "taxonomy_id" not in a.value and "activity" not in t.value
 def test_source_reported_and_assessed_classification_do_not_collapse():
     with pytest.raises(ValueError,match="source_fact"):
-        item("source_reported_classification_observed",epistemic_basis="governed_event",taxonomy_id="sdg",taxonomy_version="1",concept_id="1",assignment_status="accepted",method="source")
+        item("source_reported_classification_observed",epistemic_basis="governed_event",taxonomy_id="sdg",taxonomy_version="1",concept_id="1",classification_authority="source_reported",method="source")
+    source = item("source_reported_classification_observed", taxonomy_id="un-sdg", taxonomy_version="2015", concept_id="sdg:4", classification_authority="source_reported", method="bounded-source-extraction")
+    source_observation = obs(source)
+    assert source_observation.outcome_state == "supported"
+    assert source_observation.value["classification_authority"] == "source_reported"
+    assert "assignment_status" not in source_observation.value
+    assert "effective_assignment" not in source_observation.value
+    assert specialist_card_evidence(source, source_observation).section_ids == (4,)
+    for status in ("candidate", "accepted", "narrowed", "rejected", "abstained", "superseded"):
+        with pytest.raises(ValueError, match="no CharityGraph assignment_status"):
+            item("source_reported_classification_observed", taxonomy_id="un-sdg", taxonomy_version="2015", concept_id="sdg:4", classification_authority="source_reported", assignment_status=status, method="bounded-source-extraction")
+    with pytest.raises(ValueError, match="classification_authority source_reported"):
+        item("source_reported_classification_observed", taxonomy_id="un-sdg", taxonomy_version="2015", concept_id="sdg:4", classification_authority="charitygraph_assessed", method="bounded-source-extraction")
+    with pytest.raises(ValueError, match="requires assignment_status"):
+        item("assessed_classification_observed", epistemic_basis="governed_event", taxonomy_id="un-sdg", taxonomy_version="2015", concept_id="sdg:4", classification_authority="charitygraph_assessed", method="retained-review")
     with pytest.raises(ValueError,match="taxonomy fields"):
         item(taxonomy_id="sdg")
 def test_commitment_is_not_implementation_or_completion():
@@ -53,7 +67,7 @@ def test_supported_specialist_positive_requires_substantive_what(predicate,basis
 
 @pytest.mark.parametrize("status", ["candidate", "rejected", "abstained", "superseded"])
 def test_non_effective_taxonomy_history_stays_traceable_but_cannot_be_card_content(status):
-    value=item("assessed_classification_observed",epistemic_basis="governed_event",taxonomy_id="un-sdg",taxonomy_version="2015",concept_id="sdg:4",assignment_status=status,method="retained-review")
+    value=item("assessed_classification_observed",epistemic_basis="governed_event",taxonomy_id="un-sdg",taxonomy_version="2015",concept_id="sdg:4",classification_authority="charitygraph_assessed",assignment_status=status,method="retained-review")
     observed=obs(value)
     assert observed.outcome_state == "unknown"
     assert observed.value["effective_assignment"] is False
@@ -63,11 +77,24 @@ def test_non_effective_taxonomy_history_stays_traceable_but_cannot_be_card_conte
 
 def test_accepted_and_narrowed_taxonomy_assignments_are_effective_only_at_stated_concept_scope():
     for status, concept in (("accepted", "sdg:4"), ("narrowed", "sdg:4.1")):
-        value=item("assessed_classification_observed",epistemic_basis="governed_event",taxonomy_id="un-sdg",taxonomy_version="2015",concept_id=concept,assignment_status=status,method="retained-review")
+        value=item("assessed_classification_observed",epistemic_basis="governed_event",taxonomy_id="un-sdg",taxonomy_version="2015",concept_id=concept,classification_authority="charitygraph_assessed",assignment_status=status,method="retained-review")
         observed=obs(value)
         assert observed.outcome_state == "supported"
         assert observed.value["effective_assignment"] is True
         assert specialist_card_evidence(value,observed).section_ids == (19,)
+
+
+def test_source_and_assessed_classifications_coexist_without_collapse_or_reconciliation():
+    source = item("source_reported_classification_observed", taxonomy_id="un-sdg", taxonomy_version="2015", concept_id="sdg:4", classification_authority="source_reported", method="bounded-source-extraction")
+    assessed = item("assessed_classification_observed", epistemic_basis="governed_event", taxonomy_id="un-sdg", taxonomy_version="2015", concept_id="sdg:5", classification_authority="charitygraph_assessed", assignment_status="accepted", method="retained-review")
+    source_observation = obs(source)
+    assessed_observation = project_specialist_observation(assessed, record_id="observation:"+"e"*64, created_at=NOW, producer={"kind":"code", "producer_id":"test"})
+    assert source_observation.value["concept_id"] == "sdg:4"
+    assert assessed_observation.value["concept_id"] == "sdg:5"
+    assert source_observation.value["classification_authority"] == "source_reported"
+    assert assessed_observation.value["classification_authority"] == "charitygraph_assessed"
+    assert "effective_assignment" not in source_observation.value
+    assert assessed_observation.value["effective_assignment"] is True
 
 
 def test_discovery_signal_is_derived_and_never_card_evidence():

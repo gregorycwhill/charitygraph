@@ -23,6 +23,7 @@ SpecialistPredicate = Literal[
 ]
 EpistemicBasis = Literal["source_fact", "source_interpretation", "governed_event", "derived_signal"]
 AssignmentStatus = Literal["candidate", "accepted", "narrowed", "rejected", "abstained", "superseded"]
+ClassificationAuthority = Literal["source_reported", "charitygraph_assessed"]
 
 _SECTION = {
     "activity_observed": 4, "source_reported_classification_observed": 4,
@@ -76,6 +77,7 @@ class SpecialistInput(StrictModel):
     taxonomy_id: str | None = None
     taxonomy_version: str | None = None
     concept_id: str | None = None
+    classification_authority: ClassificationAuthority | None = None
     assignment_status: AssignmentStatus | None = None
     method: str | None = None
     signal_type: str | None = None
@@ -103,14 +105,22 @@ class SpecialistInput(StrictModel):
             raise ValueError("supported specialist propositions require locator, source, lineage and time")
         classification = {"source_reported_classification_observed", "assessed_classification_observed"}
         if self.predicate in classification:
-            if not all((self.taxonomy_id, self.taxonomy_version, self.concept_id, self.assignment_status, self.method)):
-                raise ValueError("classification requires taxonomy identity, version, concept, status and method")
-            expected = "source_fact" if self.predicate == "source_reported_classification_observed" else "governed_event"
+            if not all((self.taxonomy_id, self.taxonomy_version, self.concept_id, self.classification_authority, self.method)):
+                raise ValueError("classification requires taxonomy identity, version, concept, authority and method")
+            source_reported = self.predicate == "source_reported_classification_observed"
+            expected = "source_fact" if source_reported else "governed_event"
             if self.epistemic_basis != expected:
                 raise ValueError(f"{self.predicate} requires epistemic_basis {expected}")
+            expected_authority = "source_reported" if source_reported else "charitygraph_assessed"
+            if self.classification_authority != expected_authority:
+                raise ValueError(f"{self.predicate} requires classification_authority {expected_authority}")
+            if source_reported and self.assignment_status is not None:
+                raise ValueError("source-reported classification has no CharityGraph assignment_status")
+            if not source_reported and self.assignment_status is None:
+                raise ValueError("CharityGraph-assessed classification requires assignment_status")
             if self.signal_type is not None or self.query_or_profile is not None or self.upstream_artifact_ids:
                 raise ValueError("discovery fields are limited to discovery signals")
-        elif any(x is not None for x in (self.taxonomy_id, self.taxonomy_version, self.concept_id, self.assignment_status)):
+        elif any(x is not None for x in (self.taxonomy_id, self.taxonomy_version, self.concept_id, self.classification_authority, self.assignment_status)):
             raise ValueError("taxonomy fields are limited to classification predicates")
         if self.predicate == "discovery_signal_observed":
             if self.epistemic_basis != "derived_signal":
@@ -140,7 +150,7 @@ class SpecialistInput(StrictModel):
 
 
 def _is_effective_assignment(item: SpecialistInput) -> bool:
-    return item.predicate in {"source_reported_classification_observed", "assessed_classification_observed"} and item.assignment_status in _EFFECTIVE_ASSIGNMENTS
+    return item.predicate == "assessed_classification_observed" and item.classification_authority == "charitygraph_assessed" and item.assignment_status in _EFFECTIVE_ASSIGNMENTS
 
 
 def _payload(item: SpecialistInput) -> dict[str, CanonicalValue]:
@@ -149,20 +159,20 @@ def _payload(item: SpecialistInput) -> dict[str, CanonicalValue]:
         "specialist_predicate": item.predicate, "coverage_state": item.coverage_state,
         "source_role": item.source_role, "epistemic_basis": item.epistemic_basis,
     }
-    for key in ("detail", "action", "object_or_result", "taxonomy_id", "taxonomy_version", "concept_id", "assignment_status", "method", "signal_type", "query_or_profile", "value"):
+    for key in ("detail", "action", "object_or_result", "taxonomy_id", "taxonomy_version", "concept_id", "classification_authority", "assignment_status", "method", "signal_type", "query_or_profile", "value"):
         value = getattr(item, key)
         if value is not None:
             result[key] = value
     if item.upstream_artifact_ids:
         result["upstream_artifact_ids"] = list(item.upstream_artifact_ids)
-    if item.predicate in {"source_reported_classification_observed", "assessed_classification_observed"}:
+    if item.predicate == "assessed_classification_observed":
         result["effective_assignment"] = _is_effective_assignment(item)
     return result
 
 
 def project_specialist_observation(item: SpecialistInput, *, record_id: str, created_at: datetime, producer: ProducerRef | dict) -> Observation:
     section = _SECTION[item.predicate]
-    positive = item.coverage_state == "supported" and item.predicate != "discovery_signal_observed" and (item.predicate not in {"source_reported_classification_observed", "assessed_classification_observed"} or _is_effective_assignment(item))
+    positive = item.coverage_state == "supported" and item.predicate != "discovery_signal_observed" and (item.predicate != "assessed_classification_observed" or _is_effective_assignment(item))
     if item.observation_time is None:
         raise ValueError("specialist reprojection requires explicit observation_time; created_at is record metadata")
     return Observation(record_id=record_id, created_at=created_at, producer=producer, about_subject_ids=(item.subject_id,), subject_id=item.subject_id, scope_id=item.scope_id,
@@ -176,7 +186,7 @@ def specialist_card_evidence(item: SpecialistInput, observation: Observation) ->
     section = _SECTION[item.predicate]
     if item.predicate == "discovery_signal_observed":
         raise ValueError("discovery signals are retrieval inputs, not CardEvidence")
-    if item.predicate in {"source_reported_classification_observed", "assessed_classification_observed"} and not _is_effective_assignment(item):
+    if item.predicate == "assessed_classification_observed" and not _is_effective_assignment(item):
         raise ValueError("non-effective classification history cannot become CardEvidence")
     expected_outcome = "supported" if item.coverage_state == "supported" else "unknown"
     if (observation.subject_id != item.subject_id or observation.about_subject_ids != (item.subject_id,) or observation.scope_id != item.scope_id or observation.predicate != f"north_star_v02.section{section}.{item.predicate}" or observation.value != _payload(item) or observation.outcome_state != expected_outcome or observation.evidence_locator_ids != item.evidence_locator_ids or observation.source_record_ids != item.source_record_ids or observation.observation_time != item.observation_time or observation.method != "north_star_v02_specialist_reprojection"):
