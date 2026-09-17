@@ -305,6 +305,48 @@ class SQLiteCatalog:
                 raise CatalogError(f"SQLite integrity check failed: {result}")
             return result
 
+    def record_scale_s0_halt(self, *, halt_id: str, slice_id: str, scope: str, reason: str,
+                             created_at: datetime | str, task_key: str | None = None,
+                             subject_id: str | None = None, hard: bool = True) -> dict[str, Any]:
+        """Persist an append-only Scale S0 halt; recovery is a separate event."""
+        if scope not in {"task", "subject", "slice"} or not halt_id or not slice_id or not reason:
+            raise CatalogError("invalid Scale S0 halt")
+        if (scope == "slice" and (task_key or subject_id)) or (scope == "task" and not task_key) or (scope == "subject" and not subject_id):
+            raise CatalogError("Scale S0 halt scope binding is invalid")
+        when = _utc(created_at, "created_at")
+        material = {"halt_id": halt_id, "slice_id": slice_id, "scope": scope, "task_key": task_key, "subject_id": subject_id, "reason": reason, "hard": hard, "created_at": when}
+        with self._connection(immediate=True) as conn:
+            prior = conn.execute("SELECT * FROM scale_s0_halts WHERE halt_id=?", (halt_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != _canonical_hash(material):
+                    raise ConflictError("Scale S0 halt identity conflict")
+                return dict(prior)
+            conn.execute("INSERT INTO scale_s0_halts(halt_id,slice_id,scope,task_key,subject_id,reason,hard,created_at,material_hash) VALUES (?,?,?,?,?,?,?,?,?)", (halt_id, slice_id, scope, task_key, subject_id, reason, int(hard), when, _canonical_hash(material)))
+            conn.execute("INSERT INTO scale_s0_halt_events(event_id,halt_id,event_type,recorded_at,material_hash) VALUES (?,?, 'halted',?,?)", ("halt-event:" + _canonical_hash(material), halt_id, when, _canonical_hash(material)))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM scale_s0_halts WHERE halt_id=?", (halt_id,)).fetchone())
+
+    def active_scale_s0_halt(self, *, slice_id: str, task_key: str, subject_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            row = conn.execute("SELECT * FROM scale_s0_halts WHERE slice_id=? AND hard=1 AND recovered_at IS NULL AND (scope='slice' OR (scope='task' AND task_key=?) OR (scope='subject' AND subject_id=?)) ORDER BY created_at DESC LIMIT 1", (slice_id, task_key, subject_id)).fetchone()
+            return None if row is None else dict(row)
+
+    def recover_scale_s0_halt(self, *, halt_id: str, actor: str, rationale: str, recovered_at: datetime | str) -> dict[str, Any]:
+        if not actor or not rationale:
+            raise CatalogError("Scale S0 halt recovery requires actor and rationale")
+        when = _utc(recovered_at, "recovered_at")
+        with self._connection(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM scale_s0_halts WHERE halt_id=?", (halt_id,)).fetchone()
+            if row is None:
+                raise CatalogError("Scale S0 halt does not exist")
+            if row["recovered_at"]:
+                raise ConflictError("Scale S0 halt is already recovered")
+            material = {"halt_id": halt_id, "actor": actor, "rationale": rationale, "recovered_at": when}
+            conn.execute("UPDATE scale_s0_halts SET recovery_actor=?,recovery_rationale=?,recovered_at=? WHERE halt_id=?", (actor, rationale, when, halt_id))
+            conn.execute("INSERT INTO scale_s0_halt_events(event_id,halt_id,event_type,actor,rationale,recorded_at,material_hash) VALUES (?,?, 'recovered',?,?,?,?)", ("halt-recovery:" + _canonical_hash(material), halt_id, actor, rationale, when, _canonical_hash(material)))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM scale_s0_halts WHERE halt_id=?", (halt_id,)).fetchone())
+
     def _require_migrated(self) -> None:
         with self._connection() as conn:
             try:
