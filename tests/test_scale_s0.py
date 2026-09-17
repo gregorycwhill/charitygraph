@@ -115,6 +115,18 @@ def test_packet_source_profile_schema_and_route_substitution_fail():
     with pytest.raises(ScalePreflightError): h.provider_send(request(packet))
 
 
+def test_open_web_policy_allows_public_page_despite_restrictive_terms_but_not_technical_withholding():
+    h, packet, source, _ = harness()
+    public = replace(source, authority_role="first_party", rights_transmission_status="permitted_open_web_policy", access_classification="OPEN_WEB_PUBLIC", technical_access_state="accessible")
+    h.sources[source.source_id] = public
+    assert h.provider_send(request(packet)) == TASK
+    for technical_state in ("login_required", "paywalled", "challenge_blocked"):
+        h.sources[source.source_id] = replace(public, technical_access_state=technical_state)
+        with pytest.raises(ScalePreflightError): h.provider_send(request(packet))
+    h.sources[source.source_id] = replace(public, access_classification="SEPARATELY_LICENSED_OR_CONTROLLED", rights_transmission_status="unknown")
+    with pytest.raises(ScalePreflightError): h.provider_send(request(packet))
+
+
 @pytest.mark.parametrize("state", ["completed", "transmitted", "ambiguous", "send_started"])
 def test_retry_requires_pre_send_failure_and_same_durable_request_identity(state):
     h, packet, _, _ = harness()

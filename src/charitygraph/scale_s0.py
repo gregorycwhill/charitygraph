@@ -121,9 +121,11 @@ class ScaleMandate:
 
 @dataclass(frozen=True)
 class SourceAuthorisation:
-    source_id: str; source_family: str; url_or_identity: str; authority_role: str; rights_transmission_status: str; acquisition_state: str; parsing_state: str; snapshot_hash: str; claim_families: tuple[str, ...]; source_record_id: str = ""; rights_policy_version: str = ""; specialist_authorisation_id: str | None = None
+    source_id: str; source_family: str; url_or_identity: str; authority_role: str; rights_transmission_status: str; acquisition_state: str; parsing_state: str; snapshot_hash: str; claim_families: tuple[str, ...]; source_record_id: str = ""; rights_policy_version: str = ""; specialist_authorisation_id: str | None = None; access_classification: str = "SEPARATELY_LICENSED_OR_CONTROLLED"; technical_access_state: str = "unknown"
     def permits(self, task: TaskContract, mandate: ScaleMandate) -> bool:
-        return self.rights_transmission_status == "permitted" and self.acquisition_state == "acquired" and self.parsing_state in {"parsed","structured"} and bool(self.snapshot_hash) and bool(self.source_record_id) and task.family in self.claim_families and (self.specialist_authorisation_id is None or self.specialist_authorisation_id == mandate.specialist_source_policy_id)
+        open_web = self.access_classification == "OPEN_WEB_PUBLIC" and self.technical_access_state == "accessible" and self.rights_transmission_status in {"permitted", "permitted_open_web_policy"}
+        controlled = self.access_classification == "SEPARATELY_LICENSED_OR_CONTROLLED" and self.rights_transmission_status == "permitted"
+        return (open_web or controlled) and self.acquisition_state == "acquired" and self.parsing_state in {"parsed","structured"} and bool(self.snapshot_hash) and bool(self.source_record_id) and task.family in self.claim_families and (self.specialist_authorisation_id is None or self.specialist_authorisation_id == mandate.specialist_source_policy_id)
 
 
 @dataclass(frozen=True)
