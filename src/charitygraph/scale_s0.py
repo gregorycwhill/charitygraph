@@ -106,7 +106,7 @@ class SamplingPolicy:
 @dataclass(frozen=True)
 class ScaleMandate:
     mandate_id: str; mandate_version: str; slice_id: str; created_at: str; authorizing_actor_ref: str; population_ref: str; subject_ids: tuple[str, ...]; snapshot_as_of: str; ranking_policy_id: str; group_entity_policy_id: str; source_universe_policy_id: str; source_universe_policy_version: str; mandatory_source_families: tuple[str, ...]; applicable_source_families: tuple[str, ...]; specialist_source_policy_id: str; rights_transmission_policy_id: str; task_registry_version: str; enabled_task_ids: tuple[str, ...]; disabled_task_ids: tuple[str, ...]; routing_policy_id: str; routing_policy_version: str; provider_spend_ceiling: str; strong_model_spend_ceiling: str; provider_call_ceiling: int; reservation_policy_id: str; currency_basis: str; review_policy_id: str; review_policy_version: str; promotion_policy_id: str; promotion_policy_version: str; sampling_policy_id: str; sampling_policy_version: str; halt_policy_id: str; halt_policy_version: str; allowed_outputs: tuple[str, ...]
-    parent_product_contract: str = "north-star-v0.2"; automatically_publishable: bool = False; policy_hashes: Mapping[str, str] = field(default_factory=dict)
+    parent_product_contract: str = "north-star-v0.2"; automatically_publishable: bool = False; policy_hashes: Mapping[str, str] = field(default_factory=dict); per_request_reservation_cap: str = ""
     @property
     def identity_hash(self) -> str: return _digest(_material(self))
     def validate(self) -> None:
@@ -115,7 +115,7 @@ class ScaleMandate:
         if not set(self.mandatory_source_families) <= set(self.applicable_source_families): raise ScalePreflightError("mandatory source family is outside authorised universe")
         if self.parent_product_contract != "north-star-v0.2" or self.automatically_publishable: raise ScalePreflightError("mandate does not preserve product/publication boundary")
         try:
-            if any(Decimal(x) < 0 for x in (self.provider_spend_ceiling,self.strong_model_spend_ceiling)) or self.provider_call_ceiling < 0: raise ValueError
+            if any(Decimal(x) < 0 for x in (self.provider_spend_ceiling,self.strong_model_spend_ceiling,self.per_request_reservation_cap or self.provider_spend_ceiling)) or self.provider_call_ceiling < 0: raise ValueError
         except (InvalidOperation, ValueError): raise ScalePreflightError("mandate economics must be explicit non-negative ceilings") from None
 
 
@@ -156,7 +156,9 @@ def _material(value: object) -> object:
         return value.value
     if isinstance(value, Mapping):
         return {str(key): _material(item) for key, item in value.items()}
-    if isinstance(value, (tuple, list, frozenset, set)):
+    if isinstance(value, (frozenset, set)):
+        return [_material(item) for item in sorted(value, key=str)]
+    if isinstance(value, (tuple, list)):
         return [_material(item) for item in value]
     return value
 
@@ -344,6 +346,7 @@ class ScaleS0Preflight:
         e=self.economics
         if e is None or not request.reservation_id or request.reservation_id!=e.reservation_id or not e.reservation_active or (e.reservation_mandate_id,e.reservation_slice_id,e.reservation_task_key,e.reservation_currency)!=(self.mandate.mandate_id,self.mandate.slice_id,task.key,self.mandate.currency_basis): raise ScalePreflightError("active durable reservation is not bound to this mandate/slice/task")
         if self.mandate.provider_call_ceiling<=e.provider_calls or Decimal(self.mandate.provider_spend_ceiling)<=e.provider_spend+e.estimated_provider_cost or e.reservation_remaining<e.estimated_provider_cost: raise ScalePreflightError("provider call or spend ceiling exhausted")
+        if self.mandate.per_request_reservation_cap and e.estimated_provider_cost > Decimal(self.mandate.per_request_reservation_cap): raise ScalePreflightError("provider request exceeds reservation cap")
         if route==RoutingClass.STRONG_REASONING and Decimal(self.mandate.strong_model_spend_ceiling)<=e.strong_model_spend+e.estimated_strong_cost: raise ScalePreflightError("strong-model ceiling exhausted")
     def provider_send(self, request: SendRequest, *, triggered_escalations: Iterable[str] = ()) -> TaskContract:
         task=self._task(request.task_id,request.task_version)
