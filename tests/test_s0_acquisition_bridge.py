@@ -5,7 +5,7 @@ import pytest
 
 from charitygraph.s0_acquisition_bridge import (
     GovernedAcquisition, MandatePopulation, OfflineResponse, SourcePlanner,
-    bundle_packets, certified_preflight, freeze_corpus, frozen_packets, persist_bridge, task_applicability,
+    bundle_packets, certified_preflight, freeze_corpus, frozen_packets, persist_bridge, represent_document, task_applicability,
 )
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.evidence_store import ContentAddressedArtifactStore
@@ -150,3 +150,43 @@ def test_eight_subject_offline_fixture_matrix_and_false_absence_states():
     states = task_applicability(default_s0_registry(), value, corpus, scope_id="scope:organisation")
     assert "REPRESENTATION_FAILED" in {item.state for item in states}
     assert not {"observed_absent", "not_found"} & {item.state for item in states}
+
+
+def test_document_v2_pdf_representations_are_snapshot_bound_and_rendered(tmp_path):
+    from PIL import Image, ImageDraw
+    value = mandate()
+    store = ContentAddressedArtifactStore(tmp_path / "objects", allowed_roots=(tmp_path,))
+    planner = SourcePlanner(value)
+    plans, snapshots = [], []
+    files = []
+    for name, text in (("reliable", "Annual report: revenue 100"), ("visual", "Visual annual report page")):
+        image = Image.new("RGB", (480, 200), "white")
+        ImageDraw.Draw(image).text((20, 20), text, fill="black")
+        path = tmp_path / f"{name}.pdf"; image.save(path, "PDF"); files.append(path)
+    representations = []
+    for index, (path, visual) in enumerate(zip(files, (False, True), strict=True)):
+        plan = planner.plan(subject_id=SUBJECTS[4 + index], scope_id="scope:organisation", source_family="latest_authorised_annual_report",
+            acquisition_mechanism="fixture", policy_classification="OPEN_WEB_PUBLIC", source_role="annual_report", authority_role="first_party",
+            requirement="conditional", locator=f"https://fixture.invalid/{path.name}", created_at=NOW)
+        snapshot = GovernedAcquisition(value).acquire(plan, open_web(plan), OfflineResponse(path.read_bytes(), "application/pdf", plan.locator),
+            representation=DocumentRepresentation.VISUALLY_MATERIAL_PDF if visual else DocumentRepresentation.RELIABLE_TEXT,
+            representation_mode="page_rendered_visual" if visual else "text_extraction_only", artifact_store=store, now=NOW)
+        representation = represent_document(snapshot, path, visually_material=visual, artifact_store=store, cache_root=tmp_path / "cache", now=NOW)
+        assert representation.snapshot_hash == snapshot.snapshot_hash
+        assert representation.document_hash == snapshot.snapshot_hash
+        if visual:
+            assert representation.selected_pages == (1,) and representation.rendered_page_artifact_ids
+        else:
+            assert representation.representation_kind == DocumentRepresentation.RELIABLE_TEXT.value
+        representations.append(representation)
+        plans.append(plan); snapshots.append(snapshot)
+    assert len(representations) == 2
+    routing = RoutingPolicy("routing:test", "1", frozenset(RoutingClass), {})
+    catalog = SQLiteCatalog(tmp_path / "pdf-bridge.sqlite3").open(initialize=True)
+    from charitygraph.scale_s0 import ScaleS0Preflight
+    ScaleS0Preflight.register_durable_mandate(catalog, value, default_s0_registry(), routing, policies(value, routing), {})
+    corpora = tuple(freeze_corpus(value, plan.subject_id, (snapshot,), now=NOW) for plan, snapshot in zip(plans, snapshots, strict=True))
+    persist_bridge(catalog, value, plans=plans, snapshots=snapshots, representations=representations, corpora=corpora, bundles=())
+    with catalog._connection() as connection:
+        assert connection.execute("SELECT count(*) FROM scale_s0_representations").fetchone()[0] == 2
+        assert connection.execute("SELECT count(*) FROM scale_s0_frozen_corpora").fetchone()[0] == 2

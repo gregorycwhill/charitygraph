@@ -10,11 +10,14 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
+from io import BytesIO
 import json
+from pathlib import Path
 from typing import Iterable, Mapping
 
 from charitygraph.contracts import AcquisitionReceipt, PropositionAuthorityRole, SourceDefinition, SourceRecord
 from charitygraph.contracts.ids import deterministic_id
+from charitygraph.document_v2.pipeline import extract_document
 from charitygraph.scale_s0 import (
     DocumentRepresentation, FrozenPacket, HaltController, LogicalTaskRegistry,
     PolicyArtifact, ProcessingDisposition, RepresentationPolicy, RoutingPolicy,
@@ -126,6 +129,56 @@ class SourceSnapshot:
     @property
     def snapshot_id(self) -> str:
         return self.source_id
+
+
+@dataclass(frozen=True)
+class RepresentationRecord:
+    representation_id: str
+    snapshot_id: str
+    snapshot_hash: str
+    representation_kind: str
+    representation_mode: str
+    document_hash: str
+    selected_pages: tuple[int, ...]
+    rendered_page_artifact_ids: tuple[str, ...]
+    lineage: Mapping[str, object]
+    created_at: str
+
+
+def represent_document(snapshot: SourceSnapshot, document: Path, *, visually_material: bool,
+                       artifact_store: object | None = None, cache_root: Path | None = None,
+                       now: datetime | None = None) -> RepresentationRecord:
+    """Run document-v2 locally and bind its exact output to one source snapshot."""
+    payload = document.read_bytes()
+    if sha256(payload).hexdigest() != snapshot.snapshot_hash:
+        raise ScalePreflightError("document bytes do not match the frozen source snapshot")
+    result = extract_document(document, cache_root=cache_root)
+    if result.get("status") != "completed":
+        kind, mode, pages, rendered = DocumentRepresentation.PARSING_FAILURE.value, "not_processable", (), ()
+    elif visually_material:
+        # A visual document is usable only with an explicitly rendered page;
+        # native text extraction alone can never silently satisfy this path.
+        try:
+            import pdfplumber
+            with pdfplumber.open(document) as pdf:
+                image = pdf.pages[0].to_image(resolution=72).original
+            buffer = BytesIO(); image.save(buffer, format="PNG")
+            rendering = buffer.getvalue()
+        except Exception as error:
+            raise ScalePreflightError("visual document could not produce a rendered-page representation") from error
+        if not rendering:
+            raise ScalePreflightError("visual document rendered-page representation is empty")
+        artifact_id = "rendered-page:" + sha256(rendering).hexdigest()
+        if artifact_store is not None:
+            artifact_id = artifact_store.put_derived(rendering, input_artifact_ids=(snapshot.artifact_id,), created_at=now).artifact_id
+        kind, mode, pages, rendered = DocumentRepresentation.VISUALLY_MATERIAL_PDF.value, "page_rendered_visual", (1,), (artifact_id,)
+    else:
+        kind, mode, pages, rendered = DocumentRepresentation.RELIABLE_TEXT.value, "text_extraction_only", tuple(page["page"] for page in result.get("pages", ())), ()
+    material = {"snapshot": snapshot.snapshot_id, "snapshot_hash": snapshot.snapshot_hash, "kind": kind, "mode": mode,
+                "document_hash": result.get("document", {}).get("sha256", snapshot.snapshot_hash), "pages": pages,
+                "rendered": rendered, "lineage": result.get("lineage", {})}
+    return RepresentationRecord("representation:" + _hash(material), snapshot.snapshot_id, snapshot.snapshot_hash, kind, mode,
+                                str(material["document_hash"]), pages, rendered, result.get("lineage", {}), _utc(now))
 
 
 class GovernedAcquisition:
@@ -317,20 +370,24 @@ def source_authorisations(mandate: ScaleMandate, registry: LogicalTaskRegistry, 
 
 
 def persist_bridge(catalog: object, mandate: ScaleMandate, *, plans: Iterable[SourcePlan], snapshots: Iterable[SourceSnapshot],
-                   corpora: Iterable[FrozenCorpus], bundles: Iterable[PhysicalBundle]) -> None:
+                   corpora: Iterable[FrozenCorpus], bundles: Iterable[PhysicalBundle], representations: Iterable[RepresentationRecord] = ()) -> None:
     """Persist all bridge control-plane transitions idempotently in migration 18."""
     plan_rows = {plan.plan_id: plan for plan in plans}
     for plan in plan_rows.values():
         catalog.register_scale_s0_source_plan({**asdict(plan), "plan_id": plan.plan_id})
-    for snapshot in snapshots:
+    snapshot_rows = tuple(snapshots)
+    for snapshot in snapshot_rows:
         if snapshot.plan_id not in plan_rows:
             raise ScalePreflightError("cannot persist a snapshot without its plan")
         catalog.register_scale_s0_source_snapshot({**asdict(snapshot), "snapshot_id": snapshot.snapshot_id,
             "acquired_at": snapshot.retrieved_at, "representation": snapshot.representation.value}, mandate_id=mandate.mandate_id)
-        catalog.register_scale_s0_representation({"representation_id": "representation:" + _hash({"snapshot": snapshot.snapshot_id, "kind": snapshot.representation.value, "mode": snapshot.representation_mode}),
-            "snapshot_id": snapshot.snapshot_id, "representation_kind": snapshot.representation.value,
-            "representation_mode": snapshot.representation_mode, "source_snapshot_hash": snapshot.snapshot_hash,
-            "created_at": snapshot.retrieved_at}, mandate_id=mandate.mandate_id)
+    supplied = tuple(representations)
+    if not supplied:
+        supplied = tuple(RepresentationRecord("representation:" + _hash({"snapshot": snapshot.snapshot_id, "kind": snapshot.representation.value, "mode": snapshot.representation_mode}),
+            snapshot.snapshot_id, snapshot.snapshot_hash, snapshot.representation.value, snapshot.representation_mode,
+            snapshot.snapshot_hash, (), (), {}, snapshot.retrieved_at) for snapshot in snapshot_rows)
+    for representation in supplied:
+        catalog.register_scale_s0_representation({**asdict(representation), "representation_kind": representation.representation_kind}, mandate_id=mandate.mandate_id)
     for corpus in corpora:
         catalog.register_scale_s0_frozen_corpus({**asdict(corpus), "corpus_id": corpus.corpus_id})
     for bundle in bundles:
