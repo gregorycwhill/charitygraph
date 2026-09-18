@@ -125,7 +125,7 @@ class ExecutionAttemptIdentity:
     attempt_id: str; mandate_id: str; mandate_hash: str; slice_id: str; run_id: str
     builder_repository: str; builder_commit_sha: str; data_repository: str; data_commit_sha: str
     bridge_certification: str; bridge_version: str; schema_version: int
-    recovery_authority_ref: str; status: str; created_at: str
+    recovery_authority_ref: str; configuration_hash: str; status: str; created_at: str
     @property
     def material_hash(self) -> str: return _digest(_material(self))
 
@@ -225,7 +225,7 @@ class ScaleS0Preflight:
         return catalog.register_scale_s0_execution_attempt(_material(attempt))
 
     @classmethod
-    def from_catalog(cls, catalog: object, *, mandate_id: str, packet_id: str, economics: EconomicState | None = None) -> "ScaleS0Preflight":
+    def from_catalog(cls, catalog: object, *, mandate_id: str, packet_id: str, economics: EconomicState | None = None, offline: bool = False) -> "ScaleS0Preflight":
         """Rebuild preflight from durable authority, never a caller replacement."""
         stored = catalog.get_scale_s0_mandate(mandate_id)
         packet_row = catalog.get_scale_s0_frozen_packet(packet_id)
@@ -241,6 +241,15 @@ class ScaleS0Preflight:
         policies = {key: PolicyArtifact(**value) for key, value in authority["policies"].items()}
         sources = {key: SourceAuthorisation(**{**value, "claim_families": _tuple_material(value.get("claim_families"))}) for key, value in authority["sources"].items()}
         packet_data = packet_row["material"]
+        attempt = None
+        if not offline:
+            attempt_id = packet_data.get("execution_attempt_id")
+            if not attempt_id:
+                raise ScalePreflightError("live S0 preflight requires an execution-attempt-bound packet")
+            stored_attempt = catalog.get_scale_s0_execution_attempt(attempt_id)
+            if stored_attempt is None or stored_attempt["mandate_id"] != mandate.mandate_id or stored_attempt["slice_id"] != mandate.slice_id or stored_attempt["run_id"] != packet_data.get("run_id"):
+                raise ScalePreflightError("packet execution-attempt lineage is absent or inconsistent")
+            attempt = ExecutionAttemptIdentity(**{key: stored_attempt[key] for key in ExecutionAttemptIdentity.__dataclass_fields__})
         packet_fields = {key: packet_data[key] for key in FrozenPacket.__dataclass_fields__}
         packet = FrozenPacket(**{**packet_fields, "source_ids": _tuple_material(packet_data.get("source_ids")), "source_snapshot_hashes": _tuple_material(packet_data.get("source_snapshot_hashes")), "routing_class": RoutingClass(packet_data["routing_class"])})
         if packet.mandate_id != mandate.mandate_id or packet.binding_hash != packet_data.get("binding_hash"):
@@ -252,15 +261,23 @@ class ScaleS0Preflight:
                 for key in ("provider_spend", "strong_model_spend", "reservation_remaining", "estimated_provider_cost", "estimated_strong_cost"):
                     state[key] = Decimal(str(state[key]))
                 economics = EconomicState(**state)
-        return cls(mandate, registry, routing, sources, HaltController(), packets={packet.binding_hash: packet}, policies=policies, economics=economics, catalog=catalog)
+        return cls(mandate, registry, routing, sources, HaltController(), packets={packet.binding_hash: packet}, policies=policies, economics=economics, catalog=catalog, execution_attempt=attempt)
 
     @staticmethod
-    def register_durable_packet(catalog: object, mandate: ScaleMandate, packet: FrozenPacket) -> dict:
+    def register_durable_packet(catalog: object, mandate: ScaleMandate, packet: FrozenPacket, *, execution_attempt_id: str | None = None, offline: bool = False) -> dict:
         if not packet.mandate_id or packet.mandate_id != mandate.mandate_id or packet.slice_id != mandate.slice_id or not packet.frozen_at:
             raise ScalePreflightError("frozen packet must bind a registered mandate, slice, and freeze time")
+        if execution_attempt_id is None and not offline:
+            raise ScalePreflightError("live S0 packets require an execution-attempt binding")
         material = _material(packet)
         assert isinstance(material, dict)
-        material.update({"mandate_hash": mandate.identity_hash, "task_key": f"{packet.task_id}@{packet.task_version}", "frozen_at": packet.frozen_at, "binding_hash": packet.binding_hash})
+        attempt_material = {}
+        if execution_attempt_id:
+            attempt_row = catalog.get_scale_s0_execution_attempt(execution_attempt_id)
+            if attempt_row is None or attempt_row["mandate_id"] != mandate.mandate_id or attempt_row["slice_id"] != mandate.slice_id:
+                raise ScalePreflightError("packet execution attempt is absent or mismatched")
+            attempt_material = {"execution_attempt_id": execution_attempt_id, "run_id": attempt_row["run_id"]}
+        material.update({"mandate_hash": mandate.identity_hash, "task_key": f"{packet.task_id}@{packet.task_version}", "frozen_at": packet.frozen_at, "binding_hash": packet.binding_hash, **attempt_material})
         return catalog.register_scale_s0_frozen_packet(material)
 
     @staticmethod
@@ -368,6 +385,8 @@ class ScaleS0Preflight:
         if self.mandate.per_request_reservation_cap and e.estimated_provider_cost > Decimal(self.mandate.per_request_reservation_cap): raise ScalePreflightError("provider request exceeds reservation cap")
         if route==RoutingClass.STRONG_REASONING and Decimal(self.mandate.strong_model_spend_ceiling)<=e.strong_model_spend+e.estimated_strong_cost: raise ScalePreflightError("strong-model ceiling exhausted")
     def provider_send(self, request: SendRequest, *, triggered_escalations: Iterable[str] = ()) -> TaskContract:
+        if self.catalog is not None and self.execution_attempt is None:
+            raise ScalePreflightError("live provider send requires a durable execution-attempt binding")
         task=self._task(request.task_id,request.task_version)
         if request.subject_id not in self.mandate.subject_ids or not request.scope_id: raise ScalePreflightError("request is outside frozen population or scope")
         packet=self._packet(request,task); route=self.routing.route_for(task,triggered_escalations)

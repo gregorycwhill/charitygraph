@@ -102,7 +102,7 @@ def test_durable_bridge_records_restart_idempotently_and_constructs_preflight(tm
     persist_bridge(catalog, value, plans=(plan,), snapshots=(snapshot,), corpora=(corpus,), bundles=bundles, offline=True)
     persist_bridge(catalog, value, plans=(plan,), snapshots=(snapshot,), corpora=(corpus,), bundles=bundles, offline=True)
     for packet in packets:
-        ScaleS0Preflight.register_durable_packet(catalog, value, packet)
+        ScaleS0Preflight.register_durable_packet(catalog, value, packet, offline=True)
     with catalog._connection() as connection:
         assert connection.execute("SELECT count(*) FROM scale_s0_source_plans").fetchone()[0] == 1
         assert connection.execute("SELECT count(*) FROM scale_s0_frozen_corpora").fetchone()[0] == 1

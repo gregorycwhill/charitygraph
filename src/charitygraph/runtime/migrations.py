@@ -958,6 +958,7 @@ CREATE TABLE scale_s0_execution_attempts (
     bridge_version TEXT NOT NULL,
     schema_version INTEGER NOT NULL,
     recovery_authority_ref TEXT NOT NULL,
+    configuration_hash TEXT NOT NULL,
     status TEXT NOT NULL,
     material_json TEXT NOT NULL,
     material_hash TEXT NOT NULL,
@@ -966,6 +967,13 @@ CREATE TABLE scale_s0_execution_attempts (
     UNIQUE(material_hash)
 );
 CREATE INDEX scale_s0_execution_attempts_mandate_idx ON scale_s0_execution_attempts(mandate_id, slice_id);
+ALTER TABLE scale_s0_source_plans ADD COLUMN execution_attempt_id TEXT REFERENCES scale_s0_execution_attempts(attempt_id);
+ALTER TABLE scale_s0_source_snapshots ADD COLUMN execution_attempt_id TEXT REFERENCES scale_s0_execution_attempts(attempt_id);
+ALTER TABLE scale_s0_representations ADD COLUMN execution_attempt_id TEXT REFERENCES scale_s0_execution_attempts(attempt_id);
+ALTER TABLE scale_s0_frozen_corpora ADD COLUMN execution_attempt_id TEXT REFERENCES scale_s0_execution_attempts(attempt_id);
+ALTER TABLE scale_s0_physical_bundles ADD COLUMN execution_attempt_id TEXT REFERENCES scale_s0_execution_attempts(attempt_id);
+ALTER TABLE scale_s0_frozen_packets ADD COLUMN execution_attempt_id TEXT REFERENCES scale_s0_execution_attempts(attempt_id);
+ALTER TABLE scale_s0_reservation_bindings ADD COLUMN execution_attempt_id TEXT REFERENCES scale_s0_execution_attempts(attempt_id);
 """.strip() + "\n"
 
 MIGRATIONS: tuple[Migration, ...] = (

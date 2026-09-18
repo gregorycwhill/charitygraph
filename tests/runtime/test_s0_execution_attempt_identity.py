@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import pytest
 
 from charitygraph.runtime import ConflictError, SQLiteCatalog
-from charitygraph.scale_s0 import ExecutionAttemptIdentity, ScaleS0Preflight
+from charitygraph.scale_s0 import ExecutionAttemptIdentity, ScalePreflightError, ScaleS0Preflight
 from runtime.test_scale_s0_durability import authority, REGISTRY
 
 
@@ -16,7 +16,7 @@ def attempt(mandate, run_id="run:s0-attempt"):
         "attempt:s0:test", mandate.mandate_id, mandate.identity_hash, mandate.slice_id, run_id,
         "gregorycwhill/charitygraph", "f3ea027c6159344d82b075304e5d33bf0b30c7c7",
         "gregorycwhill/charitygraph-data", "870fe92502583a85133005bc5ebab62154920e22",
-        "S0_ACQUISITION_PACKET_BRIDGE_CERTIFIED", "1", 19, "recovery:2026-09-18", "prepared", NOW)
+        "S0_ACQUISITION_PACKET_BRIDGE_CERTIFIED", "1", 19, "recovery:2026-09-18", "c" * 64, "prepared", NOW)
 
 
 def test_attempt_identity_is_idempotent_restart_safe_and_drift_locked(tmp_path):
@@ -48,3 +48,12 @@ def test_source_plan_requires_matching_attempt_when_live(tmp_path):
     identity = attempt(mandate)
     ScaleS0Preflight.register_durable_execution_attempt(catalog, identity)
     assert catalog.register_scale_s0_source_plan(plan, execution_attempt_id=identity.attempt_id)["plan_id"] == plan["plan_id"]
+
+
+def test_live_fresh_process_cannot_reconstruct_unbound_packet(tmp_path):
+    mandate, routing, policies, source, packet, _ = authority()
+    catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
+    ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, offline=True)
+    with pytest.raises(ScalePreflightError):
+        ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
