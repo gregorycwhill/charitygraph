@@ -187,6 +187,17 @@ class GovernedAcquisition:
         self.mandate, self.halts = mandate, halts or HaltController()
         self._snapshots: dict[str, SourceSnapshot] = {}
 
+    def acquire_transport(self, plan: SourcePlan, authorisation: SourceAuthorisation, transport: object,
+                          *, representation: DocumentRepresentation, representation_mode: str,
+                          artifact_store: object | None = None, catalog: object | None = None,
+                          now: datetime | None = None) -> SourceSnapshot:
+        """Cross the governed transport boundary, then use this acquisition path."""
+        result = transport.fetch(plan, authorisation, self.mandate, halts=self.halts, now=now)
+        response = OfflineResponse(result.content, result.media_type, result.final_locator, result.status)
+        return self.acquire(plan, authorisation, response, representation=representation,
+                            representation_mode=representation_mode, artifact_store=artifact_store,
+                            catalog=catalog, now=now)
+
     def acquire(self, plan: SourcePlan, authorisation: SourceAuthorisation, response: OfflineResponse,
                 *, representation: DocumentRepresentation, representation_mode: str, artifact_store: object | None = None,
                 catalog: object | None = None, now: datetime | None = None) -> SourceSnapshot:
