@@ -943,6 +943,31 @@ CREATE TABLE scale_s0_physical_bundles (
 );
 """.strip() + "\n"
 
+CATALOGUE_SQL_V19 = """
+CREATE TABLE scale_s0_execution_attempts (
+    attempt_id TEXT PRIMARY KEY,
+    mandate_id TEXT NOT NULL REFERENCES scale_s0_mandates(mandate_id),
+    mandate_hash TEXT NOT NULL,
+    slice_id TEXT NOT NULL,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    builder_repository TEXT NOT NULL,
+    builder_commit_sha TEXT NOT NULL,
+    data_repository TEXT NOT NULL,
+    data_commit_sha TEXT NOT NULL,
+    bridge_certification TEXT NOT NULL,
+    bridge_version TEXT NOT NULL,
+    schema_version INTEGER NOT NULL,
+    recovery_authority_ref TEXT NOT NULL,
+    status TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(run_id),
+    UNIQUE(material_hash)
+);
+CREATE INDEX scale_s0_execution_attempts_mandate_idx ON scale_s0_execution_attempts(mandate_id, slice_id);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -962,6 +987,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(16, "durable_scale_s0_halt_controller", CATALOGUE_SQL_V16),
     Migration(17, "durable_scale_s0_authority_and_review", CATALOGUE_SQL_V17),
     Migration(18, "durable_scale_s0_acquisition_packet_bridge", CATALOGUE_SQL_V18),
+    Migration(19, "durable_scale_s0_execution_attempt_identity", CATALOGUE_SQL_V19),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

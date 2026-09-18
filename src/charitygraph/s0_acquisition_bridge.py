@@ -381,11 +381,11 @@ def source_authorisations(mandate: ScaleMandate, registry: LogicalTaskRegistry, 
 
 
 def persist_bridge(catalog: object, mandate: ScaleMandate, *, plans: Iterable[SourcePlan], snapshots: Iterable[SourceSnapshot],
-                   corpora: Iterable[FrozenCorpus], bundles: Iterable[PhysicalBundle], representations: Iterable[RepresentationRecord] = ()) -> None:
+                   corpora: Iterable[FrozenCorpus], bundles: Iterable[PhysicalBundle], representations: Iterable[RepresentationRecord] = (), execution_attempt_id: str | None = None) -> None:
     """Persist all bridge control-plane transitions idempotently in migration 18."""
     plan_rows = {plan.plan_id: plan for plan in plans}
     for plan in plan_rows.values():
-        catalog.register_scale_s0_source_plan({**asdict(plan), "plan_id": plan.plan_id})
+        catalog.register_scale_s0_source_plan({**asdict(plan), "plan_id": plan.plan_id}, execution_attempt_id=execution_attempt_id)
     snapshot_rows = tuple(snapshots)
     for snapshot in snapshot_rows:
         if snapshot.plan_id not in plan_rows:

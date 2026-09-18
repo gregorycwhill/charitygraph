@@ -120,6 +120,17 @@ class ScaleMandate:
 
 
 @dataclass(frozen=True)
+class ExecutionAttemptIdentity:
+    """Immutable implementation binding for one live S0 execution attempt."""
+    attempt_id: str; mandate_id: str; mandate_hash: str; slice_id: str; run_id: str
+    builder_repository: str; builder_commit_sha: str; data_repository: str; data_commit_sha: str
+    bridge_certification: str; bridge_version: str; schema_version: int
+    recovery_authority_ref: str; status: str; created_at: str
+    @property
+    def material_hash(self) -> str: return _digest(_material(self))
+
+
+@dataclass(frozen=True)
 class SourceAuthorisation:
     source_id: str; source_family: str; url_or_identity: str; authority_role: str; rights_transmission_status: str; acquisition_state: str; parsing_state: str; snapshot_hash: str; claim_families: tuple[str, ...]; source_record_id: str = ""; rights_policy_version: str = ""; specialist_authorisation_id: str | None = None; access_classification: str = "SEPARATELY_LICENSED_OR_CONTROLLED"; technical_access_state: str = "unknown"
     def permits(self, task: TaskContract, mandate: ScaleMandate) -> bool:
@@ -195,8 +206,10 @@ class SendRequest:
 
 
 class ScaleS0Preflight:
-    def __init__(self, mandate: ScaleMandate, registry: LogicalTaskRegistry, routing: RoutingPolicy, sources: Mapping[str, SourceAuthorisation], halts: HaltController, *, packets: Mapping[str,FrozenPacket], policies: Mapping[str,PolicyArtifact], economics: EconomicState | None, catalog: object | None = None, review_backlog: int = 0, review_backlog_limit: int | None = None) -> None:
-        mandate.validate(); self.mandate,self.registry,self.routing,self.sources,self.halts,self.packets,self.policies,self.economics,self.catalog = mandate,registry,routing,sources,halts,packets,policies,economics,catalog
+    def __init__(self, mandate: ScaleMandate, registry: LogicalTaskRegistry, routing: RoutingPolicy, sources: Mapping[str, SourceAuthorisation], halts: HaltController, *, packets: Mapping[str,FrozenPacket], policies: Mapping[str,PolicyArtifact], economics: EconomicState | None, catalog: object | None = None, review_backlog: int = 0, review_backlog_limit: int | None = None, execution_attempt: ExecutionAttemptIdentity | None = None) -> None:
+        mandate.validate(); self.mandate,self.registry,self.routing,self.sources,self.halts,self.packets,self.policies,self.economics,self.catalog,self.execution_attempt = mandate,registry,routing,sources,halts,packets,policies,economics,catalog,execution_attempt
+        if execution_attempt is not None and catalog is not None:
+            catalog.require_scale_s0_execution_attempt(attempt_id=execution_attempt.attempt_id, mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash, slice_id=mandate.slice_id, run_id=execution_attempt.run_id, builder_commit_sha=execution_attempt.builder_commit_sha, data_commit_sha=execution_attempt.data_commit_sha, bridge_certification=execution_attempt.bridge_certification, schema_version=execution_attempt.schema_version)
         if review_backlog_limit is not None and review_backlog > review_backlog_limit: raise ScalePreflightError("review backlog threshold halts execution")
         self._bind_policies()
 
@@ -206,6 +219,10 @@ class ScaleS0Preflight:
         mandate.validate()
         authority = {"registry": _material(registry), "routing": _material(routing), "policies": _material(policies), "sources": _material(sources)}
         return catalog.register_scale_s0_mandate(_material(mandate), authority=authority)
+
+    @staticmethod
+    def register_durable_execution_attempt(catalog: object, attempt: ExecutionAttemptIdentity) -> dict:
+        return catalog.register_scale_s0_execution_attempt(_material(attempt))
 
     @classmethod
     def from_catalog(cls, catalog: object, *, mandate_id: str, packet_id: str, economics: EconomicState | None = None) -> "ScaleS0Preflight":

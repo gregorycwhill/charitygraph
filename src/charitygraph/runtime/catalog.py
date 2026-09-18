@@ -437,6 +437,42 @@ class SQLiteCatalog:
         with self._connection() as conn:
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_mandates WHERE mandate_id=?", (mandate_id,)).fetchone())
 
+    def register_scale_s0_execution_attempt(self, attempt: Mapping[str, Any]) -> dict[str, Any]:
+        """Persist an immutable implementation-bound live S0 attempt."""
+        self._require_migrated()
+        required = ("attempt_id", "mandate_id", "mandate_hash", "slice_id", "run_id", "builder_repository", "builder_commit_sha", "data_repository", "data_commit_sha", "bridge_certification", "bridge_version", "schema_version", "recovery_authority_ref", "status", "created_at")
+        if any(not attempt.get(key) for key in required):
+            raise CatalogError("Scale S0 execution attempt lacks immutable identity")
+        attempt_id = _text(attempt["attempt_id"], "attempt_id")
+        with self._connection(immediate=True) as conn:
+            mandate = conn.execute("SELECT mandate_hash,slice_id FROM scale_s0_mandates WHERE mandate_id=?", (attempt["mandate_id"],)).fetchone()
+            run = conn.execute("SELECT run_id FROM runs WHERE run_id=?", (attempt["run_id"],)).fetchone()
+            if mandate is None or run is None:
+                raise ConflictError("execution attempt references unknown mandate or run")
+            if mandate["mandate_hash"] != attempt["mandate_hash"] or mandate["slice_id"] != attempt["slice_id"]:
+                raise ConflictError("execution attempt mandate binding mismatch")
+            material_hash = _canonical_hash(attempt)
+            prior = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (attempt_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("Scale S0 execution attempt identity conflict")
+                return self._scale_s0_row(prior) or {}
+            conn.execute("INSERT INTO scale_s0_execution_attempts(attempt_id,mandate_id,mandate_hash,slice_id,run_id,builder_repository,builder_commit_sha,data_repository,data_commit_sha,bridge_certification,bridge_version,schema_version,recovery_authority_ref,status,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (attempt_id, attempt["mandate_id"], attempt["mandate_hash"], attempt["slice_id"], attempt["run_id"], attempt["builder_repository"], attempt["builder_commit_sha"], attempt["data_repository"], attempt["data_commit_sha"], attempt["bridge_certification"], attempt["bridge_version"], int(attempt["schema_version"]), attempt["recovery_authority_ref"], attempt["status"], self._json(attempt), material_hash, _utc(attempt["created_at"], "created_at")))
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (attempt_id,)).fetchone()) or {}
+
+    def get_scale_s0_execution_attempt(self, attempt_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (attempt_id,)).fetchone())
+
+    def require_scale_s0_execution_attempt(self, *, attempt_id: str, mandate_id: str, mandate_hash: str, slice_id: str, run_id: str, builder_commit_sha: str, data_commit_sha: str, bridge_certification: str, schema_version: int) -> dict[str, Any]:
+        row = self.get_scale_s0_execution_attempt(attempt_id)
+        expected = {"mandate_id": mandate_id, "mandate_hash": mandate_hash, "slice_id": slice_id, "run_id": run_id, "builder_commit_sha": builder_commit_sha, "data_commit_sha": data_commit_sha, "bridge_certification": bridge_certification, "schema_version": schema_version}
+        if row is None or any(row.get(key) != value for key, value in expected.items()):
+            raise ConflictError("Scale S0 execution attempt binding is absent or stale")
+        return row
+
     def register_scale_s0_frozen_packet(self, packet: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()
         packet_id = _text(packet.get("packet_id"), "packet_id")
@@ -492,7 +528,11 @@ class SQLiteCatalog:
             self._commit(conn)
             return self._scale_s0_row(conn.execute(f"SELECT * FROM {table} WHERE {id_column}=?", (record_id,)).fetchone()) or {}
 
-    def register_scale_s0_source_plan(self, plan: Mapping[str, Any]) -> dict[str, Any]:
+    def register_scale_s0_source_plan(self, plan: Mapping[str, Any], *, execution_attempt_id: str | None = None) -> dict[str, Any]:
+        if execution_attempt_id is not None:
+            attempt = self.get_scale_s0_execution_attempt(execution_attempt_id)
+            if attempt is None or attempt["mandate_id"] != str(plan.get("mandate_id")) or attempt["slice_id"] != str(plan.get("slice_id")):
+                raise ConflictError("source plan requires a matching execution attempt")
         return self._register_scale_s0_bridge_material(table="scale_s0_source_plans", id_column="plan_id", record=plan,
             mandate_id=str(plan.get("mandate_id", "")), subject_id=str(plan.get("subject_id", "")), timestamp_column="created_at",
             extra={"scope_id": _text(plan.get("subject_scope"), "subject_scope"), "source_family": _text(plan.get("source_family"), "source_family")})
