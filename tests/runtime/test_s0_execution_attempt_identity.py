@@ -57,3 +57,18 @@ def test_live_fresh_process_cannot_reconstruct_unbound_packet(tmp_path):
     ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, offline=True)
     with pytest.raises(ScalePreflightError):
         ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+
+
+def test_snapshot_owner_is_derived_from_persisted_plan_not_caller(tmp_path):
+    mandate, routing, policies, source, packet, _ = authority()
+    catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
+    catalog.register_cohort({"record_id": "cohort:test", "cohort_code": "s0-test", "definition_version": "1", "membership_hash": "m" * 64, "budget_cap": {"amount": "8", "currency": "AUD"}, "created_at": NOW})
+    catalog.register_run({"record_id": "run:s0-attempt", "cohort_id": "cohort:test", "run_kind": "s0", "status": "planned", "configuration_hash": "c" * 64, "created_at": NOW})
+    identity = attempt(mandate); ScaleS0Preflight.register_durable_execution_attempt(catalog, identity)
+    plan = {"plan_id": "source-plan:owner", "mandate_id": mandate.mandate_id, "mandate_hash": mandate.identity_hash, "slice_id": mandate.slice_id, "subject_id": "subject:a", "subject_scope": "scope:a", "source_family": "annual_report", "created_at": NOW}
+    catalog.register_scale_s0_source_plan(plan, execution_attempt_id=identity.attempt_id)
+    snapshot = {"snapshot_id": "snapshot:owner", "plan_id": plan["plan_id"], "source_record_id": "source-record:owner", "snapshot_hash": "a" * 64, "acquired_at": NOW}
+    with pytest.raises(ConflictError): catalog.register_scale_s0_source_snapshot(snapshot, mandate_id=mandate.mandate_id, execution_attempt_id="attempt:s0:other")
+    stored = catalog.register_scale_s0_source_snapshot(snapshot, mandate_id=mandate.mandate_id, execution_attempt_id=identity.attempt_id)
+    assert stored["execution_attempt_id"] == identity.attempt_id

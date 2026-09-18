@@ -553,15 +553,14 @@ class SQLiteCatalog:
         with self._connection() as conn:
             if conn.execute("SELECT 1 FROM scale_s0_source_plans WHERE plan_id=?", (plan_id,)).fetchone() is None:
                 raise ConflictError("source snapshot requires a durable source plan")
-        inherited = execution_attempt_id
-        if inherited is None:
-            with self._connection() as conn:
-                row = conn.execute("SELECT execution_attempt_id FROM scale_s0_source_plans WHERE plan_id=?", (plan_id,)).fetchone()
-                inherited = row["execution_attempt_id"] if row else None
-        if inherited is None and not offline:
+        with self._connection() as conn:
+            row = conn.execute("SELECT execution_attempt_id FROM scale_s0_source_plans WHERE plan_id=?", (plan_id,)).fetchone()
+            plan_attempt_id = row["execution_attempt_id"] if row else None
+        if plan_attempt_id is None and not offline:
             raise ConflictError("live snapshot requires attempt-owned source plan")
-        if execution_attempt_id is not None and inherited != execution_attempt_id:
+        if execution_attempt_id is not None and plan_attempt_id != execution_attempt_id:
             raise ConflictError("snapshot attempt conflicts with source-plan ownership")
+        inherited = plan_attempt_id
         record = {**snapshot, "snapshot_id": snapshot.get("snapshot_id") or snapshot.get("source_id"), **({"execution_attempt_id": inherited} if inherited else {})}
         return self._register_scale_s0_bridge_material(table="scale_s0_source_snapshots", id_column="snapshot_id", record=record,
             mandate_id=mandate_id, subject_id=None, timestamp_column="acquired_at", extra={"plan_id": plan_id,
