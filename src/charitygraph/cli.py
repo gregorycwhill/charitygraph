@@ -277,6 +277,13 @@ def semantic_benchmark_prepare(args: argparse.Namespace) -> int:
     return 0
 
 
+def validate_s0_authorisation_package(args: argparse.Namespace) -> int:
+    from charitygraph.s0_authorisation import validate_authorisation_package
+    validate_authorisation_package(args.package_root, synthetic_approval=args.synthetic_test_approval)
+    print("Scale S0 authorisation package validation passed")
+    return 0
+
+
 def make_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="charitygraph")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -404,6 +411,12 @@ def make_parser() -> argparse.ArgumentParser:
     benchmark.add_argument("--output", required=True, help="Private runtime/staging output directory")
     benchmark.add_argument("--target", type=int, default=40)
     benchmark.set_defaults(func=semantic_benchmark_prepare)
+    s0 = sub.add_parser("scale-s0", help="Offline Scale S0 authority controls")
+    s0_sub = s0.add_subparsers(dest="scale_s0_command", required=True)
+    s0_validate = s0_sub.add_parser("validate-authorisation-package", help="Validate immutable Data authority files; never execute")
+    s0_validate.add_argument("package_root")
+    s0_validate.add_argument("--synthetic-test-approval", action="store_true")
+    s0_validate.set_defaults(func=validate_s0_authorisation_package)
     return parser
 
 
