@@ -409,6 +409,69 @@ class SQLiteCatalog:
         with self._connection() as conn:
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_frozen_packets WHERE packet_id=?", (packet_id,)).fetchone())
 
+    def _register_scale_s0_bridge_material(self, *, table: str, id_column: str, record: Mapping[str, Any],
+                                           mandate_id: str, subject_id: str | None, timestamp_column: str,
+                                           extra: Mapping[str, Any] = {}) -> dict[str, Any]:
+        """Persist immutable bridge control-plane material without another store."""
+        self._require_migrated()
+        record_id = _text(record.get(id_column), id_column)
+        mandate = _text(mandate_id, "mandate_id")
+        timestamp = _utc(record.get(timestamp_column), timestamp_column)
+        material_hash = _canonical_hash(record)
+        with self._connection(immediate=True) as conn:
+            if conn.execute("SELECT 1 FROM scale_s0_mandates WHERE mandate_id=?", (mandate,)).fetchone() is None:
+                raise ConflictError("Scale S0 bridge record is outside a registered mandate")
+            prior = conn.execute(f"SELECT * FROM {table} WHERE {id_column}=?", (record_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("Scale S0 bridge record identity conflict")
+                return self._scale_s0_row(prior) or {}
+            columns = [id_column, "mandate_id"]
+            values: list[Any] = [record_id, mandate]
+            if subject_id is not None:
+                columns.append("subject_id"); values.append(_text(subject_id, "subject_id"))
+            for key, value in extra.items():
+                columns.append(key); values.append(value)
+            columns.extend(["material_json", "material_hash", timestamp_column])
+            values.extend([self._json(record), material_hash, timestamp])
+            placeholders = ",".join("?" for _ in columns)
+            conn.execute(f"INSERT INTO {table}({','.join(columns)}) VALUES ({placeholders})", values)
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute(f"SELECT * FROM {table} WHERE {id_column}=?", (record_id,)).fetchone()) or {}
+
+    def register_scale_s0_source_plan(self, plan: Mapping[str, Any]) -> dict[str, Any]:
+        return self._register_scale_s0_bridge_material(table="scale_s0_source_plans", id_column="plan_id", record=plan,
+            mandate_id=str(plan.get("mandate_id", "")), subject_id=str(plan.get("subject_id", "")), timestamp_column="created_at",
+            extra={"scope_id": _text(plan.get("subject_scope"), "subject_scope"), "source_family": _text(plan.get("source_family"), "source_family")})
+
+    def register_scale_s0_source_snapshot(self, snapshot: Mapping[str, Any], *, mandate_id: str) -> dict[str, Any]:
+        plan_id = _text(snapshot.get("plan_id"), "plan_id")
+        with self._connection() as conn:
+            if conn.execute("SELECT 1 FROM scale_s0_source_plans WHERE plan_id=?", (plan_id,)).fetchone() is None:
+                raise ConflictError("source snapshot requires a durable source plan")
+        record = {**snapshot, "snapshot_id": snapshot.get("snapshot_id") or snapshot.get("source_id")}
+        return self._register_scale_s0_bridge_material(table="scale_s0_source_snapshots", id_column="snapshot_id", record=record,
+            mandate_id=mandate_id, subject_id=None, timestamp_column="acquired_at", extra={"plan_id": plan_id,
+            "source_record_id": _text(snapshot.get("source_record_id"), "source_record_id"), "snapshot_hash": _text(snapshot.get("snapshot_hash"), "snapshot_hash")})
+
+    def register_scale_s0_representation(self, representation: Mapping[str, Any], *, mandate_id: str) -> dict[str, Any]:
+        snapshot_id = _text(representation.get("snapshot_id"), "snapshot_id")
+        with self._connection() as conn:
+            if conn.execute("SELECT 1 FROM scale_s0_source_snapshots WHERE snapshot_id=?", (snapshot_id,)).fetchone() is None:
+                raise ConflictError("representation requires a durable source snapshot")
+        return self._register_scale_s0_bridge_material(table="scale_s0_representations", id_column="representation_id", record=representation,
+            mandate_id=mandate_id, subject_id=None, timestamp_column="created_at", extra={"snapshot_id": snapshot_id,
+            "representation_kind": _text(representation.get("representation_kind"), "representation_kind")})
+
+    def register_scale_s0_frozen_corpus(self, corpus: Mapping[str, Any]) -> dict[str, Any]:
+        return self._register_scale_s0_bridge_material(table="scale_s0_frozen_corpora", id_column="corpus_id", record=corpus,
+            mandate_id=str(corpus.get("mandate_id", "")), subject_id=str(corpus.get("subject_id", "")), timestamp_column="frozen_at")
+
+    def register_scale_s0_physical_bundle(self, bundle: Mapping[str, Any]) -> dict[str, Any]:
+        return self._register_scale_s0_bridge_material(table="scale_s0_physical_bundles", id_column="bundle_id", record=bundle,
+            mandate_id=str(bundle.get("mandate_id", "")), subject_id=None, timestamp_column="frozen_at",
+            extra={"routing_class": _text(bundle.get("routing_class"), "routing_class")})
+
     def record_scale_s0_reservation_binding(self, state: Mapping[str, Any], *, recorded_at: datetime | str) -> dict[str, Any]:
         """Reference existing reservation/accounting state without duplicating its ledger."""
         self._require_migrated()

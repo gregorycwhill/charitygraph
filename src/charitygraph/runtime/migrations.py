@@ -887,6 +887,62 @@ CREATE TABLE scale_s0_promotion_results (
 );
 """.strip() + "\n"
 
+# The bridge stores immutable control-plane bindings only.  Raw bytes remain in
+# ContentAddressedArtifactStore and source-native metadata remains in the
+# existing source/evidence tables.
+CATALOGUE_SQL_V18 = """
+CREATE TABLE scale_s0_source_plans (
+    plan_id TEXT PRIMARY KEY,
+    mandate_id TEXT NOT NULL REFERENCES scale_s0_mandates(mandate_id),
+    subject_id TEXT NOT NULL,
+    scope_id TEXT NOT NULL,
+    source_family TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(mandate_id, material_hash)
+);
+CREATE TABLE scale_s0_source_snapshots (
+    snapshot_id TEXT PRIMARY KEY,
+    mandate_id TEXT NOT NULL REFERENCES scale_s0_mandates(mandate_id),
+    plan_id TEXT NOT NULL REFERENCES scale_s0_source_plans(plan_id),
+    source_record_id TEXT NOT NULL,
+    snapshot_hash TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    acquired_at TEXT NOT NULL,
+    UNIQUE(plan_id, snapshot_hash)
+);
+CREATE TABLE scale_s0_representations (
+    representation_id TEXT PRIMARY KEY,
+    mandate_id TEXT NOT NULL REFERENCES scale_s0_mandates(mandate_id),
+    snapshot_id TEXT NOT NULL REFERENCES scale_s0_source_snapshots(snapshot_id),
+    representation_kind TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(snapshot_id, material_hash)
+);
+CREATE TABLE scale_s0_frozen_corpora (
+    corpus_id TEXT PRIMARY KEY,
+    mandate_id TEXT NOT NULL REFERENCES scale_s0_mandates(mandate_id),
+    subject_id TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    frozen_at TEXT NOT NULL,
+    UNIQUE(mandate_id, material_hash)
+);
+CREATE TABLE scale_s0_physical_bundles (
+    bundle_id TEXT PRIMARY KEY,
+    mandate_id TEXT NOT NULL REFERENCES scale_s0_mandates(mandate_id),
+    routing_class TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    frozen_at TEXT NOT NULL,
+    UNIQUE(mandate_id, material_hash)
+);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -905,6 +961,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(15, "standard_transport_request_trace_ids", CATALOGUE_SQL_V15),
     Migration(16, "durable_scale_s0_halt_controller", CATALOGUE_SQL_V16),
     Migration(17, "durable_scale_s0_authority_and_review", CATALOGUE_SQL_V17),
+    Migration(18, "durable_scale_s0_acquisition_packet_bridge", CATALOGUE_SQL_V18),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

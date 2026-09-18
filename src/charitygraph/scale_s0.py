@@ -138,7 +138,7 @@ class RepresentationPolicy:
 
 @dataclass(frozen=True)
 class FrozenPacket:
-    packet_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; source_ids: tuple[str, ...]; source_snapshot_hashes: tuple[str, ...]; input_profile_id: str; output_schema_id: str; routing_class: RoutingClass; provider_request_identity: str; content_hash: str; contract_version: str = "north-star-v0.2"; mandate_id: str = ""; slice_id: str = ""; frozen_at: str = ""
+    packet_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; source_ids: tuple[str, ...]; source_snapshot_hashes: tuple[str, ...]; input_profile_id: str; output_schema_id: str; routing_class: RoutingClass; provider_request_identity: str; content_hash: str; contract_version: str = "north-star-v0.2"; mandate_id: str = ""; slice_id: str = ""; frozen_at: str = ""; corpus_id: str = ""
     @property
     def binding_hash(self) -> str: return _digest(_material(self))
 

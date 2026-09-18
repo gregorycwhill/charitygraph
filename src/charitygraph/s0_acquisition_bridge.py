@@ -13,10 +13,12 @@ from hashlib import sha256
 import json
 from typing import Iterable, Mapping
 
+from charitygraph.contracts import AcquisitionReceipt, PropositionAuthorityRole, SourceDefinition, SourceRecord
+from charitygraph.contracts.ids import deterministic_id
 from charitygraph.scale_s0 import (
     DocumentRepresentation, FrozenPacket, HaltController, LogicalTaskRegistry,
     PolicyArtifact, ProcessingDisposition, RepresentationPolicy, RoutingPolicy,
-    ScaleMandate, ScalePreflightError, SourceAuthorisation,
+    ScaleMandate, ScalePreflightError, ScaleS0Preflight, SourceAuthorisation,
 )
 
 
@@ -121,6 +123,10 @@ class SourceSnapshot:
     representation_mode: str
     artifact_id: str
 
+    @property
+    def snapshot_id(self) -> str:
+        return self.source_id
+
 
 class GovernedAcquisition:
     """Consumes fixture/transport bytes only after plan and authority checks."""
@@ -130,7 +136,7 @@ class GovernedAcquisition:
 
     def acquire(self, plan: SourcePlan, authorisation: SourceAuthorisation, response: OfflineResponse,
                 *, representation: DocumentRepresentation, representation_mode: str, artifact_store: object | None = None,
-                now: datetime | None = None) -> SourceSnapshot:
+                catalog: object | None = None, now: datetime | None = None) -> SourceSnapshot:
         if plan.mandate_id != self.mandate.mandate_id or plan.mandate_hash != self.mandate.identity_hash:
             raise ScalePreflightError("source plan is stale or substituted")
         if plan.subject_id not in self.mandate.subject_ids or plan.source_family != authorisation.source_family:
@@ -156,9 +162,34 @@ class GovernedAcquisition:
             stored = artifact_store.put(response.content, artifact_kind="source", created_at=now)
             artifact_id = stored.artifact_id
         source_id = "source:" + _hash({"plan": plan.plan_id, "snapshot": digest})
-        snapshot = SourceSnapshot(plan.plan_id, source_id, "source-record:" + _hash({"source": source_id}), digest,
+        source_record_id = deterministic_id("srcrec:", {"source_family": plan.source_family, "source_version": "s0-bridge-v1",
+            "source_locator": response.locator, "payload_hash": digest})
+        snapshot = SourceSnapshot(plan.plan_id, source_id, source_record_id, digest,
                                   response.media_type, response.locator, _utc(now), "acquired", representation,
                                   representation_mode, artifact_id)
+        if catalog is not None:
+            when = now or datetime.now(timezone.utc)
+            if when.tzinfo is None:
+                raise ScalePreflightError("acquisition timestamp must be timezone-aware")
+            definition = SourceDefinition(record_id="srcdef:" + _hash({"family": plan.source_family, "mechanism": plan.acquisition_mechanism}),
+                created_at=when, producer={"kind": "code", "producer_id": "scale-s0-acquisition-bridge", "version": "1"},
+                definition_version="1", publisher=plan.authority_role, source_class=plan.source_family,
+                authority_roles=(PropositionAuthorityRole(proposition=plan.source_role, role=plan.authority_role, basis="mandate-bound source plan"),),
+                acquisition_locator=plan.locator or response.locator, acquisition_method=plan.acquisition_mechanism,
+                temporal_semantics="retrieved_fixture_snapshot", publication_eligibility="private_review_only",
+                steward="CharityGraph S0 acquisition bridge")
+            catalog.register_source_definition(definition)
+            catalog.register_source_record(SourceRecord(record_id=snapshot.source_record_id, created_at=when,
+                producer={"kind": "code", "producer_id": "scale-s0-acquisition-bridge", "version": "1"}, source_family=plan.source_family,
+                source_role=plan.source_role, source_version="s0-bridge-v1", source_locator=response.locator,
+                retrieved_at=when, observed_at=when, media_type=response.media_type, payload_ref=artifact_id, payload_hash=digest,
+                attribution=plan.authority_role))
+            catalog.record_acquisition_receipt(AcquisitionReceipt(record_id="acq:" + _hash({"plan": plan.plan_id, "snapshot": digest}),
+                created_at=when, producer={"kind": "code", "producer_id": "scale-s0-acquisition-bridge", "version": "1"},
+                source_definition_id=definition.record_id, requested_locator=plan.locator or response.locator, resolved_locator=response.locator,
+                retrieved_at=when, outcome="available", response_status=response.status, media_type=response.media_type,
+                content_hash=digest, byte_size=len(response.content), artifact_id=artifact_id, tool_id=plan.acquisition_mechanism,
+                tool_version="1", material_parameters={"source_plan_id": plan.plan_id, "mandate_id": plan.mandate_id, "subject_id": plan.subject_id}))
         self._snapshots[key] = snapshot
         return snapshot
 
@@ -231,5 +262,85 @@ def frozen_packets(mandate: ScaleMandate, registry: LogicalTaskRegistry, corpus:
         packets.append(FrozenPacket("packet:" + _hash(material), task.task_id, task.version, corpus.subject_id, item.scope_id,
                                     source_ids, source_hashes, task.input_profile_id, task.output_schema_id,
                                     task.default_routing, "provider-request:" + _hash(material), _hash(material),
-                                    mandate_id=mandate.mandate_id, slice_id=mandate.slice_id, frozen_at=_utc(now)))
+                                    mandate_id=mandate.mandate_id, slice_id=mandate.slice_id, frozen_at=_utc(now), corpus_id=corpus.corpus_id))
     return tuple(packets)
+
+
+@dataclass(frozen=True)
+class PhysicalBundle:
+    bundle_id: str
+    mandate_id: str
+    routing_class: str
+    packet_ids: tuple[str, ...]
+    packet_hashes: tuple[str, ...]
+    frozen_at: str
+
+
+def bundle_packets(mandate: ScaleMandate, packets: Iterable[FrozenPacket], *, now: datetime | None = None) -> tuple[PhysicalBundle, ...]:
+    """Apply the approved compatibility rule without collapsing logical tasks."""
+    groups: dict[tuple[str, str], list[FrozenPacket]] = {}
+    for packet in packets:
+        if packet.routing_class.value == "human_decision":
+            raise ScalePreflightError("human-only work cannot become a provider bundle")
+        # Packets are compatible only when they have exactly the same frozen
+        # corpus material and route.  Strong tasks therefore never enter a
+        # low-cost group.
+        key = (packet.routing_class.value, _hash((packet.source_snapshot_hashes, packet.subject_id, packet.scope_id)))
+        groups.setdefault(key, []).append(packet)
+    result: list[PhysicalBundle] = []
+    for (route, _), items in sorted(groups.items()):
+        ids = tuple(sorted(item.packet_id for item in items))
+        hashes = tuple(sorted(item.binding_hash for item in items))
+        material = {"mandate": mandate.identity_hash, "route": route, "packets": hashes}
+        result.append(PhysicalBundle("bundle:" + _hash(material), mandate.mandate_id, route, ids, hashes, _utc(now)))
+    return tuple(result)
+
+
+def source_authorisations(mandate: ScaleMandate, registry: LogicalTaskRegistry, snapshots: Iterable[SourceSnapshot],
+                          plans: Mapping[str, SourcePlan]) -> dict[str, SourceAuthorisation]:
+    """Derive preflight source authority from immutable plan/snapshot bindings."""
+    result: dict[str, SourceAuthorisation] = {}
+    families = tuple(task.family for task in registry.contracts)
+    for snapshot in snapshots:
+        plan = plans.get(snapshot.plan_id)
+        if plan is None or plan.mandate_id != mandate.mandate_id or snapshot.acquisition_state != "acquired":
+            raise ScalePreflightError("source snapshot is not governed by this mandate plan")
+        classification = plan.policy_classification
+        if classification not in {"OPEN_WEB_PUBLIC", "SEPARATELY_LICENSED_OR_CONTROLLED"}:
+            raise ScalePreflightError("unavailable or withheld sources cannot enter packet authority")
+        result[snapshot.source_id] = SourceAuthorisation(snapshot.source_id, plan.source_family, snapshot.locator,
+            plan.authority_role, "permitted_open_web_policy" if classification == "OPEN_WEB_PUBLIC" else "permitted",
+            "acquired", "structured" if snapshot.representation == DocumentRepresentation.NATIVE_STRUCTURED else "parsed",
+            snapshot.snapshot_hash, families, snapshot.source_record_id, mandate.rights_transmission_policy_id,
+            mandate.specialist_source_policy_id if plan.source_family == "specialist" else None, classification, "accessible")
+    return result
+
+
+def persist_bridge(catalog: object, mandate: ScaleMandate, *, plans: Iterable[SourcePlan], snapshots: Iterable[SourceSnapshot],
+                   corpora: Iterable[FrozenCorpus], bundles: Iterable[PhysicalBundle]) -> None:
+    """Persist all bridge control-plane transitions idempotently in migration 18."""
+    plan_rows = {plan.plan_id: plan for plan in plans}
+    for plan in plan_rows.values():
+        catalog.register_scale_s0_source_plan({**asdict(plan), "plan_id": plan.plan_id})
+    for snapshot in snapshots:
+        if snapshot.plan_id not in plan_rows:
+            raise ScalePreflightError("cannot persist a snapshot without its plan")
+        catalog.register_scale_s0_source_snapshot({**asdict(snapshot), "snapshot_id": snapshot.snapshot_id,
+            "acquired_at": snapshot.retrieved_at, "representation": snapshot.representation.value}, mandate_id=mandate.mandate_id)
+        catalog.register_scale_s0_representation({"representation_id": "representation:" + _hash({"snapshot": snapshot.snapshot_id, "kind": snapshot.representation.value, "mode": snapshot.representation_mode}),
+            "snapshot_id": snapshot.snapshot_id, "representation_kind": snapshot.representation.value,
+            "representation_mode": snapshot.representation_mode, "source_snapshot_hash": snapshot.snapshot_hash,
+            "created_at": snapshot.retrieved_at}, mandate_id=mandate.mandate_id)
+    for corpus in corpora:
+        catalog.register_scale_s0_frozen_corpus({**asdict(corpus), "corpus_id": corpus.corpus_id})
+    for bundle in bundles:
+        catalog.register_scale_s0_physical_bundle(asdict(bundle))
+
+
+def certified_preflight(mandate: ScaleMandate, registry: LogicalTaskRegistry, routing: RoutingPolicy,
+                        policies: Mapping[str, PolicyArtifact], snapshots: Iterable[SourceSnapshot], plans: Mapping[str, SourcePlan],
+                        packets: Iterable[FrozenPacket], halts: HaltController | None = None) -> ScaleS0Preflight:
+    """Construct the existing preflight boundary; it has no send or reservation action."""
+    packet_map = {packet.binding_hash: packet for packet in packets}
+    return ScaleS0Preflight(mandate, registry, routing, source_authorisations(mandate, registry, snapshots, plans),
+                            halts or HaltController(), packets=packet_map, policies=policies, economics=None)
