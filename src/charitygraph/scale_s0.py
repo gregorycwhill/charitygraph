@@ -277,6 +277,11 @@ class ScaleS0Preflight:
             if attempt_row is None or attempt_row["mandate_id"] != mandate.mandate_id or attempt_row["slice_id"] != mandate.slice_id:
                 raise ScalePreflightError("packet execution attempt is absent or mismatched")
             attempt_material = {"execution_attempt_id": execution_attempt_id, "run_id": attempt_row["run_id"]}
+            if not packet.corpus_id or not hasattr(catalog, "get_scale_s0_frozen_corpus"):
+                raise ScalePreflightError("live packet requires durable corpus ownership")
+            corpus_row = catalog.get_scale_s0_frozen_corpus(packet.corpus_id)
+            if corpus_row is None or corpus_row.get("execution_attempt_id") != execution_attempt_id or corpus_row.get("subject_id") != packet.subject_id:
+                raise ScalePreflightError("packet corpus ownership is absent or mismatched")
         material.update({"mandate_hash": mandate.identity_hash, "task_key": f"{packet.task_id}@{packet.task_version}", "frozen_at": packet.frozen_at, "binding_hash": packet.binding_hash, **attempt_material})
         return catalog.register_scale_s0_frozen_packet(material)
 

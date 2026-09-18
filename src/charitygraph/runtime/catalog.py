@@ -548,7 +548,7 @@ class SQLiteCatalog:
         with self._connection() as conn:
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_source_plans WHERE plan_id=?", (plan_id,)).fetchone())
 
-    def register_scale_s0_source_snapshot(self, snapshot: Mapping[str, Any], *, mandate_id: str, execution_attempt_id: str | None = None) -> dict[str, Any]:
+    def register_scale_s0_source_snapshot(self, snapshot: Mapping[str, Any], *, mandate_id: str, execution_attempt_id: str | None = None, offline: bool = False) -> dict[str, Any]:
         plan_id = _text(snapshot.get("plan_id"), "plan_id")
         with self._connection() as conn:
             if conn.execute("SELECT 1 FROM scale_s0_source_plans WHERE plan_id=?", (plan_id,)).fetchone() is None:
@@ -558,25 +558,57 @@ class SQLiteCatalog:
             with self._connection() as conn:
                 row = conn.execute("SELECT execution_attempt_id FROM scale_s0_source_plans WHERE plan_id=?", (plan_id,)).fetchone()
                 inherited = row["execution_attempt_id"] if row else None
+        if inherited is None and not offline:
+            raise ConflictError("live snapshot requires attempt-owned source plan")
+        if execution_attempt_id is not None and inherited != execution_attempt_id:
+            raise ConflictError("snapshot attempt conflicts with source-plan ownership")
         record = {**snapshot, "snapshot_id": snapshot.get("snapshot_id") or snapshot.get("source_id"), **({"execution_attempt_id": inherited} if inherited else {})}
         return self._register_scale_s0_bridge_material(table="scale_s0_source_snapshots", id_column="snapshot_id", record=record,
             mandate_id=mandate_id, subject_id=None, timestamp_column="acquired_at", extra={"plan_id": plan_id,
             "source_record_id": _text(snapshot.get("source_record_id"), "source_record_id"), "snapshot_hash": _text(snapshot.get("snapshot_hash"), "snapshot_hash"), "execution_attempt_id": inherited})
 
-    def register_scale_s0_representation(self, representation: Mapping[str, Any], *, mandate_id: str, execution_attempt_id: str | None = None) -> dict[str, Any]:
+    def register_scale_s0_representation(self, representation: Mapping[str, Any], *, mandate_id: str, execution_attempt_id: str | None = None, offline: bool = False) -> dict[str, Any]:
         snapshot_id = _text(representation.get("snapshot_id"), "snapshot_id")
         with self._connection() as conn:
-            if conn.execute("SELECT 1 FROM scale_s0_source_snapshots WHERE snapshot_id=?", (snapshot_id,)).fetchone() is None:
+            row = conn.execute("SELECT execution_attempt_id FROM scale_s0_source_snapshots WHERE snapshot_id=?", (snapshot_id,)).fetchone()
+            if row is None:
                 raise ConflictError("representation requires a durable source snapshot")
+            inherited = row["execution_attempt_id"]
+            if inherited is None and not offline or execution_attempt_id is not None and inherited != execution_attempt_id:
+                raise ConflictError("representation attempt conflicts with snapshot ownership")
+        execution_attempt_id = inherited
         record = {**representation, **({"execution_attempt_id": execution_attempt_id} if execution_attempt_id else {})}
         return self._register_scale_s0_bridge_material(table="scale_s0_representations", id_column="representation_id", record=record,
             mandate_id=mandate_id, subject_id=None, timestamp_column="created_at", extra={"snapshot_id": snapshot_id,
             "representation_kind": _text(representation.get("representation_kind"), "representation_kind"), "execution_attempt_id": execution_attempt_id})
 
     def register_scale_s0_frozen_corpus(self, corpus: Mapping[str, Any], *, execution_attempt_id: str | None = None) -> dict[str, Any]:
+        records = tuple(corpus.get("source_record_ids") or ())
+        hashes = tuple(corpus.get("snapshot_hashes") or ())
+        if records and len(records) != len(hashes):
+            raise ConflictError("corpus source and snapshot lineage lengths differ")
+        inherited = None
+        if records:
+            with self._connection() as conn:
+                rows = [conn.execute("SELECT execution_attempt_id,mandate_id FROM scale_s0_source_snapshots WHERE source_record_id=? AND snapshot_hash=?", (record, digest)).fetchone() for record, digest in zip(records, hashes, strict=True)]
+            if any(row is None for row in rows):
+                raise ConflictError("corpus references unknown durable snapshot")
+            owners = {row["execution_attempt_id"] for row in rows}
+            if len(owners) != 1 or (None in owners and execution_attempt_id is not None):
+                raise ConflictError("corpus snapshots have mixed or absent attempt ownership")
+            inherited = next(iter(owners))
+            if execution_attempt_id is not None and inherited != execution_attempt_id:
+                raise ConflictError("corpus attempt conflicts with snapshot ownership")
+            if inherited is not None:
+                execution_attempt_id = inherited
         record = {**corpus, **({"execution_attempt_id": execution_attempt_id} if execution_attempt_id else {})}
         return self._register_scale_s0_bridge_material(table="scale_s0_frozen_corpora", id_column="corpus_id", record=record,
             mandate_id=str(corpus.get("mandate_id", "")), subject_id=str(corpus.get("subject_id", "")), timestamp_column="frozen_at", extra={"execution_attempt_id": execution_attempt_id})
+
+    def get_scale_s0_frozen_corpus(self, corpus_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_frozen_corpora WHERE corpus_id=?", (corpus_id,)).fetchone())
 
     def register_scale_s0_physical_bundle(self, bundle: Mapping[str, Any], *, execution_attempt_id: str | None = None) -> dict[str, Any]:
         record = {**bundle, **({"execution_attempt_id": execution_attempt_id} if execution_attempt_id else {})}

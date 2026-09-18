@@ -391,14 +391,14 @@ def persist_bridge(catalog: object, mandate: ScaleMandate, *, plans: Iterable[So
         if snapshot.plan_id not in plan_rows:
             raise ScalePreflightError("cannot persist a snapshot without its plan")
         catalog.register_scale_s0_source_snapshot({**asdict(snapshot), "snapshot_id": snapshot.snapshot_id,
-            "acquired_at": snapshot.retrieved_at, "representation": snapshot.representation.value}, mandate_id=mandate.mandate_id, execution_attempt_id=execution_attempt_id)
+            "acquired_at": snapshot.retrieved_at, "representation": snapshot.representation.value}, mandate_id=mandate.mandate_id, execution_attempt_id=execution_attempt_id, offline=offline)
     supplied = tuple(representations)
     if not supplied:
         supplied = tuple(RepresentationRecord("representation:" + _hash({"snapshot": snapshot.snapshot_id, "kind": snapshot.representation.value, "mode": snapshot.representation_mode}),
             snapshot.snapshot_id, snapshot.snapshot_hash, snapshot.representation.value, snapshot.representation_mode,
             snapshot.snapshot_hash, (), (), {}, snapshot.retrieved_at) for snapshot in snapshot_rows)
     for representation in supplied:
-        catalog.register_scale_s0_representation({**asdict(representation), "representation_kind": representation.representation_kind}, mandate_id=mandate.mandate_id, execution_attempt_id=execution_attempt_id)
+        catalog.register_scale_s0_representation({**asdict(representation), "representation_kind": representation.representation_kind}, mandate_id=mandate.mandate_id, execution_attempt_id=execution_attempt_id, offline=offline)
     for corpus in corpora:
         catalog.register_scale_s0_frozen_corpus({**asdict(corpus), "corpus_id": corpus.corpus_id}, execution_attempt_id=execution_attempt_id)
     for bundle in bundles:
