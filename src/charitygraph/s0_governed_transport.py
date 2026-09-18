@@ -115,16 +115,22 @@ class GovernedSourceTransport:
             status = int(getattr(response, "status", response.getcode()))
             media = response.headers.get_content_type() if hasattr(response.headers, "get_content_type") else response.headers.get("Content-Type", "").split(";", 1)[0]
             declared = response.headers.get("Content-Length")
-            if declared and int(declared) > self.max_response_bytes:
-                response.close(); raise GovernedTransportError("response exceeds configured byte bound")
+            try:
+                if declared and int(declared) > self.max_response_bytes:
+                    raise GovernedTransportError("response exceeds configured byte bound")
+            except (TypeError, ValueError) as error:
+                raise GovernedTransportError("response Content-Length is malformed") from error
             chunks: list[bytes] = []; size = 0
-            while True:
-                chunk = response.read(min(64 * 1024, self.max_response_bytes - size + 1))
-                if not chunk: break
-                size += len(chunk)
-                if size > self.max_response_bytes:
-                    response.close(); raise GovernedTransportError("response exceeds configured byte bound")
-                chunks.append(chunk)
+            try:
+                while True:
+                    chunk = response.read(min(64 * 1024, self.max_response_bytes - size + 1))
+                    if not chunk: break
+                    size += len(chunk)
+                    if size > self.max_response_bytes:
+                        raise GovernedTransportError("response exceeds configured byte bound")
+                    chunks.append(chunk)
+            finally:
+                response.close()
             content = b"".join(chunks)
             retrieved = (now or datetime.now(timezone.utc)).astimezone(timezone.utc).isoformat()
             return TransportResult(requested, current, status, media, content, retrieved, "charitygraph-governed-http", "1", tuple(sorted((str(k), str(v)) for k, v in response.headers.items())))
