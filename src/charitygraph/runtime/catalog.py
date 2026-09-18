@@ -528,7 +528,9 @@ class SQLiteCatalog:
             self._commit(conn)
             return self._scale_s0_row(conn.execute(f"SELECT * FROM {table} WHERE {id_column}=?", (record_id,)).fetchone()) or {}
 
-    def register_scale_s0_source_plan(self, plan: Mapping[str, Any], *, execution_attempt_id: str | None = None) -> dict[str, Any]:
+    def register_scale_s0_source_plan(self, plan: Mapping[str, Any], *, execution_attempt_id: str | None = None, offline: bool = False) -> dict[str, Any]:
+        if execution_attempt_id is None and not offline:
+            raise ConflictError("live Scale S0 source plans require an execution attempt binding")
         if execution_attempt_id is not None:
             attempt = self.get_scale_s0_execution_attempt(execution_attempt_id)
             if attempt is None or attempt["mandate_id"] != str(plan.get("mandate_id")) or attempt["slice_id"] != str(plan.get("slice_id")):
