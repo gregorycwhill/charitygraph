@@ -90,8 +90,17 @@ class GovernedSourceTransport:
         self._allowed_locator(plan.locator)
 
     def fetch(self, plan: SourcePlan, authorisation: SourceAuthorisation, mandate: ScaleMandate,
-              *, halts: HaltController | None = None, now: datetime | None = None) -> TransportResult:
+              *, halts: HaltController | None = None, now: datetime | None = None, catalog: object | None = None, execution_attempt_id: str | None = None) -> TransportResult:
         self._authorise(plan, authorisation, mandate, halts)
+        if catalog is not None:
+            if not execution_attempt_id:
+                raise GovernedTransportError("live governed transport requires an execution-attempt binding")
+            attempt = catalog.get_scale_s0_execution_attempt(execution_attempt_id)
+            if attempt is None or attempt["mandate_id"] != mandate.mandate_id or attempt["slice_id"] != mandate.slice_id:
+                raise GovernedTransportError("transport execution-attempt binding is absent or stale")
+            stored_plan = catalog.get_scale_s0_source_plan(plan.plan_id) if hasattr(catalog, "get_scale_s0_source_plan") else None
+            if stored_plan is None or stored_plan.get("execution_attempt_id") != execution_attempt_id:
+                raise GovernedTransportError("transport source plan is not durably owned by the attempt")
         requested = plan.locator
         current = requested
         headers = {"User-Agent": self.user_agent, "Accept": "text/html,application/pdf,application/json;q=0.9,*/*;q=0.1"}

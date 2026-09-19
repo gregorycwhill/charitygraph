@@ -42,15 +42,15 @@ def test_durable_authority_reconstructs_and_promotes_once_after_restart(tmp_path
     mandate, routing, policies, source, packet, economics = authority()
     catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
     ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
-    ScaleS0Preflight.register_durable_packet(catalog, mandate, packet)
-    ScaleS0Preflight.record_durable_reservation(catalog, economics, recorded_at=NOW)
+    ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, offline=True)
+    ScaleS0Preflight.record_durable_reservation(catalog, economics, recorded_at=NOW, offline=True)
     original = candidate(mandate, packet)
     ScaleS0Preflight.register_durable_candidate(catalog, original)
     item = ReviewItem("review:durable", original.candidate_id, original.binding_hash, original.task_id, original.task_version, original.subject_id, original.scope_id, original.source_ids, original.lineage_ids, ("mandatory",), "normal", NOW, ReviewStatus.DECIDED)
     ScaleS0Preflight.register_durable_review_item(catalog, item)
     decision = ReviewDecision("decision:durable", item.review_id, original.binding_hash, DecisionDisposition.PROMOTE, "reviewer:test", NOW, "supported", original.evidence_locator_ids)
     ScaleS0Preflight.register_durable_review_decision(catalog, decision, candidate_id=original.candidate_id)
-    restarted = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    restarted = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id, offline=True)
     assert restarted.economics == economics
     assert restarted.promote_durably(candidate_id=original.candidate_id, authorisation_id="promotion:one", persisted_at=NOW) == "observation:candidate:durable"
     assert restarted.promote_durably(candidate_id=original.candidate_id, authorisation_id="promotion:one", persisted_at=NOW) == "observation:candidate:durable"
@@ -63,7 +63,7 @@ def test_durable_identity_conflicts_orphans_and_correction_lineage_fail_closed(t
     ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
     with pytest.raises(CatalogError):
         catalog.register_scale_s0_frozen_packet({"packet_id": "packet:orphan", "mandate_id": mandate.mandate_id, "mandate_hash": mandate.identity_hash, "slice_id": mandate.slice_id, "task_key": TASK.key, "subject_id": "subject:a", "scope_id": "scope:a", "content_hash": "x", "frozen_at": NOW})
-    ScaleS0Preflight.register_durable_packet(catalog, mandate, packet)
+    ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, offline=True)
     first = candidate(mandate, packet)
     ScaleS0Preflight.register_durable_candidate(catalog, first)
     with pytest.raises(ConflictError):
