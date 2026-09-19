@@ -43,7 +43,7 @@ def test_durable_authority_reconstructs_and_promotes_once_after_restart(tmp_path
     catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
     ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
     ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, offline=True)
-    ScaleS0Preflight.record_durable_reservation(catalog, economics, recorded_at=NOW)
+    ScaleS0Preflight.record_durable_reservation(catalog, economics, recorded_at=NOW, offline=True)
     original = candidate(mandate, packet)
     ScaleS0Preflight.register_durable_candidate(catalog, original)
     item = ReviewItem("review:durable", original.candidate_id, original.binding_hash, original.task_id, original.task_version, original.subject_id, original.scope_id, original.source_ids, original.lineage_ids, ("mandatory",), "normal", NOW, ReviewStatus.DECIDED)
