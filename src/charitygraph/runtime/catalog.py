@@ -2775,7 +2775,11 @@ class SQLiteCatalog:
                     (subject_id, subject_id),
                 ).fetchall()
             ]
-            ids = {item["observation_id"] for item in observations} | {item["assertion_id"] for item in assertions}
+            ids = (
+                {item["observation_id"] for item in observations}
+                | {item["assertion_id"] for item in assertions}
+                | {item["relationship_id"] for item in relationships}
+            )
             lineage = []
             if ids:
                 placeholders = ",".join("?" for _ in ids)
@@ -2801,6 +2805,11 @@ class SQLiteCatalog:
                 and item.get("outcome_state") in {"resolved", "supported"}
                 and item.get("assertion_id") not in superseded_ids
             ]
+            current_relationships = [
+                item for item in relationships
+                if item.get("status") == "accepted"
+                and item.get("relationship_id") not in superseded_ids
+            ]
             return {
                 "subject_id": subject_id,
                 "observations": observations,
@@ -2808,10 +2817,58 @@ class SQLiteCatalog:
                 "current_observations": current_observations,
                 "current_assertions": current_assertions,
                 "relationships": relationships,
+                "current_relationships": current_relationships,
                 "lineage": lineage,
             }
 
     knowledge_history = reconstruct_knowledge_history
+
+    def knowledge_state_at(self, subject_id: str, *, knowledge_at: datetime | str) -> dict[str, Any]:
+        """Governed state known at a transaction-time instant, without changing valid time."""
+        point = _utc(knowledge_at, "knowledge_at")
+        history = self.reconstruct_knowledge_history(subject_id)
+        superseded = {
+            edge["target_record_id"] for edge in history["lineage"]
+            if edge["edge_type"] == "supersedes" and edge["created_at"] <= point
+        }
+        def current(rows: list[dict[str, Any]], key: str) -> list[dict[str, Any]]:
+            return [row for row in rows if row["created_at"] <= point and row.get("lifecycle_status") in {"accepted", "edited"} and row.get(key) not in superseded]
+        observations = current(history["observations"], "observation_id")
+        assertions = current(history["assertions"], "assertion_id")
+        return {"subject_id": subject_id, "knowledge_at": point, "observations": [row for row in observations if row.get("outcome_state") in {"resolved", "supported"}], "assertions": [row for row in assertions if row.get("outcome_state") in {"resolved", "supported"}], "coverage": [row for row in observations + assertions if row.get("outcome_state") not in {"resolved", "supported"}], "relationships": [row for row in history["relationships"] if row["created_at"] <= point and row.get("status") == "accepted" and row.get("relationship_id") not in superseded]}
+
+    def current_belief_valid_at(self, subject_id: str, *, valid_at: date | datetime) -> dict[str, Any]:
+        """Current governed belief filtered by supported world-valid interval."""
+        point = valid_at.date().isoformat() if isinstance(valid_at, datetime) else valid_at.isoformat()
+        history = self.reconstruct_knowledge_history(subject_id)
+        def applies(row: dict[str, Any], field: str) -> bool:
+            value = row.get(field) or {}
+            if isinstance(value, str):
+                value = json.loads(value)
+            start, end = value.get("effective_from"), value.get("effective_to")
+            return (start is None or str(start) <= point) and (end is None or point <= str(end))
+        coverage = [row for row in history["observations"] + history["assertions"] if row.get("lifecycle_status") in {"accepted", "edited"} and row.get("outcome_state") not in {"resolved", "supported"}]
+        return {"subject_id": subject_id, "valid_at": point, "observations": [row for row in history["current_observations"] if applies(row, "observation_time")], "assertions": [row for row in history["current_assertions"] if applies(row, "assertion_time")], "coverage": coverage, "relationships": [row for row in history["current_relationships"] if (row.get("valid_from") is None or row["valid_from"] <= point) and (row.get("valid_to") is None or point <= row["valid_to"])]}
+
+    def knowledge_state_valid_at(self, subject_id: str, *, knowledge_at: datetime | str, valid_at: date | datetime) -> dict[str, Any]:
+        """Governed knowledge available at K that is supported as valid at V."""
+        state = self.knowledge_state_at(subject_id, knowledge_at=knowledge_at)
+        point = valid_at.date().isoformat() if isinstance(valid_at, datetime) else valid_at.isoformat()
+
+        def applies(row: dict[str, Any], field: str) -> bool:
+            value = row.get(field) or {}
+            if isinstance(value, str):
+                value = json.loads(value)
+            start, end = value.get("effective_from"), value.get("effective_to")
+            return (start is None or str(start) <= point) and (end is None or point <= str(end))
+
+        return {
+            **state,
+            "valid_at": point,
+            "observations": [row for row in state["observations"] if applies(row, "observation_time")],
+            "assertions": [row for row in state["assertions"] if applies(row, "assertion_time")],
+            "relationships": [row for row in state["relationships"] if (row.get("valid_from") is None or row["valid_from"] <= point) and (row.get("valid_to") is None or point <= row["valid_to"])],
+        }
 
     def prepare_physical_attempt(self, *, physical_attempt_id: str, run_id: str, subject_id: str, delivery_mode: str, provider_request_id: str, model_task_ids: tuple[str, ...], reservation_id: str | None, now: datetime | str, provider_batch_id: str | None = None) -> dict[str, Any]:
         """Persist a package before its provider send boundary can be crossed."""
