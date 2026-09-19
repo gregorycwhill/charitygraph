@@ -1,10 +1,12 @@
 from datetime import date, datetime, timezone
 
+import pytest
+
 from charitygraph.contracts import (
     ArtifactRef, Assertion, LineageEdge, Observation, RelationshipStatement,
     SchemaRef, SubjectRecord,
 )
-from charitygraph.runtime import SQLiteCatalog
+from charitygraph.runtime import CatalogError, SQLiteCatalog
 
 
 SCHEMA = SchemaRef(schema_id="urn:charitygraph:builder:schema:bitemporal:1.0", schema_version="1.0")
@@ -26,7 +28,7 @@ def subject(subject_id: str) -> SubjectRecord:
     )
 
 
-def observation(record_id: str, created_at: datetime, *, state: str = "resolved", valid_from: date | None = None, valid_to: date | None = None, supersedes: str | None = None) -> Observation:
+def observation(record_id: str, created_at: datetime, *, state: str = "resolved", valid_from: date | datetime | None = None, valid_to: date | datetime | None = None, supersedes: str | None = None) -> Observation:
     lineage = () if supersedes is None else (LineageEdge(edge_type="supersedes", source_artifact_id=record_id, target_artifact_id=supersedes),)
     return Observation(
         record_id=record_id, created_at=created_at, producer={"kind": "human", "producer_id": "reviewer"},
@@ -64,16 +66,21 @@ def test_corrections_and_missingness_remain_auditable_without_positive_inference
     catalog.register_subject(subject(SUBJECT_A))
     original = observation("observation:" + "1" * 32, at(2), valid_from=date(2026, 7, 1))
     replacement = observation("observation:" + "2" * 32, at(4), valid_from=date(2026, 7, 1), valid_to=date(2026, 7, 3), supersedes=original.record_id)
-    missing = observation("observation:" + "3" * 32, at(5), state="unknown")
+    missing = observation("observation:" + "3" * 32, at(3), state="unknown")
+    replacement_missing = observation("observation:" + "4" * 32, at(4), state="not_attempted", supersedes=missing.record_id)
     catalog.record_observation(original)
     catalog.record_observation(replacement)
     catalog.record_observation(missing)
+    catalog.record_observation(replacement_missing)
 
     before = catalog.knowledge_state_at(SUBJECT_A, knowledge_at=at(3))
     after = catalog.knowledge_state_at(SUBJECT_A, knowledge_at=at(5))
     assert [row["observation_id"] for row in before["observations"]] == [original.record_id]
     assert [row["observation_id"] for row in after["observations"]] == [replacement.record_id]
-    assert [row["observation_id"] for row in after["coverage"]] == [missing.record_id]
+    assert [row["observation_id"] for row in after["coverage"]] == [replacement_missing.record_id]
+    assert [row["observation_id"] for row in before["coverage"]] == [missing.record_id]
+    assert [row["observation_id"] for row in catalog.current_belief_valid_at(SUBJECT_A, valid_at=date(2026, 7, 2))["coverage"]] == [replacement_missing.record_id]
+    assert [row["observation_id"] for row in catalog.knowledge_state_valid_at(SUBJECT_A, knowledge_at=at(3), valid_at=date(2026, 7, 2))["coverage"]] == [missing.record_id]
     assert [row["observation_id"] for row in catalog.current_belief_valid_at(SUBJECT_A, valid_at=date(2026, 7, 2))["observations"]] == [replacement.record_id]
     assert catalog.current_belief_valid_at(SUBJECT_A, valid_at=date(2026, 7, 4))["observations"] == []
 
@@ -86,3 +93,25 @@ def test_first_party_claim_is_not_promoted_by_bitemporal_query(tmp_path):
     result = catalog.current_belief_valid_at(SUBJECT_A, valid_at=date(2026, 7, 2))
     assert result["observations"][0]["predicate"] == "first_party_claim"
     assert result["observations"][0]["value"] == "we do not use face-to-face fundraising"
+
+
+def test_sub_day_validity_is_not_truncated_to_a_calendar_date(tmp_path):
+    catalog = SQLiteCatalog(tmp_path / "bitemporal.sqlite3").open(initialize=True)
+    catalog.register_subject(subject(SUBJECT_A))
+    catalog.register_subject(subject(SUBJECT_B))
+    relationship = RelationshipStatement(
+        record_id="relationship:" + "e" * 32, created_at=at(1),
+        producer={"kind": "human", "producer_id": "reviewer"}, source_subject_id=SUBJECT_A,
+        target_subject_id=SUBJECT_B, relationship_type="governance_relationship", role="partner",
+        status="accepted", valid_from=datetime(2026, 9, 18, 15, 30, tzinfo=timezone.utc),
+        valid_to=datetime(2026, 9, 18, 16, 30, tzinfo=timezone.utc),
+    )
+    catalog.record_relationship(relationship)
+    before = catalog.current_belief_valid_at(SUBJECT_A, valid_at=datetime(2026, 9, 18, 15, 29, tzinfo=timezone.utc))
+    at_start = catalog.current_belief_valid_at(SUBJECT_A, valid_at=datetime(2026, 9, 18, 15, 30, tzinfo=timezone.utc))
+    after = catalog.current_belief_valid_at(SUBJECT_A, valid_at=datetime(2026, 9, 18, 16, 31, tzinfo=timezone.utc))
+    assert before["relationships"] == []
+    assert [row["relationship_id"] for row in at_start["relationships"]] == [relationship.record_id]
+    assert after["relationships"] == []
+    with pytest.raises(CatalogError, match="precision-insufficient"):
+        catalog.current_belief_valid_at(SUBJECT_A, valid_at=date(2026, 9, 18))

@@ -164,6 +164,59 @@ def _utc(value: datetime | str, field: str = "timestamp") -> str:
     return value.astimezone(timezone.utc).isoformat()
 
 
+def _valid_bound(value: Any, field: str) -> date | datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise CatalogError(f"{field} datetime must be timezone-aware")
+        return value.astimezone(timezone.utc)
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        try:
+            if "T" in value:
+                parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                if parsed.tzinfo is None or parsed.utcoffset() is None:
+                    raise CatalogError(f"{field} datetime must be timezone-aware")
+                return parsed.astimezone(timezone.utc)
+            return date.fromisoformat(value)
+        except ValueError as exc:
+            raise CatalogError(f"{field} must be an ISO date or timestamp") from exc
+    raise CatalogError(f"{field} must be a date or timezone-aware datetime")
+
+
+def _valid_at(row: Mapping[str, Any], field: str, query: date | datetime) -> bool:
+    """Apply an interval without silently discarding date/time precision."""
+    if isinstance(query, datetime):
+        if query.tzinfo is None or query.utcoffset() is None:
+            raise CatalogError("valid_at datetime must be timezone-aware")
+        query_value: date | datetime = query.astimezone(timezone.utc)
+    elif isinstance(query, date):
+        query_value = query
+    else:
+        raise CatalogError("valid_at must be a date or timezone-aware datetime")
+    interval = row if field == "" else (row.get(field) or {})
+    if isinstance(interval, str):
+        try:
+            interval = json.loads(interval)
+        except json.JSONDecodeError as exc:
+            raise CatalogError(f"{field} must contain an interval object") from exc
+    for bound_name, is_start in (("effective_from", True), ("effective_to", False)):
+        bound = _valid_bound(interval.get(bound_name), f"{field}.{bound_name}")
+        if bound is None:
+            continue
+        if isinstance(query_value, datetime):
+            comparison = (query_value >= bound if is_start else query_value <= bound) if isinstance(bound, datetime) else (query_value.date() >= bound if is_start else query_value.date() <= bound)
+        else:
+            if isinstance(bound, datetime):
+                raise CatalogError("date valid_at query is precision-insufficient for a datetime bound")
+            comparison = query_value >= bound if is_start else query_value <= bound
+        if not comparison:
+            return False
+    return True
+
+
 def _row(row: sqlite3.Row | None) -> dict[str, Any] | None:
     return None if row is None else dict(row)
 
@@ -2810,6 +2863,12 @@ class SQLiteCatalog:
                 if item.get("status") == "accepted"
                 and item.get("relationship_id") not in superseded_ids
             ]
+            current_coverage = [
+                item for item in observations + assertions
+                if item.get("lifecycle_status") in {"accepted", "edited"}
+                and item.get("outcome_state") not in {"resolved", "supported"}
+                and item.get("observation_id", item.get("assertion_id")) not in superseded_ids
+            ]
             return {
                 "subject_id": subject_id,
                 "observations": observations,
@@ -2818,6 +2877,7 @@ class SQLiteCatalog:
                 "current_assertions": current_assertions,
                 "relationships": relationships,
                 "current_relationships": current_relationships,
+                "current_coverage": current_coverage,
                 "lineage": lineage,
             }
 
@@ -2839,35 +2899,22 @@ class SQLiteCatalog:
 
     def current_belief_valid_at(self, subject_id: str, *, valid_at: date | datetime) -> dict[str, Any]:
         """Current governed belief filtered by supported world-valid interval."""
-        point = valid_at.date().isoformat() if isinstance(valid_at, datetime) else valid_at.isoformat()
+        point = valid_at
         history = self.reconstruct_knowledge_history(subject_id)
-        def applies(row: dict[str, Any], field: str) -> bool:
-            value = row.get(field) or {}
-            if isinstance(value, str):
-                value = json.loads(value)
-            start, end = value.get("effective_from"), value.get("effective_to")
-            return (start is None or str(start) <= point) and (end is None or point <= str(end))
-        coverage = [row for row in history["observations"] + history["assertions"] if row.get("lifecycle_status") in {"accepted", "edited"} and row.get("outcome_state") not in {"resolved", "supported"}]
-        return {"subject_id": subject_id, "valid_at": point, "observations": [row for row in history["current_observations"] if applies(row, "observation_time")], "assertions": [row for row in history["current_assertions"] if applies(row, "assertion_time")], "coverage": coverage, "relationships": [row for row in history["current_relationships"] if (row.get("valid_from") is None or row["valid_from"] <= point) and (row.get("valid_to") is None or point <= row["valid_to"])]}
+        return {"subject_id": subject_id, "valid_at": point, "observations": [row for row in history["current_observations"] if _valid_at(row, "observation_time", point)], "assertions": [row for row in history["current_assertions"] if _valid_at(row, "assertion_time", point)], "coverage": [row for row in history["current_coverage"] if _valid_at(row, "observation_time" if "observation_id" in row else "assertion_time", point)], "relationships": [row for row in history["current_relationships"] if _valid_at({"effective_from": row.get("valid_from"), "effective_to": row.get("valid_to")}, "", point)]}
 
     def knowledge_state_valid_at(self, subject_id: str, *, knowledge_at: datetime | str, valid_at: date | datetime) -> dict[str, Any]:
         """Governed knowledge available at K that is supported as valid at V."""
         state = self.knowledge_state_at(subject_id, knowledge_at=knowledge_at)
-        point = valid_at.date().isoformat() if isinstance(valid_at, datetime) else valid_at.isoformat()
-
-        def applies(row: dict[str, Any], field: str) -> bool:
-            value = row.get(field) or {}
-            if isinstance(value, str):
-                value = json.loads(value)
-            start, end = value.get("effective_from"), value.get("effective_to")
-            return (start is None or str(start) <= point) and (end is None or point <= str(end))
+        point = valid_at
 
         return {
             **state,
             "valid_at": point,
-            "observations": [row for row in state["observations"] if applies(row, "observation_time")],
-            "assertions": [row for row in state["assertions"] if applies(row, "assertion_time")],
-            "relationships": [row for row in state["relationships"] if (row.get("valid_from") is None or row["valid_from"] <= point) and (row.get("valid_to") is None or point <= row["valid_to"])],
+            "observations": [row for row in state["observations"] if _valid_at(row, "observation_time", point)],
+            "assertions": [row for row in state["assertions"] if _valid_at(row, "assertion_time", point)],
+            "coverage": [row for row in state["coverage"] if _valid_at(row, "observation_time" if "observation_id" in row else "assertion_time", point)],
+            "relationships": [row for row in state["relationships"] if _valid_at({"effective_from": row.get("valid_from"), "effective_to": row.get("valid_to")}, "", point)],
         }
 
     def prepare_physical_attempt(self, *, physical_attempt_id: str, run_id: str, subject_id: str, delivery_mode: str, provider_request_id: str, model_task_ids: tuple[str, ...], reservation_id: str | None, now: datetime | str, provider_batch_id: str | None = None) -> dict[str, Any]:
