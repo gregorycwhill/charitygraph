@@ -112,6 +112,24 @@ def _canonical_hash(value: Any) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def canonical_execution_configuration_material(*, mandate_hash: str, slice_id: str, run_id: str,
+                                                builder_repository: str, builder_commit_sha: str,
+                                                data_repository: str, data_commit_sha: str,
+                                                bridge_certification: str, bridge_version: str,
+                                                schema_version: int, recovery_authority_ref: str) -> dict[str, Any]:
+    return {
+        "mandate_hash": mandate_hash, "slice_id": slice_id, "run_id": run_id,
+        "builder_repository": builder_repository, "builder_commit_sha": builder_commit_sha,
+        "data_repository": data_repository, "data_commit_sha": data_commit_sha,
+        "bridge_certification": bridge_certification, "bridge_version": bridge_version,
+        "schema_version": schema_version, "recovery_authority_ref": recovery_authority_ref,
+    }
+
+
+def canonical_execution_configuration_hash(**kwargs: Any) -> str:
+    return _canonical_hash(canonical_execution_configuration_material(**kwargs))
+
+
 def _get(value: Any, *names: str, default: Any = None) -> Any:
     if isinstance(value, Mapping):
         for name in names:
@@ -444,6 +462,11 @@ class SQLiteCatalog:
         if any(not attempt.get(key) for key in required):
             raise CatalogError("Scale S0 execution attempt lacks immutable identity")
         attempt_id = _text(attempt["attempt_id"], "attempt_id")
+        expected_configuration_hash = canonical_execution_configuration_hash(
+            **{key: attempt[key] for key in ("mandate_hash", "slice_id", "run_id", "builder_repository", "builder_commit_sha", "data_repository", "data_commit_sha", "bridge_certification", "bridge_version", "schema_version", "recovery_authority_ref")}
+        )
+        if attempt["configuration_hash"] != expected_configuration_hash:
+            raise ConflictError("execution attempt configuration hash is not canonical")
         with self._connection(immediate=True) as conn:
             mandate = conn.execute("SELECT mandate_hash,slice_id FROM scale_s0_mandates WHERE mandate_id=?", (attempt["mandate_id"],)).fetchone()
             run = conn.execute("SELECT run_id FROM runs WHERE run_id=?", (attempt["run_id"],)).fetchone()
@@ -609,13 +632,41 @@ class SQLiteCatalog:
         with self._connection() as conn:
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_frozen_corpora WHERE corpus_id=?", (corpus_id,)).fetchone())
 
-    def register_scale_s0_physical_bundle(self, bundle: Mapping[str, Any], *, execution_attempt_id: str | None = None) -> dict[str, Any]:
-        record = {**bundle, **({"execution_attempt_id": execution_attempt_id} if execution_attempt_id else {})}
+    def register_scale_s0_physical_bundle(self, bundle: Mapping[str, Any], *, execution_attempt_id: str | None = None, offline: bool = False) -> dict[str, Any]:
+        packet_ids = tuple(bundle.get("packet_ids") or ())
+        packet_hashes = tuple(bundle.get("packet_hashes") or ())
+        if not packet_ids and not offline:
+            raise CatalogError("live Scale S0 physical bundles require packet_ids")
+        if not packet_ids and offline:
+            return self._register_scale_s0_bridge_material(table="scale_s0_physical_bundles", id_column="bundle_id", record=dict(bundle),
+                mandate_id=str(bundle.get("mandate_id", "")), subject_id=None, timestamp_column="frozen_at",
+                extra={"routing_class": _text(bundle.get("routing_class"), "routing_class"), "execution_attempt_id": None})
+        if offline and execution_attempt_id is None:
+            return self._register_scale_s0_bridge_material(table="scale_s0_physical_bundles", id_column="bundle_id", record=dict(bundle),
+                mandate_id=str(bundle.get("mandate_id", "")), subject_id=None, timestamp_column="frozen_at",
+                extra={"routing_class": _text(bundle.get("routing_class"), "routing_class"), "execution_attempt_id": None})
+        with self._connection() as conn:
+            placeholders = ",".join("?" for _ in packet_ids)
+            rows = conn.execute(f"SELECT * FROM scale_s0_frozen_packets WHERE packet_id IN ({placeholders})", packet_ids).fetchall()
+        if len(rows) != len(packet_ids):
+            raise ConflictError("physical bundle references an unknown packet")
+        materials = [json.loads(row["material_json"]) for row in rows]
+        owners = {row["execution_attempt_id"] for row in rows}
+        mandates = {row["mandate_id"] for row in rows}
+        if len(owners) != 1 or (None in owners and not offline) or len(mandates) != 1 or next(iter(mandates)) != str(bundle.get("mandate_id")):
+            raise ConflictError("physical bundle packets have mixed or absent ownership")
+        derived_attempt = next(iter(owners))
+        if execution_attempt_id is not None and execution_attempt_id != derived_attempt:
+            raise ConflictError("physical bundle attempt conflicts with packet ownership")
+        expected_hashes = {material.get("binding_hash") for material in materials}
+        if set(packet_hashes) != expected_hashes or len(packet_hashes) != len(packet_ids):
+            raise ConflictError("physical bundle packet hashes do not match persisted packet bindings")
+        record = {**bundle, "execution_attempt_id": derived_attempt}
         return self._register_scale_s0_bridge_material(table="scale_s0_physical_bundles", id_column="bundle_id", record=record,
             mandate_id=str(bundle.get("mandate_id", "")), subject_id=None, timestamp_column="frozen_at",
-            extra={"routing_class": _text(bundle.get("routing_class"), "routing_class"), "execution_attempt_id": execution_attempt_id})
+            extra={"routing_class": _text(bundle.get("routing_class"), "routing_class"), "execution_attempt_id": derived_attempt})
 
-    def record_scale_s0_reservation_binding(self, state: Mapping[str, Any], *, recorded_at: datetime | str) -> dict[str, Any]:
+    def record_scale_s0_reservation_binding(self, state: Mapping[str, Any], *, recorded_at: datetime | str, execution_attempt_id: str | None = None, offline: bool = False) -> dict[str, Any]:
         """Reference existing reservation/accounting state without duplicating its ledger."""
         self._require_migrated()
         required = ("reservation_id", "reservation_mandate_id", "reservation_slice_id", "reservation_task_key", "reservation_currency")
@@ -626,29 +677,73 @@ class SQLiteCatalog:
         slice_id = _text(state.get("reservation_slice_id"), "reservation_slice_id")
         task_key = _text(state.get("reservation_task_key"), "reservation_task_key")
         when = _utc(recorded_at, "recorded_at")
-        material = {"state": state, "recorded_at": when}
+        if execution_attempt_id is None and not offline:
+            raise ConflictError("live Scale S0 reservation bindings require an execution attempt")
+        material_state = {**state, **({"execution_attempt_id": execution_attempt_id} if execution_attempt_id else {})}
+        material = {"state": material_state, "recorded_at": when}
         digest = _canonical_hash(material)
         with self._connection(immediate=True) as conn:
             mandate = conn.execute("SELECT slice_id FROM scale_s0_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
             if mandate is None or mandate["slice_id"] != slice_id:
                 raise ConflictError("Scale S0 reservation binding is outside its mandate")
+            if execution_attempt_id is not None:
+                attempt = conn.execute("SELECT mandate_id,slice_id,run_id FROM scale_s0_execution_attempts WHERE attempt_id=?", (execution_attempt_id,)).fetchone()
+                reservation = conn.execute("SELECT run_id,status FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
+                if attempt is None or attempt["mandate_id"] != mandate_id or attempt["slice_id"] != slice_id:
+                    raise ConflictError("reservation binding attempt is absent or mismatched")
+                if reservation is not None and reservation["run_id"] != attempt["run_id"]:
+                    raise ConflictError("reservation binding run is not owned by the execution attempt")
             prior = conn.execute("SELECT * FROM scale_s0_reservation_bindings WHERE reservation_id=?", (reservation_id,)).fetchone()
             if prior is not None:
                 if prior["material_hash"] != digest:
                     raise ConflictError("Scale S0 reservation binding identity conflict")
                 result = dict(prior); result["state"] = json.loads(result["state_json"]); return result
-            conn.execute("INSERT INTO scale_s0_reservation_bindings(reservation_id,mandate_id,slice_id,task_key,state_json,material_hash,recorded_at) VALUES (?,?,?,?,?,?,?)", (reservation_id, mandate_id, slice_id, task_key, self._json(state), digest, when))
+            conn.execute("INSERT INTO scale_s0_reservation_bindings(reservation_id,mandate_id,slice_id,task_key,state_json,material_hash,recorded_at,execution_attempt_id) VALUES (?,?,?,?,?,?,?,?)", (reservation_id, mandate_id, slice_id, task_key, self._json(material_state), digest, when, execution_attempt_id))
             self._commit(conn)
             result = dict(conn.execute("SELECT * FROM scale_s0_reservation_bindings WHERE reservation_id=?", (reservation_id,)).fetchone())
             result["state"] = json.loads(result["state_json"])
             return result
 
-    def get_scale_s0_reservation_binding(self, *, mandate_id: str, slice_id: str, task_key: str) -> dict[str, Any] | None:
+    def get_scale_s0_reservation_binding(self, *, mandate_id: str, slice_id: str, task_key: str, execution_attempt_id: str | None = None, offline: bool = False) -> dict[str, Any] | None:
         with self._connection() as conn:
-            row = conn.execute("SELECT * FROM scale_s0_reservation_bindings WHERE mandate_id=? AND slice_id=? AND task_key=? ORDER BY recorded_at DESC LIMIT 1", (mandate_id, slice_id, task_key)).fetchone()
+            if execution_attempt_id is None and not offline:
+                raise ConflictError("live Scale S0 reservation lookup requires an execution attempt")
+            query = "SELECT * FROM scale_s0_reservation_bindings WHERE mandate_id=? AND slice_id=? AND task_key=?"
+            params: list[Any] = [mandate_id, slice_id, task_key]
+            if execution_attempt_id is not None:
+                query += " AND execution_attempt_id=?"; params.append(execution_attempt_id)
+            query += " ORDER BY recorded_at DESC"
+            rows = conn.execute(query, params).fetchall()
+            if len(rows) > 1 and execution_attempt_id is not None:
+                raise ConflictError("multiple reservation bindings resolve for one execution attempt/task")
+            row = rows[0] if rows else None
             if row is None:
                 return None
             result = dict(row); result["state"] = json.loads(result["state_json"]); return result
+
+    def validate_scale_s0_provider_send(self, *, packet_id: str, execution_attempt_id: str, mandate_id: str,
+                                        slice_id: str, task_key: str, reservation_id: str | None) -> None:
+        """Re-check all durable attempt ownership immediately before a live send."""
+        with self._connection() as conn:
+            attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (execution_attempt_id,)).fetchone()
+            packet = conn.execute("SELECT * FROM scale_s0_frozen_packets WHERE packet_id=?", (packet_id,)).fetchone()
+            if attempt is None or packet is None or packet["execution_attempt_id"] != execution_attempt_id or packet["mandate_id"] != mandate_id or packet["slice_id"] != slice_id:
+                raise ConflictError("durable provider send attempt or packet ownership is invalid")
+            material = json.loads(packet["material_json"])
+            if material.get("execution_attempt_id") != execution_attempt_id or material.get("task_key") != task_key:
+                raise ConflictError("durable packet task or attempt identity is invalid")
+            corpus_id = material.get("corpus_id")
+            corpus = conn.execute("SELECT * FROM scale_s0_frozen_corpora WHERE corpus_id=?", (corpus_id,)).fetchone() if corpus_id else None
+            if corpus is None or corpus["execution_attempt_id"] != execution_attempt_id or corpus["mandate_id"] != mandate_id:
+                raise ConflictError("durable packet corpus ownership is invalid")
+            run = conn.execute("SELECT configuration_hash FROM runs WHERE run_id=?", (attempt["run_id"],)).fetchone()
+            if run is None or run["configuration_hash"] != attempt["configuration_hash"]:
+                raise ConflictError("durable run configuration does not match execution attempt")
+            if not reservation_id:
+                raise ConflictError("durable provider send requires a reservation")
+            binding = conn.execute("SELECT execution_attempt_id FROM scale_s0_reservation_bindings WHERE reservation_id=?", (reservation_id,)).fetchone()
+            if binding is None or binding["execution_attempt_id"] != execution_attempt_id:
+                raise ConflictError("durable reservation ownership is invalid")
 
     def register_scale_s0_candidate(self, candidate: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()

@@ -402,7 +402,7 @@ def persist_bridge(catalog: object, mandate: ScaleMandate, *, plans: Iterable[So
     for corpus in corpora:
         catalog.register_scale_s0_frozen_corpus({**asdict(corpus), "corpus_id": corpus.corpus_id}, execution_attempt_id=execution_attempt_id)
     for bundle in bundles:
-        catalog.register_scale_s0_physical_bundle(asdict(bundle), execution_attempt_id=execution_attempt_id)
+        catalog.register_scale_s0_physical_bundle(asdict(bundle), execution_attempt_id=execution_attempt_id, offline=offline)
 
 
 def certified_preflight(mandate: ScaleMandate, registry: LogicalTaskRegistry, routing: RoutingPolicy,

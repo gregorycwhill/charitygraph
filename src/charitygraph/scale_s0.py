@@ -13,6 +13,8 @@ from hashlib import sha256
 import json
 from typing import Iterable, Mapping
 
+from .runtime.catalog import canonical_execution_configuration_hash
+
 
 def _digest(value: object) -> str:
     return sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode()).hexdigest()
@@ -128,6 +130,16 @@ class ExecutionAttemptIdentity:
     recovery_authority_ref: str; configuration_hash: str; status: str; created_at: str
     @property
     def material_hash(self) -> str: return _digest(_material(self))
+
+    @property
+    def canonical_configuration_hash(self) -> str:
+        return canonical_execution_configuration_hash(
+            mandate_hash=self.mandate_hash, slice_id=self.slice_id, run_id=self.run_id,
+            builder_repository=self.builder_repository, builder_commit_sha=self.builder_commit_sha,
+            data_repository=self.data_repository, data_commit_sha=self.data_commit_sha,
+            bridge_certification=self.bridge_certification, bridge_version=self.bridge_version,
+            schema_version=self.schema_version, recovery_authority_ref=self.recovery_authority_ref,
+        )
 
 
 @dataclass(frozen=True)
@@ -255,7 +267,7 @@ class ScaleS0Preflight:
         if packet.mandate_id != mandate.mandate_id or packet.binding_hash != packet_data.get("binding_hash"):
             raise ScalePreflightError("durable packet identity is corrupt or substituted")
         if economics is None:
-            reservation = catalog.get_scale_s0_reservation_binding(mandate_id=mandate.mandate_id, slice_id=mandate.slice_id, task_key=f"{packet.task_id}@{packet.task_version}")
+            reservation = catalog.get_scale_s0_reservation_binding(mandate_id=mandate.mandate_id, slice_id=mandate.slice_id, task_key=f"{packet.task_id}@{packet.task_version}", execution_attempt_id=attempt.attempt_id if attempt else None, offline=offline)
             if reservation is not None:
                 state = dict(reservation["state"])
                 for key in ("provider_spend", "strong_model_spend", "reservation_remaining", "estimated_provider_cost", "estimated_strong_cost"):
@@ -286,10 +298,10 @@ class ScaleS0Preflight:
         return catalog.register_scale_s0_frozen_packet(material)
 
     @staticmethod
-    def record_durable_reservation(catalog: object, economics: EconomicState, *, recorded_at: str) -> dict:
+    def record_durable_reservation(catalog: object, economics: EconomicState, *, recorded_at: str, execution_attempt_id: str | None = None, offline: bool = False) -> dict:
         material = _material(economics)
         assert isinstance(material, dict)
-        return catalog.record_scale_s0_reservation_binding(material, recorded_at=recorded_at)
+        return catalog.record_scale_s0_reservation_binding(material, recorded_at=recorded_at, execution_attempt_id=execution_attempt_id, offline=offline)
 
     @staticmethod
     def register_durable_candidate(catalog: object, candidate: Candidate) -> dict:
@@ -396,6 +408,8 @@ class ScaleS0Preflight:
         if request.subject_id not in self.mandate.subject_ids or not request.scope_id: raise ScalePreflightError("request is outside frozen population or scope")
         packet=self._packet(request,task); route=self.routing.route_for(task,triggered_escalations)
         if request.route!=route or packet.routing_class!=route: raise ScalePreflightError("caller cannot choose a route")
+        if self.catalog is not None and self.execution_attempt is not None and hasattr(self.catalog, "validate_scale_s0_provider_send"):
+            self.catalog.validate_scale_s0_provider_send(packet_id=packet.packet_id, execution_attempt_id=self.execution_attempt.attempt_id, mandate_id=self.mandate.mandate_id, slice_id=self.mandate.slice_id, task_key=task.key, reservation_id=request.reservation_id)
         if self.catalog is not None and self.catalog.get_provider_request_item(packet.provider_request_identity) is not None:
             raise ScalePreflightError("durable provider-request identity already exists")
         if self.halts.active(slice_id=self.mandate.slice_id,task_key=task.key,subject_id=request.subject_id) or self.catalog and self.catalog.active_scale_s0_halt(slice_id=self.mandate.slice_id,task_key=task.key,subject_id=request.subject_id): raise ScalePreflightError("applicable hard halt prevents provider send")
