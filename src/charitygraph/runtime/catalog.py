@@ -164,6 +164,59 @@ def _utc(value: datetime | str, field: str = "timestamp") -> str:
     return value.astimezone(timezone.utc).isoformat()
 
 
+def _valid_bound(value: Any, field: str) -> date | datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise CatalogError(f"{field} datetime must be timezone-aware")
+        return value.astimezone(timezone.utc)
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        try:
+            if "T" in value:
+                parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                if parsed.tzinfo is None or parsed.utcoffset() is None:
+                    raise CatalogError(f"{field} datetime must be timezone-aware")
+                return parsed.astimezone(timezone.utc)
+            return date.fromisoformat(value)
+        except ValueError as exc:
+            raise CatalogError(f"{field} must be an ISO date or timestamp") from exc
+    raise CatalogError(f"{field} must be a date or timezone-aware datetime")
+
+
+def _valid_at(row: Mapping[str, Any], field: str, query: date | datetime) -> bool:
+    """Apply an interval without silently discarding date/time precision."""
+    if isinstance(query, datetime):
+        if query.tzinfo is None or query.utcoffset() is None:
+            raise CatalogError("valid_at datetime must be timezone-aware")
+        query_value: date | datetime = query.astimezone(timezone.utc)
+    elif isinstance(query, date):
+        query_value = query
+    else:
+        raise CatalogError("valid_at must be a date or timezone-aware datetime")
+    interval = row if field == "" else (row.get(field) or {})
+    if isinstance(interval, str):
+        try:
+            interval = json.loads(interval)
+        except json.JSONDecodeError as exc:
+            raise CatalogError(f"{field} must contain an interval object") from exc
+    for bound_name, is_start in (("effective_from", True), ("effective_to", False)):
+        bound = _valid_bound(interval.get(bound_name), f"{field}.{bound_name}")
+        if bound is None:
+            continue
+        if isinstance(query_value, datetime):
+            comparison = (query_value >= bound if is_start else query_value <= bound) if isinstance(bound, datetime) else (query_value.date() >= bound if is_start else query_value.date() <= bound)
+        else:
+            if isinstance(bound, datetime):
+                raise CatalogError("date valid_at query is precision-insufficient for a datetime bound")
+            comparison = query_value >= bound if is_start else query_value <= bound
+        if not comparison:
+            return False
+    return True
+
+
 def _row(row: sqlite3.Row | None) -> dict[str, Any] | None:
     return None if row is None else dict(row)
 
@@ -2775,7 +2828,11 @@ class SQLiteCatalog:
                     (subject_id, subject_id),
                 ).fetchall()
             ]
-            ids = {item["observation_id"] for item in observations} | {item["assertion_id"] for item in assertions}
+            ids = (
+                {item["observation_id"] for item in observations}
+                | {item["assertion_id"] for item in assertions}
+                | {item["relationship_id"] for item in relationships}
+            )
             lineage = []
             if ids:
                 placeholders = ",".join("?" for _ in ids)
@@ -2801,6 +2858,17 @@ class SQLiteCatalog:
                 and item.get("outcome_state") in {"resolved", "supported"}
                 and item.get("assertion_id") not in superseded_ids
             ]
+            current_relationships = [
+                item for item in relationships
+                if item.get("status") == "accepted"
+                and item.get("relationship_id") not in superseded_ids
+            ]
+            current_coverage = [
+                item for item in observations + assertions
+                if item.get("lifecycle_status") in {"accepted", "edited"}
+                and item.get("outcome_state") not in {"resolved", "supported"}
+                and item.get("observation_id", item.get("assertion_id")) not in superseded_ids
+            ]
             return {
                 "subject_id": subject_id,
                 "observations": observations,
@@ -2808,10 +2876,46 @@ class SQLiteCatalog:
                 "current_observations": current_observations,
                 "current_assertions": current_assertions,
                 "relationships": relationships,
+                "current_relationships": current_relationships,
+                "current_coverage": current_coverage,
                 "lineage": lineage,
             }
 
     knowledge_history = reconstruct_knowledge_history
+
+    def knowledge_state_at(self, subject_id: str, *, knowledge_at: datetime | str) -> dict[str, Any]:
+        """Governed state known at a transaction-time instant, without changing valid time."""
+        point = _utc(knowledge_at, "knowledge_at")
+        history = self.reconstruct_knowledge_history(subject_id)
+        superseded = {
+            edge["target_record_id"] for edge in history["lineage"]
+            if edge["edge_type"] == "supersedes" and edge["created_at"] <= point
+        }
+        def current(rows: list[dict[str, Any]], key: str) -> list[dict[str, Any]]:
+            return [row for row in rows if row["created_at"] <= point and row.get("lifecycle_status") in {"accepted", "edited"} and row.get(key) not in superseded]
+        observations = current(history["observations"], "observation_id")
+        assertions = current(history["assertions"], "assertion_id")
+        return {"subject_id": subject_id, "knowledge_at": point, "observations": [row for row in observations if row.get("outcome_state") in {"resolved", "supported"}], "assertions": [row for row in assertions if row.get("outcome_state") in {"resolved", "supported"}], "coverage": [row for row in observations + assertions if row.get("outcome_state") not in {"resolved", "supported"}], "relationships": [row for row in history["relationships"] if row["created_at"] <= point and row.get("status") == "accepted" and row.get("relationship_id") not in superseded]}
+
+    def current_belief_valid_at(self, subject_id: str, *, valid_at: date | datetime) -> dict[str, Any]:
+        """Current governed belief filtered by supported world-valid interval."""
+        point = valid_at
+        history = self.reconstruct_knowledge_history(subject_id)
+        return {"subject_id": subject_id, "valid_at": point, "observations": [row for row in history["current_observations"] if _valid_at(row, "observation_time", point)], "assertions": [row for row in history["current_assertions"] if _valid_at(row, "assertion_time", point)], "coverage": [row for row in history["current_coverage"] if _valid_at(row, "observation_time" if "observation_id" in row else "assertion_time", point)], "relationships": [row for row in history["current_relationships"] if _valid_at({"effective_from": row.get("valid_from"), "effective_to": row.get("valid_to")}, "", point)]}
+
+    def knowledge_state_valid_at(self, subject_id: str, *, knowledge_at: datetime | str, valid_at: date | datetime) -> dict[str, Any]:
+        """Governed knowledge available at K that is supported as valid at V."""
+        state = self.knowledge_state_at(subject_id, knowledge_at=knowledge_at)
+        point = valid_at
+
+        return {
+            **state,
+            "valid_at": point,
+            "observations": [row for row in state["observations"] if _valid_at(row, "observation_time", point)],
+            "assertions": [row for row in state["assertions"] if _valid_at(row, "assertion_time", point)],
+            "coverage": [row for row in state["coverage"] if _valid_at(row, "observation_time" if "observation_id" in row else "assertion_time", point)],
+            "relationships": [row for row in state["relationships"] if _valid_at({"effective_from": row.get("valid_from"), "effective_to": row.get("valid_to")}, "", point)],
+        }
 
     def prepare_physical_attempt(self, *, physical_attempt_id: str, run_id: str, subject_id: str, delivery_mode: str, provider_request_id: str, model_task_ids: tuple[str, ...], reservation_id: str | None, now: datetime | str, provider_batch_id: str | None = None) -> dict[str, Any]:
         """Persist a package before its provider send boundary can be crossed."""
