@@ -5,7 +5,8 @@ from dataclasses import replace
 from hashlib import sha256
 import json
 from pathlib import Path
-from typing import Any
+import re
+from typing import Any, Literal
 
 from charitygraph.scale_s0 import (
     LogicalTaskRegistry, PolicyArtifact, RoutingClass, RoutingPolicy,
@@ -32,6 +33,26 @@ def load_json_yaml(path: Path) -> dict[str, Any]:
     return value
 
 
+AuthorityMode = Literal["production", "shadow"]
+_AUTHORISED_MANDATE = "SCALE_S0_MANDATE_AUTHORISED_V2.yaml"
+_SHADOW_MANDATE = "SCALE_S0_SHADOW_MANDATE_V2.yaml"
+_DECISION_RECORD = "SCALE_S0_AUTHORISATION_DECISION_2026-09-18.md"
+_AUTHORITY_REF = f"{_DECISION_RECORD}#S0_AUTHORISED"
+
+
+def _validate_production_authority_record(root: Path) -> None:
+    """Bind production loading to the immutable decision record, not file presence."""
+    path = root / _DECISION_RECORD
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise ScalePreflightError("production authority decision record is absent") from error
+    if not re.search(r"(?m)^\*\*Status:\*\*\s+approved product-owner decision", text):
+        raise ScalePreflightError("production authority decision record is not approved")
+    if not re.search(r"(?m)^`S0_AUTHORISED`\s*$", text):
+        raise ScalePreflightError("production authority decision does not declare S0_AUTHORISED")
+
+
 def _policy_artifacts(root: Path, manifest: dict[str, Any]) -> tuple[dict[str, PolicyArtifact], dict[str, dict[str, Any]]]:
     artifacts: dict[str, PolicyArtifact] = {}
     bodies: dict[str, dict[str, Any]] = {}
@@ -54,11 +75,28 @@ def _policy_artifacts(root: Path, manifest: dict[str, Any]) -> tuple[dict[str, P
     return artifacts, bodies
 
 
-def load_authorisation_package(package_root: str | Path) -> tuple[ScaleMandate, LogicalTaskRegistry, RoutingPolicy, SamplingPolicy, dict[str, PolicyArtifact]]:
+def load_authorisation_package(package_root: str | Path, *, authority: AuthorityMode = "production") -> tuple[ScaleMandate, LogicalTaskRegistry, RoutingPolicy, SamplingPolicy, dict[str, PolicyArtifact]]:
+    """Load one explicitly selected immutable authority package.
+
+    Production is the default and can only load the executable authorised mandate.
+    The shadow candidate is available only through ``authority="shadow"`` so a
+    missing or corrupt production mandate can never fall back to it.
+    """
     root = Path(package_root)
+    if authority not in {"production", "shadow"}:
+        raise ScalePreflightError("authority must be explicitly production or shadow")
     manifest = load_json_yaml(root / "SCALE_S0_POLICY_BUNDLE_BALANCED_V1.yaml")
     artifacts, bodies = _policy_artifacts(root, manifest)
-    mandate_data = load_json_yaml(root / "SCALE_S0_SHADOW_MANDATE_V2.yaml")
+    if authority == "production":
+        _validate_production_authority_record(root)
+        mandate_path = root / _AUTHORISED_MANDATE
+        expected_actor_ref = _AUTHORITY_REF
+    else:
+        mandate_path = root / _SHADOW_MANDATE
+        expected_actor_ref = "UNAPPROVED_PRODUCT_OWNER"
+    mandate_data = load_json_yaml(mandate_path)
+    if mandate_data.get("authorizing_actor_ref") != expected_actor_ref:
+        raise ScalePreflightError("mandate authorisation reference does not match selected authority")
     if mandate_data.get("aggregate_policy_bundle_hash") != manifest["aggregate_bundle_hash"]:
         raise ScalePreflightError("mandate bundle hash mismatch")
     if mandate_data.get("policy_hashes") != {key: artifact.content_hash for key, artifact in artifacts.items()}:
@@ -80,8 +118,15 @@ def load_authorisation_package(package_root: str | Path) -> tuple[ScaleMandate, 
     return mandate, registry, routing, sampling, artifacts
 
 
-def validate_authorisation_package(package_root: str | Path, *, synthetic_approval: bool = False) -> ScaleMandate:
-    mandate, registry, routing, _sampling, policies = load_authorisation_package(package_root)
+def validate_authorisation_package(package_root: str | Path, *, authority: AuthorityMode = "production", synthetic_approval: bool = False) -> ScaleMandate:
+    if synthetic_approval and authority != "shadow":
+        raise ScalePreflightError("synthetic approval is test-only and cannot validate production authority")
+    if authority == "shadow" and not synthetic_approval:
+        # Keep the candidate's rejection explicit before any test-only replacement.
+        mandate, registry, routing, _sampling, policies = load_authorisation_package(package_root, authority=authority)
+        mandate.validate()
+        raise ScalePreflightError("shadow candidate requires explicit synthetic test approval")
+    mandate, registry, routing, _sampling, policies = load_authorisation_package(package_root, authority=authority)
     if synthetic_approval:
         mandate = replace(mandate, authorizing_actor_ref="TEST_ONLY_SYNTHETIC_APPROVAL")
     mandate.validate()
@@ -91,7 +136,7 @@ def validate_authorisation_package(package_root: str | Path, *, synthetic_approv
 
 def plan_task_instances(package_root: str | Path) -> list[dict[str, object]]:
     """Enumerate the offline plan; source-dependent applicability stays unknown."""
-    mandate, registry, _routing, _sampling, _policies = load_authorisation_package(package_root)
+    mandate, registry, _routing, _sampling, _policies = load_authorisation_package(package_root, authority="production")
     groups = {
         "regulator_structured_finance": {"identity_regulatory", "finance_source_native"},
         "first_party_service": {"purpose_cause", "program_service", "activity_source_reported", "population_geography", "participation", "direct_service"},
