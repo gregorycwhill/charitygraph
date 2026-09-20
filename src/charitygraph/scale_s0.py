@@ -7,13 +7,17 @@ paid boundary are immutable material identities, never caller assertions.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, is_dataclass
+from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from enum import StrEnum
 from hashlib import sha256
 import json
 from typing import Iterable, Mapping
 
-from .runtime.catalog import canonical_execution_configuration_hash
+from .runtime.catalog import (
+    S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME,
+    canonical_execution_configuration_hash,
+)
 
 
 def _digest(value: object) -> str:
@@ -143,6 +147,15 @@ class ExecutionAttemptIdentity:
 
 
 @dataclass(frozen=True)
+class OwnerAttestation:
+    """Product-owner approval bound to one frozen S0 provider request."""
+    attestation_id: str; execution_attempt_id: str; mandate_id: str; mandate_hash: str; slice_id: str; run_id: str
+    builder_commit_sha: str; data_commit_sha: str; configuration_hash: str; attempt_material_hash: str
+    packet_id: str; packet_binding_hash: str; task_key: str; reservation_id: str; provider_request_identity: str
+    setting_name: str; observed_value: str; attested_by: str; owner_attestation_hash: str; observed_at: str; recorded_at: str
+
+
+@dataclass(frozen=True)
 class SourceAuthorisation:
     source_id: str; source_family: str; url_or_identity: str; authority_role: str; rights_transmission_status: str; acquisition_state: str; parsing_state: str; snapshot_hash: str; claim_families: tuple[str, ...]; source_record_id: str = ""; rights_policy_version: str = ""; specialist_authorisation_id: str | None = None; access_classification: str = "SEPARATELY_LICENSED_OR_CONTROLLED"; technical_access_state: str = "unknown"
     def permits(self, task: TaskContract, mandate: ScaleMandate) -> bool:
@@ -237,6 +250,11 @@ class ScaleS0Preflight:
     @staticmethod
     def register_durable_execution_attempt(catalog: object, attempt: ExecutionAttemptIdentity) -> dict:
         return catalog.register_scale_s0_execution_attempt(_material(attempt))
+
+    @staticmethod
+    def register_durable_owner_attestation(catalog: object, attestation: OwnerAttestation) -> dict:
+        """Record the exact owner approval that the catalogue must re-check at send time."""
+        return catalog.register_scale_s0_owner_attestation(_material(attestation))
 
     @classmethod
     def from_catalog(cls, catalog: object, *, mandate_id: str, packet_id: str, economics: EconomicState | None = None, offline: bool = False) -> "ScaleS0Preflight":
@@ -409,15 +427,13 @@ class ScaleS0Preflight:
         if self.mandate.provider_call_ceiling<=e.provider_calls or Decimal(self.mandate.provider_spend_ceiling)<=e.provider_spend+e.estimated_provider_cost or e.reservation_remaining<e.estimated_provider_cost: raise ScalePreflightError("provider call or spend ceiling exhausted")
         if self.mandate.per_request_reservation_cap and e.estimated_provider_cost > Decimal(self.mandate.per_request_reservation_cap): raise ScalePreflightError("provider request exceeds reservation cap")
         if route==RoutingClass.STRONG_REASONING and Decimal(self.mandate.strong_model_spend_ceiling)<=e.strong_model_spend+e.estimated_strong_cost: raise ScalePreflightError("strong-model ceiling exhausted")
-    def provider_send(self, request: SendRequest, *, triggered_escalations: Iterable[str] = ()) -> TaskContract:
+    def provider_send(self, request: SendRequest, *, triggered_escalations: Iterable[str] = (), now: datetime | None = None) -> TaskContract:
         if self.catalog is not None and self.execution_attempt is None:
             raise ScalePreflightError("live provider send requires a durable execution-attempt binding")
         task=self._task(request.task_id,request.task_version)
         if request.subject_id not in self.mandate.subject_ids or not request.scope_id: raise ScalePreflightError("request is outside frozen population or scope")
         packet=self._packet(request,task); route=self.routing.route_for(task,triggered_escalations)
         if request.route!=route or packet.routing_class!=route: raise ScalePreflightError("caller cannot choose a route")
-        if self.catalog is not None and self.execution_attempt is not None and hasattr(self.catalog, "validate_scale_s0_provider_send"):
-            self.catalog.validate_scale_s0_provider_send(packet_id=packet.packet_id, execution_attempt_id=self.execution_attempt.attempt_id, mandate_id=self.mandate.mandate_id, slice_id=self.mandate.slice_id, task_key=task.key, reservation_id=request.reservation_id)
         if self.catalog is not None and self.catalog.get_provider_request_item(packet.provider_request_identity) is not None:
             raise ScalePreflightError("durable provider-request identity already exists")
         if self.halts.active(slice_id=self.mandate.slice_id,task_key=task.key,subject_id=request.subject_id) or self.catalog and self.catalog.active_scale_s0_halt(slice_id=self.mandate.slice_id,task_key=task.key,subject_id=request.subject_id): raise ScalePreflightError("applicable hard halt prevents provider send")
@@ -425,7 +441,10 @@ class ScaleS0Preflight:
             source=self.sources.get(source_id)
             if source is None or source.source_family not in self.mandate.applicable_source_families or source.snapshot_hash!=snapshot_hash or not source.permits(task,self.mandate): raise ScalePreflightError("source is unauthorised or changed after freeze")
         if request.prior_attempt is not None and (not request.retry_permitted or request.prior_attempt.provider_request_identity!=packet.provider_request_identity or request.prior_attempt.state not in {"pre_send_failed","prepared"}): raise ScalePreflightError("retry is not ambiguity-safe")
-        self._economics(request,task,route); return task
+        self._economics(request,task,route)
+        if self.catalog is not None and self.execution_attempt is not None and hasattr(self.catalog, "validate_scale_s0_provider_send"):
+            self.catalog.validate_scale_s0_provider_send(packet_id=packet.packet_id, execution_attempt_id=self.execution_attempt.attempt_id, mandate_id=self.mandate.mandate_id, slice_id=self.mandate.slice_id, task_id=task.task_id, task_version=task.version, task_key=task.key, route=route.value, source_ids=request.source_ids, source_snapshot_hashes=packet.source_snapshot_hashes, input_profile_id=task.input_profile_id, output_schema_id=task.output_schema_id, reservation_id=request.reservation_id, observed_at=now or datetime.now(timezone.utc))
+        return task
     def review_requirement(self,candidate:Candidate,sampling:SamplingPolicy,reasons:Iterable[str])->ReviewRequirement:
         task=self._task(candidate.task_id,candidate.task_version)
         if candidate.subject_id not in self.mandate.subject_ids or candidate.claim_family!=task.family: raise ScalePreflightError("candidate is outside authorised subject or semantic family")

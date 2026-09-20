@@ -1,11 +1,12 @@
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 import pytest
 
-from charitygraph.runtime import ConflictError, SQLiteCatalog
-from charitygraph.scale_s0 import ExecutionAttemptIdentity, ScalePreflightError, ScaleS0Preflight
+from charitygraph.runtime import CatalogError, ConflictError, SQLiteCatalog
+from charitygraph.runtime.catalog import S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME
+from charitygraph.scale_s0 import ExecutionAttemptIdentity, OwnerAttestation, ScalePreflightError, ScaleS0Preflight
 from charitygraph.runtime.catalog import canonical_execution_configuration_hash
 from charitygraph.s0_acquisition_bridge import (
     FrozenCorpus, MandatePopulation, PhysicalBundle, RepresentationRecord,
@@ -43,6 +44,33 @@ def _attempt(mandate):
         )
     })
     return ExecutionAttemptIdentity(**values)
+
+
+def _owner_attestation(attempt, packet, reservation_id):
+    """Synthetic-only attestation: no historical owner material is a fixture."""
+    return OwnerAttestation(
+        attestation_id="attestation:model-d:synthetic",
+        execution_attempt_id=attempt.attempt_id,
+        mandate_id=attempt.mandate_id,
+        mandate_hash=attempt.mandate_hash,
+        slice_id=attempt.slice_id,
+        run_id=attempt.run_id,
+        builder_commit_sha=attempt.builder_commit_sha,
+        data_commit_sha=attempt.data_commit_sha,
+        configuration_hash=attempt.configuration_hash,
+        attempt_material_hash=attempt.material_hash,
+        packet_id=packet.packet_id,
+        packet_binding_hash=packet.binding_hash,
+        task_key=f"{packet.task_id}@{packet.task_version}",
+        reservation_id=reservation_id,
+        provider_request_identity=packet.provider_request_identity,
+        setting_name=S0_LIVE_SEND_SETTING_NAME,
+        observed_value=S0_LIVE_SEND_OBSERVED_VALUE,
+        attested_by=S0_LIVE_SEND_ATTESTER,
+        owner_attestation_hash="a" * 64,
+        observed_at=NOW,
+        recorded_at=NOW,
+    )
 
 
 def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_path):
@@ -85,16 +113,64 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
     live = ScaleS0Preflight.from_catalog(restarted, mandate_id=mandate.mandate_id, packet_id=provider_packet.packet_id)
     from charitygraph.scale_s0 import SendRequest
     request = SendRequest("physical:model-d", TASK.task_id, TASK.version, provider_packet.subject_id, provider_packet.scope_id, provider_packet.binding_hash, True, TASK.default_routing, reservation["reservation_id"], provider_packet.source_ids, False)
-    assert live.provider_send(request) == TASK
+    with pytest.raises(ConflictError, match="owner attestation"):
+        live.provider_send(request)
+    attestation = _owner_attestation(attempt, provider_packet, reservation["reservation_id"])
+    stored_attestation = ScaleS0Preflight.register_durable_owner_attestation(restarted, attestation)
+    assert stored_attestation["attested_by"] == "Greg"
+    assert ScaleS0Preflight.register_durable_owner_attestation(restarted, attestation)["material_hash"] == stored_attestation["material_hash"]
+    with pytest.raises(ConflictError, match="owner attestation"):
+        ScaleS0Preflight.register_durable_owner_attestation(restarted, replace(attestation, data_commit_sha="0" * 40))
+    with pytest.raises(ConflictError, match="owner attestation"):
+        ScaleS0Preflight.register_durable_owner_attestation(restarted, replace(attestation, attempt_material_hash="0" * 64))
+    with pytest.raises(ConflictError, match="absent|attempt"):
+        ScaleS0Preflight.register_durable_owner_attestation(restarted, replace(attestation, attestation_id="attestation:model-d:other", execution_attempt_id="attempt:other"))
+    for changed in (
+        replace(attestation, setting_name="WRONG_SETTING"),
+        replace(attestation, observed_value="disabled"),
+        replace(attestation, attested_by="NOT_GREG"),
+        replace(attestation, observed_at="2026-09-19T00:00:00"),
+        replace(attestation, recorded_at="2026-09-19T00:00:00"),
+    ):
+        with pytest.raises(CatalogError, match="attestation|timezone-aware|Greg"):
+            ScaleS0Preflight.register_durable_owner_attestation(restarted, changed)
+    assert live.provider_send(request, now=datetime.fromisoformat(NOW)) == TASK
+    observed = datetime.fromisoformat(attestation.observed_at)
+    with pytest.raises(ConflictError, match="future|stale"):
+        live.provider_send(request, now=observed + timedelta(minutes=16))
+    with pytest.raises(ConflictError, match="future|stale"):
+        live.provider_send(request, now=observed - timedelta(seconds=1))
+    restarted.record_scale_s0_halt(halt_id="halt:model-d:synthetic", slice_id=mandate.slice_id, scope="task", task_key=TASK.key, reason="synthetic gate test", created_at=NOW)
+    with pytest.raises(ScalePreflightError, match="halt"):
+        live.provider_send(request, now=datetime.fromisoformat(NOW))
+    restarted.recover_scale_s0_halt(halt_id="halt:model-d:synthetic", actor="Greg", rationale="synthetic gate test complete", recovered_at=NOW)
+    assert live.provider_send(request, now=datetime.fromisoformat(NOW)) == TASK
+    with restarted._connection(immediate=True) as conn:
+        mandate_row = conn.execute("SELECT authority_json FROM scale_s0_mandates WHERE mandate_id=?", (mandate.mandate_id,)).fetchone()
+        authority_json_text = mandate_row["authority_json"]
+        authority_json = __import__("json").loads(authority_json_text)
+        authority_json["sources"][provider_packet.source_ids[0]]["rights_transmission_status"] = "forbidden"
+        conn.execute("UPDATE scale_s0_mandates SET authority_json=? WHERE mandate_id=?", (__import__("json").dumps(authority_json, sort_keys=True, separators=(",", ":")), mandate.mandate_id))
+        restarted._commit(conn)
+    with pytest.raises(ConflictError, match="source-rights"):
+        live.provider_send(request, now=datetime.fromisoformat(NOW))
+    with restarted._connection(immediate=True) as conn:
+        conn.execute("UPDATE scale_s0_mandates SET authority_json=? WHERE mandate_id=?", (authority_json_text, mandate.mandate_id))
+        restarted._commit(conn)
     with pytest.raises(ScalePreflightError):
         ScaleS0Preflight.from_catalog(restarted, mandate_id=mandate.mandate_id, packet_id=provider_packet.packet_id, economics=economics)
+    with restarted._connection(immediate=True) as conn:
+        conn.execute("DELETE FROM scale_s0_owner_attestations WHERE reservation_id=?", (reservation["reservation_id"],))
+        restarted._commit(conn)
+    with pytest.raises(ConflictError, match="owner attestation"):
+        live.provider_send(request, now=datetime.fromisoformat(NOW))
     with restarted._connection(immediate=True) as conn:
         conn.execute("DELETE FROM scale_s0_reservation_bindings WHERE reservation_id=?", (reservation["reservation_id"],))
         conn.execute("DELETE FROM reservation_tasks WHERE reservation_id=?", (reservation["reservation_id"],))
         conn.execute("DELETE FROM budget_reservations WHERE reservation_id=?", (reservation["reservation_id"],))
         restarted._commit(conn)
     with pytest.raises(ConflictError):
-        live.provider_send(request)
+        live.provider_send(request, now=datetime.fromisoformat(NOW))
     with pytest.raises(ConflictError):
         catalog.register_scale_s0_physical_bundle({"bundle_id": "bundle:model-d-substitute", "mandate_id": mandate.mandate_id, "routing_class": TASK.default_routing.value, "packet_ids": tuple(item.packet_id for item in packets), "packet_hashes": tuple(item.binding_hash for item in packets), "frozen_at": NOW}, execution_attempt_id="attempt:other")
     with pytest.raises(ConflictError):

@@ -68,6 +68,11 @@ TASK_TRANSITIONS = {
     "succeeded": set(), "failed_terminal": set(), "held": set(), "cancelled": set(),
 }
 
+S0_LIVE_SEND_SETTING_NAME = "Share inputs and outputs with OpenAI"
+S0_LIVE_SEND_OBSERVED_VALUE = "Disabled"
+S0_LIVE_SEND_ATTESTER = "Greg"
+S0_LIVE_SEND_MAX_ATTESTATION_AGE = timedelta(minutes=15)
+
 
 def default_database_path(runtime_root: str | Path) -> Path:
     """Return the production path without creating a directory or database."""
@@ -540,6 +545,61 @@ class SQLiteCatalog:
             raise ConflictError("Scale S0 execution attempt binding is absent or stale")
         return row
 
+    def register_scale_s0_owner_attestation(self, attestation: Mapping[str, Any]) -> dict[str, Any]:
+        """Persist one immutable owner approval for one exact live send.
+
+        The authority is intentionally fully denormalised into the attestation
+        material.  This makes a restart-time gate independent of caller memory
+        and rejects an attestation copied from another attempt, packet, or
+        implementation/Data revision.
+        """
+        self._require_migrated()
+        fields = (
+            "attestation_id", "execution_attempt_id", "mandate_id", "mandate_hash", "slice_id", "run_id",
+            "builder_commit_sha", "data_commit_sha", "configuration_hash", "attempt_material_hash", "packet_id", "packet_binding_hash",
+            "task_key", "reservation_id", "provider_request_identity", "setting_name", "observed_value",
+            "attested_by", "owner_attestation_hash", "observed_at", "recorded_at",
+        )
+        if set(attestation) != set(fields) or any(not attestation.get(field) for field in fields):
+            raise CatalogError("Scale S0 owner attestation lacks canonical immutable binding")
+        material = {field: attestation[field] for field in fields}
+        material["observed_at"] = _utc(material["observed_at"], "observed_at")
+        material["recorded_at"] = _utc(material["recorded_at"], "recorded_at")
+        if (material["setting_name"], material["observed_value"], material["attested_by"]) != (S0_LIVE_SEND_SETTING_NAME, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_ATTESTER):
+            raise CatalogError("Scale S0 owner attestation must record Greg's required OpenAI-sharing setting")
+        if datetime.fromisoformat(material["recorded_at"]) < datetime.fromisoformat(material["observed_at"]):
+            raise CatalogError("Scale S0 owner attestation recorded_at precedes observed_at")
+        material_hash = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (material["execution_attempt_id"],)).fetchone()
+            packet = conn.execute("SELECT * FROM scale_s0_frozen_packets WHERE packet_id=?", (material["packet_id"],)).fetchone()
+            reservation = conn.execute("SELECT run_id FROM budget_reservations WHERE reservation_id=?", (material["reservation_id"],)).fetchone()
+            if attempt is None or packet is None or reservation is None:
+                raise ConflictError("owner attestation references absent durable live-send material")
+            attempt_binding = (attempt["mandate_id"], attempt["mandate_hash"], attempt["slice_id"], attempt["run_id"], attempt["builder_commit_sha"], attempt["data_commit_sha"], attempt["configuration_hash"], attempt["material_hash"])
+            supplied_binding = tuple(material[field] for field in ("mandate_id", "mandate_hash", "slice_id", "run_id", "builder_commit_sha", "data_commit_sha", "configuration_hash", "attempt_material_hash"))
+            if supplied_binding != attempt_binding or reservation["run_id"] != attempt["run_id"]:
+                raise ConflictError("owner attestation is not bound to its execution attempt and reservation")
+            packet_material = json.loads(packet["material_json"])
+            packet_binding = (packet["execution_attempt_id"], packet["mandate_id"], packet["slice_id"], packet_material.get("binding_hash"), packet_material.get("task_key"), packet_material.get("provider_request_identity"))
+            expected_packet_binding = (material["execution_attempt_id"], material["mandate_id"], material["slice_id"], material["packet_binding_hash"], material["task_key"], material["provider_request_identity"])
+            if packet_binding != expected_packet_binding:
+                raise ConflictError("owner attestation is not bound to the exact frozen packet")
+            prior = conn.execute("SELECT * FROM scale_s0_owner_attestations WHERE attestation_id=?", (material["attestation_id"],)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("Scale S0 owner attestation identity conflict")
+                return self._scale_s0_row(prior) or {}
+            existing = conn.execute("SELECT attestation_id FROM scale_s0_owner_attestations WHERE execution_attempt_id=? AND packet_id=?", (material["execution_attempt_id"], material["packet_id"])).fetchone()
+            if existing is not None:
+                raise ConflictError("an exact live S0 packet cannot receive a competing owner attestation")
+            conn.execute(
+                "INSERT INTO scale_s0_owner_attestations(attestation_id,execution_attempt_id,mandate_id,mandate_hash,slice_id,run_id,builder_commit_sha,data_commit_sha,configuration_hash,attempt_material_hash,packet_id,packet_binding_hash,task_key,reservation_id,provider_request_identity,setting_name,observed_value,attested_by,owner_attestation_hash,observed_at,recorded_at,material_json,material_hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                tuple(material[field] for field in fields) + (self._json(material), material_hash),
+            )
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_owner_attestations WHERE attestation_id=?", (material["attestation_id"],)).fetchone()) or {}
+
     def register_scale_s0_frozen_packet(self, packet: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()
         packet_id = _text(packet.get("packet_id"), "packet_id")
@@ -775,22 +835,76 @@ class SQLiteCatalog:
             result = dict(row); result["state"] = json.loads(result["state_json"]); return result
 
     def validate_scale_s0_provider_send(self, *, packet_id: str, execution_attempt_id: str, mandate_id: str,
-                                        slice_id: str, task_key: str, reservation_id: str | None) -> None:
+                                        slice_id: str, task_id: str, task_version: str, task_key: str,
+                                        route: str, source_ids: tuple[str, ...], source_snapshot_hashes: tuple[str, ...],
+                                        input_profile_id: str, output_schema_id: str, reservation_id: str | None,
+                                        observed_at: datetime) -> None:
         """Re-check all durable attempt ownership immediately before a live send."""
         with self._connection() as conn:
             attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (execution_attempt_id,)).fetchone()
             packet = conn.execute("SELECT * FROM scale_s0_frozen_packets WHERE packet_id=?", (packet_id,)).fetchone()
             if attempt is None or packet is None or packet["execution_attempt_id"] != execution_attempt_id or packet["mandate_id"] != mandate_id or packet["slice_id"] != slice_id:
                 raise ConflictError("durable provider send attempt or packet ownership is invalid")
+            if _canonical_hash(json.loads(attempt["material_json"])) != attempt["material_hash"]:
+                raise ConflictError("durable execution-attempt identity integrity is invalid")
             material = json.loads(packet["material_json"])
+            if _canonical_hash(material) != packet["material_hash"]:
+                raise ConflictError("durable packet request identity integrity is invalid")
             if (material.get("execution_attempt_id"), material.get("mandate_id"), material.get("slice_id"), material.get("task_key")) != (execution_attempt_id, mandate_id, slice_id, task_key):
                 raise ConflictError("durable packet task or attempt identity is invalid")
+            if (material.get("task_id"), material.get("task_version"), material.get("routing_class"), tuple(material.get("source_ids") or ()), tuple(material.get("source_snapshot_hashes") or ()), material.get("input_profile_id"), material.get("output_schema_id")) != (task_id, task_version, route, source_ids, source_snapshot_hashes, input_profile_id, output_schema_id):
+                raise ConflictError("durable provider request route or schema identity is invalid")
+            mandate = conn.execute("SELECT * FROM scale_s0_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            if mandate is None or _canonical_hash({"mandate": json.loads(mandate["material_json"]), "authority": json.loads(mandate["authority_json"])}) != mandate["material_hash"]:
+                raise ConflictError("durable mandate/source-rights authority integrity is invalid")
+            authority = json.loads(mandate["authority_json"])
+            mandate_material = json.loads(mandate["material_json"])
+            contracts = authority.get("registry", {}).get("contracts", ())
+            task_contract = next((item for item in contracts if item.get("task_id") == task_id and item.get("version") == task_version), None)
+            if task_contract is None or (task_contract.get("input_profile_id"), task_contract.get("output_schema_id")) != (input_profile_id, output_schema_id):
+                raise ConflictError("durable task schema authority is invalid")
+            source_authority = authority.get("sources", {})
+            if len(source_ids) != len(source_snapshot_hashes) or not source_ids:
+                raise ConflictError("durable provider source identity is incomplete")
+            for source_id, snapshot_hash in zip(source_ids, source_snapshot_hashes, strict=True):
+                source = source_authority.get(source_id)
+                if not isinstance(source, dict) or source.get("snapshot_hash") != snapshot_hash or source.get("source_family") not in mandate_material.get("applicable_source_families", ()):
+                    raise ConflictError("durable source identity is invalid")
+                open_web = source.get("access_classification") == "OPEN_WEB_PUBLIC" and source.get("technical_access_state") == "accessible" and source.get("rights_transmission_status") in {"permitted", "permitted_open_web_policy"}
+                controlled = source.get("access_classification") == "SEPARATELY_LICENSED_OR_CONTROLLED" and source.get("rights_transmission_status") == "permitted"
+                if not (open_web or controlled) or source.get("acquisition_state") != "acquired" or source.get("parsing_state") not in {"parsed", "structured"} or not source.get("source_record_id") or task_contract.get("family") not in tuple(source.get("claim_families") or ()):
+                    raise ConflictError("durable source-rights authority does not permit provider send")
+            attestations = conn.execute("SELECT * FROM scale_s0_owner_attestations WHERE execution_attempt_id=? AND packet_id=?", (execution_attempt_id, packet_id)).fetchall()
+            if len(attestations) != 1:
+                raise ConflictError("live Scale S0 provider send lacks one durable owner attestation")
+            attestation = attestations[0]
+            attestation_material = json.loads(attestation["material_json"])
+            if _canonical_hash(attestation_material) != attestation["material_hash"]:
+                raise ConflictError("durable owner attestation integrity is invalid")
+            expected_attestation = {
+                "attestation_id": attestation["attestation_id"], "execution_attempt_id": execution_attempt_id,
+                "mandate_id": mandate_id, "mandate_hash": attempt["mandate_hash"], "slice_id": slice_id,
+                "run_id": attempt["run_id"], "builder_commit_sha": attempt["builder_commit_sha"],
+                "data_commit_sha": attempt["data_commit_sha"], "configuration_hash": attempt["configuration_hash"], "attempt_material_hash": attempt["material_hash"],
+                "packet_id": packet_id, "packet_binding_hash": material.get("binding_hash"), "task_key": task_key,
+                "reservation_id": reservation_id, "provider_request_identity": material.get("provider_request_identity"),
+                "setting_name": attestation["setting_name"], "observed_value": attestation["observed_value"],
+                "attested_by": attestation["attested_by"], "owner_attestation_hash": attestation["owner_attestation_hash"],
+                "observed_at": attestation["observed_at"], "recorded_at": attestation["recorded_at"],
+            }
+            if attestation_material != expected_attestation:
+                raise ConflictError("durable owner attestation is stale or not bound to this live send")
+            now_utc = datetime.fromisoformat(_utc(observed_at, "provider_send_observed_at"))
+            attested_at = datetime.fromisoformat(attestation["observed_at"])
+            recorded_at = datetime.fromisoformat(attestation["recorded_at"])
+            if attestation["setting_name"] != S0_LIVE_SEND_SETTING_NAME or attestation["observed_value"] != S0_LIVE_SEND_OBSERVED_VALUE or attestation["attested_by"] != S0_LIVE_SEND_ATTESTER or attested_at > now_utc or recorded_at > now_utc or recorded_at < attested_at or now_utc - attested_at > S0_LIVE_SEND_MAX_ATTESTATION_AGE:
+                raise ConflictError("durable owner live-send attestation is absent, future, stale, or not Greg's required setting")
             corpus_id = material.get("corpus_id")
             corpus = conn.execute("SELECT * FROM scale_s0_frozen_corpora WHERE corpus_id=?", (corpus_id,)).fetchone() if corpus_id else None
             if corpus is None or corpus["execution_attempt_id"] != execution_attempt_id or corpus["mandate_id"] != mandate_id or corpus["subject_id"] != material.get("subject_id"):
                 raise ConflictError("durable packet corpus ownership is invalid")
             corpus_material = json.loads(corpus["material_json"])
-            if corpus_material.get("execution_attempt_id") != execution_attempt_id or corpus_material.get("mandate_id") != mandate_id:
+            if _canonical_hash(corpus_material) != corpus["material_hash"] or corpus_material.get("execution_attempt_id") != execution_attempt_id or corpus_material.get("mandate_id") != mandate_id:
                 raise ConflictError("durable corpus identity is invalid")
             source_records = tuple(corpus_material.get("source_record_ids") or ())
             snapshot_hashes = tuple(corpus_material.get("snapshot_hashes") or ())
@@ -821,9 +935,14 @@ class SQLiteCatalog:
                 raise ConflictError("canonical budget reservation cohort is not owned by the run")
             if conn.execute("SELECT 1 FROM reservation_tasks WHERE reservation_id=? AND model_task_id=?", (reservation_id, task_key)).fetchone() is None:
                 raise ConflictError("canonical budget reservation is not linked to the exact task")
-            bundle_rows = conn.execute("SELECT material_json,execution_attempt_id FROM scale_s0_physical_bundles").fetchall()
-            if not any(row["execution_attempt_id"] == execution_attempt_id and packet_id in (json.loads(row["material_json"]).get("packet_ids") or ()) for row in bundle_rows):
+            bundle_rows = conn.execute("SELECT material_json,material_hash,execution_attempt_id FROM scale_s0_physical_bundles").fetchall()
+            if not any(row["execution_attempt_id"] == execution_attempt_id and _canonical_hash(json.loads(row["material_json"])) == row["material_hash"] and packet_id in (json.loads(row["material_json"]).get("packet_ids") or ()) for row in bundle_rows):
                 raise ConflictError("durable packet is not owned by an attempt-bound physical bundle")
+            halt = conn.execute("SELECT 1 FROM scale_s0_halts WHERE slice_id=? AND hard=1 AND recovered_at IS NULL AND (scope='slice' OR (scope='task' AND task_key=?) OR (scope='subject' AND subject_id=?)) LIMIT 1", (slice_id, task_key, material.get("subject_id"))).fetchone()
+            if halt is not None:
+                raise ConflictError("applicable durable hard halt prevents provider send")
+            if conn.execute("SELECT 1 FROM provider_request_items WHERE provider_request_item_id=?", (material.get("provider_request_identity"),)).fetchone() is not None:
+                raise ConflictError("durable provider-request identity already exists")
 
     def register_scale_s0_candidate(self, candidate: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()

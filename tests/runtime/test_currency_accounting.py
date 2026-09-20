@@ -68,15 +68,15 @@ def test_aud_legacy_surface_stays_aud(tmp_path):
 def test_upgrade_from_immediately_previous_schema_preserves_aud_authority(tmp_path, monkeypatch):
     path = tmp_path / "prior.sqlite3"
     monkeypatch.setattr(catalog_module, "MIGRATIONS", MIGRATIONS[:-1])
-    monkeypatch.setattr(catalog_module, "SUPPORTED_VERSION", 19)
+    monkeypatch.setattr(catalog_module, "SUPPORTED_VERSION", MIGRATIONS[-2].version)
     prior = SQLiteCatalog(path).open(initialize=True)
     prior.close()
     with sqlite3.connect(path) as conn:
-        conn.execute("INSERT INTO cohorts VALUES (?,?,?,?,?,?,?)", (COHORT, "SPIKE", "1", "a" * 64, "1", NOW.isoformat(), "cohort-hash"))
+        conn.execute("INSERT INTO cohorts(cohort_id, cohort_code, definition_version, membership_hash, budget_cap_aud, created_at, material_hash, budget_cap_amount, accounting_currency) VALUES (?,?,?,?,?,?,?,?,?)", (COHORT, "SPIKE", "1", "a" * 64, "1", NOW.isoformat(), "cohort-hash", "1", "AUD"))
         conn.execute("INSERT INTO runs VALUES (?,?,?,?,?,?,?,?,?,?)", (RUN, COHORT, "economics_spike", "planned", "b" * 64, NOW.isoformat(), None, None, NOW.isoformat(), "run-hash"))
-        conn.execute("INSERT INTO budget_reservations VALUES (?,?,?,?,?,?,?,?,?)", (RES, COHORT, RUN, "0.25", "active", NOW.isoformat(), None, NOW.isoformat(), "reservation-hash"))
+        conn.execute("INSERT INTO budget_reservations(reservation_id, cohort_id, run_id, reserved_aud, status, reserved_at, expires_at, updated_at, material_hash, reserved_amount, accounting_currency) VALUES (?,?,?,?,?,?,?,?,?,?,?)", (RES, COHORT, RUN, "0.25", "active", NOW.isoformat(), None, NOW.isoformat(), "reservation-hash", "0.25", "AUD"))
     monkeypatch.setattr(catalog_module, "MIGRATIONS", MIGRATIONS)
-    monkeypatch.setattr(catalog_module, "SUPPORTED_VERSION", 20)
+    monkeypatch.setattr(catalog_module, "SUPPORTED_VERSION", MIGRATIONS[-1].version)
     upgraded = SQLiteCatalog(path).open(initialize=True)
     assert upgraded.get_cohort(COHORT)["budget_cap_amount"] == "1"
     assert upgraded.get_reservation(RES)["reserved_amount"] == "0.25"
