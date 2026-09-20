@@ -993,6 +993,40 @@ CREATE INDEX budget_reservations_currency_idx ON budget_reservations(cohort_id, 
 CREATE INDEX cost_entries_currency_idx ON cost_entries(cohort_id, accounting_currency, entry_type, reservation_id);
 """.strip() + "\n"
 
+# An owner attestation is a one-send authority, not a mutable run flag.  It
+# deliberately repeats the implementation and packet identities so a live
+# send can be denied from the catalogue alone after process restart.
+CATALOGUE_SQL_V21 = """
+CREATE TABLE scale_s0_owner_attestations (
+    attestation_id TEXT PRIMARY KEY,
+    execution_attempt_id TEXT NOT NULL REFERENCES scale_s0_execution_attempts(attempt_id),
+    mandate_id TEXT NOT NULL REFERENCES scale_s0_mandates(mandate_id),
+    mandate_hash TEXT NOT NULL,
+    slice_id TEXT NOT NULL,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    builder_commit_sha TEXT NOT NULL,
+    data_commit_sha TEXT NOT NULL,
+    configuration_hash TEXT NOT NULL,
+    attempt_material_hash TEXT NOT NULL,
+    packet_id TEXT NOT NULL REFERENCES scale_s0_frozen_packets(packet_id),
+    packet_binding_hash TEXT NOT NULL,
+    task_key TEXT NOT NULL,
+    reservation_id TEXT NOT NULL REFERENCES budget_reservations(reservation_id),
+    provider_request_identity TEXT NOT NULL,
+    setting_name TEXT NOT NULL,
+    observed_value TEXT NOT NULL,
+    attested_by TEXT NOT NULL CHECK(attested_by = 'Greg'),
+    owner_attestation_hash TEXT NOT NULL,
+    observed_at TEXT NOT NULL,
+    recorded_at TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL UNIQUE,
+    UNIQUE(execution_attempt_id, packet_id)
+);
+CREATE INDEX scale_s0_owner_attestations_send_idx
+    ON scale_s0_owner_attestations(execution_attempt_id, packet_id, reservation_id);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -1014,6 +1048,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(18, "durable_scale_s0_acquisition_packet_bridge", CATALOGUE_SQL_V18),
     Migration(19, "durable_scale_s0_execution_attempt_identity", CATALOGUE_SQL_V19),
     Migration(20, "currency_bound_runtime_accounting", CATALOGUE_SQL_V20),
+    Migration(21, "durable_scale_s0_owner_attestation_send_gate", CATALOGUE_SQL_V21),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
