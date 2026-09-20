@@ -171,6 +171,17 @@ def _money_amount(value: Any, field: str = "amount") -> Decimal:
     return result
 
 
+def _money(value: Any, field: str = "amount") -> tuple[Decimal, str]:
+    """Validate a non-negative, explicitly-currency-bound accounting amount."""
+    amount = _decimal(_get(value, "amount", default=value), field)
+    if amount < 0:
+        raise CatalogError(f"{field} must be non-negative")
+    currency = _get(value, "currency")
+    if not isinstance(currency, str) or len(currency) != 3 or not currency.isascii() or not currency.isalpha() or currency != currency.upper():
+        raise CatalogError(f"{field} must carry a three-letter upper-case currency")
+    return amount, currency
+
+
 def _utc(value: datetime | str, field: str = "timestamp") -> str:
     if isinstance(value, str):
         try:
@@ -254,6 +265,33 @@ class BudgetPosition:
     net_actual_spend_aud: Decimal
     committed_exposure_aud: Decimal
     remaining_budget_aud: Decimal
+    breach: bool
+
+    def as_dict(self) -> dict[str, Any]:
+        result = asdict(self)
+        for key, value in result.items():
+            if isinstance(value, Decimal):
+                result[key] = str(value)
+        return result
+
+
+@dataclass(frozen=True)
+class CurrencyBudgetPosition:
+    """Exact position in the cohort's declared accounting currency."""
+    cohort_id: str
+    currency: str
+    cohort_cap: Decimal
+    outstanding_reserved_exposure: Decimal
+    released_reserve: Decimal
+    actual_spend: Decimal
+    reservation_overrun: Decimal
+    unreserved_actual: Decimal
+    credits: Decimal
+    adjustment_debits: Decimal
+    adjustment_credits: Decimal
+    net_actual_spend: Decimal
+    committed_exposure: Decimal
+    remaining_budget: Decimal
     breach: bool
 
     def as_dict(self) -> dict[str, Any]:
@@ -942,9 +980,10 @@ class SQLiteCatalog:
         self._require_migrated()
         cohort_id = _text(_get(cohort, "record_id", "cohort_id"), "cohort_id")
         material_hash = _canonical_hash(cohort)
+        cap, currency = _money(_get(cohort, "budget_cap"), "budget_cap")
         row_values = (
             cohort_id, _text(_get(cohort, "cohort_code"), "cohort_code"), _text(_get(cohort, "definition_version"), "definition_version"),
-            _text(_get(cohort, "membership_hash"), "membership_hash"), str(_money_amount(_get(cohort, "budget_cap"), "budget_cap_aud")),
+            _text(_get(cohort, "membership_hash"), "membership_hash"), str(cap if currency == "AUD" else Decimal("0")),
             _utc(_get(cohort, "created_at"), "created_at"), material_hash,
         )
         with self._connection(immediate=True) as conn:
@@ -953,7 +992,7 @@ class SQLiteCatalog:
                 if existing["material_hash"] != material_hash:
                     raise ConflictError(f"cohort {cohort_id} is already registered with different material")
                 return dict(existing)
-            conn.execute("INSERT INTO cohorts(cohort_id, cohort_code, definition_version, membership_hash, budget_cap_aud, created_at, material_hash) VALUES (?, ?, ?, ?, ?, ?, ?)", row_values)
+            conn.execute("INSERT INTO cohorts(cohort_id, cohort_code, definition_version, membership_hash, budget_cap_aud, created_at, material_hash, budget_cap_amount, accounting_currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (*row_values, str(cap), currency))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM cohorts WHERE cohort_id = ?", (cohort_id,)).fetchone())
 
@@ -1012,17 +1051,24 @@ class SQLiteCatalog:
         with self._connection() as conn:
             return _row(conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone())
 
-    def reservation_position(self, reservation_id: str) -> dict[str, Decimal]:
+    def accounting_reservation_position(self, reservation_id: str) -> dict[str, Any]:
         self._require_migrated()
         with self._connection() as conn:
-            row = conn.execute("SELECT reserved_aud FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
+            row = conn.execute("SELECT reserved_amount, accounting_currency FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
             if row is None:
                 raise CatalogError(f"unknown reservation {reservation_id}")
-            reserved = Decimal(row["reserved_aud"])
-            actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
-            released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+            reserved, currency = Decimal(row["reserved_amount"]), row["accounting_currency"]
+            actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(accounting_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual' AND accounting_currency=?", (reservation_id, currency)).fetchone()[0])
+            released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(accounting_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release' AND accounting_currency=?", (reservation_id, currency)).fetchone()[0])
             outstanding = (reserved - min(actual, reserved) - released).quantize(Decimal("0.000001"))
-            return {"reserved": reserved, "actual": actual, "released": released, "outstanding": outstanding}
+            return {"currency": currency, "reserved": reserved, "actual": actual, "released": released, "outstanding": outstanding}
+
+    def reservation_position(self, reservation_id: str) -> dict[str, Decimal]:
+        """Legacy AUD-only position; use accounting_reservation_position otherwise."""
+        position = self.accounting_reservation_position(reservation_id)
+        if position["currency"] != "AUD":
+            raise CatalogError("reservation_position is AUD-only; use accounting_reservation_position")
+        return {key: value for key, value in position.items() if key != "currency"}
 
     @staticmethod
     def _evidence_content_hash(conn: sqlite3.Connection, row: sqlite3.Row) -> str | None:
@@ -1849,9 +1895,10 @@ class SQLiteCatalog:
         if row["expires_at"] is not None and row["expires_at"] <= now_s:
             conn.execute("UPDATE budget_reservations SET status='expired', updated_at=? WHERE reservation_id=?", (now_s, reservation_id))
             return
-        reserved = Decimal(row["reserved_aud"])
-        actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
-        released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+        currency = row["accounting_currency"]
+        reserved = Decimal(row["reserved_amount"])
+        actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(accounting_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual' AND accounting_currency=?", (reservation_id, currency)).fetchone()[0])
+        released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(accounting_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release' AND accounting_currency=?", (reservation_id, currency)).fetchone()[0])
         unused = reserved - min(actual, reserved) - released
         if actual >= reserved:
             status = "released" if released > 0 else "consumed"
@@ -1872,40 +1919,52 @@ class SQLiteCatalog:
             self._commit(conn)
             return len(rows)
 
-    def _position(self, conn: sqlite3.Connection, cohort_id: str) -> BudgetPosition:
-        cohort = conn.execute("SELECT budget_cap_aud FROM cohorts WHERE cohort_id=?", (cohort_id,)).fetchone()
+    def _accounting_position(self, conn: sqlite3.Connection, cohort_id: str) -> CurrencyBudgetPosition:
+        cohort = conn.execute("SELECT budget_cap_amount, accounting_currency FROM cohorts WHERE cohort_id=?", (cohort_id,)).fetchone()
         if cohort is None:
             raise CatalogError(f"unknown cohort {cohort_id}")
-        reservations = conn.execute("SELECT reservation_id, reserved_aud, status FROM budget_reservations WHERE cohort_id=?", (cohort_id,)).fetchall()
+        currency = str(cohort["accounting_currency"])
+        reservations = conn.execute("SELECT reservation_id, reserved_amount, status FROM budget_reservations WHERE cohort_id=? AND accounting_currency=?", (cohort_id, currency)).fetchall()
         reservation_ids = {row["reservation_id"] for row in reservations}
         outstanding = Decimal("0")
         overrun = Decimal("0")
         for reservation in reservations:
             if reservation["status"] == "expired":
                 continue
-            rid, reserved = reservation["reservation_id"], Decimal(reservation["reserved_aud"])
-            actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='actual'", (cohort_id, rid)).fetchone()[0])
-            released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='reservation_release'", (cohort_id, rid)).fetchone()[0])
+            rid, reserved = reservation["reservation_id"], Decimal(reservation["reserved_amount"])
+            actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(accounting_amount), '0')) FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='actual' AND accounting_currency=?", (cohort_id, rid, currency)).fetchone()[0])
+            released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(accounting_amount), '0')) FROM cost_entries WHERE cohort_id=? AND reservation_id=? AND entry_type='reservation_release' AND accounting_currency=?", (cohort_id, rid, currency)).fetchone()[0])
             remaining = (reserved - min(actual, reserved) - released).quantize(Decimal("0.000001"))
             if remaining < 0:
                 raise ConflictError("reservation releases cannot exceed the unused portion of their own reservation")
             outstanding += remaining
             overrun += max(actual - reserved, Decimal("0"))
-        actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='actual'", (cohort_id,)).fetchone()[0])
-        released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='reservation_release'", (cohort_id,)).fetchone()[0])
-        credits = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='credit'", (cohort_id,)).fetchone()[0])
-        debits = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='adjustment' AND adjustment_direction='debit'", (cohort_id,)).fetchone()[0])
-        adjustment_credits = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='adjustment' AND adjustment_direction='credit'", (cohort_id,)).fetchone()[0])
-        unreserved = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='actual' AND reservation_id NOT IN (SELECT reservation_id FROM budget_reservations WHERE cohort_id=?)", (cohort_id, cohort_id)).fetchone()[0])
-        cap = Decimal(cohort["budget_cap_aud"])
+        def total(kind: str, extra: str = "") -> Decimal:
+            return Decimal(conn.execute(f"SELECT printf('%.6f', COALESCE(SUM(accounting_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type=? AND accounting_currency=? {extra}", (cohort_id, kind, currency)).fetchone()[0])
+        actual, released, credits = total("actual"), total("reservation_release"), total("credit")
+        debits = total("adjustment", "AND adjustment_direction='debit'")
+        adjustment_credits = total("adjustment", "AND adjustment_direction='credit'")
+        unreserved = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(accounting_amount), '0')) FROM cost_entries WHERE cohort_id=? AND entry_type='actual' AND accounting_currency=? AND reservation_id NOT IN (SELECT reservation_id FROM budget_reservations WHERE cohort_id=?)", (cohort_id, currency, cohort_id)).fetchone()[0])
+        cap = Decimal(cohort["budget_cap_amount"])
         net = actual + debits - credits - adjustment_credits
         committed = net + outstanding
-        return BudgetPosition(cohort_id, cap, outstanding, released, actual, overrun, unreserved, credits, debits, adjustment_credits, net, committed, cap - committed, committed > cap)
+        return CurrencyBudgetPosition(cohort_id, currency, cap, outstanding, released, actual, overrun, unreserved, credits, debits, adjustment_credits, net, committed, cap - committed, committed > cap)
+
+    def _position(self, conn: sqlite3.Connection, cohort_id: str) -> BudgetPosition:
+        position = self._accounting_position(conn, cohort_id)
+        if position.currency != "AUD":
+            raise CatalogError("budget_position is AUD-only; use accounting_budget_position")
+        return BudgetPosition(position.cohort_id, position.cohort_cap, position.outstanding_reserved_exposure, position.released_reserve, position.actual_spend, position.reservation_overrun, position.unreserved_actual, position.credits, position.adjustment_debits, position.adjustment_credits, position.net_actual_spend, position.committed_exposure, position.remaining_budget, position.breach)
 
     def budget_position(self, cohort_id: str) -> BudgetPosition:
         self._require_migrated()
         with self._connection() as conn:
             return self._position(conn, cohort_id)
+
+    def accounting_budget_position(self, cohort_id: str) -> CurrencyBudgetPosition:
+        self._require_migrated()
+        with self._connection() as conn:
+            return self._accounting_position(conn, cohort_id)
 
     def reserve_cost(self, reservation: Any, *, now: datetime | str) -> dict[str, Any]:
         self._require_migrated()
@@ -1913,7 +1972,8 @@ class SQLiteCatalog:
         rid = _text(_get(reservation, "record_id", "reservation_id"), "reservation_id")
         cohort_id = _text(_get(reservation, "cohort_id"), "cohort_id")
         run_id = _text(_get(reservation, "run_id"), "run_id")
-        amount = _money_amount(_get(reservation, "reserved_aud"), "reserved_aud")
+        money_field = "reserved_amount" if _get(reservation, "reserved_amount") is not None else "reserved_aud"
+        amount, currency = _money(_get(reservation, money_field), money_field)
         expires = _get(reservation, "expires_at")
         material_hash = _canonical_hash(reservation)
         with self._connection(immediate=True) as conn:
@@ -1935,10 +1995,12 @@ class SQLiteCatalog:
                 if existing["material_hash"] != material_hash:
                     raise ConflictError(f"reservation {rid} is already registered with different material")
                 return dict(existing)
-            position = self._position(conn, cohort_id)
-            if position.net_actual_spend_aud + position.outstanding_reserved_exposure_aud + amount > position.cohort_cap_aud:
+            position = self._accounting_position(conn, cohort_id)
+            if currency != position.currency:
+                raise ConflictError("reservation currency must match the cohort accounting currency")
+            if position.net_actual_spend + position.outstanding_reserved_exposure + amount > position.cohort_cap:
                 raise BudgetExceededError("reservation would exceed the cohort budget cap")
-            conn.execute("INSERT INTO budget_reservations(reservation_id, cohort_id, run_id, reserved_aud, status, reserved_at, expires_at, updated_at, material_hash) VALUES (?, ?, ?, ?, 'active', ?, ?, ?, ?)", (rid, cohort_id, run_id, str(amount), now_s, _utc(expires, "expires_at") if expires is not None else None, now_s, material_hash))
+            conn.execute("INSERT INTO budget_reservations(reservation_id, cohort_id, run_id, reserved_aud, status, reserved_at, expires_at, updated_at, material_hash, reserved_amount, accounting_currency) VALUES (?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?)", (rid, cohort_id, run_id, str(amount if currency == "AUD" else Decimal("0")), now_s, _utc(expires, "expires_at") if expires is not None else None, now_s, material_hash, str(amount), currency))
             for task_id in (_get(reservation, "model_task_ids", default=()) or ()):
                 conn.execute("INSERT INTO reservation_tasks(reservation_id, model_task_id) VALUES (?, ?)", (rid, task_id))
             self._commit(conn)
@@ -1951,7 +2013,12 @@ class SQLiteCatalog:
             reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
             if reservation is None:
                 raise ConflictError("reservation release requires a matching reservation")
-            amount_decimal = _money_amount(amount, "release amount")
+            if _get(amount, "currency") is None:
+                amount_decimal, currency = _money(({"amount": amount, "currency": reservation["accounting_currency"]}), "release amount")
+            else:
+                amount_decimal, currency = _money(amount, "release amount")
+            if currency != reservation["accounting_currency"]:
+                raise ConflictError("reservation release currency must match reservation accounting currency")
             timestamp = _utc(now, "now")
             payload = {"entry_key": entry_key, "reservation_id": reservation_id, "amount": str(amount_decimal)}
             entry_hash = _canonical_hash(payload)
@@ -1960,12 +2027,12 @@ class SQLiteCatalog:
                 if existing["entry_hash"] != entry_hash:
                     raise ConflictError("cost entry key was reused with different material")
                 return dict(existing)
-            reserved = Decimal(reservation["reserved_aud"])
-            actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual'", (reservation_id,)).fetchone()[0])
-            released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(aud_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release'", (reservation_id,)).fetchone()[0])
+            reserved = Decimal(reservation["reserved_amount"])
+            actual = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(accounting_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='actual' AND accounting_currency=?", (reservation_id, currency)).fetchone()[0])
+            released = Decimal(conn.execute("SELECT printf('%.6f', COALESCE(SUM(accounting_amount), '0')) FROM cost_entries WHERE reservation_id=? AND entry_type='reservation_release' AND accounting_currency=?", (reservation_id, currency)).fetchone()[0])
             if amount_decimal > reserved - min(actual, reserved) - released:
                 raise ConflictError("reservation release exceeds its own unused amount")
-            conn.execute("INSERT INTO cost_entries(entry_key, entry_hash, cohort_id, run_id, task_run_id, reservation_id, entry_type, paid_output_category, provider_amount, provider_currency, aud_amount, adjustment_direction, pricing_snapshot_id, fx_snapshot_id, usage_json, recorded_at) VALUES (?, ?, ?, ?, NULL, ?, 'reservation_release', NULL, NULL, NULL, ?, NULL, NULL, NULL, NULL, ?)", (entry_key, entry_hash, reservation["cohort_id"], reservation["run_id"], reservation_id, str(amount_decimal), timestamp))
+            conn.execute("INSERT INTO cost_entries(entry_key, entry_hash, cohort_id, run_id, task_run_id, reservation_id, entry_type, paid_output_category, provider_amount, provider_currency, aud_amount, adjustment_direction, pricing_snapshot_id, fx_snapshot_id, usage_json, recorded_at, accounting_amount, accounting_currency) VALUES (?, ?, ?, ?, NULL, ?, 'reservation_release', NULL, NULL, NULL, ?, NULL, NULL, NULL, NULL, ?, ?, ?)", (entry_key, entry_hash, reservation["cohort_id"], reservation["run_id"], reservation_id, str(amount_decimal if currency == "AUD" else Decimal("0")), timestamp, str(amount_decimal), currency))
             self._update_reservation_status(conn, reservation_id, timestamp)
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (entry_key,)).fetchone())
@@ -2048,8 +2115,8 @@ class SQLiteCatalog:
             recorded = _utc(normalized.get("recorded_at"), "recorded_at")
             provider_amount = None if not provider_cost else str(_decimal(_get(provider_cost, "amount", default=provider_cost), "provider_cost"))
             provider_currency = None if not provider_cost else str(_get(provider_cost, "currency", default="AUD"))
-            values = (entry_key, material_hash, cohort_id, _text(normalized.get("run_id"), "run_id"), normalized.get("task_run_id"), reservation_id, entry_type, normalized.get("paid_output_category"), provider_amount, provider_currency, str(amount), normalized.get("adjustment_direction"), normalized.get("pricing_snapshot_id"), normalized.get("fx_snapshot_id"), json.dumps(_dump(usage), sort_keys=True, separators=(",", ":")) if usage is not None else None, recorded)
-            conn.execute("INSERT INTO cost_entries(entry_key, entry_hash, cohort_id, run_id, task_run_id, reservation_id, entry_type, paid_output_category, provider_amount, provider_currency, aud_amount, adjustment_direction, pricing_snapshot_id, fx_snapshot_id, usage_json, recorded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
+            values = (entry_key, material_hash, cohort_id, _text(normalized.get("run_id"), "run_id"), normalized.get("task_run_id"), reservation_id, entry_type, normalized.get("paid_output_category"), provider_amount, provider_currency, str(amount), normalized.get("adjustment_direction"), normalized.get("pricing_snapshot_id"), normalized.get("fx_snapshot_id"), json.dumps(_dump(usage), sort_keys=True, separators=(",", ":")) if usage is not None else None, recorded, str(amount), "AUD")
+            conn.execute("INSERT INTO cost_entries(entry_key, entry_hash, cohort_id, run_id, task_run_id, reservation_id, entry_type, paid_output_category, provider_amount, provider_currency, aud_amount, adjustment_direction, pricing_snapshot_id, fx_snapshot_id, usage_json, recorded_at, accounting_amount, accounting_currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
             if reservation is not None:
                 self._update_reservation_status(conn, reservation_id, recorded)
             self._commit(conn)

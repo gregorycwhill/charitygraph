@@ -3,6 +3,7 @@
 from .catalog import (
     BudgetExceededError,
     BudgetPosition,
+    CurrencyBudgetPosition,
     CatalogError,
     ConflictError,
     InvalidTransitionError,
@@ -13,7 +14,7 @@ from .catalog import (
 )
 
 __all__ = [
-    "BudgetExceededError", "BudgetPosition", "CatalogError", "ConflictError",
+    "BudgetExceededError", "BudgetPosition", "CurrencyBudgetPosition", "CatalogError", "ConflictError",
     "InvalidTransitionError", "LeaseError", "MigrationError", "SQLiteCatalog",
     "default_database_path",
 ]
