@@ -99,10 +99,10 @@ def test_durable_bridge_records_restart_idempotently_and_constructs_preflight(tm
     bundles = bundle_packets(value, packets, now=NOW)
     from charitygraph.scale_s0 import ScaleS0Preflight
     ScaleS0Preflight.register_durable_mandate(catalog, value, registry, routing, policies(value, routing), {})
-    persist_bridge(catalog, value, plans=(plan,), snapshots=(snapshot,), corpora=(corpus,), bundles=bundles)
-    persist_bridge(catalog, value, plans=(plan,), snapshots=(snapshot,), corpora=(corpus,), bundles=bundles)
+    persist_bridge(catalog, value, plans=(plan,), snapshots=(snapshot,), corpora=(corpus,), bundles=bundles, offline=True)
+    persist_bridge(catalog, value, plans=(plan,), snapshots=(snapshot,), corpora=(corpus,), bundles=bundles, offline=True)
     for packet in packets:
-        ScaleS0Preflight.register_durable_packet(catalog, value, packet)
+        ScaleS0Preflight.register_durable_packet(catalog, value, packet, offline=True)
     with catalog._connection() as connection:
         assert connection.execute("SELECT count(*) FROM scale_s0_source_plans").fetchone()[0] == 1
         assert connection.execute("SELECT count(*) FROM scale_s0_frozen_corpora").fetchone()[0] == 1
@@ -186,7 +186,7 @@ def test_document_v2_pdf_representations_are_snapshot_bound_and_rendered(tmp_pat
     from charitygraph.scale_s0 import ScaleS0Preflight
     ScaleS0Preflight.register_durable_mandate(catalog, value, default_s0_registry(), routing, policies(value, routing), {})
     corpora = tuple(freeze_corpus(value, plan.subject_id, (snapshot,), now=NOW) for plan, snapshot in zip(plans, snapshots, strict=True))
-    persist_bridge(catalog, value, plans=plans, snapshots=snapshots, representations=representations, corpora=corpora, bundles=())
+    persist_bridge(catalog, value, plans=plans, snapshots=snapshots, representations=representations, corpora=corpora, bundles=(), offline=True)
     with catalog._connection() as connection:
         assert connection.execute("SELECT count(*) FROM scale_s0_representations").fetchone()[0] == 2
         assert connection.execute("SELECT count(*) FROM scale_s0_frozen_corpora").fetchone()[0] == 2
