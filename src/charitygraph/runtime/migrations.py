@@ -976,6 +976,23 @@ ALTER TABLE scale_s0_frozen_packets ADD COLUMN execution_attempt_id TEXT REFEREN
 ALTER TABLE scale_s0_reservation_bindings ADD COLUMN execution_attempt_id TEXT REFERENCES scale_s0_execution_attempts(attempt_id);
 """.strip() + "\n"
 
+# V20 keeps the original AUD columns intact for historical callers.  The new
+# columns are the accounting authority; an AUD compatibility column is never
+# used to carry a non-AUD value.
+CATALOGUE_SQL_V20 = """
+ALTER TABLE cohorts ADD COLUMN budget_cap_amount TEXT NOT NULL DEFAULT '0';
+ALTER TABLE cohorts ADD COLUMN accounting_currency TEXT NOT NULL DEFAULT 'AUD';
+UPDATE cohorts SET budget_cap_amount=budget_cap_aud, accounting_currency='AUD';
+ALTER TABLE budget_reservations ADD COLUMN reserved_amount TEXT NOT NULL DEFAULT '0';
+ALTER TABLE budget_reservations ADD COLUMN accounting_currency TEXT NOT NULL DEFAULT 'AUD';
+UPDATE budget_reservations SET reserved_amount=reserved_aud, accounting_currency='AUD';
+ALTER TABLE cost_entries ADD COLUMN accounting_amount TEXT NOT NULL DEFAULT '0';
+ALTER TABLE cost_entries ADD COLUMN accounting_currency TEXT NOT NULL DEFAULT 'AUD';
+UPDATE cost_entries SET accounting_amount=aud_amount, accounting_currency='AUD';
+CREATE INDEX budget_reservations_currency_idx ON budget_reservations(cohort_id, accounting_currency);
+CREATE INDEX cost_entries_currency_idx ON cost_entries(cohort_id, accounting_currency, entry_type, reservation_id);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -996,6 +1013,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(17, "durable_scale_s0_authority_and_review", CATALOGUE_SQL_V17),
     Migration(18, "durable_scale_s0_acquisition_packet_bridge", CATALOGUE_SQL_V18),
     Migration(19, "durable_scale_s0_execution_attempt_identity", CATALOGUE_SQL_V19),
+    Migration(20, "currency_bound_runtime_accounting", CATALOGUE_SQL_V20),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
