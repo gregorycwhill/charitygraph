@@ -220,6 +220,8 @@ class SendRequest:
 class ScaleS0Preflight:
     def __init__(self, mandate: ScaleMandate, registry: LogicalTaskRegistry, routing: RoutingPolicy, sources: Mapping[str, SourceAuthorisation], halts: HaltController, *, packets: Mapping[str,FrozenPacket], policies: Mapping[str,PolicyArtifact], economics: EconomicState | None, catalog: object | None = None, review_backlog: int = 0, review_backlog_limit: int | None = None, execution_attempt: ExecutionAttemptIdentity | None = None) -> None:
         mandate.validate(); self.mandate,self.registry,self.routing,self.sources,self.halts,self.packets,self.policies,self.economics,self.catalog,self.execution_attempt = mandate,registry,routing,sources,halts,packets,policies,economics,catalog,execution_attempt
+        if catalog is not None and execution_attempt is not None and economics is not None:
+            raise ScalePreflightError("live S0 economics must be reconstructed from durable reservation state")
         if execution_attempt is not None and catalog is not None:
             catalog.require_scale_s0_execution_attempt(attempt_id=execution_attempt.attempt_id, mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash, slice_id=mandate.slice_id, run_id=execution_attempt.run_id, builder_commit_sha=execution_attempt.builder_commit_sha, data_commit_sha=execution_attempt.data_commit_sha, bridge_certification=execution_attempt.bridge_certification, schema_version=execution_attempt.schema_version)
         if review_backlog_limit is not None and review_backlog > review_backlog_limit: raise ScalePreflightError("review backlog threshold halts execution")
@@ -239,6 +241,8 @@ class ScaleS0Preflight:
     @classmethod
     def from_catalog(cls, catalog: object, *, mandate_id: str, packet_id: str, economics: EconomicState | None = None, offline: bool = False) -> "ScaleS0Preflight":
         """Rebuild preflight from durable authority, never a caller replacement."""
+        if economics is not None and not offline:
+            raise ScalePreflightError("live S0 economics must be reconstructed from durable reservation state")
         stored = catalog.get_scale_s0_mandate(mandate_id)
         packet_row = catalog.get_scale_s0_frozen_packet(packet_id)
         if stored is None or packet_row is None:
@@ -272,8 +276,12 @@ class ScaleS0Preflight:
                 state = dict(reservation["state"])
                 for key in ("provider_spend", "strong_model_spend", "reservation_remaining", "estimated_provider_cost", "estimated_strong_cost"):
                     state[key] = Decimal(str(state[key]))
-                economics = EconomicState(**state)
-        return cls(mandate, registry, routing, sources, HaltController(), packets={packet.binding_hash: packet}, policies=policies, economics=economics, catalog=catalog, execution_attempt=attempt)
+                economics = EconomicState(**{key: state[key] for key in EconomicState.__dataclass_fields__})
+            elif not offline:
+                raise ScalePreflightError("live S0 packet has no attempt-scoped durable reservation binding")
+        rebuilt = cls(mandate, registry, routing, sources, HaltController(), packets={packet.binding_hash: packet}, policies=policies, economics=None, catalog=catalog, execution_attempt=attempt)
+        rebuilt.economics = economics
+        return rebuilt
 
     @staticmethod
     def register_durable_packet(catalog: object, mandate: ScaleMandate, packet: FrozenPacket, *, execution_attempt_id: str | None = None, offline: bool = False) -> dict:

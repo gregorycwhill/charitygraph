@@ -483,6 +483,9 @@ class SQLiteCatalog:
                 if prior["material_hash"] != material_hash:
                     raise ConflictError("Scale S0 execution attempt identity conflict")
                 return self._scale_s0_row(prior) or {}
+            reused_run = conn.execute("SELECT attempt_id FROM scale_s0_execution_attempts WHERE run_id=?", (attempt["run_id"],)).fetchone()
+            if reused_run is not None:
+                raise ConflictError("one run cannot be reused by a second Scale S0 execution attempt")
             conn.execute("INSERT INTO scale_s0_execution_attempts(attempt_id,mandate_id,mandate_hash,slice_id,run_id,builder_repository,builder_commit_sha,data_repository,data_commit_sha,bridge_certification,bridge_version,schema_version,recovery_authority_ref,configuration_hash,status,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (attempt_id, attempt["mandate_id"], attempt["mandate_hash"], attempt["slice_id"], attempt["run_id"], attempt["builder_repository"], attempt["builder_commit_sha"], attempt["data_repository"], attempt["data_commit_sha"], attempt["bridge_certification"], attempt["bridge_version"], int(attempt["schema_version"]), attempt["recovery_authority_ref"], attempt["configuration_hash"], attempt["status"], self._json(attempt), material_hash, _utc(attempt["created_at"], "created_at")))
             self._commit(conn)
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (attempt_id,)).fetchone()) or {}
@@ -688,11 +691,23 @@ class SQLiteCatalog:
                 raise ConflictError("Scale S0 reservation binding is outside its mandate")
             if execution_attempt_id is not None:
                 attempt = conn.execute("SELECT mandate_id,slice_id,run_id FROM scale_s0_execution_attempts WHERE attempt_id=?", (execution_attempt_id,)).fetchone()
-                reservation = conn.execute("SELECT run_id,status FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
                 if attempt is None or attempt["mandate_id"] != mandate_id or attempt["slice_id"] != slice_id:
                     raise ConflictError("reservation binding attempt is absent or mismatched")
-                if reservation is not None and reservation["run_id"] != attempt["run_id"]:
+                reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
+                if reservation is None:
+                    raise ConflictError("live reservation binding requires an existing canonical budget reservation")
+                if reservation["run_id"] != attempt["run_id"]:
                     raise ConflictError("reservation binding run is not owned by the execution attempt")
+                run = conn.execute("SELECT cohort_id FROM runs WHERE run_id=?", (attempt["run_id"],)).fetchone()
+                if run is None or reservation["cohort_id"] != run["cohort_id"]:
+                    raise ConflictError("reservation cohort is not owned by the execution-attempt run")
+                if reservation["status"] not in {"active", "partially_consumed"}:
+                    raise ConflictError("canonical budget reservation is not usable")
+                if reservation["expires_at"] is not None and reservation["expires_at"] <= when:
+                    raise ConflictError("canonical budget reservation has expired")
+                linked = conn.execute("SELECT 1 FROM reservation_tasks WHERE reservation_id=? AND model_task_id=?", (reservation_id, task_key)).fetchone()
+                if linked is None:
+                    raise ConflictError("canonical reservation is not linked to the exact S0 task key")
             prior = conn.execute("SELECT * FROM scale_s0_reservation_bindings WHERE reservation_id=?", (reservation_id,)).fetchone()
             if prior is not None:
                 if prior["material_hash"] != digest:
@@ -730,20 +745,47 @@ class SQLiteCatalog:
             if attempt is None or packet is None or packet["execution_attempt_id"] != execution_attempt_id or packet["mandate_id"] != mandate_id or packet["slice_id"] != slice_id:
                 raise ConflictError("durable provider send attempt or packet ownership is invalid")
             material = json.loads(packet["material_json"])
-            if material.get("execution_attempt_id") != execution_attempt_id or material.get("task_key") != task_key:
+            if (material.get("execution_attempt_id"), material.get("mandate_id"), material.get("slice_id"), material.get("task_key")) != (execution_attempt_id, mandate_id, slice_id, task_key):
                 raise ConflictError("durable packet task or attempt identity is invalid")
             corpus_id = material.get("corpus_id")
             corpus = conn.execute("SELECT * FROM scale_s0_frozen_corpora WHERE corpus_id=?", (corpus_id,)).fetchone() if corpus_id else None
-            if corpus is None or corpus["execution_attempt_id"] != execution_attempt_id or corpus["mandate_id"] != mandate_id:
+            if corpus is None or corpus["execution_attempt_id"] != execution_attempt_id or corpus["mandate_id"] != mandate_id or corpus["subject_id"] != material.get("subject_id"):
                 raise ConflictError("durable packet corpus ownership is invalid")
+            corpus_material = json.loads(corpus["material_json"])
+            if corpus_material.get("execution_attempt_id") != execution_attempt_id or corpus_material.get("mandate_id") != mandate_id:
+                raise ConflictError("durable corpus identity is invalid")
+            source_records = tuple(corpus_material.get("source_record_ids") or ())
+            snapshot_hashes = tuple(corpus_material.get("snapshot_hashes") or ())
+            if len(source_records) != len(snapshot_hashes) or not source_records:
+                raise ConflictError("durable corpus ancestry is incomplete")
+            for source_record_id, snapshot_hash in zip(source_records, snapshot_hashes, strict=True):
+                snapshot = conn.execute("SELECT snapshot_id,execution_attempt_id FROM scale_s0_source_snapshots WHERE source_record_id=? AND snapshot_hash=?", (source_record_id, snapshot_hash)).fetchone()
+                if snapshot is None or snapshot["execution_attempt_id"] != execution_attempt_id:
+                    raise ConflictError("durable corpus snapshot ownership is invalid")
+                representation = conn.execute("SELECT 1 FROM scale_s0_representations WHERE snapshot_id=? AND execution_attempt_id=?", (snapshot["snapshot_id"], execution_attempt_id)).fetchone()
+                if representation is None:
+                    raise ConflictError("durable corpus representation materialisation is absent")
             run = conn.execute("SELECT configuration_hash FROM runs WHERE run_id=?", (attempt["run_id"],)).fetchone()
-            if run is None or run["configuration_hash"] != attempt["configuration_hash"]:
+            if run is None or run["configuration_hash"] != attempt["configuration_hash"] or material.get("run_id") != attempt["run_id"]:
                 raise ConflictError("durable run configuration does not match execution attempt")
             if not reservation_id:
                 raise ConflictError("durable provider send requires a reservation")
-            binding = conn.execute("SELECT execution_attempt_id FROM scale_s0_reservation_bindings WHERE reservation_id=?", (reservation_id,)).fetchone()
-            if binding is None or binding["execution_attempt_id"] != execution_attempt_id:
+            binding = conn.execute("SELECT * FROM scale_s0_reservation_bindings WHERE reservation_id=?", (reservation_id,)).fetchone()
+            if binding is None or binding["execution_attempt_id"] != execution_attempt_id or binding["mandate_id"] != mandate_id or binding["slice_id"] != slice_id or binding["task_key"] != task_key:
                 raise ConflictError("durable reservation ownership is invalid")
+            reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
+            if reservation is None or reservation["run_id"] != attempt["run_id"]:
+                raise ConflictError("canonical budget reservation is absent or belongs to another run")
+            if reservation["status"] not in {"active", "partially_consumed"} or (reservation["expires_at"] is not None and reservation["expires_at"] <= datetime.now(timezone.utc).isoformat()):
+                raise ConflictError("canonical budget reservation is not usable")
+            run_cohort = conn.execute("SELECT cohort_id FROM runs WHERE run_id=?", (attempt["run_id"],)).fetchone()
+            if run_cohort is None or reservation["cohort_id"] != run_cohort["cohort_id"]:
+                raise ConflictError("canonical budget reservation cohort is not owned by the run")
+            if conn.execute("SELECT 1 FROM reservation_tasks WHERE reservation_id=? AND model_task_id=?", (reservation_id, task_key)).fetchone() is None:
+                raise ConflictError("canonical budget reservation is not linked to the exact task")
+            bundle_rows = conn.execute("SELECT material_json,execution_attempt_id FROM scale_s0_physical_bundles").fetchall()
+            if not any(row["execution_attempt_id"] == execution_attempt_id and packet_id in (json.loads(row["material_json"]).get("packet_ids") or ()) for row in bundle_rows):
+                raise ConflictError("durable packet is not owned by an attempt-bound physical bundle")
 
     def register_scale_s0_candidate(self, candidate: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()

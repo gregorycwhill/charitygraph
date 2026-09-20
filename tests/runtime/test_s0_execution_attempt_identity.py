@@ -47,6 +47,8 @@ def test_attempt_identity_is_idempotent_restart_safe_and_drift_locked(tmp_path):
         ScaleS0Preflight.register_durable_execution_attempt(catalog, replace(identity, builder_commit_sha="0" * 40))
     with pytest.raises(ConflictError):
         catalog.require_scale_s0_execution_attempt(attempt_id=identity.attempt_id, mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash, slice_id=mandate.slice_id, run_id="run:other", builder_commit_sha=identity.builder_commit_sha, data_commit_sha=identity.data_commit_sha, bridge_certification=identity.bridge_certification, schema_version=19)
+    with pytest.raises(ConflictError):
+        ScaleS0Preflight.register_durable_execution_attempt(catalog, replace(identity, attempt_id="attempt:s0:second"))
 
 
 def test_source_plan_requires_matching_attempt_when_live(tmp_path):
