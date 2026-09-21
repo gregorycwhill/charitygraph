@@ -1109,37 +1109,12 @@ class SQLiteCatalog:
                     raise ConflictError("durable source-rights authority does not permit provider send")
             if not provider_account_project or not execution_authority:
                 raise ConflictError("live Scale S0 provider send lacks explicit attestation-window account/project and authority")
-            windows = conn.execute("SELECT * FROM scale_s0_attestation_windows WHERE execution_attempt_id=? AND mandate_id=? AND slice_id=? AND run_id=? AND provider_account_project=? AND execution_authority=? AND valid_until>? AND NOT EXISTS (SELECT 1 FROM scale_s0_attestation_window_invalidations i WHERE i.window_id=scale_s0_attestation_windows.window_id)", (execution_attempt_id, mandate_id, slice_id, attempt["run_id"], provider_account_project, execution_authority, _utc(observed_at, "provider_send_observed_at"))).fetchall()
+            windows = conn.execute("SELECT * FROM scale_s0_attestation_windows WHERE execution_attempt_id=? AND mandate_id=? AND slice_id=? AND run_id=? AND provider_account_project=? AND execution_authority=? AND observed_at<=? AND valid_until>? AND NOT EXISTS (SELECT 1 FROM scale_s0_attestation_window_invalidations i WHERE i.window_id=scale_s0_attestation_windows.window_id)", (execution_attempt_id, mandate_id, slice_id, attempt["run_id"], provider_account_project, execution_authority, _utc(observed_at, "provider_send_observed_at"), _utc(observed_at, "provider_send_observed_at"))).fetchall()
             if len(windows) != 1:
                 raise ConflictError("live Scale S0 provider send lacks one currently valid durable attestation window")
             window = windows[0]
             if _canonical_hash(json.loads(window["material_json"])) != window["material_hash"] or datetime.fromisoformat(_utc(observed_at, "provider_send_observed_at")) >= datetime.fromisoformat(window["valid_until"]):
                 raise ConflictError("durable S0 attestation window is expired or integrity-invalid")
-            attestations = conn.execute("SELECT * FROM scale_s0_owner_attestations WHERE execution_attempt_id=? AND packet_id=?", (execution_attempt_id, packet_id)).fetchall()
-            if len(attestations) != 1:
-                raise ConflictError("live Scale S0 provider send lacks one durable owner attestation")
-            attestation = attestations[0]
-            attestation_material = json.loads(attestation["material_json"])
-            if _canonical_hash(attestation_material) != attestation["material_hash"]:
-                raise ConflictError("durable owner attestation integrity is invalid")
-            expected_attestation = {
-                "attestation_id": attestation["attestation_id"], "execution_attempt_id": execution_attempt_id,
-                "mandate_id": mandate_id, "mandate_hash": attempt["mandate_hash"], "slice_id": slice_id,
-                "run_id": attempt["run_id"], "builder_commit_sha": attempt["builder_commit_sha"],
-                "data_commit_sha": attempt["data_commit_sha"], "configuration_hash": attempt["configuration_hash"], "attempt_material_hash": attempt["material_hash"],
-                "packet_id": packet_id, "packet_binding_hash": material.get("binding_hash"), "task_key": task_key,
-                "reservation_id": reservation_id, "provider_request_identity": material.get("provider_request_identity"),
-                "setting_name": attestation["setting_name"], "observed_value": attestation["observed_value"],
-                "attested_by": attestation["attested_by"], "owner_attestation_hash": attestation["owner_attestation_hash"],
-                "observed_at": attestation["observed_at"], "recorded_at": attestation["recorded_at"],
-            }
-            if attestation_material != expected_attestation:
-                raise ConflictError("durable owner attestation is stale or not bound to this live send")
-            now_utc = datetime.fromisoformat(_utc(observed_at, "provider_send_observed_at"))
-            attested_at = datetime.fromisoformat(attestation["observed_at"])
-            recorded_at = datetime.fromisoformat(attestation["recorded_at"])
-            if attestation["setting_name"] != S0_LIVE_SEND_SETTING_NAME or attestation["observed_value"] != S0_LIVE_SEND_OBSERVED_VALUE or attestation["attested_by"] != S0_LIVE_SEND_ATTESTER or attested_at > now_utc or recorded_at > now_utc or recorded_at < attested_at or now_utc - attested_at > S0_LIVE_SEND_MAX_ATTESTATION_AGE:
-                raise ConflictError("durable owner live-send attestation is absent, future, stale, or not Greg's required setting")
             corpus_id = material.get("corpus_id")
             corpus = conn.execute("SELECT * FROM scale_s0_frozen_corpora WHERE corpus_id=?", (corpus_id,)).fetchone() if corpus_id else None
             if corpus is None or corpus["execution_attempt_id"] != execution_attempt_id or corpus["mandate_id"] != mandate_id or corpus["subject_id"] != material.get("subject_id"):

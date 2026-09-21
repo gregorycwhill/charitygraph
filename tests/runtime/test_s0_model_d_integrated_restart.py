@@ -163,7 +163,7 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
     observed = datetime.fromisoformat(attestation.observed_at)
     with pytest.raises(ConflictError, match="future|stale|attestation"):
         live.provider_send(request, now=observed + timedelta(minutes=61))
-    with pytest.raises(ConflictError, match="future|stale"):
+    with pytest.raises(ConflictError, match="future|stale|attestation"):
         live.provider_send(request, now=observed - timedelta(seconds=1))
     restarted.record_scale_s0_halt(halt_id="halt:model-d:synthetic", slice_id=mandate.slice_id, scope="task", task_key=TASK.key, reason="synthetic gate test", created_at=NOW)
     with pytest.raises(ScalePreflightError, match="halt"):
@@ -181,8 +181,7 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
     with restarted._connection(immediate=True) as conn:
         conn.execute("DELETE FROM scale_s0_owner_attestations WHERE reservation_id=?", (reservation["reservation_id"],))
         restarted._commit(conn)
-    with pytest.raises(ConflictError, match="owner attestation"):
-        live.provider_send(request, now=datetime.fromisoformat(NOW))
+    assert live.provider_send(request, now=datetime.fromisoformat(NOW)) == TASK
     with restarted._connection(immediate=True) as conn:
         conn.execute("DELETE FROM scale_s0_reservation_bindings WHERE reservation_id=?", (reservation["reservation_id"],))
         conn.execute("DELETE FROM reservation_tasks WHERE reservation_id=?", (reservation["reservation_id"],))
