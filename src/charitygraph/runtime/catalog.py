@@ -584,6 +584,15 @@ class SQLiteCatalog:
         created_at = _utc(source_authority["created_at"], "created_at")
         if access not in {"OPEN_WEB_PUBLIC", "SEPARATELY_LICENSED_OR_CONTROLLED", "TECHNICALLY_WITHHELD"}:
             raise CatalogError("Scale S0 source authority has an invalid access classification")
+        if access == "SEPARATELY_LICENSED_OR_CONTROLLED":
+            required_controlled_material = (
+                "resource_id", "resource_version", "licence_id", "licence_version", "rights_authority_id",
+            )
+            authority_material = source_authority["authority_material"]
+            if any(not isinstance(authority_material.get(key), str) or not authority_material[key] for key in required_controlled_material):
+                raise CatalogError("controlled source authority lacks exact resource, licence, or rights material")
+            if authority_material["resource_id"] != exact_resource_id:
+                raise ConflictError("controlled source authority resource material does not bind its exact resource")
         material = dict(source_authority)
         material["created_at"] = created_at
         authority_material_hash = _canonical_hash(material["authority_material"])

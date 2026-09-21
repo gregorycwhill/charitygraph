@@ -227,7 +227,8 @@ class GovernedAcquisition:
                           now: datetime | None = None, execution_attempt_id: str | None = None,
                           offline: bool = False) -> SourceSnapshot:
         """Cross the governed transport boundary, then use this acquisition path."""
-        result = transport.fetch(plan, authorisation, self.mandate, halts=self.halts, now=now, catalog=catalog, execution_attempt_id=execution_attempt_id)
+        result = transport.fetch(plan, authorisation, self.mandate, halts=self.halts, now=now, catalog=catalog,
+                                 execution_attempt_id=execution_attempt_id, offline=offline)
         response = OfflineResponse(result.content, result.media_type, result.final_locator, result.status)
         return self.acquire(plan, authorisation, response, representation=representation,
                             representation_mode=representation_mode, artifact_store=artifact_store,

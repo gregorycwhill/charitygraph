@@ -90,8 +90,14 @@ class GovernedSourceTransport:
         self._allowed_locator(plan.locator)
 
     def fetch(self, plan: SourcePlan, authorisation: SourceAuthorisation, mandate: ScaleMandate,
-              *, halts: HaltController | None = None, now: datetime | None = None, catalog: object | None = None, execution_attempt_id: str | None = None) -> TransportResult:
-        if catalog is not None:
+              *, halts: HaltController | None = None, now: datetime | None = None, catalog: object | None = None,
+              execution_attempt_id: str | None = None, offline: bool = False) -> TransportResult:
+        if catalog is None:
+            if not offline:
+                raise GovernedTransportError("live governed transport requires durable catalogue authority")
+        else:
+            if offline:
+                raise GovernedTransportError("offline governed transport cannot use a durable live catalogue")
             if not execution_attempt_id:
                 raise GovernedTransportError("live governed transport requires an execution-attempt binding")
             attempt = catalog.get_scale_s0_execution_attempt(execution_attempt_id)

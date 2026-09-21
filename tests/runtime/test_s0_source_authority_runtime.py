@@ -90,7 +90,13 @@ def test_concrete_source_authority_is_append_only_idempotent_and_substitution_re
         replace(concrete, exact_resource_id="resource:substituted"),
         replace(concrete, rights_decision_id="rights-decision:substituted"),
         replace(concrete, rights_policy_version="substituted"),
-        replace(concrete, access_classification="SEPARATELY_LICENSED_OR_CONTROLLED"),
+        replace(concrete, access_classification="SEPARATELY_LICENSED_OR_CONTROLLED",
+                specialist_authorisation_id=mandate.specialist_source_policy_id,
+                authority_material={
+                    "resource_id": concrete.exact_resource_id, "resource_version": "2026",
+                    "licence_id": "licence:controlled:substitution", "licence_version": "2026-09",
+                    "rights_authority_id": "rights-authority:substitution",
+                }),
         replace(concrete, technical_access_state="login_required"),
         replace(concrete, authority_material={"record": "substituted"}),
         replace(concrete, source_family="outside-source-family"),
@@ -158,6 +164,64 @@ def test_live_transport_and_acquisition_resolve_only_durable_concrete_authority(
     with pytest.raises(GovernedTransportError, match="authority"):
         transport.fetch(plan, replace(concrete, source_authority_id=""), mandate, catalog=catalog, execution_attempt_id=attempt.attempt_id)
     transport._opener.open.assert_not_called()
+
+
+def test_live_transport_rejects_caller_authority_without_durable_catalogue_before_socket(tmp_path):
+    _catalogue, mandate, _routing, policies, source, attempt = _catalog(tmp_path)
+    plan = SourcePlan(mandate.mandate_id, mandate.identity_hash, mandate.slice_id, "subject:a", "scope:a", source.source_family,
+        "governed_http", "OPEN_WEB_PUBLIC", "annual_report", "official", "mandatory", source.url_or_identity,
+        mandate.policy_hashes["source_universe"], NOW)
+    concrete = _source_authority(mandate, policies, source, attempt)
+    from unittest.mock import Mock
+    transport = GovernedSourceTransport(); transport._opener = Mock()
+    with pytest.raises(GovernedTransportError, match="durable catalogue"):
+        transport.fetch(plan, concrete, mandate)
+    transport._opener.open.assert_not_called()
+
+
+def test_cross_attempt_and_cross_mandate_authority_substitution_fail_before_socket(tmp_path):
+    catalog, mandate, _routing, policies, source, attempt = _catalog(tmp_path)
+    alternate = _attempt(mandate, attempt_id="attempt:source-authority:alternate", run_id="run:source-authority:alternate")
+    catalog.register_run({"record_id": alternate.run_id, "cohort_id": "cohort:source-authority", "run_kind": "s0", "status": "planned", "configuration_hash": alternate.configuration_hash, "created_at": NOW})
+    ScaleS0Preflight.register_durable_execution_attempt(catalog, alternate)
+    concrete = _source_authority(mandate, policies, source, attempt)
+    alternate_authority = replace(concrete, source_authority_id="source-authority:alternate", execution_attempt_id=alternate.attempt_id)
+    ScaleS0Preflight.register_durable_source_authority(catalog, concrete)
+    ScaleS0Preflight.register_durable_source_authority(catalog, alternate_authority)
+    with pytest.raises(ConflictError, match="mandate or attempt binding"):
+        ScaleS0Preflight.register_durable_source_authority(catalog, replace(
+            concrete, source_authority_id="source-authority:stale-mandate", mandate_hash="f" * 64,
+        ))
+    plan = SourcePlan(mandate.mandate_id, mandate.identity_hash, mandate.slice_id, "subject:a", "scope:a", source.source_family,
+        "governed_http", "OPEN_WEB_PUBLIC", "annual_report", "official", "mandatory", source.url_or_identity,
+        mandate.policy_hashes["source_universe"], NOW)
+    catalog.register_scale_s0_source_plan({**plan.__dict__, "plan_id": plan.plan_id}, execution_attempt_id=attempt.attempt_id)
+    from unittest.mock import Mock
+    transport = GovernedSourceTransport(); transport._opener = Mock()
+    with pytest.raises(GovernedTransportError, match="live plan binding"):
+        transport.fetch(plan, alternate_authority, mandate, catalog=catalog, execution_attempt_id=attempt.attempt_id)
+    transport._opener.open.assert_not_called()
+
+
+def test_controlled_authority_requires_exact_resource_and_licence_material(tmp_path):
+    catalog, mandate, _routing, policies, source, attempt = _catalog(tmp_path)
+    controlled = _source_authority(
+        mandate, policies, source, attempt, source_authority_id="source-authority:controlled",
+        access_classification="SEPARATELY_LICENSED_OR_CONTROLLED",
+        specialist_authorisation_id=mandate.specialist_source_policy_id,
+        authority_material={
+            "resource_id": "resource:annual-report:2026", "resource_version": "2026",
+            "licence_id": "licence:controlled:one", "licence_version": "2026-09",
+            "rights_authority_id": "rights-authority:one",
+        },
+    )
+    with pytest.raises(CatalogError, match="licence"):
+        ScaleS0Preflight.register_durable_source_authority(catalog, replace(controlled, authority_material={"record": "unbound"}))
+    with pytest.raises(ConflictError, match="exact resource"):
+        ScaleS0Preflight.register_durable_source_authority(catalog, replace(controlled, authority_material={
+            **controlled.authority_material, "resource_id": "resource:sibling:2026",
+        }))
+    assert ScaleS0Preflight.register_durable_source_authority(catalog, controlled)["source_authority_id"] == controlled.source_authority_id
 
 
 def test_catalogue_fixture_acquisition_is_explicitly_offline_or_fails_before_writes(tmp_path):
