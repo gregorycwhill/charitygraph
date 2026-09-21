@@ -16,7 +16,7 @@ from typing import Iterable, Mapping
 
 from .runtime.catalog import (
     S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME,
-    canonical_execution_configuration_hash,
+    canonical_execution_configuration_hash, canonical_utc_timestamp,
 )
 
 
@@ -132,6 +132,8 @@ class ExecutionAttemptIdentity:
     builder_repository: str; builder_commit_sha: str; data_repository: str; data_commit_sha: str
     bridge_certification: str; bridge_version: str; schema_version: int
     recovery_authority_ref: str; configuration_hash: str; status: str; created_at: str
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "created_at", canonical_utc_timestamp(self.created_at, "created_at"))
     @property
     def material_hash(self) -> str: return _digest(_material(self))
 
@@ -179,6 +181,9 @@ class RepresentationPolicy:
 @dataclass(frozen=True)
 class FrozenPacket:
     packet_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; source_ids: tuple[str, ...]; source_snapshot_hashes: tuple[str, ...]; input_profile_id: str; output_schema_id: str; routing_class: RoutingClass; provider_request_identity: str; content_hash: str; contract_version: str = "north-star-v0.2"; mandate_id: str = ""; slice_id: str = ""; frozen_at: str = ""; corpus_id: str = ""
+    def __post_init__(self) -> None:
+        if self.frozen_at:
+            object.__setattr__(self, "frozen_at", canonical_utc_timestamp(self.frozen_at, "frozen_at"))
     @property
     def binding_hash(self) -> str: return _digest(_material(self))
 
@@ -186,6 +191,9 @@ class FrozenPacket:
 @dataclass(frozen=True)
 class Candidate:
     candidate_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; source_ids: tuple[str, ...]; lineage_ids: tuple[str, ...]; mechanically_validated: bool; claim_family: str; routing_class: RoutingClass; representation_policy: RepresentationPolicy; deterministic_source_native: bool = False; processing_disposition: ProcessingDisposition = ProcessingDisposition.ACQUIRED; semantic_payload: object = None; predicate: str = ""; evidence_locator_ids: tuple[str, ...] = (); source_record_ids: tuple[str, ...] = (); epistemic_basis: str = ""; observation_time: str = ""; effective_time: str = ""; classification_authority: str = ""; mandate_id: str = ""; packet_id: str = ""; created_at: str = ""; supersedes_candidate_id: str | None = None
+    def __post_init__(self) -> None:
+        if self.created_at:
+            object.__setattr__(self, "created_at", canonical_utc_timestamp(self.created_at, "created_at"))
     @property
     def binding_hash(self) -> str: return _digest(_material(self))
 
