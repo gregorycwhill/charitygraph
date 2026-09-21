@@ -23,6 +23,7 @@ from charitygraph.scale_s0 import (
     PolicyArtifact, ProcessingDisposition, RepresentationPolicy, RoutingPolicy,
     ScaleMandate, ScalePreflightError, ScaleS0Preflight, SourceAuthorisation,
 )
+from charitygraph.s0_product_owner_policy import concrete_first_party_source_definition_id
 
 
 def _hash(value: object) -> str:
@@ -80,7 +81,7 @@ class SourcePlan:
 
 class SourcePlanner:
     """Central source discovery boundary; it cannot accept semantic URLs."""
-    _families = frozenset({"acnc_register", "acnc_ais", "abr_dgr", "official_website", "latest_authorised_annual_report", "fundraising_registry", "specialist"})
+    _families = frozenset({"acnc_register", "acnc_ais", "abr_dgr", "official_website", "official_first_party_web", "latest_authorised_annual_report", "fundraising_registry", "specialist"})
 
     def __init__(self, mandate: ScaleMandate) -> None:
         self.mandate = mandate
@@ -279,7 +280,13 @@ class GovernedAcquisition:
             when = now or datetime.now(timezone.utc)
             if when.tzinfo is None:
                 raise ScalePreflightError("acquisition timestamp must be timezone-aware")
-            definition = SourceDefinition(record_id="srcdef:" + _hash({"family": plan.source_family, "mechanism": plan.acquisition_mechanism}),
+            # CG-S0-PO-2026-09-22 A1: first-party definitions are concrete and
+            # immutable per subject and canonical locator.  Other source-family
+            # identities retain their established material boundary.
+            definition_id = (concrete_first_party_source_definition_id(subject_abn=plan.subject_id, canonical_locator=plan.locator or response.locator)
+                             if plan.source_family == "official_first_party_web" else
+                             "srcdef:" + _hash({"family": plan.source_family, "mechanism": plan.acquisition_mechanism}))
+            definition = SourceDefinition(record_id=definition_id,
                 created_at=when, producer={"kind": "code", "producer_id": "scale-s0-acquisition-bridge", "version": "1"},
                 definition_version="1", publisher=plan.authority_role, source_class=plan.source_family,
                 authority_roles=(PropositionAuthorityRole(proposition=plan.source_role, role=plan.authority_role, basis="mandate-bound source plan"),),
