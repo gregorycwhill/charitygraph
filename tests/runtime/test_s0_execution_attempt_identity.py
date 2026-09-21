@@ -34,7 +34,7 @@ def attempt(mandate, run_id="run:s0-attempt"):
 def test_attempt_identity_is_idempotent_restart_safe_and_drift_locked(tmp_path):
     mandate, routing, policies, source, packet, _ = authority()
     catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
-    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {})
     catalog.register_cohort({"record_id": "cohort:test", "cohort_code": "s0-test", "definition_version": "1", "membership_hash": "m" * 64, "budget_cap": {"amount": "8", "currency": "AUD"}, "created_at": NOW})
     identity = attempt(mandate)
     catalog.register_run({"record_id": "run:s0-attempt", "cohort_id": "cohort:test", "run_kind": "s0", "status": "planned", "configuration_hash": identity.configuration_hash, "created_at": NOW})
@@ -54,7 +54,7 @@ def test_attempt_identity_is_idempotent_restart_safe_and_drift_locked(tmp_path):
 def test_source_plan_requires_matching_attempt_when_live(tmp_path):
     mandate, routing, policies, source, packet, _ = authority()
     catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
-    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {})
     catalog.register_cohort({"record_id": "cohort:test", "cohort_code": "s0-test", "definition_version": "1", "membership_hash": "m" * 64, "budget_cap": {"amount": "8", "currency": "AUD"}, "created_at": NOW})
     identity = attempt(mandate)
     catalog.register_run({"record_id": "run:s0-attempt", "cohort_id": "cohort:test", "run_kind": "s0", "status": "planned", "configuration_hash": identity.configuration_hash, "created_at": NOW})
@@ -67,7 +67,7 @@ def test_source_plan_requires_matching_attempt_when_live(tmp_path):
 def test_live_fresh_process_cannot_reconstruct_unbound_packet(tmp_path):
     mandate, routing, policies, source, packet, _ = authority()
     catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
-    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {})
     ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, offline=True)
     with pytest.raises(ScalePreflightError):
         ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
@@ -76,7 +76,7 @@ def test_live_fresh_process_cannot_reconstruct_unbound_packet(tmp_path):
 def test_snapshot_owner_is_derived_from_persisted_plan_not_caller(tmp_path):
     mandate, routing, policies, source, packet, _ = authority()
     catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
-    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {})
     catalog.register_cohort({"record_id": "cohort:test", "cohort_code": "s0-test", "definition_version": "1", "membership_hash": "m" * 64, "budget_cap": {"amount": "8", "currency": "AUD"}, "created_at": NOW})
     identity = attempt(mandate)
     catalog.register_run({"record_id": "run:s0-attempt", "cohort_id": "cohort:test", "run_kind": "s0", "status": "planned", "configuration_hash": identity.configuration_hash, "created_at": NOW})

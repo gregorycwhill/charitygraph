@@ -41,7 +41,7 @@ def candidate(mandate, packet, **changes):
 def test_durable_authority_reconstructs_and_promotes_once_after_restart(tmp_path):
     mandate, routing, policies, source, packet, economics = authority()
     catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
-    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {})
     ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, offline=True)
     ScaleS0Preflight.record_durable_reservation(catalog, economics, recorded_at=NOW, offline=True)
     original = candidate(mandate, packet)
@@ -60,7 +60,7 @@ def test_durable_authority_reconstructs_and_promotes_once_after_restart(tmp_path
 def test_durable_identity_conflicts_orphans_and_correction_lineage_fail_closed(tmp_path):
     mandate, routing, policies, source, packet, _ = authority()
     catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
-    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {})
     with pytest.raises(CatalogError):
         catalog.register_scale_s0_frozen_packet({"packet_id": "packet:orphan", "mandate_id": mandate.mandate_id, "mandate_hash": mandate.identity_hash, "slice_id": mandate.slice_id, "task_key": TASK.key, "subject_id": "subject:a", "scope_id": "scope:a", "content_hash": "x", "frozen_at": NOW})
     ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, offline=True)

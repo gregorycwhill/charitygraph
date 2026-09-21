@@ -112,6 +112,40 @@ class OfflineResponse:
     redirected_locator: str | None = None
 
 
+def _durable_live_authority(catalog: object, mandate: ScaleMandate, plan: SourcePlan,
+                            supplied: SourceAuthorisation, execution_attempt_id: str | None) -> SourceAuthorisation:
+    """Resolve a live resource decision from SQLite, never from caller fields."""
+    if not execution_attempt_id or not supplied.source_authority_id:
+        raise ScalePreflightError("live acquisition requires a durable concrete source authority identity")
+    row = catalog.get_scale_s0_source_authority(supplied.source_authority_id)
+    stored_plan = catalog.get_scale_s0_source_plan(plan.plan_id)
+    if row is None or stored_plan is None:
+        raise ScalePreflightError("live acquisition authority or source plan is absent")
+    material = dict(row["material"])
+    indexed = (row.get("source_authority_id"), row.get("mandate_id"), row.get("mandate_hash"), row.get("slice_id"),
+               row.get("execution_attempt_id"), row.get("source_id"), row.get("source_family"), row.get("subject_id"),
+               row.get("locator"), row.get("exact_resource_id"), row.get("rights_policy_id"), row.get("rights_policy_version"),
+               row.get("rights_decision_id"), row.get("rights_transmission_status"), row.get("access_classification"),
+               row.get("technical_access_state"), row.get("authority_role"))
+    bound = (material.get("source_authority_id"), material.get("mandate_id"), material.get("mandate_hash"), material.get("slice_id"),
+             material.get("execution_attempt_id"), material.get("source_id"), material.get("source_family"), material.get("subject_id"),
+             material.get("url_or_identity"), material.get("exact_resource_id"), material.get("rights_policy_id"), material.get("rights_policy_version"),
+             material.get("rights_decision_id"), material.get("rights_transmission_status"), material.get("access_classification"),
+             material.get("technical_access_state"), material.get("authority_role"))
+    if indexed != bound or _hash(material) != row["material_hash"] or row.get("authority_material") != material.get("authority_material") or _hash(material.get("authority_material")) != row.get("authority_material_hash"):
+        raise ScalePreflightError("durable concrete source authority integrity is invalid")
+    expected = (mandate.mandate_id, mandate.identity_hash, mandate.slice_id, execution_attempt_id,
+                plan.subject_id, plan.source_family, plan.locator)
+    actual = (material.get("mandate_id"), material.get("mandate_hash"), material.get("slice_id"),
+              material.get("execution_attempt_id"), material.get("subject_id"), material.get("source_family"),
+              material.get("url_or_identity"))
+    if actual != expected or stored_plan.get("execution_attempt_id") != execution_attempt_id:
+        raise ScalePreflightError("durable concrete source authority is outside the live plan binding")
+    material["claim_families"] = tuple(material.get("claim_families") or ())
+    material["authority_material"] = dict(material.get("authority_material") or {})
+    return SourceAuthorisation(**material)
+
+
 @dataclass(frozen=True)
 class SourceSnapshot:
     plan_id: str
@@ -190,17 +224,23 @@ class GovernedAcquisition:
     def acquire_transport(self, plan: SourcePlan, authorisation: SourceAuthorisation, transport: object,
                           *, representation: DocumentRepresentation, representation_mode: str,
                           artifact_store: object | None = None, catalog: object | None = None,
-                          now: datetime | None = None, execution_attempt_id: str | None = None) -> SourceSnapshot:
+                          now: datetime | None = None, execution_attempt_id: str | None = None,
+                          offline: bool = False) -> SourceSnapshot:
         """Cross the governed transport boundary, then use this acquisition path."""
         result = transport.fetch(plan, authorisation, self.mandate, halts=self.halts, now=now, catalog=catalog, execution_attempt_id=execution_attempt_id)
         response = OfflineResponse(result.content, result.media_type, result.final_locator, result.status)
         return self.acquire(plan, authorisation, response, representation=representation,
                             representation_mode=representation_mode, artifact_store=artifact_store,
-                            catalog=catalog, now=now)
+                            catalog=catalog, now=now, execution_attempt_id=execution_attempt_id, offline=offline)
 
     def acquire(self, plan: SourcePlan, authorisation: SourceAuthorisation, response: OfflineResponse,
                 *, representation: DocumentRepresentation, representation_mode: str, artifact_store: object | None = None,
-                catalog: object | None = None, now: datetime | None = None) -> SourceSnapshot:
+                catalog: object | None = None, now: datetime | None = None,
+                execution_attempt_id: str | None = None, offline: bool = False) -> SourceSnapshot:
+        if catalog is not None and not offline:
+            authorisation = _durable_live_authority(catalog, self.mandate, plan, authorisation, execution_attempt_id)
+        elif catalog is not None and execution_attempt_id is not None:
+            raise ScalePreflightError("offline fixture acquisition cannot carry a live execution attempt")
         if plan.mandate_id != self.mandate.mandate_id or plan.mandate_hash != self.mandate.identity_hash:
             raise ScalePreflightError("source plan is stale or substituted")
         if plan.subject_id not in self.mandate.subject_ids or plan.source_family != authorisation.source_family:
@@ -225,7 +265,10 @@ class GovernedAcquisition:
         if artifact_store is not None:
             stored = artifact_store.put(response.content, artifact_kind="source", created_at=now)
             artifact_id = stored.artifact_id
-        source_id = "source:" + _hash({"plan": plan.plan_id, "snapshot": digest})
+        # The source ID is allocated by the concrete authority before the
+        # transport boundary.  A snapshot therefore cannot later be rebound to
+        # a different resource decision after a restart.
+        source_id = authorisation.source_id if catalog is not None and not offline else "source:" + _hash({"plan": plan.plan_id, "snapshot": digest})
         source_record_id = deterministic_id("srcrec:", {"source_family": plan.source_family, "source_version": "s0-bridge-v1",
             "source_locator": response.locator, "payload_hash": digest})
         snapshot = SourceSnapshot(plan.plan_id, source_id, source_record_id, digest,
@@ -254,6 +297,10 @@ class GovernedAcquisition:
                 retrieved_at=when, outcome="available", response_status=response.status, media_type=response.media_type,
                 content_hash=digest, byte_size=len(response.content), artifact_id=artifact_id, tool_id=plan.acquisition_mechanism,
                 tool_version="1", material_parameters={"source_plan_id": plan.plan_id, "mandate_id": plan.mandate_id, "subject_id": plan.subject_id}))
+            if not offline:
+                catalog.register_scale_s0_source_snapshot({**asdict(snapshot), "snapshot_id": snapshot.snapshot_id,
+                    "acquired_at": snapshot.retrieved_at, "representation": snapshot.representation.value},
+                    mandate_id=self.mandate.mandate_id, execution_attempt_id=execution_attempt_id, offline=False)
         self._snapshots[key] = snapshot
         return snapshot
 

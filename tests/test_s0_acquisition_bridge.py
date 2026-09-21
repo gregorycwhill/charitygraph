@@ -91,7 +91,7 @@ def test_durable_bridge_records_restart_idempotently_and_constructs_preflight(tm
         acquisition_mechanism="fixture", policy_classification="OPEN_WEB_PUBLIC", source_role="first_party", authority_role="publisher",
         requirement="conditional", locator="https://fixture.invalid/public", created_at=NOW)
     snapshot = GovernedAcquisition(value).acquire(plan, open_web(plan), OfflineResponse(b"fixture", "text/html", plan.locator),
-        representation=DocumentRepresentation.RELIABLE_TEXT, representation_mode="text_extraction_only", now=NOW, catalog=catalog,
+        representation=DocumentRepresentation.RELIABLE_TEXT, representation_mode="text_extraction_only", now=NOW, catalog=catalog, offline=True,
         artifact_store=ContentAddressedArtifactStore(tmp_path / "objects", allowed_roots=(tmp_path,), catalog=catalog))
     corpus = freeze_corpus(value, SUBJECTS[0], (snapshot,), now=NOW)
     applicable = task_applicability(registry, value, corpus, scope_id="scope:organisation")

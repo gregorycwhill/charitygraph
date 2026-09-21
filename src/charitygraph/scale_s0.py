@@ -158,6 +158,10 @@ class OwnerAttestation:
 @dataclass(frozen=True)
 class SourceAuthorisation:
     source_id: str; source_family: str; url_or_identity: str; authority_role: str; rights_transmission_status: str; acquisition_state: str; parsing_state: str; snapshot_hash: str; claim_families: tuple[str, ...]; source_record_id: str = ""; rights_policy_version: str = ""; specialist_authorisation_id: str | None = None; access_classification: str = "SEPARATELY_LICENSED_OR_CONTROLLED"; technical_access_state: str = "unknown"
+    # The fields below are deliberately optional only for explicit offline
+    # fixtures.  Live registration requires every one of them and persists the
+    # record in migration 22 before a source can reach transport or a packet.
+    source_authority_id: str = ""; mandate_id: str = ""; mandate_hash: str = ""; slice_id: str = ""; execution_attempt_id: str = ""; subject_id: str = ""; exact_resource_id: str = ""; rights_policy_id: str = ""; rights_decision_id: str = ""; authority_material: Mapping[str, object] = field(default_factory=dict); created_at: str = ""
     def permits(self, task: TaskContract, mandate: ScaleMandate) -> bool:
         open_web = self.access_classification == "OPEN_WEB_PUBLIC" and self.technical_access_state == "accessible" and self.rights_transmission_status in {"permitted", "permitted_open_web_policy"}
         controlled = self.access_classification == "SEPARATELY_LICENSED_OR_CONTROLLED" and self.rights_transmission_status == "permitted"
@@ -241,15 +245,24 @@ class ScaleS0Preflight:
         self._bind_policies()
 
     @staticmethod
-    def register_durable_mandate(catalog: object, mandate: ScaleMandate, registry: LogicalTaskRegistry, routing: RoutingPolicy, policies: Mapping[str, PolicyArtifact], sources: Mapping[str, SourceAuthorisation]) -> dict:
-        """Persist the exact authority needed for a fresh-process preflight."""
+    def register_durable_mandate(catalog: object, mandate: ScaleMandate, registry: LogicalTaskRegistry, routing: RoutingPolicy, policies: Mapping[str, PolicyArtifact], sources: Mapping[str, SourceAuthorisation] | None = None, *, offline: bool = False) -> dict:
+        """Persist immutable policy authority, never a concrete source decision."""
         mandate.validate()
-        authority = {"registry": _material(registry), "routing": _material(routing), "policies": _material(policies), "sources": _material(sources)}
+        if sources and not offline:
+            raise ScalePreflightError("live concrete source authority must be registered separately from the mandate")
+        authority = {"registry": _material(registry), "routing": _material(routing), "policies": _material(policies)}
         return catalog.register_scale_s0_mandate(_material(mandate), authority=authority)
 
     @staticmethod
     def register_durable_execution_attempt(catalog: object, attempt: ExecutionAttemptIdentity) -> dict:
         return catalog.register_scale_s0_execution_attempt(_material(attempt))
+
+    @staticmethod
+    def register_durable_source_authority(catalog: object, authority: SourceAuthorisation) -> dict:
+        """Persist the concrete, attempt-bound decision that authorises one resource."""
+        material = _material(authority)
+        assert isinstance(material, dict)
+        return catalog.register_scale_s0_source_authority(material)
 
     @staticmethod
     def register_durable_owner_attestation(catalog: object, attestation: OwnerAttestation) -> dict:
@@ -273,7 +286,6 @@ class ScaleS0Preflight:
         routing_data = authority["routing"]
         routing = RoutingPolicy(routing_data["policy_id"], routing_data["version"], frozenset(RoutingClass(item) for item in routing_data["permitted"]), {key: RoutingClass(value) for key, value in routing_data["escalation_routes"].items()}, routing_data.get("content_hash", ""))
         policies = {key: PolicyArtifact(**value) for key, value in authority["policies"].items()}
-        sources = {key: SourceAuthorisation(**{**value, "claim_families": _tuple_material(value.get("claim_families"))}) for key, value in authority["sources"].items()}
         packet_data = packet_row["material"]
         attempt = None
         if not offline:
@@ -288,6 +300,29 @@ class ScaleS0Preflight:
         packet = FrozenPacket(**{**packet_fields, "source_ids": _tuple_material(packet_data.get("source_ids")), "source_snapshot_hashes": _tuple_material(packet_data.get("source_snapshot_hashes")), "routing_class": RoutingClass(packet_data["routing_class"])})
         if packet.mandate_id != mandate.mandate_id or packet.binding_hash != packet_data.get("binding_hash"):
             raise ScalePreflightError("durable packet identity is corrupt or substituted")
+        sources: dict[str, SourceAuthorisation] = {}
+        if not offline:
+            if attempt is None:
+                raise ScalePreflightError("live S0 source authority requires an execution attempt")
+            for source_id, snapshot_hash in zip(packet.source_ids, packet.source_snapshot_hashes, strict=True):
+                source_row = catalog.get_scale_s0_source_authority_for_source(execution_attempt_id=attempt.attempt_id, source_id=source_id)
+                snapshot_row = catalog.get_scale_s0_source_snapshot(source_id)
+                representation_row = catalog.get_scale_s0_representation_for_snapshot(execution_attempt_id=attempt.attempt_id, snapshot_id=source_id)
+                if source_row is None or snapshot_row is None or representation_row is None:
+                    raise ScalePreflightError("live S0 source authority, snapshot, or representation is absent")
+                source_data = dict(source_row["material"])
+                snapshot_data = dict(snapshot_row["material"])
+                indexed_source = (source_row.get("source_authority_id"), source_row.get("mandate_id"), source_row.get("mandate_hash"), source_row.get("slice_id"), source_row.get("execution_attempt_id"), source_row.get("source_id"), source_row.get("source_family"), source_row.get("subject_id"), source_row.get("locator"), source_row.get("exact_resource_id"), source_row.get("rights_policy_id"), source_row.get("rights_policy_version"), source_row.get("rights_decision_id"), source_row.get("rights_transmission_status"), source_row.get("access_classification"), source_row.get("technical_access_state"), source_row.get("authority_role"))
+                material_source = (source_data.get("source_authority_id"), source_data.get("mandate_id"), source_data.get("mandate_hash"), source_data.get("slice_id"), source_data.get("execution_attempt_id"), source_data.get("source_id"), source_data.get("source_family"), source_data.get("subject_id"), source_data.get("url_or_identity"), source_data.get("exact_resource_id"), source_data.get("rights_policy_id"), source_data.get("rights_policy_version"), source_data.get("rights_decision_id"), source_data.get("rights_transmission_status"), source_data.get("access_classification"), source_data.get("technical_access_state"), source_data.get("authority_role"))
+                if indexed_source != material_source or source_row.get("authority_material") != source_data.get("authority_material") or _digest(_material(source_data.get("authority_material"))) != source_row.get("authority_material_hash") or _digest(_material(source_data)) != source_row["material_hash"] or _digest(_material(snapshot_data)) != snapshot_row["material_hash"]:
+                    raise ScalePreflightError("durable source authority or snapshot integrity is invalid")
+                if (source_data.get("source_id"), source_data.get("execution_attempt_id"), source_data.get("mandate_id"), source_data.get("mandate_hash"), source_data.get("slice_id"), source_data.get("subject_id"), source_data.get("source_family")) != (source_id, attempt.attempt_id, mandate.mandate_id, mandate.identity_hash, mandate.slice_id, packet.subject_id, source_data.get("source_family")):
+                    raise ScalePreflightError("durable source authority is outside the packet attempt, mandate, or subject")
+                if snapshot_row.get("execution_attempt_id") != attempt.attempt_id or snapshot_data.get("snapshot_hash") != snapshot_hash or snapshot_data.get("source_record_id") in (None, ""):
+                    raise ScalePreflightError("durable source snapshot is substituted or incomplete")
+                source_data.update({"snapshot_hash": snapshot_hash, "source_record_id": snapshot_data["source_record_id"], "acquisition_state": "acquired", "parsing_state": "parsed"})
+                source_data["claim_families"] = _tuple_material(source_data.get("claim_families"))
+                sources[source_id] = SourceAuthorisation(**source_data)
         if economics is None:
             reservation = catalog.get_scale_s0_reservation_binding(mandate_id=mandate.mandate_id, slice_id=mandate.slice_id, task_key=f"{packet.task_id}@{packet.task_version}", execution_attempt_id=attempt.attempt_id if attempt else None, offline=offline)
             if reservation is not None:
@@ -320,6 +355,10 @@ class ScaleS0Preflight:
             corpus_row = catalog.get_scale_s0_frozen_corpus(packet.corpus_id)
             if corpus_row is None or corpus_row.get("execution_attempt_id") != execution_attempt_id or corpus_row.get("subject_id") != packet.subject_id:
                 raise ScalePreflightError("packet corpus ownership is absent or mismatched")
+            for source_id in packet.source_ids:
+                source_authority = catalog.get_scale_s0_source_authority_for_source(execution_attempt_id=execution_attempt_id, source_id=source_id)
+                if source_authority is None or source_authority.get("mandate_id") != mandate.mandate_id or source_authority.get("subject_id") != packet.subject_id:
+                    raise ScalePreflightError("live packet requires durable source authority for every frozen source")
         material.update({"mandate_hash": mandate.identity_hash, "task_key": f"{packet.task_id}@{packet.task_version}", "frozen_at": packet.frozen_at, "binding_hash": packet.binding_hash, **attempt_material})
         return catalog.register_scale_s0_frozen_packet(material)
 
