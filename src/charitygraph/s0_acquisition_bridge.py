@@ -268,6 +268,8 @@ class GovernedAcquisition:
             raise ScalePreflightError("fixture acquisition is unavailable or redirects outside its plan")
         RepresentationPolicy(representation, representation_mode, representation == DocumentRepresentation.VISUALLY_MATERIAL_PDF).validate()
         digest = sha256(response.content).hexdigest()
+        if plan.source_family == "acnc_ais" and catalog is not None and not offline and authorisation.authority_material.get("content_hash") != digest:
+            raise ScalePreflightError("ACNC AIS acquired bytes do not match the authorised content hash")
         key = _hash({"plan": plan.plan_id, "locator": response.locator, "snapshot": digest})
         existing = self._snapshots.get(key)
         if existing:

@@ -640,7 +640,8 @@ class SQLiteCatalog:
                 raise CatalogError("ACNC AIS authority requires official provenance, exact resource/version, content hash and attribution")
             if authority_material["resource_id"] != exact_resource_id or len(authority_material["content_hash"]) != 64:
                 raise ConflictError("ACNC AIS authority does not bind its exact hashed resource")
-            if authority_material["publisher"].strip().lower() not in {"acnc", "acnc/data.gov.au", "data.gov.au/acnc"}:
+            provenance = str(authority_material["provenance"]).strip().lower()
+            if authority_material["publisher"].strip().lower() not in {"acnc", "acnc/data.gov.au", "data.gov.au/acnc"} or "acnc" not in provenance or not ("data.gov.au" in provenance or "acnc.gov.au" in provenance):
                 raise ConflictError("ACNC AIS authority provenance is not official")
             licence = authority_material.get("licence", "")
             if licence and str(licence).upper() != "NOTSPECIFIED" and not str(licence).lower().startswith(("cc-by", "creative commons")):
