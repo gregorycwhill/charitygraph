@@ -23,7 +23,7 @@ from charitygraph.scale_s0 import (
     PolicyArtifact, ProcessingDisposition, RepresentationPolicy, RoutingPolicy,
     ScaleMandate, ScalePreflightError, ScaleS0Preflight, SourceAuthorisation,
 )
-from charitygraph.s0_product_owner_policy import concrete_first_party_source_definition_id
+from charitygraph.s0_product_owner_policy import acnc_ais_local_use_permitted, concrete_first_party_source_definition_id
 
 
 def _hash(value: object) -> str:
@@ -247,6 +247,15 @@ class GovernedAcquisition:
             raise ScalePreflightError("source plan is stale or substituted")
         if plan.subject_id not in self.mandate.subject_ids or plan.source_family != authorisation.source_family:
             raise ScalePreflightError("source authorisation is outside its plan")
+        if plan.source_family == "acnc_ais" and catalog is not None and not offline:
+            material = authorisation.authority_material
+            if not acnc_ais_local_use_permitted(
+                publisher=str(material.get("publisher", "")),
+                exact_resource_id=authorisation.exact_resource_id,
+                content_hash=str(material.get("content_hash", "")),
+                licence=material.get("licence"),
+            ) or material.get("resource_version") in (None, "") or not material.get("attribution"):
+                raise ScalePreflightError("ACNC AIS local-use authority is incomplete or unofficial")
         if self.halts.active(slice_id=plan.slice_id, task_key="source-acquisition", subject_id=plan.subject_id):
             raise ScalePreflightError("hard halt prevents acquisition")
         if authorisation.access_classification == "TECHNICALLY_WITHHELD" or authorisation.technical_access_state != "accessible":

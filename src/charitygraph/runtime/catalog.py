@@ -71,7 +71,7 @@ TASK_TRANSITIONS = {
 S0_LIVE_SEND_SETTING_NAME = "Share inputs and outputs with OpenAI"
 S0_LIVE_SEND_OBSERVED_VALUE = "Disabled"
 S0_LIVE_SEND_ATTESTER = "Greg"
-S0_LIVE_SEND_MAX_ATTESTATION_AGE = timedelta(minutes=15)
+S0_LIVE_SEND_MAX_ATTESTATION_AGE = timedelta(minutes=60)
 
 
 def default_database_path(runtime_root: str | Path) -> Path:
@@ -633,6 +633,18 @@ class SQLiteCatalog:
                 raise CatalogError("controlled source authority lacks exact resource, licence, or rights material")
             if authority_material["resource_id"] != exact_resource_id:
                 raise ConflictError("controlled source authority resource material does not bind its exact resource")
+        if source_family == "acnc_ais":
+            authority_material = source_authority["authority_material"]
+            required_ais = ("publisher", "provenance", "resource_id", "resource_version", "content_hash", "attribution")
+            if any(not isinstance(authority_material.get(key), str) or not authority_material[key] for key in required_ais):
+                raise CatalogError("ACNC AIS authority requires official provenance, exact resource/version, content hash and attribution")
+            if authority_material["resource_id"] != exact_resource_id or len(authority_material["content_hash"]) != 64:
+                raise ConflictError("ACNC AIS authority does not bind its exact hashed resource")
+            if authority_material["publisher"].strip().lower() not in {"acnc", "acnc/data.gov.au", "data.gov.au/acnc"}:
+                raise ConflictError("ACNC AIS authority provenance is not official")
+            licence = authority_material.get("licence", "")
+            if licence and str(licence).upper() != "NOTSPECIFIED" and not str(licence).lower().startswith(("cc-by", "creative commons")):
+                raise ConflictError("ACNC AIS licence is not compatible with local use")
         material = dict(source_authority)
         material["created_at"] = created_at
         authority_material_hash = _canonical_hash(material["authority_material"])
@@ -739,6 +751,54 @@ class SQLiteCatalog:
             )
             self._commit(conn)
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_owner_attestations WHERE attestation_id=?", (material["attestation_id"],)).fetchone()) or {}
+
+    def register_scale_s0_attestation_window(self, window: Mapping[str, Any]) -> dict[str, Any]:
+        """Record one explicit, reusable 60-minute S0 provider-policy window."""
+        self._require_migrated()
+        fields = ("window_id", "execution_attempt_id", "mandate_id", "slice_id", "run_id", "attested_by",
+                  "setting_name", "observed_value", "provider_account_project", "execution_authority",
+                  "observed_at", "valid_until")
+        if set(window) != set(fields) or any(not window.get(field) for field in fields):
+            raise CatalogError("S0 attestation window lacks canonical binding")
+        material = dict(window)
+        material["observed_at"] = _utc(material["observed_at"], "observed_at")
+        material["valid_until"] = _utc(material["valid_until"], "valid_until")
+        observed = datetime.fromisoformat(material["observed_at"])
+        valid_until = datetime.fromisoformat(material["valid_until"])
+        if material["attested_by"] != S0_LIVE_SEND_ATTESTER or material["setting_name"] != S0_LIVE_SEND_SETTING_NAME or material["observed_value"] != S0_LIVE_SEND_OBSERVED_VALUE:
+            raise CatalogError("S0 attestation window must record Greg's required OpenAI-sharing setting")
+        if valid_until != observed + S0_LIVE_SEND_MAX_ATTESTATION_AGE:
+            raise CatalogError("S0 attestation window must expire exactly 60 minutes after observation")
+        material_hash = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (material["execution_attempt_id"],)).fetchone()
+            if attempt is None or (attempt["mandate_id"], attempt["slice_id"], attempt["run_id"]) != (material["mandate_id"], material["slice_id"], material["run_id"]):
+                raise ConflictError("attestation window execution binding is absent or stale")
+            prior = conn.execute("SELECT * FROM scale_s0_attestation_windows WHERE window_id=?", (material["window_id"],)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("S0 attestation window identity conflict")
+                return dict(prior)
+            conn.execute("INSERT INTO scale_s0_attestation_windows(window_id,execution_attempt_id,mandate_id,slice_id,run_id,attested_by,setting_name,observed_value,provider_account_project,execution_authority,observed_at,valid_until,material_json,material_hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tuple(material[field] for field in fields) + (self._json(material), material_hash))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM scale_s0_attestation_windows WHERE window_id=?", (material["window_id"],)).fetchone())
+
+    def invalidate_scale_s0_attestation_window(self, *, window_id: str, invalidation_id: str, reason: str, invalidated_at: datetime | str) -> dict[str, Any]:
+        self._require_migrated()
+        when = _utc(invalidated_at, "invalidated_at")
+        material = {"window_id": window_id, "invalidation_id": invalidation_id, "reason": reason, "invalidated_at": when}
+        material_hash = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            if conn.execute("SELECT 1 FROM scale_s0_attestation_windows WHERE window_id=?", (window_id,)).fetchone() is None:
+                raise ConflictError("cannot invalidate an absent S0 attestation window")
+            prior = conn.execute("SELECT * FROM scale_s0_attestation_window_invalidations WHERE invalidation_id=?", (invalidation_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("attestation invalidation identity conflict")
+                return dict(prior)
+            conn.execute("INSERT INTO scale_s0_attestation_window_invalidations(invalidation_id,window_id,reason,invalidated_at,material_json,material_hash) VALUES (?,?,?,?,?,?)", (invalidation_id, window_id, reason, when, self._json(material), material_hash))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM scale_s0_attestation_window_invalidations WHERE invalidation_id=?", (invalidation_id,)).fetchone())
 
     def register_scale_s0_frozen_packet(self, packet: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()
@@ -990,7 +1050,8 @@ class SQLiteCatalog:
                                         slice_id: str, task_id: str, task_version: str, task_key: str,
                                         route: str, source_ids: tuple[str, ...], source_snapshot_hashes: tuple[str, ...],
                                         input_profile_id: str, output_schema_id: str, reservation_id: str | None,
-                                        observed_at: datetime) -> None:
+                                        observed_at: datetime, provider_account_project: str | None = None,
+                                        execution_authority: str | None = None) -> None:
         """Re-check all durable attempt ownership immediately before a live send."""
         with self._connection() as conn:
             attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (execution_attempt_id,)).fetchone()
@@ -1039,10 +1100,20 @@ class SQLiteCatalog:
                     raise ConflictError("durable concrete source rights-policy version is invalid")
                 if snapshot["execution_attempt_id"] != execution_attempt_id or snapshot["mandate_id"] != mandate_id or snapshot_material.get("snapshot_hash") != snapshot_hash or snapshot_material.get("source_record_id") in (None, "") or snapshot_material.get("locator") != source.get("url_or_identity"):
                     raise ConflictError("durable concrete source snapshot is substituted or incomplete")
+                if source.get("source_family") == "acnc_ais" and json.loads(source_row["authority_material_json"]).get("provider_transmission") != "explicitly_authorised":
+                    raise ConflictError("ACNC AIS local-use authority does not permit provider transmission")
                 open_web = source.get("access_classification") == "OPEN_WEB_PUBLIC" and source.get("technical_access_state") == "accessible" and source.get("rights_transmission_status") in {"permitted", "permitted_open_web_policy"}
                 controlled = source.get("access_classification") == "SEPARATELY_LICENSED_OR_CONTROLLED" and source.get("rights_transmission_status") == "permitted" and source.get("specialist_authorisation_id") == mandate_material.get("specialist_source_policy_id")
                 if not (open_web or controlled) or task_contract.get("family") not in tuple(source.get("claim_families") or ()):
                     raise ConflictError("durable source-rights authority does not permit provider send")
+            if not provider_account_project or not execution_authority:
+                raise ConflictError("live Scale S0 provider send lacks explicit attestation-window account/project and authority")
+            windows = conn.execute("SELECT * FROM scale_s0_attestation_windows WHERE execution_attempt_id=? AND mandate_id=? AND slice_id=? AND run_id=? AND provider_account_project=? AND execution_authority=? AND valid_until>? AND NOT EXISTS (SELECT 1 FROM scale_s0_attestation_window_invalidations i WHERE i.window_id=scale_s0_attestation_windows.window_id)", (execution_attempt_id, mandate_id, slice_id, attempt["run_id"], provider_account_project, execution_authority, _utc(observed_at, "provider_send_observed_at"))).fetchall()
+            if len(windows) != 1:
+                raise ConflictError("live Scale S0 provider send lacks one currently valid durable attestation window")
+            window = windows[0]
+            if _canonical_hash(json.loads(window["material_json"])) != window["material_hash"] or datetime.fromisoformat(_utc(observed_at, "provider_send_observed_at")) >= datetime.fromisoformat(window["valid_until"]):
+                raise ConflictError("durable S0 attestation window is expired or integrity-invalid")
             attestations = conn.execute("SELECT * FROM scale_s0_owner_attestations WHERE execution_attempt_id=? AND packet_id=?", (execution_attempt_id, packet_id)).fetchall()
             if len(attestations) != 1:
                 raise ConflictError("live Scale S0 provider send lacks one durable owner attestation")

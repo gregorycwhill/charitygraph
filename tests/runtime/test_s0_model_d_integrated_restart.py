@@ -127,12 +127,22 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
     assert restarted.get_scale_s0_frozen_packet(packets[-1].packet_id)["execution_attempt_id"] == attempt.attempt_id
     live = ScaleS0Preflight.from_catalog(restarted, mandate_id=mandate.mandate_id, packet_id=provider_packet.packet_id)
     from charitygraph.scale_s0 import SendRequest
-    request = SendRequest("physical:model-d", TASK.task_id, TASK.version, provider_packet.subject_id, provider_packet.scope_id, provider_packet.binding_hash, True, TASK.default_routing, reservation["reservation_id"], provider_packet.source_ids, False)
-    with pytest.raises(ConflictError, match="owner attestation"):
+    request = SendRequest("physical:model-d", TASK.task_id, TASK.version, provider_packet.subject_id, provider_packet.scope_id, provider_packet.binding_hash, True, TASK.default_routing, reservation["reservation_id"], provider_packet.source_ids, False, provider_account_project="openai/project-synthetic", execution_authority="s0-authority:model-d")
+    with pytest.raises(ConflictError, match="owner attestation|attestation window"):
         live.provider_send(request)
     attestation = _owner_attestation(attempt, provider_packet, reservation["reservation_id"])
     stored_attestation = ScaleS0Preflight.register_durable_owner_attestation(restarted, attestation)
     assert stored_attestation["attested_by"] == "Greg"
+    restarted.register_scale_s0_attestation_window({
+        "window_id": "window:model-d:synthetic", "execution_attempt_id": attempt.attempt_id,
+        "mandate_id": mandate.mandate_id, "slice_id": mandate.slice_id, "run_id": attempt.run_id,
+        "attested_by": "Greg", "setting_name": S0_LIVE_SEND_SETTING_NAME,
+        "observed_value": S0_LIVE_SEND_OBSERVED_VALUE, "provider_account_project": "openai/project-synthetic",
+        "execution_authority": "s0-authority:model-d", "observed_at": NOW,
+        "valid_until": datetime.fromisoformat(NOW) + timedelta(minutes=60),
+    })
+    with pytest.raises(ConflictError, match="attestation window"):
+        live.provider_send(replace(request, provider_account_project="openai/other"), now=datetime.fromisoformat(NOW))
     assert ScaleS0Preflight.register_durable_owner_attestation(restarted, attestation)["material_hash"] == stored_attestation["material_hash"]
     with pytest.raises(ConflictError, match="owner attestation"):
         ScaleS0Preflight.register_durable_owner_attestation(restarted, replace(attestation, data_commit_sha="0" * 40))
@@ -151,8 +161,8 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
             ScaleS0Preflight.register_durable_owner_attestation(restarted, changed)
     assert live.provider_send(request, now=datetime.fromisoformat(NOW)) == TASK
     observed = datetime.fromisoformat(attestation.observed_at)
-    with pytest.raises(ConflictError, match="future|stale"):
-        live.provider_send(request, now=observed + timedelta(minutes=16))
+    with pytest.raises(ConflictError, match="future|stale|attestation"):
+        live.provider_send(request, now=observed + timedelta(minutes=61))
     with pytest.raises(ConflictError, match="future|stale"):
         live.provider_send(request, now=observed - timedelta(seconds=1))
     restarted.record_scale_s0_halt(halt_id="halt:model-d:synthetic", slice_id=mandate.slice_id, scope="task", task_key=TASK.key, reason="synthetic gate test", created_at=NOW)
@@ -184,4 +194,7 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
         catalog.register_scale_s0_physical_bundle({"bundle_id": "bundle:model-d-substitute", "mandate_id": mandate.mandate_id, "routing_class": TASK.default_routing.value, "packet_ids": tuple(item.packet_id for item in packets), "packet_hashes": tuple(item.binding_hash for item in packets), "frozen_at": NOW}, execution_attempt_id="attempt:other")
     with pytest.raises(ConflictError):
         catalog.register_scale_s0_source_plan({**{k: v for k, v in {"plan_id": "plan:model-d:cross", "mandate_id": mandate.mandate_id, "mandate_hash": mandate.identity_hash, "slice_id": mandate.slice_id, "subject_id": SUBJECTS[0], "subject_scope": "scope:x", "source_family": "retained_fixture", "created_at": NOW}.items()}}, execution_attempt_id="attempt:other")
+    restarted.invalidate_scale_s0_attestation_window(window_id="window:model-d:synthetic", invalidation_id="invalidation:model-d:setting-change", reason="suspected provider setting change", invalidated_at=NOW)
+    with pytest.raises(ConflictError, match="attestation window"):
+        live.provider_send(request, now=datetime.fromisoformat(NOW))
     assert len(packets) == 8 and population_subjects == tuple(sorted(SUBJECTS))
