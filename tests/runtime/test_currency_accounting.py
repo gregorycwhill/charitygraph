@@ -95,7 +95,7 @@ def test_offline_s0_usd_limits_and_durable_binding_need_no_fx(tmp_path):
     )
     economics = EconomicState(0, Decimal("0"), Decimal("0"), "reservation:offline-usd", True, mandate.mandate_id, mandate.slice_id, scale["TASK"].key, Decimal("0.25"), "USD", Decimal("0.25"), Decimal("0"))
     catalog = SQLiteCatalog(tmp_path / "offline-usd.sqlite3").open(initialize=True)
-    ScaleS0Preflight.register_durable_mandate(catalog, mandate, scale["REGISTRY"], harness.routing, policies, harness.sources)
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, scale["REGISTRY"], harness.routing, policies, harness.sources, offline=True)
     ScaleS0Preflight.record_durable_reservation(catalog, economics, recorded_at=NOW, offline=True)
     binding = catalog.get_scale_s0_reservation_binding(mandate_id=mandate.mandate_id, slice_id=mandate.slice_id, task_key=scale["TASK"].key, offline=True)
     assert binding["state"]["reservation_currency"] == "USD"

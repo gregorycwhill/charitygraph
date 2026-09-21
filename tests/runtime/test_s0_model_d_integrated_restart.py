@@ -32,7 +32,7 @@ def _attempt(mandate):
         data_repository="gregorycwhill/charitygraph-data",
         data_commit_sha="366509f6bf8a723058353e69402625a1b0ded3b2",
         bridge_certification="S0_ACQUISITION_PACKET_BRIDGE_CERTIFIED",
-        bridge_version="1", schema_version=19,
+        bridge_version="1", schema_version=22,
         recovery_authority_ref="recovery:model-d", status="prepared", created_at=NOW,
     )
     values["configuration_hash"] = canonical_execution_configuration_hash(**{
@@ -80,21 +80,36 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
                       applicable_source_families=("latest_authorised_annual_report",))
     attempt = _attempt(mandate)
     catalog = SQLiteCatalog(tmp_path / "model-d.sqlite3").open(initialize=True)
-    durable_sources = {f"source:model-d:{index}": replace(source, source_id=f"source:model-d:{index}", source_family="latest_authorised_annual_report", source_record_id=f"source-record:model-d:{index}", snapshot_hash=f"{index + 1:064x}") for index in range(len(SUBJECTS))}
-    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, durable_sources)
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {})
     catalog.register_cohort({"record_id": "cohort:model-d", "cohort_code": "MODEL-D", "definition_version": "1", "membership_hash": "e" * 64, "budget_cap": {"amount": "8", "currency": "AUD"}, "created_at": NOW})
     catalog.register_run({"record_id": attempt.run_id, "cohort_id": "cohort:model-d", "run_kind": "s0", "status": "planned", "configuration_hash": attempt.configuration_hash, "created_at": NOW})
     ScaleS0Preflight.register_durable_execution_attempt(catalog, attempt)
     population = MandatePopulation.from_mandate(mandate, SUBJECTS)
-    plans, snapshots, representations, corpora, packets = [], [], [], [], []
+    plans, snapshots, representations, corpora, packets, source_authorities = [], [], [], [], [], []
     for index, subject in enumerate(SUBJECTS):
         plan = SourcePlan(mandate.mandate_id, mandate.identity_hash, mandate.slice_id, subject, f"scope:{subject}", "latest_authorised_annual_report", "offline_fixture", "OPEN_WEB_PUBLIC", "annual_report", "official", "mandatory", f"fixture://model-d/{index}", mandate.policy_hashes["source_universe"], NOW)
         snapshot = SourceSnapshot(plan.plan_id, f"source:model-d:{index}", f"source-record:model-d:{index}", f"{index + 1:064x}", "text/plain", plan.locator, NOW, "acquired", __import__("charitygraph.scale_s0", fromlist=["DocumentRepresentation"]).DocumentRepresentation.RELIABLE_TEXT, "text_extraction_only", f"fixture:model-d:{index}")
+        source_authority = replace(
+            source, source_id=snapshot.source_id, source_family=plan.source_family,
+            url_or_identity=plan.locator, rights_transmission_status="permitted_open_web_policy",
+            acquisition_state="authorised", parsing_state="not_processed", snapshot_hash="",
+            source_record_id="", rights_policy_version=policies["rights_transmission"].version,
+            access_classification="OPEN_WEB_PUBLIC", technical_access_state="accessible",
+            source_authority_id=f"source-authority:model-d:{index}", mandate_id=mandate.mandate_id,
+            mandate_hash=mandate.identity_hash, slice_id=mandate.slice_id,
+            execution_attempt_id=attempt.attempt_id, subject_id=subject,
+            exact_resource_id=f"fixture-resource:model-d:{index}",
+            rights_policy_id=mandate.rights_transmission_policy_id,
+            rights_decision_id=f"rights-decision:model-d:{index}",
+            authority_material={"fixture": "explicit", "resource": f"fixture-resource:model-d:{index}"},
+            created_at=NOW,
+        )
+        assert ScaleS0Preflight.register_durable_source_authority(catalog, source_authority)["source_id"] == snapshot.source_id
         representation = RepresentationRecord(f"representation:model-d:{index}", snapshot.source_id, snapshot.snapshot_hash, "reliable_extracted_text", "text_extraction_only", snapshot.snapshot_hash, (), (), {"fixture": True}, NOW)
         corpus = FrozenCorpus(mandate.mandate_id, mandate.identity_hash, mandate.slice_id, subject, (snapshot.source_record_id,), (snapshot.snapshot_hash,), (representation.representation_kind,), (), NOW)
         applicability = tuple(item for item in task_applicability(REGISTRY, mandate, corpus, scope_id=f"scope:{subject}") if item.task_id == TASK.task_id)
         packets.extend(__import__("charitygraph.s0_acquisition_bridge", fromlist=["frozen_packets"]).frozen_packets(mandate, REGISTRY, corpus, (snapshot,), applicability, now=datetime.fromisoformat(NOW)))
-        plans.append(plan); snapshots.append(snapshot); representations.append(representation); corpora.append(corpus)
+        plans.append(plan); snapshots.append(snapshot); representations.append(representation); corpora.append(corpus); source_authorities.append(source_authority)
     population_subjects = population.subject_ids
     bundles = bundle_packets(mandate, packets, now=datetime.fromisoformat(NOW))
     persist_bridge(catalog, mandate, plans=plans, snapshots=snapshots, representations=representations, corpora=corpora, bundles=(), execution_attempt_id=attempt.attempt_id)
@@ -146,17 +161,11 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
     restarted.recover_scale_s0_halt(halt_id="halt:model-d:synthetic", actor="Greg", rationale="synthetic gate test complete", recovered_at=NOW)
     assert live.provider_send(request, now=datetime.fromisoformat(NOW)) == TASK
     with restarted._connection(immediate=True) as conn:
-        mandate_row = conn.execute("SELECT authority_json FROM scale_s0_mandates WHERE mandate_id=?", (mandate.mandate_id,)).fetchone()
-        authority_json_text = mandate_row["authority_json"]
-        authority_json = __import__("json").loads(authority_json_text)
-        authority_json["sources"][provider_packet.source_ids[0]]["rights_transmission_status"] = "forbidden"
-        conn.execute("UPDATE scale_s0_mandates SET authority_json=? WHERE mandate_id=?", (__import__("json").dumps(authority_json, sort_keys=True, separators=(",", ":")), mandate.mandate_id))
+        conn.execute("DELETE FROM scale_s0_source_authorities WHERE source_id=?", (provider_packet.source_ids[0],))
         restarted._commit(conn)
-    with pytest.raises(ConflictError, match="source-rights"):
+    with pytest.raises(ConflictError, match="source"):
         live.provider_send(request, now=datetime.fromisoformat(NOW))
-    with restarted._connection(immediate=True) as conn:
-        conn.execute("UPDATE scale_s0_mandates SET authority_json=? WHERE mandate_id=?", (authority_json_text, mandate.mandate_id))
-        restarted._commit(conn)
+    ScaleS0Preflight.register_durable_source_authority(restarted, next(item for item in source_authorities if item.source_id == provider_packet.source_ids[0]))
     with pytest.raises(ScalePreflightError):
         ScaleS0Preflight.from_catalog(restarted, mandate_id=mandate.mandate_id, packet_id=provider_packet.packet_id, economics=economics)
     with restarted._connection(immediate=True) as conn:

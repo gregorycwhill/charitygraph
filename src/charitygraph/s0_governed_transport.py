@@ -14,7 +14,7 @@ from urllib.parse import urljoin, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from charitygraph.scale_s0 import HaltController, ScaleMandate, ScalePreflightError, SourceAuthorisation
-from charitygraph.s0_acquisition_bridge import SourcePlan
+from charitygraph.s0_acquisition_bridge import SourcePlan, _durable_live_authority
 
 
 @dataclass(frozen=True)
@@ -90,17 +90,24 @@ class GovernedSourceTransport:
         self._allowed_locator(plan.locator)
 
     def fetch(self, plan: SourcePlan, authorisation: SourceAuthorisation, mandate: ScaleMandate,
-              *, halts: HaltController | None = None, now: datetime | None = None, catalog: object | None = None, execution_attempt_id: str | None = None) -> TransportResult:
-        self._authorise(plan, authorisation, mandate, halts)
-        if catalog is not None:
+              *, halts: HaltController | None = None, now: datetime | None = None, catalog: object | None = None,
+              execution_attempt_id: str | None = None, offline: bool = False) -> TransportResult:
+        if catalog is None:
+            if not offline:
+                raise GovernedTransportError("live governed transport requires durable catalogue authority")
+        else:
+            if offline:
+                raise GovernedTransportError("offline governed transport cannot use a durable live catalogue")
             if not execution_attempt_id:
                 raise GovernedTransportError("live governed transport requires an execution-attempt binding")
             attempt = catalog.get_scale_s0_execution_attempt(execution_attempt_id)
             if attempt is None or attempt["mandate_id"] != mandate.mandate_id or attempt["slice_id"] != mandate.slice_id:
                 raise GovernedTransportError("transport execution-attempt binding is absent or stale")
-            stored_plan = catalog.get_scale_s0_source_plan(plan.plan_id) if hasattr(catalog, "get_scale_s0_source_plan") else None
-            if stored_plan is None or stored_plan.get("execution_attempt_id") != execution_attempt_id:
-                raise GovernedTransportError("transport source plan is not durably owned by the attempt")
+            try:
+                authorisation = _durable_live_authority(catalog, mandate, plan, authorisation, execution_attempt_id)
+            except ScalePreflightError as error:
+                raise GovernedTransportError(str(error)) from error
+        self._authorise(plan, authorisation, mandate, halts)
         requested = plan.locator
         current = requested
         headers = {"User-Agent": self.user_agent, "Accept": "text/html,application/pdf,application/json;q=0.9,*/*;q=0.1"}

@@ -45,7 +45,7 @@ def local_server(handler=FixtureHandler):
 def test_preflight_rejects_before_opener_for_unsafe_sources(monkeypatch):
     value, plan, auth = plan_and_auth(); transport = GovernedSourceTransport()
     opener = Mock(); transport._opener = opener
-    with pytest.raises(GovernedTransportError): transport.fetch(plan, auth.__class__(**{**auth.__dict__, "technical_access_state": "login_required"}), value)
+    with pytest.raises(GovernedTransportError): transport.fetch(plan, auth.__class__(**{**auth.__dict__, "technical_access_state": "login_required"}), value, offline=True)
     opener.open.assert_not_called()
 
 
@@ -53,14 +53,14 @@ def test_open_web_fetch_is_bounded_and_returns_transport_metadata(monkeypatch):
     value, plan, auth = plan_and_auth(); transport = GovernedSourceTransport(max_response_bytes=20)
     response = Mock(); response.status = 200; response.getcode.return_value = 200; response.headers = {"Content-Type": "text/html"}; response.read.side_effect = [b"public", b""]
     transport._opener = Mock(); transport._opener.open.return_value = response
-    result = transport.fetch(plan, auth, value, now=NOW)
+    result = transport.fetch(plan, auth, value, now=NOW, offline=True)
     assert result.content == b"public" and result.requested_locator == plan.locator and result.tool_id == "charitygraph-governed-http"
 
 
 def test_non_http_and_controlled_without_authority_are_rejected_before_open():
     value, plan, auth = plan_and_auth(); transport = GovernedSourceTransport(); opener = Mock(); transport._opener = opener
-    with pytest.raises(GovernedTransportError): transport.fetch(plan.__class__(**{**plan.__dict__, "locator": "file:///tmp/no"}), auth, value)
-    with pytest.raises(GovernedTransportError): transport.fetch(plan, auth.__class__(**{**auth.__dict__, "access_classification": "SEPARATELY_LICENSED_OR_CONTROLLED", "rights_transmission_status": "permitted", "specialist_authorisation_id": None}), value)
+    with pytest.raises(GovernedTransportError): transport.fetch(plan.__class__(**{**plan.__dict__, "locator": "file:///tmp/no"}), auth, value, offline=True)
+    with pytest.raises(GovernedTransportError): transport.fetch(plan, auth.__class__(**{**auth.__dict__, "access_classification": "SEPARATELY_LICENSED_OR_CONTROLLED", "rights_transmission_status": "permitted", "specialist_authorisation_id": None}), value, offline=True)
     opener.open.assert_not_called()
 
 
@@ -73,7 +73,7 @@ def test_non_http_and_controlled_without_authority_are_rejected_before_open():
 def test_stale_scope_locator_and_family_bindings_never_open(mutation):
     value, plan, auth = plan_and_auth(); transport = GovernedSourceTransport(); opener = Mock(); transport._opener = opener
     changed_plan, changed_auth = mutation(plan, auth, value)
-    with pytest.raises(GovernedTransportError): transport.fetch(changed_plan, changed_auth, value)
+    with pytest.raises(GovernedTransportError): transport.fetch(changed_plan, changed_auth, value, offline=True)
     opener.open.assert_not_called()
 
 
@@ -82,7 +82,7 @@ def test_transport_result_flows_into_existing_governed_acquisition(monkeypatch):
     response = Mock(); response.status = 200; response.getcode.return_value = 200; response.headers = {"Content-Type": "text/html"}; response.read.side_effect = [b"public", b""]
     transport._opener = Mock(); transport._opener.open.return_value = response
     from charitygraph.s0_acquisition_bridge import GovernedAcquisition
-    snapshot = GovernedAcquisition(value).acquire_transport(plan, auth, transport, representation=__import__("charitygraph.scale_s0", fromlist=["DocumentRepresentation"]).DocumentRepresentation.RELIABLE_TEXT, representation_mode="text_extraction_only", now=NOW)
+    snapshot = GovernedAcquisition(value).acquire_transport(plan, auth, transport, representation=__import__("charitygraph.scale_s0", fromlist=["DocumentRepresentation"]).DocumentRepresentation.RELIABLE_TEXT, representation_mode="text_extraction_only", now=NOW, offline=True)
     assert snapshot.snapshot_hash
 
 
@@ -90,7 +90,7 @@ def test_transport_result_flows_into_existing_governed_acquisition(monkeypatch):
 def test_technical_states_never_open_socket(state):
     value, plan, auth = plan_and_auth(); transport = GovernedSourceTransport(); opener = Mock(); transport._opener = opener
     with pytest.raises(GovernedTransportError):
-        transport.fetch(plan, auth.__class__(**{**auth.__dict__, "technical_access_state": state}), value)
+        transport.fetch(plan, auth.__class__(**{**auth.__dict__, "technical_access_state": state}), value, offline=True)
     opener.open.assert_not_called()
 
 
@@ -98,7 +98,7 @@ def test_active_halt_is_checked_before_socket():
     value, plan, auth = plan_and_auth(); transport = GovernedSourceTransport(); opener = Mock(); transport._opener = opener
     from charitygraph.scale_s0 import HaltController, HaltRecord, HaltReason, HaltScope
     halts = HaltController([HaltRecord("h", HaltReason.RIGHTS_TRANSMISSION_VIOLATION, HaltScope.SUBJECT, value.slice_id, "source-acquisition", plan.subject_id, NOW.isoformat())])
-    with pytest.raises(GovernedTransportError): transport.fetch(plan, auth, value, halts=halts)
+    with pytest.raises(GovernedTransportError): transport.fetch(plan, auth, value, halts=halts, offline=True)
     opener.open.assert_not_called()
 
 
@@ -107,7 +107,7 @@ def test_real_loopback_http_success_and_status_failures():
     server, locator = local_server()
     try:
         plan = plan.__class__(**{**plan.__dict__, "locator": locator}); auth = auth.__class__(**{**auth.__dict__, "url_or_identity": locator})
-        result = transport.fetch(plan, auth, value, now=NOW)
+        result = transport.fetch(plan, auth, value, now=NOW, offline=True)
         assert result.status == 200 and result.content == b"<html>fixture</html>" and result.final_locator == locator
     finally: server.shutdown(); server.server_close()
 
@@ -116,7 +116,7 @@ def test_real_loopback_http_success_and_status_failures():
         server, locator = local_server(StatusHandler)
         try:
             plan = plan.__class__(**{**plan.__dict__, "locator": locator}); auth = auth.__class__(**{**auth.__dict__, "url_or_identity": locator})
-            with pytest.raises(GovernedTransportError): transport.fetch(plan, auth, value)
+            with pytest.raises(GovernedTransportError): transport.fetch(plan, auth, value, offline=True)
         finally: server.shutdown(); server.server_close()
 
 
@@ -137,7 +137,7 @@ def test_real_loopback_redirects_and_stream_limit():
     server, locator = local_server(RedirectHandler)
     try:
         plan = plan.__class__(**{**plan.__dict__, "locator": locator}); auth = auth.__class__(**{**auth.__dict__, "url_or_identity": locator})
-        result = transport.fetch(plan, auth, value); assert result.final_locator.endswith("/final")
+        result = transport.fetch(plan, auth, value, offline=True); assert result.final_locator.endswith("/final")
     finally: server.shutdown(); server.server_close()
 
     class LargeHandler(FixtureHandler):
@@ -145,7 +145,7 @@ def test_real_loopback_redirects_and_stream_limit():
     server, locator = local_server(LargeHandler)
     try:
         plan = plan.__class__(**{**plan.__dict__, "locator": locator}); auth = auth.__class__(**{**auth.__dict__, "url_or_identity": locator})
-        with pytest.raises(GovernedTransportError): transport.fetch(plan, auth, value)
+        with pytest.raises(GovernedTransportError): transport.fetch(plan, auth, value, offline=True)
     finally: server.shutdown(); server.server_close()
 
 
@@ -153,7 +153,7 @@ def test_loopback_transport_flows_through_acquisition_to_packet():
     value, plan, auth = plan_and_auth(); server, locator = local_server()
     try:
         plan = plan.__class__(**{**plan.__dict__, "locator": locator}); auth = auth.__class__(**{**auth.__dict__, "url_or_identity": locator})
-        snapshot = GovernedAcquisition(value).acquire_transport(plan, auth, GovernedSourceTransport(), representation=DocumentRepresentation.RELIABLE_TEXT, representation_mode="text_extraction_only", now=NOW)
+        snapshot = GovernedAcquisition(value).acquire_transport(plan, auth, GovernedSourceTransport(), representation=DocumentRepresentation.RELIABLE_TEXT, representation_mode="text_extraction_only", now=NOW, offline=True)
         corpus = freeze_corpus(value, plan.subject_id, (snapshot,), now=NOW)
         applicable = task_applicability(default_s0_registry(), value, corpus, scope_id="scope:organisation")
         packets = frozen_packets(value, default_s0_registry(), corpus, (snapshot,), applicable, now=NOW)

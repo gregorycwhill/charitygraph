@@ -469,7 +469,7 @@ class SQLiteCatalog:
         if row is None:
             return None
         result = dict(row)
-        for key in ("material_json", "authority_json"):
+        for key in ("material_json", "authority_json", "authority_material_json"):
             if key in result:
                 result[key.removesuffix("_json")] = json.loads(result[key])
         return result
@@ -544,6 +544,106 @@ class SQLiteCatalog:
         if row is None or any(row.get(key) != value for key, value in expected.items()):
             raise ConflictError("Scale S0 execution attempt binding is absent or stale")
         return row
+
+    def register_scale_s0_source_authority(self, source_authority: Mapping[str, Any]) -> dict[str, Any]:
+        """Append one exact resource decision for an attempt, idempotently.
+
+        A mandate is policy authority only.  This deliberately separate record
+        is the only live source-rights authority and may be read before a
+        transport boundary or rebuilt after a process restart.
+        """
+        self._require_migrated()
+        required = (
+            "source_authority_id", "source_id", "mandate_id", "mandate_hash", "slice_id",
+            "execution_attempt_id", "source_family", "subject_id", "url_or_identity",
+            "exact_resource_id", "rights_policy_id", "rights_policy_version", "rights_decision_id",
+            "rights_transmission_status", "access_classification", "technical_access_state",
+            "authority_role", "authority_material", "claim_families", "created_at",
+        )
+        if any(key not in source_authority or source_authority[key] in (None, "") for key in required):
+            raise CatalogError("Scale S0 source authority lacks immutable runtime binding")
+        if not isinstance(source_authority["authority_material"], Mapping) or not source_authority["authority_material"]:
+            raise CatalogError("Scale S0 source authority requires non-empty authority material")
+        if not tuple(source_authority["claim_families"]):
+            raise CatalogError("Scale S0 source authority requires authorised claim families")
+        authority_id = _text(source_authority["source_authority_id"], "source_authority_id")
+        source_id = _text(source_authority["source_id"], "source_id")
+        mandate_id = _text(source_authority["mandate_id"], "mandate_id")
+        attempt_id = _text(source_authority["execution_attempt_id"], "execution_attempt_id")
+        source_family = _text(source_authority["source_family"], "source_family")
+        subject_id = _text(source_authority["subject_id"], "subject_id")
+        locator = _text(source_authority["url_or_identity"], "url_or_identity")
+        exact_resource_id = _text(source_authority["exact_resource_id"], "exact_resource_id")
+        rights_policy_id = _text(source_authority["rights_policy_id"], "rights_policy_id")
+        rights_policy_version = _text(source_authority["rights_policy_version"], "rights_policy_version")
+        rights_decision_id = _text(source_authority["rights_decision_id"], "rights_decision_id")
+        rights_status = _text(source_authority["rights_transmission_status"], "rights_transmission_status")
+        access = _text(source_authority["access_classification"], "access_classification")
+        technical = _text(source_authority["technical_access_state"], "technical_access_state")
+        role = _text(source_authority["authority_role"], "authority_role")
+        created_at = _utc(source_authority["created_at"], "created_at")
+        if access not in {"OPEN_WEB_PUBLIC", "SEPARATELY_LICENSED_OR_CONTROLLED", "TECHNICALLY_WITHHELD"}:
+            raise CatalogError("Scale S0 source authority has an invalid access classification")
+        if access == "SEPARATELY_LICENSED_OR_CONTROLLED":
+            required_controlled_material = (
+                "resource_id", "resource_version", "licence_id", "licence_version", "rights_authority_id",
+            )
+            authority_material = source_authority["authority_material"]
+            if any(not isinstance(authority_material.get(key), str) or not authority_material[key] for key in required_controlled_material):
+                raise CatalogError("controlled source authority lacks exact resource, licence, or rights material")
+            if authority_material["resource_id"] != exact_resource_id:
+                raise ConflictError("controlled source authority resource material does not bind its exact resource")
+        material = dict(source_authority)
+        material["created_at"] = created_at
+        authority_material_hash = _canonical_hash(material["authority_material"])
+        material_hash = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            mandate = conn.execute("SELECT mandate_hash,slice_id,material_json,authority_json FROM scale_s0_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
+            attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (attempt_id,)).fetchone()
+            if mandate is None or attempt is None:
+                raise ConflictError("source authority references absent mandate or execution attempt")
+            if int(attempt["schema_version"]) != 22:
+                raise ConflictError("concrete source authority requires schema-22 execution identity")
+            if (source_authority["mandate_hash"], source_authority["slice_id"]) != (mandate["mandate_hash"], mandate["slice_id"]) or (attempt["mandate_id"], attempt["mandate_hash"], attempt["slice_id"]) != (mandate_id, mandate["mandate_hash"], mandate["slice_id"]):
+                raise ConflictError("source authority mandate or attempt binding is stale")
+            mandate_material = json.loads(mandate["material_json"])
+            policy_authority = json.loads(mandate["authority_json"])
+            rights_policy = policy_authority.get("policies", {}).get("rights_transmission", {})
+            if source_family not in tuple(mandate_material.get("applicable_source_families") or ()) or subject_id not in tuple(mandate_material.get("subject_ids") or ()):
+                raise ConflictError("source authority family or subject is outside the immutable mandate")
+            if (rights_policy_id, rights_policy_version) != (mandate_material.get("rights_transmission_policy_id"), rights_policy.get("version")) or rights_policy.get("policy_id") != rights_policy_id:
+                raise ConflictError("source authority does not bind the mandate rights-policy version")
+            if access == "SEPARATELY_LICENSED_OR_CONTROLLED" and source_authority.get("specialist_authorisation_id") != mandate_material.get("specialist_source_policy_id"):
+                raise ConflictError("controlled source authority lacks its exact specialist authority")
+            prior = conn.execute("SELECT * FROM scale_s0_source_authorities WHERE source_authority_id=?", (authority_id,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash:
+                    raise ConflictError("Scale S0 source authority identity conflict")
+                return self._scale_s0_row(prior) or {}
+            competing = conn.execute("SELECT source_authority_id FROM scale_s0_source_authorities WHERE execution_attempt_id=? AND source_id=?", (attempt_id, source_id)).fetchone()
+            if competing is not None:
+                raise ConflictError("an execution attempt cannot assign competing source authorities to one source")
+            duplicate_decision = conn.execute("SELECT source_authority_id FROM scale_s0_source_authorities WHERE execution_attempt_id=? AND subject_id=? AND source_family=? AND locator=? AND exact_resource_id=? AND rights_decision_id=?", (attempt_id, subject_id, source_family, locator, exact_resource_id, rights_decision_id)).fetchone()
+            if duplicate_decision is not None:
+                raise ConflictError("an exact source rights decision is already bound to this execution attempt")
+            conn.execute(
+                "INSERT INTO scale_s0_source_authorities(source_authority_id,mandate_id,mandate_hash,slice_id,execution_attempt_id,source_id,source_family,subject_id,locator,exact_resource_id,rights_policy_id,rights_policy_version,rights_decision_id,rights_transmission_status,access_classification,technical_access_state,authority_role,authority_material_json,authority_material_hash,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (authority_id, mandate_id, source_authority["mandate_hash"], source_authority["slice_id"], attempt_id, source_id, source_family, subject_id, locator, exact_resource_id, rights_policy_id, rights_policy_version, rights_decision_id, rights_status, access, technical, role, self._json(material["authority_material"]), authority_material_hash, self._json(material), material_hash, created_at),
+            )
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_source_authorities WHERE source_authority_id=?", (authority_id,)).fetchone()) or {}
+
+    def get_scale_s0_source_authority(self, source_authority_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            row = conn.execute("SELECT * FROM scale_s0_source_authorities WHERE source_authority_id=?", (source_authority_id,)).fetchone()
+            return self._scale_s0_row(row)
+
+    def get_scale_s0_source_authority_for_source(self, *, execution_attempt_id: str, source_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            row = conn.execute("SELECT * FROM scale_s0_source_authorities WHERE execution_attempt_id=? AND source_id=?", (execution_attempt_id, source_id)).fetchone()
+            return self._scale_s0_row(row)
 
     def register_scale_s0_owner_attestation(self, attestation: Mapping[str, Any]) -> dict[str, Any]:
         """Persist one immutable owner approval for one exact live send.
@@ -690,6 +790,11 @@ class SQLiteCatalog:
             mandate_id=mandate_id, subject_id=None, timestamp_column="acquired_at", extra={"plan_id": plan_id,
             "source_record_id": _text(snapshot.get("source_record_id"), "source_record_id"), "snapshot_hash": _text(snapshot.get("snapshot_hash"), "snapshot_hash"), "execution_attempt_id": inherited})
 
+    def get_scale_s0_source_snapshot(self, snapshot_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_source_snapshots WHERE snapshot_id=?", (snapshot_id,)).fetchone())
+
     def register_scale_s0_representation(self, representation: Mapping[str, Any], *, mandate_id: str, execution_attempt_id: str | None = None, offline: bool = False) -> dict[str, Any]:
         snapshot_id = _text(representation.get("snapshot_id"), "snapshot_id")
         with self._connection() as conn:
@@ -704,6 +809,11 @@ class SQLiteCatalog:
         return self._register_scale_s0_bridge_material(table="scale_s0_representations", id_column="representation_id", record=record,
             mandate_id=mandate_id, subject_id=None, timestamp_column="created_at", extra={"snapshot_id": snapshot_id,
             "representation_kind": _text(representation.get("representation_kind"), "representation_kind"), "execution_attempt_id": execution_attempt_id})
+
+    def get_scale_s0_representation_for_snapshot(self, *, execution_attempt_id: str, snapshot_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_representations WHERE execution_attempt_id=? AND snapshot_id=? ORDER BY created_at DESC LIMIT 1", (execution_attempt_id, snapshot_id)).fetchone())
 
     def register_scale_s0_frozen_corpus(self, corpus: Mapping[str, Any], *, execution_attempt_id: str | None = None) -> dict[str, Any]:
         records = tuple(corpus.get("source_record_ids") or ())
@@ -863,16 +973,33 @@ class SQLiteCatalog:
             task_contract = next((item for item in contracts if item.get("task_id") == task_id and item.get("version") == task_version), None)
             if task_contract is None or (task_contract.get("input_profile_id"), task_contract.get("output_schema_id")) != (input_profile_id, output_schema_id):
                 raise ConflictError("durable task schema authority is invalid")
-            source_authority = authority.get("sources", {})
             if len(source_ids) != len(source_snapshot_hashes) or not source_ids:
                 raise ConflictError("durable provider source identity is incomplete")
+            rights_policy = authority.get("policies", {}).get("rights_transmission", {})
             for source_id, snapshot_hash in zip(source_ids, source_snapshot_hashes, strict=True):
-                source = source_authority.get(source_id)
-                if not isinstance(source, dict) or source.get("snapshot_hash") != snapshot_hash or source.get("source_family") not in mandate_material.get("applicable_source_families", ()):
-                    raise ConflictError("durable source identity is invalid")
+                source_row = conn.execute("SELECT * FROM scale_s0_source_authorities WHERE execution_attempt_id=? AND source_id=?", (execution_attempt_id, source_id)).fetchone()
+                snapshot = conn.execute("SELECT * FROM scale_s0_source_snapshots WHERE snapshot_id=?", (source_id,)).fetchone()
+                if source_row is None or snapshot is None:
+                    raise ConflictError("durable concrete source authority or snapshot is absent")
+                source = json.loads(source_row["material_json"])
+                snapshot_material = json.loads(snapshot["material_json"])
+                indexed_source = (source_row["source_authority_id"], source_row["mandate_id"], source_row["mandate_hash"], source_row["slice_id"], source_row["execution_attempt_id"], source_row["source_id"], source_row["source_family"], source_row["subject_id"], source_row["locator"], source_row["exact_resource_id"], source_row["rights_policy_id"], source_row["rights_policy_version"], source_row["rights_decision_id"], source_row["rights_transmission_status"], source_row["access_classification"], source_row["technical_access_state"], source_row["authority_role"])
+                material_source = (source.get("source_authority_id"), source.get("mandate_id"), source.get("mandate_hash"), source.get("slice_id"), source.get("execution_attempt_id"), source.get("source_id"), source.get("source_family"), source.get("subject_id"), source.get("url_or_identity"), source.get("exact_resource_id"), source.get("rights_policy_id"), source.get("rights_policy_version"), source.get("rights_decision_id"), source.get("rights_transmission_status"), source.get("access_classification"), source.get("technical_access_state"), source.get("authority_role"))
+                if indexed_source != material_source or _canonical_hash(source) != source_row["material_hash"] or json.loads(source_row["authority_material_json"]) != source.get("authority_material") or _canonical_hash(json.loads(source_row["authority_material_json"])) != source_row["authority_material_hash"]:
+                    raise ConflictError("durable concrete source authority integrity is invalid")
+                if _canonical_hash(snapshot_material) != snapshot["material_hash"]:
+                    raise ConflictError("durable source snapshot identity integrity is invalid")
+                if (source.get("source_authority_id"), source.get("source_id"), source.get("mandate_id"), source.get("mandate_hash"), source.get("slice_id"), source.get("execution_attempt_id"), source.get("subject_id")) != (source_row["source_authority_id"], source_id, mandate_id, attempt["mandate_hash"], slice_id, execution_attempt_id, material.get("subject_id")):
+                    raise ConflictError("durable concrete source authority binding is invalid")
+                if source.get("source_family") not in mandate_material.get("applicable_source_families", ()):
+                    raise ConflictError("durable concrete source family is outside the mandate")
+                if (source.get("rights_policy_id"), source.get("rights_policy_version")) != (mandate_material.get("rights_transmission_policy_id"), rights_policy.get("version")) or rights_policy.get("policy_id") != source.get("rights_policy_id"):
+                    raise ConflictError("durable concrete source rights-policy version is invalid")
+                if snapshot["execution_attempt_id"] != execution_attempt_id or snapshot["mandate_id"] != mandate_id or snapshot_material.get("snapshot_hash") != snapshot_hash or snapshot_material.get("source_record_id") in (None, "") or snapshot_material.get("locator") != source.get("url_or_identity"):
+                    raise ConflictError("durable concrete source snapshot is substituted or incomplete")
                 open_web = source.get("access_classification") == "OPEN_WEB_PUBLIC" and source.get("technical_access_state") == "accessible" and source.get("rights_transmission_status") in {"permitted", "permitted_open_web_policy"}
-                controlled = source.get("access_classification") == "SEPARATELY_LICENSED_OR_CONTROLLED" and source.get("rights_transmission_status") == "permitted"
-                if not (open_web or controlled) or source.get("acquisition_state") != "acquired" or source.get("parsing_state") not in {"parsed", "structured"} or not source.get("source_record_id") or task_contract.get("family") not in tuple(source.get("claim_families") or ()):
+                controlled = source.get("access_classification") == "SEPARATELY_LICENSED_OR_CONTROLLED" and source.get("rights_transmission_status") == "permitted" and source.get("specialist_authorisation_id") == mandate_material.get("specialist_source_policy_id")
+                if not (open_web or controlled) or task_contract.get("family") not in tuple(source.get("claim_families") or ()):
                     raise ConflictError("durable source-rights authority does not permit provider send")
             attestations = conn.execute("SELECT * FROM scale_s0_owner_attestations WHERE execution_attempt_id=? AND packet_id=?", (execution_attempt_id, packet_id)).fetchall()
             if len(attestations) != 1:

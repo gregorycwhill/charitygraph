@@ -1027,6 +1027,43 @@ CREATE INDEX scale_s0_owner_attestations_send_idx
     ON scale_s0_owner_attestations(execution_attempt_id, packet_id, reservation_id);
 """.strip() + "\n"
 
+# A mandate authorises immutable policy and a finite source-family universe.  It
+# does not itself authorise a concrete resource.  A live attempt must therefore
+# carry a separately persisted, append-only source authority before acquisition
+# or provider transmission can use that resource.  Snapshot and representation
+# tables remain the evidence/processing lineage; this table is the distinct
+# policy-to-resource decision boundary.
+CATALOGUE_SQL_V22 = """
+CREATE TABLE scale_s0_source_authorities (
+    source_authority_id TEXT PRIMARY KEY,
+    mandate_id TEXT NOT NULL REFERENCES scale_s0_mandates(mandate_id),
+    mandate_hash TEXT NOT NULL,
+    slice_id TEXT NOT NULL,
+    execution_attempt_id TEXT NOT NULL REFERENCES scale_s0_execution_attempts(attempt_id),
+    source_id TEXT NOT NULL,
+    source_family TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    locator TEXT NOT NULL,
+    exact_resource_id TEXT NOT NULL,
+    rights_policy_id TEXT NOT NULL,
+    rights_policy_version TEXT NOT NULL,
+    rights_decision_id TEXT NOT NULL,
+    rights_transmission_status TEXT NOT NULL,
+    access_classification TEXT NOT NULL,
+    technical_access_state TEXT NOT NULL,
+    authority_role TEXT NOT NULL,
+    authority_material_json TEXT NOT NULL,
+    authority_material_hash TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL,
+    UNIQUE(execution_attempt_id, source_id),
+    UNIQUE(execution_attempt_id, subject_id, source_family, locator, exact_resource_id, rights_decision_id)
+);
+CREATE INDEX scale_s0_source_authorities_lookup_idx
+    ON scale_s0_source_authorities(execution_attempt_id, source_id, subject_id, source_family);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -1049,6 +1086,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(19, "durable_scale_s0_execution_attempt_identity", CATALOGUE_SQL_V19),
     Migration(20, "currency_bound_runtime_accounting", CATALOGUE_SQL_V20),
     Migration(21, "durable_scale_s0_owner_attestation_send_gate", CATALOGUE_SQL_V21),
+    Migration(22, "durable_scale_s0_source_runtime_authorities", CATALOGUE_SQL_V22),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
