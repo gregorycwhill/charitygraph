@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import datetime, timezone
+import json
 
 import pytest
 
@@ -49,6 +50,42 @@ def test_attempt_identity_is_idempotent_restart_safe_and_drift_locked(tmp_path):
         catalog.require_scale_s0_execution_attempt(attempt_id=identity.attempt_id, mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash, slice_id=mandate.slice_id, run_id="run:other", builder_commit_sha=identity.builder_commit_sha, data_commit_sha=identity.data_commit_sha, bridge_certification=identity.bridge_certification, schema_version=19)
     with pytest.raises(ConflictError):
         ScaleS0Preflight.register_durable_execution_attempt(catalog, replace(identity, attempt_id="attempt:s0:second"))
+
+
+def test_attempt_timestamp_is_canonical_in_object_material_and_runtime_columns(tmp_path):
+    mandate, routing, policies, source, packet, _ = authority()
+    catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {})
+    identity = attempt(mandate, run_id="run:s0-z")
+    identity = replace(identity, attempt_id="attempt:s0:z", created_at="2026-09-18T00:00:00Z")
+    catalog.register_cohort({"record_id": "cohort:z", "cohort_code": "s0-z", "definition_version": "1", "membership_hash": "z" * 64, "budget_cap": {"amount": "8", "currency": "AUD"}, "created_at": NOW})
+    catalog.register_run({"record_id": identity.run_id, "cohort_id": "cohort:z", "run_kind": "s0", "status": "planned", "configuration_hash": identity.configuration_hash, "created_at": NOW})
+    stored = ScaleS0Preflight.register_durable_execution_attempt(catalog, identity)
+    assert identity.created_at == "2026-09-18T00:00:00+00:00"
+    assert stored["created_at"] == identity.created_at
+    assert stored["material"]["created_at"] == identity.created_at
+    assert stored["material_hash"] == identity.material_hash
+    restarted = SQLiteCatalog(tmp_path / "state.sqlite3").open()
+    rebuilt = ExecutionAttemptIdentity(**{field: restarted.get_scale_s0_execution_attempt(identity.attempt_id)[field] for field in ExecutionAttemptIdentity.__dataclass_fields__})
+    assert rebuilt.material_hash == stored["material_hash"]
+
+
+def test_noncanonical_persisted_attempt_material_fails_closed(tmp_path):
+    mandate, routing, policies, source, packet, _ = authority()
+    catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
+    ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {})
+    catalog.register_cohort({"record_id": "cohort:legacy", "cohort_code": "s0-legacy", "definition_version": "1", "membership_hash": "l" * 64, "budget_cap": {"amount": "8", "currency": "AUD"}, "created_at": NOW})
+    identity = attempt(mandate, run_id="run:s0-legacy")
+    catalog.register_run({"record_id": identity.run_id, "cohort_id": "cohort:legacy", "run_kind": "s0", "status": "planned", "configuration_hash": identity.configuration_hash, "created_at": NOW})
+    stored = ScaleS0Preflight.register_durable_execution_attempt(catalog, identity)
+    legacy_material = dict(stored["material"])
+    legacy_material["created_at"] = legacy_material["created_at"].replace("+00:00", "Z")
+    from charitygraph.runtime.catalog import _canonical_hash
+    with catalog._connection(immediate=True) as conn:
+        conn.execute("UPDATE scale_s0_execution_attempts SET material_json=?, material_hash=? WHERE attempt_id=?", (json.dumps(legacy_material, sort_keys=True, separators=(",", ":")), _canonical_hash(legacy_material), identity.attempt_id))
+        catalog._commit(conn)
+    with pytest.raises(ConflictError, match="not canonical"):
+        catalog.require_scale_s0_execution_attempt(attempt_id=identity.attempt_id, mandate_id=identity.mandate_id, mandate_hash=identity.mandate_hash, slice_id=identity.slice_id, run_id=identity.run_id, builder_commit_sha=identity.builder_commit_sha, data_commit_sha=identity.data_commit_sha, bridge_certification=identity.bridge_certification, schema_version=identity.schema_version)
 
 
 def test_source_plan_requires_matching_attempt_when_live(tmp_path):

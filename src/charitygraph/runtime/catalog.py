@@ -198,6 +198,25 @@ def _utc(value: datetime | str, field: str = "timestamp") -> str:
     return value.astimezone(timezone.utc).isoformat()
 
 
+def canonical_utc_timestamp(value: datetime | str, field: str = "timestamp") -> str:
+    """Return the one persisted representation for an S0 runtime timestamp.
+
+    Append-only S0 material hashes must cover the same timestamp spelling that
+    is stored in its indexed column.  In particular, ISO ``Z`` input is
+    canonicalised to the catalogue's explicit ``+00:00`` UTC representation.
+    """
+
+    return _utc(value, field)
+
+
+def _canonical_timestamp_material(record: Mapping[str, Any], timestamp_field: str) -> dict[str, Any]:
+    """Copy an immutable runtime record with its indexed time canonicalised."""
+
+    material = dict(record)
+    material[timestamp_field] = canonical_utc_timestamp(material.get(timestamp_field), timestamp_field)
+    return material
+
+
 def _valid_bound(value: Any, field: str) -> date | datetime | None:
     if value is None:
         return None
@@ -501,6 +520,7 @@ class SQLiteCatalog:
     def register_scale_s0_execution_attempt(self, attempt: Mapping[str, Any]) -> dict[str, Any]:
         """Persist an immutable implementation-bound live S0 attempt."""
         self._require_migrated()
+        attempt = _canonical_timestamp_material(attempt, "created_at")
         required = ("attempt_id", "mandate_id", "mandate_hash", "slice_id", "run_id", "builder_repository", "builder_commit_sha", "data_repository", "data_commit_sha", "bridge_certification", "bridge_version", "schema_version", "recovery_authority_ref", "configuration_hash", "status", "created_at")
         if any(not attempt.get(key) for key in required):
             raise CatalogError("Scale S0 execution attempt lacks immutable identity")
@@ -529,7 +549,7 @@ class SQLiteCatalog:
             reused_run = conn.execute("SELECT attempt_id FROM scale_s0_execution_attempts WHERE run_id=?", (attempt["run_id"],)).fetchone()
             if reused_run is not None:
                 raise ConflictError("one run cannot be reused by a second Scale S0 execution attempt")
-            conn.execute("INSERT INTO scale_s0_execution_attempts(attempt_id,mandate_id,mandate_hash,slice_id,run_id,builder_repository,builder_commit_sha,data_repository,data_commit_sha,bridge_certification,bridge_version,schema_version,recovery_authority_ref,configuration_hash,status,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (attempt_id, attempt["mandate_id"], attempt["mandate_hash"], attempt["slice_id"], attempt["run_id"], attempt["builder_repository"], attempt["builder_commit_sha"], attempt["data_repository"], attempt["data_commit_sha"], attempt["bridge_certification"], attempt["bridge_version"], int(attempt["schema_version"]), attempt["recovery_authority_ref"], attempt["configuration_hash"], attempt["status"], self._json(attempt), material_hash, _utc(attempt["created_at"], "created_at")))
+            conn.execute("INSERT INTO scale_s0_execution_attempts(attempt_id,mandate_id,mandate_hash,slice_id,run_id,builder_repository,builder_commit_sha,data_repository,data_commit_sha,bridge_certification,bridge_version,schema_version,recovery_authority_ref,configuration_hash,status,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (attempt_id, attempt["mandate_id"], attempt["mandate_hash"], attempt["slice_id"], attempt["run_id"], attempt["builder_repository"], attempt["builder_commit_sha"], attempt["data_repository"], attempt["data_commit_sha"], attempt["bridge_certification"], attempt["bridge_version"], int(attempt["schema_version"]), attempt["recovery_authority_ref"], attempt["configuration_hash"], attempt["status"], self._json(attempt), material_hash, attempt["created_at"]))
             self._commit(conn)
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (attempt_id,)).fetchone()) or {}
 
@@ -538,10 +558,30 @@ class SQLiteCatalog:
         with self._connection() as conn:
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (attempt_id,)).fetchone())
 
+    @staticmethod
+    def _require_canonical_scale_s0_execution_attempt_material(row: Mapping[str, Any]) -> None:
+        """Reject an attempt whose durable material cannot be replayed exactly."""
+
+        fields = (
+            "attempt_id", "mandate_id", "mandate_hash", "slice_id", "run_id", "builder_repository",
+            "builder_commit_sha", "data_repository", "data_commit_sha", "bridge_certification",
+            "bridge_version", "schema_version", "recovery_authority_ref", "configuration_hash", "status",
+            "created_at",
+        )
+        material = row.get("material")
+        if not isinstance(material, Mapping) or any(field not in material for field in fields):
+            raise ConflictError("Scale S0 execution attempt material is absent or incomplete")
+        canonical = _canonical_timestamp_material(material, "created_at")
+        if dict(material) != canonical or _canonical_hash(canonical) != row.get("material_hash") or any(canonical[field] != row.get(field) for field in fields):
+            raise ConflictError("Scale S0 execution attempt material is not canonical")
+
     def require_scale_s0_execution_attempt(self, *, attempt_id: str, mandate_id: str, mandate_hash: str, slice_id: str, run_id: str, builder_commit_sha: str, data_commit_sha: str, bridge_certification: str, schema_version: int) -> dict[str, Any]:
         row = self.get_scale_s0_execution_attempt(attempt_id)
         expected = {"mandate_id": mandate_id, "mandate_hash": mandate_hash, "slice_id": slice_id, "run_id": run_id, "builder_commit_sha": builder_commit_sha, "data_commit_sha": data_commit_sha, "bridge_certification": bridge_certification, "schema_version": schema_version}
-        if row is None or any(row.get(key) != value for key, value in expected.items()):
+        if row is None:
+            raise ConflictError("Scale S0 execution attempt binding is absent or stale")
+        self._require_canonical_scale_s0_execution_attempt_material(row)
+        if any(row.get(key) != value for key, value in expected.items()):
             raise ConflictError("Scale S0 execution attempt binding is absent or stale")
         return row
 
@@ -702,6 +742,7 @@ class SQLiteCatalog:
 
     def register_scale_s0_frozen_packet(self, packet: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()
+        packet = _canonical_timestamp_material(packet, "frozen_at")
         packet_id = _text(packet.get("packet_id"), "packet_id")
         mandate_id = _text(packet.get("mandate_id"), "mandate_id")
         required = ("slice_id", "task_key", "subject_id", "scope_id", "content_hash", "frozen_at", "binding_hash", "task_id", "task_version", "source_ids", "source_snapshot_hashes", "input_profile_id", "output_schema_id", "routing_class", "provider_request_identity")
@@ -730,9 +771,10 @@ class SQLiteCatalog:
                                            extra: Mapping[str, Any] = {}) -> dict[str, Any]:
         """Persist immutable bridge control-plane material without another store."""
         self._require_migrated()
+        record = _canonical_timestamp_material(record, timestamp_column)
         record_id = _text(record.get(id_column), id_column)
         mandate = _text(mandate_id, "mandate_id")
-        timestamp = _utc(record.get(timestamp_column), timestamp_column)
+        timestamp = record[timestamp_column]
         material_hash = _canonical_hash(record)
         with self._connection(immediate=True) as conn:
             if conn.execute("SELECT 1 FROM scale_s0_mandates WHERE mandate_id=?", (mandate,)).fetchone() is None:
@@ -1073,6 +1115,7 @@ class SQLiteCatalog:
 
     def register_scale_s0_candidate(self, candidate: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()
+        candidate = _canonical_timestamp_material(candidate, "created_at")
         candidate_id = _text(candidate.get("candidate_id"), "candidate_id")
         mandate_id = _text(candidate.get("mandate_id"), "mandate_id")
         packet_id = _text(candidate.get("packet_id"), "packet_id")
@@ -1112,6 +1155,7 @@ class SQLiteCatalog:
 
     def register_scale_s0_review_item(self, item: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()
+        item = _canonical_timestamp_material(item, "created_at")
         review_id = _text(item.get("review_id"), "review_id")
         candidate_id = _text(item.get("candidate_id"), "candidate_id")
         candidate_hash = _text(item.get("candidate_material_hash"), "candidate_material_hash")
@@ -1131,6 +1175,7 @@ class SQLiteCatalog:
 
     def register_scale_s0_review_decision(self, decision: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()
+        decision = _canonical_timestamp_material(decision, "decided_at")
         decision_id = _text(decision.get("decision_id"), "decision_id")
         review_id = _text(decision.get("review_id"), "review_id")
         candidate_id = _text(decision.get("candidate_id"), "candidate_id")
