@@ -5,7 +5,7 @@ import pytest
 from charitygraph.runtime.catalog import SQLiteCatalog
 from charitygraph.s0_locator_discovery import (
     DiscoveryLineage, IdentityAuthentication, LocatorSearchResponse,
-    LocatorSearchResult, OpenAIResponsesWebSearchProvider, PublicEntityIdentity,
+    LocatorSearchResult, LocatorSearchExecutionGate, OpenAIResponsesWebSearchProvider, PublicEntityIdentity,
     LocatorDiscoveryBudget, canonical_locator, discover, redirect_authentication,
 )
 from charitygraph.s0_product_owner_policy import concrete_first_party_source_definition_id
@@ -70,9 +70,96 @@ def test_responses_adapter_fails_closed_without_existing_gate():
         class responses:
             @staticmethod
             def create(**_kwargs): raise AssertionError("must not call provider")
-    adapter = OpenAIResponsesWebSearchProvider(Client(), model="gpt-5", authorise_provider_call=lambda **_kwargs: False)
     with pytest.raises(ScalePreflightError):
-        adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:1")
+        OpenAIResponsesWebSearchProvider(Client(), model="gpt-5", execution_gate=lambda **_kwargs: True)
+
+
+class RecordingGate(LocatorSearchExecutionGate):
+    def __init__(self): self.events = []
+    def begin(self, *, request_identity, subject_abn, query): self.events.append(("begin", request_identity, subject_abn, query))
+    def complete(self, *, provider_receipt_id, result_ref, usage=None): self.events.append(("complete", provider_receipt_id, result_ref, usage))
+    def fail(self, *, failure_class, message, ambiguous=False): self.events.append(("fail", failure_class, ambiguous))
+
+
+def test_authorised_search_is_framed_by_durable_gate_before_and_after_network():
+    class Response:
+        id = "resp_locator_1"
+        output = ()
+        usage = {"total_tokens": 1}
+    class Client:
+        class responses:
+            @staticmethod
+            def create(**_kwargs): return Response()
+    gate = RecordingGate()
+    result = OpenAIResponsesWebSearchProvider(Client(), model="gpt-5", execution_gate=gate).search(
+        query='"Sunrise"', subject_abn="11111111111", request_identity="req:1")
+    assert result.provider_call_id == "resp_locator_1"
+    assert [event[0] for event in gate.events] == ["begin", "complete"]
+
+
+def test_gate_delegates_to_existing_preflight_and_standard_lifecycle():
+    from unittest.mock import Mock
+    from charitygraph.scale_s0 import ScaleS0Preflight, SendRequest, RoutingClass
+    preflight = ScaleS0Preflight.__new__(ScaleS0Preflight)
+    preflight.provider_send = Mock()
+    catalog = Mock()
+    from charitygraph.s0_locator_discovery import S0LocatorSearchExecutionGate
+    gate = S0LocatorSearchExecutionGate(preflight=preflight,
+        request=SendRequest("physical:1", "task", "1", "11111111111", "scope:organisation", "packet:1", True, RoutingClass.DETERMINISTIC, "reservation:1", (), False),
+        catalog=catalog, delivery_attempt_id="delivery:1", client_request_id="request:1", request_identity="req:1")
+    gate.begin(request_identity="req:1", subject_abn="11111111111", query='"Sunrise"')
+    gate.complete(provider_receipt_id="resp:1", result_ref="provider-response:resp:1")
+    preflight.provider_send.assert_called_once()
+    catalog.mark_standard_send_started.assert_called_once()
+    catalog.complete_standard_delivery.assert_called_once()
+
+
+@pytest.mark.parametrize("control_failure", [
+    "no_valid_attestation_window",
+    "expired_attestation_window",
+    "mismatched_attestation_window",
+    "revoked_attestation_window",
+    "insufficient_budget_or_reservation",
+])
+def test_existing_preflight_denials_never_reach_network(control_failure):
+    from unittest.mock import Mock
+    preflight = Mock()
+    preflight.provider_send = Mock(side_effect=ScalePreflightError(control_failure))
+    class PreflightGate(RecordingGate):
+        def begin(self, **kwargs):
+            preflight.provider_send()
+            super().begin(**kwargs)
+    gate = PreflightGate()
+    class Client:
+        calls = 0
+        class responses:
+            @staticmethod
+            def create(**_kwargs): Client.calls += 1; raise AssertionError("network boundary crossed")
+    adapter = OpenAIResponsesWebSearchProvider(Client(), model="gpt-5", execution_gate=gate)
+    with pytest.raises(ScalePreflightError):
+        adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:denied")
+    assert Client.calls == 0
+
+
+def test_replay_gate_denial_prevents_second_physical_search():
+    class ReplayGate(RecordingGate):
+        def begin(self, **kwargs):
+            if self.events:
+                raise ScalePreflightError("duplicate durable provider request identity")
+            super().begin(**kwargs)
+    class Response:
+        id = "resp_once"
+        output = ()
+    class Client:
+        calls = 0
+        class responses:
+            @staticmethod
+            def create(**_kwargs): Client.calls += 1; return Response()
+    adapter = OpenAIResponsesWebSearchProvider(Client(), model="gpt-5", execution_gate=ReplayGate())
+    adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:once")
+    with pytest.raises(ScalePreflightError):
+        adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:once")
+    assert Client.calls == 1
 
 
 def test_discovery_lineage_is_durable_and_idempotent_without_duplicate_provider_calls(tmp_path):

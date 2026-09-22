@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from hashlib import sha256
 import json
+from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from typing import Any, Protocol, Sequence
 from urllib.parse import urlsplit, urlunsplit
 
@@ -44,6 +46,70 @@ class LocatorSearchProvider(Protocol):
     provider_id: str
 
     def search(self, *, query: str, subject_abn: str, request_identity: str) -> LocatorSearchResponse: ...
+
+
+class LocatorSearchExecutionGate(ABC):
+    """The only execution seam permitted between discovery and a provider.
+
+    Implementations must delegate to the existing S0 preflight and durable
+    Standard provider lifecycle.  A boolean callback is intentionally not a
+    valid gate.
+    """
+
+    @abstractmethod
+    def begin(self, *, request_identity: str, subject_abn: str, query: str) -> None: ...
+
+    @abstractmethod
+    def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None) -> None: ...
+
+    @abstractmethod
+    def fail(self, *, failure_class: str, message: str, ambiguous: bool = False) -> None: ...
+
+
+class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
+    """Adapter over ``ScaleS0Preflight`` and existing Standard lifecycle APIs."""
+
+    def __init__(self, *, preflight: Any, request: Any, catalog: Any,
+                 delivery_attempt_id: str, client_request_id: str,
+                 request_identity: str,
+                 now: datetime | None = None) -> None:
+        # Import lazily to keep the provider-neutral interface independent of
+        # the S0 implementation while still making production construction
+        # structurally require the real preflight class.
+        from charitygraph.scale_s0 import ScaleS0Preflight, SendRequest
+        if not isinstance(preflight, ScaleS0Preflight) or not isinstance(request, SendRequest):
+            raise ScalePreflightError("locator search requires the existing ScaleS0Preflight SendRequest gate")
+        required = (catalog, delivery_attempt_id, client_request_id, request_identity)
+        if any(item is None or not str(item) for item in required):
+            raise ScalePreflightError("locator search requires durable Standard lifecycle identities")
+        self.preflight, self.request, self.catalog = preflight, request, catalog
+        self.delivery_attempt_id, self.client_request_id, self.request_identity = delivery_attempt_id, client_request_id, request_identity
+        self.now = now or datetime.now(timezone.utc)
+        self._started = False
+
+    def begin(self, *, request_identity: str, subject_abn: str, query: str) -> None:
+        if request_identity != self.request_identity:
+            # The stable request identity is carried by the frozen packet and
+            # cannot be substituted by a query caller.
+            raise ScalePreflightError("locator search request identity does not match the frozen S0 request")
+        if subject_abn != self.request.subject_id:
+            raise ScalePreflightError("locator search subject is outside the frozen S0 request")
+        self.preflight.provider_send(self.request, now=self.now)
+        self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self.now)
+        self._started = True
+
+    def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None) -> None:
+        if not self._started:
+            raise ScalePreflightError("locator search completion has no durable send-start")
+        self.catalog.complete_standard_delivery(self.delivery_attempt_id,
+            provider_request_id=self.request_identity,
+            provider_receipt_id=provider_receipt_id,
+            raw_result_ref=result_ref, usage=usage or {}, result_ref=result_ref, now=self.now)
+
+    def fail(self, *, failure_class: str, message: str, ambiguous: bool = False) -> None:
+        if self._started:
+            self.catalog.settle_standard_failure(self.delivery_attempt_id, failure_class=failure_class,
+                message=message, ambiguous=ambiguous, now=self.now)
 
 
 @dataclass
@@ -148,34 +214,31 @@ class DiscoveryLineage:
 
 
 class OpenAIResponsesWebSearchProvider:
-    """Production adapter; caller supplies the already-governed Responses client.
+    """Production adapter over the already-governed Responses client.
 
-    It makes no independent reservation, attestation, or send decision.  The
-    supplied ``authorise_provider_call`` must complete the existing S0 durable
-    preflight before this adapter invokes the client, and is deliberately
-    required even for a real client.
+    The execution gate is a concrete S0 preflight plus durable Standard
+    lifecycle; arbitrary callbacks cannot authorize a provider crossing.
     """
     provider_id = "openai-responses-web-search"
 
-    def __init__(self, client: Any, *, model: str, authorise_provider_call: Any) -> None:
-        if client is None or not model or not callable(authorise_provider_call):
-            raise ScalePreflightError("locator search requires governed Responses client, model, and S0 call authoriser")
-        self.client, self.model, self.authorise_provider_call = client, model, authorise_provider_call
+    def __init__(self, client: Any, *, model: str, execution_gate: LocatorSearchExecutionGate) -> None:
+        if client is None or not model or not isinstance(execution_gate, LocatorSearchExecutionGate):
+            raise ScalePreflightError("locator search requires Responses client, model, and durable S0 execution gate")
+        self.client, self.model, self.execution_gate = client, model, execution_gate
 
     def search(self, *, query: str, subject_abn: str, request_identity: str) -> LocatorSearchResponse:
-        # The authoriser is the existing reservation/attestation/exactly-once
-        # gate.  A false result fails closed before a provider boundary.
-        if self.authorise_provider_call(request_identity=request_identity, subject_abn=subject_abn, query=query) is not True:
-            raise ScalePreflightError("locator search denied by existing S0 provider controls")
-        response = self.client.responses.create(
-            model=self.model,
-            input=query,
-            tools=[{"type": "web_search"}],
-            store=False,
-        )
+        self.execution_gate.begin(request_identity=request_identity, subject_abn=subject_abn, query=query)
+        try:
+            response = self.client.responses.create(model=self.model, input=query,
+                tools=[{"type": "web_search"}], store=False)
+        except Exception as error:
+            self.execution_gate.fail(failure_class="provider_transport_failure", message=str(error), ambiguous=True)
+            raise
         response_id = str(getattr(response, "id", ""))
         if not response_id:
+            self.execution_gate.fail(failure_class="provider_schema_failure", message="missing provider response identity")
             raise ScalePreflightError("Responses web-search result lacks provider call identity")
+        self.execution_gate.complete(provider_receipt_id=response_id, result_ref="provider-response:" + response_id, usage=getattr(response, "usage", None))
         results: list[LocatorSearchResult] = []
         # Official API source metadata is not guaranteed to expose snippets or
         # ranking. Preserve only what the response actually returns.
