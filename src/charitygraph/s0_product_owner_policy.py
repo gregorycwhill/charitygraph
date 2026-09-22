@@ -19,11 +19,12 @@ ATTESTATION_WINDOW = timedelta(minutes=60)
 MAX_LOCATOR_PROBES_PER_SUBJECT = 5
 
 
-def concrete_first_party_source_definition_id(*, subject_abn: str, canonical_locator: str) -> str:
+def concrete_first_party_source_definition_id(*, subject_abn: str, canonical_locator: str,
+                                              source_family: str = "official_first_party_web") -> str:
     """Return the immutable S0 concrete-source identity for a first-party URL."""
-    if not subject_abn or not canonical_locator:
+    if not subject_abn or not canonical_locator or not source_family:
         raise ScalePreflightError("first-party source identity requires subject ABN and canonical locator")
-    material = f"official_first_party_web\0{subject_abn}\0{canonical_locator}".encode("utf-8")
+    material = f"{source_family}\0{subject_abn}\0{canonical_locator}".encode("utf-8")
     return "srcdef:" + sha256(material).hexdigest()
 
 
