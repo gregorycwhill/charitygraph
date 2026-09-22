@@ -30,6 +30,7 @@ class TransportResult:
     tool_id: str
     tool_version: str
     response_headers: tuple[tuple[str, str], ...]
+    redirect_chain: tuple[str, ...] = ()
     outcome: str = "available"
 
 
@@ -149,6 +150,7 @@ class GovernedSourceTransport:
         headers = {"User-Agent": self.user_agent, "Accept": "text/html,application/pdf,application/json;q=0.9,*/*;q=0.1"}
         for locator_index, locator in enumerate(locators):
             current = locator
+            redirect_chain = [current]
             response = None
             unavailable = False
             for redirect_number in range(self.max_redirects + 1):
@@ -164,6 +166,7 @@ class GovernedSourceTransport:
                         if redirect_number >= self.max_redirects:
                             raise GovernedTransportError("redirect limit exceeded") from error
                         current = target
+                        redirect_chain.append(current)
                         continue
                     if error.code in {401, 403, 407}:
                         raise GovernedTransportError(f"technical access denial HTTP {error.code}") from error
@@ -201,5 +204,5 @@ class GovernedSourceTransport:
                 response.close()
             content = b"".join(chunks)
             retrieved = (now or datetime.now(timezone.utc)).astimezone(timezone.utc).isoformat()
-            return TransportResult(requested, current, status, media, content, retrieved, "charitygraph-governed-http", "1", tuple(sorted((str(k), str(v)) for k, v in response.headers.items())))
+            return TransportResult(requested, current, status, media, content, retrieved, "charitygraph-governed-http", "1", tuple(sorted((str(k), str(v)) for k, v in response.headers.items())), tuple(redirect_chain))
         raise GovernedTransportError("redirect processing failed")

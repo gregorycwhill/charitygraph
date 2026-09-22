@@ -1093,6 +1093,27 @@ CREATE INDEX scale_s0_attestation_windows_lookup_idx ON scale_s0_attestation_win
 CREATE INDEX scale_s0_attestation_window_invalidations_lookup_idx ON scale_s0_attestation_window_invalidations(window_id);
 """.strip() + "\n"
 
+# Discovery metadata is durable operational lineage only.  It is explicitly
+# separate from source records, evidence locators, frozen corpora and candidates.
+CATALOGUE_SQL_V24 = """
+CREATE TABLE scale_s0_locator_discoveries (
+    lineage_id TEXT PRIMARY KEY,
+    subject_abn TEXT NOT NULL,
+    query_text TEXT NOT NULL,
+    provider_id TEXT NOT NULL,
+    provider_call_id TEXT NOT NULL,
+    candidate_url TEXT NOT NULL,
+    decision TEXT NOT NULL CHECK(decision IN ('accepted','rejected','pending')),
+    resolved_locator TEXT,
+    acquisition_receipt_id TEXT,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX scale_s0_locator_discoveries_subject_idx
+    ON scale_s0_locator_discoveries(subject_abn, decision, provider_call_id);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -1117,6 +1138,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(21, "durable_scale_s0_owner_attestation_send_gate", CATALOGUE_SQL_V21),
     Migration(22, "durable_scale_s0_source_runtime_authorities", CATALOGUE_SQL_V22),
     Migration(23, "durable_scale_s0_attestation_windows", CATALOGUE_SQL_V23),
+    Migration(24, "durable_scale_s0_locator_discovery_lineage", CATALOGUE_SQL_V24),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

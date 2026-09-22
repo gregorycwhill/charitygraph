@@ -464,6 +464,36 @@ class SQLiteCatalog:
             row = conn.execute("SELECT * FROM scale_s0_halts WHERE slice_id=? AND hard=1 AND recovered_at IS NULL AND (scope='slice' OR (scope='task' AND task_key=?) OR (scope='subject' AND subject_id=?)) ORDER BY created_at DESC LIMIT 1", (slice_id, task_key, subject_id)).fetchone()
             return None if row is None else dict(row)
 
+    def register_scale_s0_locator_discovery(self, lineage: Mapping[str, Any], *, created_at: datetime | str) -> dict[str, Any]:
+        """Persist discovery-only locator lineage idempotently.
+
+        This method intentionally has no foreign keys into evidence, source
+        records, observations, candidates, or packets: search metadata is not
+        evidence and cannot become it through catalogue adjacency.
+        """
+        self._require_migrated()
+        required = ("lineage_id", "subject_abn", "query", "provider_id", "provider_call_id", "candidate_url", "accepted", "decision_reason")
+        if any(key not in lineage for key in required):
+            raise CatalogError("locator discovery lineage lacks required durable material")
+        material = _dump(dict(lineage))
+        identifier = _text(material["lineage_id"], "lineage_id")
+        decision = "accepted" if material["accepted"] is True else "rejected" if material["accepted"] is False else "pending"
+        when = _utc(created_at, "created_at")
+        digest = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            prior = conn.execute("SELECT * FROM scale_s0_locator_discoveries WHERE lineage_id=?", (identifier,)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != digest:
+                    raise ConflictError("locator discovery identity conflicts with durable material")
+                return self._scale_s0_row(prior) or {}
+            conn.execute("INSERT INTO scale_s0_locator_discoveries(lineage_id,subject_abn,query_text,provider_id,provider_call_id,candidate_url,decision,resolved_locator,acquisition_receipt_id,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (identifier, material["subject_abn"], material["query"], material["provider_id"], material["provider_call_id"], material["candidate_url"], decision, material.get("resolved_locator"), material.get("acquisition_receipt_id"), self._json(material), digest, when))
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_locator_discoveries WHERE lineage_id=?", (identifier,)).fetchone()) or {}
+
+    def list_scale_s0_locator_discoveries(self, *, subject_abn: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            return [self._scale_s0_row(row) or {} for row in conn.execute("SELECT * FROM scale_s0_locator_discoveries WHERE subject_abn=? ORDER BY lineage_id", (subject_abn,)).fetchall()]
+
     def recover_scale_s0_halt(self, *, halt_id: str, actor: str, rationale: str, recovered_at: datetime | str) -> dict[str, Any]:
         if not actor or not rationale:
             raise CatalogError("Scale S0 halt recovery requires actor and rationale")

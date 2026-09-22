@@ -24,6 +24,7 @@ from charitygraph.scale_s0 import (
     ScaleMandate, ScalePreflightError, ScaleS0Preflight, SourceAuthorisation,
 )
 from charitygraph.s0_product_owner_policy import acnc_ais_local_use_permitted, concrete_first_party_source_definition_id
+from charitygraph.s0_locator_discovery import canonical_locator
 from charitygraph.s0_product_owner_policy import discovery_signals_coverage
 
 
@@ -112,6 +113,7 @@ class OfflineResponse:
     locator: str
     status: int = 200
     redirected_locator: str | None = None
+    redirect_chain: tuple[str, ...] = ()
 
 
 def _durable_live_authority(catalog: object, mandate: ScaleMandate, plan: SourcePlan,
@@ -231,7 +233,8 @@ class GovernedAcquisition:
         """Cross the governed transport boundary, then use this acquisition path."""
         result = transport.fetch(plan, authorisation, self.mandate, halts=self.halts, now=now, catalog=catalog,
                                  execution_attempt_id=execution_attempt_id, offline=offline)
-        response = OfflineResponse(result.content, result.media_type, result.final_locator, result.status)
+        response = OfflineResponse(result.content, result.media_type, result.final_locator, result.status,
+                                   redirect_chain=result.redirect_chain)
         return self.acquire(plan, authorisation, response, representation=representation,
                             representation_mode=representation_mode, artifact_store=artifact_store,
                             catalog=catalog, now=now, execution_attempt_id=execution_attempt_id, offline=offline)
@@ -295,14 +298,14 @@ class GovernedAcquisition:
             # CG-S0-PO-2026-09-22 A1: first-party definitions are concrete and
             # immutable per subject and canonical locator.  Other source-family
             # identities retain their established material boundary.
-            definition_id = (concrete_first_party_source_definition_id(subject_abn=plan.subject_id, canonical_locator=plan.locator or response.locator)
+            definition_id = (concrete_first_party_source_definition_id(subject_abn=plan.subject_id, canonical_locator=canonical_locator(response.locator))
                              if plan.source_family == "official_first_party_web" else
                              "srcdef:" + _hash({"family": plan.source_family, "mechanism": plan.acquisition_mechanism}))
             definition = SourceDefinition(record_id=definition_id,
                 created_at=when, producer={"kind": "code", "producer_id": "scale-s0-acquisition-bridge", "version": "1"},
                 definition_version="1", publisher=plan.authority_role, source_class=plan.source_family,
                 authority_roles=(PropositionAuthorityRole(proposition=plan.source_role, role=plan.authority_role, basis="mandate-bound source plan"),),
-                acquisition_locator=plan.locator or response.locator, acquisition_method=plan.acquisition_mechanism,
+                acquisition_locator=canonical_locator(response.locator), acquisition_method=plan.acquisition_mechanism,
                 temporal_semantics="retrieved_fixture_snapshot", publication_eligibility="private_review_only",
                 steward="CharityGraph S0 acquisition bridge")
             catalog.register_source_definition(definition)
@@ -316,7 +319,8 @@ class GovernedAcquisition:
                 source_definition_id=definition.record_id, requested_locator=plan.locator or response.locator, resolved_locator=response.locator,
                 retrieved_at=when, outcome="available", response_status=response.status, media_type=response.media_type,
                 content_hash=digest, byte_size=len(response.content), artifact_id=artifact_id, tool_id=plan.acquisition_mechanism,
-                tool_version="1", material_parameters={"source_plan_id": plan.plan_id, "mandate_id": plan.mandate_id, "subject_id": plan.subject_id}))
+                tool_version="1", material_parameters={"source_plan_id": plan.plan_id, "mandate_id": plan.mandate_id, "subject_id": plan.subject_id,
+                "redirect_chain": list(response.redirect_chain)}))
             if not offline:
                 catalog.register_scale_s0_source_snapshot({**asdict(snapshot), "snapshot_id": snapshot.snapshot_id,
                     "acquired_at": snapshot.retrieved_at, "representation": snapshot.representation.value},
