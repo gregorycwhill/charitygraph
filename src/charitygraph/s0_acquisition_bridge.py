@@ -24,6 +24,7 @@ from charitygraph.scale_s0 import (
     ScaleMandate, ScalePreflightError, ScaleS0Preflight, SourceAuthorisation,
 )
 from charitygraph.s0_product_owner_policy import acnc_ais_local_use_permitted, concrete_first_party_source_definition_id
+from charitygraph.s0_product_owner_policy import discovery_signals_coverage
 
 
 def _hash(value: object) -> str:
@@ -370,11 +371,17 @@ def task_applicability(registry: LogicalTaskRegistry, mandate: ScaleMandate, cor
         if task.task_id not in mandate.enabled_task_ids:
             continue
         state = "HUMAN_ONLY" if task.default_routing.value == "human_decision" else "APPLICABLE"
+        reason = "representation-and-source-role-derived"
+        if task.family == "discovery_signals":
+            # A4: no production mapper exists in this tranche.  Keep the gap
+            # explicit and nonblocking, and do not create a semantic packet.
+            state = discovery_signals_coverage(mapper_present=False)
+            reason = "discovery_signals_mapper_missing:implementation_coverage_only;semantic_absence=false"
         if task.family == "finance_source_native" and DocumentRepresentation.NATIVE_STRUCTURED.value not in parsed:
             state = "SOURCE_NOT_ACQUIRED"
         if DocumentRepresentation.PARSING_FAILURE.value in parsed and state == "APPLICABLE":
             state = "REPRESENTATION_FAILED"
-        states.append(TaskApplicability(task.task_id, task.version, corpus.subject_id, scope_id, state, corpus.corpus_id, "representation-and-source-role-derived"))
+        states.append(TaskApplicability(task.task_id, task.version, corpus.subject_id, scope_id, state, corpus.corpus_id, reason))
     return tuple(states)
 
 

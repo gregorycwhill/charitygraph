@@ -12,9 +12,11 @@ from email.message import Message
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
+from collections.abc import Mapping
 
 from charitygraph.scale_s0 import HaltController, ScaleMandate, ScalePreflightError, SourceAuthorisation
 from charitygraph.s0_acquisition_bridge import SourcePlan, _durable_live_authority
+from charitygraph.s0_product_owner_policy import MAX_LOCATOR_PROBES_PER_SUBJECT, alternate_locator_permitted
 
 
 @dataclass(frozen=True)
@@ -67,13 +69,47 @@ class GovernedSourceTransport:
             return old.scheme == new.scheme or (old.scheme == "http" and new.scheme == "https")
         return False
 
+    @staticmethod
+    def _authorised_alternate_locators(plan: SourcePlan, authorisation: SourceAuthorisation) -> tuple[str, ...]:
+        """Resolve only explicitly evidenced official alternates, bounded to five probes."""
+        material = authorisation.authority_material or {}
+        raw = material.get("alternate_locators")
+        if raw is None and material.get("alternate_locator"):
+            raw = ({"locator": material["alternate_locator"], "relationship": material.get("alternate_authoritative_relationship", "")},)
+        if raw is None:
+            return ()
+        if not isinstance(raw, (tuple, list)):
+            raise GovernedTransportError("alternate locator evidence is malformed")
+        alternates: list[str] = []
+        for index, item in enumerate(raw):
+            if len(alternates) >= MAX_LOCATOR_PROBES_PER_SUBJECT - 1:
+                break
+            if not isinstance(item, Mapping):
+                raise GovernedTransportError("alternate locator evidence is malformed")
+            locator, relationship = item.get("locator", ""), item.get("relationship", "")
+            if not alternate_locator_permitted(
+                subject_abn=plan.subject_id,
+                locator=str(locator),
+                authoritative_relationship=str(relationship),
+                probes_used=index + 1,
+                authentication_bypass=bool(item.get("authentication_bypass", False)),
+                paywall_bypass=bool(item.get("paywall_bypass", False)),
+                tls_validation_bypass=bool(item.get("tls_validation_bypass", False)),
+                anti_bot_circumvention=bool(item.get("anti_bot_circumvention", False)),
+            ):
+                raise GovernedTransportError("alternate locator lacks authoritative relationship or attempts bypass")
+            if str(locator) != plan.locator:
+                alternates.append(str(locator))
+        return tuple(alternates)
+
     def _authorise(self, plan: SourcePlan, authorisation: SourceAuthorisation, mandate: ScaleMandate,
                    halts: HaltController | None) -> None:
         if plan.mandate_id != mandate.mandate_id or plan.mandate_hash != mandate.identity_hash or plan.slice_id != mandate.slice_id:
             raise GovernedTransportError("source plan is stale or substituted")
         if plan.subject_id not in mandate.subject_ids or not plan.locator:
             raise GovernedTransportError("source plan is outside the frozen mandate")
-        if authorisation.source_family != plan.source_family or authorisation.url_or_identity != plan.locator:
+        allowed_locators = (plan.locator,) + self._authorised_alternate_locators(plan, authorisation)
+        if authorisation.source_family != plan.source_family or authorisation.url_or_identity not in allowed_locators:
             raise GovernedTransportError("source authorisation does not bind the plan locator/family")
         if authorisation.technical_access_state != "accessible":
             raise GovernedTransportError("technical withholding prevents acquisition")
@@ -109,25 +145,41 @@ class GovernedSourceTransport:
                 raise GovernedTransportError(str(error)) from error
         self._authorise(plan, authorisation, mandate, halts)
         requested = plan.locator
-        current = requested
+        locators = (requested,) + self._authorised_alternate_locators(plan, authorisation)
         headers = {"User-Agent": self.user_agent, "Accept": "text/html,application/pdf,application/json;q=0.9,*/*;q=0.1"}
-        for redirect_number in range(self.max_redirects + 1):
-            try:
-                response = self._opener.open(Request(current, headers=headers), timeout=self.timeout_seconds)
-            except HTTPError as error:
-                if error.code in {301, 302, 303, 307, 308}:
-                    target = urljoin(current, error.headers.get("Location", ""))
-                    if not self._same_origin_redirect(current, target):
-                        raise GovernedTransportError("redirect leaves the authorised origin") from error
-                    if redirect_number >= self.max_redirects:
-                        raise GovernedTransportError("redirect limit exceeded") from error
-                    current = target
-                    continue
-                if error.code in {401, 403, 407}:
-                    raise GovernedTransportError(f"technical access denial HTTP {error.code}") from error
-                raise GovernedTransportError(f"HTTP acquisition failure {error.code}") from error
-            except (TimeoutError, URLError, OSError) as error:
-                raise GovernedTransportError("network acquisition failed") from error
+        for locator_index, locator in enumerate(locators):
+            current = locator
+            response = None
+            unavailable = False
+            for redirect_number in range(self.max_redirects + 1):
+                try:
+                    response = self._opener.open(Request(current, headers=headers), timeout=self.timeout_seconds)
+                except HTTPError as error:
+                    if error.code in {301, 302, 303, 307, 308}:
+                        target = urljoin(current, error.headers.get("Location", ""))
+                        alternate_targets = self._authorised_alternate_locators(plan, authorisation)
+                        approved_host = any(urlsplit(target).netloc.lower() == urlsplit(item).netloc.lower() for item in alternate_targets)
+                        if not self._same_origin_redirect(current, target) and not approved_host:
+                            raise GovernedTransportError("redirect leaves the authorised origin") from error
+                        if redirect_number >= self.max_redirects:
+                            raise GovernedTransportError("redirect limit exceeded") from error
+                        current = target
+                        continue
+                    if error.code in {401, 403, 407}:
+                        raise GovernedTransportError(f"technical access denial HTTP {error.code}") from error
+                    if locator_index < len(locators) - 1 and error.code in {404, 410, 500, 502, 503, 504}:
+                        unavailable = True
+                        break
+                    raise GovernedTransportError(f"HTTP acquisition failure {error.code}") from error
+                except (TimeoutError, URLError, OSError) as error:
+                    if locator_index < len(locators) - 1:
+                        unavailable = True
+                        break
+                    raise GovernedTransportError("network acquisition failed") from error
+                else:
+                    break
+            if unavailable or response is None:
+                continue
             status = int(getattr(response, "status", response.getcode()))
             media = response.headers.get_content_type() if hasattr(response.headers, "get_content_type") else response.headers.get("Content-Type", "").split(";", 1)[0]
             declared = response.headers.get("Content-Length")

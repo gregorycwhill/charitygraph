@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
+from io import BytesIO
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 from unittest.mock import Mock
+from urllib.error import HTTPError
 
 import pytest
 
@@ -147,6 +149,53 @@ def test_real_loopback_redirects_and_stream_limit():
         plan = plan.__class__(**{**plan.__dict__, "locator": locator}); auth = auth.__class__(**{**auth.__dict__, "url_or_identity": locator})
         with pytest.raises(GovernedTransportError): transport.fetch(plan, auth, value, offline=True)
     finally: server.shutdown(); server.server_close()
+
+
+def test_authoritative_alternate_locator_is_bounded_and_reached_after_unavailable_primary():
+    value, plan, auth = plan_and_auth()
+    alternate = "https://official.example.org/public"
+    auth = auth.__class__(**{**auth.__dict__, "authority_material": {
+        "alternate_locators": ({"locator": alternate, "relationship": "official_navigation"},),
+    }})
+    response = Mock(status=200, getcode=lambda: 200, headers={"Content-Type": "text/html"}, read=Mock(side_effect=[b"alternate", b""]))
+    opener = Mock()
+    opener.open.side_effect = [HTTPError(plan.locator, 404, "not found", {}, BytesIO()), response]
+    transport = GovernedSourceTransport(); transport._opener = opener
+    result = transport.fetch(plan, auth, value, now=NOW, offline=True)
+    assert result.final_locator == alternate and result.content == b"alternate"
+    assert opener.open.call_count == 2
+
+
+@pytest.mark.parametrize("relationship", ["", "unrelated_registry"])
+def test_unauthoritative_alternate_locator_fails_closed_before_open(relationship):
+    value, plan, auth = plan_and_auth()
+    auth = auth.__class__(**{**auth.__dict__, "authority_material": {
+        "alternate_locators": ({"locator": "https://untrusted.example/public", "relationship": relationship},),
+    }})
+    transport = GovernedSourceTransport(); opener = Mock(); transport._opener = opener
+    with pytest.raises(GovernedTransportError): transport.fetch(plan, auth, value, offline=True)
+    opener.open.assert_not_called()
+
+
+def test_alternate_locator_bypass_flags_fail_closed():
+    value, plan, auth = plan_and_auth()
+    auth = auth.__class__(**{**auth.__dict__, "authority_material": {
+        "alternate_locators": ({"locator": "https://official.example.org/public", "relationship": "official_navigation", "tls_validation_bypass": True},),
+    }})
+    transport = GovernedSourceTransport(); opener = Mock(); transport._opener = opener
+    with pytest.raises(GovernedTransportError): transport.fetch(plan, auth, value, offline=True)
+    opener.open.assert_not_called()
+
+
+def test_alternate_locator_probe_budget_is_five_including_primary():
+    value, plan, auth = plan_and_auth()
+    alternates = tuple({"locator": f"https://official-{index}.example.org/public", "relationship": "official_navigation"} for index in range(6))
+    auth = auth.__class__(**{**auth.__dict__, "authority_material": {"alternate_locators": alternates}})
+    opener = Mock()
+    opener.open.side_effect = [HTTPError(plan.locator, 404, "not found", {}, BytesIO()) for _ in range(5)]
+    transport = GovernedSourceTransport(); transport._opener = opener
+    with pytest.raises(GovernedTransportError): transport.fetch(plan, auth, value, offline=True)
+    assert opener.open.call_count == 5
 
 
 def test_loopback_transport_flows_through_acquisition_to_packet():
