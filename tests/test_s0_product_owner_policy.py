@@ -14,6 +14,7 @@ def test_first_party_concrete_id_is_subject_and_locator_specific_and_repeatable(
     assert one == concrete_first_party_source_definition_id(subject_abn="28004778081", canonical_locator="https://one.example/a")
     assert one != concrete_first_party_source_definition_id(subject_abn="28000030179", canonical_locator="https://one.example/a")
     assert one != concrete_first_party_source_definition_id(subject_abn="28004778081", canonical_locator="https://one.example/b")
+    assert one != concrete_first_party_source_definition_id(subject_abn="28004778081", canonical_locator="https://one.example/a", source_family="official_website")
 
 
 def test_ais_local_use_is_distinct_from_provider_rights():
