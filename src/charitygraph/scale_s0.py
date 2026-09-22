@@ -36,6 +36,25 @@ class RoutingClass(StrEnum):
     HUMAN_DECISION = "human_decision"
 
 
+LOCATOR_SEARCH_OPERATION_KIND = "locator_search"
+LOCATOR_SEARCH_TASK_ID = "urn:charitygraph:scale-s0:locator_search"
+LOCATOR_SEARCH_TASK_VERSION = "1.0"
+LOCATOR_SEARCH_INPUT_PROFILE_ID = "profile:locator-search:1"
+LOCATOR_SEARCH_OUTPUT_SCHEMA_ID = "urn:charitygraph:builder:schema:locator-search-discovery-metadata:1.0"
+
+
+def locator_search_request_identity(*, subject_id: str, query: str, query_index: int) -> str:
+    """Return the durable identity for one bounded, public-identity search.
+
+    This is an operational identity, never an evidence or semantic-task identity.
+    Keeping it in the S0 control plane lets the frozen packet, reservation, and
+    exactly-once boundary independently recompute the same value.
+    """
+    if not subject_id or not query or query_index < 0:
+        raise ScalePreflightError("locator search identity requires a subject, query, and non-negative query index")
+    return "locator-search:" + _digest({"subject": subject_id, "query": query, "index": query_index})
+
+
 class ReviewRequirement(StrEnum): NONE = "none"; SAMPLED = "sampled"; MANDATORY = "mandatory"
 class ReviewStatus(StrEnum): OPEN = "open"; DECIDED = "decided"; SUPERSEDED = "superseded"
 class DecisionDisposition(StrEnum):
@@ -180,10 +199,29 @@ class RepresentationPolicy:
 
 @dataclass(frozen=True)
 class FrozenPacket:
-    packet_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; source_ids: tuple[str, ...]; source_snapshot_hashes: tuple[str, ...]; input_profile_id: str; output_schema_id: str; routing_class: RoutingClass; provider_request_identity: str; content_hash: str; contract_version: str = "north-star-v0.2"; mandate_id: str = ""; slice_id: str = ""; frozen_at: str = ""; corpus_id: str = ""
+    packet_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; source_ids: tuple[str, ...]; source_snapshot_hashes: tuple[str, ...]; input_profile_id: str; output_schema_id: str; routing_class: RoutingClass; provider_request_identity: str; content_hash: str; contract_version: str = "north-star-v0.2"; mandate_id: str = ""; slice_id: str = ""; frozen_at: str = ""; corpus_id: str = ""; operation_kind: str = "semantic"; locator_query: str = ""; locator_query_index: int = -1; pricing_snapshot_id: str = ""; estimated_provider_cost: str = ""
     def __post_init__(self) -> None:
         if self.frozen_at:
             object.__setattr__(self, "frozen_at", canonical_utc_timestamp(self.frozen_at, "frozen_at"))
+        if self.operation_kind not in {"semantic", LOCATOR_SEARCH_OPERATION_KIND}:
+            raise ScalePreflightError("frozen packet has an unknown operation kind")
+        if self.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
+            expected = locator_search_request_identity(subject_id=self.subject_id, query=self.locator_query,
+                                                       query_index=self.locator_query_index)
+            if (self.task_id, self.task_version, self.input_profile_id, self.output_schema_id,
+                self.routing_class, self.provider_request_identity) != (
+                    LOCATOR_SEARCH_TASK_ID, LOCATOR_SEARCH_TASK_VERSION,
+                    LOCATOR_SEARCH_INPUT_PROFILE_ID, LOCATOR_SEARCH_OUTPUT_SCHEMA_ID,
+                    RoutingClass.LOW_COST_SEMANTIC, expected):
+                raise ScalePreflightError("locator search packet does not bind its canonical operational contract")
+            if self.source_ids or self.source_snapshot_hashes or self.corpus_id:
+                raise ScalePreflightError("locator search packet must remain source-free and corpus-free")
+            try:
+                estimate = Decimal(self.estimated_provider_cost)
+            except (InvalidOperation, ValueError) as error:
+                raise ScalePreflightError("locator search packet lacks a decimal price estimate") from error
+            if not self.pricing_snapshot_id or not estimate.is_finite() or estimate <= 0:
+                raise ScalePreflightError("locator search packet requires a positive immutable pricing estimate")
     @property
     def binding_hash(self) -> str: return _digest(_material(self))
 
@@ -233,13 +271,55 @@ class HaltController:
     def active(self, **key: str) -> HaltRecord | None: return next((x for x in reversed(self.records) if x.hard and x.applies(**key)), None)
 @dataclass(frozen=True)
 class EconomicState:
-    provider_calls: int = 0; provider_spend: Decimal = Decimal("0"); strong_model_spend: Decimal = Decimal("0"); reservation_id: str | None = None; reservation_active: bool = False; reservation_mandate_id: str | None = None; reservation_slice_id: str | None = None; reservation_task_key: str | None = None; reservation_remaining: Decimal = Decimal("0"); reservation_currency: str = ""; estimated_provider_cost: Decimal = Decimal("0"); estimated_strong_cost: Decimal = Decimal("0")
+    provider_calls: int = 0; provider_spend: Decimal = Decimal("0"); strong_model_spend: Decimal = Decimal("0"); reservation_id: str | None = None; reservation_active: bool = False; reservation_mandate_id: str | None = None; reservation_slice_id: str | None = None; reservation_task_key: str | None = None; reservation_remaining: Decimal = Decimal("0"); reservation_currency: str = ""; estimated_provider_cost: Decimal = Decimal("0"); estimated_strong_cost: Decimal = Decimal("0"); pricing_snapshot_id: str = ""
 @dataclass(frozen=True)
 class PriorAttempt:
     state: str; provider_request_identity: str; physical_attempt_id: str
 @dataclass(frozen=True)
 class SendRequest:
     physical_attempt_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; packet_hash: str | None; packet_frozen: bool; route: RoutingClass; reservation_id: str | None; source_ids: tuple[str, ...]; retry_permitted: bool; prior_attempt: PriorAttempt | None = None; provider_account_project: str | None = None; execution_authority: str | None = None
+
+
+def locator_search_task_contract() -> TaskContract:
+    """The approved locator operation is intentionally outside semantic tasks.
+
+    It has no output eligible for candidate or evidence processing.  It merely
+    supplies the operational contract used by the same routing/economics/send
+    gates that apply to semantic packets.
+    """
+    return TaskContract(LOCATOR_SEARCH_TASK_ID, LOCATOR_SEARCH_TASK_VERSION,
+                        LOCATOR_SEARCH_OPERATION_KIND, (),
+                        LOCATOR_SEARCH_INPUT_PROFILE_ID,
+                        LOCATOR_SEARCH_OUTPUT_SCHEMA_ID,
+                        "validation:locator-search:1", "discovery_metadata_only",
+                        RoutingClass.LOW_COST_SEMANTIC, available=True)
+
+
+def _validate_locator_search_packet(packet: FrozenPacket, mandate: ScaleMandate) -> None:
+    if packet.operation_kind != LOCATOR_SEARCH_OPERATION_KIND:
+        raise ScalePreflightError("expected a locator search packet")
+    # FrozenPacket validates deterministic identity, source/corpus exclusion and
+    # positive price.  These mandate-scoped checks keep it inside S0 economics.
+    try:
+        estimate = Decimal(packet.estimated_provider_cost)
+    except (InvalidOperation, ValueError) as error:
+        raise ScalePreflightError("locator search price estimate is invalid") from error
+    if packet.subject_id not in mandate.subject_ids or not packet.scope_id:
+        raise ScalePreflightError("locator search packet is outside the frozen population or scope")
+    if estimate > Decimal(mandate.per_request_reservation_cap or mandate.provider_spend_ceiling):
+        raise ScalePreflightError("locator search packet exceeds the per-request reservation cap")
+    if packet.contract_version != mandate.parent_product_contract:
+        raise ScalePreflightError("locator search packet contract is outside the mandate")
+
+
+def packet_task_key(packet: FrozenPacket) -> str:
+    """Return the reservation/task identity for a frozen packet.
+
+    Semantic tasks use their immutable task contract.  Locator calls need a
+    unique per-query operational task so a reservation and provider lifecycle
+    cannot be shared accidentally by two queries for the same subject.
+    """
+    return packet.provider_request_identity if packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND else f"{packet.task_id}@{packet.task_version}"
 
 
 class ScaleS0Preflight:
@@ -304,10 +384,12 @@ class ScaleS0Preflight:
             if stored_attempt is None or stored_attempt["mandate_id"] != mandate.mandate_id or stored_attempt["slice_id"] != mandate.slice_id or stored_attempt["run_id"] != packet_data.get("run_id"):
                 raise ScalePreflightError("packet execution-attempt lineage is absent or inconsistent")
             attempt = ExecutionAttemptIdentity(**{key: stored_attempt[key] for key in ExecutionAttemptIdentity.__dataclass_fields__})
-        packet_fields = {key: packet_data[key] for key in FrozenPacket.__dataclass_fields__}
+        packet_fields = {key: packet_data[key] for key in FrozenPacket.__dataclass_fields__ if key in packet_data}
         packet = FrozenPacket(**{**packet_fields, "source_ids": _tuple_material(packet_data.get("source_ids")), "source_snapshot_hashes": _tuple_material(packet_data.get("source_snapshot_hashes")), "routing_class": RoutingClass(packet_data["routing_class"])})
         if packet.mandate_id != mandate.mandate_id or packet.binding_hash != packet_data.get("binding_hash"):
             raise ScalePreflightError("durable packet identity is corrupt or substituted")
+        if packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
+            _validate_locator_search_packet(packet, mandate)
         sources: dict[str, SourceAuthorisation] = {}
         if not offline:
             if attempt is None:
@@ -332,7 +414,7 @@ class ScaleS0Preflight:
                 source_data["claim_families"] = _tuple_material(source_data.get("claim_families"))
                 sources[source_id] = SourceAuthorisation(**source_data)
         if economics is None:
-            reservation = catalog.get_scale_s0_reservation_binding(mandate_id=mandate.mandate_id, slice_id=mandate.slice_id, task_key=f"{packet.task_id}@{packet.task_version}", execution_attempt_id=attempt.attempt_id if attempt else None, offline=offline)
+            reservation = catalog.get_scale_s0_reservation_binding(mandate_id=mandate.mandate_id, slice_id=mandate.slice_id, task_key=packet_task_key(packet), execution_attempt_id=attempt.attempt_id if attempt else None, offline=offline)
             if reservation is not None:
                 state = dict(reservation["state"])
                 for key in ("provider_spend", "strong_model_spend", "reservation_remaining", "estimated_provider_cost", "estimated_strong_cost"):
@@ -358,16 +440,19 @@ class ScaleS0Preflight:
             if attempt_row is None or attempt_row["mandate_id"] != mandate.mandate_id or attempt_row["slice_id"] != mandate.slice_id:
                 raise ScalePreflightError("packet execution attempt is absent or mismatched")
             attempt_material = {"execution_attempt_id": execution_attempt_id, "run_id": attempt_row["run_id"]}
-            if not packet.corpus_id or not hasattr(catalog, "get_scale_s0_frozen_corpus"):
-                raise ScalePreflightError("live packet requires durable corpus ownership")
-            corpus_row = catalog.get_scale_s0_frozen_corpus(packet.corpus_id)
-            if corpus_row is None or corpus_row.get("execution_attempt_id") != execution_attempt_id or corpus_row.get("subject_id") != packet.subject_id:
-                raise ScalePreflightError("packet corpus ownership is absent or mismatched")
-            for source_id in packet.source_ids:
-                source_authority = catalog.get_scale_s0_source_authority_for_source(execution_attempt_id=execution_attempt_id, source_id=source_id)
-                if source_authority is None or source_authority.get("mandate_id") != mandate.mandate_id or source_authority.get("subject_id") != packet.subject_id:
-                    raise ScalePreflightError("live packet requires durable source authority for every frozen source")
-        material.update({"mandate_hash": mandate.identity_hash, "task_key": f"{packet.task_id}@{packet.task_version}", "frozen_at": packet.frozen_at, "binding_hash": packet.binding_hash, **attempt_material})
+            if packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
+                _validate_locator_search_packet(packet, mandate)
+            else:
+                if not packet.corpus_id or not hasattr(catalog, "get_scale_s0_frozen_corpus"):
+                    raise ScalePreflightError("live packet requires durable corpus ownership")
+                corpus_row = catalog.get_scale_s0_frozen_corpus(packet.corpus_id)
+                if corpus_row is None or corpus_row.get("execution_attempt_id") != execution_attempt_id or corpus_row.get("subject_id") != packet.subject_id:
+                    raise ScalePreflightError("packet corpus ownership is absent or mismatched")
+                for source_id in packet.source_ids:
+                    source_authority = catalog.get_scale_s0_source_authority_for_source(execution_attempt_id=execution_attempt_id, source_id=source_id)
+                    if source_authority is None or source_authority.get("mandate_id") != mandate.mandate_id or source_authority.get("subject_id") != packet.subject_id:
+                        raise ScalePreflightError("live packet requires durable source authority for every frozen source")
+        material.update({"mandate_hash": mandate.identity_hash, "task_key": packet_task_key(packet), "frozen_at": packet.frozen_at, "binding_hash": packet.binding_hash, **attempt_material})
         return catalog.register_scale_s0_frozen_packet(material)
 
     @staticmethod
@@ -468,29 +553,43 @@ class ScaleS0Preflight:
         if (packet.task_id,packet.task_version,packet.subject_id,packet.scope_id,packet.source_ids,packet.input_profile_id,packet.output_schema_id)!=(task.task_id,task.version,request.subject_id,request.scope_id,request.source_ids,task.input_profile_id,task.output_schema_id): raise ScalePreflightError("frozen packet does not bind this exact request")
         if len(packet.source_ids)!=len(packet.source_snapshot_hashes) or packet.contract_version!=self.mandate.parent_product_contract: raise ScalePreflightError("packet provenance is incomplete")
         return packet
-    def _economics(self, request: SendRequest, task: TaskContract, route: RoutingClass) -> None:
+    def _economics(self, request: SendRequest, task: TaskContract, route: RoutingClass, packet: FrozenPacket) -> None:
         e=self.economics
-        if e is None or not request.reservation_id or request.reservation_id!=e.reservation_id or not e.reservation_active or (e.reservation_mandate_id,e.reservation_slice_id,e.reservation_task_key,e.reservation_currency)!=(self.mandate.mandate_id,self.mandate.slice_id,task.key,self.mandate.currency_basis): raise ScalePreflightError("active durable reservation is not bound to this mandate/slice/task")
+        if e is None or not request.reservation_id or request.reservation_id!=e.reservation_id or not e.reservation_active or (e.reservation_mandate_id,e.reservation_slice_id,e.reservation_task_key,e.reservation_currency)!=(self.mandate.mandate_id,self.mandate.slice_id,packet_task_key(packet),self.mandate.currency_basis): raise ScalePreflightError("active durable reservation is not bound to this mandate/slice/task")
         if self.mandate.provider_call_ceiling<=e.provider_calls or Decimal(self.mandate.provider_spend_ceiling)<=e.provider_spend+e.estimated_provider_cost or e.reservation_remaining<e.estimated_provider_cost: raise ScalePreflightError("provider call or spend ceiling exhausted")
         if self.mandate.per_request_reservation_cap and e.estimated_provider_cost > Decimal(self.mandate.per_request_reservation_cap): raise ScalePreflightError("provider request exceeds reservation cap")
         if route==RoutingClass.STRONG_REASONING and Decimal(self.mandate.strong_model_spend_ceiling)<=e.strong_model_spend+e.estimated_strong_cost: raise ScalePreflightError("strong-model ceiling exhausted")
+        if packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND and (e.pricing_snapshot_id != packet.pricing_snapshot_id or e.estimated_provider_cost != Decimal(packet.estimated_provider_cost)):
+            raise ScalePreflightError("locator search reservation is not bound to its frozen price")
     def provider_send(self, request: SendRequest, *, triggered_escalations: Iterable[str] = (), now: datetime | None = None) -> TaskContract:
         if self.catalog is not None and self.execution_attempt is None:
             raise ScalePreflightError("live provider send requires a durable execution-attempt binding")
-        task=self._task(request.task_id,request.task_version)
+        candidate_packet = self.packets.get(request.packet_hash or "")
+        if candidate_packet is not None and candidate_packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
+            _validate_locator_search_packet(candidate_packet, self.mandate)
+            task = locator_search_task_contract()
+            if tuple(triggered_escalations):
+                raise ScalePreflightError("locator search has no semantic escalation route")
+            if task.default_routing not in self.routing.permitted:
+                raise ScalePreflightError("locator search route is outside the frozen routing policy")
+        else:
+            task=self._task(request.task_id,request.task_version)
         if request.subject_id not in self.mandate.subject_ids or not request.scope_id: raise ScalePreflightError("request is outside frozen population or scope")
         packet=self._packet(request,task); route=self.routing.route_for(task,triggered_escalations)
         if request.route!=route or packet.routing_class!=route: raise ScalePreflightError("caller cannot choose a route")
-        if self.catalog is not None and self.catalog.get_provider_request_item(packet.provider_request_identity) is not None:
-            raise ScalePreflightError("durable provider-request identity already exists")
+        if self.catalog is not None:
+            existing = self.catalog.get_provider_request_item(packet.provider_request_identity)
+            if existing is not None and (packet.operation_kind != LOCATOR_SEARCH_OPERATION_KIND or existing.get("status") != "prepared"):
+                raise ScalePreflightError("durable provider-request identity already exists")
         if self.halts.active(slice_id=self.mandate.slice_id,task_key=task.key,subject_id=request.subject_id) or self.catalog and self.catalog.active_scale_s0_halt(slice_id=self.mandate.slice_id,task_key=task.key,subject_id=request.subject_id): raise ScalePreflightError("applicable hard halt prevents provider send")
-        for source_id,snapshot_hash in zip(request.source_ids,packet.source_snapshot_hashes,strict=True):
-            source=self.sources.get(source_id)
-            if source is None or source.source_family not in self.mandate.applicable_source_families or source.snapshot_hash!=snapshot_hash or not source.permits(task,self.mandate): raise ScalePreflightError("source is unauthorised or changed after freeze")
+        if packet.operation_kind != LOCATOR_SEARCH_OPERATION_KIND:
+            for source_id,snapshot_hash in zip(request.source_ids,packet.source_snapshot_hashes,strict=True):
+                source=self.sources.get(source_id)
+                if source is None or source.source_family not in self.mandate.applicable_source_families or source.snapshot_hash!=snapshot_hash or not source.permits(task,self.mandate): raise ScalePreflightError("source is unauthorised or changed after freeze")
         if request.prior_attempt is not None and (not request.retry_permitted or request.prior_attempt.provider_request_identity!=packet.provider_request_identity or request.prior_attempt.state not in {"pre_send_failed","prepared"}): raise ScalePreflightError("retry is not ambiguity-safe")
-        self._economics(request,task,route)
+        self._economics(request,task,route,packet)
         if self.catalog is not None and self.execution_attempt is not None and hasattr(self.catalog, "validate_scale_s0_provider_send"):
-            self.catalog.validate_scale_s0_provider_send(packet_id=packet.packet_id, execution_attempt_id=self.execution_attempt.attempt_id, mandate_id=self.mandate.mandate_id, slice_id=self.mandate.slice_id, task_id=task.task_id, task_version=task.version, task_key=task.key, route=route.value, source_ids=request.source_ids, source_snapshot_hashes=packet.source_snapshot_hashes, input_profile_id=task.input_profile_id, output_schema_id=task.output_schema_id, reservation_id=request.reservation_id, observed_at=now or datetime.now(timezone.utc), provider_account_project=request.provider_account_project, execution_authority=request.execution_authority)
+            self.catalog.validate_scale_s0_provider_send(packet_id=packet.packet_id, execution_attempt_id=self.execution_attempt.attempt_id, mandate_id=self.mandate.mandate_id, slice_id=self.mandate.slice_id, task_id=task.task_id, task_version=task.version, task_key=packet_task_key(packet), route=route.value, source_ids=request.source_ids, source_snapshot_hashes=packet.source_snapshot_hashes, input_profile_id=task.input_profile_id, output_schema_id=task.output_schema_id, reservation_id=request.reservation_id, observed_at=now or datetime.now(timezone.utc), provider_account_project=request.provider_account_project, execution_authority=request.execution_authority, operation_kind=packet.operation_kind)
         return task
     def review_requirement(self,candidate:Candidate,sampling:SamplingPolicy,reasons:Iterable[str])->ReviewRequirement:
         task=self._task(candidate.task_id,candidate.task_version)

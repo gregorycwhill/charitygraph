@@ -836,9 +836,16 @@ class SQLiteCatalog:
         packet = _canonical_timestamp_material(packet, "frozen_at")
         packet_id = _text(packet.get("packet_id"), "packet_id")
         mandate_id = _text(packet.get("mandate_id"), "mandate_id")
-        required = ("slice_id", "task_key", "subject_id", "scope_id", "content_hash", "frozen_at", "binding_hash", "task_id", "task_version", "source_ids", "source_snapshot_hashes", "input_profile_id", "output_schema_id", "routing_class", "provider_request_identity")
+        required = ("slice_id", "task_key", "subject_id", "scope_id", "content_hash", "frozen_at", "binding_hash", "task_id", "task_version", "input_profile_id", "output_schema_id", "routing_class", "provider_request_identity")
         if any(not packet.get(key) for key in required):
             raise CatalogError("Scale S0 frozen packet lacks immutable binding")
+        # A locator-search packet is deliberately source-free: its result is only
+        # discovery metadata and is never evidence.  Semantic packets retain the
+        # ordinary immutable source/snapshot requirement.
+        if packet.get("operation_kind", "semantic") != "locator_search" and (
+            not packet.get("source_ids") or not packet.get("source_snapshot_hashes")
+        ):
+            raise CatalogError("semantic Scale S0 frozen packet lacks source bindings")
         material_hash = _canonical_hash(packet)
         with self._connection(immediate=True) as conn:
             mandate = conn.execute("SELECT mandate_hash,slice_id FROM scale_s0_mandates WHERE mandate_id=?", (mandate_id,)).fetchone()
@@ -1082,7 +1089,8 @@ class SQLiteCatalog:
                                         route: str, source_ids: tuple[str, ...], source_snapshot_hashes: tuple[str, ...],
                                         input_profile_id: str, output_schema_id: str, reservation_id: str | None,
                                         observed_at: datetime, provider_account_project: str | None = None,
-                                        execution_authority: str | None = None) -> None:
+                                        execution_authority: str | None = None,
+                                        operation_kind: str = "semantic") -> None:
         """Re-check all durable attempt ownership immediately before a live send."""
         with self._connection() as conn:
             attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (execution_attempt_id,)).fetchone()
@@ -1094,6 +1102,8 @@ class SQLiteCatalog:
             material = json.loads(packet["material_json"])
             if _canonical_hash(material) != packet["material_hash"]:
                 raise ConflictError("durable packet request identity integrity is invalid")
+            if operation_kind not in {"semantic", "locator_search"} or material.get("operation_kind", "semantic") != operation_kind:
+                raise ConflictError("durable provider operation kind is invalid")
             if (material.get("execution_attempt_id"), material.get("mandate_id"), material.get("slice_id"), material.get("task_key")) != (execution_attempt_id, mandate_id, slice_id, task_key):
                 raise ConflictError("durable packet task or attempt identity is invalid")
             if (material.get("task_id"), material.get("task_version"), material.get("routing_class"), tuple(material.get("source_ids") or ()), tuple(material.get("source_snapshot_hashes") or ()), material.get("input_profile_id"), material.get("output_schema_id")) != (task_id, task_version, route, source_ids, source_snapshot_hashes, input_profile_id, output_schema_id):
@@ -1104,11 +1114,20 @@ class SQLiteCatalog:
             authority = json.loads(mandate["authority_json"])
             mandate_material = json.loads(mandate["material_json"])
             contracts = authority.get("registry", {}).get("contracts", ())
-            task_contract = next((item for item in contracts if item.get("task_id") == task_id and item.get("version") == task_version), None)
-            if task_contract is None or (task_contract.get("input_profile_id"), task_contract.get("output_schema_id")) != (input_profile_id, output_schema_id):
-                raise ConflictError("durable task schema authority is invalid")
-            if len(source_ids) != len(source_snapshot_hashes) or not source_ids:
-                raise ConflictError("durable provider source identity is incomplete")
+            if operation_kind == "locator_search":
+                locator_contract = ("urn:charitygraph:scale-s0:locator_search", "1.0", "low_cost_semantic",
+                                    "profile:locator-search:1", "urn:charitygraph:builder:schema:locator-search-discovery-metadata:1.0")
+                if (task_id, task_version, route, input_profile_id, output_schema_id) != locator_contract or task_key != material.get("provider_request_identity") or source_ids or source_snapshot_hashes or material.get("corpus_id"):
+                    raise ConflictError("locator search packet is not an exact source-free operational request")
+                if not material.get("pricing_snapshot_id") or not material.get("estimated_provider_cost"):
+                    raise ConflictError("locator search packet lacks immutable pricing material")
+                task_contract = None
+            else:
+                task_contract = next((item for item in contracts if item.get("task_id") == task_id and item.get("version") == task_version), None)
+                if task_contract is None or (task_contract.get("input_profile_id"), task_contract.get("output_schema_id")) != (input_profile_id, output_schema_id):
+                    raise ConflictError("durable task schema authority is invalid")
+                if len(source_ids) != len(source_snapshot_hashes) or not source_ids:
+                    raise ConflictError("durable provider source identity is incomplete")
             rights_policy = authority.get("policies", {}).get("rights_transmission", {})
             for source_id, snapshot_hash in zip(source_ids, source_snapshot_hashes, strict=True):
                 source_row = conn.execute("SELECT * FROM scale_s0_source_authorities WHERE execution_attempt_id=? AND source_id=?", (execution_attempt_id, source_id)).fetchone()
@@ -1135,7 +1154,7 @@ class SQLiteCatalog:
                     raise ConflictError("ACNC AIS local-use authority does not permit provider transmission")
                 open_web = source.get("access_classification") == "OPEN_WEB_PUBLIC" and source.get("technical_access_state") == "accessible" and source.get("rights_transmission_status") in {"permitted", "permitted_open_web_policy"}
                 controlled = source.get("access_classification") == "SEPARATELY_LICENSED_OR_CONTROLLED" and source.get("rights_transmission_status") == "permitted" and source.get("specialist_authorisation_id") == mandate_material.get("specialist_source_policy_id")
-                if not (open_web or controlled) or task_contract.get("family") not in tuple(source.get("claim_families") or ()):
+                if not (open_web or controlled) or task_contract is None or task_contract.get("family") not in tuple(source.get("claim_families") or ()):
                     raise ConflictError("durable source-rights authority does not permit provider send")
             if not provider_account_project or not execution_authority:
                 raise ConflictError("live Scale S0 provider send lacks explicit attestation-window account/project and authority")
@@ -1145,24 +1164,25 @@ class SQLiteCatalog:
             window = windows[0]
             if _canonical_hash(json.loads(window["material_json"])) != window["material_hash"] or datetime.fromisoformat(_utc(observed_at, "provider_send_observed_at")) >= datetime.fromisoformat(window["valid_until"]):
                 raise ConflictError("durable S0 attestation window is expired or integrity-invalid")
-            corpus_id = material.get("corpus_id")
-            corpus = conn.execute("SELECT * FROM scale_s0_frozen_corpora WHERE corpus_id=?", (corpus_id,)).fetchone() if corpus_id else None
-            if corpus is None or corpus["execution_attempt_id"] != execution_attempt_id or corpus["mandate_id"] != mandate_id or corpus["subject_id"] != material.get("subject_id"):
-                raise ConflictError("durable packet corpus ownership is invalid")
-            corpus_material = json.loads(corpus["material_json"])
-            if _canonical_hash(corpus_material) != corpus["material_hash"] or corpus_material.get("execution_attempt_id") != execution_attempt_id or corpus_material.get("mandate_id") != mandate_id:
-                raise ConflictError("durable corpus identity is invalid")
-            source_records = tuple(corpus_material.get("source_record_ids") or ())
-            snapshot_hashes = tuple(corpus_material.get("snapshot_hashes") or ())
-            if len(source_records) != len(snapshot_hashes) or not source_records:
-                raise ConflictError("durable corpus ancestry is incomplete")
-            for source_record_id, snapshot_hash in zip(source_records, snapshot_hashes, strict=True):
-                snapshot = conn.execute("SELECT snapshot_id,execution_attempt_id FROM scale_s0_source_snapshots WHERE source_record_id=? AND snapshot_hash=?", (source_record_id, snapshot_hash)).fetchone()
-                if snapshot is None or snapshot["execution_attempt_id"] != execution_attempt_id:
-                    raise ConflictError("durable corpus snapshot ownership is invalid")
-                representation = conn.execute("SELECT 1 FROM scale_s0_representations WHERE snapshot_id=? AND execution_attempt_id=?", (snapshot["snapshot_id"], execution_attempt_id)).fetchone()
-                if representation is None:
-                    raise ConflictError("durable corpus representation materialisation is absent")
+            if operation_kind != "locator_search":
+                corpus_id = material.get("corpus_id")
+                corpus = conn.execute("SELECT * FROM scale_s0_frozen_corpora WHERE corpus_id=?", (corpus_id,)).fetchone() if corpus_id else None
+                if corpus is None or corpus["execution_attempt_id"] != execution_attempt_id or corpus["mandate_id"] != mandate_id or corpus["subject_id"] != material.get("subject_id"):
+                    raise ConflictError("durable packet corpus ownership is invalid")
+                corpus_material = json.loads(corpus["material_json"])
+                if _canonical_hash(corpus_material) != corpus["material_hash"] or corpus_material.get("execution_attempt_id") != execution_attempt_id or corpus_material.get("mandate_id") != mandate_id:
+                    raise ConflictError("durable corpus identity is invalid")
+                source_records = tuple(corpus_material.get("source_record_ids") or ())
+                snapshot_hashes = tuple(corpus_material.get("snapshot_hashes") or ())
+                if len(source_records) != len(snapshot_hashes) or not source_records:
+                    raise ConflictError("durable corpus ancestry is incomplete")
+                for source_record_id, snapshot_hash in zip(source_records, snapshot_hashes, strict=True):
+                    snapshot = conn.execute("SELECT snapshot_id,execution_attempt_id FROM scale_s0_source_snapshots WHERE source_record_id=? AND snapshot_hash=?", (source_record_id, snapshot_hash)).fetchone()
+                    if snapshot is None or snapshot["execution_attempt_id"] != execution_attempt_id:
+                        raise ConflictError("durable corpus snapshot ownership is invalid")
+                    representation = conn.execute("SELECT 1 FROM scale_s0_representations WHERE snapshot_id=? AND execution_attempt_id=?", (snapshot["snapshot_id"], execution_attempt_id)).fetchone()
+                    if representation is None:
+                        raise ConflictError("durable corpus representation materialisation is absent")
             run = conn.execute("SELECT configuration_hash FROM runs WHERE run_id=?", (attempt["run_id"],)).fetchone()
             if run is None or run["configuration_hash"] != attempt["configuration_hash"] or material.get("run_id") != attempt["run_id"]:
                 raise ConflictError("durable run configuration does not match execution attempt")
@@ -1187,7 +1207,11 @@ class SQLiteCatalog:
             halt = conn.execute("SELECT 1 FROM scale_s0_halts WHERE slice_id=? AND hard=1 AND recovered_at IS NULL AND (scope='slice' OR (scope='task' AND task_key=?) OR (scope='subject' AND subject_id=?)) LIMIT 1", (slice_id, task_key, material.get("subject_id"))).fetchone()
             if halt is not None:
                 raise ConflictError("applicable durable hard halt prevents provider send")
-            if conn.execute("SELECT 1 FROM provider_request_items WHERE provider_request_item_id=?", (material.get("provider_request_identity"),)).fetchone() is not None:
+            request_item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (material.get("provider_request_identity"),)).fetchone()
+            if operation_kind == "locator_search":
+                if request_item is None or request_item["status"] != "prepared" or request_item["run_id"] != attempt["run_id"] or request_item["model_task_id"] != task_key:
+                    raise ConflictError("locator search has no exact prepared durable provider lifecycle")
+            elif request_item is not None:
                 raise ConflictError("durable provider-request identity already exists")
 
     def register_scale_s0_candidate(self, candidate: Mapping[str, Any]) -> dict[str, Any]:

@@ -97,21 +97,17 @@ def test_authorised_search_is_framed_by_durable_gate_before_and_after_network():
     assert [event[0] for event in gate.events] == ["begin", "complete"]
 
 
-def test_gate_delegates_to_existing_preflight_and_standard_lifecycle():
+def test_gate_rejects_mock_only_preflight_without_a_frozen_operational_packet():
     from unittest.mock import Mock
     from charitygraph.scale_s0 import ScaleS0Preflight, SendRequest, RoutingClass
     preflight = ScaleS0Preflight.__new__(ScaleS0Preflight)
     preflight.provider_send = Mock()
     catalog = Mock()
     from charitygraph.s0_locator_discovery import S0LocatorSearchExecutionGate
-    gate = S0LocatorSearchExecutionGate(preflight=preflight,
-        request=SendRequest("physical:1", "task", "1", "11111111111", "scope:organisation", "packet:1", True, RoutingClass.DETERMINISTIC, "reservation:1", (), False),
-        catalog=catalog, delivery_attempt_id="delivery:1", client_request_id="request:1", request_identity="req:1")
-    gate.begin(request_identity="req:1", subject_abn="11111111111", query='"Sunrise"')
-    gate.complete(provider_receipt_id="resp:1", result_ref="provider-response:resp:1")
-    preflight.provider_send.assert_called_once()
-    catalog.mark_standard_send_started.assert_called_once()
-    catalog.complete_standard_delivery.assert_called_once()
+    with pytest.raises(ScalePreflightError, match="constructed S0 preflight"):
+        S0LocatorSearchExecutionGate(preflight=preflight,
+            request=SendRequest("physical:1", "task", "1", "11111111111", "scope:organisation", "packet:1", True, RoutingClass.DETERMINISTIC, "reservation:1", (), False),
+            catalog=catalog, delivery_attempt_id="delivery:1", client_request_id="request:1", request_identity="req:1")
 
 
 @pytest.mark.parametrize("control_failure", [
