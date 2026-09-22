@@ -239,7 +239,7 @@ class PriorAttempt:
     state: str; provider_request_identity: str; physical_attempt_id: str
 @dataclass(frozen=True)
 class SendRequest:
-    physical_attempt_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; packet_hash: str | None; packet_frozen: bool; route: RoutingClass; reservation_id: str | None; source_ids: tuple[str, ...]; retry_permitted: bool; prior_attempt: PriorAttempt | None = None
+    physical_attempt_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; packet_hash: str | None; packet_frozen: bool; route: RoutingClass; reservation_id: str | None; source_ids: tuple[str, ...]; retry_permitted: bool; prior_attempt: PriorAttempt | None = None; provider_account_project: str | None = None; execution_authority: str | None = None
 
 
 class ScaleS0Preflight:
@@ -490,7 +490,7 @@ class ScaleS0Preflight:
         if request.prior_attempt is not None and (not request.retry_permitted or request.prior_attempt.provider_request_identity!=packet.provider_request_identity or request.prior_attempt.state not in {"pre_send_failed","prepared"}): raise ScalePreflightError("retry is not ambiguity-safe")
         self._economics(request,task,route)
         if self.catalog is not None and self.execution_attempt is not None and hasattr(self.catalog, "validate_scale_s0_provider_send"):
-            self.catalog.validate_scale_s0_provider_send(packet_id=packet.packet_id, execution_attempt_id=self.execution_attempt.attempt_id, mandate_id=self.mandate.mandate_id, slice_id=self.mandate.slice_id, task_id=task.task_id, task_version=task.version, task_key=task.key, route=route.value, source_ids=request.source_ids, source_snapshot_hashes=packet.source_snapshot_hashes, input_profile_id=task.input_profile_id, output_schema_id=task.output_schema_id, reservation_id=request.reservation_id, observed_at=now or datetime.now(timezone.utc))
+            self.catalog.validate_scale_s0_provider_send(packet_id=packet.packet_id, execution_attempt_id=self.execution_attempt.attempt_id, mandate_id=self.mandate.mandate_id, slice_id=self.mandate.slice_id, task_id=task.task_id, task_version=task.version, task_key=task.key, route=route.value, source_ids=request.source_ids, source_snapshot_hashes=packet.source_snapshot_hashes, input_profile_id=task.input_profile_id, output_schema_id=task.output_schema_id, reservation_id=request.reservation_id, observed_at=now or datetime.now(timezone.utc), provider_account_project=request.provider_account_project, execution_authority=request.execution_authority)
         return task
     def review_requirement(self,candidate:Candidate,sampling:SamplingPolicy,reasons:Iterable[str])->ReviewRequirement:
         task=self._task(candidate.task_id,candidate.task_version)

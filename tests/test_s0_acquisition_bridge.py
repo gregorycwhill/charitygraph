@@ -152,6 +152,22 @@ def test_eight_subject_offline_fixture_matrix_and_false_absence_states():
     assert not {"observed_absent", "not_found"} & {item.state for item in states}
 
 
+def test_discovery_signals_mapper_gap_is_nonblocking_but_never_freezes_a_packet():
+    value = mandate()
+    plan = SourcePlanner(value).plan(subject_id=SUBJECTS[0], scope_id="scope:organisation", source_family="official_website",
+        acquisition_mechanism="fixture", policy_classification="OPEN_WEB_PUBLIC", source_role="first_party",
+        authority_role="publisher", requirement="conditional", locator="https://fixture.invalid/public", created_at=NOW)
+    snapshot = GovernedAcquisition(value).acquire(plan, open_web(plan), OfflineResponse(b"fixture", "text/html", plan.locator),
+        representation=DocumentRepresentation.RELIABLE_TEXT, representation_mode="text_extraction_only", now=NOW)
+    corpus = freeze_corpus(value, SUBJECTS[0], (snapshot,), now=NOW)
+    states = task_applicability(default_s0_registry(), value, corpus, scope_id="scope:organisation")
+    discovery = next(item for item in states if item.task_id.endswith(":discovery_signals"))
+    assert discovery.state == "IMPLEMENTATION_COVERAGE_MISSING_NONBLOCKING"
+    assert "semantic_absence=false" in discovery.reason
+    packets = frozen_packets(value, default_s0_registry(), corpus, (snapshot,), states, now=NOW)
+    assert all(packet.task_id != discovery.task_id for packet in packets)
+
+
 def test_document_v2_pdf_representations_are_snapshot_bound_and_rendered(tmp_path):
     from PIL import Image, ImageDraw
     value = mandate()

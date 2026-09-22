@@ -1064,6 +1064,35 @@ CREATE INDEX scale_s0_source_authorities_lookup_idx
     ON scale_s0_source_authorities(execution_attempt_id, source_id, subject_id, source_family);
 """.strip() + "\n"
 
+CATALOGUE_SQL_V23 = """
+CREATE TABLE scale_s0_attestation_windows (
+    window_id TEXT PRIMARY KEY,
+    execution_attempt_id TEXT NOT NULL REFERENCES scale_s0_execution_attempts(attempt_id),
+    mandate_id TEXT NOT NULL REFERENCES scale_s0_mandates(mandate_id),
+    slice_id TEXT NOT NULL,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    attested_by TEXT NOT NULL CHECK(attested_by = 'Greg'),
+    setting_name TEXT NOT NULL,
+    observed_value TEXT NOT NULL,
+    provider_account_project TEXT NOT NULL,
+    execution_authority TEXT NOT NULL,
+    observed_at TEXT NOT NULL,
+    valid_until TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL UNIQUE
+);
+CREATE TABLE scale_s0_attestation_window_invalidations (
+    invalidation_id TEXT PRIMARY KEY,
+    window_id TEXT NOT NULL REFERENCES scale_s0_attestation_windows(window_id),
+    reason TEXT NOT NULL,
+    invalidated_at TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL UNIQUE
+);
+CREATE INDEX scale_s0_attestation_windows_lookup_idx ON scale_s0_attestation_windows(execution_attempt_id, provider_account_project, execution_authority, valid_until);
+CREATE INDEX scale_s0_attestation_window_invalidations_lookup_idx ON scale_s0_attestation_window_invalidations(window_id);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -1087,6 +1116,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(20, "currency_bound_runtime_accounting", CATALOGUE_SQL_V20),
     Migration(21, "durable_scale_s0_owner_attestation_send_gate", CATALOGUE_SQL_V21),
     Migration(22, "durable_scale_s0_source_runtime_authorities", CATALOGUE_SQL_V22),
+    Migration(23, "durable_scale_s0_attestation_windows", CATALOGUE_SQL_V23),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
