@@ -839,10 +839,13 @@ class SQLiteCatalog:
         required = ("slice_id", "task_key", "subject_id", "scope_id", "content_hash", "frozen_at", "binding_hash", "task_id", "task_version", "input_profile_id", "output_schema_id", "routing_class", "provider_request_identity")
         if any(not packet.get(key) for key in required):
             raise CatalogError("Scale S0 frozen packet lacks immutable binding")
+        operation_kind = packet.get("operation_kind", "semantic")
+        if operation_kind not in {"semantic", "locator_search"}:
+            raise CatalogError("Scale S0 frozen packet has an unknown operation kind")
         # A locator-search packet is deliberately source-free: its result is only
         # discovery metadata and is never evidence.  Semantic packets retain the
         # ordinary immutable source/snapshot requirement.
-        if packet.get("operation_kind", "semantic") != "locator_search" and (
+        if operation_kind != "locator_search" and (
             not packet.get("source_ids") or not packet.get("source_snapshot_hashes")
         ):
             raise CatalogError("semantic Scale S0 frozen packet lacks source bindings")
@@ -1225,9 +1228,11 @@ class SQLiteCatalog:
             raise CatalogError("Scale S0 candidate lacks immutable binding")
         material_hash = _canonical_hash(candidate)
         with self._connection(immediate=True) as conn:
-            packet = conn.execute("SELECT mandate_id,subject_id,scope_id,task_key FROM scale_s0_frozen_packets WHERE packet_id=?", (packet_id,)).fetchone()
-            if packet is None or tuple(packet) != (mandate_id, candidate["subject_id"], candidate["scope_id"], candidate["task_key"]):
+            packet = conn.execute("SELECT mandate_id,subject_id,scope_id,task_key,material_json FROM scale_s0_frozen_packets WHERE packet_id=?", (packet_id,)).fetchone()
+            if packet is None or tuple(packet)[:4] != (mandate_id, candidate["subject_id"], candidate["scope_id"], candidate["task_key"]):
                 raise ConflictError("Scale S0 candidate is not bound to its packet")
+            if json.loads(packet["material_json"]).get("operation_kind", "semantic") != "semantic":
+                raise ConflictError("Scale S0 operational locator-search packets cannot create candidates")
             predecessor = candidate.get("supersedes_candidate_id")
             if predecessor:
                 previous = conn.execute("SELECT mandate_id FROM scale_s0_candidates WHERE candidate_id=?", (predecessor,)).fetchone()

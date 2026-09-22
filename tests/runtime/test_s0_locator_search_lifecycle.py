@@ -5,6 +5,8 @@ import pytest
 
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.runtime.catalog import (
+    CatalogError,
+    ConflictError,
     S0_LIVE_SEND_ATTESTER,
     S0_LIVE_SEND_OBSERVED_VALUE,
     S0_LIVE_SEND_SETTING_NAME,
@@ -157,6 +159,9 @@ def test_real_locator_packet_lifecycle_is_durable_priced_source_free_and_exactly
                                         client_request_id=prepared.client_request_id,
                                         request_identity=packet.provider_request_identity, now=NOW)
     assert packet.source_ids == packet.source_snapshot_hashes == () and not packet.corpus_id
+    with pytest.raises(ScalePreflightError, match="query is not bound"):
+        gate.begin(request_identity=packet.provider_request_identity, subject_abn=SUBJECT, query='"other query"')
+    assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
     gate.begin(request_identity=packet.provider_request_identity, subject_abn=SUBJECT, query=packet.locator_query)
     gate.complete(provider_receipt_id="response:locator", result_ref="provider-response:locator", usage={"total_tokens": 1})
     assert catalog.get_provider_request_item(packet.provider_request_identity)["status"] == "completed"
@@ -172,6 +177,11 @@ def test_locator_packet_rejects_missing_pricing_and_cap_overrun_without_a_send(t
         freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, subject_abn=SUBJECT,
                                      query='"Locator Foundation"', query_index=0,
                                      pricing=LocatorSearchPrice("", "0.10", "USD"), frozen_at=NOW.isoformat())
+    with pytest.raises(ScalePreflightError, match="bounded query index"):
+        freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, subject_abn=SUBJECT,
+                                     query='"Locator Foundation"', query_index=5,
+                                     pricing=LocatorSearchPrice("pricing:locator-v1", "0.10", "USD"),
+                                     frozen_at=NOW.isoformat())
     catalog = SQLiteCatalog(tmp_path / "cap.sqlite3").open(initialize=True)
     registry = default_s0_registry()
     routing = RoutingPolicy("routing:locator", "1", frozenset(RoutingClass), {})
@@ -187,3 +197,25 @@ def test_locator_packet_rejects_missing_pricing_and_cap_overrun_without_a_send(t
                                             pricing=LocatorSearchPrice("pricing:locator-v1", "0.26", "USD"), frozen_at=NOW.isoformat())
     with pytest.raises(ScalePreflightError, match="per-request reservation cap"):
         ScaleS0Preflight.register_durable_packet(catalog, mandate, over_cap, execution_attempt_id=attempt.attempt_id)
+
+
+def test_catalog_rejects_unknown_operational_kinds_and_locator_candidates(tmp_path):
+    catalog, mandate, packet, _ = _prepared_catalog(tmp_path)
+    unknown_packet = {
+        "packet_id": "packet:unknown-operation", "mandate_id": mandate.mandate_id,
+        "slice_id": mandate.slice_id, "task_key": "task:unknown-operation",
+        "subject_id": SUBJECT, "scope_id": "scope:organisation", "content_hash": "a" * 64,
+        "frozen_at": NOW.isoformat(), "binding_hash": "b" * 64,
+        "task_id": "urn:charitygraph:scale-s0:unknown", "task_version": "1.0",
+        "input_profile_id": "profile:unknown:1", "output_schema_id": "schema:unknown:1",
+        "routing_class": "low_cost_semantic", "provider_request_identity": "unknown:request",
+        "operation_kind": "unknown_operation",
+    }
+    with pytest.raises(CatalogError, match="unknown operation kind"):
+        catalog.register_scale_s0_frozen_packet(unknown_packet)
+    with pytest.raises(ConflictError, match="cannot create candidates"):
+        catalog.register_scale_s0_candidate({
+            "candidate_id": "candidate:locator-operation", "mandate_id": mandate.mandate_id,
+            "packet_id": packet.packet_id, "subject_id": SUBJECT, "scope_id": packet.scope_id,
+            "task_key": packet_task_key(packet), "created_at": NOW.isoformat(), "material_hash": "c" * 64,
+        })

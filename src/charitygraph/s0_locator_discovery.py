@@ -16,11 +16,12 @@ from typing import Any, Mapping, Protocol, Sequence
 from urllib.parse import urlsplit, urlunsplit
 
 from charitygraph.scale_s0 import (
-    ExecutionAttemptIdentity, FrozenPacket, LOCATOR_SEARCH_OPERATION_KIND,
+    ExecutionAttemptIdentity, FrozenPacket, LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT,
+    LOCATOR_SEARCH_OPERATION_KIND,
     RoutingClass, ScalePreflightError, SendRequest, locator_search_request_identity,
 )
 
-MAX_SEARCH_QUERIES_PER_SUBJECT = 5
+MAX_SEARCH_QUERIES_PER_SUBJECT = LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT
 MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY = 10
 MAX_AUTHENTICATED_LOCATOR_FETCHES_PER_SUBJECT = 5
 
@@ -198,6 +199,9 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
             raise ScalePreflightError("locator search request identity does not match the frozen S0 request")
         if subject_abn != self.request.subject_id:
             raise ScalePreflightError("locator search subject is outside the frozen S0 request")
+        packet = self.preflight.packets[self.request.packet_hash or ""]
+        if query != packet.locator_query:
+            raise ScalePreflightError("locator search query is not bound to the frozen S0 request")
         self.preflight.provider_send(self.request, now=self.now)
         self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self.now)
         self._started = True

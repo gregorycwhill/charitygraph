@@ -37,6 +37,7 @@ class RoutingClass(StrEnum):
 
 
 LOCATOR_SEARCH_OPERATION_KIND = "locator_search"
+LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT = 5
 LOCATOR_SEARCH_TASK_ID = "urn:charitygraph:scale-s0:locator_search"
 LOCATOR_SEARCH_TASK_VERSION = "1.0"
 LOCATOR_SEARCH_INPUT_PROFILE_ID = "profile:locator-search:1"
@@ -50,8 +51,10 @@ def locator_search_request_identity(*, subject_id: str, query: str, query_index:
     Keeping it in the S0 control plane lets the frozen packet, reservation, and
     exactly-once boundary independently recompute the same value.
     """
-    if not subject_id or not query or query_index < 0:
-        raise ScalePreflightError("locator search identity requires a subject, query, and non-negative query index")
+    if (not subject_id or not query or not isinstance(query_index, int)
+            or isinstance(query_index, bool)
+            or not 0 <= query_index < LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT):
+        raise ScalePreflightError("locator search identity requires a subject, query, and bounded query index")
     return "locator-search:" + _digest({"subject": subject_id, "query": query, "index": query_index})
 
 
