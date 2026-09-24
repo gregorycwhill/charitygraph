@@ -142,6 +142,9 @@ class ScaleS0Executor:
         for item in items:
             self._validate_item_request(item)
         if dry_run:
+            for item in items:
+                _, preflight, _ = self._preflight_for(item.packet_id)
+                preflight.provider_send(item.request, now=self.now(), allow_prepared_lifecycle=True)
             return ([{"request_item_id": str(item.row["provider_request_item_id"]), "status": "eligible", "provider_posts": 0} for item in items], 0, False)
         if self.provider is None:
             raise ScalePreflightError("semantic execution requires the canonical Standard provider")
@@ -196,9 +199,15 @@ class ScaleS0Executor:
                                   result_ref="provider-response:" + response_id,
                                   usage=getattr(response, "usage", None))
                 if self.on_reconciled is not None:
-                    self.on_reconciled({"provider_request_item_id": packet.provider_request_identity,
-                                        "physical_attempt_id": item.request.physical_attempt_id},
-                                       response, getattr(response, "usage", None) or {})
+                    try:
+                        self.on_reconciled({"provider_request_item_id": packet.provider_request_identity,
+                                            "physical_attempt_id": item.request.physical_attempt_id},
+                                           response, getattr(response, "usage", None) or {})
+                    except Exception as error:
+                        results.append({"request_item_id": packet.provider_request_identity,
+                                        "status": "completed_accounting_failed", "provider_posts": 1,
+                                        "error": str(error)[:512]})
+                        return results, posts + 1, True
                 results.append({"request_item_id": packet.provider_request_identity, "status": "completed", "provider_posts": 1, "response_id": response_id})
                 posts += 1
             except Exception as error:
@@ -216,6 +225,14 @@ class ScaleS0Executor:
         self._attempt()  # reconstruct once before work, then again per item
         if not semantic_items and not locator_items:
             return S0ExecutionSummary(self.attempt_id, dry_run, 0, 0, 0, {}, False)
+        if not dry_run and self.on_reconciled is None:
+            terminal = {"completed", "failed", "held", "send_ambiguous", "cancelled"}
+            for item in (*semantic_items, *locator_items):
+                packet_id = item.packet_id
+                _, _, packet = self._preflight_for(packet_id)
+                durable = self.catalog.get_provider_request_item(packet.provider_request_identity)
+                if durable is None or durable.get("status") not in terminal:
+                    raise ScalePreflightError("live S0 execution requires the canonical accounting reconciler")
         semantic_results, semantic_posts, semantic_stop = self._run_semantic(semantic_items, dry_run=dry_run)
         if semantic_stop:
             locator_results, locator_posts, locator_stop = [], 0, True

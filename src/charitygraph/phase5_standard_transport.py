@@ -341,6 +341,14 @@ class StandardCampaignCoordinator:
                 attempt_id, client_request_id=client_request_id, endpoint=OpenAIHTTPStandardClient.base_url,
                 request_body_sha256=body_sha256(body), now=self.now,
             )
+            # Re-run the caller's durable mandate/A3 proof after the immutable
+            # trace is prepared and immediately before send-started.  This
+            # closes the only orchestration TOCTOU window between eligibility
+            # evaluation and the exactly-once physical transition.
+            if self.mandate_evaluator is not None:
+                evaluation = self.mandate_evaluator(row)
+                if not bool(getattr(evaluation, "authorized", False)):
+                    raise StandardSystemic("execution mandate proof expired before send-started")
             self.catalog.mark_standard_send_started(attempt_id, client_request_id=client_request_id, now=request_started_at)
             with self._active_lock:
                 self._active += 1
