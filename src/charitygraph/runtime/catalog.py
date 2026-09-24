@@ -1215,7 +1215,13 @@ class SQLiteCatalog:
                 if request_item is None or request_item["status"] != "prepared" or request_item["run_id"] != attempt["run_id"] or request_item["model_task_id"] != task_key:
                     raise ConflictError("locator search has no exact prepared durable provider lifecycle")
             elif request_item is not None:
-                raise ConflictError("durable provider-request identity already exists")
+                # The S0 executor may re-check an already-prepared semantic
+                # lifecycle immediately before send.  It must still be the
+                # exact run/task/physical binding; terminal or substituted
+                # identities remain fail-closed.
+                if (request_item["status"] != "prepared" or request_item["run_id"] != attempt["run_id"]
+                        or request_item["model_task_id"] != task_key):
+                    raise ConflictError("durable provider-request identity already exists")
 
     def register_scale_s0_candidate(self, candidate: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()

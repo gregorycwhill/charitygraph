@@ -564,7 +564,7 @@ class ScaleS0Preflight:
         if route==RoutingClass.STRONG_REASONING and Decimal(self.mandate.strong_model_spend_ceiling)<=e.strong_model_spend+e.estimated_strong_cost: raise ScalePreflightError("strong-model ceiling exhausted")
         if packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND and (e.pricing_snapshot_id != packet.pricing_snapshot_id or e.estimated_provider_cost != Decimal(packet.estimated_provider_cost)):
             raise ScalePreflightError("locator search reservation is not bound to its frozen price")
-    def provider_send(self, request: SendRequest, *, triggered_escalations: Iterable[str] = (), now: datetime | None = None) -> TaskContract:
+    def provider_send(self, request: SendRequest, *, triggered_escalations: Iterable[str] = (), now: datetime | None = None, allow_prepared_lifecycle: bool = False) -> TaskContract:
         if self.catalog is not None and self.execution_attempt is None:
             raise ScalePreflightError("live provider send requires a durable execution-attempt binding")
         candidate_packet = self.packets.get(request.packet_hash or "")
@@ -582,7 +582,7 @@ class ScaleS0Preflight:
         if request.route!=route or packet.routing_class!=route: raise ScalePreflightError("caller cannot choose a route")
         if self.catalog is not None:
             existing = self.catalog.get_provider_request_item(packet.provider_request_identity)
-            if existing is not None and (packet.operation_kind != LOCATOR_SEARCH_OPERATION_KIND or existing.get("status") != "prepared"):
+            if existing is not None and not (allow_prepared_lifecycle and existing.get("status") == "prepared") and (packet.operation_kind != LOCATOR_SEARCH_OPERATION_KIND or existing.get("status") != "prepared"):
                 raise ScalePreflightError("durable provider-request identity already exists")
         if self.halts.active(slice_id=self.mandate.slice_id,task_key=task.key,subject_id=request.subject_id) or self.catalog and self.catalog.active_scale_s0_halt(slice_id=self.mandate.slice_id,task_key=task.key,subject_id=request.subject_id): raise ScalePreflightError("applicable hard halt prevents provider send")
         if packet.operation_kind != LOCATOR_SEARCH_OPERATION_KIND:
