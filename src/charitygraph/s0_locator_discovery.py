@@ -12,12 +12,16 @@ from hashlib import sha256
 import json
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from typing import Any, Protocol, Sequence
+from typing import Any, Mapping, Protocol, Sequence
 from urllib.parse import urlsplit, urlunsplit
 
-from charitygraph.scale_s0 import ScalePreflightError
+from charitygraph.scale_s0 import (
+    ExecutionAttemptIdentity, FrozenPacket, LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT,
+    LOCATOR_SEARCH_OPERATION_KIND,
+    RoutingClass, ScalePreflightError, SendRequest, locator_search_request_identity,
+)
 
-MAX_SEARCH_QUERIES_PER_SUBJECT = 5
+MAX_SEARCH_QUERIES_PER_SUBJECT = LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT
 MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY = 10
 MAX_AUTHENTICATED_LOCATOR_FETCHES_PER_SUBJECT = 5
 
@@ -66,6 +70,94 @@ class LocatorSearchExecutionGate(ABC):
     def fail(self, *, failure_class: str, message: str, ambiguous: bool = False) -> None: ...
 
 
+@dataclass(frozen=True)
+class LocatorSearchPrice:
+    """A current provider price snapshot bound before a locator crossing."""
+    pricing_snapshot_id: str
+    estimated_provider_cost: str
+    currency: str
+
+
+@dataclass(frozen=True)
+class LocatorSearchPreparedRequest:
+    """Frozen, source-free material for one exact Standard locator request.
+
+    This value neither reserves budget nor starts transport.  It gives the
+    caller all identities required to construct the already-governed Standard
+    lifecycle immediately after the A3-coupled reservation succeeds.
+    """
+    packet: FrozenPacket
+    request: SendRequest
+    delivery_attempt_id: str
+    client_request_id: str
+
+
+def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAttemptIdentity,
+                                 subject_abn: str, query: str, query_index: int,
+                                 pricing: LocatorSearchPrice, frozen_at: str,
+                                 scope_id: str = "scope:organisation") -> FrozenPacket:
+    """Compile a deterministic operational packet without evidence or a send."""
+    if execution_attempt.mandate_id != mandate.mandate_id or execution_attempt.slice_id != mandate.slice_id:
+        raise ScalePreflightError("locator search packet execution identity is outside the mandate")
+    if pricing.currency != mandate.currency_basis:
+        raise ScalePreflightError("locator search price currency must equal the frozen S0 currency")
+    request_identity = locator_search_request_identity(subject_id=subject_abn, query=query, query_index=query_index)
+    material = {
+        "mandate": mandate.identity_hash,
+        "execution_attempt": execution_attempt.attempt_id,
+        "operation": LOCATOR_SEARCH_OPERATION_KIND,
+        "subject": subject_abn,
+        "scope": scope_id,
+        "query": query,
+        "query_index": query_index,
+        "provider_request_identity": request_identity,
+        "pricing_snapshot_id": pricing.pricing_snapshot_id,
+        "estimated_provider_cost": pricing.estimated_provider_cost,
+        "currency": pricing.currency,
+    }
+    content_hash = _hash(material)
+    return FrozenPacket(
+        "packet:" + _hash({"locator_search_packet": material}),
+        "urn:charitygraph:scale-s0:locator_search", "1.0", subject_abn, scope_id,
+        (), (), "profile:locator-search:1",
+        "urn:charitygraph:builder:schema:locator-search-discovery-metadata:1.0",
+        RoutingClass.LOW_COST_SEMANTIC, request_identity, content_hash,
+        mandate_id=mandate.mandate_id, slice_id=mandate.slice_id,
+        frozen_at=frozen_at, operation_kind=LOCATOR_SEARCH_OPERATION_KIND,
+        locator_query=query, locator_query_index=query_index,
+        pricing_snapshot_id=pricing.pricing_snapshot_id,
+        estimated_provider_cost=pricing.estimated_provider_cost,
+    )
+
+
+def prepare_locator_search_request(*, packet: FrozenPacket, reservation_id: str,
+                                   provider_account_project: str,
+                                   execution_authority: str) -> LocatorSearchPreparedRequest:
+    """Construct the request identities required by the normal Standard lifecycle.
+
+    The generic lifecycle records must be durably prepared by the caller before
+    ``S0LocatorSearchExecutionGate.begin`` can cross the provider boundary.
+    That ordering is intentional: a packet alone is never send authority.
+    """
+    if packet.operation_kind != LOCATOR_SEARCH_OPERATION_KIND or not reservation_id:
+        raise ScalePreflightError("locator search request requires a frozen locator packet and reservation")
+    if not provider_account_project or not execution_authority:
+        raise ScalePreflightError("locator search request requires explicit A3 account/project and authority")
+    identity = packet.provider_request_identity
+    return LocatorSearchPreparedRequest(
+        packet,
+        SendRequest(
+            "physical:" + _hash({"locator_search": identity}), packet.task_id, packet.task_version,
+            packet.subject_id, packet.scope_id, packet.binding_hash, True,
+            packet.routing_class, reservation_id, (), False,
+            provider_account_project=provider_account_project,
+            execution_authority=execution_authority,
+        ),
+        "delivery-attempt:" + _hash({"locator_search": identity}),
+        "locator-search-client:" + _hash({"locator_search": identity}),
+    )
+
+
 class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
     """Adapter over ``ScaleS0Preflight`` and existing Standard lifecycle APIs."""
 
@@ -82,6 +174,19 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         required = (catalog, delivery_attempt_id, client_request_id, request_identity)
         if any(item is None or not str(item) for item in required):
             raise ScalePreflightError("locator search requires durable Standard lifecycle identities")
+        packet_map = getattr(preflight, "packets", None)
+        if not isinstance(packet_map, Mapping):
+            raise ScalePreflightError("locator search gate requires a constructed S0 preflight")
+        packet = packet_map.get(request.packet_hash or "")
+        if packet is None or packet.operation_kind != LOCATOR_SEARCH_OPERATION_KIND:
+            raise ScalePreflightError("locator search gate requires a frozen locator-search packet")
+        if (request.task_id, request.task_version, request.subject_id, request.scope_id,
+            request.source_ids, request.route, request.packet_frozen) != (
+                packet.task_id, packet.task_version, packet.subject_id, packet.scope_id,
+                (), packet.routing_class, True):
+            raise ScalePreflightError("locator search SendRequest is not bound to its frozen packet")
+        if request_identity != packet.provider_request_identity:
+            raise ScalePreflightError("locator search gate identity is not bound to its frozen packet")
         self.preflight, self.request, self.catalog = preflight, request, catalog
         self.delivery_attempt_id, self.client_request_id, self.request_identity = delivery_attempt_id, client_request_id, request_identity
         self.now = now or datetime.now(timezone.utc)
@@ -94,6 +199,9 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
             raise ScalePreflightError("locator search request identity does not match the frozen S0 request")
         if subject_abn != self.request.subject_id:
             raise ScalePreflightError("locator search subject is outside the frozen S0 request")
+        packet = self.preflight.packets[self.request.packet_hash or ""]
+        if query != packet.locator_query:
+            raise ScalePreflightError("locator search query is not bound to the frozen S0 request")
         self.preflight.provider_send(self.request, now=self.now)
         self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self.now)
         self._started = True
@@ -101,13 +209,29 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
     def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None) -> None:
         if not self._started:
             raise ScalePreflightError("locator search completion has no durable send-start")
+        self.catalog.record_standard_transport_outcome(
+            self.request.physical_attempt_id, status="PROVIDER_RESPONSE_RECEIVED",
+            response_headers_received=True, response_identity=provider_receipt_id,
+            usage=usage or {}, now=self.now,
+        )
         self.catalog.complete_standard_delivery(self.delivery_attempt_id,
             provider_request_id=self.request_identity,
             provider_receipt_id=provider_receipt_id,
             raw_result_ref=result_ref, usage=usage or {}, result_ref=result_ref, now=self.now)
+        self.catalog.record_standard_transport_outcome(
+            self.request.physical_attempt_id, status="COMPLETED",
+            response_headers_received=True, response_identity=provider_receipt_id,
+            usage=usage or {}, now=self.now,
+        )
 
     def fail(self, *, failure_class: str, message: str, ambiguous: bool = False) -> None:
         if self._started:
+            self.catalog.record_standard_transport_outcome(
+                self.request.physical_attempt_id,
+                status="PROVIDER_CROSSING_AMBIGUOUS" if ambiguous else "PROVIDER_REJECTED",
+                response_headers_received=False, transport_exception=message,
+                now=self.now,
+            )
             self.catalog.settle_standard_failure(self.delivery_attempt_id, failure_class=failure_class,
                 message=message, ambiguous=ambiguous, now=self.now)
 
@@ -259,7 +383,7 @@ def discover(provider: LocatorSearchProvider, identity: PublicEntityIdentity, *,
     for query_index, query in enumerate(identity.queries()):
         if (identity.subject_abn, query) in completed_queries:
             continue
-        request_identity = "locator-search:" + _hash({"subject": identity.subject_abn, "query": query, "index": query_index})
+        request_identity = locator_search_request_identity(subject_id=identity.subject_abn, query=query, query_index=query_index)
         response = provider.search(query=query, subject_abn=identity.subject_abn, request_identity=request_identity)
         for result in response.results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]:
             lineages.append(DiscoveryLineage(identity.subject_abn, query, provider.provider_id, response.provider_call_id,
