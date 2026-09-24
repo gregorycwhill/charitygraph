@@ -1093,7 +1093,8 @@ class SQLiteCatalog:
                                         input_profile_id: str, output_schema_id: str, reservation_id: str | None,
                                         observed_at: datetime, provider_account_project: str | None = None,
                                         execution_authority: str | None = None,
-                                        operation_kind: str = "semantic") -> None:
+                                        operation_kind: str = "semantic",
+                                        allow_prepared_lifecycle: bool = False) -> None:
         """Re-check all durable attempt ownership immediately before a live send."""
         with self._connection() as conn:
             attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (execution_attempt_id,)).fetchone()
@@ -1215,7 +1216,13 @@ class SQLiteCatalog:
                 if request_item is None or request_item["status"] != "prepared" or request_item["run_id"] != attempt["run_id"] or request_item["model_task_id"] != task_key:
                     raise ConflictError("locator search has no exact prepared durable provider lifecycle")
             elif request_item is not None:
-                raise ConflictError("durable provider-request identity already exists")
+                # The S0 executor may re-check an already-prepared semantic
+                # lifecycle immediately before send.  It must still be the
+                # exact run/task/physical binding; terminal or substituted
+                # identities remain fail-closed.
+                if (not allow_prepared_lifecycle or request_item["status"] != "prepared" or request_item["run_id"] != attempt["run_id"]
+                        or request_item["model_task_id"] != task_key):
+                    raise ConflictError("durable provider-request identity already exists")
 
     def register_scale_s0_candidate(self, candidate: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()

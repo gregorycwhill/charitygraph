@@ -203,6 +203,10 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         if query != packet.locator_query:
             raise ScalePreflightError("locator search query is not bound to the frozen S0 request")
         self.preflight.provider_send(self.request, now=self.now)
+        # The first proof reconstructs packet/rights/reservation authority;
+        # the second proof is deliberately adjacent to send-started so an A3
+        # window expiring during preparation cannot authorize a crossing.
+        self.preflight.provider_send(self.request, now=self.now)
         self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self.now)
         self._started = True
 
