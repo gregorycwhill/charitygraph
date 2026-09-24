@@ -109,6 +109,30 @@ def test_actual_cost_overrun_is_recorded_without_fabricated_release(tmp_path):
     assert catalog.accounting_budget_position("cohort:locator").reservation_overrun == Decimal("0.050000")
 
 
+def test_reentry_repairs_actual_committed_before_release_crash(tmp_path, monkeypatch):
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    usage = _usage()
+    _receipt(catalog, mandate, packet, prepared, usage)
+    accounting = S0ProviderAccountingFactory(catalog=catalog, now=lambda: NOW, execution_attempt_id="attempt:locator").create()
+    release = catalog.release_reservation
+
+    def crash_before_release(*args, **kwargs):
+        raise RuntimeError("synthetic release persistence crash")
+
+    monkeypatch.setattr(catalog, "release_reservation", crash_before_release)
+    with pytest.raises(RuntimeError, match="release persistence"):
+        accounting.reconcile(request=prepared.request, packet=packet, provider_receipt_id="response:accounting", usage=usage)
+    with catalog._connection() as conn:
+        assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='actual'").fetchone()[0] == 1
+        assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='reservation_release'").fetchone()[0] == 0
+
+    monkeypatch.setattr(catalog, "release_reservation", release)
+    accounting.reconcile(request=prepared.request, packet=packet, provider_receipt_id="response:accounting", usage=usage)
+    with catalog._connection() as conn:
+        assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='actual'").fetchone()[0] == 1
+        assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='reservation_release'").fetchone()[0] == 1
+
+
 @pytest.mark.parametrize("bad_amount", [0.04, True])
 def test_accounting_rejects_binary_or_boolean_decimal_evidence(tmp_path, bad_amount):
     catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
