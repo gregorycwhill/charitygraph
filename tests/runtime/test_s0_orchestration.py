@@ -42,6 +42,7 @@ def test_s0_executor_locator_live_and_terminal_reentry_are_idempotent(tmp_path):
     assert first.provider_posts == 1 and first.counts == {"completed": 1}
     assert second.provider_posts == 0 and second.counts == {"replayed_terminal": 1}
     assert fake.calls == 1
+    assert "reservation:locator" in first.accounting
 
 
 def test_s0_executor_requires_accounting_reconciler_before_live_crossing(tmp_path):

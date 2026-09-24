@@ -8,7 +8,7 @@ existing ``S0LocatorSearchExecutionGate``.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -54,10 +54,12 @@ class S0ExecutionSummary:
     counts: Mapping[str, int]
     stop_campaign: bool
     errors: tuple[str, ...] = ()
+    accounting: Mapping[str, Mapping[str, str]] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         value = asdict(self)
         value["counts"] = dict(sorted(self.counts.items()))
+        value["accounting"] = {key: dict(sorted(item.items())) for key, item in sorted(self.accounting.items())}
         return value
 
 
@@ -246,9 +248,14 @@ class ScaleS0Executor:
         counts: dict[str, int] = {}
         for result in all_results:
             counts[result["status"]] = counts.get(result["status"], 0) + 1
+        accounting: dict[str, Mapping[str, str]] = {}
+        reservations = {item.request.reservation_id for item in (*semantic_items, *locator_items) if item.request.reservation_id}
+        for reservation_id in sorted(reservations):
+            position = self.catalog.accounting_reservation_position(reservation_id)
+            accounting[reservation_id] = {key: str(value) for key, value in position.items()}
         return S0ExecutionSummary(self.attempt_id, dry_run, semantic_posts + locator_posts,
                                    len(locator_items), len(semantic_items), counts,
-                                   semantic_stop or locator_stop)
+                                   semantic_stop or locator_stop, accounting=accounting)
 
 
 def summary_json(summary: S0ExecutionSummary) -> str:
