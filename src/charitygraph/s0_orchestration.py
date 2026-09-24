@@ -64,15 +64,17 @@ class S0ExecutionSummary:
 class ScaleS0Executor:
     """Execute only one catalog-bound attempt; no authority is created here."""
 
-    def __init__(self, *, catalog: Any, attempt_id: str, runtime_root: str | Path,
+    def __init__(self, *, catalog: Any, attempt_id: str, builder_commit_sha: str,
+                 runtime_root: str | Path,
                  provider: Any = None, locator_provider: LocatorProvider | None = None,
                  now: Callable[[], datetime] | None = None,
                  max_concurrency: int = 1,
                  on_reconciled: Callable[[Mapping[str, Any], Any, Mapping[str, Any]], None] | None = None) -> None:
-        if catalog is None or not attempt_id:
-            raise ValueError("catalog and attempt_id are required")
+        if catalog is None or not attempt_id or not builder_commit_sha:
+            raise ValueError("catalog, attempt_id, and builder_commit_sha are required")
         self.catalog = catalog
         self.attempt_id = attempt_id
+        self.builder_commit_sha = builder_commit_sha
         self.runtime_root = Path(runtime_root)
         self.provider = provider
         self.locator_provider = locator_provider
@@ -90,6 +92,8 @@ class ScaleS0Executor:
         if not isinstance(material, Mapping):
             raise ScalePreflightError("durable execution attempt material is absent")
         expected = ExecutionAttemptIdentity(**{name: material[name] for name in ExecutionAttemptIdentity.__dataclass_fields__})
+        if expected.builder_commit_sha != self.builder_commit_sha:
+            raise ScalePreflightError("durable execution attempt is bound to a different Builder head")
         self.catalog.require_scale_s0_execution_attempt(
             attempt_id=expected.attempt_id, mandate_id=expected.mandate_id,
             mandate_hash=expected.mandate_hash, slice_id=expected.slice_id,
