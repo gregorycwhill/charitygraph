@@ -16,7 +16,7 @@ from .scale_s0 import ScalePreflightError, packet_task_key
 
 
 def _decimal(value: Any, field: str) -> Decimal:
-    if isinstance(value, bool):
+    if isinstance(value, (bool, float)):
         raise ScalePreflightError(f"{field} must be a decimal")
     try:
         result = Decimal(str(value))
@@ -28,7 +28,7 @@ def _decimal(value: Any, field: str) -> Decimal:
 
 
 def _currency(value: Any, field: str) -> str:
-    if not isinstance(value, str) or len(value) != 3 or not value.isascii() or not value.isupper():
+    if not isinstance(value, str) or len(value) != 3 or not value.isascii() or not value.isalpha() or not value.isupper():
         raise ScalePreflightError(f"{field} must be an upper-case ISO currency")
     return value
 
@@ -112,8 +112,21 @@ class S0ProviderAccounting:
             raise ScalePreflightError("accounting requires a provider receipt identity")
         if not request.reservation_id:
             raise ScalePreflightError("accounting requires a reservation")
+        request_id = str(getattr(packet, "provider_request_identity", ""))
+        if (not request_id or request.packet_hash != packet.binding_hash or not request.packet_frozen
+                or request.task_id != packet.task_id or request.task_version != packet.task_version
+                or request.subject_id != packet.subject_id or request.scope_id != packet.scope_id
+                or tuple(request.source_ids) != tuple(packet.source_ids) or request.route != packet.routing_class):
+            raise ScalePreflightError("accounting request is not bound to its frozen provider packet")
+        physical = self.catalog.get_physical_attempt(request.physical_attempt_id)
+        item = self.catalog.get_provider_request_item(request_id)
+        if (physical is None or physical.get("reservation_id") != request.reservation_id
+                or physical.get("provider_request_id") != request_id
+                or item is None or item.get("physical_attempt_id") != request.physical_attempt_id):
+            raise ScalePreflightError("accounting lifecycle identity is not bound to its provider request")
         receipt = self.catalog.get_physical_receipt(request.physical_attempt_id)
-        if receipt is None or receipt.get("provider_receipt_id") != provider_receipt_id:
+        if (receipt is None or receipt.get("provider_receipt_id") != provider_receipt_id
+                or receipt.get("provider_request_id") != request_id):
             raise ScalePreflightError("accounting requires the matching durable provider receipt")
         receipt_usage = receipt.get("usage_json")
         if isinstance(receipt_usage, str):
@@ -137,10 +150,11 @@ class S0ProviderAccounting:
             expected_pricing = str((binding.get("state") or {}).get("pricing_snapshot_id") or "")
         if not expected_pricing:
             raise ScalePreflightError("canonical pricing evidence is absent")
+        response_body = getattr(provider_response, "body", None)
+        if isinstance(response_body, Mapping) and response_body.get("model") is not None:
+            if response_body.get("model") != item.get("model_route"):
+                raise ScalePreflightError("provider response model does not match the durable provider route")
         evidence = self._evidence(usage, expected_currency=expected_currency, expected_pricing=expected_pricing)
-        request_id = str(getattr(packet, "provider_request_identity", ""))
-        if not request_id:
-            raise ScalePreflightError("accounting request identity is absent")
         recorded_at = _timestamp(self.now())
         release_key = "release:s0:" + request_id
         prior_release = self.catalog.get_cost_entry(release_key)

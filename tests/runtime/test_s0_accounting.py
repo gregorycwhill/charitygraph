@@ -1,4 +1,6 @@
 from decimal import Decimal
+from dataclasses import replace
+from types import SimpleNamespace
 
 import pytest
 
@@ -105,3 +107,55 @@ def test_actual_cost_overrun_is_recorded_without_fabricated_release(tmp_path):
     assert position["actual"] == Decimal("0.150000")
     assert position["released"] == Decimal("0")
     assert catalog.accounting_budget_position("cohort:locator").reservation_overrun == Decimal("0.050000")
+
+
+@pytest.mark.parametrize("bad_amount", [0.04, True])
+def test_accounting_rejects_binary_or_boolean_decimal_evidence(tmp_path, bad_amount):
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    usage = _usage(amount=bad_amount)
+    _receipt(catalog, mandate, packet, prepared, usage)
+    accounting = S0ProviderAccountingFactory(catalog=catalog, now=lambda: NOW, execution_attempt_id="attempt:locator").create()
+    with pytest.raises(ScalePreflightError, match="decimal"):
+        accounting.reconcile(request=prepared.request, packet=packet, provider_receipt_id="response:accounting", usage=usage)
+
+
+def test_accounting_rejects_request_bound_to_another_reservation(tmp_path):
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    usage = _usage()
+    _receipt(catalog, mandate, packet, prepared, usage)
+    replacement = replace(prepared.request, reservation_id="reservation:substituted")
+    accounting = S0ProviderAccountingFactory(catalog=catalog, now=lambda: NOW, execution_attempt_id="attempt:locator").create()
+    with pytest.raises(ScalePreflightError, match="lifecycle identity"):
+        accounting.reconcile(request=replacement, packet=packet, provider_receipt_id="response:accounting", usage=usage)
+
+
+def test_accounting_rejects_non_alpha_currency_and_response_model_mismatch(tmp_path):
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    bad_currency = _usage(currency="U1D")
+    _receipt(catalog, mandate, packet, prepared, bad_currency)
+    accounting = S0ProviderAccountingFactory(catalog=catalog, now=lambda: NOW, execution_attempt_id="attempt:locator").create()
+    with pytest.raises(ScalePreflightError, match="upper-case ISO currency"):
+        accounting.reconcile(request=prepared.request, packet=packet, provider_receipt_id="response:accounting", usage=bad_currency)
+
+    model_root = tmp_path / "model"
+    model_root.mkdir()
+    catalog2, mandate2, packet2, prepared2 = _prepared_catalog(model_root)
+    usage = _usage()
+    _receipt(catalog2, mandate2, packet2, prepared2, usage)
+    accounting2 = S0ProviderAccountingFactory(catalog=catalog2, now=lambda: NOW, execution_attempt_id="attempt:locator").create()
+    accepted = accounting2.reconcile(
+        request=prepared2.request,
+        packet=packet2,
+        provider_receipt_id="response:accounting",
+        usage=usage,
+        provider_response=SimpleNamespace(body={"model": "synthetic"}),
+    )
+    assert accepted["actual"] == "0.04"
+    with pytest.raises(ScalePreflightError, match="response model"):
+        accounting2.reconcile(
+            request=prepared2.request,
+            packet=packet2,
+            provider_receipt_id="response:accounting",
+            usage=usage,
+            provider_response=SimpleNamespace(body={"model": "wrong-model"}),
+        )
