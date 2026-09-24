@@ -68,3 +68,20 @@ def test_standard_lifecycle_rechecks_mandate_immediately_before_send_started(tmp
     assert result["provider_posts"] == 0
     assert result["counts"] == {"failed_pre_send": 1}
     assert len(catalog.started) == 0
+
+
+def test_locator_accounting_failure_is_terminal_and_reentry_never_resends(tmp_path):
+    catalog, _, packet, prepared = _prepared_catalog(tmp_path)
+    fake = FakeLocator()
+    def fail_accounting(*_args):
+        raise RuntimeError("synthetic accounting interruption")
+    executor = ScaleS0Executor(catalog=catalog, attempt_id="attempt:locator", runtime_root=tmp_path,
+                               locator_provider=fake, now=lambda: __import__("datetime").datetime(2099, 9, 22, tzinfo=__import__("datetime").timezone.utc),
+                               on_reconciled=fail_accounting)
+    work = S0LocatorWork(packet.packet_id, prepared.request, prepared.delivery_attempt_id, prepared.client_request_id, packet.locator_query)
+    first = executor.run(locator=(work,))
+    second = ScaleS0Executor(catalog=catalog, attempt_id="attempt:locator", runtime_root=tmp_path,
+                             locator_provider=fake, now=executor.now).run(locator=(work,))
+    assert first.counts == {"completed_accounting_failed": 1}
+    assert second.counts == {"replayed_terminal": 1} and second.provider_posts == 0
+    assert fake.calls == 1
