@@ -16,7 +16,24 @@ class FakeLocator:
 
     def search(self, *, query, subject_abn, request_identity):
         self.calls += 1
-        return LocatorSearchResponse("response:fake-locator", ())
+        return LocatorSearchResponse("response:fake-locator", (), {
+            "input_tokens": 10,
+            "output_tokens": 5,
+            "provider_cost": {"amount": "0.04", "currency": "USD"},
+            "pricing_snapshot_id": "pricing:locator-v1",
+        })
+
+
+class IncompleteLocator(FakeLocator):
+    def search(self, *, query, subject_abn, request_identity):
+        self.calls += 1
+        return LocatorSearchResponse("response:incomplete-locator", (), {"total_tokens": 15})
+
+
+class AmbiguousLocator(FakeLocator):
+    def search(self, *, query, subject_abn, request_identity):
+        self.calls += 1
+        raise RuntimeError("provider crossing lost before a response")
 
 
 def test_s0_executor_locator_dry_run_never_calls_provider(tmp_path):
@@ -45,14 +62,15 @@ def test_s0_executor_locator_live_and_terminal_reentry_are_idempotent(tmp_path):
     assert "reservation:locator" in first.accounting
 
 
-def test_s0_executor_requires_accounting_reconciler_before_live_crossing(tmp_path):
+def test_s0_executor_default_accounting_rejects_missing_usage_after_crossing(tmp_path):
     catalog, _, packet, prepared = _prepared_catalog(tmp_path)
-    fake = FakeLocator()
+    fake = IncompleteLocator()
     executor = ScaleS0Executor(catalog=catalog, attempt_id="attempt:locator", builder_commit_sha="a" * 40, runtime_root=tmp_path, locator_provider=fake, now=lambda: __import__("datetime").datetime(2099, 9, 22, tzinfo=__import__("datetime").timezone.utc))
     work = S0LocatorWork(packet.packet_id, prepared.request, prepared.delivery_attempt_id, prepared.client_request_id, packet.locator_query)
-    with pytest.raises(ScalePreflightError, match="accounting reconciler"):
-        executor.run(locator=(work,))
-    assert fake.calls == 0
+    summary = executor.run(locator=(work,))
+    assert summary.counts == {"completed_accounting_failed": 1}
+    assert catalog.get_provider_request_item(packet.provider_request_identity)["status"] == "completed"
+    assert fake.calls == 1
 
 
 def test_s0_executor_rejects_wrong_builder_head_before_reconstruction(tmp_path):
@@ -96,4 +114,32 @@ def test_locator_accounting_failure_is_terminal_and_reentry_never_resends(tmp_pa
                              locator_provider=fake, now=executor.now).run(locator=(work,))
     assert first.counts == {"completed_accounting_failed": 1}
     assert second.counts == {"replayed_terminal": 1} and second.provider_posts == 0
+    assert fake.calls == 1
+
+
+def test_locator_a3_expiry_is_pre_send_and_has_no_provider_post(tmp_path):
+    catalog, _, packet, prepared = _prepared_catalog(tmp_path)
+    fake = FakeLocator()
+    expired = __import__("datetime").datetime(2100, 1, 1, tzinfo=__import__("datetime").timezone.utc)
+    executor = ScaleS0Executor(catalog=catalog, attempt_id="attempt:locator", builder_commit_sha="a" * 40,
+                               runtime_root=tmp_path, locator_provider=fake, now=lambda: expired)
+    work = S0LocatorWork(packet.packet_id, prepared.request, prepared.delivery_attempt_id, prepared.client_request_id, packet.locator_query)
+    summary = executor.run(locator=(work,))
+    assert summary.counts == {"failed": 1} and summary.provider_posts == 0
+    assert catalog.get_provider_request_item(packet.provider_request_identity)["status"] == "prepared"
+    assert fake.calls == 0
+
+
+def test_locator_ambiguous_crossing_is_held_and_reentry_never_resends(tmp_path):
+    catalog, _, packet, prepared = _prepared_catalog(tmp_path)
+    fake = AmbiguousLocator()
+    from .test_s0_locator_search_lifecycle import NOW
+    executor = ScaleS0Executor(catalog=catalog, attempt_id="attempt:locator", builder_commit_sha="a" * 40,
+                               runtime_root=tmp_path, locator_provider=fake, now=lambda: NOW)
+    work = S0LocatorWork(packet.packet_id, prepared.request, prepared.delivery_attempt_id, prepared.client_request_id, packet.locator_query)
+    first = executor.run(locator=(work,))
+    second = executor.run(locator=(work,))
+    assert first.counts == {"failed": 1} and first.provider_posts == 1
+    assert second.counts == {"replayed_terminal": 1} and second.provider_posts == 0
+    assert catalog.get_provider_request_item(packet.provider_request_identity)["status"] == "send_ambiguous"
     assert fake.calls == 1

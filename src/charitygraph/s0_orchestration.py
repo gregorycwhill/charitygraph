@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping, Protocol
 
 from .phase5_standard_transport import StandardCampaignCoordinator
+from .s0_accounting import S0ProviderAccountingFactory
 from .s0_locator_discovery import S0LocatorSearchExecutionGate
 from .scale_s0 import (
     ExecutionAttemptIdentity, FrozenPacket, ScalePreflightError, ScaleS0Preflight,
@@ -71,6 +72,7 @@ class ScaleS0Executor:
                  provider: Any = None, locator_provider: LocatorProvider | None = None,
                  now: Callable[[], datetime] | None = None,
                  max_concurrency: int = 1,
+                 accounting: Any = None,
                  on_reconciled: Callable[[Mapping[str, Any], Any, Mapping[str, Any]], None] | None = None) -> None:
         if catalog is None or not attempt_id or not builder_commit_sha:
             raise ValueError("catalog, attempt_id, and builder_commit_sha are required")
@@ -82,8 +84,7 @@ class ScaleS0Executor:
         self.locator_provider = locator_provider
         self.now = now or (lambda: datetime.now(timezone.utc))
         self.max_concurrency = max_concurrency
-        # The catalog-owned accounting adapter is injected; this boundary
-        # never invents a price from incomplete usage.
+        self.accounting = accounting or S0ProviderAccountingFactory(catalog=catalog, now=self.now, execution_attempt_id=attempt_id).create()
         self.on_reconciled = on_reconciled
 
     def _attempt(self) -> ExecutionAttemptIdentity:
@@ -145,24 +146,55 @@ class ScaleS0Executor:
     def _run_semantic(self, items: tuple[S0SemanticWork, ...], *, dry_run: bool) -> tuple[list[dict[str, Any]], int, bool]:
         if not items:
             return [], 0, False
+        results: list[dict[str, Any]] = []
+        pending: list[S0SemanticWork] = []
         for item in items:
             self._validate_item_request(item)
+            packet = self._preflight_for(item.packet_id)[2]
+            durable = self.catalog.get_provider_request_item(packet.provider_request_identity)
+            if durable is not None and durable.get("status") in {"completed", "failed", "held", "send_ambiguous", "cancelled"}:
+                if durable.get("status") == "completed" and not dry_run:
+                    try:
+                        self.accounting.reconcile_durable(request=item.request, packet=packet)
+                    except Exception as error:
+                        results.append({"request_item_id": packet.provider_request_identity,
+                                        "status": "accounting_recovery_failed", "provider_posts": 0,
+                                        "error": str(error)[:512]})
+                        return results, 0, True
+                results.append({"request_item_id": packet.provider_request_identity,
+                                "status": "replayed_terminal", "provider_posts": 0})
+                continue
+            pending.append(item)
+        items = tuple(pending)
+        if not items:
+            return results, 0, False
         if dry_run:
             for item in items:
                 _, preflight, _ = self._preflight_for(item.packet_id)
                 preflight.provider_send(item.request, now=self.now(), allow_prepared_lifecycle=True)
-            return ([{"request_item_id": str(item.row["provider_request_item_id"]), "status": "eligible", "provider_posts": 0} for item in items], 0, False)
+            results.extend({"request_item_id": str(item.row["provider_request_item_id"]), "status": "eligible", "provider_posts": 0} for item in items)
+            return results, 0, False
         if self.provider is None:
             raise ScalePreflightError("semantic execution requires the canonical Standard provider")
         coordinator = StandardCampaignCoordinator(
             catalog=self.catalog, provider=self.provider, runtime_root=self.runtime_root,
             max_concurrency=self.max_concurrency,
             now=None,
-            on_reconciled=self.on_reconciled,
+            on_reconciled=lambda row, response, usage: self._reconcile_semantic(items, row, response, usage),
             mandate_evaluator=lambda row: next(self._semantic_evaluator(item)(row) for item in items if item.row["provider_request_item_id"] == row["provider_request_item_id"]),
         )
         result = coordinator.run([dict(item.row) for item in items])
-        return result["results"], int(result["provider_posts"]), bool(result["stop_campaign"])
+        combined = results + result["results"]
+        accounting_failed = any(item.get("status") in {"completed_accounting_failed", "accounting_recovery_failed"} for item in combined)
+        return combined, int(result["provider_posts"]), bool(result["stop_campaign"] or accounting_failed)
+
+    def _reconcile_semantic(self, items: tuple[S0SemanticWork, ...], row: Mapping[str, Any], response: Any, usage: Any) -> None:
+        item = next(item for item in items if item.row["provider_request_item_id"] == row["provider_request_item_id"])
+        packet = self._preflight_for(item.packet_id)[2]
+        receipt_id = "standard-receipt:" + __import__("hashlib").sha256((packet.provider_request_identity + ":" + str(response.body["id"])).encode()).hexdigest()
+        self.accounting.reconcile(request=item.request, packet=packet, provider_receipt_id=receipt_id, usage=usage, provider_response=response)
+        if self.on_reconciled is not None:
+            self.on_reconciled(row, response, usage)
 
     def _run_locator(self, items: tuple[S0LocatorWork, ...], *, dry_run: bool) -> tuple[list[dict[str, Any]], int, bool]:
         results: list[dict[str, Any]] = []
@@ -171,6 +203,14 @@ class ScaleS0Executor:
             _, preflight, packet = self._preflight_for(item.packet_id)
             durable = self.catalog.get_provider_request_item(packet.provider_request_identity)
             if durable is not None and durable.get("status") in {"completed", "failed", "held", "send_ambiguous", "cancelled"}:
+                if durable.get("status") == "completed":
+                    try:
+                        self.accounting.reconcile_durable(request=item.request, packet=packet)
+                    except Exception as error:
+                        results.append({"request_item_id": packet.provider_request_identity,
+                                        "status": "accounting_recovery_failed", "provider_posts": 0,
+                                        "error": str(error)[:512]})
+                        return results, posts, True
                 results.append({"request_item_id": packet.provider_request_identity, "status": "replayed_terminal", "provider_posts": 0})
                 continue
             supplied_gate = getattr(self.locator_provider, "execution_gate", None)
@@ -192,10 +232,12 @@ class ScaleS0Executor:
             if self.locator_provider is None:
                 raise ScalePreflightError("locator execution requires the governed locator provider")
             provider_manages_gate = supplied_gate is not None
+            provider_crossing_started = False
             try:
                 if not provider_manages_gate:
                     gate.begin(request_identity=packet.provider_request_identity,
                                subject_abn=packet.subject_id, query=item.query)
+                provider_crossing_started = True
                 response = self.locator_provider.search(query=item.query, subject_abn=packet.subject_id, request_identity=packet.provider_request_identity)
                 response_id = str(getattr(response, "provider_call_id", ""))
                 if not response_id:
@@ -204,6 +246,15 @@ class ScaleS0Executor:
                     gate.complete(provider_receipt_id=response_id,
                                   result_ref="provider-response:" + response_id,
                                   usage=getattr(response, "usage", None))
+                try:
+                    self.accounting.reconcile(request=item.request, packet=packet,
+                                              provider_receipt_id=response_id,
+                                              usage=getattr(response, "usage", None), provider_response=response)
+                except Exception as error:
+                    results.append({"request_item_id": packet.provider_request_identity,
+                                    "status": "completed_accounting_failed", "provider_posts": 1,
+                                    "error": str(error)[:512]})
+                    return results, posts + 1, True
                 if self.on_reconciled is not None:
                     try:
                         self.on_reconciled({"provider_request_item_id": packet.provider_request_identity,
@@ -222,8 +273,9 @@ class ScaleS0Executor:
                 # is terminal for this item but does not authorize a retry.
                 if not provider_manages_gate:
                     gate.fail(failure_class="provider_transport_failure", message=str(error), ambiguous=True)
-                results.append({"request_item_id": packet.provider_request_identity, "status": "failed", "provider_posts": 1, "error": str(error)[:512]})
-                return results, posts + 1, True
+                post_count = int(provider_crossing_started)
+                results.append({"request_item_id": packet.provider_request_identity, "status": "failed", "provider_posts": post_count, "error": str(error)[:512]})
+                return results, posts + post_count, True
         return results, posts, False
 
     def run(self, *, semantic: Iterable[S0SemanticWork] = (), locator: Iterable[S0LocatorWork] = (), dry_run: bool = False) -> S0ExecutionSummary:
@@ -231,14 +283,6 @@ class ScaleS0Executor:
         self._attempt()  # reconstruct once before work, then again per item
         if not semantic_items and not locator_items:
             return S0ExecutionSummary(self.attempt_id, dry_run, 0, 0, 0, {}, False)
-        if not dry_run and self.on_reconciled is None:
-            terminal = {"completed", "failed", "held", "send_ambiguous", "cancelled"}
-            for item in (*semantic_items, *locator_items):
-                packet_id = item.packet_id
-                _, _, packet = self._preflight_for(packet_id)
-                durable = self.catalog.get_provider_request_item(packet.provider_request_identity)
-                if durable is None or durable.get("status") not in terminal:
-                    raise ScalePreflightError("live S0 execution requires the canonical accounting reconciler")
         semantic_results, semantic_posts, semantic_stop = self._run_semantic(semantic_items, dry_run=dry_run)
         if semantic_stop:
             locator_results, locator_posts, locator_stop = [], 0, True
