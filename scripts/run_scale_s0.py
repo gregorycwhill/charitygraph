@@ -27,7 +27,7 @@ def _request(value: dict) -> SendRequest:
     return SendRequest(**fields)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--catalog", required=True, type=Path)
     parser.add_argument("--attempt-id", required=True)
@@ -44,7 +44,7 @@ def main() -> int:
     parser.add_argument("--observed-value")
     parser.add_argument("--provider-project")
     parser.add_argument("--execution-authority")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     material = json.loads(args.work.read_text(encoding="utf-8"))
     semantic = tuple(S0SemanticWork(str(item["packet_id"]), dict(item["row"]), _request(item["request"])) for item in material.get("semantic", ()))
     locator = tuple(S0LocatorWork(str(item["packet_id"]), _request(item["request"]), str(item["delivery_attempt_id"]), str(item["client_request_id"]), str(item["query"])) for item in material.get("locator", ()))
@@ -71,6 +71,11 @@ def main() -> int:
                 packet = FrozenPacket(**{name: stored["material"][name] for name in FrozenPacket.__dataclass_fields__ if name in stored["material"]})
                 if packet.pricing_snapshot_id != snapshot.record_id:
                     raise SystemExit("frozen packet pricing snapshot does not match the supplied governed capture")
+                durable = catalog.get_provider_request_item(packet.provider_request_identity)
+                if durable is not None and durable.get("status") in {"completed", "failed", "held", "send_ambiguous", "cancelled"}:
+                    # Terminal/replayed work is reconciled by the executor; do
+                    # not recreate or mutate its already-consumed reservation.
+                    continue
                 prepared = prepare_locator_lifecycle(catalog=catalog, attempt=attempt, packet=packet, request=item.request, cohort_id=args.cohort_id, now=datetime.now(timezone.utc), attestation_window=window)
                 if prepared["delivery_attempt_id"] != item.delivery_attempt_id:
                     raise SystemExit("work delivery attempt identity does not match canonical preparation")

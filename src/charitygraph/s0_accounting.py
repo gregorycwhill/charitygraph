@@ -86,7 +86,7 @@ class S0ProviderAccounting:
             derived = derive_luna_web_search_cost(snapshot=self.pricing_snapshot, response_body=body)
             if derived.snapshot_id != expected_pricing:
                 raise ScalePreflightError("provider pricing evidence does not match the frozen reservation")
-            return ProviderCostEvidence(derived.amount, expected_currency, derived.amount, expected_currency, derived.snapshot_id, None)
+            return ProviderCostEvidence(derived.amount_usd, expected_currency, derived.amount_usd, expected_currency, derived.snapshot_id, None)
         if not isinstance(cost, Mapping) or "amount" not in cost or "currency" not in cost:
             raise ScalePreflightError("provider receipt lacks governed pricing evidence")
         provider_amount = _decimal(cost["amount"], "provider cost")
@@ -194,6 +194,12 @@ class S0ProviderAccounting:
         return {"entry_key": entry["entry_key"], "actual": str(evidence.accounting_amount), "currency": evidence.accounting_currency, "released": str(released_now)}
 
     def reconcile_durable(self, *, request: Any, packet: Any) -> dict[str, Any]:
+        existing = self.catalog.get_cost_entry("actual:s0:" + str(packet.provider_request_identity))
+        if existing is not None:
+            release = self.catalog.get_cost_entry("release:s0:" + str(packet.provider_request_identity))
+            return {"entry_key": existing["entry_key"], "actual": str(existing.get("accounting_amount", existing.get("provider_amount"))),
+                    "currency": str(existing.get("accounting_currency", "USD")),
+                    "released": str(release.get("accounting_amount", "0") if release else "0")}
         receipt = self.catalog.get_physical_receipt(request.physical_attempt_id)
         if receipt is None:
             raise ScalePreflightError("completed provider item lacks a durable receipt")
