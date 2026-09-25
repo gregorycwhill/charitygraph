@@ -454,21 +454,27 @@ class OpenAIResponsesWebSearchProvider:
         if not isinstance(output, list):
             self.execution_gate.fail(failure_class="provider_schema_failure", message="invalid provider output structure")
             raise ScalePreflightError("Responses web-search result has invalid output structure")
-        saw_sources_structure = False
+        saw_web_search_call = False
         for item in output:
             if not isinstance(item, Mapping):
                 continue
-            action = item.get("action")
-            sources = action.get("sources", ()) if isinstance(action, Mapping) else ()
-            if not isinstance(sources, list):
+            # Sources are meaningful only on the definitive tool-call output
+            # item.  Do not let an unexpected message/reasoning item smuggle
+            # discovery metadata across this boundary.
+            if item.get("type") != "web_search_call":
                 continue
-            saw_sources_structure = True
+            saw_web_search_call = True
+            action = item.get("action")
+            sources = action.get("sources") if isinstance(action, Mapping) else None
+            if not isinstance(sources, list):
+                self.execution_gate.fail(failure_class="provider_schema_failure", message="missing web-search source structure")
+                raise ScalePreflightError("Responses web-search result lacks source structure")
             for source in sources:
                 if not isinstance(source, Mapping) or not isinstance(source.get("url"), str) or not source["url"]:
                     continue
                 metadata = {key: str(source[key]) for key in ("title", "type") if isinstance(source.get(key), (str, int, float, bool))}
                 results.append(LocatorSearchResult(url=source["url"], title=metadata.get("title", ""), source_metadata=metadata or None))
-        if output and not saw_sources_structure:
+        if not saw_web_search_call:
             self.execution_gate.fail(failure_class="provider_schema_failure", message="missing web-search source structure")
             raise ScalePreflightError("Responses web-search result lacks source structure")
         return LocatorSearchResponse(response_id, tuple(results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]), usage=usage if isinstance(usage, Mapping) else None, response_body=response.body)

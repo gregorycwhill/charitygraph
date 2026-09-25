@@ -91,7 +91,8 @@ class RecordingGate(LocatorSearchExecutionGate):
 
 
 def test_authorised_search_is_framed_by_durable_gate_before_and_after_network():
-    client = StubStandardClient({"id": "resp_locator_1", "usage": {"total_tokens": 1}, "output": []})
+    client = StubStandardClient({"id": "resp_locator_1", "usage": {"total_tokens": 1},
+                                 "output": [{"type": "web_search_call", "action": {"sources": []}}]})
     gate = RecordingGate()
     result = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=gate).search(
         query='"Sunrise"', subject_abn="11111111111", request_identity="req:1")
@@ -125,6 +126,23 @@ def test_pricing_facts_count_source_bearing_web_search_without_action_type():
                                      model="gpt-5.6-luna", execution_gate=gate).search(
         query='"Sunrise"', subject_abn="11111111111", request_identity="req:pricing")
     assert gate.events[1][4] == {"model": "gpt-5.6-luna", "web_search_calls": 1}
+
+
+@pytest.mark.parametrize("output", [
+    [],
+    [{"type": "message", "action": {"sources": [{"url": "https://hostile.example/"}]}}],
+    [{"type": "web_search_call", "action": {"sources": []}}, {"type": "web_search_call", "action": {}}],
+])
+def test_only_well_formed_web_search_call_sources_can_yield_locator_discovery(output):
+    body = {"id": "resp_mixed", "model": "gpt-5.6-luna",
+            "usage": {"input_tokens": 1, "output_tokens": 1}, "output": output}
+    gate = RecordingGate()
+    with pytest.raises(ScalePreflightError, match="source structure"):
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
+                                         model="gpt-5.6-luna", execution_gate=gate).search(
+            query='"Sunrise"', subject_abn="11111111111", request_identity="req:mixed")
+    # A definite response is still accounted before rejecting its locator shape.
+    assert [event[0] for event in gate.events] == ["begin", "complete", "fail"]
 
 
 @pytest.mark.parametrize("body", [
@@ -206,7 +224,7 @@ def test_replay_gate_denial_prevents_second_physical_search():
             if self.events:
                 raise ScalePreflightError("duplicate durable provider request identity")
             super().begin(**kwargs)
-    client = StubStandardClient({"id": "resp_once", "output": []})
+    client = StubStandardClient({"id": "resp_once", "output": [{"type": "web_search_call", "action": {"sources": []}}]})
     adapter = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=ReplayGate())
     adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:once")
     with pytest.raises(ScalePreflightError):
