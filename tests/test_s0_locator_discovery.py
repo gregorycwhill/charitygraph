@@ -129,7 +129,7 @@ def test_missing_identity_or_source_structure_fails_without_fabricated_locator_m
 
 
 def test_standard_ambiguous_evidence_is_not_downgraded_to_definite_failure():
-    class FailingClient:
+    class FailingClient(OpenAIHTTPStandardClient):
         def create_response_once(self, *_args, **_kwargs):
             raise StandardAmbiguous("socket outcome unknown", client_request_id="locator-test-client")
     gate = RecordingGate()

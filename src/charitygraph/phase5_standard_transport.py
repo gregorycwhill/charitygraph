@@ -223,9 +223,9 @@ class OpenAIResponsesWebSearchTransport:
     response identity, raw bytes, and transport classification to Standard.
     """
 
-    def __init__(self, client: Any) -> None:
-        if not callable(getattr(client, "create_response_once", None)):
-            raise TypeError("web-search transport requires the Standard create_response_once boundary")
+    def __init__(self, client: OpenAIHTTPStandardClient) -> None:
+        if not isinstance(client, OpenAIHTTPStandardClient):
+            raise TypeError("web-search transport requires OpenAIHTTPStandardClient")
         self.client = client
 
     def create_web_search_once(self, *, model: str, query: str,
