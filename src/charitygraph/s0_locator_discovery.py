@@ -48,6 +48,7 @@ class LocatorSearchResponse:
     provider_call_id: str
     results: tuple[LocatorSearchResult, ...]
     usage: Mapping[str, Any] | None = None
+    response_body: Mapping[str, Any] | None = None
 
 
 class LocatorSearchProvider(Protocol):
@@ -361,6 +362,16 @@ class OpenAIResponsesWebSearchProvider:
         self.transport, self.model, self.execution_gate = transport, model, execution_gate
 
     def search(self, *, query: str, subject_abn: str, request_identity: str) -> LocatorSearchResponse:
+        # A live gate carries the exact A3 project binding.  Refuse a client
+        # that is absent, unbound, or bound to another project before the gate
+        # can mark send-started.  Lightweight provider-free test gates may not
+        # expose a request and are intentionally exempt from this live check.
+        gate_request = getattr(self.execution_gate, "request", None)
+        if gate_request is not None:
+            client_project = getattr(self.transport.client, "provider_account_project", None)
+            expected_project = getattr(gate_request, "provider_account_project", None)
+            if not client_project or not expected_project or client_project != expected_project:
+                raise ScalePreflightError("canonical HTTP client project does not match the durable A3 project")
         self.execution_gate.begin(request_identity=request_identity, subject_abn=subject_abn, query=query)
         try:
             response = self.transport.create_web_search_once(
@@ -406,7 +417,7 @@ class OpenAIResponsesWebSearchProvider:
             raise ScalePreflightError("Responses web-search result lacks source structure")
         usage = response.body.get("usage")
         self.execution_gate.complete(provider_receipt_id=response_id, result_ref="provider-response:" + response_id, usage=usage)
-        return LocatorSearchResponse(response_id, tuple(results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]), usage=usage if isinstance(usage, Mapping) else None)
+        return LocatorSearchResponse(response_id, tuple(results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]), usage=usage if isinstance(usage, Mapping) else None, response_body=response.body)
 
 
 def discover(provider: LocatorSearchProvider, identity: PublicEntityIdentity, *,

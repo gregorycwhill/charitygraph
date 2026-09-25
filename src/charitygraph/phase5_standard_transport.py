@@ -118,6 +118,19 @@ class OpenAIHTTPStandardClient:
     base_url = "https://api.openai.com/v1/responses"
     socket_timeout_seconds = STANDARD_SOCKET_TIMEOUT_SECONDS
 
+    def __init__(self, *, provider_account_project: str | None = None) -> None:
+        if provider_account_project is not None and (not isinstance(provider_account_project, str) or not provider_account_project.strip()):
+            raise ValueError("provider_account_project must be non-empty when supplied")
+        self.provider_account_project = provider_account_project
+
+    def bind_project(self, provider_account_project: str) -> "OpenAIHTTPStandardClient":
+        if not isinstance(provider_account_project, str) or not provider_account_project.strip():
+            raise ValueError("provider_account_project must be non-empty")
+        if self.provider_account_project is not None and self.provider_account_project != provider_account_project:
+            raise ValueError("OpenAI client is already bound to a different project")
+        self.provider_account_project = provider_account_project
+        return self
+
     def _key(self) -> str:
         key = os.environ.get("OPENAI_API_KEY")
         if not key:
@@ -141,7 +154,11 @@ class OpenAIHTTPStandardClient:
             raise ValueError("Standard request body must be non-empty UTF-8 bytes")
         validate_client_request_id(client_request_id)
         started = request_started_at or datetime.now(timezone.utc).isoformat(timespec="microseconds")
-        request = Request(self.base_url, data=body, method="POST", headers={"Authorization": f"Bearer {self._key()}", "Content-Type": "application/json; charset=utf-8", "X-Client-Request-Id": client_request_id})
+        headers = {"Authorization": f"Bearer {self._key()}", "Content-Type": "application/json; charset=utf-8", "X-Client-Request-Id": client_request_id}
+        if not self.provider_account_project:
+            raise StandardSystemic("OpenAI project is not bound")
+        headers["OpenAI-Project"] = self.provider_account_project
+        request = Request(self.base_url, data=body, method="POST", headers=headers)
         response_headers_received = False
         response_headers = None
         response_status = None
@@ -187,7 +204,9 @@ class OpenAIHTTPStandardClient:
         validate_client_request_id(client_request_id)
         endpoint = "https://api.openai.com/v1/models"
         started = request_started_at or datetime.now(timezone.utc).isoformat(timespec="microseconds")
-        request = Request(endpoint, method="GET", headers={"Authorization": f"Bearer {self._key()}", "X-Client-Request-Id": client_request_id})
+        if not self.provider_account_project:
+            raise StandardSystemic("OpenAI project is not bound")
+        request = Request(endpoint, method="GET", headers={"Authorization": f"Bearer {self._key()}", "X-Client-Request-Id": client_request_id, "OpenAI-Project": self.provider_account_project})
         monotonic_started = time.monotonic()
         try:
             with urlopen(request, timeout=self.socket_timeout_seconds) as response:
@@ -207,7 +226,9 @@ class OpenAIHTTPStandardClient:
     def retrieve_response(self, response_id: str) -> StandardProviderResponse:
         if not response_id or any(ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for ch in response_id):
             raise ValueError("invalid provider response ID")
-        request = Request(f"https://api.openai.com/v1/responses/{response_id}", method="GET", headers={"Authorization": f"Bearer {self._key()}"})
+        if not self.provider_account_project:
+            raise StandardSystemic("OpenAI project is not bound")
+        request = Request(f"https://api.openai.com/v1/responses/{response_id}", method="GET", headers={"Authorization": f"Bearer {self._key()}", "OpenAI-Project": self.provider_account_project})
         try:
             with urlopen(request, timeout=120) as response:
                 return self._decode(response.status, response.headers, response.read())
@@ -239,6 +260,7 @@ class OpenAIResponsesWebSearchTransport:
             "model": model,
             "input": query,
             "tools": [{"type": "web_search"}],
+            "tool_choice": {"type": "web_search"},
             "store": False,
         })
         return self.client.create_response_once(
