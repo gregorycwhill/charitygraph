@@ -215,6 +215,38 @@ class OpenAIHTTPStandardClient:
             raise StandardSystemic("provider response retrieval failed") from exc
 
 
+class OpenAIResponsesWebSearchTransport:
+    """Provider-neutral locator seam over the canonical Standard client.
+
+    This deliberately exposes no SDK-shaped object graph.  The adapter owns
+    the small, frozen Responses request shape and delegates the single POST,
+    response identity, raw bytes, and transport classification to Standard.
+    """
+
+    def __init__(self, client: OpenAIHTTPStandardClient) -> None:
+        if not isinstance(client, OpenAIHTTPStandardClient):
+            raise TypeError("web-search transport requires OpenAIHTTPStandardClient")
+        self.client = client
+
+    def create_web_search_once(self, *, model: str, query: str,
+                               client_request_id: str,
+                               request_started_at: str | None = None) -> StandardProviderResponse:
+        if model != "gpt-5.6-luna":
+            raise StandardSystemic("locator web-search requires the authorised Luna model")
+        if not isinstance(query, str) or not query:
+            raise ValueError("locator web-search query must be non-empty text")
+        body = canonical_standard_body_bytes({
+            "model": model,
+            "input": query,
+            "tools": [{"type": "web_search"}],
+            "store": False,
+        })
+        return self.client.create_response_once(
+            body, client_request_id=client_request_id,
+            request_started_at=request_started_at,
+        )
+
+
 def canonical_standard_body_bytes(body: dict[str, Any]) -> bytes:
     return json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
@@ -462,4 +494,4 @@ class StandardCampaignCoordinator:
         return {"results": [result.__dict__ for result in results], "counts": counts, "stop_campaign": stop, "unattempted": len(ordered) - len(results), "max_observed_concurrency": self.max_observed_concurrency, "provider_posts": sum(result.provider_posts for result in results), "ambiguous_crossings": ambiguous_crossings, "ambiguity_stop_threshold": self.ambiguity_stop_threshold}
 
 
-__all__ = ["StandardTransportError", "StandardAmbiguous", "StandardSystemic", "StandardProviderResponse", "OpenAIHTTPStandardClient", "StandardCampaignCoordinator", "canonical_standard_body_bytes", "body_sha256", "validate_client_request_id", "client_request_id_for_physical_attempt"]
+__all__ = ["StandardTransportError", "StandardAmbiguous", "StandardSystemic", "StandardProviderResponse", "OpenAIHTTPStandardClient", "OpenAIResponsesWebSearchTransport", "StandardCampaignCoordinator", "canonical_standard_body_bytes", "body_sha256", "validate_client_request_id", "client_request_id_for_physical_attempt"]

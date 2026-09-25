@@ -20,6 +20,10 @@ from charitygraph.scale_s0 import (
     LOCATOR_SEARCH_OPERATION_KIND,
     RoutingClass, ScalePreflightError, SendRequest, locator_search_request_identity,
 )
+from charitygraph.phase5_standard_transport import (
+    OpenAIResponsesWebSearchTransport,
+    StandardTransportError,
+)
 
 MAX_SEARCH_QUERIES_PER_SUBJECT = LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT
 MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY = 10
@@ -343,41 +347,66 @@ class DiscoveryLineage:
 
 
 class OpenAIResponsesWebSearchProvider:
-    """Production adapter over the already-governed Responses client.
+    """Production locator provider over the governed Standard transport.
 
     The execution gate is a concrete S0 preflight plus durable Standard
     lifecycle; arbitrary callbacks cannot authorize a provider crossing.
     """
     provider_id = "openai-responses-web-search"
 
-    def __init__(self, client: Any, *, model: str, execution_gate: LocatorSearchExecutionGate) -> None:
-        if client is None or not model or not isinstance(execution_gate, LocatorSearchExecutionGate):
-            raise ScalePreflightError("locator search requires Responses client, model, and durable S0 execution gate")
-        self.client, self.model, self.execution_gate = client, model, execution_gate
+    def __init__(self, transport: OpenAIResponsesWebSearchTransport, *, model: str,
+                 execution_gate: LocatorSearchExecutionGate) -> None:
+        if not isinstance(transport, OpenAIResponsesWebSearchTransport) or model != "gpt-5.6-luna" or not isinstance(execution_gate, LocatorSearchExecutionGate):
+            raise ScalePreflightError("locator search requires the authorised Standard transport, Luna model, and durable S0 execution gate")
+        self.transport, self.model, self.execution_gate = transport, model, execution_gate
 
     def search(self, *, query: str, subject_abn: str, request_identity: str) -> LocatorSearchResponse:
         self.execution_gate.begin(request_identity=request_identity, subject_abn=subject_abn, query=query)
         try:
-            response = self.client.responses.create(model=self.model, input=query,
-                tools=[{"type": "web_search"}], store=False)
-        except Exception as error:
-            self.execution_gate.fail(failure_class="provider_transport_failure", message=str(error), ambiguous=True)
+            response = self.transport.create_web_search_once(
+                model=self.model, query=query,
+                client_request_id=self.execution_gate.client_request_id,
+            )
+        except StandardTransportError as error:
+            self.execution_gate.fail(
+                failure_class="provider_ambiguous_transport" if error.ambiguous else "provider_rejected",
+                message=str(error), ambiguous=error.ambiguous,
+            )
             raise
-        response_id = str(getattr(response, "id", ""))
+        except Exception as error:
+            self.execution_gate.fail(failure_class="provider_transport_failure", message=str(error), ambiguous=False)
+            raise
+        response_id = response.body.get("id") if isinstance(response.body, Mapping) else None
         if not response_id:
             self.execution_gate.fail(failure_class="provider_schema_failure", message="missing provider response identity")
             raise ScalePreflightError("Responses web-search result lacks provider call identity")
-        self.execution_gate.complete(provider_receipt_id=response_id, result_ref="provider-response:" + response_id, usage=getattr(response, "usage", None))
         results: list[LocatorSearchResult] = []
-        # Official API source metadata is not guaranteed to expose snippets or
-        # ranking. Preserve only what the response actually returns.
-        for output in getattr(response, "output", ()):
-            action = getattr(output, "action", None)
-            for rank, source in enumerate(getattr(action, "sources", ()) if action else (), start=1):
-                url = getattr(source, "url", None) or (source.get("url") if isinstance(source, dict) else None)
-                if url:
-                    results.append(LocatorSearchResult(url=str(url), rank=rank))
-        return LocatorSearchResponse(response_id, tuple(results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]))
+        # Preserve only source fields actually returned by the API.  Locator
+        # discovery must not invent snippets, ranks, or usage.
+        output = response.body.get("output", ())
+        if not isinstance(output, list):
+            self.execution_gate.fail(failure_class="provider_schema_failure", message="invalid provider output structure")
+            raise ScalePreflightError("Responses web-search result has invalid output structure")
+        saw_sources_structure = False
+        for item in output:
+            if not isinstance(item, Mapping):
+                continue
+            action = item.get("action")
+            sources = action.get("sources", ()) if isinstance(action, Mapping) else ()
+            if not isinstance(sources, list):
+                continue
+            saw_sources_structure = True
+            for source in sources:
+                if not isinstance(source, Mapping) or not isinstance(source.get("url"), str) or not source["url"]:
+                    continue
+                metadata = {key: str(source[key]) for key in ("title", "type") if isinstance(source.get(key), (str, int, float, bool))}
+                results.append(LocatorSearchResult(url=source["url"], title=metadata.get("title", ""), source_metadata=metadata or None))
+        if output and not saw_sources_structure:
+            self.execution_gate.fail(failure_class="provider_schema_failure", message="missing web-search source structure")
+            raise ScalePreflightError("Responses web-search result lacks source structure")
+        usage = response.body.get("usage")
+        self.execution_gate.complete(provider_receipt_id=response_id, result_ref="provider-response:" + response_id, usage=usage)
+        return LocatorSearchResponse(response_id, tuple(results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]), usage=usage if isinstance(usage, Mapping) else None)
 
 
 def discover(provider: LocatorSearchProvider, identity: PublicEntityIdentity, *,
