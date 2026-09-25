@@ -267,6 +267,67 @@ def test_locator_gate_rechecks_a3_with_a_fresh_clock_at_send_boundary(tmp_path):
     assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
 
 
+def test_locator_gate_rejects_backwards_clock_between_authorizing_checks(tmp_path):
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    instants = iter((NOW + timedelta(minutes=59), NOW + timedelta(minutes=30)))
+    gate = S0LocatorSearchExecutionGate(
+        preflight=live, request=prepared.request, catalog=catalog,
+        delivery_attempt_id=prepared.delivery_attempt_id,
+        client_request_id=prepared.client_request_id,
+        request_identity=packet.provider_request_identity,
+        now=lambda: next(instants),
+    )
+    with pytest.raises(ScalePreflightError, match="moved backwards"):
+        gate.begin(request_identity=packet.provider_request_identity,
+                   subject_abn=SUBJECT, query=packet.locator_query)
+    assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
+
+
+def test_locator_gate_allows_equal_authorizing_timestamps(tmp_path):
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    gate = S0LocatorSearchExecutionGate(
+        preflight=live, request=prepared.request, catalog=catalog,
+        delivery_attempt_id=prepared.delivery_attempt_id,
+        client_request_id=prepared.client_request_id,
+        request_identity=packet.provider_request_identity,
+        now=lambda: NOW,
+    )
+    gate.begin(request_identity=packet.provider_request_identity,
+              subject_abn=SUBJECT, query=packet.locator_query)
+    assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "send_started"
+
+
+def test_locator_gate_clock_history_is_scoped_to_each_gate_instance(tmp_path):
+    first_root, second_root = tmp_path / "first", tmp_path / "second"
+    first_catalog, first_mandate, first_packet, first_prepared = _prepared_catalog(first_root)
+    second_catalog, second_mandate, second_packet, second_prepared = _prepared_catalog(second_root)
+    first_live = ScaleS0Preflight.from_catalog(first_catalog, mandate_id=first_mandate.mandate_id, packet_id=first_packet.packet_id)
+    second_live = ScaleS0Preflight.from_catalog(second_catalog, mandate_id=second_mandate.mandate_id, packet_id=second_packet.packet_id)
+    first_values = iter((NOW + timedelta(minutes=59), NOW + timedelta(minutes=30)))
+    first_gate = S0LocatorSearchExecutionGate(
+        preflight=first_live, request=first_prepared.request, catalog=first_catalog,
+        delivery_attempt_id=first_prepared.delivery_attempt_id,
+        client_request_id=first_prepared.client_request_id,
+        request_identity=first_packet.provider_request_identity,
+        now=lambda: next(first_values),
+    )
+    with pytest.raises(ScalePreflightError, match="moved backwards"):
+        first_gate.begin(request_identity=first_packet.provider_request_identity,
+                         subject_abn=SUBJECT, query=first_packet.locator_query)
+    second_gate = S0LocatorSearchExecutionGate(
+        preflight=second_live, request=second_prepared.request, catalog=second_catalog,
+        delivery_attempt_id=second_prepared.delivery_attempt_id,
+        client_request_id=second_prepared.client_request_id,
+        request_identity=second_packet.provider_request_identity,
+        now=lambda: NOW + timedelta(minutes=30),
+    )
+    second_gate.begin(request_identity=second_packet.provider_request_identity,
+                      subject_abn=SUBJECT, query=second_packet.locator_query)
+    assert second_catalog.get_physical_attempt(second_prepared.request.physical_attempt_id)["status"] == "send_started"
+
+
 @pytest.mark.parametrize("field", ("subject_id", "query", "execution_attempt_id", "provider_account_project", "execution_authority"))
 def test_locator_identity_rejects_noncanonical_blank_identity_components(field):
     from charitygraph.scale_s0 import locator_search_request_identity

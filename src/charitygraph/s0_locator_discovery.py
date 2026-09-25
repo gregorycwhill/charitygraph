@@ -220,11 +220,22 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         self._started = False
         self._transport_invoked = False
         self._physical_crossing = False
+        self._last_send_authorizing_now: datetime | None = None
 
     def _now(self) -> datetime:
         value = self._clock()
         if not isinstance(value, datetime):
             raise ScalePreflightError("locator execution clock must return a datetime")
+        return value
+
+    def _send_authorizing_now(self) -> datetime:
+        value = self._now()
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ScalePreflightError("locator execution clock must return a timezone-aware datetime")
+        prior = self._last_send_authorizing_now
+        if prior is not None and value < prior:
+            raise ScalePreflightError("locator execution clock moved backwards during send authorization")
+        self._last_send_authorizing_now = value
         return value
 
     @property
@@ -252,12 +263,12 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         packet = self.preflight.packets[self.request.packet_hash or ""]
         if query != packet.locator_query:
             raise ScalePreflightError("locator search query is not bound to the frozen S0 request")
-        self.preflight.provider_send(self.request, now=self._now())
+        self.preflight.provider_send(self.request, now=self._send_authorizing_now())
         # The first proof reconstructs packet/rights/reservation authority;
         # the second proof is deliberately adjacent to send-started so an A3
         # window expiring during preparation cannot authorize a crossing.
-        self.preflight.provider_send(self.request, now=self._now())
-        self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self._now())
+        self.preflight.provider_send(self.request, now=self._send_authorizing_now())
+        self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self._send_authorizing_now())
         self._started = True
 
     def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None,
