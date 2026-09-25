@@ -111,7 +111,7 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
         packets.extend(__import__("charitygraph.s0_acquisition_bridge", fromlist=["frozen_packets"]).frozen_packets(mandate, REGISTRY, corpus, (snapshot,), applicability, now=datetime.fromisoformat(NOW)))
         plans.append(plan); snapshots.append(snapshot); representations.append(representation); corpora.append(corpus); source_authorities.append(source_authority)
     population_subjects = population.subject_ids
-    bundles = bundle_packets(mandate, packets, now=datetime.fromisoformat(NOW))
+    bundles = bundle_packets(mandate, packets, now=datetime.fromisoformat(NOW), execution_attempt_id=attempt.attempt_id)
     persist_bridge(catalog, mandate, plans=plans, snapshots=snapshots, representations=representations, corpora=corpora, bundles=(), execution_attempt_id=attempt.attempt_id)
     for packet in packets:
         ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, execution_attempt_id=attempt.attempt_id)

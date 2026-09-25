@@ -144,6 +144,22 @@ def test_locator_gate_preflight_failure_is_not_counted_as_a_provider_post(tmp_pa
     assert fake.calls == 0
 
 
+def test_physical_bundle_finalisation_rejects_noncanonical_membership(tmp_path):
+    catalog, _, packet, _ = _prepared_catalog(tmp_path)
+    with catalog._connection(immediate=True) as conn:
+        conn.execute("DELETE FROM scale_s0_physical_bundles")
+        catalog._commit(conn)
+    with pytest.raises(Exception, match="canonical|ordered|route|freeze"):
+        catalog.register_scale_s0_physical_bundle({
+            "bundle_id": "bundle:substituted",
+            "mandate_id": "mandate:locator",
+            "routing_class": packet.routing_class.value,
+            "packet_ids": (packet.packet_id,),
+            "packet_hashes": (packet.binding_hash,),
+            "frozen_at": "2099-09-22T00:00:01+00:00",
+        }, execution_attempt_id="attempt:locator")
+
+
 def test_locator_ambiguous_crossing_is_held_and_reentry_never_resends(tmp_path):
     catalog, _, packet, prepared = _prepared_catalog(tmp_path)
     fake = AmbiguousLocator()

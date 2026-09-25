@@ -432,8 +432,9 @@ def bundle_packets(mandate: ScaleMandate, packets: Iterable[FrozenPacket], *, no
         groups.setdefault(key, []).append(packet)
     result: list[PhysicalBundle] = []
     for (route, _), items in sorted(groups.items()):
-        ids = tuple(sorted(item.packet_id for item in items))
-        hashes = tuple(sorted(item.binding_hash for item in items))
+        pairs = tuple(sorted((item.packet_id, item.binding_hash) for item in items))
+        ids = tuple(pair[0] for pair in pairs)
+        hashes = tuple(pair[1] for pair in pairs)
         material = {"mandate": mandate.identity_hash, "route": route, "packets": hashes,
                     "execution_attempt_id": execution_attempt_id}
         # Bundle finalisation is tied to the frozen packet identities, not to
