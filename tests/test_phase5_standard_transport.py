@@ -323,7 +323,7 @@ def test_auth_budget_routing_and_systemic_http_failures_stop_campaign(monkeypatc
     monkeypatch.setattr(transport, "urlopen", fail)
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
     with pytest.raises(StandardSystemic) as exc:
-        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-test")
+        OpenAIHTTPStandardClient(provider_account_project="proj_test").create_response_once(b"{}", client_request_id="cgpa-test")
     assert exc.value.status_code == status
 
 
@@ -337,7 +337,7 @@ def test_http_400_remains_a_definite_item_terminal_failure(monkeypatch):
     monkeypatch.setattr(transport, "urlopen", fail)
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
     with pytest.raises(StandardTransportError) as exc:
-        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-test")
+        OpenAIHTTPStandardClient(provider_account_project="proj_test").create_response_once(b"{}", client_request_id="cgpa-test")
     assert exc.value.systemic is False
     assert exc.value.status_code == 400
     assert exc.value.raw_bytes == raw
@@ -381,7 +381,7 @@ def test_openai_transport_sends_client_trace_and_retains_server_request_id(monke
 
     monkeypatch.setattr(transport, "urlopen", fake_urlopen)
     monkeypatch.setenv("OPENAI_API_KEY", "test-only-secret")
-    response = OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-test-trace", request_started_at="2026-09-13T10:00:00+00:00")
+    response = OpenAIHTTPStandardClient(provider_account_project="proj_test").create_response_once(b"{}", client_request_id="cgpa-test-trace", request_started_at="2026-09-13T10:00:00+00:00")
     assert captured["client_request_id"] == "cgpa-test-trace"
     assert captured["authorization"] == "Bearer test-only-secret"
     assert captured["timeout"] == transport.STANDARD_SOCKET_TIMEOUT_SECONDS == 300
@@ -404,7 +404,7 @@ def test_ambiguous_transport_retains_trace_without_claiming_response_headers(mon
     monkeypatch.setattr(transport, "urlopen", fail)
     monkeypatch.setenv("OPENAI_API_KEY", "test-only-secret")
     with pytest.raises(StandardAmbiguous) as exc:
-        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-ambiguous-trace", request_started_at="2026-09-13T10:00:00+00:00")
+        OpenAIHTTPStandardClient(provider_account_project="proj_test").create_response_once(b"{}", client_request_id="cgpa-ambiguous-trace", request_started_at="2026-09-13T10:00:00+00:00")
     assert exc.value.client_request_id == "cgpa-ambiguous-trace"
     assert exc.value.endpoint == "https://api.openai.com/v1/responses"
     assert exc.value.request_started_at == "2026-09-13T10:00:00+00:00"
@@ -432,7 +432,7 @@ def test_transport_exception_classification_preserves_nested_cause(monkeypatch, 
     monkeypatch.setattr(transport, "urlopen", fail)
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
     with pytest.raises(StandardTransportError) as caught:
-        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-classify")
+            OpenAIHTTPStandardClient(provider_account_project="proj_test").create_response_once(b"{}", client_request_id="cgpa-classify")
     assert caught.value.transport_state == state
     assert caught.value.ambiguous is ambiguous
     assert caught.value.cause_type == type(error).__name__
@@ -464,7 +464,7 @@ def test_models_get_is_single_authenticated_traceable_non_generation_request(mon
 
     monkeypatch.setattr(transport, "urlopen", fake_urlopen)
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
-    status, headers, raw, elapsed = OpenAIHTTPStandardClient().list_models_once(client_request_id="cgpa-models-test")
+    status, headers, raw, elapsed = OpenAIHTTPStandardClient(provider_account_project="proj_test").list_models_once(client_request_id="cgpa-models-test")
     assert status == 200 and headers.get("x-request-id") == "req_models_test"
     assert raw == b'{"data":[]}' and elapsed >= 0
     assert calls == [("https://api.openai.com/v1/models", "GET", "cgpa-models-test", "Bearer test-only", 300)]
@@ -484,7 +484,7 @@ def test_read_failure_after_http_headers_is_not_called_ambiguous_or_rejected(mon
     monkeypatch.setattr(transport, "urlopen", lambda *_args, **_kwargs: Response())
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
     with pytest.raises(StandardSystemic) as caught:
-        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-body-read")
+            OpenAIHTTPStandardClient(provider_account_project="proj_test").create_response_once(b"{}", client_request_id="cgpa-body-read")
     assert caught.value.transport_state == "PROVIDER_RESPONSE_BODY_READ_FAILURE"
     assert caught.value.status_code == 200
     assert caught.value.request_id == "req_headers_arrived"
@@ -505,7 +505,7 @@ def test_unparseable_http_response_is_recorded_as_response_body_failure(monkeypa
     monkeypatch.setattr(transport, "urlopen", lambda *_args, **_kwargs: Response())
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
     with pytest.raises(StandardSystemic) as caught:
-        OpenAIHTTPStandardClient().create_response_once(b"{}", client_request_id="cgpa-body-parse")
+            OpenAIHTTPStandardClient(provider_account_project="proj_test").create_response_once(b"{}", client_request_id="cgpa-body-parse")
     assert caught.value.transport_state == "PROVIDER_RESPONSE_BODY_PARSE_FAILURE"
     assert caught.value.status_code == 200
     assert caught.value.raw_bytes == b"not-json"

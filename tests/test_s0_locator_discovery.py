@@ -109,7 +109,7 @@ def test_standard_adapter_emits_exact_luna_web_search_body_and_normalizes_real_s
         OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=RecordingGate(),
     ).search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:body")
     sent = __import__("json").loads(client.calls[0][0])
-    assert sent == {"model": "gpt-5.6-luna", "input": '"Sunrise"', "tools": [{"type": "web_search"}], "store": False}
+    assert sent == {"model": "gpt-5.6-luna", "input": '"Sunrise"', "tools": [{"type": "web_search"}], "tool_choice": {"type": "web_search"}, "store": False}
     assert result.provider_call_id == "resp_locator_sources"
     assert result.usage == body["usage"]
     assert result.results == (LocatorSearchResult("https://example.org/", title="Example", source_metadata={"title": "Example", "type": "source"}),)

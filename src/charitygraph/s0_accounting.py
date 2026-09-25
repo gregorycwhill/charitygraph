@@ -13,6 +13,7 @@ import json
 from typing import Any, Mapping
 
 from .scale_s0 import ScalePreflightError, packet_task_key
+from .s0_pricing import PricingEvidence, derive_luna_web_search_cost
 
 
 def _decimal(value: Any, field: str) -> Decimal:
@@ -53,12 +54,13 @@ class ProviderCostEvidence:
 class S0ProviderAccounting:
     """One idempotent accounting adapter shared by every S0 provider route."""
 
-    def __init__(self, *, catalog: Any, now: Any = None, execution_attempt_id: str | None = None) -> None:
+    def __init__(self, *, catalog: Any, now: Any = None, execution_attempt_id: str | None = None, pricing_snapshot: Any = None) -> None:
         if catalog is None:
             raise ValueError("S0 accounting requires the canonical catalog")
         self.catalog = catalog
         self.now = now or (lambda: datetime.now(timezone.utc))
         self.execution_attempt_id = execution_attempt_id
+        self.pricing_snapshot = pricing_snapshot
 
     @staticmethod
     def _usage(value: Any) -> Mapping[str, Any]:
@@ -74,11 +76,19 @@ class S0ProviderAccounting:
     def _same_usage(left: Any, right: Any) -> bool:
         return isinstance(left, Mapping) and isinstance(right, Mapping) and dict(left) == dict(right)
 
-    def _evidence(self, usage: Any, *, expected_currency: str, expected_pricing: str) -> ProviderCostEvidence:
+    def _evidence(self, usage: Any, *, expected_currency: str, expected_pricing: str, provider_response: Any = None) -> ProviderCostEvidence:
         data = self._usage(usage)
         cost = data.get("provider_cost")
+        if self.pricing_snapshot is not None and cost is None:
+            body = getattr(provider_response, "body", None)
+            if not isinstance(body, Mapping):
+                raise ScalePreflightError("raw provider response is required for governed pricing derivation")
+            derived = derive_luna_web_search_cost(snapshot=self.pricing_snapshot, response_body=body)
+            if derived.snapshot_id != expected_pricing:
+                raise ScalePreflightError("provider pricing evidence does not match the frozen reservation")
+            return ProviderCostEvidence(derived.amount_usd, expected_currency, derived.amount_usd, expected_currency, derived.snapshot_id, None)
         if not isinstance(cost, Mapping) or "amount" not in cost or "currency" not in cost:
-            raise ScalePreflightError("provider receipt lacks governed provider cost evidence")
+            raise ScalePreflightError("provider receipt lacks governed pricing evidence")
         provider_amount = _decimal(cost["amount"], "provider cost")
         provider_currency = _currency(cost["currency"], "provider cost currency")
         pricing_snapshot_id = data.get("pricing_snapshot_id")
@@ -154,7 +164,7 @@ class S0ProviderAccounting:
         if isinstance(response_body, Mapping) and response_body.get("model") is not None:
             if response_body.get("model") != item.get("model_route"):
                 raise ScalePreflightError("provider response model does not match the durable provider route")
-        evidence = self._evidence(usage, expected_currency=expected_currency, expected_pricing=expected_pricing)
+        evidence = self._evidence(usage, expected_currency=expected_currency, expected_pricing=expected_pricing, provider_response=provider_response)
         recorded_at = _timestamp(self.now())
         release_key = "release:s0:" + request_id
         prior_release = self.catalog.get_cost_entry(release_key)
@@ -184,6 +194,12 @@ class S0ProviderAccounting:
         return {"entry_key": entry["entry_key"], "actual": str(evidence.accounting_amount), "currency": evidence.accounting_currency, "released": str(released_now)}
 
     def reconcile_durable(self, *, request: Any, packet: Any) -> dict[str, Any]:
+        existing = self.catalog.get_cost_entry("actual:s0:" + str(packet.provider_request_identity))
+        if existing is not None:
+            release = self.catalog.get_cost_entry("release:s0:" + str(packet.provider_request_identity))
+            return {"entry_key": existing["entry_key"], "actual": str(existing.get("accounting_amount", existing.get("provider_amount"))),
+                    "currency": str(existing.get("accounting_currency", "USD")),
+                    "released": str(release.get("accounting_amount", "0") if release else "0")}
         receipt = self.catalog.get_physical_receipt(request.physical_attempt_id)
         if receipt is None:
             raise ScalePreflightError("completed provider item lacks a durable receipt")
@@ -197,11 +213,11 @@ class S0ProviderAccounting:
 class S0ProviderAccountingFactory:
     """Factory kept as the sole construction seam for S0 accounting."""
 
-    def __init__(self, *, catalog: Any, now: Any = None, execution_attempt_id: str | None = None) -> None:
-        self.catalog, self.now, self.execution_attempt_id = catalog, now, execution_attempt_id
+    def __init__(self, *, catalog: Any, now: Any = None, execution_attempt_id: str | None = None, pricing_snapshot: Any = None) -> None:
+        self.catalog, self.now, self.execution_attempt_id, self.pricing_snapshot = catalog, now, execution_attempt_id, pricing_snapshot
 
     def create(self) -> S0ProviderAccounting:
-        return S0ProviderAccounting(catalog=self.catalog, now=self.now, execution_attempt_id=self.execution_attempt_id)
+        return S0ProviderAccounting(catalog=self.catalog, now=self.now, execution_attempt_id=self.execution_attempt_id, pricing_snapshot=self.pricing_snapshot)
 
 
 S0AccountingAdapter = S0ProviderAccounting

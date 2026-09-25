@@ -70,9 +70,11 @@ class ScaleS0Executor:
     def __init__(self, *, catalog: Any, attempt_id: str, builder_commit_sha: str,
                  runtime_root: str | Path,
                  provider: Any = None, locator_provider: LocatorProvider | None = None,
+                 locator_provider_factory: Callable[[Any, FrozenPacket, Any], LocatorProvider] | None = None,
                  now: Callable[[], datetime] | None = None,
                  max_concurrency: int = 1,
                  accounting: Any = None,
+                 pricing_snapshot: Any = None,
                  on_reconciled: Callable[[Mapping[str, Any], Any, Mapping[str, Any]], None] | None = None) -> None:
         if catalog is None or not attempt_id or not builder_commit_sha:
             raise ValueError("catalog, attempt_id, and builder_commit_sha are required")
@@ -82,9 +84,10 @@ class ScaleS0Executor:
         self.runtime_root = Path(runtime_root)
         self.provider = provider
         self.locator_provider = locator_provider
+        self.locator_provider_factory = locator_provider_factory
         self.now = now or (lambda: datetime.now(timezone.utc))
         self.max_concurrency = max_concurrency
-        self.accounting = accounting or S0ProviderAccountingFactory(catalog=catalog, now=self.now, execution_attempt_id=attempt_id).create()
+        self.accounting = accounting or S0ProviderAccountingFactory(catalog=catalog, now=self.now, execution_attempt_id=attempt_id, pricing_snapshot=pricing_snapshot).create()
         self.on_reconciled = on_reconciled
 
     def _attempt(self) -> ExecutionAttemptIdentity:
@@ -213,7 +216,9 @@ class ScaleS0Executor:
                         return results, posts, True
                 results.append({"request_item_id": packet.provider_request_identity, "status": "replayed_terminal", "provider_posts": 0})
                 continue
-            supplied_gate = getattr(self.locator_provider, "execution_gate", None)
+            item_locator_provider = (self.locator_provider_factory(item.request, packet, preflight)
+                                     if self.locator_provider_factory is not None else self.locator_provider)
+            supplied_gate = getattr(item_locator_provider, "execution_gate", None)
             if supplied_gate is not None:
                 if (getattr(supplied_gate, "request_identity", None) != packet.provider_request_identity
                         or getattr(getattr(supplied_gate, "request", None), "physical_attempt_id", None) != item.request.physical_attempt_id):
@@ -229,7 +234,7 @@ class ScaleS0Executor:
                 preflight.provider_send(item.request, now=self.now())
                 results.append({"request_item_id": packet.provider_request_identity, "status": "eligible", "provider_posts": 0})
                 continue
-            if self.locator_provider is None:
+            if item_locator_provider is None:
                 raise ScalePreflightError("locator execution requires the governed locator provider")
             provider_manages_gate = supplied_gate is not None
             provider_crossing_started = False
@@ -238,7 +243,7 @@ class ScaleS0Executor:
                     gate.begin(request_identity=packet.provider_request_identity,
                                subject_abn=packet.subject_id, query=item.query)
                 provider_crossing_started = True
-                response = self.locator_provider.search(query=item.query, subject_abn=packet.subject_id, request_identity=packet.provider_request_identity)
+                response = item_locator_provider.search(query=item.query, subject_abn=packet.subject_id, request_identity=packet.provider_request_identity)
                 response_id = str(getattr(response, "provider_call_id", ""))
                 if not response_id:
                     raise ScalePreflightError("locator provider response lacks a durable identity")
@@ -247,9 +252,12 @@ class ScaleS0Executor:
                                   result_ref="provider-response:" + response_id,
                                   usage=getattr(response, "usage", None))
                 try:
+                    provider_response = response
+                    if not hasattr(provider_response, "body") and getattr(response, "response_body", None) is not None:
+                        provider_response = type("LocatorProviderResponse", (), {"body": response.response_body})()
                     self.accounting.reconcile(request=item.request, packet=packet,
                                               provider_receipt_id=response_id,
-                                              usage=getattr(response, "usage", None), provider_response=response)
+                                              usage=getattr(response, "usage", None), provider_response=provider_response)
                 except Exception as error:
                     results.append({"request_item_id": packet.provider_request_identity,
                                     "status": "completed_accounting_failed", "provider_posts": 1,
