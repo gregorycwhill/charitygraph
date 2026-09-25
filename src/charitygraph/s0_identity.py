@@ -11,7 +11,10 @@ from .scale_s0 import ScalePreflightError
 
 
 def _sha(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError as error:
+        raise ScalePreflightError("checkpoint artifact is missing or unreadable") from error
 
 
 def _manifest_digest(value: Mapping[str, Any]) -> str:
@@ -75,8 +78,12 @@ def _resolve_checkpoint_artifacts(
         raise ScalePreflightError("checkpoint artifact names are ambiguous")
     explicit = dict(explicit or {})
     if database_candidates:
+        if explicit.get("database") and explicit["database"] != database_candidates[0]:
+            raise ScalePreflightError("explicit database name conflicts with manifest")
         explicit.setdefault("database", database_candidates[0])
     if checkpoint_candidates:
+        if explicit.get("checkpoint") and explicit["checkpoint"] != checkpoint_candidates[0]:
+            raise ScalePreflightError("explicit checkpoint name conflicts with manifest")
         explicit.setdefault("checkpoint", checkpoint_candidates[0])
     return _checkpoint_artifact_names(manifest, explicit)
 
