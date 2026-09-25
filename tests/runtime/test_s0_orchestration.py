@@ -36,6 +36,12 @@ class AmbiguousLocator(FakeLocator):
         raise RuntimeError("provider crossing lost before a response")
 
 
+class MissingIdentityLocator(FakeLocator):
+    def search(self, *, query, subject_abn, request_identity):
+        self.calls += 1
+        return LocatorSearchResponse(None, (), {"total_tokens": 15})
+
+
 def test_s0_executor_locator_dry_run_never_calls_provider(tmp_path):
     catalog, _, packet, prepared = _prepared_catalog(tmp_path)
     fake = FakeLocator()
@@ -171,5 +177,19 @@ def test_locator_ambiguous_crossing_is_held_and_reentry_never_resends(tmp_path):
     second = executor.run(locator=(work,))
     assert first.counts == {"failed": 1} and first.provider_posts == 1
     assert second.counts == {"replayed_terminal": 1} and second.provider_posts == 0
+    assert catalog.get_provider_request_item(packet.provider_request_identity)["status"] == "send_ambiguous"
+    assert fake.calls == 1
+
+
+def test_locator_non_string_response_identity_is_held_and_never_released(tmp_path):
+    catalog, _, packet, prepared = _prepared_catalog(tmp_path)
+    fake = MissingIdentityLocator()
+    from .test_s0_locator_search_lifecycle import NOW
+    executor = ScaleS0Executor(catalog=catalog, attempt_id="attempt:locator", builder_commit_sha="a" * 40,
+                               runtime_root=tmp_path, locator_provider=fake, now=lambda: NOW)
+    work = S0LocatorWork(packet.packet_id, prepared.request, prepared.delivery_attempt_id,
+                         prepared.client_request_id, packet.locator_query)
+    summary = executor.run(locator=(work,))
+    assert summary.counts == {"failed": 1} and summary.provider_posts == 1
     assert catalog.get_provider_request_item(packet.provider_request_identity)["status"] == "send_ambiguous"
     assert fake.calls == 1
