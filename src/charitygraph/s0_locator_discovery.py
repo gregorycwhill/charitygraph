@@ -418,9 +418,13 @@ class OpenAIResponsesWebSearchProvider:
             record_outcome = getattr(self.execution_gate, "transport_outcome", None)
             if callable(record_outcome):
                 record_outcome(physical=error.ambiguous or error.response_headers_received)
+            # A response header proves that the POST crossed the provider
+            # boundary.  If decoding cannot yield a durable response identity,
+            # its cost cannot safely be reconciled or released.
+            ambiguous = error.ambiguous or error.response_headers_received
             self.execution_gate.fail(
-                failure_class="provider_ambiguous_transport" if error.ambiguous else "provider_rejected",
-                message=str(error), ambiguous=error.ambiguous,
+                failure_class="provider_ambiguous_transport" if ambiguous else "provider_rejected",
+                message=str(error), ambiguous=ambiguous,
             )
             raise
         except Exception as error:

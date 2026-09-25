@@ -15,9 +15,15 @@ from charitygraph.runtime.catalog import (
 from charitygraph.s0_acquisition_bridge import bundle_packets
 from charitygraph.s0_locator_discovery import (
     LocatorSearchPrice,
+    OpenAIResponsesWebSearchProvider,
     S0LocatorSearchExecutionGate,
     freeze_locator_search_packet,
     prepare_locator_search_request,
+)
+from charitygraph.phase5_standard_transport import (
+    OpenAIHTTPStandardClient,
+    OpenAIResponsesWebSearchTransport,
+    StandardSystemic,
 )
 from charitygraph.scale_s0 import (
     EconomicState,
@@ -168,6 +174,30 @@ def test_real_locator_packet_lifecycle_is_durable_priced_source_free_and_exactly
     assert catalog.get_physical_receipt(prepared.request.physical_attempt_id)["provider_receipt_id"] == "response:locator"
     with pytest.raises(ScalePreflightError, match="already exists"):
         live.provider_send(prepared.request, now=NOW)
+
+
+def test_header_received_response_without_identity_keeps_locator_exposure_outstanding(tmp_path):
+    """An unidentifiable decoded response may be billable and cannot release."""
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    gate = S0LocatorSearchExecutionGate(preflight=live, request=prepared.request, catalog=catalog,
+                                        delivery_attempt_id=prepared.delivery_attempt_id,
+                                        client_request_id=prepared.client_request_id,
+                                        request_identity=packet.provider_request_identity, now=NOW)
+
+    class HeaderButNoIdentity(OpenAIHTTPStandardClient):
+        def create_response_once(self, *_args, **_kwargs):
+            raise StandardSystemic("provider response did not contain a trustworthy response ID",
+                                  response_headers_received=True)
+
+    client = HeaderButNoIdentity(provider_account_project=PROJECT)
+    provider = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client),
+                                                 model="gpt-5.6-luna", execution_gate=gate)
+    with pytest.raises(StandardSystemic):
+        provider.search(query=packet.locator_query, subject_abn=packet.subject_id,
+                        request_identity=packet.provider_request_identity)
+    assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "held"
+    assert catalog.accounting_reservation_position("reservation:locator")["released"] == Decimal("0")
 
 
 def test_locator_packet_rejects_missing_pricing_and_cap_overrun_without_a_send(tmp_path):
