@@ -12,7 +12,7 @@ from hashlib import sha256
 import json
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from typing import Any, Mapping, Protocol, Sequence
+from typing import Any, Callable, Mapping, Protocol, Sequence
 from urllib.parse import urlsplit, urlunsplit
 
 from charitygraph.scale_s0 import (
@@ -188,7 +188,7 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
     def __init__(self, *, preflight: Any, request: Any, catalog: Any,
                  delivery_attempt_id: str, client_request_id: str,
                  request_identity: str,
-                 now: datetime | None = None) -> None:
+                 now: datetime | Callable[[], datetime] | None = None) -> None:
         # Import lazily to keep the provider-neutral interface independent of
         # the S0 implementation while still making production construction
         # structurally require the real preflight class.
@@ -213,10 +213,19 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
             raise ScalePreflightError("locator search gate identity is not bound to its frozen packet")
         self.preflight, self.request, self.catalog = preflight, request, catalog
         self.delivery_attempt_id, self.client_request_id, self.request_identity = delivery_attempt_id, client_request_id, request_identity
-        self.now = now or datetime.now(timezone.utc)
+        # Do not capture a production clock at gate construction: a fresh A3
+        # window can expire while a prepared packet is waiting to send.  Tests
+        # may supply a fixed instant or a deterministic clock.
+        self._clock = now if callable(now) else (lambda: now) if now is not None else (lambda: datetime.now(timezone.utc))
         self._started = False
         self._transport_invoked = False
         self._physical_crossing = False
+
+    def _now(self) -> datetime:
+        value = self._clock()
+        if not isinstance(value, datetime):
+            raise ScalePreflightError("locator execution clock must return a datetime")
+        return value
 
     @property
     def provider_posts(self) -> int:
@@ -243,12 +252,12 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         packet = self.preflight.packets[self.request.packet_hash or ""]
         if query != packet.locator_query:
             raise ScalePreflightError("locator search query is not bound to the frozen S0 request")
-        self.preflight.provider_send(self.request, now=self.now)
+        self.preflight.provider_send(self.request, now=self._now())
         # The first proof reconstructs packet/rights/reservation authority;
         # the second proof is deliberately adjacent to send-started so an A3
         # window expiring during preparation cannot authorize a crossing.
-        self.preflight.provider_send(self.request, now=self.now)
-        self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self.now)
+        self.preflight.provider_send(self.request, now=self._now())
+        self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self._now())
         self._started = True
 
     def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None,
@@ -259,17 +268,17 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         self.catalog.record_standard_transport_outcome(
             self.request.physical_attempt_id, status="PROVIDER_RESPONSE_RECEIVED",
             response_headers_received=True, response_identity=provider_receipt_id,
-            usage=usage or {}, now=self.now,
+            usage=usage or {}, now=self._now(),
         )
         self.catalog.complete_standard_delivery(self.delivery_attempt_id,
             provider_request_id=self.request_identity,
             provider_receipt_id=provider_receipt_id,
-            raw_result_ref=result_ref, usage=usage or {}, result_ref=result_ref, now=self.now,
+            raw_result_ref=result_ref, usage=usage or {}, result_ref=result_ref, now=self._now(),
             response_facts=response_facts)
         self.catalog.record_standard_transport_outcome(
             self.request.physical_attempt_id, status="COMPLETED",
             response_headers_received=True, response_identity=provider_receipt_id,
-            usage=usage or {}, now=self.now,
+            usage=usage or {}, now=self._now(),
         )
 
     def fail(self, *, failure_class: str, message: str, ambiguous: bool = False) -> None:
@@ -284,16 +293,16 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
                 outcome = "provider_schema_failure" if failure_class == "provider_schema_failure" else "provider_validation_failure"
                 self.catalog.record_scale_s0_locator_terminal_outcome(
                     self.request.physical_attempt_id, outcome_class=outcome,
-                    message=message, now=self.now)
+                    message=message, now=self._now())
                 return
             self.catalog.record_standard_transport_outcome(
                 self.request.physical_attempt_id,
                 status="PROVIDER_CROSSING_AMBIGUOUS" if ambiguous else "PROVIDER_REJECTED",
                 response_headers_received=False, transport_exception=message,
-                now=self.now,
+                now=self._now(),
             )
             self.catalog.settle_standard_failure(self.delivery_attempt_id, failure_class=failure_class,
-                message=message, ambiguous=ambiguous, now=self.now)
+                message=message, ambiguous=ambiguous, now=self._now())
 
 
 @dataclass

@@ -249,6 +249,24 @@ def test_locator_packet_and_send_cannot_substitute_attempt_or_a3_binding(tmp_pat
         live.provider_send(replace(prepared.request, provider_account_project="project:substituted"), now=NOW)
 
 
+def test_locator_gate_rechecks_a3_with_a_fresh_clock_at_send_boundary(tmp_path):
+    """A packet prepared under A3 cannot cross after its window expires."""
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    instants = iter((NOW, NOW + timedelta(minutes=60, microseconds=1)))
+    gate = S0LocatorSearchExecutionGate(
+        preflight=live, request=prepared.request, catalog=catalog,
+        delivery_attempt_id=prepared.delivery_attempt_id,
+        client_request_id=prepared.client_request_id,
+        request_identity=packet.provider_request_identity,
+        now=lambda: next(instants),
+    )
+    with pytest.raises(ConflictError, match="currently valid durable attestation"):
+        gate.begin(request_identity=packet.provider_request_identity,
+                   subject_abn=SUBJECT, query=packet.locator_query)
+    assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
+
+
 @pytest.mark.parametrize("field", ("subject_id", "query", "execution_attempt_id", "provider_account_project", "execution_authority"))
 def test_locator_identity_rejects_noncanonical_blank_identity_components(field):
     from charitygraph.scale_s0 import locator_search_request_identity
