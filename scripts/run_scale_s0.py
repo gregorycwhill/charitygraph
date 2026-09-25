@@ -69,6 +69,8 @@ def main() -> int:
             for item in locator:
                 stored = catalog.get_scale_s0_frozen_packet(item.packet_id)
                 packet = FrozenPacket(**{name: stored["material"][name] for name in FrozenPacket.__dataclass_fields__ if name in stored["material"]})
+                if packet.pricing_snapshot_id != snapshot.record_id:
+                    raise SystemExit("frozen packet pricing snapshot does not match the supplied governed capture")
                 prepared = prepare_locator_lifecycle(catalog=catalog, attempt=attempt, packet=packet, request=item.request, cohort_id=args.cohort_id, now=datetime.now(timezone.utc), attestation_window=window)
                 if prepared["delivery_attempt_id"] != item.delivery_attempt_id:
                     raise SystemExit("work delivery attempt identity does not match canonical preparation")
