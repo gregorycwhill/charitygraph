@@ -43,6 +43,7 @@ class LocatorSearchResult:
 class LocatorSearchResponse:
     provider_call_id: str
     results: tuple[LocatorSearchResult, ...]
+    usage: Mapping[str, Any] | None = None
 
 
 class LocatorSearchProvider(Protocol):

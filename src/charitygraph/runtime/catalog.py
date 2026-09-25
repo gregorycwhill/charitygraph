@@ -1467,6 +1467,46 @@ class SQLiteCatalog:
             outstanding = (reserved - min(actual, reserved) - released).quantize(Decimal("0.000001"))
             return {"currency": currency, "reserved": reserved, "actual": actual, "released": released, "outstanding": outstanding}
 
+    def get_cost_entry(self, entry_key: str) -> dict[str, Any] | None:
+        """Read one append-only cost entry by its idempotency key."""
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (entry_key,)).fetchone())
+
+    def record_accounting_actual(self, *, entry_key: str, provider_request_item_id: str,
+                                 provider_receipt_id: str, reservation_id: str,
+                                 provider_amount: Any, provider_currency: str,
+                                 accounting_amount: Any, accounting_currency: str,
+                                 pricing_snapshot_id: str, fx_snapshot_id: str | None,
+                                 usage: Any, recorded_at: datetime | str) -> dict[str, Any]:
+        """Append one currency-bound provider actual with an idempotent key."""
+        if not entry_key or not provider_request_item_id or not provider_receipt_id or not pricing_snapshot_id:
+            raise CatalogError("accounting actual requires stable provider and pricing identities")
+        provider_amount = _decimal(provider_amount, "provider amount")
+        accounting_amount, accounting_currency = _money({"amount": accounting_amount, "currency": accounting_currency}, "accounting amount")
+        provider_currency = _text(provider_currency, "provider currency")
+        when = _utc(recorded_at, "recorded_at")
+        material = {"provider_request_item_id": provider_request_item_id, "provider_receipt_id": provider_receipt_id, "reservation_id": reservation_id, "provider_amount": str(provider_amount), "provider_currency": provider_currency, "accounting_amount": str(accounting_amount), "accounting_currency": accounting_currency, "pricing_snapshot_id": pricing_snapshot_id, "fx_snapshot_id": fx_snapshot_id, "usage": _dump(usage)}
+        entry_hash = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            existing = conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (entry_key,)).fetchone()
+            if existing is not None:
+                if existing["entry_hash"] != entry_hash:
+                    raise ConflictError("accounting actual key was reused with different provider evidence")
+                return dict(existing)
+            reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (reservation_id,)).fetchone()
+            if reservation is None:
+                raise CatalogError("accounting actual requires a canonical reservation")
+            if reservation["accounting_currency"] != accounting_currency:
+                raise ConflictError("accounting actual currency does not match its reservation")
+            if provider_currency != accounting_currency and not fx_snapshot_id:
+                raise ConflictError("currency-converted actual requires an FX evidence identity")
+            aud_amount = accounting_amount if accounting_currency == "AUD" else Decimal("0")
+            values = (entry_key, entry_hash, reservation["cohort_id"], reservation["run_id"], None, reservation_id, "actual", "semantic_judgement", str(provider_amount), provider_currency, str(aud_amount), None, pricing_snapshot_id, fx_snapshot_id, json.dumps(_dump(usage), sort_keys=True, separators=(",", ":")), when, str(accounting_amount), accounting_currency)
+            conn.execute("INSERT INTO cost_entries(entry_key,entry_hash,cohort_id,run_id,task_run_id,reservation_id,entry_type,paid_output_category,provider_amount,provider_currency,aud_amount,adjustment_direction,pricing_snapshot_id,fx_snapshot_id,usage_json,recorded_at,accounting_amount,accounting_currency) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", values)
+            self._update_reservation_status(conn, reservation_id, when)
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM cost_entries WHERE entry_key=?", (entry_key,)).fetchone())
+
     def reservation_position(self, reservation_id: str) -> dict[str, Decimal]:
         """Legacy AUD-only position; use accounting_reservation_position otherwise."""
         position = self.accounting_reservation_position(reservation_id)
