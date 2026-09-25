@@ -430,7 +430,7 @@ class OpenAIResponsesWebSearchProvider:
             self.execution_gate.fail(failure_class="provider_transport_failure", message=str(error), ambiguous=False)
             raise
         response_id = response.body.get("id") if isinstance(response.body, Mapping) else None
-        if not response_id:
+        if not isinstance(response_id, str) or not response_id:
             self.execution_gate.fail(failure_class="provider_schema_failure", message="missing provider response identity")
             raise ScalePreflightError("Responses web-search result lacks provider call identity")
         usage = response.body.get("usage")
@@ -441,6 +441,12 @@ class OpenAIResponsesWebSearchProvider:
         self.execution_gate.complete(provider_receipt_id=response_id,
                                      result_ref="provider-response:" + response_id,
                                      usage=usage, response_facts=response_facts)
+        # A decoded response with an explicit non-completed state remains a
+        # billable transport/accounting fact, but must never yield discovery
+        # metadata.  Older fixture-compatible bodies omit these fields.
+        if (response.body.get("status") is not None and response.body.get("status") != "completed") or response.body.get("incomplete_details") is not None:
+            self.execution_gate.fail(failure_class="provider_validation_failure", message="provider response was not completed")
+            raise ScalePreflightError("Responses web-search result was not completed")
         results: list[LocatorSearchResult] = []
         # Preserve only source fields actually returned by the API.  Locator
         # discovery must not invent snippets, ranks, or usage.
@@ -479,9 +485,6 @@ class OpenAIResponsesWebSearchProvider:
                 return None
             if item.get("type") != "web_search_call":
                 continue
-            action = item.get("action")
-            if not isinstance(action, Mapping) or not isinstance(action.get("type"), str) or not action["type"]:
-                return None
             count += 1
         return {"model": model, "web_search_calls": count}
 

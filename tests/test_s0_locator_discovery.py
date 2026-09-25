@@ -116,6 +116,31 @@ def test_standard_adapter_emits_exact_luna_web_search_body_and_normalizes_real_s
     assert result.results[0].snippet == "" and result.results[0].rank is None
 
 
+def test_pricing_facts_count_source_bearing_web_search_without_action_type():
+    body = {"id": "resp_locator_pricing", "model": "gpt-5.6-luna",
+            "usage": {"input_tokens": 4, "output_tokens": 6},
+            "output": [{"type": "web_search_call", "action": {"sources": []}}]}
+    gate = RecordingGate()
+    OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
+                                     model="gpt-5.6-luna", execution_gate=gate).search(
+        query='"Sunrise"', subject_abn="11111111111", request_identity="req:pricing")
+    assert gate.events[1][4] == {"model": "gpt-5.6-luna", "web_search_calls": 1}
+
+
+@pytest.mark.parametrize("body", [
+    {"id": 7, "usage": {"input_tokens": 1, "output_tokens": 1}, "output": []},
+    {"id": "resp_incomplete", "model": "gpt-5.6-luna", "status": "incomplete",
+     "usage": {"input_tokens": 1, "output_tokens": 1}, "output": []},
+])
+def test_invalid_identity_or_explicitly_incomplete_response_never_yields_discovery(body):
+    gate = RecordingGate()
+    with pytest.raises(ScalePreflightError):
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
+                                         model="gpt-5.6-luna", execution_gate=gate).search(
+            query='"Sunrise"', subject_abn="11111111111", request_identity="req:invalid")
+    assert gate.events[-1][0] == "fail"
+
+
 @pytest.mark.parametrize("response_body", [{"usage": {"total_tokens": 1}, "output": []}, {"id": "resp", "output": {}}])
 def test_missing_identity_or_source_structure_fails_without_fabricated_locator_metadata(response_body):
     client = StubStandardClient({"id": response_body.get("id", "missing"), **response_body})

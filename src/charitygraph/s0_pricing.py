@@ -49,9 +49,10 @@ def _tool_calls(body: Mapping[str, Any]) -> int:
             raise ScalePreflightError("provider output contains malformed item")
         if item.get("type") != "web_search_call":
             continue
-        action = item.get("action")
-        if not isinstance(action, Mapping) or not isinstance(action.get("type"), str):
-            raise ScalePreflightError("web-search call lacks a validated action")
+        # A web-search-call item's type is the billable mechanical fact.  Its
+        # action/source schema belongs to the separate locator validation
+        # layer: a malformed action must not erase a definite call from cost
+        # accounting.
         total += 1
     return total
 
