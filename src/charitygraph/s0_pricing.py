@@ -8,6 +8,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping
+from datetime import datetime, timezone
+import hashlib
+import json
+from pathlib import Path
 
 from .contracts.economics import PricingSnapshot
 from .scale_s0 import ScalePreflightError
@@ -108,3 +112,39 @@ def load_pricing_snapshot(value: Mapping[str, Any], *, expected_source_hash: str
     if snapshot.effective_at > snapshot.retrieved_at:
         raise ScalePreflightError("pricing snapshot effective time follows retrieval time")
     return snapshot
+
+
+def load_supervisor_capture(path: str | Path, *, expected_sha256: str) -> PricingSnapshot:
+    """Load the supervisor's structured-facts capture without treating it as HTML."""
+    raw = Path(path).read_bytes()
+    observed = hashlib.sha256(raw).hexdigest()
+    if observed != expected_sha256:
+        raise ScalePreflightError("pricing capture SHA-256 mismatch")
+    try:
+        capture = json.loads(raw.decode("utf-8"))
+    except Exception as error:
+        raise ScalePreflightError("pricing capture is not valid JSON") from error
+    if (capture.get("schema") != "charitygraph-supervisor-pricing-capture-v1"
+            or not isinstance(capture.get("provenance_note"), str)
+            or "not over raw upstream HTML" not in capture["provenance_note"]):
+        raise ScalePreflightError("pricing capture provenance scope is not explicit")
+    model = capture.get("model_pricing", {})
+    search = capture.get("web_search_pricing", {})
+    if capture.get("model") != "gpt-5.6-luna" or capture.get("currency") != "USD" or not search.get("search_content_tokens_billed_at_model_rates"):
+        raise ScalePreflightError("pricing capture is not the authorised Luna/USD snapshot")
+    now = datetime.fromisoformat(str(capture["captured_at"])).replace(tzinfo=timezone.utc)
+    rates = (
+        {"dimension": "input_tokens", "unit_quantity": "1000000", "price_per_unit": model["input_usd_per_million_tokens"]},
+        {"dimension": "cached_input_tokens", "unit_quantity": "1000000", "price_per_unit": model["cached_input_usd_per_million_tokens"]},
+        {"dimension": "output_tokens", "unit_quantity": "1000000", "price_per_unit": model["output_usd_per_million_tokens"]},
+        {"dimension": "tool_calls", "unit_quantity": "1000", "price_per_unit": search["usd_per_1000_calls"]},
+    )
+    return PricingSnapshot(
+        record_id="pricing:" + observed,
+        provider_id="openai", model_snapshot="gpt-5.6-luna", effective_at=now,
+        retrieved_at=now, provider_currency="USD",
+        authoritative_source_url="https://developers.openai.com/api/docs/pricing",
+        rates=rates, source_content_hash=observed,
+        created_at=now,
+        producer={"kind": "automation_policy", "producer_id": "supervisor-pricing-capture"},
+    )
