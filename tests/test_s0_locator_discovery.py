@@ -10,6 +10,10 @@ from charitygraph.s0_locator_discovery import (
 )
 from charitygraph.s0_product_owner_policy import concrete_first_party_source_definition_id
 from charitygraph.scale_s0 import ScalePreflightError
+from charitygraph.phase5_standard_transport import (
+    OpenAIHTTPStandardClient, OpenAIResponsesWebSearchTransport,
+    StandardAmbiguous, StandardProviderResponse,
+)
 
 
 NOW = datetime(2026, 9, 22, tzinfo=timezone.utc)
@@ -66,15 +70,20 @@ def test_ambiguous_same_name_and_unauthenticated_cross_host_redirect_are_rejecte
 
 
 def test_responses_adapter_fails_closed_without_existing_gate():
-    class Client:
-        class responses:
-            @staticmethod
-            def create(**_kwargs): raise AssertionError("must not call provider")
+    class Client(OpenAIHTTPStandardClient): pass
     with pytest.raises(ScalePreflightError):
-        OpenAIResponsesWebSearchProvider(Client(), model="gpt-5", execution_gate=lambda **_kwargs: True)
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(Client()), model="gpt-5.6-luna", execution_gate=lambda **_kwargs: True)
+
+
+class StubStandardClient(OpenAIHTTPStandardClient):
+    def __init__(self, body): self.body, self.calls = body, []
+    def create_response_once(self, body, *, client_request_id, request_started_at=None):
+        self.calls.append((body, client_request_id))
+        return StandardProviderResponse(200, self.body.get("id", "transport-id"), self.body, __import__("json").dumps(self.body).encode(), client_request_id=client_request_id)
 
 
 class RecordingGate(LocatorSearchExecutionGate):
+    client_request_id = "locator-test-client"
     def __init__(self): self.events = []
     def begin(self, *, request_identity, subject_abn, query): self.events.append(("begin", request_identity, subject_abn, query))
     def complete(self, *, provider_receipt_id, result_ref, usage=None): self.events.append(("complete", provider_receipt_id, result_ref, usage))
@@ -82,19 +91,52 @@ class RecordingGate(LocatorSearchExecutionGate):
 
 
 def test_authorised_search_is_framed_by_durable_gate_before_and_after_network():
-    class Response:
-        id = "resp_locator_1"
-        output = ()
-        usage = {"total_tokens": 1}
-    class Client:
-        class responses:
-            @staticmethod
-            def create(**_kwargs): return Response()
+    client = StubStandardClient({"id": "resp_locator_1", "usage": {"total_tokens": 1}, "output": []})
     gate = RecordingGate()
-    result = OpenAIResponsesWebSearchProvider(Client(), model="gpt-5", execution_gate=gate).search(
+    result = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=gate).search(
         query='"Sunrise"', subject_abn="11111111111", request_identity="req:1")
     assert result.provider_call_id == "resp_locator_1"
     assert [event[0] for event in gate.events] == ["begin", "complete"]
+
+
+def test_standard_adapter_emits_exact_luna_web_search_body_and_normalizes_real_sources():
+    body = {"id": "resp_locator_sources", "usage": {"input_tokens": 4, "output_tokens": 6},
+            "output": [{"type": "web_search_call", "action": {"sources": [
+                {"url": "https://example.org/", "title": "Example", "type": "source"},
+            ]}}]}
+    client = StubStandardClient(body)
+    result = OpenAIResponsesWebSearchProvider(
+        OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=RecordingGate(),
+    ).search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:body")
+    sent = __import__("json").loads(client.calls[0][0])
+    assert sent == {"model": "gpt-5.6-luna", "input": '"Sunrise"', "tools": [{"type": "web_search"}], "store": False}
+    assert result.provider_call_id == "resp_locator_sources"
+    assert result.usage == body["usage"]
+    assert result.results == (LocatorSearchResult("https://example.org/", title="Example", source_metadata={"title": "Example", "type": "source"}),)
+    assert result.results[0].snippet == "" and result.results[0].rank is None
+
+
+@pytest.mark.parametrize("response_body", [{"usage": {"total_tokens": 1}, "output": []}, {"id": "resp", "output": {}}])
+def test_missing_identity_or_source_structure_fails_without_fabricated_locator_metadata(response_body):
+    client = StubStandardClient({"id": response_body.get("id", "missing"), **response_body})
+    if "id" not in response_body:
+        client.body.pop("id")
+    gate = RecordingGate()
+    with pytest.raises(ScalePreflightError):
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=gate).search(
+            query='"Sunrise"', subject_abn="11111111111", request_identity="req:malformed")
+    assert [event[0] for event in gate.events] == ["begin", "fail"]
+
+
+def test_standard_ambiguous_evidence_is_not_downgraded_to_definite_failure():
+    class FailingClient:
+        def create_response_once(self, *_args, **_kwargs):
+            raise StandardAmbiguous("socket outcome unknown", client_request_id="locator-test-client")
+    gate = RecordingGate()
+    with pytest.raises(StandardAmbiguous):
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(FailingClient()), model="gpt-5.6-luna", execution_gate=gate).search(
+            query='"Sunrise"', subject_abn="11111111111", request_identity="req:ambiguous")
+    assert gate.events[-1] == ("fail", "provider_ambiguous_transport", True)
 
 
 def test_gate_rejects_mock_only_preflight_without_a_frozen_operational_packet():
@@ -126,15 +168,11 @@ def test_existing_preflight_denials_never_reach_network(control_failure):
             preflight.provider_send()
             super().begin(**kwargs)
     gate = PreflightGate()
-    class Client:
-        calls = 0
-        class responses:
-            @staticmethod
-            def create(**_kwargs): Client.calls += 1; raise AssertionError("network boundary crossed")
-    adapter = OpenAIResponsesWebSearchProvider(Client(), model="gpt-5", execution_gate=gate)
+    client = StubStandardClient({"id": "never", "output": []})
+    adapter = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=gate)
     with pytest.raises(ScalePreflightError):
         adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:denied")
-    assert Client.calls == 0
+    assert client.calls == []
 
 
 def test_replay_gate_denial_prevents_second_physical_search():
@@ -143,19 +181,12 @@ def test_replay_gate_denial_prevents_second_physical_search():
             if self.events:
                 raise ScalePreflightError("duplicate durable provider request identity")
             super().begin(**kwargs)
-    class Response:
-        id = "resp_once"
-        output = ()
-    class Client:
-        calls = 0
-        class responses:
-            @staticmethod
-            def create(**_kwargs): Client.calls += 1; return Response()
-    adapter = OpenAIResponsesWebSearchProvider(Client(), model="gpt-5", execution_gate=ReplayGate())
+    client = StubStandardClient({"id": "resp_once", "output": []})
+    adapter = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=ReplayGate())
     adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:once")
     with pytest.raises(ScalePreflightError):
         adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:once")
-    assert Client.calls == 1
+    assert len(client.calls) == 1
 
 
 def test_discovery_lineage_is_durable_and_idempotent_without_duplicate_provider_calls(tmp_path):
