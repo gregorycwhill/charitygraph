@@ -63,6 +63,13 @@ def prepare_locator_lifecycle(*, catalog: Any, attempt: Any, packet: Any, reques
     catalog.reserve_cost({"record_id": reservation_id, "cohort_id": cohort_id, "run_id": attempt.run_id,
                           "reserved_amount": {"amount": str(amount), "currency": "USD"}, "model_task_ids": (task_key,),
                           "expires_at": attestation_window["valid_until"]}, now=now)
+    catalog.record_scale_s0_reservation_binding({
+        "reservation_id": reservation_id, "reservation_active": True,
+        "reservation_mandate_id": attempt.mandate_id, "reservation_slice_id": attempt.slice_id,
+        "reservation_task_key": task_key, "reservation_currency": "USD",
+        "pricing_snapshot_id": packet.pricing_snapshot_id,
+        "estimated_provider_cost": packet.estimated_provider_cost,
+    }, recorded_at=now, execution_attempt_id=attempt.attempt_id)
     delivery_job_id = "deliveryjob:" + packet.provider_request_identity.split(":", 1)[-1]
     catalog.create_delivery_job(delivery_job_id=delivery_job_id, run_id=attempt.run_id, provider_id="openai", model_route="gpt-5.6-luna", delivery_mode="standard", pricing_snapshot_id=packet.pricing_snapshot_id, now=now)
     catalog.prepare_physical_attempt(physical_attempt_id=request.physical_attempt_id, run_id=attempt.run_id, subject_id=packet.subject_id, delivery_mode="standard", provider_request_id=packet.provider_request_identity, model_task_ids=(task_key,), reservation_id=reservation_id, now=now)
@@ -70,4 +77,3 @@ def prepare_locator_lifecycle(*, catalog: Any, attempt: Any, packet: Any, reques
     delivery_attempt_id = "delivery-attempt:" + __import__("hashlib").sha256(__import__("json").dumps({"locator_search": packet.provider_request_identity}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     catalog.create_provider_request_attempt(delivery_attempt_id=delivery_attempt_id, provider_request_item_id=packet.provider_request_identity, physical_attempt_id=request.physical_attempt_id, delivery_job_id=delivery_job_id, attempt_ordinal=1, authorization_id=attestation_window["window_id"], attempt_class="initial", predecessor_attempt_id=None, now=now)
     return {"reservation_id": reservation_id, "delivery_job_id": delivery_job_id, "delivery_attempt_id": delivery_attempt_id, "task_key": task_key}
-
