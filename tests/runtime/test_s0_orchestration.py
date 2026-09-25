@@ -130,6 +130,20 @@ def test_locator_a3_expiry_is_pre_send_and_has_no_provider_post(tmp_path):
     assert fake.calls == 0
 
 
+def test_locator_gate_preflight_failure_is_not_counted_as_a_provider_post(tmp_path):
+    catalog, _, packet, prepared = _prepared_catalog(tmp_path)
+    with catalog._connection(immediate=True) as conn:
+        conn.execute("DELETE FROM scale_s0_physical_bundles")
+        catalog._commit(conn)
+    fake = FakeLocator()
+    executor = ScaleS0Executor(catalog=catalog, attempt_id="attempt:locator", builder_commit_sha="a" * 40,
+                               runtime_root=tmp_path, locator_provider=fake, now=lambda: __import__("datetime").datetime(2099, 9, 22, tzinfo=__import__("datetime").timezone.utc))
+    work = S0LocatorWork(packet.packet_id, prepared.request, prepared.delivery_attempt_id, prepared.client_request_id, packet.locator_query)
+    summary = executor.run(locator=(work,))
+    assert summary.counts == {"failed": 1} and summary.provider_posts == 0
+    assert fake.calls == 0
+
+
 def test_locator_ambiguous_crossing_is_held_and_reentry_never_resends(tmp_path):
     catalog, _, packet, prepared = _prepared_catalog(tmp_path)
     fake = AmbiguousLocator()

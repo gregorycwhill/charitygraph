@@ -242,7 +242,6 @@ class ScaleS0Executor:
                 if not provider_manages_gate:
                     gate.begin(request_identity=packet.provider_request_identity,
                                subject_abn=packet.subject_id, query=item.query)
-                provider_crossing_started = True
                 response = item_locator_provider.search(query=item.query, subject_abn=packet.subject_id, request_identity=packet.provider_request_identity)
                 response_id = str(getattr(response, "provider_call_id", ""))
                 if not response_id:
@@ -280,8 +279,13 @@ class ScaleS0Executor:
                 # crossing ambiguity stops the campaign; a definite rejection
                 # is terminal for this item but does not authorize a retry.
                 if not provider_manages_gate:
-                    gate.fail(failure_class="provider_transport_failure", message=str(error), ambiguous=True)
-                post_count = int(provider_crossing_started)
+                    gate_posts = getattr(gate, "provider_posts", None)
+                    gate_started = getattr(gate, "crossing_started", None)
+                    gate.fail(failure_class="provider_transport_failure", message=str(error),
+                              ambiguous=True if gate_posts is None else bool(gate_posts or gate_started))
+                # Entering provider.search is not a physical post.  Canonical
+                # providers expose the durable gate crossing outcome.
+                post_count = int(getattr(gate, "provider_posts", provider_crossing_started))
                 results.append({"request_item_id": packet.provider_request_identity, "status": "failed", "provider_posts": post_count, "error": str(error)[:512]})
                 return results, posts + post_count, True
         return results, posts, False

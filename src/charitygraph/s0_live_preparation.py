@@ -1,7 +1,7 @@
 """Explicit, idempotent S0 live preparation for a future fresh attempt."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any, Iterable
@@ -11,6 +11,7 @@ from .s0_pricing import load_supervisor_capture
 from .scale_s0 import ScalePreflightError, packet_task_key
 from .runtime.catalog import S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME
 from .phase5_standard_transport import canonical_standard_body_bytes
+from .s0_acquisition_bridge import bundle_packets
 import hashlib
 import json
 
@@ -58,6 +59,20 @@ def prepare_locator_lifecycle(*, catalog: Any, attempt: Any, packet: Any, reques
     if request.provider_account_project != attestation_window["provider_account_project"] or request.execution_authority != attestation_window["execution_authority"]:
         raise ScalePreflightError("request A3 fields do not match the durable attestation")
     task_key = packet_task_key(packet)
+    # Finalise the immutable physical bundle before any reservation or provider
+    # lifecycle can be considered executable.  Membership is derived from the
+    # exact frozen packet and attempt, so re-entry is an identity check.
+    stored_packet = catalog.get_scale_s0_frozen_packet(packet.packet_id)
+    if stored_packet is None or stored_packet.get("execution_attempt_id") != attempt.attempt_id:
+        raise ScalePreflightError("locator lifecycle requires an attempt-owned durable packet")
+    mandate_row = catalog.get_scale_s0_mandate(attempt.mandate_id)
+    if mandate_row is None:
+        raise ScalePreflightError("locator lifecycle requires the durable mandate")
+    mandate_data = mandate_row["material"]
+    from .scale_s0 import ScaleMandate
+    mandate = ScaleMandate(**mandate_data)
+    for bundle in bundle_packets(mandate, (packet,), now=now, execution_attempt_id=attempt.attempt_id):
+        catalog.register_scale_s0_physical_bundle(asdict(bundle), execution_attempt_id=attempt.attempt_id)
     catalog.register_task({"record_id": task_key, "subject_id": packet.subject_id, "scope_id": packet.scope_id,
                            "cohort_id": cohort_id, "task_type": "locator_search", "task_schema": packet.input_profile_id,
                            "cache_key": packet.content_hash, "provider_id": "openai", "model_snapshot": "gpt-5.6-luna"}, run_id=attempt.run_id, now=now)

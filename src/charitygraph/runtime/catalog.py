@@ -989,8 +989,12 @@ class SQLiteCatalog:
     def register_scale_s0_physical_bundle(self, bundle: Mapping[str, Any], *, execution_attempt_id: str | None = None, offline: bool = False) -> dict[str, Any]:
         packet_ids = tuple(bundle.get("packet_ids") or ())
         packet_hashes = tuple(bundle.get("packet_hashes") or ())
+        if len(packet_ids) != len(set(packet_ids)) or len(packet_hashes) != len(set(packet_hashes)) or len(packet_ids) != len(packet_hashes):
+            raise ConflictError("physical bundle packet membership must be unique and positional")
         if not packet_ids and not offline:
             raise CatalogError("live Scale S0 physical bundles require packet_ids")
+        if packet_ids and not offline and execution_attempt_id is None:
+            raise ConflictError("live Scale S0 physical bundles require an execution attempt")
         if not packet_ids and offline:
             return self._register_scale_s0_bridge_material(table="scale_s0_physical_bundles", id_column="bundle_id", record=dict(bundle),
                 mandate_id=str(bundle.get("mandate_id", "")), subject_id=None, timestamp_column="frozen_at",
@@ -1005,6 +1009,8 @@ class SQLiteCatalog:
         if len(rows) != len(packet_ids):
             raise ConflictError("physical bundle references an unknown packet")
         materials = [json.loads(row["material_json"]) for row in rows]
+        if any(_canonical_hash(material) != row["material_hash"] for material, row in zip(materials, rows, strict=True)):
+            raise ConflictError("physical bundle references an integrity-invalid packet")
         owners = {row["execution_attempt_id"] for row in rows}
         mandates = {row["mandate_id"] for row in rows}
         if len(owners) != 1 or (None in owners and not offline) or len(mandates) != 1 or next(iter(mandates)) != str(bundle.get("mandate_id")):
@@ -1012,10 +1018,13 @@ class SQLiteCatalog:
         derived_attempt = next(iter(owners))
         if execution_attempt_id is not None and execution_attempt_id != derived_attempt:
             raise ConflictError("physical bundle attempt conflicts with packet ownership")
-        expected_hashes = {material.get("binding_hash") for material in materials}
-        if set(packet_hashes) != expected_hashes or len(packet_hashes) != len(packet_ids):
+        expected_hashes = tuple(material.get("binding_hash") for material in materials)
+        if set(packet_hashes) != set(expected_hashes) or len(packet_hashes) != len(packet_ids):
             raise ConflictError("physical bundle packet hashes do not match persisted packet bindings")
-        record = {**bundle, "execution_attempt_id": derived_attempt}
+        if any(material.get("execution_attempt_id") != derived_attempt or material.get("mandate_id") != str(bundle.get("mandate_id")) or material.get("slice_id") != next(iter({row["slice_id"] for row in rows})) for material in materials):
+            raise ConflictError("physical bundle packet material is outside its attempt, mandate, or slice")
+        record = {**bundle, "execution_attempt_id": derived_attempt,
+                  "packet_ids": tuple(packet_ids), "packet_hashes": tuple(packet_hashes)}
         return self._register_scale_s0_bridge_material(table="scale_s0_physical_bundles", id_column="bundle_id", record=record,
             mandate_id=str(bundle.get("mandate_id", "")), subject_id=None, timestamp_column="frozen_at",
             extra={"routing_class": _text(bundle.get("routing_class"), "routing_class"), "execution_attempt_id": derived_attempt})

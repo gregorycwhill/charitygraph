@@ -21,7 +21,7 @@ from charitygraph.document_v2.pipeline import extract_document
 from charitygraph.scale_s0 import (
     DocumentRepresentation, FrozenPacket, HaltController, LogicalTaskRegistry,
     PolicyArtifact, ProcessingDisposition, RepresentationPolicy, RoutingPolicy,
-    ScaleMandate, ScalePreflightError, ScaleS0Preflight, SourceAuthorisation,
+    ScaleMandate, ScalePreflightError, ScaleS0Preflight, SourceAuthorisation, packet_task_key,
 )
 from charitygraph.s0_product_owner_policy import acnc_ais_local_use_permitted, concrete_first_party_source_definition_id
 from charitygraph.s0_locator_discovery import canonical_locator
@@ -417,23 +417,30 @@ class PhysicalBundle:
     frozen_at: str
 
 
-def bundle_packets(mandate: ScaleMandate, packets: Iterable[FrozenPacket], *, now: datetime | None = None) -> tuple[PhysicalBundle, ...]:
+def bundle_packets(mandate: ScaleMandate, packets: Iterable[FrozenPacket], *, now: datetime | None = None,
+                   execution_attempt_id: str | None = None) -> tuple[PhysicalBundle, ...]:
     """Apply the approved compatibility rule without collapsing logical tasks."""
     groups: dict[tuple[str, str], list[FrozenPacket]] = {}
     for packet in packets:
-        if packet.routing_class.value == "human_decision":
+        route = packet.routing_class.value if hasattr(packet.routing_class, "value") else str(packet.routing_class)
+        if route == "human_decision":
             raise ScalePreflightError("human-only work cannot become a provider bundle")
         # Packets are compatible only when they have exactly the same frozen
         # corpus material and route.  Strong tasks therefore never enter a
         # low-cost group.
-        key = (packet.routing_class.value, _hash((packet.source_snapshot_hashes, packet.subject_id, packet.scope_id)))
+        key = (route, _hash((packet.source_snapshot_hashes, packet.subject_id, packet.scope_id)))
         groups.setdefault(key, []).append(packet)
     result: list[PhysicalBundle] = []
     for (route, _), items in sorted(groups.items()):
         ids = tuple(sorted(item.packet_id for item in items))
         hashes = tuple(sorted(item.binding_hash for item in items))
-        material = {"mandate": mandate.identity_hash, "route": route, "packets": hashes}
-        result.append(PhysicalBundle("bundle:" + _hash(material), mandate.mandate_id, route, ids, hashes, _utc(now)))
+        material = {"mandate": mandate.identity_hash, "route": route, "packets": hashes,
+                    "execution_attempt_id": execution_attempt_id}
+        # Bundle finalisation is tied to the frozen packet identities, not to
+        # the wall clock of a restart.  This makes re-entry an exact identity
+        # check instead of an append/mutate operation.
+        bundle_frozen_at = max(item.frozen_at for item in items)
+        result.append(PhysicalBundle("bundle:" + _hash(material), mandate.mandate_id, route, ids, hashes, bundle_frozen_at))
     return tuple(result)
 
 
@@ -458,7 +465,8 @@ def source_authorisations(mandate: ScaleMandate, registry: LogicalTaskRegistry, 
 
 
 def persist_bridge(catalog: object, mandate: ScaleMandate, *, plans: Iterable[SourcePlan], snapshots: Iterable[SourceSnapshot],
-                   corpora: Iterable[FrozenCorpus], bundles: Iterable[PhysicalBundle], representations: Iterable[RepresentationRecord] = (), execution_attempt_id: str | None = None, offline: bool = False) -> None:
+                   corpora: Iterable[FrozenCorpus], bundles: Iterable[PhysicalBundle], representations: Iterable[RepresentationRecord] = (),
+                   packets: Iterable[FrozenPacket] = (), execution_attempt_id: str | None = None, offline: bool = False) -> None:
     """Persist all bridge control-plane transitions idempotently in migration 18."""
     plan_rows = {plan.plan_id: plan for plan in plans}
     for plan in plan_rows.values():
@@ -478,7 +486,24 @@ def persist_bridge(catalog: object, mandate: ScaleMandate, *, plans: Iterable[So
         catalog.register_scale_s0_representation({**asdict(representation), "representation_kind": representation.representation_kind}, mandate_id=mandate.mandate_id, execution_attempt_id=execution_attempt_id, offline=offline)
     for corpus in corpora:
         catalog.register_scale_s0_frozen_corpus({**asdict(corpus), "corpus_id": corpus.corpus_id}, execution_attempt_id=execution_attempt_id)
-    for bundle in bundles:
+    packet_rows = tuple(packets)
+    for packet in packet_rows:
+        material = {**asdict(packet), "mandate_hash": mandate.identity_hash,
+                    "task_key": packet_task_key(packet),
+                    "binding_hash": packet.binding_hash}
+        if execution_attempt_id:
+            attempt = catalog.get_scale_s0_execution_attempt(execution_attempt_id)
+            if attempt is None or attempt["mandate_id"] != mandate.mandate_id or attempt["slice_id"] != mandate.slice_id:
+                raise ScalePreflightError("packet execution attempt is absent or mismatched")
+            material.update({"execution_attempt_id": execution_attempt_id, "run_id": attempt["run_id"]})
+        catalog.register_scale_s0_frozen_packet(material)
+    supplied_bundles = tuple(bundles)
+    if packet_rows and execution_attempt_id is not None:
+        derived = bundle_packets(mandate, packet_rows, execution_attempt_id=execution_attempt_id)
+        if supplied_bundles and {item.bundle_id for item in supplied_bundles} != {item.bundle_id for item in derived}:
+            raise ScalePreflightError("supplied physical bundles do not match exact frozen packet membership")
+        supplied_bundles = derived
+    for bundle in supplied_bundles:
         catalog.register_scale_s0_physical_bundle(asdict(bundle), execution_attempt_id=execution_attempt_id, offline=offline)
 
 
