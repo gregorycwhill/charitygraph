@@ -12,7 +12,7 @@ from decimal import Decimal, InvalidOperation
 from enum import StrEnum
 from hashlib import sha256
 import json
-from typing import Iterable, Mapping
+from typing import Any, Iterable, Mapping
 
 from .runtime.catalog import (
     S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME,
@@ -42,20 +42,52 @@ LOCATOR_SEARCH_TASK_ID = "urn:charitygraph:scale-s0:locator_search"
 LOCATOR_SEARCH_TASK_VERSION = "1.0"
 LOCATOR_SEARCH_INPUT_PROFILE_ID = "profile:locator-search:1"
 LOCATOR_SEARCH_OUTPUT_SCHEMA_ID = "urn:charitygraph:builder:schema:locator-search-discovery-metadata:1.0"
+LOCATOR_SEARCH_PROVIDER_REQUEST = {
+    "model": "gpt-5.6-luna",
+    "tools": [{"type": "web_search"}],
+    "tool_choice": {"type": "web_search"},
+    "store": False,
+    "include": ["web_search_call.action.sources"],
+}
 
 
-def locator_search_request_identity(*, subject_id: str, query: str, query_index: int) -> str:
+def locator_search_request_body(query: str) -> dict[str, Any]:
+    """Build the sole canonical locator POST body from frozen public input."""
+    return {"model": LOCATOR_SEARCH_PROVIDER_REQUEST["model"], "input": query,
+            "tools": [{"type": "web_search"}],
+            "tool_choice": {"type": "web_search"}, "store": False,
+            "include": ["web_search_call.action.sources"]}
+
+
+def locator_search_request_identity(*, subject_id: str, query: str, query_index: int,
+                                    execution_attempt_id: str,
+                                    provider_account_project: str,
+                                    execution_authority: str) -> str:
     """Return the durable identity for one bounded, public-identity search.
 
     This is an operational identity, never an evidence or semantic-task identity.
     Keeping it in the S0 control plane lets the frozen packet, reservation, and
     exactly-once boundary independently recompute the same value.
     """
-    if (not subject_id or not query or not isinstance(query_index, int)
+    # These identifiers are compared byte-for-byte at the durable authority
+    # boundary.  Do not Unicode-normalise them here: normalisation could make
+    # two governed identifiers collide.  Reject only absent/non-text and
+    # whitespace-only values, which have no usable exact identity.
+    identity_text = (subject_id, query, execution_attempt_id,
+                     provider_account_project, execution_authority)
+    if (any(not isinstance(value, str) or not value.strip() for value in identity_text)
+            or not isinstance(query_index, int)
             or isinstance(query_index, bool)
             or not 0 <= query_index < LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT):
         raise ScalePreflightError("locator search identity requires a subject, query, and bounded query index")
-    return "locator-search:" + _digest({"subject": subject_id, "query": query, "index": query_index})
+    # The durable exactly-once identity deliberately includes every provider
+    # material field.  A later contract repair (for example, a required
+    # Responses ``include``) must never collide with an earlier request.
+    return "locator-search:" + _digest({"execution_attempt": execution_attempt_id,
+                                         "provider_account_project": provider_account_project,
+                                         "execution_authority": execution_authority,
+                                         "subject": subject_id, "query": query, "index": query_index,
+                                         "body": locator_search_request_body(query)})
 
 
 class ReviewRequirement(StrEnum): NONE = "none"; SAMPLED = "sampled"; MANDATORY = "mandatory"
@@ -202,7 +234,7 @@ class RepresentationPolicy:
 
 @dataclass(frozen=True)
 class FrozenPacket:
-    packet_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; source_ids: tuple[str, ...]; source_snapshot_hashes: tuple[str, ...]; input_profile_id: str; output_schema_id: str; routing_class: RoutingClass; provider_request_identity: str; content_hash: str; contract_version: str = "north-star-v0.2"; mandate_id: str = ""; slice_id: str = ""; frozen_at: str = ""; corpus_id: str = ""; operation_kind: str = "semantic"; locator_query: str = ""; locator_query_index: int = -1; pricing_snapshot_id: str = ""; estimated_provider_cost: str = ""
+    packet_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; source_ids: tuple[str, ...]; source_snapshot_hashes: tuple[str, ...]; input_profile_id: str; output_schema_id: str; routing_class: RoutingClass; provider_request_identity: str; content_hash: str; contract_version: str = "north-star-v0.2"; mandate_id: str = ""; slice_id: str = ""; frozen_at: str = ""; corpus_id: str = ""; operation_kind: str = "semantic"; locator_query: str = ""; locator_query_index: int = -1; pricing_snapshot_id: str = ""; estimated_provider_cost: str = ""; locator_execution_attempt_id: str = ""; provider_account_project: str = ""; execution_authority: str = ""
     def __post_init__(self) -> None:
         if self.frozen_at:
             object.__setattr__(self, "frozen_at", canonical_utc_timestamp(self.frozen_at, "frozen_at"))
@@ -210,7 +242,10 @@ class FrozenPacket:
             raise ScalePreflightError("frozen packet has an unknown operation kind")
         if self.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
             expected = locator_search_request_identity(subject_id=self.subject_id, query=self.locator_query,
-                                                       query_index=self.locator_query_index)
+                                                       query_index=self.locator_query_index,
+                                                       execution_attempt_id=self.locator_execution_attempt_id,
+                                                       provider_account_project=self.provider_account_project,
+                                                       execution_authority=self.execution_authority)
             if (self.task_id, self.task_version, self.input_profile_id, self.output_schema_id,
                 self.routing_class, self.provider_request_identity) != (
                     LOCATOR_SEARCH_TASK_ID, LOCATOR_SEARCH_TASK_VERSION,
@@ -219,6 +254,8 @@ class FrozenPacket:
                 raise ScalePreflightError("locator search packet does not bind its canonical operational contract")
             if self.source_ids or self.source_snapshot_hashes or self.corpus_id:
                 raise ScalePreflightError("locator search packet must remain source-free and corpus-free")
+            if not self.locator_execution_attempt_id or not self.provider_account_project or not self.execution_authority:
+                raise ScalePreflightError("locator search packet lacks immutable execution and A3 bindings")
             try:
                 estimate = Decimal(self.estimated_provider_cost)
             except (InvalidOperation, ValueError) as error:
@@ -445,6 +482,8 @@ class ScaleS0Preflight:
             attempt_material = {"execution_attempt_id": execution_attempt_id, "run_id": attempt_row["run_id"]}
             if packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
                 _validate_locator_search_packet(packet, mandate)
+                if packet.locator_execution_attempt_id != execution_attempt_id:
+                    raise ScalePreflightError("locator packet identity is bound to a different execution attempt")
             else:
                 if not packet.corpus_id or not hasattr(catalog, "get_scale_s0_frozen_corpus"):
                     raise ScalePreflightError("live packet requires durable corpus ownership")
@@ -580,6 +619,13 @@ class ScaleS0Preflight:
         if request.subject_id not in self.mandate.subject_ids or not request.scope_id: raise ScalePreflightError("request is outside frozen population or scope")
         packet=self._packet(request,task); route=self.routing.route_for(task,triggered_escalations)
         if request.route!=route or packet.routing_class!=route: raise ScalePreflightError("caller cannot choose a route")
+        if packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
+            if (request.provider_account_project != packet.provider_account_project
+                    or request.execution_authority != packet.execution_authority):
+                raise ScalePreflightError("locator request A3 binding does not match its frozen packet")
+            if (self.execution_attempt is not None
+                    and packet.locator_execution_attempt_id != self.execution_attempt.attempt_id):
+                raise ScalePreflightError("locator packet identity is bound to a different execution attempt")
         if self.catalog is not None:
             existing = self.catalog.get_provider_request_item(packet.provider_request_identity)
             if existing is not None and not (allow_prepared_lifecycle and existing.get("status") == "prepared") and (packet.operation_kind != LOCATOR_SEARCH_OPERATION_KIND or existing.get("status") != "prepared"):

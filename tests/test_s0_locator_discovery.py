@@ -10,6 +10,7 @@ from charitygraph.s0_locator_discovery import (
 )
 from charitygraph.s0_product_owner_policy import concrete_first_party_source_definition_id
 from charitygraph.scale_s0 import ScalePreflightError
+from charitygraph.scale_s0 import locator_search_request_identity
 from charitygraph.phase5_standard_transport import (
     OpenAIHTTPStandardClient, OpenAIResponsesWebSearchTransport,
     StandardAmbiguous, StandardProviderResponse,
@@ -86,12 +87,13 @@ class RecordingGate(LocatorSearchExecutionGate):
     client_request_id = "locator-test-client"
     def __init__(self): self.events = []
     def begin(self, *, request_identity, subject_abn, query): self.events.append(("begin", request_identity, subject_abn, query))
-    def complete(self, *, provider_receipt_id, result_ref, usage=None): self.events.append(("complete", provider_receipt_id, result_ref, usage))
+    def complete(self, *, provider_receipt_id, result_ref, usage=None, response_facts=None): self.events.append(("complete", provider_receipt_id, result_ref, usage, response_facts))
     def fail(self, *, failure_class, message, ambiguous=False): self.events.append(("fail", failure_class, ambiguous))
 
 
 def test_authorised_search_is_framed_by_durable_gate_before_and_after_network():
-    client = StubStandardClient({"id": "resp_locator_1", "usage": {"total_tokens": 1}, "output": []})
+    client = StubStandardClient({"id": "resp_locator_1", "usage": {"total_tokens": 1},
+                                 "output": [{"type": "web_search_call", "action": {"sources": []}}]})
     gate = RecordingGate()
     result = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=gate).search(
         query='"Sunrise"', subject_abn="11111111111", request_identity="req:1")
@@ -109,11 +111,73 @@ def test_standard_adapter_emits_exact_luna_web_search_body_and_normalizes_real_s
         OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=RecordingGate(),
     ).search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:body")
     sent = __import__("json").loads(client.calls[0][0])
-    assert sent == {"model": "gpt-5.6-luna", "input": '"Sunrise"', "tools": [{"type": "web_search"}], "tool_choice": {"type": "web_search"}, "store": False}
+    assert sent == {"model": "gpt-5.6-luna", "input": '"Sunrise"', "tools": [{"type": "web_search"}], "tool_choice": {"type": "web_search"}, "store": False, "include": ["web_search_call.action.sources"]}
     assert result.provider_call_id == "resp_locator_sources"
     assert result.usage == body["usage"]
     assert result.results == (LocatorSearchResult("https://example.org/", title="Example", source_metadata={"title": "Example", "type": "source"}),)
     assert result.results[0].snippet == "" and result.results[0].rank is None
+
+
+def test_locator_request_identity_binds_the_required_responses_include_contract():
+    identity = locator_search_request_identity(subject_id="11111111111", query='"Sunrise"', query_index=0,
+                                               execution_attempt_id="attempt:one", provider_account_project="proj:one",
+                                               execution_authority="authority:one")
+    legacy_identity_material = {"subject": "11111111111", "query": '"Sunrise"', "index": 0}
+    legacy = "locator-search:" + __import__("hashlib").sha256(__import__("json").dumps(
+        legacy_identity_material, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    assert identity != legacy
+
+
+def test_locator_request_identity_separates_attempt_and_a3_bindings():
+    common = {"subject_id": "11111111111", "query": '"Sunrise"', "query_index": 0,
+              "execution_attempt_id": "attempt:one", "provider_account_project": "proj:one",
+              "execution_authority": "authority:one"}
+    identity = locator_search_request_identity(**common)
+    assert identity != locator_search_request_identity(**{**common, "execution_attempt_id": "attempt:two"})
+    assert identity != locator_search_request_identity(**{**common, "provider_account_project": "proj:two"})
+    assert identity != locator_search_request_identity(**{**common, "execution_authority": "authority:two"})
+
+
+def test_pricing_facts_count_source_bearing_web_search_without_action_type():
+    body = {"id": "resp_locator_pricing", "model": "gpt-5.6-luna",
+            "usage": {"input_tokens": 4, "output_tokens": 6},
+            "output": [{"type": "web_search_call", "action": {"sources": []}}]}
+    gate = RecordingGate()
+    OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
+                                     model="gpt-5.6-luna", execution_gate=gate).search(
+        query='"Sunrise"', subject_abn="11111111111", request_identity="req:pricing")
+    assert gate.events[1][4] == {"model": "gpt-5.6-luna", "web_search_calls": 1}
+
+
+@pytest.mark.parametrize("output", [
+    [],
+    [{"type": "message", "action": {"sources": [{"url": "https://hostile.example/"}]}}],
+    [{"type": "web_search_call", "action": {"sources": []}}, {"type": "web_search_call", "action": {}}],
+])
+def test_only_well_formed_web_search_call_sources_can_yield_locator_discovery(output):
+    body = {"id": "resp_mixed", "model": "gpt-5.6-luna",
+            "usage": {"input_tokens": 1, "output_tokens": 1}, "output": output}
+    gate = RecordingGate()
+    with pytest.raises(ScalePreflightError, match="source structure"):
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
+                                         model="gpt-5.6-luna", execution_gate=gate).search(
+            query='"Sunrise"', subject_abn="11111111111", request_identity="req:mixed")
+    # A definite response is still accounted before rejecting its locator shape.
+    assert [event[0] for event in gate.events] == ["begin", "complete", "fail"]
+
+
+@pytest.mark.parametrize("body", [
+    {"id": 7, "usage": {"input_tokens": 1, "output_tokens": 1}, "output": []},
+    {"id": "resp_incomplete", "model": "gpt-5.6-luna", "status": "incomplete",
+     "usage": {"input_tokens": 1, "output_tokens": 1}, "output": []},
+])
+def test_invalid_identity_or_explicitly_incomplete_response_never_yields_discovery(body):
+    gate = RecordingGate()
+    with pytest.raises(ScalePreflightError):
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
+                                         model="gpt-5.6-luna", execution_gate=gate).search(
+            query='"Sunrise"', subject_abn="11111111111", request_identity="req:invalid")
+    assert gate.events[-1][0] == "fail"
 
 
 @pytest.mark.parametrize("response_body", [{"usage": {"total_tokens": 1}, "output": []}, {"id": "resp", "output": {}}])
@@ -125,7 +189,7 @@ def test_missing_identity_or_source_structure_fails_without_fabricated_locator_m
     with pytest.raises(ScalePreflightError):
         OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=gate).search(
             query='"Sunrise"', subject_abn="11111111111", request_identity="req:malformed")
-    assert [event[0] for event in gate.events] == ["begin", "fail"]
+    assert [event[0] for event in gate.events] == (["begin", "fail"] if "id" not in response_body else ["begin", "complete", "fail"])
 
 
 def test_standard_ambiguous_evidence_is_not_downgraded_to_definite_failure():
@@ -136,6 +200,28 @@ def test_standard_ambiguous_evidence_is_not_downgraded_to_definite_failure():
     with pytest.raises(StandardAmbiguous):
         OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(FailingClient()), model="gpt-5.6-luna", execution_gate=gate).search(
             query='"Sunrise"', subject_abn="11111111111", request_identity="req:ambiguous")
+    assert gate.events[-1] == ("fail", "provider_ambiguous_transport", True)
+
+
+def test_unclassified_transport_exception_after_invocation_is_held_ambiguous():
+    class FailingClient(OpenAIHTTPStandardClient):
+        def create_response_once(self, *_args, **_kwargs):
+            raise RuntimeError("unexpected adapter failure")
+    gate = RecordingGate()
+    with pytest.raises(RuntimeError, match="unexpected adapter failure"):
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(FailingClient()), model="gpt-5.6-luna", execution_gate=gate).search(
+            query='"Sunrise"', subject_abn="11111111111", request_identity="req:unclassified")
+    assert gate.events[-1] == ("fail", "provider_ambiguous_transport", True)
+
+
+@pytest.mark.parametrize("response_id", ["", "   ", "\t"])
+def test_blank_response_identity_is_held_ambiguous(response_id):
+    gate = RecordingGate()
+    body = {"id": response_id, "output": [{"type": "web_search_call", "action": {"sources": []}}]}
+    with pytest.raises(ScalePreflightError, match="identity"):
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
+                                         model="gpt-5.6-luna", execution_gate=gate).search(
+            query='"Sunrise"', subject_abn="11111111111", request_identity="req:blank-id")
     assert gate.events[-1] == ("fail", "provider_ambiguous_transport", True)
 
 
@@ -181,7 +267,7 @@ def test_replay_gate_denial_prevents_second_physical_search():
             if self.events:
                 raise ScalePreflightError("duplicate durable provider request identity")
             super().begin(**kwargs)
-    client = StubStandardClient({"id": "resp_once", "output": []})
+    client = StubStandardClient({"id": "resp_once", "output": [{"type": "web_search_call", "action": {"sources": []}}]})
     adapter = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=ReplayGate())
     adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:once")
     with pytest.raises(ScalePreflightError):

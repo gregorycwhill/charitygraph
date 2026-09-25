@@ -1152,6 +1152,10 @@ class SQLiteCatalog:
                                     "profile:locator-search:1", "urn:charitygraph:builder:schema:locator-search-discovery-metadata:1.0")
                 if (task_id, task_version, route, input_profile_id, output_schema_id) != locator_contract or task_key != material.get("provider_request_identity") or source_ids or source_snapshot_hashes or material.get("corpus_id"):
                     raise ConflictError("locator search packet is not an exact source-free operational request")
+                if (material.get("locator_execution_attempt_id") != execution_attempt_id
+                        or material.get("provider_account_project") != provider_account_project
+                        or material.get("execution_authority") != execution_authority):
+                    raise ConflictError("locator search request execution or A3 binding is substituted")
                 if not material.get("pricing_snapshot_id") or not material.get("estimated_provider_cost"):
                     raise ConflictError("locator search packet lacks immutable pricing material")
                 task_contract = None
@@ -3709,7 +3713,7 @@ class SQLiteCatalog:
             conn.execute("UPDATE physical_attempts SET status='send_started',send_started_at=?,updated_at=? WHERE physical_attempt_id=?",(when,when,physical_attempt_id)); self._commit(conn)
             return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?",(physical_attempt_id,)).fetchone())
 
-    def persist_provider_receipt(self, *, physical_attempt_id: str, provider_receipt_id: str, raw_result_ref: str, usage: Any, now: datetime | str) -> dict[str, Any]:
+    def persist_provider_receipt(self, *, physical_attempt_id: str, provider_receipt_id: str, raw_result_ref: str, usage: Any, now: datetime | str, response_facts: Any = None) -> dict[str, Any]:
         when=_utc(now,"now")
         with self._connection(immediate=True) as conn:
             prior=conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone()
@@ -3718,7 +3722,7 @@ class SQLiteCatalog:
                 return dict(prior)
             row=conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?",(physical_attempt_id,)).fetchone()
             if row is None or row["status"] != "send_started": raise InvalidTransitionError("receipt requires send_started physical attempt")
-            conn.execute("INSERT INTO provider_receipts(provider_receipt_id,physical_attempt_id,provider_request_id,raw_result_ref,usage_json,received_at) VALUES (?,?,?,?,?,?)",(provider_receipt_id,physical_attempt_id,row["provider_request_id"],raw_result_ref,json.dumps(_dump(usage),sort_keys=True),when))
+            conn.execute("INSERT INTO provider_receipts(provider_receipt_id,physical_attempt_id,provider_request_id,raw_result_ref,usage_json,response_facts_json,received_at) VALUES (?,?,?,?,?,?,?)",(provider_receipt_id,physical_attempt_id,row["provider_request_id"],raw_result_ref,json.dumps(_dump(usage),sort_keys=True),None if response_facts is None else json.dumps(_dump(response_facts),sort_keys=True),when))
             conn.execute("UPDATE physical_attempts SET status='receipt_persisted',receipt_persisted_at=?,updated_at=? WHERE physical_attempt_id=?",(when,when,physical_attempt_id)); self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?",(provider_receipt_id,)).fetchone())
 
@@ -3814,7 +3818,7 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
 
-    def complete_standard_delivery(self, delivery_attempt_id: str, *, provider_request_id: str, provider_receipt_id: str, raw_result_ref: str, usage: Any, result_ref: str, now: datetime | str) -> dict[str, Any]:
+    def complete_standard_delivery(self, delivery_attempt_id: str, *, provider_request_id: str, provider_receipt_id: str, raw_result_ref: str, usage: Any, result_ref: str, now: datetime | str, response_facts: Any = None) -> dict[str, Any]:
         """Persist a Standard receipt and terminal success as one durable closeout."""
         when = _utc(now, "now")
         with self._connection(immediate=True) as conn:
@@ -3828,7 +3832,7 @@ class SQLiteCatalog:
                 raise ConflictError("Standard completion has inconsistent durable state")
             prior = conn.execute("SELECT * FROM provider_receipts WHERE provider_receipt_id=?", (provider_receipt_id,)).fetchone()
             if prior is None:
-                conn.execute("INSERT INTO provider_receipts(provider_receipt_id,physical_attempt_id,provider_request_id,raw_result_ref,usage_json,received_at) VALUES (?,?,?,?,?,?)", (provider_receipt_id, physical["physical_attempt_id"], physical["provider_request_id"], raw_result_ref, json.dumps(_dump(usage), sort_keys=True), when))
+                conn.execute("INSERT INTO provider_receipts(provider_receipt_id,physical_attempt_id,provider_request_id,raw_result_ref,usage_json,response_facts_json,received_at) VALUES (?,?,?,?,?,?,?)", (provider_receipt_id, physical["physical_attempt_id"], physical["provider_request_id"], raw_result_ref, json.dumps(_dump(usage), sort_keys=True), None if response_facts is None else json.dumps(_dump(response_facts), sort_keys=True), when))
             elif prior["physical_attempt_id"] != physical["physical_attempt_id"]:
                 raise ConflictError("Standard provider receipt is bound to another physical attempt")
             conn.execute("UPDATE provider_request_attempts SET status='completed', provider_request_id=?, provider_receipt_id=?, result_ref=?, usage_json=?, completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (provider_request_id, provider_receipt_id, result_ref, json.dumps(_dump(usage), sort_keys=True), when, when, delivery_attempt_id))
@@ -3863,6 +3867,28 @@ class SQLiteCatalog:
                 conn.execute("UPDATE delivery_jobs SET status='in_progress', updated_at=? WHERE delivery_job_id=?", (when, attempt["delivery_job_id"]))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (delivery_attempt_id,)).fetchone())
+
+    def record_scale_s0_locator_terminal_outcome(self, physical_attempt_id: str, *, outcome_class: str, message: str, now: datetime | str) -> dict[str, Any]:
+        """Record post-receipt locator validation failure without rewriting completion."""
+        when = _utc(now, "now")
+        if outcome_class not in {"provider_schema_failure", "provider_validation_failure"}:
+            raise ValueError("invalid locator terminal outcome")
+        with self._connection(immediate=True) as conn:
+            physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            if physical is None or physical["status"] != "validated":
+                raise InvalidTransitionError("locator terminal outcome requires a durably completed response")
+            prior = conn.execute("SELECT * FROM scale_s0_locator_terminal_outcomes WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            if prior is not None:
+                if prior["outcome_class"] != outcome_class or prior["message"] != message[:512]:
+                    raise ConflictError("locator terminal outcome is immutable")
+                return dict(prior)
+            conn.execute("INSERT INTO scale_s0_locator_terminal_outcomes(physical_attempt_id,provider_request_item_id,outcome_class,message,recorded_at) VALUES (?,?,?,?,?)", (physical_attempt_id, physical["provider_request_id"], outcome_class, message[:512], when))
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM scale_s0_locator_terminal_outcomes WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
+
+    def get_scale_s0_locator_terminal_outcome(self, physical_attempt_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return _row(conn.execute("SELECT * FROM scale_s0_locator_terminal_outcomes WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
 
     def reopen_pre_send_failure(self, delivery_attempt_id: str, *, now: datetime | str) -> dict[str, Any]:
         """Reopen an exact local pre-send failure; never reopen a sent attempt."""

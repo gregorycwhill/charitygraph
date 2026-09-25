@@ -12,7 +12,7 @@ from hashlib import sha256
 import json
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from typing import Any, Mapping, Protocol, Sequence
+from typing import Any, Callable, Mapping, Protocol, Sequence
 from urllib.parse import urlsplit, urlunsplit
 
 from charitygraph.scale_s0 import (
@@ -70,7 +70,8 @@ class LocatorSearchExecutionGate(ABC):
     def begin(self, *, request_identity: str, subject_abn: str, query: str) -> None: ...
 
     @abstractmethod
-    def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None) -> None: ...
+    def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None,
+                 response_facts: Any = None) -> None: ...
 
     @abstractmethod
     def fail(self, *, failure_class: str, message: str, ambiguous: bool = False) -> None: ...
@@ -101,16 +102,27 @@ class LocatorSearchPreparedRequest:
 def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAttemptIdentity,
                                  subject_abn: str, query: str, query_index: int,
                                  pricing: LocatorSearchPrice, frozen_at: str,
+                                 provider_account_project: str,
+                                 execution_authority: str,
                                  scope_id: str = "scope:organisation") -> FrozenPacket:
     """Compile a deterministic operational packet without evidence or a send."""
     if execution_attempt.mandate_id != mandate.mandate_id or execution_attempt.slice_id != mandate.slice_id:
         raise ScalePreflightError("locator search packet execution identity is outside the mandate")
     if pricing.currency != mandate.currency_basis:
         raise ScalePreflightError("locator search price currency must equal the frozen S0 currency")
-    request_identity = locator_search_request_identity(subject_id=subject_abn, query=query, query_index=query_index)
+    if not provider_account_project or not execution_authority:
+        raise ScalePreflightError("locator search packet requires explicit immutable A3 account/project and authority")
+    request_identity = locator_search_request_identity(
+        subject_id=subject_abn, query=query, query_index=query_index,
+        execution_attempt_id=execution_attempt.attempt_id,
+        provider_account_project=provider_account_project,
+        execution_authority=execution_authority,
+    )
     material = {
         "mandate": mandate.identity_hash,
         "execution_attempt": execution_attempt.attempt_id,
+        "provider_account_project": provider_account_project,
+        "execution_authority": execution_authority,
         "operation": LOCATOR_SEARCH_OPERATION_KIND,
         "subject": subject_abn,
         "scope": scope_id,
@@ -133,6 +145,9 @@ def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAt
         locator_query=query, locator_query_index=query_index,
         pricing_snapshot_id=pricing.pricing_snapshot_id,
         estimated_provider_cost=pricing.estimated_provider_cost,
+        locator_execution_attempt_id=execution_attempt.attempt_id,
+        provider_account_project=provider_account_project,
+        execution_authority=execution_authority,
     )
 
 
@@ -149,6 +164,9 @@ def prepare_locator_search_request(*, packet: FrozenPacket, reservation_id: str,
         raise ScalePreflightError("locator search request requires a frozen locator packet and reservation")
     if not provider_account_project or not execution_authority:
         raise ScalePreflightError("locator search request requires explicit A3 account/project and authority")
+    if (provider_account_project != packet.provider_account_project
+            or execution_authority != packet.execution_authority):
+        raise ScalePreflightError("locator search request A3 binding does not match the frozen packet")
     identity = packet.provider_request_identity
     return LocatorSearchPreparedRequest(
         packet,
@@ -170,7 +188,7 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
     def __init__(self, *, preflight: Any, request: Any, catalog: Any,
                  delivery_attempt_id: str, client_request_id: str,
                  request_identity: str,
-                 now: datetime | None = None) -> None:
+                 now: datetime | Callable[[], datetime] | None = None) -> None:
         # Import lazily to keep the provider-neutral interface independent of
         # the S0 implementation while still making production construction
         # structurally require the real preflight class.
@@ -195,10 +213,30 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
             raise ScalePreflightError("locator search gate identity is not bound to its frozen packet")
         self.preflight, self.request, self.catalog = preflight, request, catalog
         self.delivery_attempt_id, self.client_request_id, self.request_identity = delivery_attempt_id, client_request_id, request_identity
-        self.now = now or datetime.now(timezone.utc)
+        # Do not capture a production clock at gate construction: a fresh A3
+        # window can expire while a prepared packet is waiting to send.  Tests
+        # may supply a fixed instant or a deterministic clock.
+        self._clock = now if callable(now) else (lambda: now) if now is not None else (lambda: datetime.now(timezone.utc))
         self._started = False
         self._transport_invoked = False
         self._physical_crossing = False
+        self._last_send_authorizing_now: datetime | None = None
+
+    def _now(self) -> datetime:
+        value = self._clock()
+        if not isinstance(value, datetime):
+            raise ScalePreflightError("locator execution clock must return a datetime")
+        return value
+
+    def _send_authorizing_now(self) -> datetime:
+        value = self._now()
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ScalePreflightError("locator execution clock must return a timezone-aware datetime")
+        prior = self._last_send_authorizing_now
+        if prior is not None and value < prior:
+            raise ScalePreflightError("locator execution clock moved backwards during send authorization")
+        self._last_send_authorizing_now = value
+        return value
 
     @property
     def provider_posts(self) -> int:
@@ -225,45 +263,67 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         packet = self.preflight.packets[self.request.packet_hash or ""]
         if query != packet.locator_query:
             raise ScalePreflightError("locator search query is not bound to the frozen S0 request")
-        self.preflight.provider_send(self.request, now=self.now)
+        self.preflight.provider_send(self.request, now=self._send_authorizing_now())
         # The first proof reconstructs packet/rights/reservation authority;
         # the second proof is deliberately adjacent to send-started so an A3
         # window expiring during preparation cannot authorize a crossing.
-        self.preflight.provider_send(self.request, now=self.now)
-        self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self.now)
+        self.preflight.provider_send(self.request, now=self._send_authorizing_now())
+        # Use one final fresh observation both to re-authorise and to stamp the
+        # durable crossing.  A new observation must never advance send-started
+        # past the last A3 proof: expiry in that final seam otherwise permits a
+        # physical POST under an unvalidated clock instant.
+        send_started_at = self._send_authorizing_now()
+        self.preflight.provider_send(self.request, now=send_started_at)
+        self.catalog.mark_standard_send_started(
+            self.delivery_attempt_id,
+            client_request_id=self.client_request_id,
+            now=send_started_at,
+        )
         self._started = True
 
-    def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None) -> None:
+    def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None,
+                 response_facts: Any = None) -> None:
         if not self._started:
             raise ScalePreflightError("locator search completion has no durable send-start")
         self._physical_crossing = True
         self.catalog.record_standard_transport_outcome(
             self.request.physical_attempt_id, status="PROVIDER_RESPONSE_RECEIVED",
             response_headers_received=True, response_identity=provider_receipt_id,
-            usage=usage or {}, now=self.now,
+            usage=usage or {}, now=self._now(),
         )
         self.catalog.complete_standard_delivery(self.delivery_attempt_id,
             provider_request_id=self.request_identity,
             provider_receipt_id=provider_receipt_id,
-            raw_result_ref=result_ref, usage=usage or {}, result_ref=result_ref, now=self.now)
+            raw_result_ref=result_ref, usage=usage or {}, result_ref=result_ref, now=self._now(),
+            response_facts=response_facts)
         self.catalog.record_standard_transport_outcome(
             self.request.physical_attempt_id, status="COMPLETED",
             response_headers_received=True, response_identity=provider_receipt_id,
-            usage=usage or {}, now=self.now,
+            usage=usage or {}, now=self._now(),
         )
 
     def fail(self, *, failure_class: str, message: str, ambiguous: bool = False) -> None:
         if ambiguous:
             self._physical_crossing = True
         if self._started:
+            # A response receipt is a completed transport/accounting fact even
+            # when discovery-only metadata subsequently fails schema checks.
+            # Do not rewrite it into a transport failure or ambiguity.
+            physical = self.catalog.get_physical_attempt(self.request.physical_attempt_id)
+            if not ambiguous and physical is not None and physical.get("status") == "validated":
+                outcome = "provider_schema_failure" if failure_class == "provider_schema_failure" else "provider_validation_failure"
+                self.catalog.record_scale_s0_locator_terminal_outcome(
+                    self.request.physical_attempt_id, outcome_class=outcome,
+                    message=message, now=self._now())
+                return
             self.catalog.record_standard_transport_outcome(
                 self.request.physical_attempt_id,
                 status="PROVIDER_CROSSING_AMBIGUOUS" if ambiguous else "PROVIDER_REJECTED",
                 response_headers_received=False, transport_exception=message,
-                now=self.now,
+                now=self._now(),
             )
             self.catalog.settle_standard_failure(self.delivery_attempt_id, failure_class=failure_class,
-                message=message, ambiguous=ambiguous, now=self.now)
+                message=message, ambiguous=ambiguous, now=self._now())
 
 
 @dataclass
@@ -405,21 +465,42 @@ class OpenAIResponsesWebSearchProvider:
             record_outcome = getattr(self.execution_gate, "transport_outcome", None)
             if callable(record_outcome):
                 record_outcome(physical=error.ambiguous or error.response_headers_received)
+            # A response header proves that the POST crossed the provider
+            # boundary.  If decoding cannot yield a durable response identity,
+            # its cost cannot safely be reconciled or released.
+            ambiguous = error.ambiguous or error.response_headers_received
             self.execution_gate.fail(
-                failure_class="provider_ambiguous_transport" if error.ambiguous else "provider_rejected",
-                message=str(error), ambiguous=error.ambiguous,
+                failure_class="provider_ambiguous_transport" if ambiguous else "provider_rejected",
+                message=str(error), ambiguous=ambiguous,
             )
             raise
         except Exception as error:
             record_outcome = getattr(self.execution_gate, "transport_outcome", None)
             if callable(record_outcome):
                 record_outcome(physical=True)
-            self.execution_gate.fail(failure_class="provider_transport_failure", message=str(error), ambiguous=False)
+            # Transport was invoked and this unclassified path supplies no
+            # evidence that bytes did not leave the process.  Never turn that
+            # uncertainty into a release-eligible definite rejection.
+            self.execution_gate.fail(failure_class="provider_ambiguous_transport", message=str(error), ambiguous=True)
             raise
         response_id = response.body.get("id") if isinstance(response.body, Mapping) else None
-        if not response_id:
-            self.execution_gate.fail(failure_class="provider_schema_failure", message="missing provider response identity")
+        if not isinstance(response_id, str) or not response_id.strip():
+            self.execution_gate.fail(failure_class="provider_ambiguous_transport", message="missing trustworthy provider response identity", ambiguous=True)
             raise ScalePreflightError("Responses web-search result lacks provider call identity")
+        usage = response.body.get("usage")
+        response_facts = self._pricing_facts(response.body)
+        # The receipt boundary comes before all locator-result parsing.  This
+        # keeps a definite provider response durable even when requested source
+        # metadata is missing or malformed.
+        self.execution_gate.complete(provider_receipt_id=response_id,
+                                     result_ref="provider-response:" + response_id,
+                                     usage=usage, response_facts=response_facts)
+        # A decoded response with an explicit non-completed state remains a
+        # billable transport/accounting fact, but must never yield discovery
+        # metadata.  Older fixture-compatible bodies omit these fields.
+        if (response.body.get("status") is not None and response.body.get("status") != "completed") or response.body.get("incomplete_details") is not None:
+            self.execution_gate.fail(failure_class="provider_validation_failure", message="provider response was not completed")
+            raise ScalePreflightError("Responses web-search result was not completed")
         results: list[LocatorSearchResult] = []
         # Preserve only source fields actually returned by the API.  Locator
         # discovery must not invent snippets, ranks, or usage.
@@ -427,26 +508,45 @@ class OpenAIResponsesWebSearchProvider:
         if not isinstance(output, list):
             self.execution_gate.fail(failure_class="provider_schema_failure", message="invalid provider output structure")
             raise ScalePreflightError("Responses web-search result has invalid output structure")
-        saw_sources_structure = False
+        saw_web_search_call = False
         for item in output:
             if not isinstance(item, Mapping):
                 continue
-            action = item.get("action")
-            sources = action.get("sources", ()) if isinstance(action, Mapping) else ()
-            if not isinstance(sources, list):
+            # Sources are meaningful only on the definitive tool-call output
+            # item.  Do not let an unexpected message/reasoning item smuggle
+            # discovery metadata across this boundary.
+            if item.get("type") != "web_search_call":
                 continue
-            saw_sources_structure = True
+            saw_web_search_call = True
+            action = item.get("action")
+            sources = action.get("sources") if isinstance(action, Mapping) else None
+            if not isinstance(sources, list):
+                self.execution_gate.fail(failure_class="provider_schema_failure", message="missing web-search source structure")
+                raise ScalePreflightError("Responses web-search result lacks source structure")
             for source in sources:
                 if not isinstance(source, Mapping) or not isinstance(source.get("url"), str) or not source["url"]:
                     continue
                 metadata = {key: str(source[key]) for key in ("title", "type") if isinstance(source.get(key), (str, int, float, bool))}
                 results.append(LocatorSearchResult(url=source["url"], title=metadata.get("title", ""), source_metadata=metadata or None))
-        if output and not saw_sources_structure:
+        if not saw_web_search_call:
             self.execution_gate.fail(failure_class="provider_schema_failure", message="missing web-search source structure")
             raise ScalePreflightError("Responses web-search result lacks source structure")
-        usage = response.body.get("usage")
-        self.execution_gate.complete(provider_receipt_id=response_id, result_ref="provider-response:" + response_id, usage=usage)
         return LocatorSearchResponse(response_id, tuple(results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]), usage=usage if isinstance(usage, Mapping) else None, response_body=response.body)
+
+    @staticmethod
+    def _pricing_facts(body: Mapping[str, Any]) -> dict[str, Any] | None:
+        """Extract only deterministic pricing dimensions, never source metadata."""
+        model, output = body.get("model"), body.get("output")
+        if model != "gpt-5.6-luna" or not isinstance(output, list):
+            return None
+        count = 0
+        for item in output:
+            if not isinstance(item, Mapping):
+                return None
+            if item.get("type") != "web_search_call":
+                continue
+            count += 1
+        return {"model": model, "web_search_calls": count}
 
 
 def discover(provider: LocatorSearchProvider, identity: PublicEntityIdentity, *,
@@ -457,7 +557,9 @@ def discover(provider: LocatorSearchProvider, identity: PublicEntityIdentity, *,
     for query_index, query in enumerate(identity.queries()):
         if (identity.subject_abn, query) in completed_queries:
             continue
-        request_identity = locator_search_request_identity(subject_id=identity.subject_abn, query=query, query_index=query_index)
+        # Discovery is provider-neutral; a production crossing is only possible
+        # through a FrozenPacket, whose identity binds attempt and A3 material.
+        request_identity = "locator-discovery:" + _hash({"subject": identity.subject_abn, "query": query, "index": query_index})
         response = provider.search(query=query, subject_abn=identity.subject_abn, request_identity=request_identity)
         for result in response.results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]:
             lineages.append(DiscoveryLineage(identity.subject_abn, query, provider.provider_id, response.provider_call_id,

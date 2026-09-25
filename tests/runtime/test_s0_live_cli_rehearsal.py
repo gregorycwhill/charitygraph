@@ -43,7 +43,8 @@ def _make_catalog(path: Path, subjects: tuple[str, ...], pricing_id: str):
     work = []
     for index, subject in enumerate(subjects):
         packet = freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, subject_abn=subject, query=f'"Locator {subject} {index}"', query_index=index,
-                                              pricing=__import__("charitygraph.s0_locator_discovery", fromlist=["LocatorSearchPrice"]).LocatorSearchPrice(pricing_id, "0.10", "USD"), frozen_at=NOW.isoformat())
+                                               pricing=__import__("charitygraph.s0_locator_discovery", fromlist=["LocatorSearchPrice"]).LocatorSearchPrice(pricing_id, "0.10", "USD"), frozen_at=NOW.isoformat(),
+                                               provider_account_project=PROJECT, execution_authority="authority:rehearsal")
         ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, execution_attempt_id=attempt.attempt_id)
         for bundle in __import__("charitygraph.s0_acquisition_bridge", fromlist=["bundle_packets"]).bundle_packets(mandate, (packet,), now=NOW, execution_attempt_id=attempt.attempt_id):
             catalog.register_scale_s0_physical_bundle(bundle.__dict__, execution_attempt_id=attempt.attempt_id)

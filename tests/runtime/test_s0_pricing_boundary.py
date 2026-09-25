@@ -58,12 +58,11 @@ def test_malformed_usage_fails_closed(bad):
         derive_luna_web_search_cost(snapshot=snapshot(), response_body=value)
 
 
-def test_model_mismatch_and_malformed_search_action_fail_closed():
+def test_model_mismatch_fails_closed_and_a_schema_invalid_action_is_still_billed():
     with pytest.raises(ScalePreflightError):
         derive_luna_web_search_cost(snapshot=snapshot(), response_body=body(model="gpt-5.6-terra"))
     value = body(); value["output"][0]["action"] = {}
-    with pytest.raises(ScalePreflightError):
-        derive_luna_web_search_cost(snapshot=snapshot(), response_body=value)
+    assert derive_luna_web_search_cost(snapshot=snapshot(), response_body=value).web_search_calls == 1
 
 
 def test_supervisor_capture_hash_and_scope_are_verified():

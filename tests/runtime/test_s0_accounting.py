@@ -35,6 +35,14 @@ def _usage(amount="0.04", currency="USD", pricing="pricing:locator-v1"):
     }
 
 
+def _frozen_luna_pricing():
+    return SimpleNamespace(
+        record_id="pricing:locator-v1", model_snapshot="gpt-5.6-luna", provider_currency="USD",
+        rates=tuple(SimpleNamespace(dimension=dimension, unit_quantity=Decimal("1000000" if dimension != "tool_calls" else "1000"), price_per_unit=Decimal(price))
+                    for dimension, price in (("input_tokens", "1"), ("cached_input_tokens", "0.5"), ("output_tokens", "2"), ("tool_calls", "10"))),
+    )
+
+
 def test_factory_reconciles_one_durable_actual_and_release_across_restart(tmp_path):
     catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
     usage = _usage()
@@ -70,6 +78,32 @@ def test_factory_reconciles_one_durable_actual_and_release_across_restart(tmp_pa
     ).create().reconcile_durable(request=prepared.request, packet=packet)
     assert recovered["entry_key"] == first["entry_key"]
     reopened.close()
+
+
+def test_post_response_locator_schema_failure_reconciles_frozen_pricing_once_without_sources(tmp_path):
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    with catalog._connection(immediate=True) as conn:
+        conn.execute("UPDATE provider_request_items SET model_route='gpt-5.6-luna' WHERE provider_request_item_id=?", (packet.provider_request_identity,))
+        catalog._commit(conn)
+    live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    gate = S0LocatorSearchExecutionGate(preflight=live, request=prepared.request, catalog=catalog,
+                                        delivery_attempt_id=prepared.delivery_attempt_id, client_request_id=prepared.client_request_id,
+                                        request_identity=packet.provider_request_identity, now=NOW)
+    usage = {"input_tokens": 10, "output_tokens": 5}
+    gate.begin(request_identity=packet.provider_request_identity, subject_abn=packet.subject_id, query=packet.locator_query)
+    gate.complete(provider_receipt_id="response:schema", result_ref="provider-response:schema", usage=usage,
+                  response_facts={"model": "gpt-5.6-luna", "web_search_calls": 1})
+    gate.fail(failure_class="provider_schema_failure", message="missing web-search source structure")
+    accounting = S0ProviderAccountingFactory(catalog=catalog, now=lambda: NOW, execution_attempt_id="attempt:locator",
+                                             pricing_snapshot=_frozen_luna_pricing()).create()
+    first = accounting.reconcile_durable(request=prepared.request, packet=packet)
+    again = accounting.reconcile_durable(request=prepared.request, packet=packet)
+    assert first == again
+    assert catalog.get_scale_s0_locator_terminal_outcome(prepared.request.physical_attempt_id)["outcome_class"] == "provider_schema_failure"
+    assert catalog.accounting_reservation_position("reservation:locator")["released"] > Decimal("0")
+    with catalog._connection() as conn:
+        assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='actual'").fetchone()[0] == 1
+        assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='reservation_release'").fetchone()[0] == 1
 
 
 @pytest.mark.parametrize(
