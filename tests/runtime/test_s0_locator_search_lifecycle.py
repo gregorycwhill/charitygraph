@@ -107,7 +107,7 @@ def _prepared_catalog(tmp_path):
         frozen_at=NOW.isoformat(),
     )
     assert ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, execution_attempt_id=attempt.attempt_id)["packet_id"] == packet.packet_id
-    for bundle in bundle_packets(mandate, (packet,), now=NOW):
+    for bundle in bundle_packets(mandate, (packet,), now=NOW, execution_attempt_id=attempt.attempt_id):
         catalog.register_scale_s0_physical_bundle(bundle.__dict__, execution_attempt_id=attempt.attempt_id)
     prepared = prepare_locator_search_request(packet=packet, reservation_id="reservation:locator",
                                                provider_account_project=PROJECT, execution_authority=AUTHORITY)

@@ -197,6 +197,23 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         self.delivery_attempt_id, self.client_request_id, self.request_identity = delivery_attempt_id, client_request_id, request_identity
         self.now = now or datetime.now(timezone.utc)
         self._started = False
+        self._transport_invoked = False
+        self._physical_crossing = False
+
+    @property
+    def provider_posts(self) -> int:
+        """Count a real or possibly-real transport crossing, never gate entry."""
+        return int(self._physical_crossing)
+
+    @property
+    def crossing_started(self) -> bool:
+        return self._started
+
+    def transport_invoked(self) -> None:
+        self._transport_invoked = True
+
+    def transport_outcome(self, *, physical: bool) -> None:
+        self._physical_crossing = self._physical_crossing or physical
 
     def begin(self, *, request_identity: str, subject_abn: str, query: str) -> None:
         if request_identity != self.request_identity:
@@ -219,6 +236,7 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
     def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None) -> None:
         if not self._started:
             raise ScalePreflightError("locator search completion has no durable send-start")
+        self._physical_crossing = True
         self.catalog.record_standard_transport_outcome(
             self.request.physical_attempt_id, status="PROVIDER_RESPONSE_RECEIVED",
             response_headers_received=True, response_identity=provider_receipt_id,
@@ -235,6 +253,8 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         )
 
     def fail(self, *, failure_class: str, message: str, ambiguous: bool = False) -> None:
+        if ambiguous:
+            self._physical_crossing = True
         if self._started:
             self.catalog.record_standard_transport_outcome(
                 self.request.physical_attempt_id,
@@ -373,18 +393,27 @@ class OpenAIResponsesWebSearchProvider:
             if not client_project or not expected_project or client_project != expected_project:
                 raise ScalePreflightError("canonical HTTP client project does not match the durable A3 project")
         self.execution_gate.begin(request_identity=request_identity, subject_abn=subject_abn, query=query)
+        mark_invoked = getattr(self.execution_gate, "transport_invoked", None)
+        if callable(mark_invoked):
+            mark_invoked()
         try:
             response = self.transport.create_web_search_once(
                 model=self.model, query=query,
                 client_request_id=self.execution_gate.client_request_id,
             )
         except StandardTransportError as error:
+            record_outcome = getattr(self.execution_gate, "transport_outcome", None)
+            if callable(record_outcome):
+                record_outcome(physical=error.ambiguous or error.response_headers_received)
             self.execution_gate.fail(
                 failure_class="provider_ambiguous_transport" if error.ambiguous else "provider_rejected",
                 message=str(error), ambiguous=error.ambiguous,
             )
             raise
         except Exception as error:
+            record_outcome = getattr(self.execution_gate, "transport_outcome", None)
+            if callable(record_outcome):
+                record_outcome(physical=True)
             self.execution_gate.fail(failure_class="provider_transport_failure", message=str(error), ambiguous=False)
             raise
         response_id = response.body.get("id") if isinstance(response.body, Mapping) else None
