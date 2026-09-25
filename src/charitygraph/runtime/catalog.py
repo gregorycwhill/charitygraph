@@ -1152,6 +1152,10 @@ class SQLiteCatalog:
                                     "profile:locator-search:1", "urn:charitygraph:builder:schema:locator-search-discovery-metadata:1.0")
                 if (task_id, task_version, route, input_profile_id, output_schema_id) != locator_contract or task_key != material.get("provider_request_identity") or source_ids or source_snapshot_hashes or material.get("corpus_id"):
                     raise ConflictError("locator search packet is not an exact source-free operational request")
+                if (material.get("locator_execution_attempt_id") != execution_attempt_id
+                        or material.get("provider_account_project") != provider_account_project
+                        or material.get("execution_authority") != execution_authority):
+                    raise ConflictError("locator search request execution or A3 binding is substituted")
                 if not material.get("pricing_snapshot_id") or not material.get("estimated_provider_cost"):
                     raise ConflictError("locator search packet lacks immutable pricing material")
                 task_contract = None

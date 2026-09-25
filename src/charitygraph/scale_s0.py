@@ -69,8 +69,13 @@ def locator_search_request_identity(*, subject_id: str, query: str, query_index:
     Keeping it in the S0 control plane lets the frozen packet, reservation, and
     exactly-once boundary independently recompute the same value.
     """
-    if (not subject_id or not query or not execution_attempt_id
-            or not provider_account_project or not execution_authority
+    # These identifiers are compared byte-for-byte at the durable authority
+    # boundary.  Do not Unicode-normalise them here: normalisation could make
+    # two governed identifiers collide.  Reject only absent/non-text and
+    # whitespace-only values, which have no usable exact identity.
+    identity_text = (subject_id, query, execution_attempt_id,
+                     provider_account_project, execution_authority)
+    if (any(not isinstance(value, str) or not value.strip() for value in identity_text)
             or not isinstance(query_index, int)
             or isinstance(query_index, bool)
             or not 0 <= query_index < LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT):
@@ -477,6 +482,8 @@ class ScaleS0Preflight:
             attempt_material = {"execution_attempt_id": execution_attempt_id, "run_id": attempt_row["run_id"]}
             if packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
                 _validate_locator_search_packet(packet, mandate)
+                if packet.locator_execution_attempt_id != execution_attempt_id:
+                    raise ScalePreflightError("locator packet identity is bound to a different execution attempt")
             else:
                 if not packet.corpus_id or not hasattr(catalog, "get_scale_s0_frozen_corpus"):
                     raise ScalePreflightError("live packet requires durable corpus ownership")
@@ -612,6 +619,13 @@ class ScaleS0Preflight:
         if request.subject_id not in self.mandate.subject_ids or not request.scope_id: raise ScalePreflightError("request is outside frozen population or scope")
         packet=self._packet(request,task); route=self.routing.route_for(task,triggered_escalations)
         if request.route!=route or packet.routing_class!=route: raise ScalePreflightError("caller cannot choose a route")
+        if packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
+            if (request.provider_account_project != packet.provider_account_project
+                    or request.execution_authority != packet.execution_authority):
+                raise ScalePreflightError("locator request A3 binding does not match its frozen packet")
+            if (self.execution_attempt is not None
+                    and packet.locator_execution_attempt_id != self.execution_attempt.attempt_id):
+                raise ScalePreflightError("locator packet identity is bound to a different execution attempt")
         if self.catalog is not None:
             existing = self.catalog.get_provider_request_item(packet.provider_request_identity)
             if existing is not None and not (allow_prepared_lifecycle and existing.get("status") == "prepared") and (packet.operation_kind != LOCATOR_SEARCH_OPERATION_KIND or existing.get("status") != "prepared"):

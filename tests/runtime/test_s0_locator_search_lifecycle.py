@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
@@ -230,6 +231,46 @@ def test_locator_packet_rejects_missing_pricing_and_cap_overrun_without_a_send(t
                                             provider_account_project=PROJECT, execution_authority=AUTHORITY)
     with pytest.raises(ScalePreflightError, match="per-request reservation cap"):
         ScaleS0Preflight.register_durable_packet(catalog, mandate, over_cap, execution_attempt_id=attempt.attempt_id)
+
+
+def test_locator_packet_and_send_cannot_substitute_attempt_or_a3_binding(tmp_path):
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    foreign_attempt_packet = freeze_locator_search_packet(
+        mandate=mandate, execution_attempt=replace(_attempt(mandate), attempt_id="attempt:foreign"),
+        subject_abn=SUBJECT, query='"Foreign attempt"', query_index=1,
+        pricing=LocatorSearchPrice("pricing:locator-v1", "0.10", "USD"), frozen_at=NOW.isoformat(),
+        provider_account_project=PROJECT, execution_authority=AUTHORITY,
+    )
+    with pytest.raises(ScalePreflightError, match="different execution attempt"):
+        ScaleS0Preflight.register_durable_packet(catalog, mandate, foreign_attempt_packet,
+                                                 execution_attempt_id="attempt:locator")
+    live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    with pytest.raises(ScalePreflightError, match="A3 binding"):
+        live.provider_send(replace(prepared.request, provider_account_project="project:substituted"), now=NOW)
+
+
+@pytest.mark.parametrize("field", ("subject_id", "query", "execution_attempt_id", "provider_account_project", "execution_authority"))
+def test_locator_identity_rejects_noncanonical_blank_identity_components(field):
+    from charitygraph.scale_s0 import locator_search_request_identity
+    value = {"subject_id": SUBJECT, "query": '"Locator"', "query_index": 0,
+             "execution_attempt_id": "attempt:locator", "provider_account_project": PROJECT,
+             "execution_authority": AUTHORITY}
+    value[field] = " \t"
+    with pytest.raises(ScalePreflightError):
+        locator_search_request_identity(**value)
+
+
+def test_locator_identity_is_exact_replayable_and_does_not_normalise_unicode_or_share_body_state():
+    from charitygraph.scale_s0 import locator_search_request_body, locator_search_request_identity
+    value = {"subject_id": SUBJECT, "query": '"Caf\u00e9"', "query_index": 0,
+             "execution_attempt_id": "attempt:locator", "provider_account_project": PROJECT,
+             "execution_authority": AUTHORITY}
+    identity = locator_search_request_identity(**value)
+    assert identity == locator_search_request_identity(**value)
+    assert identity != locator_search_request_identity(**{**value, "query": '"Cafe\u0301"'})
+    body = locator_search_request_body(value["query"])
+    body["include"].append("substituted")
+    assert locator_search_request_body(value["query"])["include"] == ["web_search_call.action.sources"]
 
 
 def test_catalog_rejects_unknown_operational_kinds_and_locator_candidates(tmp_path):
