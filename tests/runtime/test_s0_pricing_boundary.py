@@ -6,7 +6,7 @@ import pytest
 
 from charitygraph.contracts.economics import PriceRate, PricingSnapshot
 from charitygraph.contracts.common import ProducerRef
-from charitygraph.s0_pricing import derive_luna_web_search_cost
+from charitygraph.s0_pricing import derive_luna_web_search_cost, load_supervisor_capture
 from charitygraph.scale_s0 import ScalePreflightError
 
 
@@ -64,3 +64,9 @@ def test_model_mismatch_and_malformed_search_action_fail_closed():
     value = body(); value["output"][0]["action"] = {}
     with pytest.raises(ScalePreflightError):
         derive_luna_web_search_cost(snapshot=snapshot(), response_body=value)
+
+
+def test_supervisor_capture_hash_and_scope_are_verified():
+    path = r"C:\Users\grego\My Drive\CharityGraph Agent Bridge\artifacts\openai-pricing-capture-2026-09-25.json"
+    loaded = load_supervisor_capture(path, expected_sha256="d67304e32ee1f4760eefb7746eb8a849af19fee8b79beccd17578604a29a5e16")
+    assert loaded.source_content_hash == "d67304e32ee1f4760eefb7746eb8a849af19fee8b79beccd17578604a29a5e16"
