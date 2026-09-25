@@ -22,6 +22,8 @@ from typing import Any, Callable, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from charitygraph.scale_s0 import locator_search_request_body
+
 
 # The historic semantic Responses path used a 300-second socket timeout. Keep
 # a bounded timeout appropriate for model generation; urllib applies it to
@@ -144,7 +146,8 @@ class OpenAIHTTPStandardClient:
             body = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise StandardSystemic("provider response body could not be decoded", status_code=status_code, raw_bytes=raw, request_id=server_request_id, client_request_id=client_request_id, endpoint=endpoint, request_started_at=request_started_at, response_headers_received=True, transport_state="PROVIDER_RESPONSE_BODY_PARSE_FAILURE", exception_type=type(exc).__name__, cause_type=type(exc).__name__) from exc
-        if not isinstance(body, dict) or not isinstance(body.get("id"), str) or not body["id"]:
+        if (not isinstance(body, dict) or not isinstance(body.get("id"), str)
+                or not body["id"].strip()):
             raise StandardSystemic("provider response did not contain a trustworthy response ID", status_code=status_code, raw_bytes=raw, request_id=server_request_id, client_request_id=client_request_id, endpoint=endpoint, request_started_at=request_started_at, response_headers_received=True, transport_state="PROVIDER_RESPONSE_BODY_PARSE_FAILURE")
         request_id = server_request_id or body["id"]
         return StandardProviderResponse(status_code, str(request_id), body, raw, client_request_id, server_request_id, endpoint, request_started_at, True, elapsed_seconds)
@@ -256,14 +259,7 @@ class OpenAIResponsesWebSearchTransport:
             raise StandardSystemic("locator web-search requires the authorised Luna model")
         if not isinstance(query, str) or not query:
             raise ValueError("locator web-search query must be non-empty text")
-        body = canonical_standard_body_bytes({
-            "model": model,
-            "input": query,
-            "tools": [{"type": "web_search"}],
-            "tool_choice": {"type": "web_search"},
-            "store": False,
-            "include": ["web_search_call.action.sources"],
-        })
+        body = canonical_standard_body_bytes(locator_search_request_body(query))
         return self.client.create_response_once(
             body, client_request_id=client_request_id,
             request_started_at=request_started_at,

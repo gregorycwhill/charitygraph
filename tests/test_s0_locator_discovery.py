@@ -10,6 +10,7 @@ from charitygraph.s0_locator_discovery import (
 )
 from charitygraph.s0_product_owner_policy import concrete_first_party_source_definition_id
 from charitygraph.scale_s0 import ScalePreflightError
+from charitygraph.scale_s0 import locator_search_request_identity
 from charitygraph.phase5_standard_transport import (
     OpenAIHTTPStandardClient, OpenAIResponsesWebSearchTransport,
     StandardAmbiguous, StandardProviderResponse,
@@ -117,6 +118,14 @@ def test_standard_adapter_emits_exact_luna_web_search_body_and_normalizes_real_s
     assert result.results[0].snippet == "" and result.results[0].rank is None
 
 
+def test_locator_request_identity_binds_the_required_responses_include_contract():
+    identity = locator_search_request_identity(subject_id="11111111111", query='"Sunrise"', query_index=0)
+    legacy_identity_material = {"subject": "11111111111", "query": '"Sunrise"', "index": 0}
+    legacy = "locator-search:" + __import__("hashlib").sha256(__import__("json").dumps(
+        legacy_identity_material, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    assert identity != legacy
+
+
 def test_pricing_facts_count_source_bearing_web_search_without_action_type():
     body = {"id": "resp_locator_pricing", "model": "gpt-5.6-luna",
             "usage": {"input_tokens": 4, "output_tokens": 6},
@@ -179,6 +188,28 @@ def test_standard_ambiguous_evidence_is_not_downgraded_to_definite_failure():
     with pytest.raises(StandardAmbiguous):
         OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(FailingClient()), model="gpt-5.6-luna", execution_gate=gate).search(
             query='"Sunrise"', subject_abn="11111111111", request_identity="req:ambiguous")
+    assert gate.events[-1] == ("fail", "provider_ambiguous_transport", True)
+
+
+def test_unclassified_transport_exception_after_invocation_is_held_ambiguous():
+    class FailingClient(OpenAIHTTPStandardClient):
+        def create_response_once(self, *_args, **_kwargs):
+            raise RuntimeError("unexpected adapter failure")
+    gate = RecordingGate()
+    with pytest.raises(RuntimeError, match="unexpected adapter failure"):
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(FailingClient()), model="gpt-5.6-luna", execution_gate=gate).search(
+            query='"Sunrise"', subject_abn="11111111111", request_identity="req:unclassified")
+    assert gate.events[-1] == ("fail", "provider_ambiguous_transport", True)
+
+
+@pytest.mark.parametrize("response_id", ["", "   ", "\t"])
+def test_blank_response_identity_is_held_ambiguous(response_id):
+    gate = RecordingGate()
+    body = {"id": response_id, "output": [{"type": "web_search_call", "action": {"sources": []}}]}
+    with pytest.raises(ScalePreflightError, match="identity"):
+        OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
+                                         model="gpt-5.6-luna", execution_gate=gate).search(
+            query='"Sunrise"', subject_abn="11111111111", request_identity="req:blank-id")
     assert gate.events[-1] == ("fail", "provider_ambiguous_transport", True)
 
 

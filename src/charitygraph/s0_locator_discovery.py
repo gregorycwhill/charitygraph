@@ -431,11 +431,14 @@ class OpenAIResponsesWebSearchProvider:
             record_outcome = getattr(self.execution_gate, "transport_outcome", None)
             if callable(record_outcome):
                 record_outcome(physical=True)
-            self.execution_gate.fail(failure_class="provider_transport_failure", message=str(error), ambiguous=False)
+            # Transport was invoked and this unclassified path supplies no
+            # evidence that bytes did not leave the process.  Never turn that
+            # uncertainty into a release-eligible definite rejection.
+            self.execution_gate.fail(failure_class="provider_ambiguous_transport", message=str(error), ambiguous=True)
             raise
         response_id = response.body.get("id") if isinstance(response.body, Mapping) else None
-        if not isinstance(response_id, str) or not response_id:
-            self.execution_gate.fail(failure_class="provider_schema_failure", message="missing provider response identity")
+        if not isinstance(response_id, str) or not response_id.strip():
+            self.execution_gate.fail(failure_class="provider_ambiguous_transport", message="missing trustworthy provider response identity", ambiguous=True)
             raise ScalePreflightError("Responses web-search result lacks provider call identity")
         usage = response.body.get("usage")
         response_facts = self._pricing_facts(response.body)

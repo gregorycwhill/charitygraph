@@ -12,7 +12,7 @@ from decimal import Decimal, InvalidOperation
 from enum import StrEnum
 from hashlib import sha256
 import json
-from typing import Iterable, Mapping
+from typing import Any, Iterable, Mapping
 
 from .runtime.catalog import (
     S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME,
@@ -42,6 +42,21 @@ LOCATOR_SEARCH_TASK_ID = "urn:charitygraph:scale-s0:locator_search"
 LOCATOR_SEARCH_TASK_VERSION = "1.0"
 LOCATOR_SEARCH_INPUT_PROFILE_ID = "profile:locator-search:1"
 LOCATOR_SEARCH_OUTPUT_SCHEMA_ID = "urn:charitygraph:builder:schema:locator-search-discovery-metadata:1.0"
+LOCATOR_SEARCH_PROVIDER_REQUEST = {
+    "model": "gpt-5.6-luna",
+    "tools": [{"type": "web_search"}],
+    "tool_choice": {"type": "web_search"},
+    "store": False,
+    "include": ["web_search_call.action.sources"],
+}
+
+
+def locator_search_request_body(query: str) -> dict[str, Any]:
+    """Build the sole canonical locator POST body from frozen public input."""
+    return {"model": LOCATOR_SEARCH_PROVIDER_REQUEST["model"], "input": query,
+            "tools": [{"type": "web_search"}],
+            "tool_choice": {"type": "web_search"}, "store": False,
+            "include": ["web_search_call.action.sources"]}
 
 
 def locator_search_request_identity(*, subject_id: str, query: str, query_index: int) -> str:
@@ -55,7 +70,12 @@ def locator_search_request_identity(*, subject_id: str, query: str, query_index:
             or isinstance(query_index, bool)
             or not 0 <= query_index < LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT):
         raise ScalePreflightError("locator search identity requires a subject, query, and bounded query index")
-    return "locator-search:" + _digest({"subject": subject_id, "query": query, "index": query_index})
+    # The durable exactly-once identity deliberately includes every provider
+    # material field.  A later contract repair (for example, a required
+    # Responses ``include``) must never collide with an earlier request.
+    return "locator-search:" + _digest({"subject": subject_id, "query": query,
+                                         "index": query_index,
+                                         "body": locator_search_request_body(query)})
 
 
 class ReviewRequirement(StrEnum): NONE = "none"; SAMPLED = "sampled"; MANDATORY = "mandatory"
