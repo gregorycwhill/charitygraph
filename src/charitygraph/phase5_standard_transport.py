@@ -262,6 +262,7 @@ class OpenAIResponsesWebSearchTransport:
             "tools": [{"type": "web_search"}],
             "tool_choice": {"type": "web_search"},
             "store": False,
+            "include": ["web_search_call.action.sources"],
         })
         return self.client.create_response_once(
             body, client_request_id=client_request_id,

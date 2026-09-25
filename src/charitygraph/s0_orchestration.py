@@ -278,6 +278,23 @@ class ScaleS0Executor:
                 # The governed provider adapter records the outcome.  A
                 # crossing ambiguity stops the campaign; a definite rejection
                 # is terminal for this item but does not authorize a retry.
+                receipt = self.catalog.get_physical_receipt(item.request.physical_attempt_id)
+                if receipt is not None:
+                    # A provider adapter may raise only after durable receipt
+                    # capture (for example, missing requested source metadata).
+                    # Reconcile that definite response before reporting its
+                    # distinct locator failure; never send it again.
+                    try:
+                        self.accounting.reconcile_durable(request=item.request, packet=packet)
+                    except Exception as accounting_error:
+                        results.append({"request_item_id": packet.provider_request_identity,
+                                        "status": "schema_failed_accounting_pending", "provider_posts": 1,
+                                        "error": str(accounting_error)[:512]})
+                        return results, posts + 1, True
+                    results.append({"request_item_id": packet.provider_request_identity,
+                                    "status": "schema_failed_accounted", "provider_posts": 1,
+                                    "error": str(error)[:512]})
+                    return results, posts + 1, True
                 if not provider_manages_gate:
                     gate_posts = getattr(gate, "provider_posts", None)
                     gate_started = getattr(gate, "crossing_started", None)

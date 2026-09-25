@@ -86,7 +86,7 @@ class RecordingGate(LocatorSearchExecutionGate):
     client_request_id = "locator-test-client"
     def __init__(self): self.events = []
     def begin(self, *, request_identity, subject_abn, query): self.events.append(("begin", request_identity, subject_abn, query))
-    def complete(self, *, provider_receipt_id, result_ref, usage=None): self.events.append(("complete", provider_receipt_id, result_ref, usage))
+    def complete(self, *, provider_receipt_id, result_ref, usage=None, response_facts=None): self.events.append(("complete", provider_receipt_id, result_ref, usage, response_facts))
     def fail(self, *, failure_class, message, ambiguous=False): self.events.append(("fail", failure_class, ambiguous))
 
 
@@ -109,7 +109,7 @@ def test_standard_adapter_emits_exact_luna_web_search_body_and_normalizes_real_s
         OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=RecordingGate(),
     ).search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:body")
     sent = __import__("json").loads(client.calls[0][0])
-    assert sent == {"model": "gpt-5.6-luna", "input": '"Sunrise"', "tools": [{"type": "web_search"}], "tool_choice": {"type": "web_search"}, "store": False}
+    assert sent == {"model": "gpt-5.6-luna", "input": '"Sunrise"', "tools": [{"type": "web_search"}], "tool_choice": {"type": "web_search"}, "store": False, "include": ["web_search_call.action.sources"]}
     assert result.provider_call_id == "resp_locator_sources"
     assert result.usage == body["usage"]
     assert result.results == (LocatorSearchResult("https://example.org/", title="Example", source_metadata={"title": "Example", "type": "source"}),)
@@ -125,7 +125,7 @@ def test_missing_identity_or_source_structure_fails_without_fabricated_locator_m
     with pytest.raises(ScalePreflightError):
         OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=gate).search(
             query='"Sunrise"', subject_abn="11111111111", request_identity="req:malformed")
-    assert [event[0] for event in gate.events] == ["begin", "fail"]
+    assert [event[0] for event in gate.events] == (["begin", "fail"] if "id" not in response_body else ["begin", "complete", "fail"])
 
 
 def test_standard_ambiguous_evidence_is_not_downgraded_to_definite_failure():

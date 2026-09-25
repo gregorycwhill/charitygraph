@@ -116,6 +116,23 @@ class S0ProviderAccounting:
         return ProviderCostEvidence(provider_amount, provider_currency, accounting_amount,
                                     accounting_currency, str(pricing_snapshot_id), fx_id)
 
+    @staticmethod
+    def _response_from_facts(facts: Any, usage: Any) -> Any:
+        """Rebuild the minimum pricing shape from durably captured mechanics.
+
+        The facts exclude locator sources, snippets, citations, and message
+        content.  They are sufficient only for the frozen pricing calculation.
+        """
+        if not isinstance(facts, Mapping) or facts.get("model") != "gpt-5.6-luna":
+            raise ScalePreflightError("durable provider receipt lacks pricing response facts")
+        count = facts.get("web_search_calls")
+        if not isinstance(count, int) or isinstance(count, bool) or count < 0:
+            raise ScalePreflightError("durable provider receipt has invalid web-search call count")
+        return type("DurablePricingResponse", (), {"body": {
+            "model": facts["model"], "usage": usage,
+            "output": [{"type": "web_search_call", "action": {"type": "search"}} for _ in range(count)],
+        }})()
+
     def reconcile(self, *, request: Any, packet: Any, provider_receipt_id: str,
                   usage: Any, provider_response: Any = None) -> dict[str, Any]:
         if not provider_receipt_id:
@@ -207,7 +224,17 @@ class S0ProviderAccounting:
             usage = json.loads(receipt["usage_json"]) if isinstance(receipt.get("usage_json"), str) else receipt.get("usage_json")
         except json.JSONDecodeError as error:
             raise ScalePreflightError("completed provider item has invalid durable usage") from error
-        return self.reconcile(request=request, packet=packet, provider_receipt_id=str(receipt["provider_receipt_id"]), usage=usage)
+        facts = receipt.get("response_facts_json")
+        if isinstance(facts, str):
+            try:
+                facts = json.loads(facts)
+            except json.JSONDecodeError as error:
+                raise ScalePreflightError("completed provider item has invalid durable pricing facts") from error
+        return self.reconcile(
+            request=request, packet=packet,
+            provider_receipt_id=str(receipt["provider_receipt_id"]), usage=usage,
+            provider_response=self._response_from_facts(facts, usage),
+        )
 
 
 class S0ProviderAccountingFactory:

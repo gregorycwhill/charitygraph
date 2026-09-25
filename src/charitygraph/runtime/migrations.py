@@ -1114,6 +1114,21 @@ CREATE INDEX scale_s0_locator_discoveries_subject_idx
     ON scale_s0_locator_discoveries(subject_abn, decision, provider_call_id);
 """.strip() + "\n"
 
+# A definitive locator response can be billable even when its discovery-only
+# source metadata fails validation.  Persist only the mechanical pricing facts
+# needed for restart-safe reconciliation; search sources and message content do
+# not belong in this accounting record.
+CATALOGUE_SQL_V25 = """
+ALTER TABLE provider_receipts ADD COLUMN response_facts_json TEXT;
+CREATE TABLE scale_s0_locator_terminal_outcomes (
+    physical_attempt_id TEXT PRIMARY KEY REFERENCES physical_attempts(physical_attempt_id),
+    provider_request_item_id TEXT NOT NULL REFERENCES provider_request_items(provider_request_item_id),
+    outcome_class TEXT NOT NULL CHECK(outcome_class IN ('provider_schema_failure','provider_validation_failure')),
+    message TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -1139,6 +1154,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(22, "durable_scale_s0_source_runtime_authorities", CATALOGUE_SQL_V22),
     Migration(23, "durable_scale_s0_attestation_windows", CATALOGUE_SQL_V23),
     Migration(24, "durable_scale_s0_locator_discovery_lineage", CATALOGUE_SQL_V24),
+    Migration(25, "durable_scale_s0_locator_response_accounting_facts", CATALOGUE_SQL_V25),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

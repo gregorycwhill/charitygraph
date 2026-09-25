@@ -70,7 +70,8 @@ class LocatorSearchExecutionGate(ABC):
     def begin(self, *, request_identity: str, subject_abn: str, query: str) -> None: ...
 
     @abstractmethod
-    def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None) -> None: ...
+    def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None,
+                 response_facts: Any = None) -> None: ...
 
     @abstractmethod
     def fail(self, *, failure_class: str, message: str, ambiguous: bool = False) -> None: ...
@@ -233,7 +234,8 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self.now)
         self._started = True
 
-    def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None) -> None:
+    def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None,
+                 response_facts: Any = None) -> None:
         if not self._started:
             raise ScalePreflightError("locator search completion has no durable send-start")
         self._physical_crossing = True
@@ -245,7 +247,8 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         self.catalog.complete_standard_delivery(self.delivery_attempt_id,
             provider_request_id=self.request_identity,
             provider_receipt_id=provider_receipt_id,
-            raw_result_ref=result_ref, usage=usage or {}, result_ref=result_ref, now=self.now)
+            raw_result_ref=result_ref, usage=usage or {}, result_ref=result_ref, now=self.now,
+            response_facts=response_facts)
         self.catalog.record_standard_transport_outcome(
             self.request.physical_attempt_id, status="COMPLETED",
             response_headers_received=True, response_identity=provider_receipt_id,
@@ -256,6 +259,16 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         if ambiguous:
             self._physical_crossing = True
         if self._started:
+            # A response receipt is a completed transport/accounting fact even
+            # when discovery-only metadata subsequently fails schema checks.
+            # Do not rewrite it into a transport failure or ambiguity.
+            physical = self.catalog.get_physical_attempt(self.request.physical_attempt_id)
+            if not ambiguous and physical is not None and physical.get("status") == "validated":
+                outcome = "provider_schema_failure" if failure_class == "provider_schema_failure" else "provider_validation_failure"
+                self.catalog.record_scale_s0_locator_terminal_outcome(
+                    self.request.physical_attempt_id, outcome_class=outcome,
+                    message=message, now=self.now)
+                return
             self.catalog.record_standard_transport_outcome(
                 self.request.physical_attempt_id,
                 status="PROVIDER_CROSSING_AMBIGUOUS" if ambiguous else "PROVIDER_REJECTED",
@@ -420,6 +433,14 @@ class OpenAIResponsesWebSearchProvider:
         if not response_id:
             self.execution_gate.fail(failure_class="provider_schema_failure", message="missing provider response identity")
             raise ScalePreflightError("Responses web-search result lacks provider call identity")
+        usage = response.body.get("usage")
+        response_facts = self._pricing_facts(response.body)
+        # The receipt boundary comes before all locator-result parsing.  This
+        # keeps a definite provider response durable even when requested source
+        # metadata is missing or malformed.
+        self.execution_gate.complete(provider_receipt_id=response_id,
+                                     result_ref="provider-response:" + response_id,
+                                     usage=usage, response_facts=response_facts)
         results: list[LocatorSearchResult] = []
         # Preserve only source fields actually returned by the API.  Locator
         # discovery must not invent snippets, ranks, or usage.
@@ -444,9 +465,25 @@ class OpenAIResponsesWebSearchProvider:
         if output and not saw_sources_structure:
             self.execution_gate.fail(failure_class="provider_schema_failure", message="missing web-search source structure")
             raise ScalePreflightError("Responses web-search result lacks source structure")
-        usage = response.body.get("usage")
-        self.execution_gate.complete(provider_receipt_id=response_id, result_ref="provider-response:" + response_id, usage=usage)
         return LocatorSearchResponse(response_id, tuple(results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]), usage=usage if isinstance(usage, Mapping) else None, response_body=response.body)
+
+    @staticmethod
+    def _pricing_facts(body: Mapping[str, Any]) -> dict[str, Any] | None:
+        """Extract only deterministic pricing dimensions, never source metadata."""
+        model, output = body.get("model"), body.get("output")
+        if model != "gpt-5.6-luna" or not isinstance(output, list):
+            return None
+        count = 0
+        for item in output:
+            if not isinstance(item, Mapping):
+                return None
+            if item.get("type") != "web_search_call":
+                continue
+            action = item.get("action")
+            if not isinstance(action, Mapping) or not isinstance(action.get("type"), str) or not action["type"]:
+                return None
+            count += 1
+        return {"model": model, "web_search_calls": count}
 
 
 def discover(provider: LocatorSearchProvider, identity: PublicEntityIdentity, *,
