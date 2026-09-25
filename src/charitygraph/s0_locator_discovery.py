@@ -102,16 +102,27 @@ class LocatorSearchPreparedRequest:
 def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAttemptIdentity,
                                  subject_abn: str, query: str, query_index: int,
                                  pricing: LocatorSearchPrice, frozen_at: str,
+                                 provider_account_project: str,
+                                 execution_authority: str,
                                  scope_id: str = "scope:organisation") -> FrozenPacket:
     """Compile a deterministic operational packet without evidence or a send."""
     if execution_attempt.mandate_id != mandate.mandate_id or execution_attempt.slice_id != mandate.slice_id:
         raise ScalePreflightError("locator search packet execution identity is outside the mandate")
     if pricing.currency != mandate.currency_basis:
         raise ScalePreflightError("locator search price currency must equal the frozen S0 currency")
-    request_identity = locator_search_request_identity(subject_id=subject_abn, query=query, query_index=query_index)
+    if not provider_account_project or not execution_authority:
+        raise ScalePreflightError("locator search packet requires explicit immutable A3 account/project and authority")
+    request_identity = locator_search_request_identity(
+        subject_id=subject_abn, query=query, query_index=query_index,
+        execution_attempt_id=execution_attempt.attempt_id,
+        provider_account_project=provider_account_project,
+        execution_authority=execution_authority,
+    )
     material = {
         "mandate": mandate.identity_hash,
         "execution_attempt": execution_attempt.attempt_id,
+        "provider_account_project": provider_account_project,
+        "execution_authority": execution_authority,
         "operation": LOCATOR_SEARCH_OPERATION_KIND,
         "subject": subject_abn,
         "scope": scope_id,
@@ -134,6 +145,9 @@ def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAt
         locator_query=query, locator_query_index=query_index,
         pricing_snapshot_id=pricing.pricing_snapshot_id,
         estimated_provider_cost=pricing.estimated_provider_cost,
+        locator_execution_attempt_id=execution_attempt.attempt_id,
+        provider_account_project=provider_account_project,
+        execution_authority=execution_authority,
     )
 
 
@@ -150,6 +164,9 @@ def prepare_locator_search_request(*, packet: FrozenPacket, reservation_id: str,
         raise ScalePreflightError("locator search request requires a frozen locator packet and reservation")
     if not provider_account_project or not execution_authority:
         raise ScalePreflightError("locator search request requires explicit A3 account/project and authority")
+    if (provider_account_project != packet.provider_account_project
+            or execution_authority != packet.execution_authority):
+        raise ScalePreflightError("locator search request A3 binding does not match the frozen packet")
     identity = packet.provider_request_identity
     return LocatorSearchPreparedRequest(
         packet,
@@ -510,7 +527,9 @@ def discover(provider: LocatorSearchProvider, identity: PublicEntityIdentity, *,
     for query_index, query in enumerate(identity.queries()):
         if (identity.subject_abn, query) in completed_queries:
             continue
-        request_identity = locator_search_request_identity(subject_id=identity.subject_abn, query=query, query_index=query_index)
+        # Discovery is provider-neutral; a production crossing is only possible
+        # through a FrozenPacket, whose identity binds attempt and A3 material.
+        request_identity = "locator-discovery:" + _hash({"subject": identity.subject_abn, "query": query, "index": query_index})
         response = provider.search(query=query, subject_abn=identity.subject_abn, request_identity=request_identity)
         for result in response.results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]:
             lineages.append(DiscoveryLineage(identity.subject_abn, query, provider.provider_id, response.provider_call_id,

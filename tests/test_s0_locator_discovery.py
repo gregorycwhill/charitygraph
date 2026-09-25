@@ -119,11 +119,23 @@ def test_standard_adapter_emits_exact_luna_web_search_body_and_normalizes_real_s
 
 
 def test_locator_request_identity_binds_the_required_responses_include_contract():
-    identity = locator_search_request_identity(subject_id="11111111111", query='"Sunrise"', query_index=0)
+    identity = locator_search_request_identity(subject_id="11111111111", query='"Sunrise"', query_index=0,
+                                               execution_attempt_id="attempt:one", provider_account_project="proj:one",
+                                               execution_authority="authority:one")
     legacy_identity_material = {"subject": "11111111111", "query": '"Sunrise"', "index": 0}
     legacy = "locator-search:" + __import__("hashlib").sha256(__import__("json").dumps(
         legacy_identity_material, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     assert identity != legacy
+
+
+def test_locator_request_identity_separates_attempt_and_a3_bindings():
+    common = {"subject_id": "11111111111", "query": '"Sunrise"', "query_index": 0,
+              "execution_attempt_id": "attempt:one", "provider_account_project": "proj:one",
+              "execution_authority": "authority:one"}
+    identity = locator_search_request_identity(**common)
+    assert identity != locator_search_request_identity(**{**common, "execution_attempt_id": "attempt:two"})
+    assert identity != locator_search_request_identity(**{**common, "provider_account_project": "proj:two"})
+    assert identity != locator_search_request_identity(**{**common, "execution_authority": "authority:two"})
 
 
 def test_pricing_facts_count_source_bearing_web_search_without_action_type():

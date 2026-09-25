@@ -110,7 +110,7 @@ def _prepared_catalog(tmp_path):
     packet = freeze_locator_search_packet(
         mandate=mandate, execution_attempt=attempt, subject_abn=SUBJECT, query='"Locator Foundation"',
         query_index=0, pricing=LocatorSearchPrice("pricing:locator-v1", "0.10", "USD"),
-        frozen_at=NOW.isoformat(),
+        frozen_at=NOW.isoformat(), provider_account_project=PROJECT, execution_authority=AUTHORITY,
     )
     assert ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, execution_attempt_id=attempt.attempt_id)["packet_id"] == packet.packet_id
     for bundle in bundle_packets(mandate, (packet,), now=NOW, execution_attempt_id=attempt.attempt_id):
@@ -206,12 +206,14 @@ def test_locator_packet_rejects_missing_pricing_and_cap_overrun_without_a_send(t
     with pytest.raises(ScalePreflightError, match="positive immutable pricing"):
         freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, subject_abn=SUBJECT,
                                      query='"Locator Foundation"', query_index=0,
-                                     pricing=LocatorSearchPrice("", "0.10", "USD"), frozen_at=NOW.isoformat())
+                                     pricing=LocatorSearchPrice("", "0.10", "USD"), frozen_at=NOW.isoformat(),
+                                     provider_account_project=PROJECT, execution_authority=AUTHORITY)
     with pytest.raises(ScalePreflightError, match="bounded query index"):
         freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, subject_abn=SUBJECT,
                                      query='"Locator Foundation"', query_index=5,
                                      pricing=LocatorSearchPrice("pricing:locator-v1", "0.10", "USD"),
-                                     frozen_at=NOW.isoformat())
+                                     frozen_at=NOW.isoformat(), provider_account_project=PROJECT,
+                                     execution_authority=AUTHORITY)
     catalog = SQLiteCatalog(tmp_path / "cap.sqlite3").open(initialize=True)
     registry = default_s0_registry()
     routing = RoutingPolicy("routing:locator", "1", frozenset(RoutingClass), {})
@@ -224,7 +226,8 @@ def test_locator_packet_rejects_missing_pricing_and_cap_overrun_without_a_send(t
     ScaleS0Preflight.register_durable_execution_attempt(catalog, attempt)
     over_cap = freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, subject_abn=SUBJECT,
                                             query='"Locator Foundation"', query_index=0,
-                                            pricing=LocatorSearchPrice("pricing:locator-v1", "0.26", "USD"), frozen_at=NOW.isoformat())
+                                            pricing=LocatorSearchPrice("pricing:locator-v1", "0.26", "USD"), frozen_at=NOW.isoformat(),
+                                            provider_account_project=PROJECT, execution_authority=AUTHORITY)
     with pytest.raises(ScalePreflightError, match="per-request reservation cap"):
         ScaleS0Preflight.register_durable_packet(catalog, mandate, over_cap, execution_attempt_id=attempt.attempt_id)
 
