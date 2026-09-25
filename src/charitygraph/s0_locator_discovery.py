@@ -268,7 +268,17 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         # the second proof is deliberately adjacent to send-started so an A3
         # window expiring during preparation cannot authorize a crossing.
         self.preflight.provider_send(self.request, now=self._send_authorizing_now())
-        self.catalog.mark_standard_send_started(self.delivery_attempt_id, client_request_id=self.client_request_id, now=self._send_authorizing_now())
+        # Use one final fresh observation both to re-authorise and to stamp the
+        # durable crossing.  A new observation must never advance send-started
+        # past the last A3 proof: expiry in that final seam otherwise permits a
+        # physical POST under an unvalidated clock instant.
+        send_started_at = self._send_authorizing_now()
+        self.preflight.provider_send(self.request, now=send_started_at)
+        self.catalog.mark_standard_send_started(
+            self.delivery_attempt_id,
+            client_request_id=self.client_request_id,
+            now=send_started_at,
+        )
         self._started = True
 
     def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None,

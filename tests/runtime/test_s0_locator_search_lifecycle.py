@@ -267,6 +267,24 @@ def test_locator_gate_rechecks_a3_with_a_fresh_clock_at_send_boundary(tmp_path):
     assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
 
 
+def test_locator_gate_rechecks_a3_at_the_durable_send_started_timestamp(tmp_path):
+    """Expiry after the second preflight cannot cross at send-start."""
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    instants = iter((NOW, NOW, NOW + timedelta(minutes=60, microseconds=1)))
+    gate = S0LocatorSearchExecutionGate(
+        preflight=live, request=prepared.request, catalog=catalog,
+        delivery_attempt_id=prepared.delivery_attempt_id,
+        client_request_id=prepared.client_request_id,
+        request_identity=packet.provider_request_identity,
+        now=lambda: next(instants),
+    )
+    with pytest.raises(ConflictError, match="currently valid durable attestation"):
+        gate.begin(request_identity=packet.provider_request_identity,
+                   subject_abn=SUBJECT, query=packet.locator_query)
+    assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
+
+
 def test_locator_gate_rejects_backwards_clock_between_authorizing_checks(tmp_path):
     catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
     live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
