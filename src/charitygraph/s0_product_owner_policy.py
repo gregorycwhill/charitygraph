@@ -7,15 +7,15 @@ durable rights, reservation, packet and exactly-once gates.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from hashlib import sha256
 from urllib.parse import urlsplit
 
 from charitygraph.scale_s0 import ScalePreflightError
+from charitygraph.runtime.catalog import ATTESTATION_WINDOW
 
 
 DECISION_ID = "CG-S0-PO-2026-09-22"
-ATTESTATION_WINDOW = timedelta(minutes=60)
 MAX_LOCATOR_PROBES_PER_SUBJECT = 5
 
 

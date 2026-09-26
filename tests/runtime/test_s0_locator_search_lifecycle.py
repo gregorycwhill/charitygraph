@@ -6,6 +6,7 @@ import pytest
 
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.runtime.catalog import (
+    ATTESTATION_WINDOW,
     CatalogError,
     ConflictError,
     S0_LIVE_SEND_ATTESTER,
@@ -137,7 +138,7 @@ def _prepared_catalog(tmp_path):
         "mandate_id": mandate.mandate_id, "slice_id": mandate.slice_id, "run_id": attempt.run_id,
         "attested_by": S0_LIVE_SEND_ATTESTER, "setting_name": S0_LIVE_SEND_SETTING_NAME,
         "observed_value": S0_LIVE_SEND_OBSERVED_VALUE, "provider_account_project": PROJECT,
-        "execution_authority": AUTHORITY, "observed_at": NOW, "valid_until": NOW + timedelta(minutes=60),
+        "execution_authority": AUTHORITY, "observed_at": NOW, "valid_until": NOW + ATTESTATION_WINDOW,
     })
     catalog.create_delivery_job(delivery_job_id="deliveryjob:locator", run_id=attempt.run_id, provider_id="openai",
                                 model_route="synthetic", delivery_mode="standard", pricing_snapshot_id="pricing:locator-v1", now=NOW)
@@ -272,7 +273,7 @@ def test_locator_gate_rechecks_a3_with_a_fresh_clock_at_send_boundary(tmp_path):
     """A packet prepared under A3 cannot cross after its window expires."""
     catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
     live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
-    instants = iter((NOW, NOW + timedelta(minutes=60, microseconds=1)))
+    instants = iter((NOW, NOW + ATTESTATION_WINDOW))
     gate = S0LocatorSearchExecutionGate(
         preflight=live, request=prepared.request, catalog=catalog,
         delivery_attempt_id=prepared.delivery_attempt_id,
@@ -290,7 +291,7 @@ def test_locator_gate_rechecks_a3_at_the_durable_send_started_timestamp(tmp_path
     """Expiry after the second preflight cannot cross at send-start."""
     catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
     live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
-    instants = iter((NOW, NOW, NOW + timedelta(minutes=60, microseconds=1)))
+    instants = iter((NOW, NOW, NOW + ATTESTATION_WINDOW))
     gate = S0LocatorSearchExecutionGate(
         preflight=live, request=prepared.request, catalog=catalog,
         delivery_attempt_id=prepared.delivery_attempt_id,

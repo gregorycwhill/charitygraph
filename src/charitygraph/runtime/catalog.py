@@ -71,7 +71,7 @@ TASK_TRANSITIONS = {
 S0_LIVE_SEND_SETTING_NAME = "Share inputs and outputs with OpenAI"
 S0_LIVE_SEND_OBSERVED_VALUE = "Disabled"
 S0_LIVE_SEND_ATTESTER = "Greg"
-S0_LIVE_SEND_MAX_ATTESTATION_AGE = timedelta(minutes=60)
+ATTESTATION_WINDOW = timedelta(hours=24)
 
 
 def default_database_path(runtime_root: str | Path) -> Path:
@@ -791,7 +791,7 @@ class SQLiteCatalog:
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_owner_attestations WHERE attestation_id=?", (material["attestation_id"],)).fetchone()) or {}
 
     def register_scale_s0_attestation_window(self, window: Mapping[str, Any]) -> dict[str, Any]:
-        """Record one explicit, reusable 60-minute S0 provider-policy window."""
+        """Record one explicit, reusable 24-hour S0 provider-policy window."""
         self._require_migrated()
         fields = ("window_id", "execution_attempt_id", "mandate_id", "slice_id", "run_id", "attested_by",
                   "setting_name", "observed_value", "provider_account_project", "execution_authority",
@@ -811,8 +811,8 @@ class SQLiteCatalog:
         valid_until = datetime.fromisoformat(material["valid_until"])
         if material["attested_by"] != S0_LIVE_SEND_ATTESTER or material["setting_name"] != S0_LIVE_SEND_SETTING_NAME or material["observed_value"] != S0_LIVE_SEND_OBSERVED_VALUE:
             raise CatalogError("S0 attestation window must record Greg's required OpenAI-sharing setting")
-        if valid_until != observed + S0_LIVE_SEND_MAX_ATTESTATION_AGE:
-            raise CatalogError("S0 attestation window must expire exactly 60 minutes after observation")
+        if valid_until != observed + ATTESTATION_WINDOW:
+            raise CatalogError("S0 attestation window must expire exactly 24 hours after observation")
         material_hash = _canonical_hash(material)
         with self._connection(immediate=True) as conn:
             attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (material["execution_attempt_id"],)).fetchone()
