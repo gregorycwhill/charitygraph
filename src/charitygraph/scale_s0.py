@@ -70,6 +70,29 @@ def locator_search_request_body_sha256(query: str) -> str:
     return sha256(locator_search_request_body_bytes(query)).hexdigest()
 
 
+def validate_locator_subject_reference(*, locator_subject_ref: str,
+                                       locator_identifier_scheme: str,
+                                       locator_identifier_value: str) -> None:
+    """Reject an external lookup identifier presented as a governed subject.
+
+    This is an anti-collapse guard, not a subject resolver.  The control plane
+    must provide the governed reference and evidence binding its lookup seed.
+    """
+    if (not isinstance(locator_subject_ref, str) or not locator_subject_ref.strip()
+            or not isinstance(locator_identifier_scheme, str)
+            or not locator_identifier_scheme.strip()
+            or not isinstance(locator_identifier_value, str)
+            or not locator_identifier_value.strip()):
+        raise ScalePreflightError("locator search identity requires a governed subject and external identifier")
+    subject = locator_subject_ref.strip()
+    identifier = locator_identifier_value.strip()
+    # An ABN lookup seed is never a CharityGraph subject reference.  Reject
+    # the former direct binding and a misleading ABN-prefixed/embedded alias.
+    if (subject == identifier or subject.casefold().startswith("abn:")
+            or identifier in subject):
+        raise ScalePreflightError("locator subject reference must be distinct from its external ABN lookup identifier")
+
+
 def locator_search_request_identity(*, locator_subject_ref: str, locator_identifier_scheme: str,
                                     locator_identifier_value: str, query: str, query_index: int,
                                     execution_attempt_id: str,
@@ -93,6 +116,11 @@ def locator_search_request_identity(*, locator_subject_ref: str, locator_identif
             or isinstance(query_index, bool)
             or not 0 <= query_index < LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT):
         raise ScalePreflightError("locator search identity requires a subject, query, and bounded query index")
+    validate_locator_subject_reference(
+        locator_subject_ref=locator_subject_ref,
+        locator_identifier_scheme=locator_identifier_scheme,
+        locator_identifier_value=locator_identifier_value,
+    )
     # The durable exactly-once identity deliberately includes every provider
     # material field.  A later contract repair (for example, a required
     # Responses ``include``) must never collide with an earlier request.

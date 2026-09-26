@@ -19,6 +19,7 @@ from charitygraph.scale_s0 import (
     ExecutionAttemptIdentity, FrozenPacket, LOCATOR_SEARCH_MAX_QUERIES_PER_SUBJECT,
     LOCATOR_SEARCH_OPERATION_KIND,
     RoutingClass, ScalePreflightError, SendRequest, locator_search_request_identity,
+    validate_locator_subject_reference,
 )
 from charitygraph.phase5_standard_transport import (
     OpenAIResponsesWebSearchTransport,
@@ -371,7 +372,12 @@ class PublicEntityIdentity:
         """Generate at most five mechanical combinations of approved fields."""
         fields = tuple(x for x in (self.legal_or_trading_name, self.locator_abn, self.acn_or_acnc_identifier, *self.governed_identity_anchors) if x)
         if not self.locator_subject_ref or not self.locator_abn or not self.legal_or_trading_name:
-            raise ScalePreflightError("locator discovery requires governed ABN and legal or trading name")
+            raise ScalePreflightError("locator discovery requires a governed subject, external ABN lookup identifier, and legal or trading name")
+        validate_locator_subject_reference(
+            locator_subject_ref=self.locator_subject_ref,
+            locator_identifier_scheme="ABN",
+            locator_identifier_value=self.locator_abn,
+        )
         base = (f'"{self.legal_or_trading_name}" "{self.locator_abn}"', f'"{self.legal_or_trading_name}"')
         combinations = list(base)
         for value in fields[2:]:
