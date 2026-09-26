@@ -89,7 +89,7 @@ class GovernedSourceTransport:
                 raise GovernedTransportError("alternate locator evidence is malformed")
             locator, relationship = item.get("locator", ""), item.get("relationship", "")
             if not alternate_locator_permitted(
-                subject_abn=plan.subject_id,
+                subject_ref=plan.subject_id,
                 locator=str(locator),
                 authoritative_relationship=str(relationship),
                 probes_used=index + 1,

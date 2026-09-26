@@ -28,8 +28,8 @@ NOW = datetime(2026, 9, 22, tzinfo=timezone.utc)
 class FakeSearch:
     provider_id = "fake-search"
     def __init__(self, results): self.results, self.calls = results, []
-    def search(self, *, query, subject_abn, request_identity):
-        self.calls.append((query, subject_abn, request_identity))
+    def search(self, *, query, locator_subject_ref, locator_abn, request_identity):
+        self.calls.append((query, locator_subject_ref, locator_abn, request_identity))
         return LocatorSearchResponse("search-call:" + str(len(self.calls)), tuple(self.results))
 
 
@@ -41,7 +41,7 @@ def authenticate(lineage, anchors, resolved=None):
 
 def test_sunrise_search_candidate_is_discovery_only_then_authenticated():
     provider = FakeSearch((LocatorSearchResult("https://sunrise.foundation/", "Sunrise", "official Sunrise web site", 1),))
-    rows = discover(provider, PublicEntityIdentity("11111111111", "Sunrise Foundation"))
+    rows = discover(provider, PublicEntityIdentity("subject:sunrise", "Sunrise Foundation", "11111111111"))
     accepted = authenticate(rows[0], ("exact_abn",), "https://sunrise.foundation/")
     assert accepted.accepted and accepted.snippet == "official Sunrise web site"
     # There is deliberately no conversion from search result to source/evidence.
@@ -50,7 +50,7 @@ def test_sunrise_search_candidate_is_discovery_only_then_authenticated():
 
 def test_noongar_stale_locator_is_not_authoritative_when_candidate_authenticates():
     provider = FakeSearch((LocatorSearchResult("https://www.noongarboodjatrust.info/", rank=1),))
-    row = discover(provider, PublicEntityIdentity("22222222222", "Noongar Boodja Trust"))[0]
+    row = discover(provider, PublicEntityIdentity("subject:noongar", "Noongar Boodja Trust", "22222222222"))[0]
     accepted = authenticate(row, ("organisation_name", "address_or_location"), "https://www.noongarboodjatrust.info/")
     assert accepted.accepted and accepted.resolved_locator == "https://www.noongarboodjatrust.info/"
 
@@ -66,8 +66,37 @@ def test_distinct_subject_locator_source_definitions_do_not_collide():
              ("Australian Red Cross", "44444444444", "https://www.redcross.org.au/"),
              ("Bush Heritage", "55555555555", "https://www.bushheritage.org.au/"),
              ("Greenpeace", "66666666666", "https://www.greenpeace.org.au/"))
-    ids = {concrete_first_party_source_definition_id(subject_abn=abn, canonical_locator=canonical_locator(url)) for _, abn, url in pairs}
+    ids = {concrete_first_party_source_definition_id(subject_ref=f"subject:{name.lower().replace(' ', '-')}", canonical_locator=canonical_locator(url)) for name, _abn, url in pairs}
     assert len(ids) == len(pairs)
+
+
+def test_locator_subject_and_abn_are_independent_and_task_scoped():
+    """An ABN is a lookup seed, never the durable subject reference."""
+    provider = FakeSearch(())
+    operating_org = PublicEntityIdentity("subject:operating-org", "Continuing Service", "11111111111")
+    successor_entity = PublicEntityIdentity("subject:successor-entity", "Continuing Service", "22222222222")
+    brand_scope = PublicEntityIdentity("subject:brand-a", "Continuing Service", "11111111111")
+    program_scope = PublicEntityIdentity("subject:program-b", "Continuing Service", "11111111111")
+    reporting_group = PublicEntityIdentity("subject:reporting-group", "Continuing Service", "33333333333")
+    for identity in (operating_org, successor_entity, brand_scope, program_scope, reporting_group):
+        discover(provider, identity)
+    calls = {(subject_ref, abn) for _, subject_ref, abn, _ in provider.calls}
+    assert ("subject:operating-org", "11111111111") in calls
+    assert ("subject:successor-entity", "22222222222") in calls
+    assert {ref for ref, abn in calls if abn == "11111111111"} >= {
+        "subject:operating-org", "subject:brand-a", "subject:program-b"
+    }
+
+
+def test_locator_request_identity_binds_subject_ref_and_external_identifier_separately():
+    common = dict(locator_identifier_scheme="ABN", locator_identifier_value="11111111111",
+                  query='"Continuing Service"', query_index=0, execution_attempt_id="attempt:one",
+                  provider_account_project="project:one", execution_authority="authority:one")
+    first = locator_search_request_identity(locator_subject_ref="subject:brand-a", **common)
+    second = locator_search_request_identity(locator_subject_ref="subject:program-b", **common)
+    changed_abn = locator_search_request_identity(locator_subject_ref="subject:brand-a",
+                                                   **{**common, "locator_identifier_value": "22222222222"})
+    assert len({first, second, changed_abn}) == 3
 
 
 def test_ambiguous_same_name_and_unauthenticated_cross_host_redirect_are_rejected():
@@ -91,7 +120,7 @@ class StubStandardClient(OpenAIHTTPStandardClient):
 class RecordingGate(LocatorSearchExecutionGate):
     client_request_id = "locator-test-client"
     def __init__(self): self.events = []
-    def begin(self, *, request_identity, subject_abn, query): self.events.append(("begin", request_identity, subject_abn, query))
+    def begin(self, *, request_identity, locator_subject_ref, locator_abn, query): self.events.append(("begin", request_identity, locator_subject_ref, locator_abn, query))
     def complete(self, *, provider_receipt_id, result_ref, usage=None, response_facts=None): self.events.append(("complete", provider_receipt_id, result_ref, usage, response_facts))
     def fail(self, *, failure_class, message, ambiguous=False): self.events.append(("fail", failure_class, ambiguous))
 
@@ -101,7 +130,7 @@ def test_authorised_search_is_framed_by_durable_gate_before_and_after_network():
                                  "output": [{"type": "web_search_call", "action": {"sources": []}}]})
     gate = RecordingGate()
     result = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=gate).search(
-        query='"Sunrise"', subject_abn="11111111111", request_identity="req:1")
+        query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:1")
     assert result.provider_call_id == "resp_locator_1"
     assert [event[0] for event in gate.events] == ["begin", "complete"]
 
@@ -114,7 +143,7 @@ def test_standard_adapter_emits_exact_luna_web_search_body_and_normalizes_real_s
     client = StubStandardClient(body)
     result = OpenAIResponsesWebSearchProvider(
         OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=RecordingGate(),
-    ).search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:body")
+    ).search(query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:body")
     sent = __import__("json").loads(client.calls[0][0])
     assert sent == {"model": "gpt-5.6-luna", "input": '"Sunrise"', "tools": [{"type": "web_search"}], "tool_choice": {"type": "web_search"}, "store": False, "include": ["web_search_call.action.sources"]}
     assert result.provider_call_id == "resp_locator_sources"
@@ -124,7 +153,7 @@ def test_standard_adapter_emits_exact_luna_web_search_body_and_normalizes_real_s
 
 
 def test_locator_request_identity_binds_the_required_responses_include_contract():
-    identity = locator_search_request_identity(subject_id="11111111111", query='"Sunrise"', query_index=0,
+    identity = locator_search_request_identity(locator_subject_ref="subject:sunrise", locator_identifier_scheme="ABN", locator_identifier_value="11111111111", query='"Sunrise"', query_index=0,
                                                execution_attempt_id="attempt:one", provider_account_project="proj:one",
                                                execution_authority="authority:one")
     legacy_identity_material = {"subject": "11111111111", "query": '"Sunrise"', "index": 0}
@@ -134,7 +163,7 @@ def test_locator_request_identity_binds_the_required_responses_include_contract(
 
 
 def test_locator_request_identity_separates_attempt_and_a3_bindings():
-    common = {"subject_id": "11111111111", "query": '"Sunrise"', "query_index": 0,
+    common = {"locator_subject_ref": "subject:sunrise", "locator_identifier_scheme": "ABN", "locator_identifier_value": "11111111111", "query": '"Sunrise"', "query_index": 0,
               "execution_attempt_id": "attempt:one", "provider_account_project": "proj:one",
               "execution_authority": "authority:one"}
     identity = locator_search_request_identity(**common)
@@ -172,7 +201,7 @@ def test_pricing_facts_count_source_bearing_web_search_without_action_type():
     gate = RecordingGate()
     OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
                                      model="gpt-5.6-luna", execution_gate=gate).search(
-        query='"Sunrise"', subject_abn="11111111111", request_identity="req:pricing")
+        query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:pricing")
     assert gate.events[1][4] == {"model": "gpt-5.6-luna", "web_search_calls": 1}
 
 
@@ -188,7 +217,7 @@ def test_only_well_formed_web_search_call_sources_can_yield_locator_discovery(ou
     with pytest.raises(ScalePreflightError, match="source structure"):
         OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
                                          model="gpt-5.6-luna", execution_gate=gate).search(
-            query='"Sunrise"', subject_abn="11111111111", request_identity="req:mixed")
+            query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:mixed")
     # A definite response is still accounted before rejecting its locator shape.
     assert [event[0] for event in gate.events] == ["begin", "complete", "fail"]
 
@@ -203,7 +232,7 @@ def test_invalid_identity_or_explicitly_incomplete_response_never_yields_discove
     with pytest.raises(ScalePreflightError):
         OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
                                          model="gpt-5.6-luna", execution_gate=gate).search(
-            query='"Sunrise"', subject_abn="11111111111", request_identity="req:invalid")
+            query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:invalid")
     assert gate.events[-1][0] == "fail"
 
 
@@ -215,7 +244,7 @@ def test_missing_identity_or_source_structure_fails_without_fabricated_locator_m
     gate = RecordingGate()
     with pytest.raises(ScalePreflightError):
         OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=gate).search(
-            query='"Sunrise"', subject_abn="11111111111", request_identity="req:malformed")
+            query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:malformed")
     assert [event[0] for event in gate.events] == (["begin", "fail"] if "id" not in response_body else ["begin", "complete", "fail"])
 
 
@@ -226,7 +255,7 @@ def test_standard_ambiguous_evidence_is_not_downgraded_to_definite_failure():
     gate = RecordingGate()
     with pytest.raises(StandardAmbiguous):
         OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(FailingClient()), model="gpt-5.6-luna", execution_gate=gate).search(
-            query='"Sunrise"', subject_abn="11111111111", request_identity="req:ambiguous")
+            query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:ambiguous")
     assert gate.events[-1] == ("fail", "provider_ambiguous_transport", True)
 
 
@@ -237,7 +266,7 @@ def test_unclassified_transport_exception_after_invocation_is_held_ambiguous():
     gate = RecordingGate()
     with pytest.raises(RuntimeError, match="unexpected adapter failure"):
         OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(FailingClient()), model="gpt-5.6-luna", execution_gate=gate).search(
-            query='"Sunrise"', subject_abn="11111111111", request_identity="req:unclassified")
+            query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:unclassified")
     assert gate.events[-1] == ("fail", "provider_ambiguous_transport", True)
 
 
@@ -248,7 +277,7 @@ def test_blank_response_identity_is_held_ambiguous(response_id):
     with pytest.raises(ScalePreflightError, match="identity"):
         OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(StubStandardClient(body)),
                                          model="gpt-5.6-luna", execution_gate=gate).search(
-            query='"Sunrise"', subject_abn="11111111111", request_identity="req:blank-id")
+            query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:blank-id")
     assert gate.events[-1] == ("fail", "provider_ambiguous_transport", True)
 
 
@@ -284,7 +313,7 @@ def test_existing_preflight_denials_never_reach_network(control_failure):
     client = StubStandardClient({"id": "never", "output": []})
     adapter = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=gate)
     with pytest.raises(ScalePreflightError):
-        adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:denied")
+        adapter.search(query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:denied")
     assert client.calls == []
 
 
@@ -296,22 +325,22 @@ def test_replay_gate_denial_prevents_second_physical_search():
             super().begin(**kwargs)
     client = StubStandardClient({"id": "resp_once", "output": [{"type": "web_search_call", "action": {"sources": []}}]})
     adapter = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client), model="gpt-5.6-luna", execution_gate=ReplayGate())
-    adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:once")
+    adapter.search(query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:once")
     with pytest.raises(ScalePreflightError):
-        adapter.search(query='"Sunrise"', subject_abn="11111111111", request_identity="req:once")
+        adapter.search(query='"Sunrise"', locator_subject_ref="subject:sunrise", locator_abn="11111111111", request_identity="req:once")
     assert len(client.calls) == 1
 
 
 def test_discovery_lineage_is_durable_and_idempotent_without_duplicate_provider_calls(tmp_path):
     provider = FakeSearch((LocatorSearchResult("https://sunrise.foundation/", snippet="metadata only", rank=1),))
-    identity = PublicEntityIdentity("11111111111", "Sunrise Foundation")
+    identity = PublicEntityIdentity("subject:sunrise", "Sunrise Foundation", "11111111111")
     first = discover(provider, identity)
     # Resume persists/reuses the same deterministic lineage; callers do not re-search.
     catalog = SQLiteCatalog(tmp_path / "catalog.sqlite3").open(initialize=True)
     for row in first:
         catalog.register_scale_s0_locator_discovery({**row.__dict__, "lineage_id": row.lineage_id}, created_at=NOW)
         catalog.register_scale_s0_locator_discovery({**row.__dict__, "lineage_id": row.lineage_id}, created_at=NOW)
-    stored = catalog.list_scale_s0_locator_discoveries(subject_abn="11111111111")
+    stored = catalog.list_scale_s0_locator_discoveries(locator_subject_ref="subject:sunrise")
     resumed = discover(provider, identity, existing_lineage=first)
     assert len(stored) == len(first) and not resumed and len(provider.calls) == len(identity.queries())
     catalog.close()

@@ -52,10 +52,11 @@ class LocatorSearchResponse:
 
 
 class LocatorSearchProvider(Protocol):
-    """Provider-neutral, public-identity-only locator search boundary."""
+    """Provider-neutral locator search for a governed subject and ABN seed."""
     provider_id: str
 
-    def search(self, *, query: str, subject_abn: str, request_identity: str) -> LocatorSearchResponse: ...
+    def search(self, *, query: str, locator_subject_ref: str, locator_abn: str,
+               request_identity: str) -> LocatorSearchResponse: ...
 
 
 class LocatorSearchExecutionGate(ABC):
@@ -67,7 +68,8 @@ class LocatorSearchExecutionGate(ABC):
     """
 
     @abstractmethod
-    def begin(self, *, request_identity: str, subject_abn: str, query: str) -> None: ...
+    def begin(self, *, request_identity: str, locator_subject_ref: str,
+              locator_abn: str, query: str) -> None: ...
 
     @abstractmethod
     def complete(self, *, provider_receipt_id: str, result_ref: str, usage: Any = None,
@@ -100,7 +102,8 @@ class LocatorSearchPreparedRequest:
 
 
 def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAttemptIdentity,
-                                 subject_abn: str, query: str, query_index: int,
+                                 locator_subject_ref: str, locator_abn: str,
+                                 query: str, query_index: int,
                                  pricing: LocatorSearchPrice, frozen_at: str,
                                  provider_account_project: str,
                                  execution_authority: str,
@@ -113,7 +116,8 @@ def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAt
     if not provider_account_project or not execution_authority:
         raise ScalePreflightError("locator search packet requires explicit immutable A3 account/project and authority")
     request_identity = locator_search_request_identity(
-        subject_id=subject_abn, query=query, query_index=query_index,
+        locator_subject_ref=locator_subject_ref, locator_identifier_scheme="ABN",
+        locator_identifier_value=locator_abn, query=query, query_index=query_index,
         execution_attempt_id=execution_attempt.attempt_id,
         provider_account_project=provider_account_project,
         execution_authority=execution_authority,
@@ -124,7 +128,8 @@ def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAt
         "provider_account_project": provider_account_project,
         "execution_authority": execution_authority,
         "operation": LOCATOR_SEARCH_OPERATION_KIND,
-        "subject": subject_abn,
+        "locator_subject_ref": locator_subject_ref,
+        "external_identifier": {"scheme": "ABN", "value": locator_abn},
         "scope": scope_id,
         "query": query,
         "query_index": query_index,
@@ -136,7 +141,7 @@ def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAt
     content_hash = _hash(material)
     return FrozenPacket(
         "packet:" + _hash({"locator_search_packet": material}),
-        "urn:charitygraph:scale-s0:locator_search", "1.0", subject_abn, scope_id,
+        "urn:charitygraph:scale-s0:locator_search", "1.0", locator_subject_ref, scope_id,
         (), (), "profile:locator-search:1",
         "urn:charitygraph:builder:schema:locator-search-discovery-metadata:1.0",
         RoutingClass.LOW_COST_SEMANTIC, request_identity, content_hash,
@@ -148,6 +153,7 @@ def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAt
         locator_execution_attempt_id=execution_attempt.attempt_id,
         provider_account_project=provider_account_project,
         execution_authority=execution_authority,
+        locator_identifier_scheme="ABN", locator_identifier_value=locator_abn,
     )
 
 
@@ -253,14 +259,17 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
     def transport_outcome(self, *, physical: bool) -> None:
         self._physical_crossing = self._physical_crossing or physical
 
-    def begin(self, *, request_identity: str, subject_abn: str, query: str) -> None:
+    def begin(self, *, request_identity: str, locator_subject_ref: str,
+              locator_abn: str, query: str) -> None:
         if request_identity != self.request_identity:
             # The stable request identity is carried by the frozen packet and
             # cannot be substituted by a query caller.
             raise ScalePreflightError("locator search request identity does not match the frozen S0 request")
-        if subject_abn != self.request.subject_id:
+        if locator_subject_ref != self.request.subject_id:
             raise ScalePreflightError("locator search subject is outside the frozen S0 request")
         packet = self.preflight.packets[self.request.packet_hash or ""]
+        if packet.locator_identifier_scheme != "ABN" or locator_abn != packet.locator_identifier_value:
+            raise ScalePreflightError("locator search ABN is outside the frozen S0 request")
         if query != packet.locator_query:
             raise ScalePreflightError("locator search query is not bound to the frozen S0 request")
         # The pre-POST trace is part of the durable request identity.  It must
@@ -351,17 +360,19 @@ class LocatorDiscoveryBudget:
 
 @dataclass(frozen=True)
 class PublicEntityIdentity:
-    subject_abn: str
+    """A governed locator subject plus an authority-scoped ABN lookup seed."""
+    locator_subject_ref: str
     legal_or_trading_name: str
+    locator_abn: str
     acn_or_acnc_identifier: str = ""
     governed_identity_anchors: tuple[str, ...] = ()
 
     def queries(self) -> tuple[str, ...]:
         """Generate at most five mechanical combinations of approved fields."""
-        fields = tuple(x for x in (self.legal_or_trading_name, self.subject_abn, self.acn_or_acnc_identifier, *self.governed_identity_anchors) if x)
-        if not self.subject_abn or not self.legal_or_trading_name:
+        fields = tuple(x for x in (self.legal_or_trading_name, self.locator_abn, self.acn_or_acnc_identifier, *self.governed_identity_anchors) if x)
+        if not self.locator_subject_ref or not self.locator_abn or not self.legal_or_trading_name:
             raise ScalePreflightError("locator discovery requires governed ABN and legal or trading name")
-        base = (f'"{self.legal_or_trading_name}" "{self.subject_abn}"', f'"{self.legal_or_trading_name}"')
+        base = (f'"{self.legal_or_trading_name}" "{self.locator_abn}"', f'"{self.legal_or_trading_name}"')
         combinations = list(base)
         for value in fields[2:]:
             combinations.append(f'"{self.legal_or_trading_name}" "{value}"')
@@ -413,7 +424,8 @@ def redirect_authentication(*, requested_locator: str, final_locator: str,
 
 @dataclass(frozen=True)
 class DiscoveryLineage:
-    subject_abn: str
+    locator_subject_ref: str
+    locator_abn: str
     query: str
     provider_id: str
     provider_call_id: str
@@ -448,7 +460,8 @@ class OpenAIResponsesWebSearchProvider:
             raise ScalePreflightError("locator search requires the authorised Standard transport, Luna model, and durable S0 execution gate")
         self.transport, self.model, self.execution_gate = transport, model, execution_gate
 
-    def search(self, *, query: str, subject_abn: str, request_identity: str) -> LocatorSearchResponse:
+    def search(self, *, query: str, locator_subject_ref: str, locator_abn: str,
+               request_identity: str) -> LocatorSearchResponse:
         # A live gate carries the exact A3 project binding.  Refuse a client
         # that is absent, unbound, or bound to another project before the gate
         # can mark send-started.  Lightweight provider-free test gates may not
@@ -459,7 +472,9 @@ class OpenAIResponsesWebSearchProvider:
             expected_project = getattr(gate_request, "provider_account_project", None)
             if not client_project or not expected_project or client_project != expected_project:
                 raise ScalePreflightError("canonical HTTP client project does not match the durable A3 project")
-        self.execution_gate.begin(request_identity=request_identity, subject_abn=subject_abn, query=query)
+        self.execution_gate.begin(request_identity=request_identity,
+                                  locator_subject_ref=locator_subject_ref,
+                                  locator_abn=locator_abn, query=query)
         mark_invoked = getattr(self.execution_gate, "transport_invoked", None)
         if callable(mark_invoked):
             mark_invoked()
@@ -560,16 +575,20 @@ def discover(provider: LocatorSearchProvider, identity: PublicEntityIdentity, *,
              existing_lineage: Sequence[DiscoveryLineage] = ()) -> tuple[DiscoveryLineage, ...]:
     """Call at most five searches; results remain discovery metadata only."""
     lineages: list[DiscoveryLineage] = []
-    completed_queries = {(row.subject_abn, row.query) for row in existing_lineage}
+    completed_queries = {(row.locator_subject_ref, row.locator_abn, row.query) for row in existing_lineage}
     for query_index, query in enumerate(identity.queries()):
-        if (identity.subject_abn, query) in completed_queries:
+        if (identity.locator_subject_ref, identity.locator_abn, query) in completed_queries:
             continue
         # Discovery is provider-neutral; a production crossing is only possible
         # through a FrozenPacket, whose identity binds attempt and A3 material.
-        request_identity = "locator-discovery:" + _hash({"subject": identity.subject_abn, "query": query, "index": query_index})
-        response = provider.search(query=query, subject_abn=identity.subject_abn, request_identity=request_identity)
+        request_identity = "locator-discovery:" + _hash({"locator_subject_ref": identity.locator_subject_ref,
+                                                            "locator_abn": identity.locator_abn,
+                                                            "query": query, "index": query_index})
+        response = provider.search(query=query, locator_subject_ref=identity.locator_subject_ref,
+                                   locator_abn=identity.locator_abn, request_identity=request_identity)
         for result in response.results[:MAX_SEARCH_RESULTS_CONSIDERED_PER_QUERY]:
-            lineages.append(DiscoveryLineage(identity.subject_abn, query, provider.provider_id, response.provider_call_id,
+            lineages.append(DiscoveryLineage(identity.locator_subject_ref, identity.locator_abn, query,
+                provider.provider_id, response.provider_call_id,
                 result.url, result.title, result.snippet, result.rank, result.source_metadata, (), False,
                 "pending_identity_authentication"))
     return tuple(lineages)

@@ -22,7 +22,7 @@ def _receipt(catalog, mandate, packet, prepared, usage):
         request_identity=packet.provider_request_identity,
         now=NOW,
     )
-    gate.begin(request_identity=packet.provider_request_identity, subject_abn=packet.subject_id, query=packet.locator_query)
+    gate.begin(request_identity=packet.provider_request_identity, locator_subject_ref=packet.subject_id, locator_abn=packet.locator_identifier_value, query=packet.locator_query)
     gate.complete(provider_receipt_id="response:accounting", result_ref="provider-response:accounting", usage=usage)
 
 
@@ -90,7 +90,7 @@ def test_post_response_locator_schema_failure_reconciles_frozen_pricing_once_wit
                                         delivery_attempt_id=prepared.delivery_attempt_id, client_request_id=prepared.client_request_id,
                                         request_identity=packet.provider_request_identity, now=NOW)
     usage = {"input_tokens": 10, "output_tokens": 5}
-    gate.begin(request_identity=packet.provider_request_identity, subject_abn=packet.subject_id, query=packet.locator_query)
+    gate.begin(request_identity=packet.provider_request_identity, locator_subject_ref=packet.subject_id, locator_abn=packet.locator_identifier_value, query=packet.locator_query)
     gate.complete(provider_receipt_id="response:schema", result_ref="provider-response:schema", usage=usage,
                   response_facts={"model": "gpt-5.6-luna", "web_search_calls": 1})
     gate.fail(failure_class="provider_schema_failure", message="missing web-search source structure")

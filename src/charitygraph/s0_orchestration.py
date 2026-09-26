@@ -25,7 +25,8 @@ from .scale_s0 import (
 
 class LocatorProvider(Protocol):
     provider_id: str
-    def search(self, *, query: str, subject_abn: str, request_identity: str) -> Any: ...
+    def search(self, *, query: str, locator_subject_ref: str, locator_abn: str,
+               request_identity: str) -> Any: ...
 
 
 @dataclass(frozen=True)
@@ -241,8 +242,12 @@ class ScaleS0Executor:
             try:
                 if not provider_manages_gate:
                     gate.begin(request_identity=packet.provider_request_identity,
-                               subject_abn=packet.subject_id, query=item.query)
-                response = item_locator_provider.search(query=item.query, subject_abn=packet.subject_id, request_identity=packet.provider_request_identity)
+                               locator_subject_ref=packet.subject_id,
+                               locator_abn=packet.locator_identifier_value, query=item.query)
+                response = item_locator_provider.search(query=item.query,
+                                                        locator_subject_ref=packet.subject_id,
+                                                        locator_abn=packet.locator_identifier_value,
+                                                        request_identity=packet.provider_request_identity)
                 response_id = getattr(response, "provider_call_id", None)
                 if not isinstance(response_id, str) or not response_id.strip():
                     raise ScalePreflightError("locator provider response lacks a durable identity")

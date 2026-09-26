@@ -19,12 +19,12 @@ ATTESTATION_WINDOW = timedelta(minutes=60)
 MAX_LOCATOR_PROBES_PER_SUBJECT = 5
 
 
-def concrete_first_party_source_definition_id(*, subject_abn: str, canonical_locator: str,
+def concrete_first_party_source_definition_id(*, subject_ref: str, canonical_locator: str,
                                               source_family: str = "official_first_party_web") -> str:
     """Return the immutable S0 concrete-source identity for a first-party URL."""
-    if not subject_abn or not canonical_locator or not source_family:
+    if not subject_ref or not canonical_locator or not source_family:
         raise ScalePreflightError("first-party source identity requires subject ABN and canonical locator")
-    material = f"{source_family}\0{subject_abn}\0{canonical_locator}".encode("utf-8")
+    material = f"{source_family}\0{subject_ref}\0{canonical_locator}".encode("utf-8")
     return "srcdef:" + sha256(material).hexdigest()
 
 
@@ -69,12 +69,12 @@ def discovery_signals_coverage(*, mapper_present: bool) -> str:
     return "READY" if mapper_present else "IMPLEMENTATION_COVERAGE_MISSING_NONBLOCKING"
 
 
-def alternate_locator_permitted(*, subject_abn: str, locator: str, authoritative_relationship: str,
+def alternate_locator_permitted(*, subject_ref: str, locator: str, authoritative_relationship: str,
                                 probes_used: int, authentication_bypass: bool = False,
                                 paywall_bypass: bool = False, tls_validation_bypass: bool = False,
                                 anti_bot_circumvention: bool = False) -> bool:
     """A5's bounded resolver decision; technical barriers remain fail-closed."""
-    if not subject_abn or probes_used < 0 or probes_used >= MAX_LOCATOR_PROBES_PER_SUBJECT:
+    if not subject_ref or probes_used < 0 or probes_used >= MAX_LOCATOR_PROBES_PER_SUBJECT:
         return False
     parsed = urlsplit(locator)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:

@@ -298,7 +298,7 @@ class GovernedAcquisition:
             # CG-S0-PO-2026-09-22 A1: first-party definitions are concrete and
             # immutable per subject and canonical locator.  Other source-family
             # identities retain their established material boundary.
-            definition_id = (concrete_first_party_source_definition_id(subject_abn=plan.subject_id, canonical_locator=canonical_locator(response.locator), source_family=plan.source_family)
+            definition_id = (concrete_first_party_source_definition_id(subject_ref=plan.subject_id, canonical_locator=canonical_locator(response.locator), source_family=plan.source_family)
                              if plan.source_family in {"official_first_party_web", "official_website"} else
                              "srcdef:" + _hash({"family": plan.source_family, "mechanism": plan.acquisition_mechanism}))
             definition = SourceDefinition(record_id=definition_id,

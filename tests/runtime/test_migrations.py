@@ -5,7 +5,7 @@ import pytest
 
 from charitygraph.runtime import MigrationError, SQLiteCatalog
 import charitygraph.runtime.catalog as catalog_module
-from charitygraph.runtime.migrations import Migration, SUPPORTED_VERSION
+from charitygraph.runtime.migrations import MIGRATIONS, Migration, SUPPORTED_VERSION
 
 
 NOW = datetime(2026, 1, 1, tzinfo=timezone.utc)
@@ -20,6 +20,20 @@ def test_new_database_migrates_reopens_and_integrity_is_green(tmp_path):
     reopened = SQLiteCatalog(path).open()
     assert reopened.migrate() == SUPPORTED_VERSION
     assert reopened.integrity_check() == "ok"
+
+
+def test_v24_catalogue_upgrades_locator_subject_identifier_seam_without_rewriting_history(tmp_path, monkeypatch):
+    path = tmp_path / "v24.sqlite3"
+    original = catalog_module.MIGRATIONS
+    monkeypatch.setattr(catalog_module, "MIGRATIONS", tuple(item for item in MIGRATIONS if item.version <= 24))
+    SQLiteCatalog(path).open(initialize=True).migrate()
+    monkeypatch.setattr(catalog_module, "MIGRATIONS", original)
+    upgraded = SQLiteCatalog(path).open()
+    assert upgraded.migrate() == SUPPORTED_VERSION
+    with upgraded._connection() as conn:
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(scale_s0_locator_discoveries)")}
+    assert {"locator_subject_ref", "locator_identifier_scheme", "locator_identifier_value"} <= columns
+    assert upgraded.integrity_check() == "ok"
 
 
 def test_checksum_mismatch_and_future_version_fail_loudly(tmp_path):
