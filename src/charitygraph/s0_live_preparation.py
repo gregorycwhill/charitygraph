@@ -8,9 +8,8 @@ from typing import Any, Iterable
 
 from .s0_live import canonical_locator_provider_factory
 from .s0_pricing import load_supervisor_capture
-from .scale_s0 import ScalePreflightError, packet_task_key
+from .scale_s0 import ScalePreflightError, locator_search_request_body_sha256, packet_task_key
 from .runtime.catalog import S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME
-from .phase5_standard_transport import canonical_standard_body_bytes
 from .s0_acquisition_bridge import bundle_packets
 import hashlib
 import json
@@ -102,19 +101,11 @@ def prepare_locator_lifecycle(*, catalog: Any, attempt: Any, packet: Any, reques
     catalog.create_provider_request_item(provider_request_item_id=packet.provider_request_identity, run_id=attempt.run_id, model_task_id=task_key, provider_id="openai", model_route="gpt-5.6-luna", requested_delivery_mode="standard", effective_service_tier="standard", delivery_job_id=delivery_job_id, physical_attempt_id=request.physical_attempt_id, now=now)
     delivery_attempt_id = "delivery-attempt:" + __import__("hashlib").sha256(__import__("json").dumps({"locator_search": packet.provider_request_identity}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     catalog.create_provider_request_attempt(delivery_attempt_id=delivery_attempt_id, provider_request_item_id=packet.provider_request_identity, physical_attempt_id=request.physical_attempt_id, delivery_job_id=delivery_job_id, attempt_ordinal=1, authorization_id=attestation_window["window_id"], attempt_class="initial", predecessor_attempt_id=None, now=now)
-    body = {
-        "model": "gpt-5.6-luna",
-        "input": [{"role": "user", "content": packet.locator_query}],
-        "tools": [{"type": "web_search"}],
-        "tool_choice": {"type": "web_search"},
-        "store": False,
-    }
-    body_hash = hashlib.sha256(canonical_standard_body_bytes(body)).hexdigest()
     catalog.prepare_standard_transport_trace(
         delivery_attempt_id,
         client_request_id="locator-search-client:" + hashlib.sha256(json.dumps({"locator_search": packet.provider_request_identity}, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
         endpoint="https://api.openai.com/v1/responses",
-        request_body_sha256=body_hash,
+        request_body_sha256=locator_search_request_body_sha256(packet.locator_query),
         now=now,
     )
     return {"reservation_id": reservation_id, "delivery_job_id": delivery_job_id, "delivery_attempt_id": delivery_attempt_id, "task_key": task_key}

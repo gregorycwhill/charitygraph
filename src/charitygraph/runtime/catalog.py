@@ -3768,6 +3768,12 @@ class SQLiteCatalog:
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchone())
 
+    def get_standard_transport_trace(self, physical_attempt_id: str) -> dict[str, Any] | None:
+        """Return the immutable pre-POST trace for one physical attempt."""
+        with self._connection() as conn:
+            row = conn.execute("SELECT * FROM standard_transport_traces WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
+            return None if row is None else dict(row)
+
     def record_standard_transport_outcome(self, physical_attempt_id: str, *, status: str, response_headers_received: bool, server_request_id: str | None = None, response_identity: str | None = None, provider_model_identity: str | None = None, usage: Any | None = None, transport_exception: str | None = None, now: datetime | str) -> dict[str, Any]:
         """Append the observable outcome metadata for a Standard crossing."""
         when = _utc(now, "now")

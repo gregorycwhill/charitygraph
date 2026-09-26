@@ -37,6 +37,7 @@ from charitygraph.scale_s0 import (
     ScaleS0Preflight,
     default_s0_registry,
     packet_task_key,
+    locator_search_request_body_sha256,
 )
 
 
@@ -154,7 +155,7 @@ def _prepared_catalog(tmp_path):
                                             predecessor_attempt_id=None, now=NOW)
     catalog.prepare_standard_transport_trace(prepared.delivery_attempt_id, client_request_id=prepared.client_request_id,
                                              endpoint="https://api.openai.com/v1/responses",
-                                             request_body_sha256=packet.content_hash, now=NOW)
+                                             request_body_sha256=locator_search_request_body_sha256(packet.locator_query), now=NOW)
     return catalog, mandate, packet, prepared
 
 
@@ -175,6 +176,23 @@ def test_real_locator_packet_lifecycle_is_durable_priced_source_free_and_exactly
     assert catalog.get_physical_receipt(prepared.request.physical_attempt_id)["provider_receipt_id"] == "response:locator"
     with pytest.raises(ScalePreflightError, match="already exists"):
         live.provider_send(prepared.request, now=NOW)
+
+
+def test_legacy_locator_trace_body_fails_closed_before_send_started(tmp_path):
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    with catalog._connection(immediate=True) as conn:
+        conn.execute("UPDATE standard_transport_traces SET request_body_sha256=? WHERE physical_attempt_id=?",
+                     ("f" * 64, prepared.request.physical_attempt_id))
+        catalog._commit(conn)
+    live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    gate = S0LocatorSearchExecutionGate(preflight=live, request=prepared.request, catalog=catalog,
+                                        delivery_attempt_id=prepared.delivery_attempt_id,
+                                        client_request_id=prepared.client_request_id,
+                                        request_identity=packet.provider_request_identity, now=NOW)
+    with pytest.raises(ScalePreflightError, match="trace body does not match"):
+        gate.begin(request_identity=packet.provider_request_identity,
+                   subject_abn=SUBJECT, query=packet.locator_query)
+    assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
 
 
 def test_header_received_response_without_identity_keeps_locator_exposure_outstanding(tmp_path):

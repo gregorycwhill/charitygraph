@@ -6,6 +6,7 @@ paid boundary are immutable material identities, never caller assertions.
 """
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import asdict, dataclass, field, is_dataclass
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
@@ -54,9 +55,19 @@ LOCATOR_SEARCH_PROVIDER_REQUEST = {
 def locator_search_request_body(query: str) -> dict[str, Any]:
     """Build the sole canonical locator POST body from frozen public input."""
     return {"model": LOCATOR_SEARCH_PROVIDER_REQUEST["model"], "input": query,
-            "tools": [{"type": "web_search"}],
-            "tool_choice": {"type": "web_search"}, "store": False,
-            "include": ["web_search_call.action.sources"]}
+            **{key: deepcopy(value) for key, value in LOCATOR_SEARCH_PROVIDER_REQUEST.items()
+               if key != "model"}}
+
+
+def locator_search_request_body_bytes(query: str) -> bytes:
+    """Serialize the sole canonical locator POST body without text mutation."""
+    return json.dumps(locator_search_request_body(query), ensure_ascii=False,
+                      sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def locator_search_request_body_sha256(query: str) -> str:
+    """Return the immutable transport-trace hash for the canonical body."""
+    return sha256(locator_search_request_body_bytes(query)).hexdigest()
 
 
 def locator_search_request_identity(*, subject_id: str, query: str, query_index: int,

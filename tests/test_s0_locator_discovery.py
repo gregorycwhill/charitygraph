@@ -10,7 +10,12 @@ from charitygraph.s0_locator_discovery import (
 )
 from charitygraph.s0_product_owner_policy import concrete_first_party_source_definition_id
 from charitygraph.scale_s0 import ScalePreflightError
-from charitygraph.scale_s0 import locator_search_request_identity
+from charitygraph.scale_s0 import (
+    locator_search_request_body,
+    locator_search_request_body_bytes,
+    locator_search_request_body_sha256,
+    locator_search_request_identity,
+)
 from charitygraph.phase5_standard_transport import (
     OpenAIHTTPStandardClient, OpenAIResponsesWebSearchTransport,
     StandardAmbiguous, StandardProviderResponse,
@@ -136,6 +141,28 @@ def test_locator_request_identity_separates_attempt_and_a3_bindings():
     assert identity != locator_search_request_identity(**{**common, "execution_attempt_id": "attempt:two"})
     assert identity != locator_search_request_identity(**{**common, "provider_account_project": "proj:two"})
     assert identity != locator_search_request_identity(**{**common, "execution_authority": "authority:two"})
+
+
+def test_canonical_locator_body_bytes_are_exact_and_old_shape_is_not_equivalent():
+    query = '"Caf\u00e9" \U0001f30f'
+    body = locator_search_request_body(query)
+    assert body == {
+        "model": "gpt-5.6-luna", "input": query,
+        "tools": [{"type": "web_search"}], "tool_choice": {"type": "web_search"},
+        "store": False, "include": ["web_search_call.action.sources"],
+    }
+    assert locator_search_request_body_bytes(query) == __import__("json").dumps(
+        body, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    stale = {"model": "gpt-5.6-luna", "input": [{"role": "user", "content": query}],
+             "tools": [{"type": "web_search"}], "tool_choice": {"type": "web_search"}, "store": False}
+    canonical_hash = locator_search_request_body_sha256(query)
+    assert canonical_hash != __import__("hashlib").sha256(
+        __import__("json").dumps(stale, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    for field, value in (("model", "other"), ("tools", []), ("tool_choice", {}),
+                         ("store", True), ("include", []), ("input", "other")):
+        changed = {**body, field: value}
+        assert canonical_hash != __import__("hashlib").sha256(
+            __import__("json").dumps(changed, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
 def test_pricing_facts_count_source_bearing_web_search_without_action_type():
