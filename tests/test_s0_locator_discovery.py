@@ -99,6 +99,17 @@ def test_locator_request_identity_binds_subject_ref_and_external_identifier_sepa
     assert len({first, second, changed_abn}) == 3
 
 
+@pytest.mark.parametrize("subject_ref", ("11111111111", "ABN:11111111111", "subject:11111111111"))
+def test_locator_request_identity_rejects_abn_as_subject_reference(subject_ref):
+    with pytest.raises(ScalePreflightError, match="distinct from its external ABN"):
+        locator_search_request_identity(
+            locator_subject_ref=subject_ref,
+            locator_identifier_scheme="ABN", locator_identifier_value="11111111111",
+            query='"Sunrise"', query_index=0, execution_attempt_id="attempt:one",
+            provider_account_project="project:one", execution_authority="authority:one",
+        )
+
+
 def test_ambiguous_same_name_and_unauthenticated_cross_host_redirect_are_rejected():
     assert not IdentityAuthentication(("organisation_name",)).decision()[0]
     assert redirect_authentication(requested_locator="https://old.example/", final_locator="https://other.example/", final_identity=None) == (False, "cross_host_redirect_requires_identity_authentication")

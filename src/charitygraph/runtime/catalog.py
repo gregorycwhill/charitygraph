@@ -477,6 +477,13 @@ class SQLiteCatalog:
             raise CatalogError("locator discovery lineage lacks required durable material")
         material = _dump(dict(lineage))
         identifier = _text(material["lineage_id"], "lineage_id")
+        subject_ref = material.get("locator_subject_ref")
+        lookup_value = material.get("locator_abn")
+        if (isinstance(subject_ref, str) and isinstance(lookup_value, str)
+                and (subject_ref.strip() == lookup_value.strip()
+                     or subject_ref.casefold().startswith("abn:")
+                     or lookup_value.strip() in subject_ref)):
+            raise CatalogError("locator subject reference must be distinct from its external ABN lookup identifier")
         decision = "accepted" if material["accepted"] is True else "rejected" if material["accepted"] is False else "pending"
         when = _utc(created_at, "created_at")
         digest = _canonical_hash(material)
