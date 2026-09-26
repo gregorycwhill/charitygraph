@@ -70,7 +70,8 @@ def locator_search_request_body_sha256(query: str) -> str:
     return sha256(locator_search_request_body_bytes(query)).hexdigest()
 
 
-def locator_search_request_identity(*, subject_id: str, query: str, query_index: int,
+def locator_search_request_identity(*, locator_subject_ref: str, locator_identifier_scheme: str,
+                                    locator_identifier_value: str, query: str, query_index: int,
                                     execution_attempt_id: str,
                                     provider_account_project: str,
                                     execution_authority: str) -> str:
@@ -84,7 +85,8 @@ def locator_search_request_identity(*, subject_id: str, query: str, query_index:
     # boundary.  Do not Unicode-normalise them here: normalisation could make
     # two governed identifiers collide.  Reject only absent/non-text and
     # whitespace-only values, which have no usable exact identity.
-    identity_text = (subject_id, query, execution_attempt_id,
+    identity_text = (locator_subject_ref, locator_identifier_scheme,
+                     locator_identifier_value, query, execution_attempt_id,
                      provider_account_project, execution_authority)
     if (any(not isinstance(value, str) or not value.strip() for value in identity_text)
             or not isinstance(query_index, int)
@@ -97,7 +99,10 @@ def locator_search_request_identity(*, subject_id: str, query: str, query_index:
     return "locator-search:" + _digest({"execution_attempt": execution_attempt_id,
                                          "provider_account_project": provider_account_project,
                                          "execution_authority": execution_authority,
-                                         "subject": subject_id, "query": query, "index": query_index,
+                                         "locator_subject_ref": locator_subject_ref,
+                                         "external_identifier": {"scheme": locator_identifier_scheme,
+                                                                 "value": locator_identifier_value},
+                                         "query": query, "index": query_index,
                                          "body": locator_search_request_body(query)})
 
 
@@ -245,14 +250,17 @@ class RepresentationPolicy:
 
 @dataclass(frozen=True)
 class FrozenPacket:
-    packet_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; source_ids: tuple[str, ...]; source_snapshot_hashes: tuple[str, ...]; input_profile_id: str; output_schema_id: str; routing_class: RoutingClass; provider_request_identity: str; content_hash: str; contract_version: str = "north-star-v0.2"; mandate_id: str = ""; slice_id: str = ""; frozen_at: str = ""; corpus_id: str = ""; operation_kind: str = "semantic"; locator_query: str = ""; locator_query_index: int = -1; pricing_snapshot_id: str = ""; estimated_provider_cost: str = ""; locator_execution_attempt_id: str = ""; provider_account_project: str = ""; execution_authority: str = ""
+    packet_id: str; task_id: str; task_version: str; subject_id: str; scope_id: str; source_ids: tuple[str, ...]; source_snapshot_hashes: tuple[str, ...]; input_profile_id: str; output_schema_id: str; routing_class: RoutingClass; provider_request_identity: str; content_hash: str; contract_version: str = "north-star-v0.2"; mandate_id: str = ""; slice_id: str = ""; frozen_at: str = ""; corpus_id: str = ""; operation_kind: str = "semantic"; locator_query: str = ""; locator_query_index: int = -1; pricing_snapshot_id: str = ""; estimated_provider_cost: str = ""; locator_execution_attempt_id: str = ""; provider_account_project: str = ""; execution_authority: str = ""; locator_identifier_scheme: str = ""; locator_identifier_value: str = ""
     def __post_init__(self) -> None:
         if self.frozen_at:
             object.__setattr__(self, "frozen_at", canonical_utc_timestamp(self.frozen_at, "frozen_at"))
         if self.operation_kind not in {"semantic", LOCATOR_SEARCH_OPERATION_KIND}:
             raise ScalePreflightError("frozen packet has an unknown operation kind")
         if self.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
-            expected = locator_search_request_identity(subject_id=self.subject_id, query=self.locator_query,
+            expected = locator_search_request_identity(locator_subject_ref=self.subject_id,
+                                                       locator_identifier_scheme=self.locator_identifier_scheme,
+                                                       locator_identifier_value=self.locator_identifier_value,
+                                                       query=self.locator_query,
                                                        query_index=self.locator_query_index,
                                                        execution_attempt_id=self.locator_execution_attempt_id,
                                                        provider_account_project=self.provider_account_project,
@@ -265,7 +273,9 @@ class FrozenPacket:
                 raise ScalePreflightError("locator search packet does not bind its canonical operational contract")
             if self.source_ids or self.source_snapshot_hashes or self.corpus_id:
                 raise ScalePreflightError("locator search packet must remain source-free and corpus-free")
-            if not self.locator_execution_attempt_id or not self.provider_account_project or not self.execution_authority:
+            if (not self.locator_execution_attempt_id or not self.provider_account_project
+                    or not self.execution_authority or self.locator_identifier_scheme != "ABN"
+                    or not self.locator_identifier_value):
                 raise ScalePreflightError("locator search packet lacks immutable execution and A3 bindings")
             try:
                 estimate = Decimal(self.estimated_provider_cost)

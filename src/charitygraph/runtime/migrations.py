@@ -1129,6 +1129,18 @@ CREATE TABLE scale_s0_locator_terminal_outcomes (
 );
 """.strip() + "\n"
 
+# Locator discovery is operational lineage for a separately governed subject.
+# Retain the former ABN projection for immutable historical rows, but every
+# new row records the subject reference and the authority-scoped identifier
+# independently.
+CATALOGUE_SQL_V26 = """
+ALTER TABLE scale_s0_locator_discoveries ADD COLUMN locator_subject_ref TEXT NOT NULL DEFAULT '';
+ALTER TABLE scale_s0_locator_discoveries ADD COLUMN locator_identifier_scheme TEXT NOT NULL DEFAULT '';
+ALTER TABLE scale_s0_locator_discoveries ADD COLUMN locator_identifier_value TEXT NOT NULL DEFAULT '';
+CREATE INDEX scale_s0_locator_discoveries_subject_ref_idx
+    ON scale_s0_locator_discoveries(locator_subject_ref, decision, provider_call_id);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -1155,6 +1167,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(23, "durable_scale_s0_attestation_windows", CATALOGUE_SQL_V23),
     Migration(24, "durable_scale_s0_locator_discovery_lineage", CATALOGUE_SQL_V24),
     Migration(25, "durable_scale_s0_locator_response_accounting_facts", CATALOGUE_SQL_V25),
+    Migration(26, "separate_locator_subject_from_external_identifier", CATALOGUE_SQL_V26),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version

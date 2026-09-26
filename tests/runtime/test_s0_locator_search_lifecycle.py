@@ -44,7 +44,8 @@ from charitygraph.scale_s0 import (
 # Keep durable test fixtures beyond wall-clock expiry because the catalog
 # deliberately validates a reservation against the real clock before a send.
 NOW = datetime(2099, 9, 22, tzinfo=timezone.utc)
-SUBJECT = "11111111111"
+SUBJECT = "subject:locator"
+ABN = "11111111111"
 AUTHORITY = "SCALE_S0_LIVE_LOCATOR_ACTIVATION_2026-09-22.md#CG-S0-PO-LIVE-LOCATOR-2026-09-22"
 PROJECT = "proj:synthetic-locator"
 
@@ -110,7 +111,7 @@ def _prepared_catalog(tmp_path):
                           "status": "planned", "configuration_hash": attempt.configuration_hash, "created_at": NOW})
     ScaleS0Preflight.register_durable_execution_attempt(catalog, attempt)
     packet = freeze_locator_search_packet(
-        mandate=mandate, execution_attempt=attempt, subject_abn=SUBJECT, query='"Locator Foundation"',
+        mandate=mandate, execution_attempt=attempt, locator_subject_ref=SUBJECT, locator_abn=ABN, query='"Locator Foundation"',
         query_index=0, pricing=LocatorSearchPrice("pricing:locator-v1", "0.10", "USD"),
         frozen_at=NOW.isoformat(), provider_account_project=PROJECT, execution_authority=AUTHORITY,
     )
@@ -168,9 +169,9 @@ def test_real_locator_packet_lifecycle_is_durable_priced_source_free_and_exactly
                                         request_identity=packet.provider_request_identity, now=NOW)
     assert packet.source_ids == packet.source_snapshot_hashes == () and not packet.corpus_id
     with pytest.raises(ScalePreflightError, match="query is not bound"):
-        gate.begin(request_identity=packet.provider_request_identity, subject_abn=SUBJECT, query='"other query"')
+        gate.begin(request_identity=packet.provider_request_identity, locator_subject_ref=SUBJECT, locator_abn=ABN, query='"other query"')
     assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
-    gate.begin(request_identity=packet.provider_request_identity, subject_abn=SUBJECT, query=packet.locator_query)
+    gate.begin(request_identity=packet.provider_request_identity, locator_subject_ref=SUBJECT, locator_abn=ABN, query=packet.locator_query)
     gate.complete(provider_receipt_id="response:locator", result_ref="provider-response:locator", usage={"total_tokens": 1})
     assert catalog.get_provider_request_item(packet.provider_request_identity)["status"] == "completed"
     assert catalog.get_physical_receipt(prepared.request.physical_attempt_id)["provider_receipt_id"] == "response:locator"
@@ -191,7 +192,7 @@ def test_legacy_locator_trace_body_fails_closed_before_send_started(tmp_path):
                                         request_identity=packet.provider_request_identity, now=NOW)
     with pytest.raises(ScalePreflightError, match="trace body does not match"):
         gate.begin(request_identity=packet.provider_request_identity,
-                   subject_abn=SUBJECT, query=packet.locator_query)
+                   locator_subject_ref=SUBJECT, locator_abn=ABN, query=packet.locator_query)
     assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
 
 
@@ -213,7 +214,7 @@ def test_header_received_response_without_identity_keeps_locator_exposure_outsta
     provider = OpenAIResponsesWebSearchProvider(OpenAIResponsesWebSearchTransport(client),
                                                  model="gpt-5.6-luna", execution_gate=gate)
     with pytest.raises(StandardSystemic):
-        provider.search(query=packet.locator_query, subject_abn=packet.subject_id,
+        provider.search(query=packet.locator_query, locator_subject_ref=packet.subject_id, locator_abn=ABN,
                         request_identity=packet.provider_request_identity)
     assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "held"
     assert catalog.accounting_reservation_position("reservation:locator")["released"] == Decimal("0")
@@ -223,12 +224,12 @@ def test_locator_packet_rejects_missing_pricing_and_cap_overrun_without_a_send(t
     mandate, _, _, _ = _authority()
     attempt = _attempt(mandate)
     with pytest.raises(ScalePreflightError, match="positive immutable pricing"):
-        freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, subject_abn=SUBJECT,
+        freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, locator_subject_ref=SUBJECT, locator_abn=ABN,
                                      query='"Locator Foundation"', query_index=0,
                                      pricing=LocatorSearchPrice("", "0.10", "USD"), frozen_at=NOW.isoformat(),
                                      provider_account_project=PROJECT, execution_authority=AUTHORITY)
     with pytest.raises(ScalePreflightError, match="bounded query index"):
-        freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, subject_abn=SUBJECT,
+        freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, locator_subject_ref=SUBJECT, locator_abn=ABN,
                                      query='"Locator Foundation"', query_index=5,
                                      pricing=LocatorSearchPrice("pricing:locator-v1", "0.10", "USD"),
                                      frozen_at=NOW.isoformat(), provider_account_project=PROJECT,
@@ -243,7 +244,7 @@ def test_locator_packet_rejects_missing_pricing_and_cap_overrun_without_a_send(t
     catalog.register_run({"record_id": attempt.run_id, "cohort_id": "cohort:cap", "run_kind": "s0", "status": "planned",
                           "configuration_hash": attempt.configuration_hash, "created_at": NOW})
     ScaleS0Preflight.register_durable_execution_attempt(catalog, attempt)
-    over_cap = freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, subject_abn=SUBJECT,
+    over_cap = freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, locator_subject_ref=SUBJECT, locator_abn=ABN,
                                             query='"Locator Foundation"', query_index=0,
                                             pricing=LocatorSearchPrice("pricing:locator-v1", "0.26", "USD"), frozen_at=NOW.isoformat(),
                                             provider_account_project=PROJECT, execution_authority=AUTHORITY)
@@ -255,7 +256,7 @@ def test_locator_packet_and_send_cannot_substitute_attempt_or_a3_binding(tmp_pat
     catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
     foreign_attempt_packet = freeze_locator_search_packet(
         mandate=mandate, execution_attempt=replace(_attempt(mandate), attempt_id="attempt:foreign"),
-        subject_abn=SUBJECT, query='"Foreign attempt"', query_index=1,
+        locator_subject_ref=SUBJECT, locator_abn=ABN, query='"Foreign attempt"', query_index=1,
         pricing=LocatorSearchPrice("pricing:locator-v1", "0.10", "USD"), frozen_at=NOW.isoformat(),
         provider_account_project=PROJECT, execution_authority=AUTHORITY,
     )
@@ -281,7 +282,7 @@ def test_locator_gate_rechecks_a3_with_a_fresh_clock_at_send_boundary(tmp_path):
     )
     with pytest.raises(ConflictError, match="currently valid durable attestation"):
         gate.begin(request_identity=packet.provider_request_identity,
-                   subject_abn=SUBJECT, query=packet.locator_query)
+                   locator_subject_ref=SUBJECT, locator_abn=ABN, query=packet.locator_query)
     assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
 
 
@@ -299,7 +300,7 @@ def test_locator_gate_rechecks_a3_at_the_durable_send_started_timestamp(tmp_path
     )
     with pytest.raises(ConflictError, match="currently valid durable attestation"):
         gate.begin(request_identity=packet.provider_request_identity,
-                   subject_abn=SUBJECT, query=packet.locator_query)
+                   locator_subject_ref=SUBJECT, locator_abn=ABN, query=packet.locator_query)
     assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
 
 
@@ -316,7 +317,7 @@ def test_locator_gate_rejects_backwards_clock_between_authorizing_checks(tmp_pat
     )
     with pytest.raises(ScalePreflightError, match="moved backwards"):
         gate.begin(request_identity=packet.provider_request_identity,
-                   subject_abn=SUBJECT, query=packet.locator_query)
+                   locator_subject_ref=SUBJECT, locator_abn=ABN, query=packet.locator_query)
     assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
 
 
@@ -331,7 +332,7 @@ def test_locator_gate_allows_equal_authorizing_timestamps(tmp_path):
         now=lambda: NOW,
     )
     gate.begin(request_identity=packet.provider_request_identity,
-              subject_abn=SUBJECT, query=packet.locator_query)
+              locator_subject_ref=SUBJECT, locator_abn=ABN, query=packet.locator_query)
     assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "send_started"
 
 
@@ -351,7 +352,7 @@ def test_locator_gate_clock_history_is_scoped_to_each_gate_instance(tmp_path):
     )
     with pytest.raises(ScalePreflightError, match="moved backwards"):
         first_gate.begin(request_identity=first_packet.provider_request_identity,
-                         subject_abn=SUBJECT, query=first_packet.locator_query)
+                         locator_subject_ref=SUBJECT, locator_abn=ABN, query=first_packet.locator_query)
     second_gate = S0LocatorSearchExecutionGate(
         preflight=second_live, request=second_prepared.request, catalog=second_catalog,
         delivery_attempt_id=second_prepared.delivery_attempt_id,
@@ -360,14 +361,14 @@ def test_locator_gate_clock_history_is_scoped_to_each_gate_instance(tmp_path):
         now=lambda: NOW + timedelta(minutes=30),
     )
     second_gate.begin(request_identity=second_packet.provider_request_identity,
-                      subject_abn=SUBJECT, query=second_packet.locator_query)
+                      locator_subject_ref=SUBJECT, locator_abn=ABN, query=second_packet.locator_query)
     assert second_catalog.get_physical_attempt(second_prepared.request.physical_attempt_id)["status"] == "send_started"
 
 
-@pytest.mark.parametrize("field", ("subject_id", "query", "execution_attempt_id", "provider_account_project", "execution_authority"))
+@pytest.mark.parametrize("field", ("locator_subject_ref", "locator_identifier_scheme", "locator_identifier_value", "query", "execution_attempt_id", "provider_account_project", "execution_authority"))
 def test_locator_identity_rejects_noncanonical_blank_identity_components(field):
     from charitygraph.scale_s0 import locator_search_request_identity
-    value = {"subject_id": SUBJECT, "query": '"Locator"', "query_index": 0,
+    value = {"locator_subject_ref": SUBJECT, "locator_identifier_scheme": "ABN", "locator_identifier_value": ABN, "query": '"Locator"', "query_index": 0,
              "execution_attempt_id": "attempt:locator", "provider_account_project": PROJECT,
              "execution_authority": AUTHORITY}
     value[field] = " \t"
@@ -377,7 +378,7 @@ def test_locator_identity_rejects_noncanonical_blank_identity_components(field):
 
 def test_locator_identity_is_exact_replayable_and_does_not_normalise_unicode_or_share_body_state():
     from charitygraph.scale_s0 import locator_search_request_body, locator_search_request_identity
-    value = {"subject_id": SUBJECT, "query": '"Caf\u00e9"', "query_index": 0,
+    value = {"locator_subject_ref": SUBJECT, "locator_identifier_scheme": "ABN", "locator_identifier_value": ABN, "query": '"Caf\u00e9"', "query_index": 0,
              "execution_attempt_id": "attempt:locator", "provider_account_project": PROJECT,
              "execution_authority": AUTHORITY}
     identity = locator_search_request_identity(**value)

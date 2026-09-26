@@ -43,7 +43,7 @@ def _make_catalog(path: Path, subjects: tuple[str, ...], pricing_id: str):
     ScaleS0Preflight.register_durable_execution_attempt(catalog, attempt)
     work = []
     for index, subject in enumerate(subjects):
-        packet = freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, subject_abn=subject, query=f'"Locator {subject} {index}"', query_index=index,
+        packet = freeze_locator_search_packet(mandate=mandate, execution_attempt=attempt, locator_subject_ref=subject, locator_abn="11111111111", query=f'"Locator {subject} {index}"', query_index=index,
                                                pricing=__import__("charitygraph.s0_locator_discovery", fromlist=["LocatorSearchPrice"]).LocatorSearchPrice(pricing_id, "0.10", "USD"), frozen_at=NOW.isoformat(),
                                                provider_account_project=PROJECT, execution_authority="authority:rehearsal")
         ScaleS0Preflight.register_durable_packet(catalog, mandate, packet, execution_attempt_id=attempt.attempt_id)
@@ -60,7 +60,7 @@ def _make_catalog(path: Path, subjects: tuple[str, ...], pricing_id: str):
 def test_three_item_cli_rehearsal_is_sequential_and_exactly_once(tmp_path, monkeypatch):
     snapshot = load_supervisor_capture(CAPTURE, expected_sha256=CAPTURE_SHA)
     db = tmp_path / "rehearsal.sqlite3"
-    attempt, work = _make_catalog(db, ("11111111111", "11111111111", "11111111111"), snapshot.record_id)
+    attempt, work = _make_catalog(db, ("subject:locator", "subject:locator", "subject:locator"), snapshot.record_id)
     work_path = tmp_path / "work.json"
     work_path.write_text(json.dumps({"locator": work}), encoding="utf-8")
     posts = []

@@ -472,7 +472,7 @@ class SQLiteCatalog:
         evidence and cannot become it through catalogue adjacency.
         """
         self._require_migrated()
-        required = ("lineage_id", "subject_abn", "query", "provider_id", "provider_call_id", "candidate_url", "accepted", "decision_reason")
+        required = ("lineage_id", "locator_subject_ref", "locator_abn", "query", "provider_id", "provider_call_id", "candidate_url", "accepted", "decision_reason")
         if any(key not in lineage for key in required):
             raise CatalogError("locator discovery lineage lacks required durable material")
         material = _dump(dict(lineage))
@@ -486,13 +486,13 @@ class SQLiteCatalog:
                 if prior["material_hash"] != digest:
                     raise ConflictError("locator discovery identity conflicts with durable material")
                 return self._scale_s0_row(prior) or {}
-            conn.execute("INSERT INTO scale_s0_locator_discoveries(lineage_id,subject_abn,query_text,provider_id,provider_call_id,candidate_url,decision,resolved_locator,acquisition_receipt_id,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (identifier, material["subject_abn"], material["query"], material["provider_id"], material["provider_call_id"], material["candidate_url"], decision, material.get("resolved_locator"), material.get("acquisition_receipt_id"), self._json(material), digest, when))
+            conn.execute("INSERT INTO scale_s0_locator_discoveries(lineage_id,subject_abn,locator_subject_ref,locator_identifier_scheme,locator_identifier_value,query_text,provider_id,provider_call_id,candidate_url,decision,resolved_locator,acquisition_receipt_id,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (identifier, material["locator_abn"], material["locator_subject_ref"], "ABN", material["locator_abn"], material["query"], material["provider_id"], material["provider_call_id"], material["candidate_url"], decision, material.get("resolved_locator"), material.get("acquisition_receipt_id"), self._json(material), digest, when))
             self._commit(conn)
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_locator_discoveries WHERE lineage_id=?", (identifier,)).fetchone()) or {}
 
-    def list_scale_s0_locator_discoveries(self, *, subject_abn: str) -> list[dict[str, Any]]:
+    def list_scale_s0_locator_discoveries(self, *, locator_subject_ref: str) -> list[dict[str, Any]]:
         with self._connection() as conn:
-            return [self._scale_s0_row(row) or {} for row in conn.execute("SELECT * FROM scale_s0_locator_discoveries WHERE subject_abn=? ORDER BY lineage_id", (subject_abn,)).fetchall()]
+            return [self._scale_s0_row(row) or {} for row in conn.execute("SELECT * FROM scale_s0_locator_discoveries WHERE locator_subject_ref=? ORDER BY lineage_id", (locator_subject_ref,)).fetchall()]
 
     def recover_scale_s0_halt(self, *, halt_id: str, actor: str, rationale: str, recovered_at: datetime | str) -> dict[str, Any]:
         if not actor or not rationale:
@@ -842,6 +842,10 @@ class SQLiteCatalog:
         operation_kind = packet.get("operation_kind", "semantic")
         if operation_kind not in {"semantic", "locator_search"}:
             raise CatalogError("Scale S0 frozen packet has an unknown operation kind")
+        if operation_kind == "locator_search" and (
+            packet.get("locator_identifier_scheme") != "ABN" or not packet.get("locator_identifier_value")
+        ):
+            raise CatalogError("locator Scale S0 frozen packet lacks an explicit ABN locator identifier")
         # A locator-search packet is deliberately source-free: its result is only
         # discovery metadata and is never evidence.  Semantic packets retain the
         # ordinary immutable source/snapshot requirement.

@@ -14,7 +14,7 @@ class FakeLocator:
     def __init__(self):
         self.calls = 0
 
-    def search(self, *, query, subject_abn, request_identity):
+    def search(self, *, query, locator_subject_ref, locator_abn, request_identity):
         self.calls += 1
         return LocatorSearchResponse("response:fake-locator", (), {
             "input_tokens": 10,
@@ -25,19 +25,19 @@ class FakeLocator:
 
 
 class IncompleteLocator(FakeLocator):
-    def search(self, *, query, subject_abn, request_identity):
+    def search(self, *, query, locator_subject_ref, locator_abn, request_identity):
         self.calls += 1
         return LocatorSearchResponse("response:incomplete-locator", (), {"total_tokens": 15})
 
 
 class AmbiguousLocator(FakeLocator):
-    def search(self, *, query, subject_abn, request_identity):
+    def search(self, *, query, locator_subject_ref, locator_abn, request_identity):
         self.calls += 1
         raise RuntimeError("provider crossing lost before a response")
 
 
 class MissingIdentityLocator(FakeLocator):
-    def search(self, *, query, subject_abn, request_identity):
+    def search(self, *, query, locator_subject_ref, locator_abn, request_identity):
         self.calls += 1
         return LocatorSearchResponse(None, (), {"total_tokens": 15})
 

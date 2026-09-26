@@ -10,11 +10,11 @@ NOW = datetime(2026, 9, 22, 1, tzinfo=timezone.utc)
 
 
 def test_first_party_concrete_id_is_subject_and_locator_specific_and_repeatable():
-    one = concrete_first_party_source_definition_id(subject_abn="28004778081", canonical_locator="https://one.example/a")
-    assert one == concrete_first_party_source_definition_id(subject_abn="28004778081", canonical_locator="https://one.example/a")
-    assert one != concrete_first_party_source_definition_id(subject_abn="28000030179", canonical_locator="https://one.example/a")
-    assert one != concrete_first_party_source_definition_id(subject_abn="28004778081", canonical_locator="https://one.example/b")
-    assert one != concrete_first_party_source_definition_id(subject_abn="28004778081", canonical_locator="https://one.example/a", source_family="official_website")
+    one = concrete_first_party_source_definition_id(subject_ref="subject:world-vision", canonical_locator="https://one.example/a")
+    assert one == concrete_first_party_source_definition_id(subject_ref="subject:world-vision", canonical_locator="https://one.example/a")
+    assert one != concrete_first_party_source_definition_id(subject_ref="subject:smith-family", canonical_locator="https://one.example/a")
+    assert one != concrete_first_party_source_definition_id(subject_ref="subject:world-vision", canonical_locator="https://one.example/b")
+    assert one != concrete_first_party_source_definition_id(subject_ref="subject:world-vision", canonical_locator="https://one.example/a", source_family="official_website")
 
 
 def test_ais_local_use_is_distinct_from_provider_rights():
@@ -41,7 +41,7 @@ def test_missing_mapper_is_nonblocking_implementation_coverage_missingness():
 
 
 def test_alternate_locator_is_bounded_and_no_bypass_is_allowed():
-    assert alternate_locator_permitted(subject_abn="28004778081", locator="https://sub.example.org/about", authoritative_relationship="official_navigation", probes_used=4)
-    assert not alternate_locator_permitted(subject_abn="28004778081", locator="https://other.example.org", authoritative_relationship="", probes_used=0)
-    assert not alternate_locator_permitted(subject_abn="28004778081", locator="https://sub.example.org", authoritative_relationship="acnc_register", probes_used=5)
-    assert not alternate_locator_permitted(subject_abn="28004778081", locator="https://sub.example.org", authoritative_relationship="acnc_register", probes_used=0, tls_validation_bypass=True)
+    assert alternate_locator_permitted(subject_ref="subject:world-vision", locator="https://sub.example.org/about", authoritative_relationship="official_navigation", probes_used=4)
+    assert not alternate_locator_permitted(subject_ref="subject:world-vision", locator="https://other.example.org", authoritative_relationship="", probes_used=0)
+    assert not alternate_locator_permitted(subject_ref="subject:world-vision", locator="https://sub.example.org", authoritative_relationship="acnc_register", probes_used=5)
+    assert not alternate_locator_permitted(subject_ref="subject:world-vision", locator="https://sub.example.org", authoritative_relationship="acnc_register", probes_used=0, tls_validation_bypass=True)
