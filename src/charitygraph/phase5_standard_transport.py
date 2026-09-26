@@ -22,7 +22,7 @@ from typing import Any, Callable, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from charitygraph.scale_s0 import locator_search_request_body
+from charitygraph.scale_s0 import locator_search_request_body_bytes
 
 
 # The historic semantic Responses path used a 300-second socket timeout. Keep
@@ -259,7 +259,7 @@ class OpenAIResponsesWebSearchTransport:
             raise StandardSystemic("locator web-search requires the authorised Luna model")
         if not isinstance(query, str) or not query:
             raise ValueError("locator web-search query must be non-empty text")
-        body = canonical_standard_body_bytes(locator_search_request_body(query))
+        body = locator_search_request_body_bytes(query)
         return self.client.create_response_once(
             body, client_request_id=client_request_id,
             request_started_at=request_started_at,

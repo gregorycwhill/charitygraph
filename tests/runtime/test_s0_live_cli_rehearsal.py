@@ -9,6 +9,7 @@ from charitygraph.runtime import SQLiteCatalog
 from charitygraph.runtime.catalog import canonical_execution_configuration_hash
 from charitygraph.s0_locator_discovery import freeze_locator_search_packet, prepare_locator_search_request
 from charitygraph.scale_s0 import ExecutionAttemptIdentity, ScaleS0Preflight
+from charitygraph.scale_s0 import locator_search_request_body_sha256
 from charitygraph.s0_pricing import load_supervisor_capture
 from scripts.run_scale_s0 import main
 
@@ -79,6 +80,8 @@ def test_three_item_cli_rehearsal_is_sequential_and_exactly_once(tmp_path, monke
     assert [item[0] for item in posts] == ["POST", "POST", "POST"]
     assert all(item[2].get("Openai-project") == PROJECT for item in posts)
     assert all(json.loads(item[3])["tool_choice"] == {"type": "web_search"} for item in posts)
+    assert all(json.loads(item[3])["include"] == ["web_search_call.action.sources"] for item in posts)
+    assert sorted(json.loads(item[3])["input"] for item in posts) == sorted(item["query"] for item in work)
     with SQLiteCatalog(db).open() as catalog:
         rows = catalog.list_provider_request_items(attempt.run_id)
         assert len(rows) == 3 and all(row["status"] == "completed" for row in rows)
@@ -86,6 +89,12 @@ def test_three_item_cli_rehearsal_is_sequential_and_exactly_once(tmp_path, monke
         assert len({row["physical_attempt_id"] for row in rows}) == 3
         attempts = catalog.list_provider_request_attempts()
         assert len(attempts) == 3 and len({row["delivery_attempt_id"] for row in attempts}) == 3
+        with catalog._connection() as conn:
+            traces = conn.execute("SELECT request_body_sha256 FROM standard_transport_traces ORDER BY delivery_attempt_id").fetchall()
+        assert sorted(row["request_body_sha256"] for row in traces) == sorted(
+            locator_search_request_body_sha256(item["query"]) for item in work)
+        assert sorted(__import__("hashlib").sha256(item[3]).hexdigest() for item in posts) == sorted(
+            row["request_body_sha256"] for row in traces)
         with catalog._connection() as conn:
             assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='actual'").fetchone()[0] == 3
             assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='reservation_release'").fetchone()[0] == 3

@@ -263,6 +263,13 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         packet = self.preflight.packets[self.request.packet_hash or ""]
         if query != packet.locator_query:
             raise ScalePreflightError("locator search query is not bound to the frozen S0 request")
+        # The pre-POST trace is part of the durable request identity.  It must
+        # describe the exact bytes the sole transport owner will serialize;
+        # never accept a legacy role/content body as equivalent to this body.
+        from .scale_s0 import locator_search_request_body_sha256
+        trace = self.catalog.get_standard_transport_trace(self.request.physical_attempt_id)
+        if trace is None or trace.get("request_body_sha256") != locator_search_request_body_sha256(query):
+            raise ScalePreflightError("locator search transport trace body does not match the canonical request")
         self.preflight.provider_send(self.request, now=self._send_authorizing_now())
         # The first proof reconstructs packet/rights/reservation authority;
         # the second proof is deliberately adjacent to send-started so an A3
