@@ -562,6 +562,15 @@ class SQLiteCatalog:
         if any(not attempt.get(key) for key in required):
             raise CatalogError("Scale S0 execution attempt lacks immutable identity")
         attempt_id = _text(attempt["attempt_id"], "attempt_id")
+        # A consumed historical identity is never eligible for live-row
+        # reconstruction or resumption.
+        with self._connection() as guard:
+            historical = guard.execute(
+                "SELECT run_id, material_hash FROM scale_s0_historical_terminals WHERE attempt_id=? OR run_id=?",
+                (attempt_id, attempt.get("run_id")),
+            ).fetchall()
+        if historical:
+            raise ConflictError("Scale S0 attempt/run identity is already consumed by historical terminal state")
         expected_configuration_hash = canonical_execution_configuration_hash(
             **{key: attempt[key] for key in ("mandate_hash", "slice_id", "run_id", "builder_repository", "builder_commit_sha", "data_repository", "data_commit_sha", "bridge_certification", "bridge_version", "schema_version", "recovery_authority_ref")}
         )
@@ -594,6 +603,74 @@ class SQLiteCatalog:
         self._require_migrated()
         with self._connection() as conn:
             return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (attempt_id,)).fetchone())
+
+    def get_scale_s0_historical_terminal(self, attempt_id: str) -> dict[str, Any] | None:
+        self._require_migrated()
+        with self._connection() as conn:
+            row = conn.execute("SELECT * FROM scale_s0_historical_terminals WHERE attempt_id=?", (attempt_id,)).fetchone()
+            return self._scale_s0_row(row)
+
+    def register_scale_s0_historical_terminal(self, record: Mapping[str, Any]) -> dict[str, Any]:
+        """Append one exact, non-resumable historical allocator tombstone."""
+        self._require_migrated()
+        required = ("attempt_id", "run_id", "terminal_state", "terminal_reason",
+                    "provider_crossings", "reservation_state", "a3_state",
+                    "checkpoint_state", "evidence", "recorded_at")
+        if any(key not in record for key in required):
+            raise CatalogError("historical terminal record is incomplete")
+        attempt_id = _text(record["attempt_id"], "attempt_id")
+        run_id = _text(record["run_id"], "run_id")
+        evidence = record["evidence"]
+        if not isinstance(evidence, Mapping) or not evidence:
+            raise CatalogError("historical terminal evidence is required")
+        allowed = {
+            "terminal_state": {"consumed_non_resumable", "historical_terminal"},
+            "provider_crossings": {"zero", "one_or_more", "unknown"},
+            "reservation_state": {"none", "held", "not_created", "not_applicable", "unknown"},
+            "a3_state": {"none", "created", "not_created", "not_applicable", "unknown"},
+            "checkpoint_state": {"none", "preprovider_only", "created", "not_created", "not_applicable", "unknown"},
+        }
+        for key, values in allowed.items():
+            if record[key] not in values:
+                raise CatalogError(f"invalid historical terminal {key}")
+        amount = record.get("held_exposure_amount")
+        currency = record.get("held_exposure_currency")
+        if (amount is None) != (currency is None) or (record["reservation_state"] != "held" and amount is not None):
+            raise CatalogError("historical held exposure does not match reservation state")
+        if amount is not None:
+            amount = str(_decimal(amount, "held_exposure_amount"))
+            if currency != "USD":
+                raise CatalogError("historical held exposure must carry USD")
+        when = _utc(record["recorded_at"], "recorded_at")
+        evidence_value = _dump(evidence)
+        evidence_hash = _canonical_hash(evidence_value)
+        material = {
+            "attempt_id": attempt_id, "run_id": run_id,
+            "terminal_state": record["terminal_state"], "terminal_reason": _text(record["terminal_reason"], "terminal_reason"),
+            "provider_crossings": record["provider_crossings"], "reservation_state": record["reservation_state"],
+            "a3_state": record["a3_state"], "checkpoint_state": record["checkpoint_state"],
+            "held_exposure_amount": amount, "held_exposure_currency": currency,
+            "evidence": evidence_value, "evidence_hash": evidence_hash, "recorded_at": when,
+        }
+        material_hash = _canonical_hash(material)
+        values = (attempt_id, run_id, material["terminal_state"], material["terminal_reason"], material["provider_crossings"],
+                  material["reservation_state"], material["a3_state"], material["checkpoint_state"], amount, currency,
+                  json.dumps(evidence_value, sort_keys=True, separators=(",", ":")), evidence_hash,
+                  json.dumps(material, sort_keys=True, separators=(",", ":")), material_hash, when)
+        with self._connection(immediate=True) as conn:
+            prior = conn.execute("SELECT * FROM scale_s0_historical_terminals WHERE attempt_id=? OR run_id=?", (attempt_id, run_id)).fetchall()
+            if prior:
+                if len(prior) != 1 or prior[0]["material_hash"] != material_hash:
+                    raise ConflictError("historical terminal identity has conflicting material")
+                return self._scale_s0_row(prior[0])
+            if conn.execute("SELECT 1 FROM scale_s0_execution_attempts WHERE attempt_id=? OR run_id=?", (attempt_id, run_id)).fetchone():
+                raise ConflictError("historical terminal collides with a live execution attempt")
+            conn.execute("""INSERT INTO scale_s0_historical_terminals
+                (attempt_id,run_id,terminal_state,terminal_reason,provider_crossings,reservation_state,a3_state,checkpoint_state,
+                 held_exposure_amount,held_exposure_currency,evidence_json,evidence_hash,material_json,material_hash,recorded_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", values)
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_historical_terminals WHERE attempt_id=?", (attempt_id,)).fetchone())
 
     @staticmethod
     def _require_canonical_scale_s0_execution_attempt_material(row: Mapping[str, Any]) -> None:
@@ -1529,6 +1606,9 @@ class SQLiteCatalog:
     def register_run(self, run: Any) -> dict[str, Any]:
         self._require_migrated()
         run_id = _text(_get(run, "record_id", "run_id"), "run_id")
+        with self._connection() as guard:
+            if guard.execute("SELECT 1 FROM scale_s0_historical_terminals WHERE run_id=?", (run_id,)).fetchone():
+                raise ConflictError("run identity is already consumed by historical terminal state")
         material_hash = _canonical_hash(run)
         now = _get(run, "created_at")
         row_values = (

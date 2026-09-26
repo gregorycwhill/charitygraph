@@ -68,7 +68,7 @@ def _source_authority(mandate, policies, source, attempt, **changes):
 
 def test_migration_22_separates_policy_mandate_from_concrete_resource_authority(tmp_path):
     catalog, mandate, routing, policies, source, attempt = _catalog(tmp_path)
-    assert SUPPORTED_VERSION == 27
+    assert SUPPORTED_VERSION == 28
     with pytest.raises(ScalePreflightError, match="separately"):
         ScaleS0Preflight.register_durable_mandate(catalog, mandate, REGISTRY, routing, policies, {source.source_id: source})
     stored = catalog.get_scale_s0_mandate(mandate.mandate_id)
