@@ -796,9 +796,15 @@ class SQLiteCatalog:
         fields = ("window_id", "execution_attempt_id", "mandate_id", "slice_id", "run_id", "attested_by",
                   "setting_name", "observed_value", "provider_account_project", "execution_authority",
                   "observed_at", "valid_until")
-        if set(window) != set(fields) or any(not window.get(field) for field in fields):
+        allowed = set(fields) | {"structured_authority_hash", "structured_authority"}
+        if not set(window) <= allowed or not set(fields) <= set(window) or any(not window.get(field) for field in fields):
             raise CatalogError("S0 attestation window lacks canonical binding")
         material = dict(window)
+        structured_hash, structured = material.get("structured_authority_hash"), material.get("structured_authority")
+        if bool(structured_hash) != bool(structured):
+            raise CatalogError("S0 attestation window structured authority is incomplete")
+        if structured and _canonical_hash(structured) != structured_hash:
+            raise CatalogError("S0 attestation window structured authority hash is substituted")
         material["observed_at"] = _utc(material["observed_at"], "observed_at")
         material["valid_until"] = _utc(material["valid_until"], "valid_until")
         observed = datetime.fromisoformat(material["observed_at"])
@@ -817,7 +823,7 @@ class SQLiteCatalog:
                 if prior["material_hash"] != material_hash:
                     raise ConflictError("S0 attestation window identity conflict")
                 return dict(prior)
-            conn.execute("INSERT INTO scale_s0_attestation_windows(window_id,execution_attempt_id,mandate_id,slice_id,run_id,attested_by,setting_name,observed_value,provider_account_project,execution_authority,observed_at,valid_until,material_json,material_hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tuple(material[field] for field in fields) + (self._json(material), material_hash))
+            conn.execute("INSERT INTO scale_s0_attestation_windows(window_id,execution_attempt_id,mandate_id,slice_id,run_id,attested_by,setting_name,observed_value,provider_account_project,execution_authority,observed_at,valid_until,material_json,material_hash,structured_authority_hash,structured_authority_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tuple(material[field] for field in fields) + (self._json(material), material_hash, structured_hash, self._json(structured) if structured else None))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM scale_s0_attestation_windows WHERE window_id=?", (material["window_id"],)).fetchone())
 
@@ -837,6 +843,33 @@ class SQLiteCatalog:
             conn.execute("INSERT INTO scale_s0_attestation_window_invalidations(invalidation_id,window_id,reason,invalidated_at,material_json,material_hash) VALUES (?,?,?,?,?,?)", (invalidation_id, window_id, reason, when, self._json(material), material_hash))
             self._commit(conn)
             return dict(conn.execute("SELECT * FROM scale_s0_attestation_window_invalidations WHERE invalidation_id=?", (invalidation_id,)).fetchone())
+
+    def register_scale_s0_locator_preprovider_checkpoint(self, checkpoint: Mapping[str, Any]) -> dict[str, Any]:
+        """Persist non-executable structured authority/compiler state idempotently."""
+        self._require_migrated()
+        required = ("checkpoint_id", "execution_attempt_id", "run_id", "authority_hash", "created_at", "authority", "slots", "a3_state")
+        if any(key not in checkpoint for key in required) or checkpoint.get("a3_state") != "pending":
+            raise CatalogError("structured locator checkpoint lacks non-executable canonical material")
+        if checkpoint.get("reservations", 0) != 0 or checkpoint.get("send_started", 0) != 0 or checkpoint.get("provider_attempts", 0) != 0:
+            raise CatalogError("preprovider checkpoint cannot contain provider lifecycle state")
+        material = dict(checkpoint); material["created_at"] = _utc(material["created_at"], "created_at")
+        material_hash = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            attempt = conn.execute("SELECT run_id FROM scale_s0_execution_attempts WHERE attempt_id=?", (material["execution_attempt_id"],)).fetchone()
+            if attempt is None or attempt["run_id"] != material["run_id"]:
+                raise ConflictError("structured locator checkpoint execution binding is absent or stale")
+            prior = conn.execute("SELECT * FROM scale_s0_locator_preprovider_checkpoints WHERE checkpoint_id=?", (material["checkpoint_id"],)).fetchone()
+            if prior is not None:
+                if prior["material_hash"] != material_hash: raise ConflictError("structured locator checkpoint identity conflict")
+                return self._scale_s0_row(prior) or {}
+            conn.execute("INSERT INTO scale_s0_locator_preprovider_checkpoints(checkpoint_id,execution_attempt_id,run_id,authority_hash,material_json,material_hash,created_at) VALUES (?,?,?,?,?,?,?)",
+                         (material["checkpoint_id"], material["execution_attempt_id"], material["run_id"], material["authority_hash"], self._json(material), material_hash, material["created_at"]))
+            self._commit(conn)
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_locator_preprovider_checkpoints WHERE checkpoint_id=?", (material["checkpoint_id"],)).fetchone()) or {}
+
+    def get_scale_s0_locator_preprovider_checkpoint(self, *, execution_attempt_id: str, authority_hash: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            return self._scale_s0_row(conn.execute("SELECT * FROM scale_s0_locator_preprovider_checkpoints WHERE execution_attempt_id=? AND authority_hash=?", (execution_attempt_id, authority_hash)).fetchone())
 
     def register_scale_s0_frozen_packet(self, packet: Mapping[str, Any]) -> dict[str, Any]:
         self._require_migrated()
