@@ -1160,6 +1160,35 @@ CREATE INDEX scale_s0_locator_preprovider_checkpoint_attempt_idx
     ON scale_s0_locator_preprovider_checkpoints(execution_attempt_id, authority_hash);
 """.strip() + "\n"
 
+# Historical attempts which consumed an allocator identity without reaching a
+# live execution row are represented separately.  ``unknown`` and
+# ``not_applicable`` are intentional values: the importer must never invent a
+# live reservation, A3, checkpoint, or provider lifecycle row.
+CATALOGUE_SQL_V28 = """
+CREATE TABLE scale_s0_historical_terminals (
+    attempt_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL UNIQUE,
+    terminal_state TEXT NOT NULL CHECK(terminal_state IN ('consumed_non_resumable','historical_terminal')),
+    terminal_reason TEXT NOT NULL,
+    provider_crossings TEXT NOT NULL CHECK(provider_crossings IN ('zero','one_or_more','unknown')),
+    reservation_state TEXT NOT NULL CHECK(reservation_state IN ('none','held','not_created','not_applicable','unknown')),
+    a3_state TEXT NOT NULL CHECK(a3_state IN ('none','created','not_created','not_applicable','unknown')),
+    checkpoint_state TEXT NOT NULL CHECK(checkpoint_state IN ('none','preprovider_only','created','not_created','not_applicable','unknown')),
+    held_exposure_amount TEXT,
+    held_exposure_currency TEXT,
+    evidence_json TEXT NOT NULL,
+    evidence_hash TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL UNIQUE,
+    recorded_at TEXT NOT NULL,
+    CHECK((held_exposure_amount IS NULL AND held_exposure_currency IS NULL) OR
+          (held_exposure_amount IS NOT NULL AND held_exposure_currency IS NOT NULL)),
+    CHECK(reservation_state = 'held' OR held_exposure_amount IS NULL)
+);
+CREATE INDEX scale_s0_historical_terminals_state_idx
+    ON scale_s0_historical_terminals(terminal_state, terminal_reason);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -1188,6 +1217,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(25, "durable_scale_s0_locator_response_accounting_facts", CATALOGUE_SQL_V25),
     Migration(26, "separate_locator_subject_from_external_identifier", CATALOGUE_SQL_V26),
     Migration(27, "structured_locator_authority_preprovider_checkpoint", CATALOGUE_SQL_V27),
+    Migration(28, "append_only_historical_s0_terminals", CATALOGUE_SQL_V28),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
