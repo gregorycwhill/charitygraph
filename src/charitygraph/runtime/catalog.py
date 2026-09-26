@@ -847,7 +847,7 @@ class SQLiteCatalog:
     def register_scale_s0_locator_preprovider_checkpoint(self, checkpoint: Mapping[str, Any]) -> dict[str, Any]:
         """Persist non-executable structured authority/compiler state idempotently."""
         self._require_migrated()
-        required = ("checkpoint_id", "execution_attempt_id", "run_id", "authority_hash", "created_at", "authority", "slots", "a3_state")
+        required = ("checkpoint_id", "execution_attempt_id", "run_id", "authority_hash", "created_at", "authority", "frozen_subjects", "slots", "a3_state")
         if any(key not in checkpoint for key in required) or checkpoint.get("a3_state") != "pending":
             raise CatalogError("structured locator checkpoint lacks non-executable canonical material")
         if checkpoint.get("reservations", 0) != 0 or checkpoint.get("send_started", 0) != 0 or checkpoint.get("provider_attempts", 0) != 0:
@@ -855,9 +855,58 @@ class SQLiteCatalog:
         material = dict(checkpoint); material["created_at"] = _utc(material["created_at"], "created_at")
         material_hash = _canonical_hash(material)
         with self._connection(immediate=True) as conn:
-            attempt = conn.execute("SELECT run_id FROM scale_s0_execution_attempts WHERE attempt_id=?", (material["execution_attempt_id"],)).fetchone()
+            attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (material["execution_attempt_id"],)).fetchone()
             if attempt is None or attempt["run_id"] != material["run_id"]:
                 raise ConflictError("structured locator checkpoint execution binding is absent or stale")
+            from ..s0_structured_authority import (FrozenLocatorQueries, GovernedLocatorBinding,
+                                                   frozen_locator_material_sha256,
+                                                   structured_authority_from_material)
+            from ..scale_s0 import locator_search_request_body_sha256
+            try:
+                authority = structured_authority_from_material(material["authority"])
+            except Exception as error:
+                raise CatalogError("structured locator checkpoint authority is invalid") from error
+            if (authority.hash != material["authority_hash"]
+                    or authority.attempt_id != material["execution_attempt_id"]
+                    or authority.run_id != material["run_id"]
+                    or authority.builder_commit_sha != attempt["builder_commit_sha"]
+                    or authority.data_merge_sha != attempt["data_commit_sha"]
+                    or authority.max_physical_calls != material.get("max_physical_calls")
+                    or authority.max_new_exposure_usd != material.get("max_new_exposure_usd")):
+                raise ConflictError("structured locator checkpoint authority binding is substituted")
+            try:
+                frozen_subjects = tuple(FrozenLocatorQueries(
+                    GovernedLocatorBinding(**item["binding"]), tuple(item["queries"]))
+                    for item in material["frozen_subjects"])
+                for subject in frozen_subjects:
+                    subject.validate()
+            except Exception as error:
+                raise CatalogError("structured locator checkpoint frozen candidates are invalid") from error
+            if (frozen_locator_material_sha256(frozen_subjects) != authority.frozen_material_sha256
+                    or tuple(x.binding for x in frozen_subjects) != authority.subject_bindings):
+                raise ConflictError("structured locator checkpoint frozen candidates are substituted")
+            slots = material["slots"]
+            if not isinstance(slots, list) or len(slots) != authority.max_physical_calls:
+                raise CatalogError("structured locator checkpoint slots do not match authority call cap")
+            bound = {x.locator_subject_ref: x for x in authority.subject_bindings}
+            seen_subjects = set()
+            for slot in slots:
+                if (not isinstance(slot, Mapping) or slot.get("executable_query_index") != 0
+                        or slot.get("alternate_status") != "non_executable_requires_distinct_authority"):
+                    raise CatalogError("structured locator checkpoint contains executable alternate material")
+                binding = bound.get(slot.get("locator_subject_ref"))
+                if binding is None or (slot.get("identifier_scheme"), slot.get("identifier_value")) != (binding.identifier_scheme, binding.identifier_value):
+                    raise ConflictError("structured locator checkpoint subject binding is substituted")
+                if slot["locator_subject_ref"] in seen_subjects:
+                    raise ConflictError("structured locator checkpoint contains duplicate subjects")
+                seen_subjects.add(slot["locator_subject_ref"])
+                frozen = next(x for x in frozen_subjects if x.binding.locator_subject_ref == slot["locator_subject_ref"])
+                if slot.get("executable_query") != frozen.queries[0]:
+                    raise ConflictError("structured locator checkpoint executable query is not candidate zero")
+                if slot.get("executable_body_sha256") != locator_search_request_body_sha256(slot.get("executable_query", "")):
+                    raise ConflictError("structured locator checkpoint executable body hash is substituted")
+            if seen_subjects != set(bound):
+                raise ConflictError("structured locator checkpoint subject membership is incomplete")
             prior = conn.execute("SELECT * FROM scale_s0_locator_preprovider_checkpoints WHERE checkpoint_id=?", (material["checkpoint_id"],)).fetchone()
             if prior is not None:
                 if prior["material_hash"] != material_hash: raise ConflictError("structured locator checkpoint identity conflict")

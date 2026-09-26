@@ -88,8 +88,15 @@ def validate_locator_subject_reference(*, locator_subject_ref: str,
     identifier = locator_identifier_value.strip()
     # An ABN lookup seed is never a CharityGraph subject reference.  Reject
     # the former direct binding and a misleading ABN-prefixed/embedded alias.
+    # Compare both the exact form and a mechanical compact form so separators
+    # cannot smuggle an ABN into a governed subject reference (for example
+    # ``74 068 758 654``).  This is identifier syntax, not natural-language
+    # interpretation.
+    compact_subject = "".join(ch for ch in subject if ch.isalnum()).casefold()
+    compact_identifier = "".join(ch for ch in identifier if ch.isalnum()).casefold()
     if (subject == identifier or subject.casefold().startswith("abn:")
-            or identifier in subject):
+            or identifier in subject or compact_subject == compact_identifier
+            or compact_identifier in compact_subject):
         raise ScalePreflightError("locator subject reference must be distinct from its external ABN lookup identifier")
 
 

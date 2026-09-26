@@ -58,8 +58,15 @@ def persist_explicit_a3(catalog: Any, *, attempt: Any, attestation: HumanA3Input
         if authority.hash != attestation.structured_authority_hash or authority.hash != attestation.execution_authority:
             raise ScalePreflightError("A3 structured authority hash does not match the live authority")
         if (authority.attempt_id != attempt.attempt_id or authority.run_id != attempt.run_id
+                or authority.builder_commit_sha != attempt.builder_commit_sha
+                or authority.data_merge_sha != attempt.data_commit_sha
                 or authority.provider_project != attestation.provider_account_project):
             raise ScalePreflightError("A3 structured authority is bound to another attempt, run, or project")
+        checkpoint_getter = getattr(catalog, "get_scale_s0_locator_preprovider_checkpoint", None)
+        checkpoint = checkpoint_getter(execution_attempt_id=attempt.attempt_id,
+                                       authority_hash=authority.hash) if callable(checkpoint_getter) else None
+        if checkpoint is None:
+            raise ScalePreflightError("A3 structured authority has no matching preprovider checkpoint")
         window.update({"structured_authority": authority.material(), "structured_authority_hash": authority.hash})
     return catalog.register_scale_s0_attestation_window(window)
 
@@ -72,7 +79,8 @@ def checkpoint_structured_locator_preprovider(*, catalog: Any, attempt: Any, aut
     fresh A3 must still pass through normal just-in-time reservation preparation.
     """
     from .s0_structured_authority import compile_locator_authority, validate_live_bindings
-    compiled = compile_locator_authority(authority, tuple(frozen_subjects))
+    frozen_subjects = tuple(frozen_subjects)
+    compiled = compile_locator_authority(authority, frozen_subjects)
     validate_live_bindings(authority, attempt_id=attempt.attempt_id, run_id=attempt.run_id,
                            builder_commit_sha=attempt.builder_commit_sha, data_merge_sha=attempt.data_commit_sha,
                            provider_project=authority.provider_project)
@@ -80,6 +88,7 @@ def checkpoint_structured_locator_preprovider(*, catalog: Any, attempt: Any, aut
         "checkpoint_id": "checkpoint:s0-locator:" + compiled.authority.hash,
         "execution_attempt_id": attempt.attempt_id, "run_id": attempt.run_id,
         "authority_hash": compiled.authority.hash, "authority": compiled.authority.material(),
+        "frozen_subjects": [subject.material() for subject in frozen_subjects],
         "slots": [asdict(slot) for slot in compiled.slots], "max_physical_calls": compiled.max_physical_calls,
         "max_new_exposure_usd": str(compiled.max_new_exposure_usd), "a3_state": "pending",
         "reservations": 0, "send_started": 0, "provider_attempts": 0, "created_at": now,
