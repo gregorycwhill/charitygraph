@@ -108,6 +108,7 @@ def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAt
                                  pricing: LocatorSearchPrice, frozen_at: str,
                                  provider_account_project: str,
                                  execution_authority: str,
+                                 structured_authority: Any | None = None,
                                  scope_id: str = "scope:organisation") -> FrozenPacket:
     """Compile a deterministic operational packet without evidence or a send."""
     if execution_attempt.mandate_id != mandate.mandate_id or execution_attempt.slice_id != mandate.slice_id:
@@ -116,6 +117,18 @@ def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAt
         raise ScalePreflightError("locator search price currency must equal the frozen S0 currency")
     if not provider_account_project or not execution_authority:
         raise ScalePreflightError("locator search packet requires explicit immutable A3 account/project and authority")
+    if structured_authority is not None:
+        # New compiler-produced packets carry the digest, never a caller's
+        # prose label.  Legacy packets remain readable but cannot be promoted
+        # into a structured checkpoint without this validation.
+        structured_authority.validate()
+        if (structured_authority.hash != execution_authority or query_index != 0
+                or structured_authority.provider_project != provider_account_project
+                or structured_authority.attempt_id != execution_attempt.attempt_id):
+            raise ScalePreflightError("structured authority does not bind this executable locator packet")
+        binding = next((x for x in structured_authority.subject_bindings if x.locator_subject_ref == locator_subject_ref), None)
+        if binding is None or (binding.identifier_scheme, binding.identifier_value) != ("ABN", locator_abn):
+            raise ScalePreflightError("structured authority does not bind this locator subject/identifier")
     request_identity = locator_search_request_identity(
         locator_subject_ref=locator_subject_ref, locator_identifier_scheme="ABN",
         locator_identifier_value=locator_abn, query=query, query_index=query_index,
@@ -579,10 +592,14 @@ class OpenAIResponsesWebSearchProvider:
 
 def discover(provider: LocatorSearchProvider, identity: PublicEntityIdentity, *,
              existing_lineage: Sequence[DiscoveryLineage] = ()) -> tuple[DiscoveryLineage, ...]:
-    """Call at most five searches; results remain discovery metadata only."""
+    """Call only the authority-class executable query; alternates are provenance.
+
+    This legacy discovery helper has no budget material itself, so it must use
+    the same conservative first-candidate rule as the structured compiler.
+    """
     lineages: list[DiscoveryLineage] = []
     completed_queries = {(row.locator_subject_ref, row.locator_abn, row.query) for row in existing_lineage}
-    for query_index, query in enumerate(identity.queries()):
+    for query_index, query in enumerate(identity.queries()[:1]):
         if (identity.locator_subject_ref, identity.locator_abn, query) in completed_queries:
             continue
         # Discovery is provider-neutral; a production crossing is only possible

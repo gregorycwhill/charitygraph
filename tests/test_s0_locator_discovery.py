@@ -353,7 +353,10 @@ def test_discovery_lineage_is_durable_and_idempotent_without_duplicate_provider_
         catalog.register_scale_s0_locator_discovery({**row.__dict__, "lineage_id": row.lineage_id}, created_at=NOW)
     stored = catalog.list_scale_s0_locator_discoveries(locator_subject_ref="subject:sunrise")
     resumed = discover(provider, identity, existing_lineage=first)
-    assert len(stored) == len(first) and not resumed and len(provider.calls) == len(identity.queries())
+    # Only the ordered first candidate is executable under the one-call
+    # authority class; the remaining frozen candidate is provenance, not a
+    # second provider crossing.
+    assert len(stored) == len(first) and not resumed and len(provider.calls) == 1
     catalog.close()
 
 

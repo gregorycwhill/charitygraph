@@ -1141,6 +1141,25 @@ CREATE INDEX scale_s0_locator_discoveries_subject_ref_idx
     ON scale_s0_locator_discoveries(locator_subject_ref, decision, provider_call_id);
 """.strip() + "\n"
 
+# Structured live authority is additive.  Historical attempts retain their
+# opaque historical material and are never inferred/backfilled into this table.
+CATALOGUE_SQL_V27 = """
+ALTER TABLE scale_s0_attestation_windows ADD COLUMN structured_authority_hash TEXT;
+ALTER TABLE scale_s0_attestation_windows ADD COLUMN structured_authority_json TEXT;
+CREATE TABLE scale_s0_locator_preprovider_checkpoints (
+    checkpoint_id TEXT PRIMARY KEY,
+    execution_attempt_id TEXT NOT NULL REFERENCES scale_s0_execution_attempts(attempt_id),
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    authority_hash TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL,
+    UNIQUE(execution_attempt_id, authority_hash)
+);
+CREATE INDEX scale_s0_locator_preprovider_checkpoint_attempt_idx
+    ON scale_s0_locator_preprovider_checkpoints(execution_attempt_id, authority_hash);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -1168,6 +1187,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(24, "durable_scale_s0_locator_discovery_lineage", CATALOGUE_SQL_V24),
     Migration(25, "durable_scale_s0_locator_response_accounting_facts", CATALOGUE_SQL_V25),
     Migration(26, "separate_locator_subject_from_external_identifier", CATALOGUE_SQL_V26),
+    Migration(27, "structured_locator_authority_preprovider_checkpoint", CATALOGUE_SQL_V27),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
