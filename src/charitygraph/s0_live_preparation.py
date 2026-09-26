@@ -2,14 +2,14 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Iterable, Mapping
 
 from .s0_live import canonical_locator_provider_factory
 from .s0_pricing import load_supervisor_capture
 from .scale_s0 import ScalePreflightError, locator_search_request_body_sha256, packet_task_key
-from .runtime.catalog import S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME
+from .runtime.catalog import ATTESTATION_WINDOW, S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME
 from .s0_acquisition_bridge import bundle_packets
 import hashlib
 import json
@@ -32,7 +32,7 @@ def persist_explicit_a3(catalog: Any, *, attempt: Any, attestation: HumanA3Input
         raise ScalePreflightError("A3 timestamps must be timezone-aware")
     observed = attestation.observed_at.astimezone(timezone.utc)
     current = now.astimezone(timezone.utc)
-    if observed > current or current - observed > timedelta(minutes=60):
+    if observed > current or current - observed > ATTESTATION_WINDOW:
         raise ScalePreflightError("A3 observation is missing, future-dated, or stale")
     if (attestation.attested_by != S0_LIVE_SEND_ATTESTER or attestation.setting_name != S0_LIVE_SEND_SETTING_NAME
             or attestation.observed_value != S0_LIVE_SEND_OBSERVED_VALUE or not attestation.provider_account_project
@@ -50,7 +50,7 @@ def persist_explicit_a3(catalog: Any, *, attempt: Any, attestation: HumanA3Input
         "provider_account_project": attestation.provider_account_project,
         "execution_authority": attestation.execution_authority,
         "observed_at": observed,
-        "valid_until": observed + timedelta(minutes=60),
+        "valid_until": observed + ATTESTATION_WINDOW,
     }
     if attestation.structured_authority is not None or attestation.structured_authority_hash is not None:
         from .s0_structured_authority import structured_authority_from_material

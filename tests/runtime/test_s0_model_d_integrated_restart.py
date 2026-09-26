@@ -5,7 +5,7 @@ from decimal import Decimal
 import pytest
 
 from charitygraph.runtime import CatalogError, ConflictError, SQLiteCatalog
-from charitygraph.runtime.catalog import S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME
+from charitygraph.runtime.catalog import ATTESTATION_WINDOW, S0_LIVE_SEND_ATTESTER, S0_LIVE_SEND_OBSERVED_VALUE, S0_LIVE_SEND_SETTING_NAME
 from charitygraph.scale_s0 import ExecutionAttemptIdentity, OwnerAttestation, ScalePreflightError, ScaleS0Preflight
 from charitygraph.runtime.catalog import canonical_execution_configuration_hash
 from charitygraph.s0_acquisition_bridge import (
@@ -139,7 +139,7 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
         "attested_by": "Greg", "setting_name": S0_LIVE_SEND_SETTING_NAME,
         "observed_value": S0_LIVE_SEND_OBSERVED_VALUE, "provider_account_project": "openai/project-synthetic",
         "execution_authority": "s0-authority:model-d", "observed_at": NOW,
-        "valid_until": datetime.fromisoformat(NOW) + timedelta(minutes=60),
+        "valid_until": datetime.fromisoformat(NOW) + ATTESTATION_WINDOW,
     })
     with pytest.raises(ConflictError, match="attestation window"):
         live.provider_send(replace(request, provider_account_project="openai/other"), now=datetime.fromisoformat(NOW))
@@ -162,7 +162,7 @@ def test_model_d_exact_eight_materialises_and_restarts_from_durable_graph(tmp_pa
     assert live.provider_send(request, now=datetime.fromisoformat(NOW)) == TASK
     observed = datetime.fromisoformat(attestation.observed_at)
     with pytest.raises(ConflictError, match="future|stale|attestation"):
-        live.provider_send(request, now=observed + timedelta(minutes=61))
+        live.provider_send(request, now=observed + ATTESTATION_WINDOW)
     with pytest.raises(ConflictError, match="future|stale|attestation"):
         live.provider_send(request, now=observed - timedelta(seconds=1))
     restarted.record_scale_s0_halt(halt_id="halt:model-d:synthetic", slice_id=mandate.slice_id, scope="task", task_key=TASK.key, reason="synthetic gate test", created_at=NOW)

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from charitygraph.s0_product_owner_policy import (
+    ATTESTATION_WINDOW,
     ProviderAttestationWindow, acnc_ais_local_use_permitted, acnc_ais_provider_transmission_permitted,
     alternate_locator_permitted, concrete_first_party_source_definition_id,
     discovery_signals_coverage, provider_attestation_valid,
@@ -28,8 +29,8 @@ def test_ais_local_use_is_distinct_from_provider_rights():
 
 def test_attestation_window_has_exact_expiry_and_invalidators():
     attestation = ProviderAttestationWindow("Greg", NOW, "account/project", "authority", True)
-    assert attestation.valid_for(now=NOW + timedelta(minutes=59, seconds=59), account_project="account/project", execution_authority="authority")
-    assert not attestation.valid_for(now=NOW + timedelta(minutes=60), account_project="account/project", execution_authority="authority")
+    assert attestation.valid_for(now=NOW + ATTESTATION_WINDOW - timedelta(microseconds=1), account_project="account/project", execution_authority="authority")
+    assert not attestation.valid_for(now=NOW + ATTESTATION_WINDOW, account_project="account/project", execution_authority="authority")
     assert not attestation.valid_for(now=NOW, account_project="other", execution_authority="authority")
     assert not attestation.valid_for(now=NOW, account_project="account/project", execution_authority="other")
     assert not attestation.valid_for(now=NOW, account_project="account/project", execution_authority="authority", setting_changed_or_suspected=True)
