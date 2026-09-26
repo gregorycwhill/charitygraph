@@ -7,7 +7,7 @@ present this material and its digest at every boundary.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 import json
 from typing import Any, Mapping, Sequence
@@ -79,19 +79,26 @@ class LocatorAuthorityMaterial:
             raise ScalePreflightError("unsupported S0 structured execution authority")
         if any(not isinstance(x, str) or not x for x in (self.authority_id, self.attempt_id, self.run_id,
                                                           self.builder_commit_sha, self.data_merge_sha,
-                                                          self.provider_project)):
+                                                          self.provider_project, self.frozen_material_sha256,
+                                                          self.per_subject_max_usd, self.max_new_exposure_usd)):
             raise ScalePreflightError("structured execution authority has an absent binding")
-        if len(self.builder_commit_sha) != 40 or len(self.data_merge_sha) != 40 or len(self.frozen_material_sha256) != 64:
+        if (len(self.builder_commit_sha) != 40 or len(self.data_merge_sha) != 40
+                or len(self.frozen_material_sha256) != 64
+                or any(c not in "0123456789abcdef" for c in
+                       (self.builder_commit_sha + self.data_merge_sha + self.frozen_material_sha256).casefold())):
             raise ScalePreflightError("structured execution authority has an invalid immutable SHA")
+        if type(self.max_physical_calls) is not int:
+            raise ScalePreflightError("structured execution authority has an invalid call cap")
         if not self.subject_bindings or len({x.locator_subject_ref for x in self.subject_bindings}) != len(self.subject_bindings):
             raise ScalePreflightError("structured execution authority has duplicate or absent subjects")
         for binding in self.subject_bindings:
             binding.validate()
         try:
             per_subject, total = Decimal(self.per_subject_max_usd), Decimal(self.max_new_exposure_usd)
-        except Exception as error:
+        except (InvalidOperation, ValueError, TypeError) as error:
             raise ScalePreflightError("structured execution authority has invalid USD budget") from error
-        if self.max_physical_calls != len(self.subject_bindings) or per_subject <= 0 or total != per_subject * len(self.subject_bindings):
+        if (not per_subject.is_finite() or not total.is_finite() or self.max_physical_calls != len(self.subject_bindings)
+                or per_subject <= 0 or total != per_subject * len(self.subject_bindings)):
             raise ScalePreflightError("authority call-count and exposure budget do not prove one call per subject")
 
 
@@ -105,7 +112,8 @@ class FrozenLocatorQueries:
 
     def validate(self) -> None:
         self.binding.validate()
-        if not self.queries or any(not isinstance(q, str) or not q for q in self.queries):
+        if (not self.queries or any(not isinstance(q, str) or not q.strip() for q in self.queries)
+                or len(set(self.queries)) != len(self.queries)):
             raise ScalePreflightError("frozen locator material has no exact query candidates")
 
 
