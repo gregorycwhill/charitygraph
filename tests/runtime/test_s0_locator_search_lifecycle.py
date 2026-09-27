@@ -36,6 +36,7 @@ from charitygraph.scale_s0 import (
     ScaleMandate,
     ScalePreflightError,
     ScaleS0Preflight,
+    _validate_locator_search_packet,
     default_s0_registry,
     packet_task_key,
     locator_search_request_body_sha256,
@@ -45,7 +46,7 @@ from charitygraph.scale_s0 import (
 # Keep durable test fixtures beyond wall-clock expiry because the catalog
 # deliberately validates a reservation against the real clock before a send.
 NOW = datetime(2099, 9, 22, tzinfo=timezone.utc)
-SUBJECT = "subject:locator"
+SUBJECT = "locator-subject:v1:sha256:" + "a" * 64
 ABN = "11111111111"
 AUTHORITY = "SCALE_S0_LIVE_LOCATOR_ACTIVATION_2026-09-22.md#CG-S0-PO-LIVE-LOCATOR-2026-09-22"
 PROJECT = "proj:synthetic-locator"
@@ -64,7 +65,7 @@ def _authority():
     policies["routing"] = PolicyArtifact(routing.policy_id, routing.version, routing.immutable_hash)
     mandate = ScaleMandate(
         mandate_id="mandate:locator", mandate_version="1", slice_id="slice:locator", created_at=NOW.isoformat(),
-        authorizing_actor_ref="actor:synthetic", population_ref="population:synthetic", subject_ids=(SUBJECT,),
+        authorizing_actor_ref="actor:synthetic", population_ref="population:synthetic", subject_ids=(ABN,),
         snapshot_as_of="2026-09-22", ranking_policy_id="ranking:synthetic", group_entity_policy_id="group:synthetic",
         source_universe_policy_id="sources:locator", source_universe_policy_version="1",
         mandatory_source_families=("official_website",), applicable_source_families=("official_website",),
@@ -388,6 +389,43 @@ def test_locator_identity_is_exact_replayable_and_does_not_normalise_unicode_or_
     body = locator_search_request_body(value["query"])
     body["include"].append("substituted")
     assert locator_search_request_body(value["query"])["include"] == ["web_search_call.action.sources"]
+
+
+def _canonical_locator_packet_for_population(subject_ids=(ABN,)):
+    mandate, _, _, _ = _authority()
+    mandate = replace(mandate, subject_ids=subject_ids)
+    subject_ref = "locator-subject:v1:sha256:" + "a" * 64
+    packet = freeze_locator_search_packet(
+        mandate=mandate, execution_attempt=_attempt(mandate), locator_subject_ref=subject_ref,
+        locator_abn=ABN, query='"Locator Foundation"', query_index=0,
+        pricing=LocatorSearchPrice("pricing:locator-v1", "0.10", "USD"),
+        frozen_at=NOW.isoformat(), provider_account_project=PROJECT,
+        execution_authority=AUTHORITY,
+    )
+    return mandate, packet
+
+
+def test_locator_population_uses_external_abn_for_canonical_governed_subject():
+    mandate, packet = _canonical_locator_packet_for_population()
+    _validate_locator_search_packet(packet, mandate)
+
+
+def test_locator_population_rejects_abn_absent_from_authorised_population():
+    mandate, packet = _canonical_locator_packet_for_population(subject_ids=("22222222222",))
+    with pytest.raises(ScalePreflightError, match="outside the frozen population"):
+        _validate_locator_search_packet(packet, mandate)
+
+
+def test_locator_population_preserves_anti_collapse_guard_for_abn_subject():
+    mandate, _, _, _ = _authority()
+    with pytest.raises(ScalePreflightError, match="must be distinct"):
+        freeze_locator_search_packet(
+            mandate=mandate, execution_attempt=_attempt(mandate), locator_subject_ref=ABN,
+            locator_abn=ABN, query='"Locator Foundation"', query_index=0,
+            pricing=LocatorSearchPrice("pricing:locator-v1", "0.10", "USD"),
+            frozen_at=NOW.isoformat(), provider_account_project=PROJECT,
+            execution_authority=AUTHORITY,
+        )
 
 
 def test_catalog_rejects_unknown_operational_kinds_and_locator_candidates(tmp_path):
