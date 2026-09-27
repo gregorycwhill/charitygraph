@@ -941,6 +941,15 @@ class SQLiteCatalog:
             from ..scale_s0 import locator_search_request_body_sha256
             try:
                 authority = structured_authority_from_material(material["authority"])
+                from ..s0_structured_authority import validate_mandate_binding
+                validate_mandate_binding(authority, mandate_id=attempt["mandate_id"], mandate_hash=attempt["mandate_hash"])
+                if authority.mandate_id is not None:
+                    mandate_row = conn.execute("SELECT material_json,authority_json FROM scale_s0_mandates WHERE mandate_id=?", (authority.mandate_id,)).fetchone()
+                    policies = json.loads(mandate_row["authority_json"])["policies"]
+                    aggregate = _canonical_hash([{"key": key, "policy_id": value["policy_id"], "version": value["version"], "hash": value["content_hash"]} for key, value in sorted(policies.items()) if key != "reservation"]).upper()
+                    if (aggregate != authority.aggregate_policy_bundle_hash
+                            or policies["population"]["content_hash"] != authority.population_policy_hash):
+                        raise ConflictError("structured authority policy binding substitution")
             except Exception as error:
                 raise CatalogError("structured locator checkpoint authority is invalid") from error
             if (authority.hash != material["authority_hash"]

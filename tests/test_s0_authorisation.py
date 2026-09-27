@@ -5,6 +5,7 @@ import shutil
 import pytest
 
 from charitygraph.s0_authorisation import ScalePreflightError, load_authorisation_package, plan_task_instances, validate_authorisation_package
+from charitygraph.s0_lineage import resolve_package
 
 
 DATA_PACKAGE = Path(os.environ.get("CHARITYGRAPH_S0_DATA_PACKAGE", Path(__file__).resolve().parents[2] / ".s0-policy-data"))
@@ -35,11 +36,12 @@ def test_shadow_requires_explicit_test_only_path() -> None:
 
 def test_missing_or_invalid_authorised_mandate_never_falls_back_to_shadow(tmp_path: Path) -> None:
     copy_package(DATA_PACKAGE, tmp_path)
-    (tmp_path / "SCALE_S0_MANDATE_AUTHORISED_V2.yaml").unlink()
-    with pytest.raises(ScalePreflightError, match="authorised mandate|decision record|package artifact"):
+    selected = resolve_package(tmp_path)["production"]
+    (tmp_path / selected).unlink()
+    with pytest.raises(ScalePreflightError, match="authorised mandate|decision record|package artifact|lineage"):
         load_authorisation_package(tmp_path)
     copy_package(DATA_PACKAGE, tmp_path)
-    authorised = tmp_path / "SCALE_S0_MANDATE_AUTHORISED_V2.yaml"
+    authorised = tmp_path / selected
     authorised.write_text(authorised.read_text(encoding="utf-8").replace("S0_AUTHORISED", "S0_NOT_AUTHORISED"), encoding="utf-8")
     with pytest.raises(ScalePreflightError, match="authorisation reference|hash|mandate"):
         load_authorisation_package(tmp_path)
@@ -59,7 +61,7 @@ def test_synthetic_approval_validates_complete_immutable_package() -> None:
 def test_policy_hash_substitution_is_rejected(tmp_path: Path) -> None:
     # Loader validates the immutable package directly; a substituted manifest hash cannot bind it.
     copy_package(DATA_PACKAGE, tmp_path)
-    source = tmp_path / "SCALE_S0_POLICY_BUNDLE_BALANCED_V1.yaml"
+    source = tmp_path / resolve_package(tmp_path)["bundle"]
     source.write_text(source.read_text(encoding="utf-8").replace("AC188F09", "BC188F09", 1), encoding="utf-8")
     with pytest.raises(ScalePreflightError, match="hash"):
         load_authorisation_package(tmp_path)
