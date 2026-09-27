@@ -400,7 +400,9 @@ def _validate_locator_search_packet(packet: FrozenPacket, mandate: ScaleMandate)
         estimate = Decimal(packet.estimated_provider_cost)
     except (InvalidOperation, ValueError) as error:
         raise ScalePreflightError("locator search price estimate is invalid") from error
-    if packet.subject_id not in mandate.subject_ids or not packet.scope_id:
+    if packet.locator_identifier_scheme != "ABN":
+        raise ScalePreflightError("locator search packet requires the canonical ABN identifier scheme")
+    if packet.locator_identifier_value not in mandate.subject_ids or not packet.scope_id:
         raise ScalePreflightError("locator search packet is outside the frozen population or scope")
     if estimate > Decimal(mandate.per_request_reservation_cap or mandate.provider_spend_ceiling):
         raise ScalePreflightError("locator search packet exceeds the per-request reservation cap")
@@ -672,7 +674,10 @@ class ScaleS0Preflight:
                 raise ScalePreflightError("locator search route is outside the frozen routing policy")
         else:
             task=self._task(request.task_id,request.task_version)
-        if request.subject_id not in self.mandate.subject_ids or not request.scope_id: raise ScalePreflightError("request is outside frozen population or scope")
+        request_population_id = (candidate_packet.locator_identifier_value
+                                 if candidate_packet is not None and candidate_packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND
+                                 else request.subject_id)
+        if request_population_id not in self.mandate.subject_ids or not request.scope_id: raise ScalePreflightError("request is outside frozen population or scope")
         packet=self._packet(request,task); route=self.routing.route_for(task,triggered_escalations)
         if request.route!=route or packet.routing_class!=route: raise ScalePreflightError("caller cannot choose a route")
         if packet.operation_kind == LOCATOR_SEARCH_OPERATION_KIND:
