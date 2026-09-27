@@ -75,7 +75,7 @@ def _policy_artifacts(root: Path, manifest: dict[str, Any]) -> tuple[dict[str, P
     return artifacts, bodies
 
 
-def load_authorisation_package(package_root: str | Path, *, authority: AuthorityMode = "production") -> tuple[ScaleMandate, LogicalTaskRegistry, RoutingPolicy, SamplingPolicy, dict[str, PolicyArtifact]]:
+def load_authorisation_package(package_root: str | Path, *, authority: AuthorityMode = "production", historical: bool = False) -> tuple[ScaleMandate, LogicalTaskRegistry, RoutingPolicy, SamplingPolicy, dict[str, PolicyArtifact]]:
     """Load one explicitly selected immutable authority package.
 
     Production is the default and can only load the executable authorised mandate.
@@ -85,14 +85,16 @@ def load_authorisation_package(package_root: str | Path, *, authority: Authority
     root = Path(package_root)
     if authority not in {"production", "shadow"}:
         raise ScalePreflightError("authority must be explicitly production or shadow")
-    manifest = load_json_yaml(root / "SCALE_S0_POLICY_BUNDLE_BALANCED_V1.yaml")
+    from .s0_lineage import resolve_package
+    package = resolve_package(root, historical=historical)
+    manifest = load_json_yaml(root / package["bundle"])
     artifacts, bodies = _policy_artifacts(root, manifest)
     if authority == "production":
         _validate_production_authority_record(root)
-        mandate_path = root / _AUTHORISED_MANDATE
+        mandate_path = root / package["production"]
         expected_actor_ref = _AUTHORITY_REF
     else:
-        mandate_path = root / _SHADOW_MANDATE
+        mandate_path = root / package["shadow"]
         expected_actor_ref = "UNAPPROVED_PRODUCT_OWNER"
     mandate_data = load_json_yaml(mandate_path)
     if mandate_data.get("authorizing_actor_ref") != expected_actor_ref:

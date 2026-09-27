@@ -122,6 +122,9 @@ def freeze_locator_search_packet(*, mandate: Any, execution_attempt: ExecutionAt
         # prose label.  Legacy packets remain readable but cannot be promoted
         # into a structured checkpoint without this validation.
         structured_authority.validate()
+        from .s0_structured_authority import validate_mandate_binding
+        validate_mandate_binding(structured_authority, mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash)
+        validate_mandate_binding(structured_authority, mandate_id=execution_attempt.mandate_id, mandate_hash=execution_attempt.mandate_hash)
         if (structured_authority.hash != execution_authority or query_index != 0
                 or structured_authority.provider_project != provider_account_project
                 or structured_authority.attempt_id != execution_attempt.attempt_id):

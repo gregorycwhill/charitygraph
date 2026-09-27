@@ -58,6 +58,10 @@ class LocatorAuthorityMaterial:
     schema: str = SCHEMA
     version: int = VERSION
     scope: str = SCOPE
+    mandate_id: str | None = None
+    mandate_hash: str | None = None
+    aggregate_policy_bundle_hash: str | None = None
+    population_policy_hash: str | None = None
 
     def material(self) -> dict[str, Any]:
         return {"schema": self.schema, "version": self.version, "scope": self.scope,
@@ -67,7 +71,10 @@ class LocatorAuthorityMaterial:
                 "subject_bindings": [asdict(x) for x in self.subject_bindings],
                 "budget": {"max_physical_calls": self.max_physical_calls,
                            "per_subject_max_usd": self.per_subject_max_usd,
-                           "max_new_exposure_usd": self.max_new_exposure_usd}}
+                           "max_new_exposure_usd": self.max_new_exposure_usd},
+                **({"mandate_id": self.mandate_id, "mandate_hash": self.mandate_hash,
+                    "aggregate_policy_bundle_hash": self.aggregate_policy_bundle_hash,
+                    "population_policy_hash": self.population_policy_hash} if self.mandate_id is not None else {})}
 
     @property
     def hash(self) -> str:
@@ -75,6 +82,14 @@ class LocatorAuthorityMaterial:
         return canonical_sha256(self.material())
 
     def validate(self) -> None:
+        bindings = (self.mandate_id, self.mandate_hash, self.aggregate_policy_bundle_hash, self.population_policy_hash)
+        if any(x is not None for x in bindings) or self.attempt_id == "attempt:s0:20":
+            if not all(isinstance(x, str) and x for x in bindings):
+                raise ScalePreflightError("structured authority requires complete immutable mandate binding")
+            if any(len(x) != 64 or any(c not in "0123456789abcdef" for c in x.lower()) for x in bindings[1:]):
+                raise ScalePreflightError("structured authority has invalid mandate/policy hashes")
+            if self.attempt_id == "attempt:s0:20" and self.mandate_id != "scale-s0-authorised-balanced-v3":
+                raise ScalePreflightError("Attempt 20 requires the authorised successor mandate only")
         if self.schema != SCHEMA or self.version != VERSION or self.scope != SCOPE:
             raise ScalePreflightError("unsupported S0 structured execution authority")
         if any(not isinstance(x, str) or not x for x in (self.authority_id, self.attempt_id, self.run_id,
@@ -168,6 +183,8 @@ def compile_live_locator_packets(*, mandate: Any, execution_attempt: Any, pricin
                                  subjects: Sequence[FrozenLocatorQueries]) -> tuple[Any, ...]:
     """The sole production packet compiler for structured locator attempts."""
     compiled = compile_locator_authority(authority, subjects)
+    validate_mandate_binding(authority, mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash)
+    validate_mandate_binding(authority, mandate_id=execution_attempt.mandate_id, mandate_hash=execution_attempt.mandate_hash)
     if execution_attempt.attempt_id != authority.attempt_id or execution_attempt.run_id != authority.run_id:
         raise ScalePreflightError("structured authority cannot compile packets for another attempt/run")
     if str(pricing.estimated_provider_cost) != authority.per_subject_max_usd:
@@ -178,6 +195,12 @@ def compile_live_locator_packets(*, mandate: Any, execution_attempt: Any, pricin
                  query=slot.executable_query, query_index=slot.executable_query_index, pricing=pricing,
                  frozen_at=frozen_at, provider_account_project=authority.provider_project,
                  execution_authority=authority.hash, structured_authority=authority) for slot in compiled.slots)
+
+
+def validate_mandate_binding(authority: LocatorAuthorityMaterial, *, mandate_id: str, mandate_hash: str) -> None:
+    authority.validate()
+    if authority.mandate_id is not None and (authority.mandate_id, authority.mandate_hash) != (mandate_id, mandate_hash):
+        raise ScalePreflightError("structured authority mandate binding substitution")
 
 
 def validate_live_bindings(authority: LocatorAuthorityMaterial, *, attempt_id: str, run_id: str,
@@ -198,7 +221,9 @@ def structured_authority_from_material(value: Mapping[str, Any]) -> LocatorAutho
             provider_project=value["provider_project"], frozen_material_sha256=value["frozen_material_sha256"],
             subject_bindings=tuple(GovernedLocatorBinding(**x) for x in value["subject_bindings"]),
             max_physical_calls=budget["max_physical_calls"], per_subject_max_usd=budget["per_subject_max_usd"],
-            max_new_exposure_usd=budget["max_new_exposure_usd"], schema=value["schema"], version=value["version"], scope=value["scope"])
+            max_new_exposure_usd=budget["max_new_exposure_usd"], schema=value["schema"], version=value["version"], scope=value["scope"],
+            mandate_id=value.get("mandate_id"), mandate_hash=value.get("mandate_hash"),
+            aggregate_policy_bundle_hash=value.get("aggregate_policy_bundle_hash"), population_policy_hash=value.get("population_policy_hash"))
     except (KeyError, TypeError) as error:
         raise ScalePreflightError("legacy or incomplete authority cannot enter structured live compilation") from error
     result.validate()
