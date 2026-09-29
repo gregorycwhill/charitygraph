@@ -1,5 +1,7 @@
 # CharityGraph Builder
 
+New-session grounding: read Data's [North Star](https://github.com/gregorycwhill/charitygraph-data/blob/main/NORTH_STAR_TARGET_CARD.md), then [BUILDER_MACHINERY.md](BUILDER_MACHINERY.md), [ARCHITECTURE.md](ARCHITECTURE.md) and [AGENTS.md](AGENTS.md).
+
 CharityGraph Builder creates governed charity knowledge and validated release candidates for [CharityGraph Data](https://github.com/gregorycwhill/charitygraph-data).
 
 Builder is one of the four CharityGraph products: Data publishes reusable governed data, Viewer supports human inspection and navigation, and [CharityGraph Playbooks](https://github.com/gregorycwhill/charitygraph-playbooks) publishes governed, open analytical methods for use with general-purpose AI. Playbooks is a separate product; Builder constructs knowledge and release candidates but does not generate Playbooks or downstream external-model analysis.

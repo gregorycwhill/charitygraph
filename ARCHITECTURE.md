@@ -9,6 +9,8 @@ This architecture implements the shared authority in the sibling Data repository
 
 ## 1. Decision in one sentence
 
+The compact operational companion is [BUILDER_MACHINERY.md](BUILDER_MACHINERY.md). It is subordinate to this architecture and records durable, proven machinery seams for session grounding.
+
 Builder vNext will be a local, Python-controlled and LLM-powered pipeline that turns immutable source material into typed candidates, policy-governed canonical observations and separately versioned derivatives; CharityGraph cards and releases will be projections of those records, not Builder's internal data model.
 
 This is a rearchitecture, not a rewrite of the evidence. The existing archive, source records, extracts, schemas, model runs, human decisions, public releases, and golden cases are migration inputs and validation evidence.
