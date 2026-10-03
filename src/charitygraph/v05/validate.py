@@ -1,12 +1,25 @@
 """Independent structural/reference validators for public contract 0.5."""
 from __future__ import annotations
 from .models import Card, CapabilityRegistry
+from ..projection_compatibility import Disposition, EvaluationGrain, evaluate_compatibility
 
 FORBIDDEN = ("archive", "prompt", "token", "estimated_cost", "fixture")
-def validate_v05_card(raw: dict, registry: CapabilityRegistry, source_record_ids: set[str]) -> list[str]:
+def validate_v05_card(raw: dict, registry: CapabilityRegistry, source_record_ids: set[str], *, compatibility_inputs: dict | None = None, compatibility_audit: dict | None = None) -> list[str]:
     errors=[]
+    if compatibility_inputs is None:
+        errors.append("missing authoritative governed compatibility context")
+        decision=evaluate_compatibility({}, grain=EvaluationGrain.SECTION_CARD)
+    else:
+        # This is intentionally a fresh policy evaluation, never trust an
+        # audit emitted by staging or data carried by the public card.
+        decision=evaluate_compatibility(compatibility_inputs, grain=EvaluationGrain.SECTION_CARD)
+    if compatibility_audit is None:
+        errors.append("missing independent compatibility audit evidence")
+    elif compatibility_audit != decision.model_dump(mode="json"):
+        errors.append("inconsistent or forged compatibility audit evidence")
+    if decision.disposition is Disposition.ABSTAIN: errors.append("projection compatibility gate abstained: " + ",".join(decision.reason_codes))
     try: card=Card.model_validate(raw)
-    except Exception as exc: return [str(exc)]
+    except Exception as exc: return errors + [str(exc)]
     if any(key in raw for key in ("source_statement_fixture",)): errors.append("fixture-only field in public card")
     evidence={x.evidence_id for x in card.evidence}; observations={}
     for name in ("activities","beneficiaries","descriptive_geography","funding_sources","fundraising_methods","participation","opportunities","programs","relationships","classifications","analytic_projections"):
@@ -35,5 +48,5 @@ def validate_v05_card(raw: dict, registry: CapabilityRegistry, source_record_ids
     if card.coverage["registry_id"] != registry.registry_id or len(actual)!=len(set(actual)) or set(actual)!=set(expected): errors.append("incomplete or duplicate coverage")
     if any(any(part in str(value).lower() for part in FORBIDDEN) for value in raw.values() if isinstance(value,str)): errors.append("private/public boundary leak")
     return errors
-def validate_v05_fixture_release(cards: list[dict], registry: CapabilityRegistry, source_record_ids: set[str]) -> list[str]:
-    return [f"{card.get('causebase_id')}: {error}" for card in cards for error in validate_v05_card(card,registry,source_record_ids)]
+def validate_v05_fixture_release(cards: list[dict], registry: CapabilityRegistry, source_record_ids: set[str], *, compatibility_requests: dict[str, dict] | None = None, compatibility_audits: dict[str, dict] | None = None) -> list[str]:
+    return [f"{card.get('causebase_id')}: {error}" for card in cards for error in validate_v05_card(card,registry,source_record_ids, compatibility_inputs=(compatibility_requests or {}).get(card.get("causebase_id")), compatibility_audit=(compatibility_audits or {}).get(card.get("causebase_id")))]

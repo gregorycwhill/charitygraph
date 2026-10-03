@@ -250,11 +250,28 @@ def project_subject(
     subject_id: str,
     *,
     projection_contract: NorthStarProjectionContract,
+    compatibility_inputs: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
-    """Return one private card projection without copying observations."""
+    """Return one private card projection without copying observations.
+
+    When governed compatibility inputs are supplied, the production projection
+    boundary fails closed before emitting the card for a mechanical ABSTAIN.
+    The audit is retained in the returned projection for downstream renderers.
+    """
     projection_contract = _registered_contract(projection_contract)
     if subject_id not in {item.subject_id for item in graph.subjects}:
         raise ValueError(f"unknown subject: {subject_id}")
+    compatibility_audit = None
+    if compatibility_inputs is not None:
+        from .projection_compatibility import EvaluationGrain, evaluate_compatibility
+        compatibility_audit = evaluate_compatibility(
+            compatibility_inputs, grain=EvaluationGrain.SECTION_CARD
+        )
+        if compatibility_audit.disposition.value == "ABSTAIN":
+            raise ValueError(
+                "projection compatibility gate abstained: "
+                + ",".join(compatibility_audit.reason_codes)
+            )
     selected = {item.record_id for item in graph.observations if item.subject_id == subject_id}
     evidence = [item for item in graph.evidence if item.observation_id in selected]
     coverage = compile_coverage(IntegratedGraph(
@@ -265,13 +282,16 @@ def project_subject(
         evidence=tuple(evidence),
         coverage_inputs=tuple(item for item in graph.coverage_inputs if item.subject_id == subject_id),
     ), subject_id=subject_id, projection_contract=projection_contract)
-    return {
+    result = {
         "subject_id": subject_id,
         "projection_contract_id": projection_contract.projection_contract_id,
         "observation_ids": tuple(item.record_id for item in graph.observations if item.subject_id == subject_id),
         "relationship_ids": tuple(item.record_id for item in graph.relationships if item.source_subject_id == subject_id or item.target_subject_id == subject_id),
         "sections": tuple(item.model_dump(mode="json") for item in coverage),
     }
+    if compatibility_audit is not None:
+        result["compatibility_audit"] = compatibility_audit.model_dump(mode="json")
+    return result
 
 
 def compile_matrix(
