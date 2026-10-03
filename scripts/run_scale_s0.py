@@ -44,6 +44,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--observed-value")
     parser.add_argument("--provider-project")
     parser.add_argument("--execution-authority")
+    parser.add_argument("--structured-authority", type=Path, help="canonical structured A3 authority JSON")
+    parser.add_argument("--structured-authority-sha256", help="canonical hash of --structured-authority")
     args = parser.parse_args(argv)
     material = json.loads(args.work.read_text(encoding="utf-8"))
     semantic = tuple(S0SemanticWork(str(item["packet_id"]), dict(item["row"]), _request(item["request"])) for item in material.get("semantic", ()))
@@ -57,7 +59,7 @@ def main(argv: list[str] | None = None) -> int:
         provider = None
         factory = None
         if not args.preflight:
-            required = (args.cohort_id, args.attested_by, args.observed_at, args.setting_name, args.observed_value, args.provider_project, args.execution_authority, snapshot)
+            required = (args.cohort_id, args.attested_by, args.observed_at, args.setting_name, args.observed_value, args.provider_project, args.execution_authority, args.structured_authority, args.structured_authority_sha256, snapshot)
             if any(value is None for value in required):
                 raise SystemExit("live execution requires explicit cohort, A3 fields, project, authority, and pricing capture")
             row = catalog.get_scale_s0_execution_attempt(args.attempt_id)
@@ -65,7 +67,8 @@ def main(argv: list[str] | None = None) -> int:
                 raise SystemExit("durable execution attempt is absent")
             attempt = ExecutionAttemptIdentity(**{name: row["material"][name] for name in ExecutionAttemptIdentity.__dataclass_fields__})
             observed = datetime.fromisoformat(args.observed_at)
-            window = persist_explicit_a3(catalog, attempt=attempt, attestation=HumanA3Input(args.attested_by, observed, args.setting_name, args.observed_value, args.provider_project, args.execution_authority), now=datetime.now(timezone.utc))
+            structured = json.loads(args.structured_authority.read_text(encoding="utf-8"))
+            window = persist_explicit_a3(catalog, attempt=attempt, attestation=HumanA3Input(args.attested_by, observed, args.setting_name, args.observed_value, args.provider_project, args.execution_authority, structured, args.structured_authority_sha256), now=datetime.now(timezone.utc))
             for item in locator:
                 stored = catalog.get_scale_s0_frozen_packet(item.packet_id)
                 packet = FrozenPacket(**{name: stored["material"][name] for name in FrozenPacket.__dataclass_fields__ if name in stored["material"]})

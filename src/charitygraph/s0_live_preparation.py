@@ -52,22 +52,25 @@ def persist_explicit_a3(catalog: Any, *, attempt: Any, attestation: HumanA3Input
         "observed_at": observed,
         "valid_until": observed + ATTESTATION_WINDOW,
     }
-    if attestation.structured_authority is not None or attestation.structured_authority_hash is not None:
-        from .s0_structured_authority import structured_authority_from_material
-        authority = structured_authority_from_material(attestation.structured_authority or {})
-        if authority.hash != attestation.structured_authority_hash or authority.hash != attestation.execution_authority:
-            raise ScalePreflightError("A3 structured authority hash does not match the live authority")
-        if (authority.attempt_id != attempt.attempt_id or authority.run_id != attempt.run_id
-                or authority.builder_commit_sha != attempt.builder_commit_sha
-                or authority.data_merge_sha != attempt.data_commit_sha
-                or authority.provider_project != attestation.provider_account_project):
-            raise ScalePreflightError("A3 structured authority is bound to another attempt, run, or project")
-        checkpoint_getter = getattr(catalog, "get_scale_s0_locator_preprovider_checkpoint", None)
-        checkpoint = checkpoint_getter(execution_attempt_id=attempt.attempt_id,
-                                       authority_hash=authority.hash) if callable(checkpoint_getter) else None
-        if checkpoint is None:
-            raise ScalePreflightError("A3 structured authority has no matching preprovider checkpoint")
-        window.update({"structured_authority": authority.material(), "structured_authority_hash": authority.hash})
+    # There is no opaque live branch for the current S0 lifecycle.  Retained
+    # opaque windows are historical records only and cannot buy a reservation.
+    from .s0_structured_authority import structured_authority_from_material
+    if attestation.structured_authority is None or not attestation.structured_authority_hash:
+        raise ScalePreflightError("current structured S0 A3 requires exact structured authority material and hash")
+    authority = structured_authority_from_material(attestation.structured_authority)
+    if authority.hash != attestation.structured_authority_hash or authority.hash != attestation.execution_authority:
+        raise ScalePreflightError("A3 structured authority hash does not match the live authority")
+    if (authority.attempt_id != attempt.attempt_id or authority.run_id != attempt.run_id
+            or authority.builder_commit_sha != attempt.builder_commit_sha
+            or authority.data_merge_sha != attempt.data_commit_sha
+            or authority.provider_project != attestation.provider_account_project):
+        raise ScalePreflightError("A3 structured authority is bound to another attempt, run, or project")
+    checkpoint_getter = getattr(catalog, "get_scale_s0_locator_preprovider_checkpoint", None)
+    checkpoint = checkpoint_getter(execution_attempt_id=attempt.attempt_id,
+                                   authority_hash=authority.hash) if callable(checkpoint_getter) else None
+    if checkpoint is None or checkpoint.get("material", {}).get("authority") != authority.material():
+        raise ScalePreflightError("A3 structured authority has no exact matching preprovider checkpoint")
+    window.update({"structured_authority": authority.material(), "structured_authority_hash": authority.hash})
     return catalog.register_scale_s0_attestation_window(window)
 
 
@@ -105,17 +108,21 @@ def prepare_locator_lifecycle(*, catalog: Any, attempt: Any, packet: Any, reques
     # The old opaque packet shape remains historical/read-only compatibility;
     # it cannot manufacture a structured checkpoint.
     structured_hash = attestation_window.get("structured_authority_hash")
-    if structured_hash is not None:
-        if structured_hash != packet.execution_authority or not attestation_window.get("structured_authority"):
-            raise ScalePreflightError("A3 structured authority does not match packet authority hash")
-        checkpoint = catalog.get_scale_s0_locator_preprovider_checkpoint(
-            execution_attempt_id=attempt.attempt_id, authority_hash=structured_hash)
-        if checkpoint is None:
-            raise ScalePreflightError("structured locator packet has no durable preprovider checkpoint")
-        slots = checkpoint["material"].get("slots", [])
-        slot = next((x for x in slots if x["locator_subject_ref"] == packet.subject_id), None)
-        if slot is None or (slot["executable_query"], slot["executable_body_sha256"]) != (packet.locator_query, locator_search_request_body_sha256(packet.locator_query)):
-            raise ScalePreflightError("packet is not the checkpoint's sole executable query")
+    structured = attestation_window.get("structured_authority")
+    if not structured_hash or not structured or structured_hash != packet.execution_authority:
+        raise ScalePreflightError("current structured S0 lifecycle requires matching A3 authority material")
+    from .s0_structured_authority import structured_authority_from_material
+    authority = structured_authority_from_material(structured)
+    if authority.hash != structured_hash:
+        raise ScalePreflightError("hydrated A3 structured authority hash disagrees with its object")
+    checkpoint = catalog.get_scale_s0_locator_preprovider_checkpoint(
+        execution_attempt_id=attempt.attempt_id, authority_hash=structured_hash)
+    if checkpoint is None or checkpoint.get("material", {}).get("authority") != authority.material():
+        raise ScalePreflightError("structured locator packet has no exact durable preprovider checkpoint")
+    slots = checkpoint["material"].get("slots", [])
+    slot = next((x for x in slots if x["locator_subject_ref"] == packet.subject_id), None)
+    if slot is None or (slot["executable_query"], slot["executable_body_sha256"]) != (packet.locator_query, locator_search_request_body_sha256(packet.locator_query)):
+        raise ScalePreflightError("packet is not the checkpoint's sole executable query")
     task_key = packet_task_key(packet)
     # Finalise the immutable physical bundle before any reservation or provider
     # lifecycle can be considered executable.  Membership is derived from the

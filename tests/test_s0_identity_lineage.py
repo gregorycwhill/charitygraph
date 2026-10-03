@@ -83,7 +83,7 @@ def test_successor_requires_next_version(tmp_path):
 
 def test_attempt20_only_accepts_authorised_successor():
     raw = json.loads((ROOT / "SCALE_S0_ATTEMPT20_STRUCTURED_AUTHORITY_2026-09-26.json").read_text())
-    authority = structured_authority_from_material(raw)
+    authority = structured_authority_from_material(raw, historical=True)
     mandate = load_authorisation_package(ROOT)[0]
     validate_mandate_binding(authority, mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash)
     with pytest.raises(ScalePreflightError, match="authorised successor"):
@@ -98,7 +98,7 @@ def test_attempt20_material_and_policy_hashes_agree():
     raw = json.loads((ROOT / "SCALE_S0_ATTEMPT20_STRUCTURED_AUTHORITY_2026-09-26.json").read_text())
     frozen = json.loads((ROOT / "SCALE_S0_ATTEMPT20_FROZEN_MATERIAL_2026-09-26.json").read_text())
     bundle = json.loads((ROOT / "SCALE_S0_POLICY_BUNDLE_BALANCED_V2.yaml").read_text())
-    authority = structured_authority_from_material(raw)
+    authority = structured_authority_from_material(raw, historical=True)
     assert authority.hash == frozen["structured_authority_hash"]
     assert authority.aggregate_policy_bundle_hash == bundle["aggregate_bundle_hash"]
     assert authority.population_policy_hash == load_authorisation_package(ROOT)[0].policy_hashes["population"]
@@ -111,7 +111,7 @@ def test_durable_attempt20_checkpoint_checks_mandate_and_policy_hashes(tmp_path)
     catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
     mandate, registry, routing, _, policies = load_authorisation_package(ROOT)
     ScaleS0Preflight.register_durable_mandate(catalog, mandate, registry, routing, policies)
-    authority = structured_authority_from_material(json.loads((ROOT / "SCALE_S0_ATTEMPT20_STRUCTURED_AUTHORITY_2026-09-26.json").read_text()))
+    authority = structured_authority_from_material(json.loads((ROOT / "SCALE_S0_ATTEMPT20_STRUCTURED_AUTHORITY_2026-09-26.json").read_text()), historical=True)
     frozen = json.loads((ROOT / "SCALE_S0_ATTEMPT20_FROZEN_MATERIAL_2026-09-26.json").read_text())
     subjects = tuple(FrozenLocatorQueries(GovernedLocatorBinding(**s["binding"]), tuple(q["query"] for q in s["query_candidates"])) for s in frozen["subjects"])
     now = datetime(2026, 9, 27, tzinfo=timezone.utc)
