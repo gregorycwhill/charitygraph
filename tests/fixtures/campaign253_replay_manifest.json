@@ -1,0 +1,11 @@
+{
+  "source": "private archived runtime artifacts only",
+  "cold_start": [
+    {"checkpoint_id":"CG-PROJECTION-FACTORY-SATURATION-253-TERRA--f2-coldstart-local--a1","subject":"The Social Outfit Incorporated","checkpoint":"C:/CharityGraph-runtime/cg-projection-factory-saturation-253-terra-f2-coldstart-local-a1/checkpoint.json","checkpoint_sha256":"d4fe4cee29655691688f1c16ce81317350d5371fba55ddd5ded82a22ffd1204b"},
+    {"checkpoint_id":"CG-PROJECTION-FACTORY-SATURATION-253-TERRA--f3-coldstart-complex-service--a1","subject":"Ability Options Ltd","checkpoint":"C:/CharityGraph-runtime/cg-projection-factory-saturation-253-terra-f3-coldstart-complex-service-a1/checkpoint.json","checkpoint_sha256":"84e9fc1212d3def3d62e008f017dff8fbaa772f42097430825db708629680066"},
+    {"checkpoint_id":"CG-PROJECTION-FACTORY-SATURATION-253-TERRA--f4-coldstart-international--a1","subject":"Australian Himalayan Foundation Ltd.","checkpoint":"C:/CharityGraph-runtime/cg-projection-factory-saturation-253-terra-f4-coldstart-international-a1/checkpoint.json","checkpoint_sha256":"01729b722366385f6fff4570feb451145e90148c17475e8150c58a6bddf1e329"}
+  ],
+  "sequence_17": {"root":"C:/CharityGraph-runtime/reality-sequence-17-terra-saturation-campaign","cases":["c29","c30","c31","c33","c34","c35"],"checkpoint_dir":"checkpoints"},
+  "provider_calls": 0,
+  "external_acquisition": 0
+}

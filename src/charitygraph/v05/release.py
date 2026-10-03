@@ -8,6 +8,7 @@ from pathlib import Path
 from .models import CapabilityRegistry, ReleaseContext
 from .stage import stage_rc4_release
 from .validate import validate_v05_fixture_release
+from ..projection_compatibility import EvaluationGrain, evaluate_compatibility
 
 
 def _load(path: Path) -> dict:
@@ -58,11 +59,11 @@ def audit_losslessness(rc4_release: Path, cards: list[dict], source_record_ids: 
     return errors
 
 
-def assemble_release(rc4_release: Path, output: Path, registry: CapabilityRegistry, context: ReleaseContext) -> dict:
+def assemble_release(rc4_release: Path, output: Path, registry: CapabilityRegistry, context: ReleaseContext, *, compatibility_requests: dict[str, dict] | None = None) -> dict:
     """Write an inspectable 0.5 candidate release from immutable public RC4 input."""
     if output.exists() and any(output.iterdir()):
         raise ValueError("release output must be empty")
-    cards = stage_rc4_release(rc4_release, output, registry, context)
+    cards = stage_rc4_release(rc4_release, output, registry, context, compatibility_requests=compatibility_requests)
     sources: dict[str, dict] = {}
     source_output = output / "source-records"
     source_output.mkdir(parents=True, exist_ok=True)
@@ -72,7 +73,8 @@ def assemble_release(rc4_release: Path, output: Path, registry: CapabilityRegist
         (source_output / path.name).write_text(json.dumps(source, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (output / "capability-registry.json").write_text(json.dumps(registry.model_dump(), indent=2) + "\n", encoding="utf-8")
     source_ids = set(sources)
-    errors = validate_v05_fixture_release(cards, registry, source_ids)
+    audits = {key: evaluate_compatibility(value, grain=EvaluationGrain.SECTION_CARD).model_dump(mode="json") for key, value in (compatibility_requests or {}).items()}
+    errors = validate_v05_fixture_release(cards, registry, source_ids, compatibility_requests=compatibility_requests, compatibility_audits=audits)
     errors.extend(audit_losslessness(rc4_release, cards, source_ids))
     artefacts = {}
     for path in sorted(output.rglob("*")):
