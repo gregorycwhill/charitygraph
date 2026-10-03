@@ -1,4 +1,4 @@
-"""Validate Data S0 lineage and Attempt-20 bindings without runtime writes."""
+"""Validate immutable Attempt-20 history and current Attempt-21 bindings without writes."""
 from __future__ import annotations
 
 import argparse
@@ -11,7 +11,7 @@ from charitygraph.s0_authorisation import load_authorisation_package
 from charitygraph.s0_lineage import validate_lineage
 from charitygraph.s0_structured_authority import (
     FrozenLocatorQueries, GovernedLocatorBinding, compile_locator_authority,
-    structured_authority_from_material, validate_mandate_binding,
+    structured_authority_from_material, validate_mandate_binding, canonical_sha256,
 )
 
 
@@ -22,9 +22,14 @@ def validate(root: Path) -> dict:
     assert historical.identity_hash == index["historical_runtime_mandate"]["sha256"]
     assert current.mandate_id == "scale-s0-authorised-balanced-v3"
     assert load_authorisation_package(root, authority="shadow")[0].mandate_id == "scale-s0-shadow-balanced-v3"
-    raw = json.loads((root / "SCALE_S0_ATTEMPT20_STRUCTURED_AUTHORITY_2026-09-26.json").read_text())
-    frozen = json.loads((root / "SCALE_S0_ATTEMPT20_FROZEN_MATERIAL_2026-09-26.json").read_text())
+    historical_raw = json.loads((root / "SCALE_S0_ATTEMPT20_STRUCTURED_AUTHORITY_2026-09-26.json").read_text())
+    historical_frozen = json.loads((root / "SCALE_S0_ATTEMPT20_FROZEN_MATERIAL_2026-09-26.json").read_text())
+    historical_authority = structured_authority_from_material(historical_raw, historical=True)
+    assert historical_frozen["structured_authority_hash"] == canonical_sha256(historical_authority.material())
+    raw = json.loads((root / "SCALE_S0_ATTEMPT21_STRUCTURED_AUTHORITY_2026-10-03.json").read_text())
+    frozen = json.loads((root / "SCALE_S0_ATTEMPT21_FROZEN_MATERIAL_2026-10-03.json").read_text())
     authority = structured_authority_from_material(raw)
+    assert authority.attempt_id == "attempt:s0:21"
     validate_mandate_binding(authority, mandate_id=current.mandate_id, mandate_hash=current.identity_hash)
     assert authority.population_policy_hash == current.policy_hashes["population"]
     bundle = json.loads((root / index["packages"]["current"]["bundle"]).read_text())

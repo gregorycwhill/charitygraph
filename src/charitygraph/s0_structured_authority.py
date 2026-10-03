@@ -17,6 +17,9 @@ from .scale_s0 import ScalePreflightError, locator_search_request_body_sha256, v
 SCHEMA = "urn:charitygraph:s0:locator-execution-authority"
 VERSION = 1
 SCOPE = "s0_locator_only"
+CURRENT_ATTEMPT_ID = "attempt:s0:21"
+HISTORICAL_ATTEMPT_ID = "attempt:s0:20"
+_LIVE_ATTEMPT_IDS = frozenset((CURRENT_ATTEMPT_ID,))
 
 
 def canonical_json(value: Any) -> str:
@@ -81,15 +84,20 @@ class LocatorAuthorityMaterial:
         self.validate()
         return canonical_sha256(self.material())
 
-    def validate(self) -> None:
+    def validate(self, *, historical: bool = False) -> None:
+        permitted = _LIVE_ATTEMPT_IDS | ({HISTORICAL_ATTEMPT_ID} if historical else set())
+        if self.attempt_id not in permitted:
+            message = ("superseded S0 attempt is not live-executable" if self.attempt_id == HISTORICAL_ATTEMPT_ID
+                       else "unknown S0 attempt is not live-executable")
+            raise ScalePreflightError(message)
         bindings = (self.mandate_id, self.mandate_hash, self.aggregate_policy_bundle_hash, self.population_policy_hash)
-        if any(x is not None for x in bindings) or self.attempt_id == "attempt:s0:20":
+        if any(x is not None for x in bindings) or self.attempt_id in permitted:
             if not all(isinstance(x, str) and x for x in bindings):
                 raise ScalePreflightError("structured authority requires complete immutable mandate binding")
             if any(len(x) != 64 or any(c not in "0123456789abcdef" for c in x.lower()) for x in bindings[1:]):
                 raise ScalePreflightError("structured authority has invalid mandate/policy hashes")
-            if self.attempt_id == "attempt:s0:20" and self.mandate_id != "scale-s0-authorised-balanced-v3":
-                raise ScalePreflightError("Attempt 20 requires the authorised successor mandate only")
+            if self.mandate_id != "scale-s0-authorised-balanced-v3":
+                raise ScalePreflightError("permitted S0 attempts require the authorised successor mandate only")
         if self.schema != SCHEMA or self.version != VERSION or self.scope != SCOPE:
             raise ScalePreflightError("unsupported S0 structured execution authority")
         if any(not isinstance(x, str) or not x for x in (self.authority_id, self.attempt_id, self.run_id,
@@ -212,7 +220,7 @@ def validate_live_bindings(authority: LocatorAuthorityMaterial, *, attempt_id: s
         raise ScalePreflightError("structured authority live binding substitution")
 
 
-def structured_authority_from_material(value: Mapping[str, Any]) -> LocatorAuthorityMaterial:
+def structured_authority_from_material(value: Mapping[str, Any], *, historical: bool = False) -> LocatorAuthorityMaterial:
     """Strict decoder; legacy opaque strings intentionally cannot enter here."""
     try:
         budget = value["budget"]
@@ -226,5 +234,5 @@ def structured_authority_from_material(value: Mapping[str, Any]) -> LocatorAutho
             aggregate_policy_bundle_hash=value.get("aggregate_policy_bundle_hash"), population_policy_hash=value.get("population_policy_hash"))
     except (KeyError, TypeError) as error:
         raise ScalePreflightError("legacy or incomplete authority cannot enter structured live compilation") from error
-    result.validate()
+    result.validate(historical=historical)
     return result
