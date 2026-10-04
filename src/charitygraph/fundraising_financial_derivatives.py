@@ -13,6 +13,7 @@ from typing import Literal
 from pydantic import BaseModel, model_validator
 
 from .finance_measurement import FundraisingMoneyMeasurement
+from .finance_measurement import decide_addition_compatibility
 from .v05.models import Amount
 from .v05.fundraising import AttributionComponent, FundraisingBounds, calculate_bounds
 
@@ -62,6 +63,34 @@ class DerivedMoneyResult(BaseModel):
     approximate: bool = False
 
 
+class ComponentRollupResult(BaseModel):
+    """A source-declared, disjoint additive total; never an allocation."""
+
+    contract_version: str = DERIVATIVE_CONTRACT_VERSION
+    kind: Literal["component_rollup"] = "component_rollup"
+    amount: Amount
+    component_measurement_ids: tuple[str, ...]
+    evidence_ids: tuple[str, ...]
+    formula: Literal["sum of source-declared disjoint compatible components"] = (
+        "sum of source-declared disjoint compatible components"
+    )
+    approximate: bool = False
+
+
+class ReconciliationResult(BaseModel):
+    """Comparison outcome retained for review; it never changes a source total."""
+
+    contract_version: str = DERIVATIVE_CONTRACT_VERSION
+    status: Literal["reconciled", "possible", "contradiction"]
+    stated_total_measurement_id: str
+    component_measurement_ids: tuple[str, ...]
+    evidence_ids: tuple[str, ...]
+    lower_bound: Amount
+    upper_bound: Amount
+    excluded_component_ids: tuple[str, ...] = ()
+    review_required: bool = False
+
+
 def _amount(measurement: FundraisingMoneyMeasurement) -> Amount:
     return Amount(amount=str(measurement.amount.normalised_amount), currency=measurement.amount.normalised_currency)
 
@@ -94,6 +123,67 @@ def bounded_expense(components: list[AttributionComponent], *, evidence_ids: tup
 
 def unavailable_expense(reason: str) -> FundraisingExpenseResult:
     return FundraisingExpenseResult(method="unavailable", unavailable_reason=reason)
+
+
+def component_rollup(components: list[FundraisingMoneyMeasurement]) -> ComponentRollupResult:
+    """Sum only pairwise-compatible components from one declared aggregation set."""
+    if not components:
+        raise ValueError("component rollup requires at least one component")
+    anchor = components[0]
+    for component in components[1:]:
+        decision = decide_addition_compatibility(anchor, component)
+        if not decision.safe_to_add:
+            raise ValueError("incompatible component rollup: " + ", ".join(decision.reasons))
+    return ComponentRollupResult(
+        amount=Amount(
+            amount=str(sum((item.amount.normalised_amount for item in components), Decimal())),
+            currency=anchor.amount.normalised_currency,
+        ),
+        component_measurement_ids=tuple(item.observation_id for item in components),
+        evidence_ids=tuple(dict.fromkeys(evidence for item in components for evidence in item.evidence_ids)),
+        approximate=any(bool(item.amount_is_approximate) for item in components),
+    )
+
+
+def reconcile_attribution_bounds(
+    stated_total: FundraisingMoneyMeasurement,
+    components: list[AttributionComponent],
+    *,
+    source_declares_same_aggregation: bool,
+    evidence_ids: tuple[str, ...],
+) -> ReconciliationResult:
+    """Compare a stated total with definite/possible/excluded components.
+
+    ``possible`` deliberately means the total lies within the defensible range;
+    it is not silently converted to a point total.  A result outside that range
+    is a contradiction requiring review, not a repaired total.
+    """
+    if not source_declares_same_aggregation:
+        raise ValueError("reconciliation requires a source-declared shared aggregation")
+    if not components or not evidence_ids:
+        raise ValueError("reconciliation requires components and evidence provenance")
+    bounds = calculate_bounds(components)
+    if stated_total.amount.normalised_currency != bounds.lower_bound.currency:
+        raise ValueError("reconciliation requires matching currency")
+    total = stated_total.amount.normalised_amount
+    lower, upper = Decimal(bounds.lower_bound.amount), Decimal(bounds.upper_bound.amount)
+    has_possible = any(item.treatment == "possible" for item in components)
+    if total < lower or total > upper:
+        status: Literal["reconciled", "possible", "contradiction"] = "contradiction"
+    elif has_possible:
+        status = "possible"
+    else:
+        status = "reconciled"
+    return ReconciliationResult(
+        status=status,
+        stated_total_measurement_id=stated_total.observation_id,
+        component_measurement_ids=tuple(item.observation_id for item in components),
+        evidence_ids=tuple(dict.fromkeys(tuple(stated_total.evidence_ids) + evidence_ids)),
+        lower_bound=bounds.lower_bound,
+        upper_bound=bounds.upper_bound,
+        excluded_component_ids=tuple(item.observation_id for item in components if item.treatment == "excluded"),
+        review_required=status == "contradiction",
+    )
 
 
 def _compatible(left: FundraisingMoneyMeasurement, right: FundraisingMoneyMeasurement) -> None:

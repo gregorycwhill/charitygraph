@@ -2,7 +2,7 @@ from datetime import date
 import pytest
 
 from charitygraph.finance_measurement import FundraisingMoneyMeasurement
-from charitygraph.fundraising_financial_derivatives import bounded_expense, direct_expense, fundraising_cost_share, net_proceeds, reconstructed_functional_expense, unavailable_expense
+from charitygraph.fundraising_financial_derivatives import bounded_expense, component_rollup, direct_expense, fundraising_cost_share, net_proceeds, reconcile_attribution_bounds, reconstructed_functional_expense, unavailable_expense
 from charitygraph.v05.fundraising import AttributionComponent
 
 
@@ -47,3 +47,25 @@ def test_forbidden_performance_metric_names_cannot_be_emitted_as_financial_facts
             DerivedMoneyResult(kind=name, amount={"amount":"1","currency":"AUD"}, numerator_measurement_id="a", denominator_or_cost_measurement_id="b", evidence_ids=("ev",), formula="unsupported")
     with pytest.raises(Exception):
         DerivedMoneyResult(kind="net_proceeds", amount={"amount":"1","currency":"AUD"}, numerator_measurement_id="a", denominator_or_cost_measurement_id="b", evidence_ids=("ev",), formula="method generated X revenue")
+
+
+def test_component_rollup_requires_declared_disjoint_compatibility():
+    first = m("one", aggregation_set_id="statement:costs", component_is_disjoint=True)
+    second = m("two", aggregation_set_id="statement:costs", component_is_disjoint=True)
+    assert component_rollup([first, second]).amount.amount == "200"
+    with pytest.raises(ValueError, match="component_disjointness_not_evidenced"):
+        component_rollup([first, m("not-disjoint", aggregation_set_id="statement:costs")])
+
+
+def test_reconciliation_preserves_definite_possible_excluded_and_contradiction():
+    components = [
+        AttributionComponent(observation_id="definite", amount={"amount":"60", "currency":"AUD"}, treatment="definite", additivity_basis="a"),
+        AttributionComponent(observation_id="possible", amount={"amount":"30", "currency":"AUD"}, treatment="possible", additivity_basis="b"),
+        AttributionComponent(observation_id="excluded", amount={"amount":"99", "currency":"AUD"}, treatment="excluded", additivity_basis="c"),
+    ]
+    possible = reconcile_attribution_bounds(m("total", amount={"source_amount":"80", "source_unit_scale":1,"normalised_amount":"80"}), components, source_declares_same_aggregation=True, evidence_ids=("ev:components",))
+    assert (possible.status, possible.excluded_component_ids, possible.review_required) == ("possible", ("excluded",), False)
+    contradiction = reconcile_attribution_bounds(m("bad-total", amount={"source_amount":"100", "source_unit_scale":1,"normalised_amount":"100"}), components, source_declares_same_aggregation=True, evidence_ids=("ev:components",))
+    assert (contradiction.status, contradiction.review_required) == ("contradiction", True)
+    with pytest.raises(ValueError, match="source-declared"):
+        reconcile_attribution_bounds(m("total"), components, source_declares_same_aggregation=False, evidence_ids=("ev:components",))
