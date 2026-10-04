@@ -11,8 +11,8 @@ release, Viewer surface, production source adapter, or Top-100 cohort.
 
 Builder repository/worktree: `C:\CharityGraph-runtime\cg-fundraising-publication-288`  
 Local branch: `cg-fundraising-publication-288`  
-Integrated code tip: `97626d3349bb0c561d809ca64314d266997a962a`  
-Packet commit: `faaa6181977a894736366daf0580a9c8487d1fec`
+Integrated code tip: `c0e5012e59f92ef64c9c8fd4cc7ab1168e1d3e13`
+Previous integration packet commit: `faaa6181977a894736366daf0580a9c8487d1fec`
 
 The integration base was `e384a5efacf9f3e6fc5856b716f4f89ded5ef5ff`
 (`cg-t10-bounded-real-fundraising-cohort`).  Local integration commits are:
@@ -23,6 +23,7 @@ The integration base was `e384a5efacf9f3e6fc5856b716f4f89ded5ef5ff`
 | `d35bcd5` | Attribution-grain research study and fixtures |
 | `d2dcf2c` | Governed industry-promotion candidates |
 | `97626d3` | Visible, local review-profile projection |
+| `c0e5012` | Source-native fundraising-finance contract and its refusal tests |
 
 The integration retained the newer finance-compatibility implementation already
 on the base; its original 287 commit is
@@ -52,6 +53,10 @@ currentness), `a54d526` (typed contracts), `8a93cd9` (finance compatibility),
   `docs/FINANCE_MEASUREMENT_COMPATIBILITY_V1.md`: scope/period/entity/basis
   compatibility and smallest explicit attribution grain.  Aggregate money stays
   unattributed without direct support.
+- `src/charitygraph/fundraising_finance_source_contract.py` and
+  `docs/FUNDRAISING_FINANCE_SOURCE_CONTRACT_V1.md`: source-native finance facts
+  keep their metric, basis, period and scope; incompatible facts remain
+  unavailable rather than being coerced into a derivative.
 - `src/charitygraph/fundraising_review_projection.py` and
   `docs/FUNDRAISING_REVIEW_PROFILE_V1.md`: fixture-bound local review output;
   not a public card or release renderer.
@@ -72,15 +77,23 @@ python -m pytest tests/test_f2f_currentness.py tests/test_fundraising_vocabulary
 
 Result: **55 passed in 1.95s**.
 
+Cleanroom recheck on 5 October added
+`tests/test_fundraising_finance_source_contract.py` to that exact suite at the
+current tip. Result: **62 passed in 1.22s**. The test run was local only;
+no provider, paid, reset-credit, authenticated GitHub, source-acquisition or
+release action occurred.
+
 `python scripts/run_fundraising_cohort_regression.py --output
 artifacts/fundraising-cohort-regression-288.json` produced the retained local
-artifact.  The 24-case fixture has 12/24 practice observations; 3/5 confirmed
+artifact. A cleanroom recheck emitted the same report structure outside the
+repository. The 24-case fixture has 12/24 practice observations; 3/5 confirmed
 PFRA bindings; 4/24 unresolved/ambiguous bindings; 14/24 available money
 observations; 0/14 available share-or-bounds observations; 9 finance-only
 unattributed controls; and currentness of 3 current, 4 recent, 3 historical,
-2 discontinued, 3 scoped non-findings, and 9 unknown.  These are regression
-coverage counts, never population estimates, production acquisition, ROI, or
-effectiveness evidence.
+2 discontinued, 3 scoped non-findings, and 9 unknown. It contains 12/24
+false-positive-risk cases and explicit negative-control examples. These are
+regression coverage counts, never population estimates, production acquisition,
+ROI, or effectiveness evidence.
 
 ## Remaining risks and owner decisions
 
