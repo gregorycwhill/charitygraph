@@ -153,6 +153,15 @@ _F2F_ROLE_COMPATIBILITY: dict[str, frozenset[str]] = {
 
 
 _TERMS = {term.term_id: term for term in FUNDRAISING_VOCABULARY_V1.terms}
+_EVIDENCE_FACET_BY_TERM_FACET = {
+    "strategy_program": "practice",
+    "solicitation_mechanism": "practice",
+    "communication_channel": "channel",
+    "setting_placement": "setting",
+    "commitment_pattern": "commitment_pattern",
+    "digital_distribution": "digital_distribution",
+    "donor_relationship_stage": "donor_relationship_stage",
+}
 _METHOD_BY_PRODUCTION = {
     "direct_extract": "direct_observation",
     "deterministic_parse": "deterministic_structural_parse",
@@ -200,6 +209,14 @@ def compile_fundraising_candidates(
         term = _TERMS.get(claim.canonical_term_id) if claim.canonical_term_id else None
         if claim.canonical_term_id and term is None:
             raise ValueError(f"unknown canonical fundraising term: {claim.canonical_term_id}")
+        if claim.candidate_kind == "campaign" and "campaign" not in item.asserted_facets:
+            raise ValueError(f"campaign claim {claim.claim_id} requires evidence {item.evidence_id} to assert campaign")
+        required_facet = _EVIDENCE_FACET_BY_TERM_FACET.get(term.facet) if term else None
+        if required_facet and required_facet not in item.asserted_facets:
+            raise ValueError(
+                f"claim {claim.claim_id} maps {term.term_id} but evidence {item.evidence_id} "
+                f"does not assert required {required_facet} facet"
+            )
         if term is None:
             unprocessed.append(claim.claim_id)
         key = (claim.candidate_kind, claim.canonical_term_id, claim.assertion, claim.lifecycle, _scope_key(item.scope), claim.campaign_name)

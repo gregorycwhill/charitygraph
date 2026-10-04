@@ -13,6 +13,7 @@ def test_candidate_is_faceted_and_covers_representative_practices():
     terms = {term.term_id: term for term in FUNDRAISING_VOCABULARY_V1.terms}
     for name in (
         "face_to_face", "telephone", "direct_mail", "digital", "bequests",
+        "sms", "email", "website_donation", "social_media", "search", "paid_digital", "organic_digital",
         "major_gifts", "peer_to_peer", "community", "events",
         "corporate_partnerships", "workplace_giving", "grantseeking",
         "raffles_lotteries", "retail_goods_collections", "emergency_appeal",
@@ -22,6 +23,8 @@ def test_candidate_is_faceted_and_covers_representative_practices():
     assert terms["fundraising.face_to_face"].facet == "solicitation_mechanism"
     assert terms["fundraising.private_site"].facet == "setting_placement"
     assert terms["fundraising.direct_debit"].facet == "payment_transfer_instrument"
+    assert terms["fundraising.paid_digital"].facet == "digital_distribution"
+    assert "acquisition" in terms["fundraising.website_donation"].exclusions[0]
 
 
 def test_regular_giving_f2f_example_is_composable_not_a_compound_term():

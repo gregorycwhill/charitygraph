@@ -32,7 +32,7 @@ def claim(identifier: str, evidence_id: str, term="fundraising.face_to_face", **
 
 
 def test_orthogonal_facets_and_simultaneous_methods_coexist():
-    rows = compile_fundraising_candidates((evidence("one"),), (
+    rows = compile_fundraising_candidates((evidence("one", facets=("practice", "setting", "commitment_pattern")),), (
         claim("f2f", "one"), claim("telephone", "one", "fundraising.telephone"),
         claim("private", "one", "fundraising.private_site"),
         claim("recurring", "one", "fundraising.recurring"),
@@ -44,7 +44,7 @@ def test_orthogonal_facets_and_simultaneous_methods_coexist():
 
 def test_campaign_candidate_retains_campaign_identity_alongside_the_method():
     campaign_evidence = evidence("appeal").model_copy(update={
-        "source_role": "first_party_campaign_page", "asserted_facets": ("campaign",),
+        "source_role": "first_party_campaign_page", "asserted_facets": ("campaign", "channel"),
         "scope": EvidenceScope(kind="campaign", identifier="winter-appeal"),
     })
     output = compile_fundraising_candidates((campaign_evidence,), (
@@ -59,6 +59,49 @@ def test_unknown_term_is_preserved_unresolved_not_guessed():
     assert output.candidates[0].disposition == "unresolved"
     assert output.candidates[0].canonical_term_id is None
     assert output.unprocessed_claim_ids == ("unknown",)
+
+
+def test_direct_contact_channels_are_specific_and_composable():
+    direct = evidence("direct", facets=("practice", "channel", "digital_distribution"))
+    output = compile_fundraising_candidates((direct,), (
+        claim("telephone", "direct", "fundraising.telephone", source_phrase="Our callers make telephone appeals."),
+        claim("mail", "direct", "fundraising.direct_mail", source_phrase="Our direct-mail appeal was posted in June."),
+        claim("sms", "direct", "fundraising.sms", source_phrase="Text GIVE to donate by SMS."),
+        claim("email", "direct", "fundraising.email", source_phrase="Our email appeal asks supporters to donate."),
+        claim("web", "direct", "fundraising.website_donation", source_phrase="Donate through our website."),
+        claim("social", "direct", "fundraising.social_media", source_phrase="Our social appeal asks supporters to donate."),
+        claim("paid", "direct", "fundraising.paid_digital", source_phrase="We ran paid social advertising for the appeal."),
+    ))
+    assert {row.canonical_term_id for row in output.candidates} == {
+        "fundraising.telephone", "fundraising.direct_mail", "fundraising.sms", "fundraising.email",
+        "fundraising.website_donation", "fundraising.social_media", "fundraising.paid_digital",
+    }
+    assert all(row.disposition == "candidate" for row in output.candidates)
+
+
+def test_generic_online_donation_does_not_overclaim_paid_acquisition_or_current_campaign():
+    donation_page = evidence("donate-online", facets=("channel",)).model_copy(update={
+        "source_wording": "Donate online through our secure website.",
+    })
+    output = compile_fundraising_candidates((donation_page,), (
+        claim("web", "donate-online", "fundraising.website_donation", source_phrase=donation_page.source_wording),
+    ))
+    candidate = output.candidates[0]
+    assert candidate.canonical_term_id == "fundraising.website_donation"
+    assert candidate.lifecycle == "unknown"
+    with pytest.raises(ValueError, match="required digital_distribution facet"):
+        compile_fundraising_candidates((donation_page,), (
+            claim("paid", "donate-online", "fundraising.paid_digital", source_phrase=donation_page.source_wording),
+        ))
+    with pytest.raises(ValueError, match="required donor_relationship_stage facet"):
+        compile_fundraising_candidates((donation_page,), (
+            claim("acquisition", "donate-online", "fundraising.acquisition", source_phrase=donation_page.source_wording),
+        ))
+    with pytest.raises(ValueError, match="requires evidence donate-online to assert campaign"):
+        compile_fundraising_candidates((donation_page,), (
+            claim("campaign", "donate-online", "fundraising.website_donation", candidate_kind="campaign",
+                  campaign_name="Undated Donate Page", source_phrase=donation_page.source_wording),
+        ))
 
 
 def test_contradictions_are_linked_not_resolved():

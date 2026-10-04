@@ -19,7 +19,7 @@ FacetName = Literal[
     "strategy_program", "solicitation_mechanism", "communication_channel",
     "setting_placement", "resource_sought", "commitment_pattern",
     "payment_transfer_instrument", "donor_relationship_stage",
-    "delivery_party", "compensation", "destination_restriction",
+    "delivery_party", "compensation", "destination_restriction", "digital_distribution",
     "donor_funder_class",
 ]
 MappingPredicate = Literal[
@@ -99,6 +99,13 @@ TERMS = (
     FacetTerm(term_id="fundraising.telephone", facet="solicitation_mechanism", label="Telephone solicitation", definition="Solicitation conducted by telephone.", exclusions=("Does not establish inbound/outbound direction or delivery party.",)),
     FacetTerm(term_id="fundraising.direct_mail", facet="communication_channel", label="Direct mail", definition="Physical addressed or unaddressed mail used for fundraising communication.", exclusions=("Does not establish the response or payment instrument.",)),
     FacetTerm(term_id="fundraising.digital", facet="communication_channel", label="Digital", definition="A digital communication channel used for fundraising.", exclusions=("Does not distinguish paid advertising, email, web or social media without additional evidence.",)),
+    FacetTerm(term_id="fundraising.sms", facet="communication_channel", label="SMS", definition="SMS or text-message communication used for fundraising.", exclusions=("Does not establish telephone solicitation, consent, payment instrument or recurring giving.",)),
+    FacetTerm(term_id="fundraising.email", facet="communication_channel", label="Email", definition="Email communication used for fundraising.", exclusions=("Does not establish a current campaign, acquisition, paid placement or website donation capability.",)),
+    FacetTerm(term_id="fundraising.website_donation", facet="communication_channel", label="Website donation or appeal", definition="A website page expressly asking for or accepting a donation.", exclusions=("A donation page alone does not establish a current campaign, paid digital media, organic distribution, acquisition or organisation-wide fundraising practice.",)),
+    FacetTerm(term_id="fundraising.social_media", facet="communication_channel", label="Social media", definition="A social-media communication channel used for fundraising.", exclusions=("Does not establish whether distribution is paid or organic, or whether it is acquisition.",)),
+    FacetTerm(term_id="fundraising.search", facet="communication_channel", label="Search", definition="A search-engine communication channel used for fundraising.", exclusions=("Does not establish paid search, organic search, acquisition or a donation transaction.",)),
+    FacetTerm(term_id="fundraising.paid_digital", facet="digital_distribution", label="Paid digital distribution", definition="Paid placement or advertising used to distribute fundraising communication.", exclusions=("Does not establish a channel, acquisition, campaign, amount spent or effectiveness.",)),
+    FacetTerm(term_id="fundraising.organic_digital", facet="digital_distribution", label="Organic digital distribution", definition="Non-paid distribution of fundraising communication through a digital channel.", exclusions=("Does not establish a channel, acquisition, campaign, reach or effectiveness.",)),
     FacetTerm(term_id="fundraising.peer_to_peer", facet="solicitation_mechanism", label="Peer-to-peer fundraising", definition="Supporters solicit or collect support from their own networks for the beneficiary organisation or campaign.", exclusions=("Not every community event is peer-to-peer.",)),
     FacetTerm(term_id="fundraising.community", facet="strategy_program", label="Community fundraising", definition="A program or practice enabling community-led fundraising.", exclusions=("Does not imply peer-to-peer mechanics.",)),
     FacetTerm(term_id="fundraising.events", facet="solicitation_mechanism", label="Fundraising event", definition="A fundraising activity organised around an event.", exclusions=("Does not state whether proceeds are donations, ticket sales, sponsorship or goods revenue.",)),
