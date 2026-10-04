@@ -30,6 +30,10 @@ GrossNetBasis = Literal["gross", "net", "not_applicable", "unknown"]
 GstTreatment = Literal["inclusive", "exclusive", "not_applicable", "unknown"]
 PassThroughTreatment = Literal["included", "excluded", "not_applicable", "unknown"]
 CostAttribution = Literal["direct", "allocated", "not_applicable", "unknown"]
+AllocationMethod = Literal[
+    "direct_source_reported", "source_reported_functional_allocation",
+    "deterministic_reconstruction", "not_applicable", "unknown",
+]
 SourceRole = Literal["audited_financial_statement", "regulator_return", "organisation_disclosure", "platform_report", "unknown"]
 Assurance = Literal["audited", "reviewed", "unaudited", "unknown"]
 
@@ -57,6 +61,8 @@ class FundraisingMoneyMeasurement(BaseModel):
     pass_through_treatment: PassThroughTreatment = "unknown"
     cost_attribution: CostAttribution = "not_applicable"
     allocation_basis: str | None = None
+    allocation_method: AllocationMethod = "unknown"
+    amount_is_approximate: bool | None = None
     source_role: SourceRole = "unknown"
     assurance: Assurance = "unknown"
     fundraising_activity_id: str | None = None
@@ -74,6 +80,10 @@ class FundraisingMoneyMeasurement(BaseModel):
             raise ValueError("allocated cost requires source allocation_basis")
         if self.cost_attribution != "allocated" and self.allocation_basis:
             raise ValueError("allocation_basis is only valid for allocated cost")
+        if self.cost_attribution == "allocated" and self.allocation_method == "unknown":
+            raise ValueError("allocated cost requires allocation_method")
+        if self.allocation_method == "deterministic_reconstruction" and self.amount_is_approximate is None:
+            raise ValueError("deterministic reconstruction requires approximation status")
         return self
 
 
@@ -114,7 +124,7 @@ def decide_addition_compatibility(
         reasons.append("period_not_exactly_identified")
     elif _period_key(left.period) != _period_key(right.period):
         reasons.append("different_period")
-    for field in ("reporting_scope", "recognition_basis", "gross_net_basis", "gst_treatment", "pass_through_treatment", "cost_attribution"):
+    for field in ("reporting_scope", "recognition_basis", "gross_net_basis", "gst_treatment", "pass_through_treatment", "cost_attribution", "allocation_method", "amount_is_approximate"):
         left_value, right_value = getattr(left, field), getattr(right, field)
         if "unknown" in (left_value, right_value):
             reasons.append(f"{field}_unknown")
