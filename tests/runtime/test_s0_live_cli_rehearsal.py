@@ -10,6 +10,11 @@ import pytest
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.runtime.catalog import canonical_execution_configuration_hash
 from charitygraph.s0_locator_discovery import freeze_locator_search_packet, prepare_locator_search_request
+from charitygraph.s0_live_preparation import checkpoint_structured_locator_preprovider
+from charitygraph.s0_structured_authority import (
+    FrozenLocatorQueries, GovernedLocatorBinding, LocatorAuthorityMaterial,
+    frozen_locator_material_sha256,
+)
 from charitygraph.scale_s0 import ExecutionAttemptIdentity, ScaleS0Preflight
 from charitygraph.scale_s0 import locator_search_request_body_sha256
 from charitygraph.s0_pricing import load_supervisor_capture
@@ -82,3 +87,81 @@ def test_live_cli_rejects_legacy_opaque_a3_rehearsal_before_provider_constructio
     with pytest.raises(SystemExit, match="A3 fields"):
         main(argv)
     assert not posts
+
+
+def test_structured_a3_preflight_reaches_provider_boundary_without_attestation_or_provider(tmp_path, monkeypatch):
+    """The production CLI validates Attempt 21's whole pre-provider contract.
+
+    This is intentionally a clean-room fixture: no pricing capture, provider
+    client, A3 record, reservation, transport trace, or network call exists.
+    """
+    mandate, registry, routing, policies = _authority()
+    policies = dict(policies)
+    policies["population"] = __import__("dataclasses").replace(
+        policies["sampling"], policy_id="population:clean-room", content_hash="e" * 64,
+    )
+    mandate = __import__("dataclasses").replace(
+        mandate, mandate_id="scale-s0-authorised-balanced-v3", subject_ids=("74068758654",),
+        policy_hashes={**mandate.policy_hashes, "population": policies["population"].content_hash},
+    )
+    attempt = _attempt(mandate)
+    attempt = __import__("dataclasses").replace(
+        attempt, attempt_id="attempt:s0:21", run_id="run:s0:attempt-21",
+        mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash,
+        builder_commit_sha="a" * 40, data_commit_sha="b" * 40,
+    )
+    attempt = __import__("dataclasses").replace(attempt, configuration_hash=canonical_execution_configuration_hash(**{
+        key: getattr(attempt, key) for key in (
+            "mandate_hash", "slice_id", "run_id", "builder_repository", "builder_commit_sha",
+            "data_repository", "data_commit_sha", "bridge_certification", "bridge_version",
+            "schema_version", "recovery_authority_ref",
+        )
+    }))
+    binding = GovernedLocatorBinding("locator-subject:v1:sha256:" + "c" * 64, "ABN", "74068758654")
+    frozen = (FrozenLocatorQueries(binding, ('"Clean Room Foundation" "74068758654"',)),)
+    policy_rows = [{"key": key, "policy_id": value.policy_id, "version": value.version,
+                    "hash": value.content_hash} for key, value in sorted(policies.items()) if key != "reservation"]
+    aggregate_policy_hash = __import__("hashlib").sha256(
+        json.dumps(policy_rows, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest().upper()
+    authority = LocatorAuthorityMaterial(
+        "CG-S0-PO-ATTEMPT21-CLEANROOM", attempt.attempt_id, attempt.run_id,
+        attempt.builder_commit_sha, attempt.data_commit_sha, PROJECT,
+        frozen_locator_material_sha256(frozen), (binding,), 1, "0.10", "0.10",
+        mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash,
+        aggregate_policy_bundle_hash=aggregate_policy_hash, population_policy_hash=policies["population"].content_hash,
+    )
+    db = tmp_path / "clean-room.sqlite3"
+    with SQLiteCatalog(db).open(initialize=True) as catalog:
+        ScaleS0Preflight.register_durable_mandate(catalog, mandate, registry, routing, policies, {})
+        catalog.register_run({"record_id": attempt.run_id, "run_kind": "s0", "status": "planned",
+                              "configuration_hash": attempt.configuration_hash, "created_at": NOW})
+        ScaleS0Preflight.register_durable_execution_attempt(catalog, attempt)
+        checkpoint_structured_locator_preprovider(catalog=catalog, attempt=attempt, authority=authority,
+                                                  frozen_subjects=frozen, now=NOW)
+    authority_path = tmp_path / "attempt21-authority.json"
+    authority_path.write_text(json.dumps(authority.material()), encoding="utf-8")
+    work_path = tmp_path / "work.json"
+    work_path.write_text('{"semantic": [], "locator": []}', encoding="utf-8")
+    monkeypatch.setattr("charitygraph.phase5_standard_transport.urlopen", lambda *_a, **_k: pytest.fail("provider called"))
+    argv = ["--catalog", str(db), "--attempt-id", attempt.attempt_id, "--builder-commit-sha", attempt.builder_commit_sha,
+            "--runtime-root", str(tmp_path), "--work", str(work_path), "--preflight", "--cohort-id", "cohort:clean-room",
+            "--attested-by", "Greg", "--observed-at", datetime.now(timezone.utc).isoformat(),
+            "--setting-name", "Share inputs and outputs with OpenAI", "--observed-value", "Disabled",
+            "--provider-project", PROJECT, "--execution-authority", authority.hash,
+            "--structured-authority", str(authority_path), "--structured-authority-sha256", authority.hash]
+    assert main(argv) == 0
+    with SQLiteCatalog(db).open() as catalog:
+        for table in ("scale_s0_attestation_windows", "budget_reservations", "provider_request_attempts"):
+            with catalog._connection() as conn:
+                assert conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] == 0
+
+
+def test_structured_a3_preflight_rejects_incomplete_inputs_before_provider(tmp_path):
+    # Argument completeness is covered at the production boundary, not just
+    # by authority helper tests.
+    db = tmp_path / "empty.sqlite3"
+    SQLiteCatalog(db).open(initialize=True).close()
+    work = tmp_path / "work.json"; work.write_text("{}", encoding="utf-8")
+    with pytest.raises(SystemExit, match="structured preflight requires complete explicit A3 fields"):
+        main(["--catalog", str(db), "--attempt-id", "attempt:s0:21", "--builder-commit-sha", "a" * 40,
+              "--runtime-root", str(tmp_path), "--work", str(work), "--preflight", "--cohort-id", "x"])

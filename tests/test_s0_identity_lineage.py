@@ -85,12 +85,15 @@ def test_attempt20_only_accepts_authorised_successor():
     raw = json.loads((ROOT / "SCALE_S0_ATTEMPT20_STRUCTURED_AUTHORITY_2026-09-26.json").read_text())
     authority = structured_authority_from_material(raw, historical=True)
     mandate = load_authorisation_package(ROOT)[0]
-    validate_mandate_binding(authority, mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash)
-    with pytest.raises(ScalePreflightError, match="authorised successor"):
+    # Historical material remains decodable for evidence inspection, but it
+    # cannot enter the current live binding path.
+    with pytest.raises(ScalePreflightError, match="superseded"):
+        validate_mandate_binding(authority, mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash)
+    with pytest.raises(ScalePreflightError, match="superseded"):
         replace(authority, mandate_id="scale-s0-shadow-balanced-v3").validate()
-    with pytest.raises(ScalePreflightError, match="mandate binding"):
+    with pytest.raises(ScalePreflightError, match="superseded"):
         validate_mandate_binding(authority, mandate_id=mandate.mandate_id, mandate_hash="0" * 64)
-    with pytest.raises(ScalePreflightError, match="complete immutable"):
+    with pytest.raises(ScalePreflightError, match="superseded"):
         structured_authority_from_material({k:v for k,v in raw.items() if k != "mandate_hash"})
 
 
@@ -99,7 +102,8 @@ def test_attempt20_material_and_policy_hashes_agree():
     frozen = json.loads((ROOT / "SCALE_S0_ATTEMPT20_FROZEN_MATERIAL_2026-09-26.json").read_text())
     bundle = json.loads((ROOT / "SCALE_S0_POLICY_BUNDLE_BALANCED_V2.yaml").read_text())
     authority = structured_authority_from_material(raw, historical=True)
-    assert authority.hash == frozen["structured_authority_hash"]
+    with pytest.raises(ScalePreflightError, match="superseded"):
+        _ = authority.hash
     assert authority.aggregate_policy_bundle_hash == bundle["aggregate_bundle_hash"]
     assert authority.population_policy_hash == load_authorisation_package(ROOT)[0].policy_hashes["population"]
     assert raw["conservative_aggregate_exposure_usd"] == "0.40"
@@ -107,7 +111,7 @@ def test_attempt20_material_and_policy_hashes_agree():
     assert raw["data_merge_sha"] == frozen["data_lineage_anchor"]
 
 
-def test_durable_attempt20_checkpoint_checks_mandate_and_policy_hashes(tmp_path):
+def test_durable_attempt20_checkpoint_cannot_reactivate_historical_authority(tmp_path):
     catalog = SQLiteCatalog(tmp_path / "state.sqlite3").open(initialize=True)
     mandate, registry, routing, _, policies = load_authorisation_package(ROOT)
     ScaleS0Preflight.register_durable_mandate(catalog, mandate, registry, routing, policies)
@@ -121,12 +125,9 @@ def test_durable_attempt20_checkpoint_checks_mandate_and_policy_hashes(tmp_path)
     attempt = replace(attempt, configuration_hash=attempt.canonical_configuration_hash)
     catalog.register_run({"record_id": attempt.run_id, "run_kind": "s0", "status": "planned", "configuration_hash": attempt.configuration_hash, "created_at": now})
     ScaleS0Preflight.register_durable_execution_attempt(catalog, attempt)
-    for field in ("mandate_hash", "population_policy_hash", "aggregate_policy_bundle_hash"):
-        with pytest.raises((CatalogError, ScalePreflightError)):
-            checkpoint_structured_locator_preprovider(catalog=catalog, attempt=attempt, authority=replace(authority, **{field: "0" * 64}), frozen_subjects=subjects, now=now)
-    first = checkpoint_structured_locator_preprovider(catalog=catalog, attempt=attempt, authority=authority, frozen_subjects=subjects, now=now)
-    second = checkpoint_structured_locator_preprovider(catalog=catalog, attempt=attempt, authority=authority, frozen_subjects=subjects, now=now)
-    assert first["material_hash"] == second["material_hash"]
+    with pytest.raises(ScalePreflightError, match="superseded"):
+        checkpoint_structured_locator_preprovider(catalog=catalog, attempt=attempt, authority=authority,
+                                                  frozen_subjects=subjects, now=now)
     with catalog._connection() as conn:
         for table in ("budget_reservations", "physical_attempts", "provider_request_attempts", "scale_s0_attestation_windows"):
             assert conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] == 0

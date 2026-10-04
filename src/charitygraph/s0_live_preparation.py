@@ -27,7 +27,13 @@ class HumanA3Input:
     structured_authority_hash: str | None = None
 
 
-def persist_explicit_a3(catalog: Any, *, attempt: Any, attestation: HumanA3Input, now: datetime) -> dict[str, Any]:
+def validate_explicit_a3(catalog: Any, *, attempt: Any, attestation: HumanA3Input, now: datetime) -> dict[str, Any]:
+    """Validate a proposed A3 without creating a live attestation window.
+
+    The provider-free CLI rehearsal uses this boundary deliberately: parsing a
+    fresh A3-shaped input must prove the same bindings as live preparation, but
+    must not turn a test invocation into an attestation or a reservation.
+    """
     if now.tzinfo is None or attestation.observed_at.tzinfo is None:
         raise ScalePreflightError("A3 timestamps must be timezone-aware")
     observed = attestation.observed_at.astimezone(timezone.utc)
@@ -71,6 +77,12 @@ def persist_explicit_a3(catalog: Any, *, attempt: Any, attestation: HumanA3Input
     if checkpoint is None or checkpoint.get("material", {}).get("authority") != authority.material():
         raise ScalePreflightError("A3 structured authority has no exact matching preprovider checkpoint")
     window.update({"structured_authority": authority.material(), "structured_authority_hash": authority.hash})
+    return window
+
+
+def persist_explicit_a3(catalog: Any, *, attempt: Any, attestation: HumanA3Input, now: datetime) -> dict[str, Any]:
+    """Validate and durably record a real, fresh human A3 attestation."""
+    window = validate_explicit_a3(catalog, attempt=attempt, attestation=attestation, now=now)
     return catalog.register_scale_s0_attestation_window(window)
 
 
