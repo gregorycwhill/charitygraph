@@ -12,11 +12,16 @@ DATA_PACKAGE = Path(os.environ.get("CHARITYGRAPH_S0_DATA_PACKAGE", Path(__file__
 
 
 def copy_package(source: Path, target: Path) -> None:
-    for item in source.rglob("*"):
-        if item.is_file() and ".git" not in item.parts:
-            destination = target / item.relative_to(source)
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(item, destination)
+    """Copy only the governed authority package, not unrelated source archives.
+
+    The old whole-repository copy reached Windows path-length limits in a
+    clean temporary directory even though the authorisation loader consumes
+    only the S0 package and policy tree.
+    """
+    for item in source.glob("SCALE_S0_*"):
+        if item.is_file():
+            shutil.copyfile(item, target / item.name)
+    shutil.copytree(source / "policies", target / "policies", dirs_exist_ok=True)
 
 
 def test_authorised_production_package_validates_without_synthetic_approval() -> None:
