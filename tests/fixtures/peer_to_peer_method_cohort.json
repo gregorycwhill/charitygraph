@@ -1,0 +1,38 @@
+{
+  "cohort_id": "fundraising-peer-to-peer-method-fixture-v1",
+  "status": "local_review_only_fixture",
+  "method_family": "peer_to_peer",
+  "purpose": "Regression controls for source-bound peer-to-peer practice assertions; not a source-backed prevalence or error sample.",
+  "cases": [
+    {
+      "case_id": "p2p-positive-supporter-pages",
+      "expected": "candidate",
+      "source_phrase": "Supporters can create their own fundraising page and ask friends to donate."
+    },
+    {
+      "case_id": "p2p-positive-team-challenge",
+      "expected": "candidate",
+      "source_phrase": "Start a team fundraiser and collect donations from your network."
+    },
+    {
+      "case_id": "p2p-negative-generic-donate-page",
+      "expected": "unresolved",
+      "source_phrase": "Donate online through our secure website."
+    },
+    {
+      "case_id": "p2p-negative-community-event",
+      "expected": "unresolved",
+      "source_phrase": "Join us at our community fundraising event."
+    },
+    {
+      "case_id": "p2p-negative-platform-name",
+      "expected": "unresolved",
+      "source_phrase": "Donations are processed using Fundraise Platform."
+    },
+    {
+      "case_id": "p2p-ambiguous-binding",
+      "expected": "blocked",
+      "source_phrase": "Supporters can create their own fundraising page and ask friends to donate."
+    }
+  ]
+}
