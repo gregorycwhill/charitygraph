@@ -62,6 +62,17 @@ class F2FSourceEvidence(_Strict):
     def temporal_range_is_ordered(self):
         if self.valid_from and self.valid_to and self.valid_from > self.valid_to:
             raise ValueError("valid_from cannot follow valid_to")
+        # A supplied validity end is an explicit temporal limit.  Calling the
+        # practice current after that limit would be a policy extrapolation,
+        # not a mechanical preservation of the source-adapter assertion.
+        if (
+            self.source_currentness == "current"
+            and self.valid_to is not None
+            and self.valid_to < self.observed_at
+        ):
+            raise ValueError("currentness cannot be current beyond its stated valid_to")
+        if self.source_role == "explicit_cessation" and self.source_currentness == "discontinued" and self.valid_to is None:
+            raise ValueError("explicit cessation requires a stated cessation date as valid_to")
         if self.source_currentness == "not_found_in_scoped_source" and not self.source_coverage_description:
             raise ValueError("scoped source silence requires its coverage universe")
         return self
@@ -134,8 +145,10 @@ def decide_f2f_currentness(evidence: F2FSourceEvidence) -> F2FCurrentnessDecisio
             evidence_ids=(evidence.evidence_id,), source_role=evidence.source_role,
             observed_at=evidence.observed_at, valid_from=evidence.valid_from,
             valid_to=evidence.valid_to, coverage_universe=evidence.source_coverage_description,
-            practice_observed=False if evidence.source_currentness == "not_found_in_scoped_source" else None,
-            decision_basis="source inventory result is bounded to its declared coverage universe",
+            # A scoped non-finding is search coverage, never a negative
+            # organisation/practice assertion.
+            practice_observed=None,
+            decision_basis="source inventory result is bounded to its declared coverage universe; it is not absence evidence",
         )
 
     practice = True if evidence.source_currentness != "unknown" else None
