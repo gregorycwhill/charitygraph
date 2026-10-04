@@ -1,0 +1,31 @@
+{
+  "fixture_version": "1.0",
+  "cohort_selection_rule": "Twenty-four bounded, source-adapter-shaped cases selected to cover every F2F lifecycle outcome, PFRA binding states, attribution grains, finance-only negative controls, and scoped non-findings. These are regression fixtures, not production acquisitions or prevalence estimates.",
+  "evidence_universe": "Each case contains one governed source-adapter output; no prose classification, source retrieval, subject resolution, or financial allocation is performed by the runner.",
+  "cases": [
+    {"id":"c01","role":"pfra_membership","binding":"confirmed","currentness":"current","money":"unavailable","grain":"none","note":"PFRA member: industry binding only."},
+    {"id":"c02","role":"pfra_membership","binding":"ambiguous","currentness":"current","money":"unavailable","grain":"none","note":"Name match is unresolved."},
+    {"id":"c03","role":"pfra_membership","binding":"confirmed","currentness":"unknown","money":"available","grain":"organisation","note":"Finance-only negative control."},
+    {"id":"c04","role":"pfra_membership","binding":"confirmed","currentness":"recent","money":"available","grain":"organisation","note":"Finance exists; no method allocation."},
+    {"id":"c05","role":"pfra_membership","binding":"unresolved","currentness":"current","money":"not_found","grain":"none","note":"Unresolved identity."},
+    {"id":"c06","role":"first_party_f2f_page","binding":"confirmed","currentness":"current","money":"available","grain":"practice","note":"Direct practice evidence; finance link explicit."},
+    {"id":"c07","role":"first_party_f2f_page","binding":"confirmed","currentness":"current","money":"available","grain":"organisation","note":"Practice and organisation finance must remain separate."},
+    {"id":"c08","role":"agency_client","binding":"confirmed","currentness":"recent","money":"available","grain":"campaign","note":"Explicit campaign linkage."},
+    {"id":"c09","role":"annual_report_statement","binding":"confirmed","currentness":"recent","money":"available","grain":"organisation","note":"Finance-only attribution negative control."},
+    {"id":"c10","role":"historical_campaign_story","binding":"confirmed","currentness":"historical","money":"available","grain":"campaign","note":"Historical campaign, not current practice."},
+    {"id":"c11","role":"explicit_cessation","binding":"confirmed","currentness":"discontinued","money":"unavailable","grain":"none","note":"Explicit cessation."},
+    {"id":"c12","role":"scoped_source_inventory","binding":"confirmed","currentness":"not_found_in_scoped_source","money":"not_found","grain":"none","note":"Scoped inventory non-finding."},
+    {"id":"c13","role":"scoped_source_inventory","binding":"confirmed","currentness":"not_found_in_scoped_source","money":"not_processed","grain":"none","note":"Inventory coverage only."},
+    {"id":"c14","role":"agency_client","binding":"ambiguous","currentness":"current","money":"available","grain":"organisation","note":"Ambiguous client binding blocks practice promotion."},
+    {"id":"c15","role":"first_party_f2f_page","binding":"confirmed","currentness":"unknown","money":"available","grain":"organisation","note":"Currentness not asserted."},
+    {"id":"c16","role":"annual_report_statement","binding":"confirmed","currentness":"historical","money":"available","grain":"organisation","note":"Annual-report historical statement."},
+    {"id":"c17","role":"historical_campaign_story","binding":"confirmed","currentness":"historical","money":"unavailable","grain":"none","note":"Historical evidence only."},
+    {"id":"c18","role":"explicit_cessation","binding":"confirmed","currentness":"discontinued","money":"available","grain":"organisation","note":"Finance does not reverse cessation."},
+    {"id":"c19","role":"first_party_f2f_page","binding":"confirmed","currentness":"current","money":"available","grain":"practice","note":"Direct practice cost linkage."},
+    {"id":"c20","role":"agency_client","binding":"confirmed","currentness":"recent","money":"available","grain":"provider_relationship","note":"Explicit provider relationship linkage."},
+    {"id":"c21","role":"other","binding":"confirmed","currentness":"unknown","money":"unavailable","grain":"none","note":"Unsupported source role remains unknown."},
+    {"id":"c22","role":"annual_report_statement","binding":"confirmed","currentness":"recent","money":"not_processed","grain":"none","note":"Financial extraction not processed."},
+    {"id":"c23","role":"first_party_f2f_page","binding":"unresolved","currentness":"current","money":"available","grain":"organisation","note":"Unresolved subject negative control."},
+    {"id":"c24","role":"scoped_source_inventory","binding":"confirmed","currentness":"not_found_in_scoped_source","money":"not_found","grain":"none","note":"Second scoped non-finding."}
+  ]
+}
