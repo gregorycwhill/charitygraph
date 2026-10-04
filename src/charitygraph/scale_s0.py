@@ -86,6 +86,13 @@ def validate_locator_subject_reference(*, locator_subject_ref: str,
         raise ScalePreflightError("locator search identity requires a governed subject and external identifier")
     subject = locator_subject_ref.strip()
     identifier = locator_identifier_value.strip()
+    # Locator discovery currently has exactly one external-identifier
+    # contract.  Treat an ABN as opaque text for identity hashing, but reject
+    # malformed values before they can become a lookup query or a durable
+    # packet.  In particular, do not silently trim it: surrounding whitespace
+    # would otherwise create a different provider identity for the same ABN.
+    if locator_identifier_scheme != "ABN" or identifier != locator_identifier_value or not (len(identifier) == 11 and identifier.isascii() and identifier.isdigit()):
+        raise ScalePreflightError("locator search requires an exact 11-digit ABN lookup identifier")
     # An ABN lookup seed is never a CharityGraph subject reference.  Reject
     # the former direct binding and a misleading ABN-prefixed/embedded alias.
     # Compare both the exact form and a mechanical compact form so separators

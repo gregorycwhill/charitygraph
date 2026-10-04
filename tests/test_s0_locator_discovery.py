@@ -110,6 +110,33 @@ def test_locator_request_identity_rejects_abn_as_subject_reference(subject_ref):
         )
 
 
+@pytest.mark.parametrize("abn", ("1111111111", "111111111111", "111 111 111 11", " 11111111111", "11A11111111"))
+def test_locator_identity_rejects_malformed_or_non_exact_abn_lookup_seed(abn):
+    with pytest.raises(ScalePreflightError, match="exact 11-digit ABN"):
+        locator_search_request_identity(
+            locator_subject_ref="subject:sunrise", locator_identifier_scheme="ABN",
+            locator_identifier_value=abn, query='"Sunrise"', query_index=0,
+            execution_attempt_id="attempt:one", provider_account_project="project:one",
+            execution_authority="authority:one",
+        )
+
+
+def test_discovery_production_entry_rejects_bad_abn_before_provider_call():
+    provider = FakeSearch(())
+    with pytest.raises(ScalePreflightError, match="exact 11-digit ABN"):
+        discover(provider, PublicEntityIdentity("subject:sunrise", "Sunrise", "111 111 111 11"))
+    assert provider.calls == []
+
+
+def test_canonical_locator_rejects_userinfo_and_collapses_safe_url_aliases():
+    with pytest.raises(ScalePreflightError, match="userinfo"):
+        canonical_locator("https://token@example.org/")
+    with pytest.raises(ScalePreflightError, match="invalid port"):
+        canonical_locator("https://example.org:not-a-port/")
+    assert canonical_locator("HTTPS://WWW.Example.ORG.:443/path#fragment") == "https://example.org/path"
+    assert canonical_locator("http://[2001:db8::1]:80/") == "http://[2001:db8::1]/"
+
+
 def test_ambiguous_same_name_and_unauthenticated_cross_host_redirect_are_rejected():
     assert not IdentityAuthentication(("organisation_name",)).decision()[0]
     assert redirect_authentication(requested_locator="https://old.example/", final_locator="https://other.example/", final_identity=None) == (False, "cross_host_redirect_requires_identity_authentication")

@@ -425,11 +425,27 @@ def canonical_locator(locator: str) -> str:
     parsed = urlsplit(locator)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise ScalePreflightError("locator must be an HTTP(S) URL")
-    host = parsed.hostname.lower() if parsed.hostname else ""
+    # Userinfo changes the request target while ``hostname`` deliberately
+    # omits it.  Dropping it here would collapse two distinct locators into
+    # one source identity, so it is rejected rather than normalised away.
+    if parsed.username is not None or parsed.password is not None:
+        raise ScalePreflightError("locator must not contain userinfo")
+    try:
+        port = parsed.port
+    except ValueError as error:
+        raise ScalePreflightError("locator has an invalid port") from error
+    host = parsed.hostname.lower().rstrip(".") if parsed.hostname else ""
+    if not host:
+        raise ScalePreflightError("locator must have a hostname")
     if host.startswith("www."):
         host = host[4:]
     # Canonical identity intentionally excludes a fragment, never changes path/query.
-    return urlunsplit((parsed.scheme.lower(), host + (f":{parsed.port}" if parsed.port else ""), parsed.path or "/", parsed.query, ""))
+    if ":" in host:  # ``urlsplit().hostname`` removes IPv6 brackets.
+        host = f"[{host}]"
+    # Explicit default ports are equivalent to their implicit forms and must
+    # not make duplicate source definitions for the same locator.
+    port_suffix = "" if port in (None, 80 if parsed.scheme.lower() == "http" else 443) else f":{port}"
+    return urlunsplit((parsed.scheme.lower(), host + port_suffix, parsed.path or "/", parsed.query, ""))
 
 
 def redirect_authentication(*, requested_locator: str, final_locator: str,
