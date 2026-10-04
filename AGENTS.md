@@ -12,6 +12,8 @@ Builder is Python-controlled and LLM-powered. Follow the sibling Data repository
 ## Boundaries
 
 - Do not add raw sources, private evidence, reports, website snapshots, prompts, model responses, runtime state, caches, credentials, logs or debug files to Git.
+- Local Git tending is permitted: inspect status/history, create or amend unpublished local commits, and manage local branches or worktrees.  It is not publication authority.  Do not run `git push`, create or merge a remote pull request, alter Git credential configuration, invoke `gh auth`, or request, print, repair, or persist host credentials.  Record the exact guarded host action needed when publication is useful.
+- A provider credential is a process-local secret boundary, not execution authority.  Its presence must never make a provider request permissible; the canonical S0 entry path must still require its frozen packet, durable attempt, reservation, governed pricing, and fresh explicit A3 checks before constructing a live provider path.
 - Do not manually edit generated public projections.
 - Do not change public contract 0.5, immutable release bytes, schemas, Viewer selection or compatibility identifiers without a separately approved migration.
 - Do not create a database, index the archive, acquire sources or call a model unless the task specifically authorises it.
