@@ -19,7 +19,7 @@ def measurement(**changes):
         "evidence_ids": ["ev:1"], "period": {"period_start": date(2024, 7, 1), "period_end": date(2025, 6, 30), "period_length_days": 365},
         "reporting_scope": "subject", "reporting_subject_causebase_id": "cb:1", "recognition_basis": "accrual",
         "gross_net_basis": "not_applicable", "gst_treatment": "exclusive", "pass_through_treatment": "not_applicable",
-        "cost_attribution": "direct", "source_role": "audited_financial_statement", "assurance": "audited",
+        "cost_attribution": "direct", "allocation_method": "direct_source_reported", "amount_is_approximate": False, "source_role": "audited_financial_statement", "assurance": "audited",
         "fundraising_activity_id": "campaign:appeal-a", "aggregation_set_id": "statement:note-7:appeal-a", "component_is_disjoint": True,
     }
     values.update(changes)
@@ -40,7 +40,7 @@ def test_exactly_aligned_disjoint_source_components_are_safe_to_add():
     ({"period": {"period_start": date(2025, 1, 1), "period_end": date(2025, 12, 31), "period_length_days": 365}}, "different_period"),
     ({"reporting_scope": "consolidated_group", "reporting_subject_causebase_id": None, "consolidation_scope_id": "group:1"}, "different_reporting_scope"),
     ({"measure_kind": "donations_received", "recognition_basis": "cash", "cost_attribution": "not_applicable"}, "different_measure_kind"),
-    ({"cost_attribution": "allocated", "allocation_basis": "staff-hours"}, "different_cost_attribution"),
+    ({"cost_attribution": "allocated", "allocation_basis": "staff-hours", "allocation_method": "source_reported_functional_allocation"}, "different_cost_attribution"),
 ])
 def test_material_counterexamples_remain_separate(change, reason):
     decision = decide_addition_compatibility(measurement(), measurement(observation_id="obs:right", **change))
@@ -66,4 +66,4 @@ def test_scope_and_allocated_cost_require_their_identity_fields():
     with pytest.raises(ValidationError):
         measurement(reporting_subject_causebase_id=None)
     with pytest.raises(ValidationError):
-        measurement(cost_attribution="allocated")
+        measurement(cost_attribution="allocated", allocation_method="source_reported_functional_allocation")
