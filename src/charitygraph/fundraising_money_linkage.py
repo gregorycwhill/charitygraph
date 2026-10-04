@@ -48,6 +48,17 @@ class FundraisingMoneyScopeLink(BaseModel):
         reporting_entity = self.reporting_entity_causebase_id or self.measurement.reporting_subject_causebase_id
         if self.measurement.reporting_scope == "subject" and not reporting_entity:
             raise ValueError("subject measurement requires reporting entity identity")
+        if (
+            self.measurement.reporting_scope == "subject"
+            and self.reporting_entity_causebase_id
+            and self.reporting_entity_causebase_id != self.measurement.reporting_subject_causebase_id
+        ):
+            raise ValueError("link reporting entity must retain the measurement reporting entity")
+        # A subject-scoped measurement has one evidenced reporting entity.  Store
+        # that anchor rather than making equivalent links differ depending on
+        # whether a caller repeated the source-native subject identifier.
+        if self.measurement.reporting_scope == "subject":
+            self.reporting_entity_causebase_id = self.measurement.reporting_subject_causebase_id
         if self.linkage_status == "unknown":
             if self.attributed_scope_kind != "organisation" or self.attributed_scope_id is not None:
                 raise ValueError("unknown linkage must remain at organisation level")
@@ -61,9 +72,6 @@ class FundraisingMoneyScopeLink(BaseModel):
                     raise ValueError("organisation linkage uses reporting entity, not a separate scope ID")
             elif not self.attributed_scope_id:
                 raise ValueError("non-organisation linkage requires attributed_scope_id")
-        if self.attributed_scope_kind == "organisation" and self.measurement.reporting_scope == "subject":
-            if reporting_entity != self.measurement.reporting_subject_causebase_id:
-                raise ValueError("organisation linkage must retain the measurement reporting entity")
         return self
 
 

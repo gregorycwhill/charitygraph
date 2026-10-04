@@ -31,10 +31,13 @@ def measurement(**changes):
 
 
 def explicit(scope, scope_id, **changes):
+    reporting_entity = changes.pop("reporting_entity_causebase_id", None)
+    source_measurement = measurement(**changes)
     values = {
-        "measurement": measurement(**changes), "linkage_status": "explicit",
+        "measurement": source_measurement, "linkage_status": "explicit",
         "attributed_scope_kind": scope, "attributed_scope_id": scope_id,
-        "reporting_entity_causebase_id": "cb:charity", "linkage_evidence_ids": ["ev:note"],
+        "reporting_entity_causebase_id": reporting_entity or source_measurement.reporting_subject_causebase_id,
+        "linkage_evidence_ids": ["ev:note"],
         "linkage_source_wording": "Appeal A direct costs",
     }
     return FundraisingMoneyScopeLink(**values)
@@ -56,6 +59,20 @@ def test_t05_organisation_and_portfolio_examples_cannot_be_promoted_by_proximity
         FundraisingMoneyScopeLink(measurement=portfolio_share.measurement, linkage_status="unknown", attributed_scope_kind="practice", attributed_scope_id="practice:f2f")
     with pytest.raises(ValidationError, match="explicit linkage requires"):
         FundraisingMoneyScopeLink(measurement=organisation_total.measurement, linkage_status="explicit", attributed_scope_kind="campaign", attributed_scope_id="campaign:appeal-a")
+
+
+def test_subject_measurement_cannot_be_reanchored_to_a_different_reporting_entity():
+    with pytest.raises(ValidationError, match="link reporting entity must retain"):
+        explicit("campaign", "campaign:appeal-a", reporting_entity_causebase_id="cb:other")
+
+    omitted_anchor = FundraisingMoneyScopeLink(
+        measurement=measurement(), linkage_status="unknown", note="source organisation total"
+    )
+    repeated_anchor = FundraisingMoneyScopeLink(
+        measurement=measurement(), linkage_status="unknown",
+        reporting_entity_causebase_id="cb:charity", note="source organisation total"
+    )
+    assert omitted_anchor.reporting_entity_causebase_id == repeated_anchor.reporting_entity_causebase_id == "cb:charity"
 
 
 def test_aggregate_total_cannot_be_mechanically_distributed_across_observed_methods():
