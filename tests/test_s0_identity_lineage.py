@@ -24,7 +24,10 @@ ROOT = Path(os.environ.get("CHARITYGRAPH_S0_DATA_PACKAGE", Path(__file__).resolv
 def package(tmp_path):
     for path in ROOT.glob("SCALE_S0_*"):
         if path.is_file(): shutil.copy2(path, tmp_path / path.name)
-    shutil.copytree(ROOT / "policies", tmp_path / "policies")
+    # The lineage registry records nested policy paths.  Build the fixture as
+    # a complete package root, rather than relying on an incidental tmp-path
+    # directory left by another copied artifact.
+    shutil.copytree(ROOT / "policies", tmp_path / "policies", dirs_exist_ok=True)
     return tmp_path
 
 
