@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 import pytest
 
@@ -20,12 +19,9 @@ from charitygraph.scale_s0 import ScalePreflightError
 from charitygraph.scale_s0 import locator_search_request_body_sha256
 from charitygraph.s0_pricing import load_supervisor_capture
 from scripts.run_scale_s0 import main
+from tests.s0_fixture_support import write_pricing_capture
 
 from .test_s0_locator_search_lifecycle import _authority, _attempt, NOW, PROJECT
-
-
-CAPTURE = Path(r"C:\Users\grego\My Drive\CharityGraph Agent Bridge\artifacts\openai-pricing-capture-2026-09-25.json")
-CAPTURE_SHA = "d67304e32ee1f4760eefb7746eb8a849af19fee8b79beccd17578604a29a5e16"
 
 
 class FakeResponse:
@@ -66,7 +62,8 @@ def _make_catalog(path: Path, subjects: tuple[str, ...], pricing_id: str):
 
 
 def test_live_cli_rejects_legacy_opaque_a3_rehearsal_before_provider_construction(tmp_path, monkeypatch):
-    snapshot = load_supervisor_capture(CAPTURE, expected_sha256=CAPTURE_SHA)
+    capture, capture_sha = write_pricing_capture(tmp_path)
+    snapshot = load_supervisor_capture(capture, expected_sha256=capture_sha)
     db = tmp_path / "rehearsal.sqlite3"
     attempt, work = _make_catalog(db, ("subject:locator", "subject:locator", "subject:locator"), snapshot.record_id)
     work_path = tmp_path / "work.json"
@@ -81,7 +78,7 @@ def test_live_cli_rejects_legacy_opaque_a3_rehearsal_before_provider_constructio
     monkeypatch.setattr("charitygraph.phase5_standard_transport.urlopen", fake_urlopen)
     now = datetime.now(timezone.utc).isoformat()
     argv = ["--catalog", str(db), "--attempt-id", attempt.attempt_id, "--builder-commit-sha", "a" * 40, "--runtime-root", str(tmp_path), "--work", str(work_path),
-            "--pricing-capture", str(CAPTURE), "--pricing-capture-sha256", CAPTURE_SHA, "--cohort-id", "cohort:locator", "--attested-by", "Greg",
+            "--pricing-capture", str(capture), "--pricing-capture-sha256", capture_sha, "--cohort-id", "cohort:locator", "--attested-by", "Greg",
             "--observed-at", now, "--setting-name", "Share inputs and outputs with OpenAI", "--observed-value", "Disabled", "--provider-project", PROJECT, "--execution-authority", "authority:rehearsal"]
     # The legacy fixture deliberately has no structured checkpoint/material.
     # It must stop before constructing a client or emitting a provider POST.

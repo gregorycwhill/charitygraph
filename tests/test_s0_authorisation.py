@@ -1,22 +1,16 @@
 from pathlib import Path
-import os
-import shutil
 
 import pytest
 
 from charitygraph.s0_authorisation import ScalePreflightError, load_authorisation_package, plan_task_instances, validate_authorisation_package
 from charitygraph.s0_lineage import resolve_package
+from tests.s0_fixture_support import canonical_data_package, copy_data_package
 
-
-DATA_PACKAGE = Path(os.environ.get("CHARITYGRAPH_S0_DATA_PACKAGE", Path(__file__).resolve().parents[2] / ".s0-policy-data"))
+DATA_PACKAGE = canonical_data_package()
 
 
 def copy_package(source: Path, target: Path) -> None:
-    for item in source.rglob("*"):
-        if item.is_file() and ".git" not in item.parts:
-            destination = target / item.relative_to(source)
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(item, destination)
+    copy_data_package(source, target)
 
 
 def test_authorised_production_package_validates_without_synthetic_approval() -> None:

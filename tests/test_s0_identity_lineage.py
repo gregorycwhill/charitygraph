@@ -1,9 +1,7 @@
 """Regression coverage for immutable S0 package history and current selection."""
 from dataclasses import replace
 import json
-import os
 from pathlib import Path
-import shutil
 from datetime import datetime, timezone
 
 import pytest
@@ -17,15 +15,13 @@ from charitygraph.scale_s0 import ExecutionAttemptIdentity
 from charitygraph.runtime.catalog import CatalogError
 from charitygraph.s0_live_preparation import checkpoint_structured_locator_preprovider
 from charitygraph.s0_structured_authority import FrozenLocatorQueries, GovernedLocatorBinding
+from tests.s0_fixture_support import canonical_data_package, copy_data_package
 
-ROOT = Path(os.environ.get("CHARITYGRAPH_S0_DATA_PACKAGE", Path(__file__).resolve().parents[2] / ".s0-policy-data"))
+ROOT = canonical_data_package()
 
 
 def package(tmp_path):
-    for path in ROOT.glob("SCALE_S0_*"):
-        if path.is_file(): shutil.copy2(path, tmp_path / path.name)
-    shutil.copytree(ROOT / "policies", tmp_path / "policies")
-    return tmp_path
+    return copy_data_package(ROOT, tmp_path)
 
 
 def test_historical_and_current_mandates_coexist_idempotently(tmp_path):
