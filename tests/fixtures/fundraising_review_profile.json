@@ -1,0 +1,38 @@
+{
+  "contract_version": "fundraising-review-profile-v1",
+  "capability_scope": "review_only_representative_slice",
+  "subjects": [
+    {
+      "subject_id": "cb_review_f2f",
+      "display_name": "Review case: direct F2F disclosure",
+      "evidence_set_id": "cached-governed-review-case-f2f-v1",
+      "practices": [{"observation_id":"fp_review_f2f","source_native_phrase":"face-to-face fundraising","canonical_facets":["fundraising.face_to_face"],"scope":{"scope_kind":"subject","scope_subject_causebase_id":"cb_review_f2f","geography":["AU"],"observed_at":"2026-09-01"},"lifecycle":"current","source_role":"direct_assertion","evidence_ids":["ev_review_f2f"]}],
+      "campaigns": [], "providers": [], "money": [],
+      "coverage": [{"capability":"practices","status":"observed","scope":"subject; direct statement","note":"Currentness is stated by the selected evidence."},{"capability":"campaigns","status":"not_found_in_scoped_source","scope":"selected statement only","note":"This is not a conclusion about all campaigns."},{"capability":"providers","status":"unknown","scope":"selected evidence set","note":"No provider is inferred from F2F."},{"capability":"money","status":"unavailable","scope":"selected evidence set","note":"No financial amount is supplied."}]
+    },
+    {
+      "subject_id": "cb_review_campaign",
+      "display_name": "Review case: bounded peer-to-peer appeal",
+      "evidence_set_id": "cached-governed-review-case-campaign-v1",
+      "practices": [],
+      "campaigns": [{"observation_id":"fc_review_appeal","campaign_name":"Winter Community Appeal","source_native_phrase":"community fundraising appeal","canonical_facets":["fundraising.community","fundraising.peer_to_peer"],"scope":{"scope_kind":"program","scope_subject_causebase_id":"cb_review_campaign","geography":["AU"],"valid_from":"2026-06-01","valid_to":"2026-08-31","observed_at":"2026-08-31"},"lifecycle":"ended","source_role":"organisation_self_description","evidence_ids":["ev_review_campaign"]}],
+      "providers": [{"relationship_id":"fpr_review_platform","relationship":{"relationship_type":"fundraising_platform_provider","target_causebase_id":"cb_review_platform","evidence_ids":["ev_review_platform"],"observed_at":"2026-08-31","status":"historical"},"subject_role":"client","provider_role":"fundraising_platform_provider","scope":{"scope_kind":"program","scope_subject_causebase_id":"cb_review_campaign","geography":["AU"],"valid_from":"2026-06-01","valid_to":"2026-08-31","observed_at":"2026-08-31"},"lifecycle":"historical","source_role":"direct_assertion","evidence_ids":["ev_review_platform"]}], "money": [],
+      "coverage": [{"capability":"practices","status":"not_yet_processed","scope":"standing-practice review","note":"A campaign is not promoted to an ongoing practice."},{"capability":"campaigns","status":"observed","scope":"named appeal and stated period","note":"Campaign lifecycle is bounded by the source."},{"capability":"providers","status":"observed","scope":"named platform relationship for the bounded campaign","note":"The relationship is not extrapolated beyond its stated period."},{"capability":"money","status":"unavailable","scope":"campaign","note":"No amount is tied to this appeal."}]
+    },
+    {
+      "subject_id": "cb_review_finance",
+      "display_name": "Review case: organisation-level financial disclosure",
+      "evidence_set_id": "cached-governed-review-case-finance-v1",
+      "practices": [], "campaigns": [], "providers": [],
+      "money": [{"measurement":{"observation_id":"fm_review_total_cost","amount":{"source_amount":"125000","source_currency":"AUD","source_unit_scale":"1","normalised_amount":"125000","normalised_currency":"AUD","source_raw_value":"125000"},"measure_kind":"total_fundraising_cost","source_wording":"Fundraising expenses","evidence_ids":["ev_review_finance"],"period":{"period_start":"2025-07-01","period_end":"2026-06-30","period_length_days":365,"label":"FY2026"},"reporting_scope":"subject","reporting_subject_causebase_id":"cb_review_finance","recognition_basis":"accrual","gross_net_basis":"not_applicable","gst_treatment":"unknown","pass_through_treatment":"not_applicable","cost_attribution":"direct","allocation_method":"direct_source_reported","amount_is_approximate":false,"source_role":"audited_financial_statement","assurance":"audited"},"linkage_status":"unknown","attributed_scope_kind":"organisation","reporting_entity_causebase_id":"cb_review_finance","note":"The disclosure is not attributed to a practice or campaign."}],
+      "coverage": [{"capability":"practices","status":"not_yet_processed","scope":"selected financial statement","note":"Finance labels do not establish a method."},{"capability":"campaigns","status":"not_yet_processed","scope":"selected financial statement","note":"Finance labels do not establish a campaign."},{"capability":"providers","status":"unknown","scope":"selected financial statement","note":"No provider relationship is asserted."},{"capability":"money","status":"observed","scope":"reporting entity, FY2026","note":"Direct source-native aggregate fundraising-cost fact; not allocated downstream."}]
+    },
+    {
+      "subject_id": "cb_review_insufficient",
+      "display_name": "Review case: insufficient scoped evidence",
+      "evidence_set_id": "cached-governed-review-case-insufficient-v1",
+      "practices": [], "campaigns": [], "providers": [], "money": [],
+      "coverage": [{"capability":"practices","status":"not_found_in_scoped_source","scope":"reviewed annual-report fundraising section","note":"No conclusion outside this reviewed source section."},{"capability":"campaigns","status":"not_found_in_scoped_source","scope":"reviewed annual-report fundraising section","note":"No conclusion outside this reviewed source section."},{"capability":"providers","status":"not_found_in_scoped_source","scope":"reviewed annual-report fundraising section","note":"No conclusion outside this reviewed source section."},{"capability":"money","status":"unavailable","scope":"reviewed annual-report fundraising section","note":"No usable source-native money fact was present."}]
+    }
+  ]
+}
