@@ -51,3 +51,34 @@ def test_scoped_silence_requires_coverage_universe():
             source_wording="No result", observed_at=date(2026, 1, 1),
             source_currentness="not_found_in_scoped_source",
         )
+
+
+def test_scoped_silence_is_not_promoted_to_practice_absence():
+    decision = decide_f2f_currentness(F2FSourceEvidence(
+        evidence_id="E-SCOPED-NOT-FOUND", source_role="scoped_source_inventory",
+        subject_binding="confirmed", source_wording="No matching client record",
+        observed_at=date(2026, 9, 30), source_currentness="not_found_in_scoped_source",
+        source_coverage_description="2026 public client list; NSW entries only",
+    ))
+    assert decision.currentness == "not_found_in_scoped_source"
+    assert decision.practice_observed is None
+    assert decision.coverage_universe == "2026 public client list; NSW entries only"
+
+
+def test_expired_validity_cannot_be_relabelled_current():
+    with pytest.raises(ValueError, match="cannot be current beyond"):
+        F2FSourceEvidence(
+            evidence_id="E-EXPIRED", source_role="first_party_f2f_page",
+            subject_binding="confirmed", source_wording="F2F activity in FY2024",
+            observed_at=date(2026, 9, 30), valid_to=date(2025, 6, 30),
+            source_currentness="current",
+        )
+
+
+def test_discontinuation_requires_a_temporal_boundary():
+    with pytest.raises(ValueError, match="requires a stated cessation date"):
+        F2FSourceEvidence(
+            evidence_id="E-UNDATED-STOP", source_role="explicit_cessation",
+            subject_binding="confirmed", source_wording="We ceased face-to-face activity.",
+            observed_at=date(2026, 9, 30), source_currentness="discontinued",
+        )

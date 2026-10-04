@@ -16,4 +16,6 @@ Face-to-face (F2F) is represented as a scoped, evidence-bound fundraising-practi
 
 `current`, `recent`, `historical`, `discontinued`, `unknown`, and `not_found_in_scoped_source` are distinct values. The policy contains no universal age threshold: `recent` is retained only when source semantics/adjudication expressly supplies it. A missing, ambiguous, or unresolved subject binding produces `unknown` before any practice claim can be promoted.
 
+A declared `valid_to` is a hard temporal boundary: a source-adapter assertion cannot be labelled `current` beyond it. Likewise, `discontinued` requires an explicit cessation boundary; an undated assertion does not manufacture one. `not_found_in_scoped_source` records only the declared search universe and is never rendered or stored as practice absence.
+
 Every input retains source wording, evidence id, observation date, optional valid interval, source role, binding status, and scope. Source adapters/semantic adjudication determine source-native meaning; `decide_f2f_currentness` is only the deterministic governance step.
