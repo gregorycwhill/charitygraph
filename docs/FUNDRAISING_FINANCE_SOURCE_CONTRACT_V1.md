@@ -1,6 +1,6 @@
 # Fundraising finance source contract v1
 
-**Status:** Implemented internal, review-only contract. **Version:** 1.0.
+**Status:** Implemented internal, review-only contract. **Version:** 1.1.
 
 `FundraisingFinanceSourceObservation` is the source envelope for a typed
 fundraising money measurement. It preserves a source identifier, source family,
@@ -50,3 +50,21 @@ disjointness), then checks source-observation scope and treatment. Unknown,
 missing, possible, excluded and incompatible observations stay unavailable for
 deterministic addition. No ROI, cost-to-raise, causal revenue, channel result,
 or method allocation is created.
+
+## Evidence-envelope preflight
+
+`FundraisingFinanceEvidenceEnvelope` is a local review packet for either a
+direct disclosure, a deterministic reconstruction, or a proposed bounds/share
+analysis. It requires an identified reporting entity, exact period, recognition
+basis, metric/flow meaning, gross/net treatment, source locator for the stated
+denominator, component set, additivity outcome, and rights disposition. Every
+component must retain an observed source fact whose entity, period, accounting
+basis and gross/net treatment match the envelope.
+
+A reconstruction additionally requires explicitly confirmed additivity. A
+bounds/share candidate must carry all three explicit component sets—definite,
+possible and excluded—and a usable recorded rights disposition. Even when that
+packet is complete, its preflight outcome is `unavailable`: it does not emit a
+share, net proceeds, ROI, cost-to-raise, effectiveness or any other derived
+finance value. This gives later human review a complete evidence envelope
+without weakening the existing no-derivation boundary.

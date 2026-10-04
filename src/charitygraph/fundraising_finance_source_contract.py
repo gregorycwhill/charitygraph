@@ -19,7 +19,7 @@ from .finance_measurement import (
 )
 
 
-FUNDRAISING_FINANCE_SOURCE_CONTRACT_VERSION = "1.0"
+FUNDRAISING_FINANCE_SOURCE_CONTRACT_VERSION = "1.1"
 FinanceSourceFamily = Literal[
     "annual_report_or_financial_statements", "acnc_or_nscoa_return",
     "state_fundraising_disclosure", "campaign_report", "platform_report",
@@ -33,6 +33,12 @@ FinanceScopeKind = Literal[
     "provider_relationship",
 ]
 ComponentTreatment = Literal["direct", "allocated", "possible", "excluded"]
+EnvelopeKind = Literal["direct_disclosure", "deterministic_reconstruction", "bounds_or_share_candidate"]
+AdditivityOutcome = Literal["confirmed_additive", "not_additive", "not_applicable", "not_processed"]
+RightsDisposition = Literal[
+    "rights_cleared_for_review_retention", "source_terms_recorded_research_only",
+    "blocked_by_rights", "not_processed",
+]
 ProductionMethod = Literal["direct_source_claim", "deterministic_parsing", "governed_semantic_inference"]
 ReviewStatus = Literal["reviewed", "automation_governed", "research_only"]
 CoverageStatus = Literal["observed", "not_found_in_scoped_source", "not_processed", "unavailable"]
@@ -89,6 +95,107 @@ class FinanceSourceCompatibilityDecision(BaseModel):
     @property
     def safe_to_add(self) -> bool:
         return self.status == "compatible"
+
+
+class FundraisingFinanceEvidenceEnvelope(BaseModel):
+    """Preflight packet for a finance fact before it reaches a money result.
+
+    This is deliberately an evidence envelope, not a calculator.  In
+    particular a complete bounds/share candidate is still returned as
+    unavailable: CharityGraph has no authorised generic share, net-proceeds
+    or effectiveness derivative.
+    """
+
+    contract_version: str = FUNDRAISING_FINANCE_SOURCE_CONTRACT_VERSION
+    envelope_id: str = Field(min_length=1)
+    envelope_kind: EnvelopeKind
+    reporting_entity_id: str = Field(min_length=1)
+    period_start: date
+    period_end: date
+    recognition_basis: str = Field(min_length=1)
+    metric_flow_meaning: str = Field(min_length=1)
+    gross_net_treatment: str = Field(min_length=1)
+    denominator_locator: str = Field(min_length=1)
+    additivity_outcome: AdditivityOutcome
+    rights_disposition: RightsDisposition
+    definite_components: list[FundraisingFinanceSourceObservation] = Field(default_factory=list)
+    possible_components: list[FundraisingFinanceSourceObservation] = Field(default_factory=list)
+    excluded_components: list[FundraisingFinanceSourceObservation] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def require_complete_and_truthful_components(self):
+        components = self.definite_components + self.possible_components + self.excluded_components
+        if not components:
+            raise ValueError("finance evidence envelope requires source components")
+        if self.period_end < self.period_start:
+            raise ValueError("finance evidence envelope period is reversed")
+        for component in self.definite_components:
+            if component.component_treatment not in {"direct", "allocated"}:
+                raise ValueError("definite components must be direct or allocated")
+        for component in self.possible_components:
+            if component.component_treatment != "possible":
+                raise ValueError("possible components must be explicitly marked possible")
+        for component in self.excluded_components:
+            if component.component_treatment != "excluded":
+                raise ValueError("excluded components must be explicitly marked excluded")
+        for component in components:
+            measurement = component.measurement
+            if component.coverage_status != "observed":
+                raise ValueError("finance evidence envelope components must be observed")
+            if measurement.reporting_subject_causebase_id != self.reporting_entity_id:
+                raise ValueError("component reporting entity differs from envelope")
+            if measurement.period.period_start != self.period_start or measurement.period.period_end != self.period_end:
+                raise ValueError("component period differs from envelope")
+            if measurement.recognition_basis != self.recognition_basis:
+                raise ValueError("component recognition basis differs from envelope")
+            if measurement.gross_net_basis != self.gross_net_treatment:
+                raise ValueError("component gross/net treatment differs from envelope")
+        if self.envelope_kind in {"direct_disclosure", "deterministic_reconstruction"}:
+            if not self.definite_components:
+                raise ValueError("direct disclosure or reconstruction requires definite components")
+            if self.additivity_outcome == "not_processed":
+                raise ValueError("direct disclosure or reconstruction requires an additivity outcome")
+        if self.envelope_kind == "deterministic_reconstruction" and self.additivity_outcome != "confirmed_additive":
+            raise ValueError("deterministic reconstruction requires confirmed additivity")
+        if self.envelope_kind == "bounds_or_share_candidate":
+            if not (self.definite_components and self.possible_components and self.excluded_components):
+                raise ValueError("bounds/share candidate requires definite, possible and excluded components")
+            if self.rights_disposition in {"blocked_by_rights", "not_processed"}:
+                raise ValueError("bounds/share candidate requires an explicit usable rights disposition")
+        return self
+
+
+class FinanceEvidenceEnvelopePreflight(BaseModel):
+    """A non-deriving disposition for a validated evidence envelope."""
+
+    envelope_id: str
+    outcome: Literal["available_direct_disclosure", "available_reconstruction", "unavailable"]
+    reason: str
+
+
+def preflight_finance_evidence_envelope(
+    envelope: FundraisingFinanceEvidenceEnvelope,
+) -> FinanceEvidenceEnvelopePreflight:
+    """Classify only direct/reconstruction readiness; never calculate a derivative."""
+
+    if envelope.envelope_kind == "bounds_or_share_candidate":
+        return FinanceEvidenceEnvelopePreflight(
+            envelope_id=envelope.envelope_id, outcome="unavailable",
+            reason="bounds_or_share_derivation_not_authorised",
+        )
+    if envelope.rights_disposition in {"blocked_by_rights", "not_processed"}:
+        return FinanceEvidenceEnvelopePreflight(
+            envelope_id=envelope.envelope_id, outcome="unavailable", reason=envelope.rights_disposition,
+        )
+    if envelope.envelope_kind == "direct_disclosure":
+        return FinanceEvidenceEnvelopePreflight(
+            envelope_id=envelope.envelope_id, outcome="available_direct_disclosure",
+            reason="direct_source_components_retained",
+        )
+    return FinanceEvidenceEnvelopePreflight(
+        envelope_id=envelope.envelope_id, outcome="available_reconstruction",
+        reason="deterministic_components_confirmed_additive",
+    )
 
 
 def decide_finance_source_addition_compatibility(

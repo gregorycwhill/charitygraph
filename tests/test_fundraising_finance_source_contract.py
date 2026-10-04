@@ -8,8 +8,10 @@ from pydantic import ValidationError
 from charitygraph.finance_measurement import FundraisingMoneyMeasurement
 from charitygraph.fundraising_finance_source_contract import (
     FUNDRAISING_FINANCE_SOURCE_CONTRACT_VERSION,
+    FundraisingFinanceEvidenceEnvelope,
     FundraisingFinanceSourceObservation,
     decide_finance_source_addition_compatibility,
+    preflight_finance_evidence_envelope,
 )
 
 
@@ -75,3 +77,54 @@ def test_versioned_fixture_names_source_families_and_refusal_cases():
     assert fixture["contract_version"] == FUNDRAISING_FINANCE_SOURCE_CONTRACT_VERSION
     assert "provider_record" in fixture["source_families"]
     assert {"incompatible_organisation_campaign", "incompatible_possible", "incompatible_excluded"} <= set(fixture["cases"])
+    assert {"envelope_direct_disclosure", "envelope_reconstruction", "envelope_bounds_share_unavailable", "envelope_bounds_missing_component"} <= set(fixture["cases"])
+
+
+def envelope(kind="direct_disclosure", **changes):
+    values = {
+        "envelope_id": "envelope:one", "envelope_kind": kind, "reporting_entity_id": "charity:one",
+        "period_start": date(2024, 7, 1), "period_end": date(2025, 6, 30),
+        "recognition_basis": "accrual", "metric_flow_meaning": "direct fundraising cost",
+        "gross_net_treatment": "not_applicable", "denominator_locator": "page 18, note 7 total",
+        "additivity_outcome": "not_applicable", "rights_disposition": "rights_cleared_for_review_retention",
+        "definite_components": [source("envelope")],
+    }
+    values.update(changes)
+    return FundraisingFinanceEvidenceEnvelope(**values)
+
+
+def test_direct_disclosure_envelope_retains_required_dimensions_without_derivation():
+    result = preflight_finance_evidence_envelope(envelope())
+    assert result.outcome == "available_direct_disclosure"
+    assert result.reason == "direct_source_components_retained"
+
+
+def test_reconstruction_requires_confirmed_additivity_and_matching_components():
+    reconstruction = envelope(
+        "deterministic_reconstruction", additivity_outcome="confirmed_additive",
+        definite_components=[source("one"), source("two", measurement=measurement("two"))],
+    )
+    assert preflight_finance_evidence_envelope(reconstruction).outcome == "available_reconstruction"
+    with pytest.raises(ValidationError, match="confirmed additivity"):
+        envelope("deterministic_reconstruction", additivity_outcome="not_additive")
+    with pytest.raises(ValidationError, match="period differs"):
+        envelope(definite_components=[source("bad-period", measurement=measurement("bad-period", period={"period_start": date(2023, 7, 1), "period_end": date(2024, 6, 30), "period_length_days": 366}))])
+
+
+def test_bounds_share_candidate_requires_explicit_envelope_and_stays_unavailable():
+    possible = source("possible", component_treatment="possible")
+    excluded = source("excluded", component_treatment="excluded")
+    candidate = envelope(
+        "bounds_or_share_candidate", additivity_outcome="not_additive",
+        possible_components=[possible], excluded_components=[excluded],
+    )
+    result = preflight_finance_evidence_envelope(candidate)
+    assert result.outcome == "unavailable"
+    assert result.reason == "bounds_or_share_derivation_not_authorised"
+    with pytest.raises(ValidationError, match="definite, possible and excluded"):
+        envelope("bounds_or_share_candidate", possible_components=[possible])
+    with pytest.raises(ValidationError, match="usable rights"):
+        envelope(
+            "bounds_or_share_candidate", possible_components=[possible], excluded_components=[excluded],
+            rights_disposition="blocked_by_rights",
+        )

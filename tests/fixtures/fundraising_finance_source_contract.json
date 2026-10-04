@@ -1,5 +1,5 @@
 {
-  "contract_version": "1.0",
+  "contract_version": "1.1",
   "source_families": [
     "annual_report_or_financial_statements", "acnc_or_nscoa_return",
     "state_fundraising_disclosure", "campaign_report", "platform_report",
@@ -10,6 +10,10 @@
     "incompatible_organisation_campaign": "An organisation statement amount cannot be combined with, or promoted to, a campaign amount.",
     "incompatible_allocated_direct": "An allocated component and a direct component remain separate.",
     "incompatible_possible": "A possible component is retained for a bounds envelope, not deterministic addition.",
-    "incompatible_excluded": "An excluded component is retained as a reasoned exclusion, not an expense fact."
+    "incompatible_excluded": "An excluded component is retained as a reasoned exclusion, not an expense fact.",
+    "envelope_direct_disclosure": "A direct source disclosure retains entity, exact period, basis, flow meaning, gross/net treatment, denominator locator, rights disposition and components.",
+    "envelope_reconstruction": "A reconstruction requires source components and an explicit confirmed-additivity result.",
+    "envelope_bounds_share_unavailable": "Definite, possible and excluded components plus recorded rights make a review packet complete, not a derived share or bounds fact.",
+    "envelope_bounds_missing_component": "A proposed bounds/share result without every component class is rejected."
   }
 }
