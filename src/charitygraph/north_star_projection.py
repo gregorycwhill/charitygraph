@@ -2,6 +2,10 @@
 from __future__ import annotations
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from charitygraph.models import (
+    CauseBaseCard, FundraisingCampaignObservation, FundraisingPracticeObservation,
+    FundraisingProviderRelationship,
+)
 
 class _Strict(BaseModel):
     model_config=ConfigDict(extra="forbid", frozen=True)
@@ -20,3 +24,20 @@ class NorthStarLensOutput(_Strict):
     assignments: tuple[SectionAssignment, ...]
 
 LENS_SCHEMA=NorthStarLensOutput.model_json_schema()
+
+
+class FundraisingProjection(_Strict):
+    """Lossless typed projection; legacy flat observations are intentionally absent."""
+
+    practices: tuple[FundraisingPracticeObservation, ...]
+    campaigns: tuple[FundraisingCampaignObservation, ...]
+    provider_relationships: tuple[FundraisingProviderRelationship, ...]
+
+
+def project_fundraising(card: CauseBaseCard) -> FundraisingProjection:
+    """Project only canonical typed assertions without inventing an adaptation."""
+    return FundraisingProjection(
+        practices=tuple(card.fundraising_practice_observed),
+        campaigns=tuple(card.fundraising_campaign_observed),
+        provider_relationships=tuple(card.fundraising_provider_relationships),
+    )
