@@ -32,6 +32,8 @@ RelationshipType = Literal[
     "program_of",
     "auspiced_by",
     "successor_to",
+    "fundraising_service_provider",
+    "fundraising_platform_provider",
 ]
 
 ResolutionStatus = Literal["resolved", "candidate", "ambiguous", "unresolved"]
@@ -53,6 +55,8 @@ DerivationMethod = Literal[
     "heuristic_estimate",
     "llm_interpretation",
     "peer_imputation",
+    "governed_semantic_inference",
+    "deterministic_parse",
 ]
 
 
@@ -543,6 +547,86 @@ class FundingSourceObservation(BaseModel):
     evidence_ids: list[str] = Field(default_factory=list)
 
 
+class FundraisingObservationScope(BaseModel):
+    """Scope and bitemporal context shared by governed fundraising assertions."""
+
+    scope_kind: Literal["subject", "organisation_group", "organisational_unit", "program", "unknown"] = "unknown"
+    scope_subject_causebase_id: str | None = None
+    geography: list[str] = Field(default_factory=list)
+    valid_from: date | None = None
+    valid_to: date | None = None
+    observed_at: date | None = None
+
+    @model_validator(mode="after")
+    def validate_temporal_range(self):
+        if self.valid_from and self.valid_to and self.valid_from > self.valid_to:
+            raise ValueError("fundraising scope valid_from cannot follow valid_to")
+        return self
+
+
+class FundraisingPracticeObservation(BaseModel):
+    """A standing practice assertion, deliberately distinct from income or an appeal."""
+
+    schema_version: Literal["fundraising-practice-v1"] = "fundraising-practice-v1"
+    observation_id: str = Field(pattern=r"^fp_[a-z0-9][a-z0-9_-]*$")
+    source_native_phrase: str = Field(min_length=1)
+    canonical_facets: tuple[str, ...] = ()
+    scope: FundraisingObservationScope
+    lifecycle: Literal["current", "historical", "ended", "stale", "unknown"] = "unknown"
+    source_role: Literal["direct_assertion", "organisation_self_description", "industry_context", "unknown"] = "unknown"
+    production_method: DerivationMethod = "direct_extract"
+    confidence: Literal["high", "medium", "low"] | None = None
+    coverage_status: CoverageStatus = "observed"
+    uncertainty_note: str | None = None
+    evidence_ids: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_facets_and_missingness(self):
+        from charitygraph.fundraising_vocabulary import FUNDRAISING_VOCABULARY_V1
+        known = {term.term_id: term.facet for term in FUNDRAISING_VOCABULARY_V1.terms}
+        if unknown := set(self.canonical_facets) - set(known):
+            raise ValueError(f"unknown fundraising facets: {sorted(unknown)}")
+        facets = [known[term] for term in self.canonical_facets]
+        if len(facets) != len(set(facets)):
+            raise ValueError("a practice cannot assert two terms in the same facet")
+        if self.coverage_status == "observed" and not self.evidence_ids:
+            raise ValueError("an observed practice requires evidence")
+        if self.coverage_status != "observed" and self.canonical_facets:
+            raise ValueError("a missing practice observation cannot assert canonical facets")
+        return self
+
+
+class FundraisingCampaignObservation(FundraisingPracticeObservation):
+    """An identifiable, bounded campaign or appeal; never a standing practice."""
+
+    schema_version: Literal["fundraising-campaign-v1"] = "fundraising-campaign-v1"
+    observation_id: str = Field(pattern=r"^fc_[a-z0-9][a-z0-9_-]*$")
+    campaign_name: str = Field(min_length=1)
+    lifecycle: Literal["planned", "active", "ended", "historical", "unknown"] = "unknown"
+
+
+class FundraisingProviderRelationship(BaseModel):
+    """A provider relationship, separate from a practice or campaign assertion."""
+
+    relationship_id: str = Field(pattern=r"^fpr_[a-z0-9][a-z0-9_-]*$")
+    relationship: SubjectRelationship
+    subject_role: Literal["commissioner", "client"]
+    provider_role: Literal["fundraising_service_provider", "fundraising_platform_provider"]
+    scope: FundraisingObservationScope
+    lifecycle: Literal["current", "historical", "ended", "unknown"] = "unknown"
+    source_role: Literal["direct_assertion", "organisation_self_description", "industry_context", "unknown"] = "unknown"
+    production_method: DerivationMethod = "direct_extract"
+    evidence_ids: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_provider_evidence(self):
+        if self.relationship.relationship_type != self.provider_role:
+            raise ValueError("provider role must agree with the common relationship type")
+        if not self.evidence_ids:
+            raise ValueError("an observed provider relationship requires evidence")
+        return self
+
+
 class FundraisingMethodObservation(BaseModel):
     method: Literal[
         "regular_giving", "face_to_face", "direct_mail", "telephone", "digital_advertising",
@@ -619,7 +703,10 @@ class CauseBaseCard(BaseModel):
     # synthetic percentage.
     fundraising_expenditure: FundraisingEstimate | None = None
     funding_sources: list[FundingSourceObservation] = Field(default_factory=list)
-    fundraising_methods: list[FundraisingMethodObservation] = Field(default_factory=list)
+    fundraising_methods: list[FundraisingMethodObservation] = Field(default_factory=list, json_schema_extra={"deprecated": True})
+    fundraising_practice_observed: list[FundraisingPracticeObservation] = Field(default_factory=list)
+    fundraising_campaign_observed: list[FundraisingCampaignObservation] = Field(default_factory=list)
+    fundraising_provider_relationships: list[FundraisingProviderRelationship] = Field(default_factory=list)
 
     classifications: list[Classification] = Field(default_factory=list)
     # These are governed working observations, never public card content and
@@ -659,6 +746,17 @@ class CauseBaseCard(BaseModel):
             missing = set(self.fundraising_expenditure.evidence_ids) - evidence_ids
             if missing:
                 raise ValueError(f"fundraising evidence IDs missing from card: {sorted(missing)}")
+        for label, observations in (
+            ("fundraising practice", self.fundraising_practice_observed),
+            ("fundraising campaign", self.fundraising_campaign_observed),
+            ("fundraising provider relationship", self.fundraising_provider_relationships),
+        ):
+            ids = [item.observation_id if hasattr(item, "observation_id") else item.relationship_id for item in observations]
+            if len(ids) != len(set(ids)):
+                raise ValueError(f"duplicate {label} IDs are not permitted")
+            missing = {evidence_id for item in observations for evidence_id in item.evidence_ids} - evidence_ids
+            if missing:
+                raise ValueError(f"{label} evidence IDs missing from card: {sorted(missing)}")
         relationship_missing = {
             evidence_id
             for relationship in self.relationships
