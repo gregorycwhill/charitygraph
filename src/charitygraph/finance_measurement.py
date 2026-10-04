@@ -20,7 +20,7 @@ FINANCE_MEASUREMENT_COMPATIBILITY_VERSION = "1.0"
 FundraisingMeasureKind = Literal[
     "amount_raised", "gross_proceeds", "donations_received", "cash_received",
     "pledged", "ticket_sales", "merchandise_sales", "sponsorship_revenue",
-    "platform_processed_amount", "recognised_revenue", "direct_fundraising_cost",
+    "platform_processed_amount", "recognised_revenue", "total_expenses", "direct_fundraising_cost",
     "agency_fee", "commission", "media_spend", "staff_cost", "event_prize_cost",
     "administration_allocation", "total_fundraising_cost",
 ]
