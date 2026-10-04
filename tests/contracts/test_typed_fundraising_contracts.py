@@ -117,3 +117,76 @@ def test_projection_is_lossless_for_currentness_and_missingness_and_ignores_lega
 def test_duplicate_typed_assignments_fail_closed_on_the_card():
     with pytest.raises(ValueError, match="duplicate fundraising practice IDs"):
         card(fundraising_practice_observed=[practice(), practice()])
+
+
+def test_typed_fundraising_compile_project_round_trip_preserves_distinct_subjects_and_metadata():
+    practice_observation = practice(
+        lifecycle="historical", source_role="organisation_self_description",
+        production_method="llm_interpretation", confidence="medium",
+        uncertainty_note="No evidence of continuity after this observation.",
+    )
+    campaign = FundraisingCampaignObservation(
+        observation_id="fc_appeal", campaign_name="Winter Appeal",
+        source_native_phrase="Winter Appeal", canonical_facets=("fundraising.emergency_appeal",),
+        scope=FundraisingObservationScope(
+            scope_kind="program", scope_subject_causebase_id="cb_example", geography=["NSW"],
+            valid_from=date(2025, 6, 1), valid_to=date(2025, 8, 31), observed_at=date(2025, 9, 1),
+        ),
+        lifecycle="ended", source_role="direct_assertion", production_method="direct_extract",
+        confidence="high", uncertainty_note="Bounded campaign only.", evidence_ids=["ev_fundraising"],
+    )
+    provider = FundraisingProviderRelationship(
+        relationship_id="fpr_delivery", relationship=SubjectRelationship(
+            relationship_type="fundraising_service_provider", target_causebase_id="cb_provider",
+            evidence_ids=["ev_fundraising"], valid_from=date(2025, 6, 1),
+            valid_to=date(2025, 8, 31), observed_at=date(2025, 9, 1), status="ended",
+        ),
+        subject_role="commissioner", provider_role="fundraising_service_provider",
+        scope=campaign.scope, lifecycle="ended", source_role="direct_assertion",
+        production_method="direct_extract", confidence="high", evidence_ids=["ev_fundraising"],
+    )
+    missing = practice(
+        observation_id="fp_unprocessed", source_native_phrase="Practice not processed",
+        canonical_facets=(), lifecycle="unknown", coverage_status="not_yet_processed", evidence_ids=[],
+    )
+
+    compiled = CauseBaseCard.model_validate(card(
+        fundraising_practice_observed=[practice_observation, missing],
+        fundraising_campaign_observed=[campaign], fundraising_provider_relationships=[provider],
+    ).model_dump(mode="json"))
+    projected = project_fundraising(compiled)
+    round_tripped = type(projected).model_validate(projected.model_dump(mode="json"))
+
+    assert [item.observation_id for item in round_tripped.practices] == ["fp_f2f_regular", "fp_unprocessed"]
+    assert round_tripped.campaigns[0].observation_id == "fc_appeal"
+    assert round_tripped.provider_relationships[0].relationship.target_causebase_id == "cb_provider"
+    assert round_tripped.practices[0].lifecycle == "historical"
+    assert round_tripped.practices[0].source_role == "organisation_self_description"
+    assert round_tripped.practices[0].scope.observed_at == date(2026, 2, 1)
+    assert round_tripped.practices[1].coverage_status == "not_yet_processed"
+    assert round_tripped.campaigns[0].scope.valid_to == date(2025, 8, 31)
+    assert round_tripped.provider_relationships[0].relationship.status == "ended"
+
+
+def test_duplicate_or_contradictory_provider_role_assignments_fail_closed():
+    first = FundraisingProviderRelationship(
+        relationship_id="fpr_first", relationship=PROVIDER_LINK,
+        subject_role="commissioner", provider_role="fundraising_service_provider",
+        scope=SCOPE, evidence_ids=["ev_fundraising"],
+    )
+    contradictory = FundraisingProviderRelationship(
+        relationship_id="fpr_second", relationship=PROVIDER_LINK,
+        subject_role="client", provider_role="fundraising_service_provider",
+        scope=SCOPE, evidence_ids=["ev_fundraising"],
+    )
+    with pytest.raises(ValueError, match="duplicate or contradictory"):
+        card(fundraising_provider_relationships=[first, contradictory])
+
+    with pytest.raises(ValueError, match="missing from card"):
+        card(fundraising_provider_relationships=[FundraisingProviderRelationship(
+            relationship_id="fpr_unknown_evidence", relationship=SubjectRelationship(
+                relationship_type="fundraising_service_provider", target_causebase_id="cb_provider",
+                evidence_ids=["ev_missing"],
+            ), subject_role="commissioner", provider_role="fundraising_service_provider",
+            scope=SCOPE, evidence_ids=["ev_fundraising"],
+        )])

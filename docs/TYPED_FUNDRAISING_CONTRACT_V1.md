@@ -39,6 +39,11 @@ Representative payload:
 the common `SubjectRelationship` (including its resolved target CauseBase ID); no agency
 relationship is inferred from F2F evidence.
 
+The containing card rejects repeated provider assignments with the same resolved target,
+provider role and scope, even if supplied with different IDs or client/commissioner roles.
+It also validates evidence IDs in both the fundraising wrapper and the embedded common
+relationship. This fails closed rather than choosing between contradictory role assertions.
+
 ## Compatibility
 
 `FundraisingMethodObservation` and `CauseBaseCard.fundraising_methods` remain readable

@@ -793,6 +793,30 @@ class CauseBaseCard(BaseModel):
             missing = {evidence_id for item in observations for evidence_id in item.evidence_ids} - evidence_ids
             if missing:
                 raise ValueError(f"{label} evidence IDs missing from card: {sorted(missing)}")
+        provider_relationship_keys: set[tuple[str, str, str]] = set()
+        for provider_relationship in self.fundraising_provider_relationships:
+            # A repeated directed link with a new identifier is not a second
+            # role.  It would make the identity of a provider assignment
+            # ambiguous, including where its two copies name different client
+            # roles.  Consolidate evidence before asserting it once.
+            key = (
+                provider_relationship.relationship.target_causebase_id,
+                provider_relationship.provider_role,
+                provider_relationship.scope.model_dump_json(),
+            )
+            if key in provider_relationship_keys:
+                raise ValueError("duplicate or contradictory fundraising provider role assignment")
+            provider_relationship_keys.add(key)
+        provider_relationship_missing = {
+            evidence_id
+            for provider_relationship in self.fundraising_provider_relationships
+            for evidence_id in provider_relationship.relationship.evidence_ids
+        } - evidence_ids
+        if provider_relationship_missing:
+            raise ValueError(
+                "fundraising provider relationship evidence IDs missing from card: "
+                f"{sorted(provider_relationship_missing)}"
+            )
         relationship_missing = {
             evidence_id
             for relationship in self.relationships
