@@ -793,6 +793,27 @@ class CauseBaseCard(BaseModel):
             missing = {evidence_id for item in observations for evidence_id in item.evidence_ids} - evidence_ids
             if missing:
                 raise ValueError(f"{label} evidence IDs missing from card: {sorted(missing)}")
+            wrong_subject_scope = [
+                item.observation_id if hasattr(item, "observation_id") else item.relationship_id
+                for item in observations
+                if item.scope.scope_kind == "subject"
+                and item.scope.scope_subject_causebase_id != self.causebase_id
+            ]
+            if wrong_subject_scope:
+                raise ValueError(
+                    f"{label} subject scope must match card causebase_id: "
+                    f"{sorted(wrong_subject_scope)}"
+                )
+        provider_relationship_evidence_missing = {
+            evidence_id
+            for provider in self.fundraising_provider_relationships
+            for evidence_id in provider.relationship.evidence_ids
+        } - evidence_ids
+        if provider_relationship_evidence_missing:
+            raise ValueError(
+                "fundraising provider relationship evidence IDs missing from card: "
+                f"{sorted(provider_relationship_evidence_missing)}"
+            )
         relationship_missing = {
             evidence_id
             for relationship in self.relationships
