@@ -14,7 +14,7 @@ from charitygraph.scale_s0 import RoutingClass, SendRequest
 from charitygraph.s0_orchestration import ScaleS0Executor, S0LocatorWork, S0SemanticWork, summary_json
 from charitygraph.phase5_standard_transport import OpenAIHTTPStandardClient
 from charitygraph.s0_live import canonical_locator_provider_factory
-from charitygraph.s0_live_preparation import HumanA3Input, persist_explicit_a3, prepare_locator_lifecycle
+from charitygraph.s0_live_preparation import HumanA3Input, persist_explicit_a3, prepare_locator_lifecycle, validate_explicit_a3
 from charitygraph.s0_pricing import load_supervisor_capture
 from charitygraph.scale_s0 import ExecutionAttemptIdentity, FrozenPacket
 from datetime import datetime, timezone
@@ -44,6 +44,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--observed-value")
     parser.add_argument("--provider-project")
     parser.add_argument("--execution-authority")
+    parser.add_argument("--structured-authority", type=Path, help="canonical structured A3 authority JSON")
+    parser.add_argument("--structured-authority-sha256", help="canonical hash of --structured-authority")
     args = parser.parse_args(argv)
     material = json.loads(args.work.read_text(encoding="utf-8"))
     semantic = tuple(S0SemanticWork(str(item["packet_id"]), dict(item["row"]), _request(item["request"])) for item in material.get("semantic", ()))
@@ -56,8 +58,31 @@ def main(argv: list[str] | None = None) -> int:
             snapshot = load_supervisor_capture(args.pricing_capture, expected_sha256=args.pricing_capture_sha256)
         provider = None
         factory = None
+        a3_fields = (args.cohort_id, args.attested_by, args.observed_at, args.setting_name,
+                     args.observed_value, args.provider_project, args.execution_authority,
+                     args.structured_authority, args.structured_authority_sha256)
+        if args.preflight:
+            # A provider-free rehearsal is still an S0 entry path.  Letting an
+            # entirely omitted A3 tuple bypass this branch made an empty-work
+            # preflight look valid without proving any current authority.
+            if any(value is None for value in a3_fields):
+                raise SystemExit("structured preflight requires complete explicit A3 fields")
+            row = catalog.get_scale_s0_execution_attempt(args.attempt_id)
+            if row is None:
+                raise SystemExit("durable execution attempt is absent")
+            attempt = ExecutionAttemptIdentity(**{name: row["material"][name] for name in ExecutionAttemptIdentity.__dataclass_fields__})
+            observed = datetime.fromisoformat(args.observed_at)
+            structured = json.loads(args.structured_authority.read_text(encoding="utf-8"))
+            # This deliberately performs no registration.  A provider-free
+            # rehearsal cannot manufacture a human A3 or consume a reservation.
+            validate_explicit_a3(catalog, attempt=attempt,
+                                 attestation=HumanA3Input(args.attested_by, observed, args.setting_name,
+                                                           args.observed_value, args.provider_project,
+                                                           args.execution_authority, structured,
+                                                           args.structured_authority_sha256),
+                                 now=datetime.now(timezone.utc))
         if not args.preflight:
-            required = (args.cohort_id, args.attested_by, args.observed_at, args.setting_name, args.observed_value, args.provider_project, args.execution_authority, snapshot)
+            required = (*a3_fields, snapshot)
             if any(value is None for value in required):
                 raise SystemExit("live execution requires explicit cohort, A3 fields, project, authority, and pricing capture")
             row = catalog.get_scale_s0_execution_attempt(args.attempt_id)
@@ -65,7 +90,8 @@ def main(argv: list[str] | None = None) -> int:
                 raise SystemExit("durable execution attempt is absent")
             attempt = ExecutionAttemptIdentity(**{name: row["material"][name] for name in ExecutionAttemptIdentity.__dataclass_fields__})
             observed = datetime.fromisoformat(args.observed_at)
-            window = persist_explicit_a3(catalog, attempt=attempt, attestation=HumanA3Input(args.attested_by, observed, args.setting_name, args.observed_value, args.provider_project, args.execution_authority), now=datetime.now(timezone.utc))
+            structured = json.loads(args.structured_authority.read_text(encoding="utf-8"))
+            window = persist_explicit_a3(catalog, attempt=attempt, attestation=HumanA3Input(args.attested_by, observed, args.setting_name, args.observed_value, args.provider_project, args.execution_authority, structured, args.structured_authority_sha256), now=datetime.now(timezone.utc))
             for item in locator:
                 stored = catalog.get_scale_s0_frozen_packet(item.packet_id)
                 packet = FrozenPacket(**{name: stored["material"][name] for name in FrozenPacket.__dataclass_fields__ if name in stored["material"]})

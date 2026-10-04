@@ -2,13 +2,21 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import pytest
 
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.runtime.catalog import canonical_execution_configuration_hash
 from charitygraph.s0_locator_discovery import freeze_locator_search_packet, prepare_locator_search_request
+from charitygraph.s0_live_preparation import checkpoint_structured_locator_preprovider
+from charitygraph.s0_structured_authority import (
+    FrozenLocatorQueries, GovernedLocatorBinding, LocatorAuthorityMaterial,
+    frozen_locator_material_sha256,
+)
 from charitygraph.scale_s0 import ExecutionAttemptIdentity, ScaleS0Preflight
+from charitygraph.scale_s0 import ScalePreflightError
 from charitygraph.scale_s0 import locator_search_request_body_sha256
 from charitygraph.s0_pricing import load_supervisor_capture
 from scripts.run_scale_s0 import main
@@ -57,7 +65,7 @@ def _make_catalog(path: Path, subjects: tuple[str, ...], pricing_id: str):
     return attempt, work
 
 
-def test_three_item_cli_rehearsal_is_sequential_and_exactly_once(tmp_path, monkeypatch):
+def test_live_cli_rejects_legacy_opaque_a3_rehearsal_before_provider_construction(tmp_path, monkeypatch):
     snapshot = load_supervisor_capture(CAPTURE, expected_sha256=CAPTURE_SHA)
     db = tmp_path / "rehearsal.sqlite3"
     attempt, work = _make_catalog(db, ("subject:locator", "subject:locator", "subject:locator"), snapshot.record_id)
@@ -75,28 +83,118 @@ def test_three_item_cli_rehearsal_is_sequential_and_exactly_once(tmp_path, monke
     argv = ["--catalog", str(db), "--attempt-id", attempt.attempt_id, "--builder-commit-sha", "a" * 40, "--runtime-root", str(tmp_path), "--work", str(work_path),
             "--pricing-capture", str(CAPTURE), "--pricing-capture-sha256", CAPTURE_SHA, "--cohort-id", "cohort:locator", "--attested-by", "Greg",
             "--observed-at", now, "--setting-name", "Share inputs and outputs with OpenAI", "--observed-value", "Disabled", "--provider-project", PROJECT, "--execution-authority", "authority:rehearsal"]
+    # The legacy fixture deliberately has no structured checkpoint/material.
+    # It must stop before constructing a client or emitting a provider POST.
+    with pytest.raises(SystemExit, match="A3 fields"):
+        main(argv)
+    assert not posts
+
+
+def test_structured_a3_preflight_reaches_provider_boundary_without_attestation_or_provider(tmp_path, monkeypatch):
+    """The production CLI validates Attempt 21's whole pre-provider contract.
+
+    This is intentionally a clean-room fixture: no pricing capture, provider
+    client, A3 record, reservation, transport trace, or network call exists.
+    """
+    mandate, registry, routing, policies = _authority()
+    policies = dict(policies)
+    policies["population"] = __import__("dataclasses").replace(
+        policies["sampling"], policy_id="population:clean-room", content_hash="e" * 64,
+    )
+    mandate = __import__("dataclasses").replace(
+        mandate, mandate_id="scale-s0-authorised-balanced-v3", subject_ids=("74068758654",),
+        policy_hashes={**mandate.policy_hashes, "population": policies["population"].content_hash},
+    )
+    attempt = _attempt(mandate)
+    attempt = __import__("dataclasses").replace(
+        attempt, attempt_id="attempt:s0:21", run_id="run:s0:attempt-21",
+        mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash,
+        builder_commit_sha="a" * 40, data_commit_sha="b" * 40,
+    )
+    attempt = __import__("dataclasses").replace(attempt, configuration_hash=canonical_execution_configuration_hash(**{
+        key: getattr(attempt, key) for key in (
+            "mandate_hash", "slice_id", "run_id", "builder_repository", "builder_commit_sha",
+            "data_repository", "data_commit_sha", "bridge_certification", "bridge_version",
+            "schema_version", "recovery_authority_ref",
+        )
+    }))
+    binding = GovernedLocatorBinding("locator-subject:v1:sha256:" + "c" * 64, "ABN", "74068758654")
+    frozen = (FrozenLocatorQueries(binding, ('"Clean Room Foundation" "74068758654"',)),)
+    policy_rows = [{"key": key, "policy_id": value.policy_id, "version": value.version,
+                    "hash": value.content_hash} for key, value in sorted(policies.items()) if key != "reservation"]
+    aggregate_policy_hash = __import__("hashlib").sha256(
+        json.dumps(policy_rows, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest().upper()
+    authority = LocatorAuthorityMaterial(
+        "CG-S0-PO-ATTEMPT21-CLEANROOM", attempt.attempt_id, attempt.run_id,
+        attempt.builder_commit_sha, attempt.data_commit_sha, PROJECT,
+        frozen_locator_material_sha256(frozen), (binding,), 1, "0.10", "0.10",
+        mandate_id=mandate.mandate_id, mandate_hash=mandate.identity_hash,
+        aggregate_policy_bundle_hash=aggregate_policy_hash, population_policy_hash=policies["population"].content_hash,
+    )
+    db = tmp_path / "clean-room.sqlite3"
+    with SQLiteCatalog(db).open(initialize=True) as catalog:
+        ScaleS0Preflight.register_durable_mandate(catalog, mandate, registry, routing, policies, {})
+        catalog.register_run({"record_id": attempt.run_id, "run_kind": "s0", "status": "planned",
+                              "configuration_hash": attempt.configuration_hash, "created_at": NOW})
+        ScaleS0Preflight.register_durable_execution_attempt(catalog, attempt)
+        initial = checkpoint_structured_locator_preprovider(catalog=catalog, attempt=attempt, authority=authority,
+                                                            frozen_subjects=frozen, now=NOW)
+        replayed = checkpoint_structured_locator_preprovider(catalog=catalog, attempt=attempt, authority=authority,
+                                                             frozen_subjects=frozen, now=NOW + timedelta(minutes=5))
+        assert replayed["material_hash"] == initial["material_hash"]
+    authority_path = tmp_path / "attempt21-authority.json"
+    authority_path.write_text(json.dumps(authority.material()), encoding="utf-8")
+    work_path = tmp_path / "work.json"
+    work_path.write_text('{"semantic": [], "locator": []}', encoding="utf-8")
+    monkeypatch.setattr("charitygraph.phase5_standard_transport.urlopen", lambda *_a, **_k: pytest.fail("provider called"))
+    argv = ["--catalog", str(db), "--attempt-id", attempt.attempt_id, "--builder-commit-sha", attempt.builder_commit_sha,
+            "--runtime-root", str(tmp_path), "--work", str(work_path), "--preflight", "--cohort-id", "cohort:clean-room",
+            "--attested-by", "Greg", "--observed-at", datetime.now(timezone.utc).isoformat(),
+            "--setting-name", "Share inputs and outputs with OpenAI", "--observed-value", "Disabled",
+            "--provider-project", PROJECT, "--execution-authority", authority.hash,
+            "--structured-authority", str(authority_path), "--structured-authority-sha256", authority.hash]
     assert main(argv) == 0
-    assert len(posts) == 3
-    assert [item[0] for item in posts] == ["POST", "POST", "POST"]
-    assert all(item[2].get("Openai-project") == PROJECT for item in posts)
-    assert all(json.loads(item[3])["tool_choice"] == {"type": "web_search"} for item in posts)
-    assert all(json.loads(item[3])["include"] == ["web_search_call.action.sources"] for item in posts)
-    assert sorted(json.loads(item[3])["input"] for item in posts) == sorted(item["query"] for item in work)
     with SQLiteCatalog(db).open() as catalog:
-        rows = catalog.list_provider_request_items(attempt.run_id)
-        assert len(rows) == 3 and all(row["status"] == "completed" for row in rows)
-        assert len({row["provider_request_item_id"] for row in rows}) == 3
-        assert len({row["physical_attempt_id"] for row in rows}) == 3
-        attempts = catalog.list_provider_request_attempts()
-        assert len(attempts) == 3 and len({row["delivery_attempt_id"] for row in attempts}) == 3
-        with catalog._connection() as conn:
-            traces = conn.execute("SELECT request_body_sha256 FROM standard_transport_traces ORDER BY delivery_attempt_id").fetchall()
-        assert sorted(row["request_body_sha256"] for row in traces) == sorted(
-            locator_search_request_body_sha256(item["query"]) for item in work)
-        assert sorted(__import__("hashlib").sha256(item[3]).hexdigest() for item in posts) == sorted(
-            row["request_body_sha256"] for row in traces)
-        with catalog._connection() as conn:
-            assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='actual'").fetchone()[0] == 3
-            assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='reservation_release'").fetchone()[0] == 3
-    assert main(argv) == 0
-    assert len(posts) == 3
+        checkpoint = catalog.get_scale_s0_locator_preprovider_checkpoint(
+            execution_attempt_id=attempt.attempt_id, authority_hash=authority.hash)
+        assert checkpoint is not None
+        assert checkpoint["material"]["authority"] == authority.material()
+        assert checkpoint["material"]["frozen_subjects"] == [item.material() for item in frozen]
+        assert checkpoint["material"]["a3_state"] == "pending"
+        for table in ("scale_s0_attestation_windows", "budget_reservations", "provider_request_attempts"):
+            with catalog._connection() as conn:
+                assert conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] == 0
+
+    # Re-enter through the production CLI with hostile A3 variants.  These
+    # must fail before any durable reservation or provider construction.
+    bad_hash = list(argv)
+    bad_hash[bad_hash.index("--execution-authority") + 1] = "f" * 64
+    with pytest.raises(ScalePreflightError, match="hash does not match"):
+        main(bad_hash)
+    stale = list(argv)
+    stale[stale.index("--observed-at") + 1] = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+    with pytest.raises(ScalePreflightError, match="stale"):
+        main(stale)
+    authority_path.write_text('{"schema":"malformed"}', encoding="utf-8")
+    with pytest.raises(ScalePreflightError, match="legacy or incomplete"):
+        main(argv)
+    with SQLiteCatalog(db).open() as catalog:
+        for table in ("scale_s0_attestation_windows", "budget_reservations", "provider_request_attempts"):
+            with catalog._connection() as conn:
+                assert conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] == 0
+
+
+def test_structured_a3_preflight_rejects_incomplete_inputs_before_provider(tmp_path):
+    # Argument completeness is covered at the production boundary, not just
+    # by authority helper tests.
+    db = tmp_path / "empty.sqlite3"
+    SQLiteCatalog(db).open(initialize=True).close()
+    work = tmp_path / "work.json"; work.write_text("{}", encoding="utf-8")
+    with pytest.raises(SystemExit, match="structured preflight requires complete explicit A3 fields"):
+        main(["--catalog", str(db), "--attempt-id", "attempt:s0:21", "--builder-commit-sha", "a" * 40,
+              "--runtime-root", str(tmp_path), "--work", str(work), "--preflight", "--cohort-id", "x"])
+    # An entirely omitted A3 tuple was previously able to bypass the
+    # conditional validation branch when the work list was empty.
+    with pytest.raises(SystemExit, match="structured preflight requires complete explicit A3 fields"):
+        main(["--catalog", str(db), "--attempt-id", "attempt:s0:21", "--builder-commit-sha", "a" * 40,
+              "--runtime-root", str(tmp_path), "--work", str(work), "--preflight"])

@@ -895,14 +895,26 @@ class SQLiteCatalog:
             attempt = conn.execute("SELECT * FROM scale_s0_execution_attempts WHERE attempt_id=?", (material["execution_attempt_id"],)).fetchone()
             if attempt is None or (attempt["mandate_id"], attempt["slice_id"], attempt["run_id"]) != (material["mandate_id"], material["slice_id"], material["run_id"]):
                 raise ConflictError("attestation window execution binding is absent or stale")
+            def hydrate(row: sqlite3.Row) -> dict[str, Any]:
+                """Return the typed authority callers must compare, never JSON text."""
+                result = dict(row)
+                raw = result.get("structured_authority_json")
+                if raw is not None:
+                    try:
+                        result["structured_authority"] = json.loads(raw)
+                    except (TypeError, json.JSONDecodeError) as error:
+                        raise CatalogError("S0 attestation window structured authority JSON is corrupt") from error
+                    if _canonical_hash(result["structured_authority"]) != result.get("structured_authority_hash"):
+                        raise CatalogError("S0 attestation window structured authority hash is corrupt")
+                return result
             prior = conn.execute("SELECT * FROM scale_s0_attestation_windows WHERE window_id=?", (material["window_id"],)).fetchone()
             if prior is not None:
                 if prior["material_hash"] != material_hash:
                     raise ConflictError("S0 attestation window identity conflict")
-                return dict(prior)
+                return hydrate(prior)
             conn.execute("INSERT INTO scale_s0_attestation_windows(window_id,execution_attempt_id,mandate_id,slice_id,run_id,attested_by,setting_name,observed_value,provider_account_project,execution_authority,observed_at,valid_until,material_json,material_hash,structured_authority_hash,structured_authority_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tuple(material[field] for field in fields) + (self._json(material), material_hash, structured_hash, self._json(structured) if structured else None))
             self._commit(conn)
-            return dict(conn.execute("SELECT * FROM scale_s0_attestation_windows WHERE window_id=?", (material["window_id"],)).fetchone())
+            return hydrate(conn.execute("SELECT * FROM scale_s0_attestation_windows WHERE window_id=?", (material["window_id"],)).fetchone())
 
     def invalidate_scale_s0_attestation_window(self, *, window_id: str, invalidation_id: str, reason: str, invalidated_at: datetime | str) -> dict[str, Any]:
         self._require_migrated()

@@ -53,6 +53,10 @@ def test_abn_alias_cannot_be_a_governed_subject():
 
 
 def test_structured_authority_rejects_unallocated_future_attempt():
+    _authority().validate()
+    with pytest.raises(ScalePreflightError, match="superseded"):
+        replace(_authority(), attempt_id="attempt:s0:20").validate()
+    replace(_authority(), attempt_id="attempt:s0:20").validate(historical=True)
     with pytest.raises(ScalePreflightError, match="unknown S0 attempt"):
         replace(_authority(), attempt_id="attempt:s0:22").validate()
 

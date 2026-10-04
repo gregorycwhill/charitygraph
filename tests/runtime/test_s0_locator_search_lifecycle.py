@@ -181,6 +181,36 @@ def test_real_locator_packet_lifecycle_is_durable_priced_source_free_and_exactly
         live.provider_send(prepared.request, now=NOW)
 
 
+def test_restart_after_durable_send_started_can_only_record_the_existing_receipt(tmp_path):
+    """A crash after send-started must not turn one physical request into two."""
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    gate = S0LocatorSearchExecutionGate(preflight=live, request=prepared.request, catalog=catalog,
+                                        delivery_attempt_id=prepared.delivery_attempt_id,
+                                        client_request_id=prepared.client_request_id,
+                                        request_identity=packet.provider_request_identity, now=NOW)
+    gate.begin(request_identity=packet.provider_request_identity, locator_subject_ref=SUBJECT,
+               locator_abn=ABN, query=packet.locator_query)
+
+    # Rebuild both the catalogue and preflight as production recovery does.
+    restarted_catalog = SQLiteCatalog(tmp_path / "locator.sqlite3").open()
+    restarted_live = ScaleS0Preflight.from_catalog(
+        restarted_catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    recovered = S0LocatorSearchExecutionGate(
+        preflight=restarted_live, request=prepared.request, catalog=restarted_catalog,
+        delivery_attempt_id=prepared.delivery_attempt_id,
+        client_request_id=prepared.client_request_id,
+        request_identity=packet.provider_request_identity, now=NOW)
+    assert recovered.crossing_started and recovered.provider_posts == 1
+    with pytest.raises(ScalePreflightError, match="already durably started"):
+        recovered.begin(request_identity=packet.provider_request_identity, locator_subject_ref=SUBJECT,
+                        locator_abn=ABN, query=packet.locator_query)
+    recovered.complete(provider_receipt_id="response:recovered", result_ref="provider-response:recovered",
+                       usage={"total_tokens": 1})
+    assert restarted_catalog.get_provider_request_item(packet.provider_request_identity)["status"] == "completed"
+    assert restarted_catalog.get_physical_receipt(prepared.request.physical_attempt_id)["provider_receipt_id"] == "response:recovered"
+
+
 def test_legacy_locator_trace_body_fails_closed_before_send_started(tmp_path):
     catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
     with catalog._connection(immediate=True) as conn:
