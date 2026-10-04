@@ -1,0 +1,19 @@
+{
+  "card": {
+    "causebase_id": "cb_card_fundraising", "legal_name": "Card Fundraising Example", "display_name": "Card Fundraising Example", "entity_status": "registered", "causebase_summary": "Fixture-only governed fundraising example.", "dataset_version": "test", "built_at": "2026-10-04T00:00:00Z",
+    "evidence": [
+      {"evidence_id": "ev_current", "source_type": "organisation_self_report", "title": "Current practice statement", "observed_at": "2026-09-01"},
+      {"evidence_id": "ev_historical", "source_type": "organisation_self_report", "title": "Historical campaign statement", "observed_at": "2024-08-31"},
+      {"evidence_id": "ev_money", "source_type": "regulatory", "title": "Audited financial statement", "observed_at": "2026-08-31"}
+    ],
+    "fundraising_practice_observed": [{"observation_id": "fp_card_f2f", "source_native_phrase": "face-to-face fundraising", "canonical_facets": ["fundraising.face_to_face"], "scope": {"scope_kind": "subject", "scope_subject_causebase_id": "cb_card_fundraising", "observed_at": "2026-09-01"}, "lifecycle": "current", "source_role": "direct_assertion", "evidence_ids": ["ev_current"]}],
+    "fundraising_campaign_observed": [{"observation_id": "fc_card_appeal", "campaign_name": "Winter Appeal", "source_native_phrase": "Winter community appeal", "canonical_facets": ["fundraising.community"], "scope": {"scope_kind": "program", "scope_subject_causebase_id": "cb_card_fundraising", "valid_from": "2024-06-01", "valid_to": "2024-08-31", "observed_at": "2024-08-31"}, "lifecycle": "historical", "source_role": "organisation_self_description", "evidence_ids": ["ev_historical"]}],
+    "coverage": [
+      {"capability": "fundraising_practices", "status": "observed", "evidence_ids": ["ev_current"], "observed_at": "2026-09-01", "freshness_note": "Currentness is limited to the stated practice and source date."},
+      {"capability": "fundraising_campaigns", "status": "not_found_in_source", "evidence_ids": ["ev_current"], "observed_at": "2026-09-01", "freshness_note": "No additional campaign is asserted outside the scoped source."},
+      {"capability": "fundraising_provider_relationships", "status": "unknown", "observed_at": "2026-09-01", "freshness_note": "No provider is inferred from the practice."},
+      {"capability": "fundraising_money", "status": "observed", "evidence_ids": ["ev_money"], "observed_at": "2026-08-31", "freshness_note": "Organisation-level amount is not allocated to a method or campaign."}
+    ]
+  },
+  "money_links": [{"measurement": {"observation_id": "fm_card_total_cost", "amount": {"source_amount": "125000", "source_currency": "AUD", "source_unit_scale": "1", "normalised_amount": "125000", "normalised_currency": "AUD"}, "measure_kind": "total_fundraising_cost", "source_wording": "Fundraising expenses", "evidence_ids": ["ev_money"], "period": {"period_start": "2025-07-01", "period_end": "2026-06-30", "period_length_days": 365, "label": "FY2026"}, "reporting_scope": "subject", "reporting_subject_causebase_id": "cb_card_fundraising", "recognition_basis": "accrual", "gross_net_basis": "not_applicable", "gst_treatment": "unknown", "pass_through_treatment": "not_applicable", "cost_attribution": "direct", "allocation_method": "direct_source_reported", "amount_is_approximate": false, "source_role": "audited_financial_statement", "assurance": "audited"}, "linkage_status": "unknown", "attributed_scope_kind": "organisation", "reporting_entity_causebase_id": "cb_card_fundraising", "note": "Not attributed to a practice or campaign."}]
+}
