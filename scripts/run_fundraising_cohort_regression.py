@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from collections import Counter
 from datetime import date
 from pathlib import Path
@@ -117,7 +118,11 @@ def main() -> None:
     parser.add_argument("--fixture", type=Path, default=Path("tests/fixtures/fundraising_cohort_regression.json"))
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    started = time.perf_counter()
     report = build_report(json.loads(args.fixture.read_text(encoding="utf-8")))
+    # This deliberately measures only deterministic local projection.  It is
+    # not a claim about retrieval, provider, or human-review throughput.
+    report["runtime_and_cost"]["projection_elapsed_ms"] = round((time.perf_counter() - started) * 1000, 3)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 

@@ -154,6 +154,7 @@
   },
   "runtime_and_cost": {
     "bottleneck": "independent source-rights, identity and review adjudication; not compute cost",
+    "projection_elapsed_ms": 1.451,
     "provider_calls": 0,
     "runner_mode": "deterministic local fixture projection",
     "source_retrieval_performed": false

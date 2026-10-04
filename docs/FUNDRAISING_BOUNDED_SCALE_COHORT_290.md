@@ -24,4 +24,4 @@ Review examples are emitted by stable case id: incompatible finance (`s11`, `s36
 
 ## Runtime and cost
 
-The runner is deterministic and local: zero source retrievals and zero provider calls. Runtime/cost is therefore not a deployment estimate. The measured operational bottleneck is the next required work: rights-cleared source retention, independent identity binding and review adjudication. Until that is supplied, this cohort remains local review only and cannot stand in for Top-100, source-family coverage, or a public product surface.
+The runner is deterministic and local: zero source retrievals and zero provider calls. Its report records the machine-local projection elapsed time for each run; that timing excludes file discovery, source acquisition and human review, so it is not a deployment estimate. The measured operational bottleneck is the next required work: rights-cleared source retention, independent identity binding and review adjudication. Until that is supplied, this cohort remains local review only and cannot stand in for Top-100, source-family coverage, or a public product surface.
