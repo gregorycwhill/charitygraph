@@ -21,12 +21,9 @@ def test_direct_fundraising_estimate():
     assert estimate.confidence == "high"
 
 
-def test_heuristic_fundraising_estimate_excludes_unrelated_cost():
+def test_legacy_keyword_heuristic_is_quarantined_from_canonical_facts():
     estimate = estimate_fundraising(entities()[1])
-    assert estimate.normalised_amount == 87000
-    assert estimate.method == "heuristic_estimate"
-    assert {c.label for c in estimate.components} == {"Marketing", "Public relations"}
-    assert estimate.rule_id == "CB-FUND-H03"
+    assert estimate is None
 
 
 def test_no_evidence_returns_unavailable_and_ignores_legacy_prior_input():

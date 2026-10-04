@@ -18,7 +18,7 @@ def _fixture_observation(value: object) -> MoneyObservation:
 
 
 def estimate_fundraising(source: dict) -> FundraisingEstimate | None:
-    """Return an evidence-backed estimate, or ``None`` when unavailable.
+    """Legacy display helper; canonical finance facts use the typed adapters.
 
     Fundraising expenditure has no universal prior or peer-imputation fallback.
     """
@@ -42,40 +42,6 @@ def estimate_fundraising(source: dict) -> FundraisingEstimate | None:
             note="Explicit fundraising expenditure disclosed by the organisation.",
         )
 
-    heuristic_labels = {
-        "marketing",
-        "public relations",
-        "pr",
-        "fundraising events",
-        "donor acquisition",
-    }
-    components = []
-    for row in fr.get("expense_components", []):
-        if row["label"].strip().lower() in heuristic_labels:
-            components.append(
-                FundraisingComponent(
-                    label=row["label"],
-                    amount=_fixture_observation(row["value"]),
-                    evidence_ids=list(row.get("evidence_ids", [])),
-                )
-            )
-
-    if components:
-        value = sum((c.amount.normalised_amount for c in components), Decimal("0"))
-        evidence_ids = sorted({eid for c in components for eid in c.evidence_ids})
-        return FundraisingEstimate(
-            normalised_amount=value,
-            normalised_currency="AUD",
-            reporting_period_label=period,
-            financial_record_id=financial_record_id,
-            method="heuristic_estimate",
-            confidence="medium",
-            evidence_ids=evidence_ids,
-            components=components,
-            rule_id="CB-FUND-H03",
-            note="Marketing, public-relations and clearly fundraising-related components included by demo rule CB-FUND-H03.",
-        )
-
-    # Absence is a valid result.  Coverage records explain why the capability
-    # is unavailable; do not manufacture a scalar from total expenses or peers.
+    # Do not turn marketing, PR, events, or donor acquisition wording into a
+    # canonical fundraising cost.  Older demo heuristic outputs are quarantined.
     return None
