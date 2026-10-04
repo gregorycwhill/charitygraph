@@ -19,3 +19,19 @@ Face-to-face (F2F) is represented as a scoped, evidence-bound fundraising-practi
 A declared `valid_to` is a hard temporal boundary: a source-adapter assertion cannot be labelled `current` beyond it. Likewise, `discontinued` requires an explicit cessation boundary; an undated assertion does not manufacture one. `not_found_in_scoped_source` records only the declared search universe and is never rendered or stored as practice absence.
 
 Every input retains source wording, evidence id, observation date, optional valid interval, source role, binding status, and scope. Source adapters/semantic adjudication determine source-native meaning; `decide_f2f_currentness` is only the deterministic governance step.
+
+## Generic practice compiler integration
+
+`compile_f2f_practice_observations` composes this lifecycle decision with the
+generic fundraising compiler for review-only use.  It requires a matching
+common `FundraisingEvidence` record so that every possible practice candidate
+also retains source identity, locator, binding basis, production method, review
+status and coverage.  The two records must agree exactly on evidence id,
+binding, wording, observation/valid time and scope.
+
+Only a lifecycle decision with `practice_observed: true` can create the
+`fundraising.face_to_face` candidate.  PFRA membership, scoped source silence,
+unknown lifecycle, and ambiguous/unresolved binding remain lifecycle/coverage
+records with no candidate.  A current, recent or discontinued candidate also
+requires the common record to explicitly assert currentness; historical annual
+report evidence remains historical rather than a current claim.
