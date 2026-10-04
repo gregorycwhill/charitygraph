@@ -5,6 +5,7 @@ import pytest
 
 from charitygraph.fundraising import estimate_fundraising
 from charitygraph.models import FundraisingEstimate
+from charitygraph.pipeline import build_card
 
 
 FIXTURE = Path("tests/fixtures/source/entities.json")
@@ -21,12 +22,19 @@ def test_direct_fundraising_estimate():
     assert estimate.confidence == "high"
 
 
-def test_heuristic_fundraising_estimate_excludes_unrelated_cost():
+def test_component_labels_do_not_create_a_fundraising_estimate():
     estimate = estimate_fundraising(entities()[1])
-    assert estimate.normalised_amount == 87000
-    assert estimate.method == "heuristic_estimate"
-    assert {c.label for c in estimate.components} == {"Marketing", "Public relations"}
-    assert estimate.rule_id == "CB-FUND-H03"
+    assert estimate is None
+
+
+def test_generic_card_pipeline_quarantines_component_label_inference():
+    card = build_card(entities()[1], dataset_version="test")
+    assert card.fundraising_expenditure is None
+    assert any(
+        observation.capability == "fundraising_expenditure"
+        and observation.status == "not_yet_processed"
+        for observation in card.coverage
+    )
 
 
 def test_no_evidence_returns_unavailable_and_ignores_legacy_prior_input():

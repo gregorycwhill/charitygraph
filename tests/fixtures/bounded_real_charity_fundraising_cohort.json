@@ -1,0 +1,18 @@
+{
+  "fixture_version": "1.0",
+  "selection_basis": "Existing local reality-spike discovery seeds only. Names are cohort handles, not resolved subjects and not fundraising evidence.",
+  "cohort": [
+    {"name": "Australian Red Cross Society", "stratum": "large_national", "identity": "unresolved", "fundraising_evidence": "not_processed", "finance": "not_processed"},
+    {"name": "World Vision Australia", "stratum": "large_international", "identity": "unresolved", "fundraising_evidence": "not_processed", "finance": "not_processed"},
+    {"name": "Oxfam Australia", "stratum": "advocacy_international", "identity": "unresolved", "fundraising_evidence": "not_processed", "finance": "not_processed"},
+    {"name": "Mission Australia", "stratum": "large_national_service", "identity": "unresolved", "fundraising_evidence": "not_processed", "finance": "not_processed"},
+    {"name": "Cancer Council Victoria", "stratum": "state_research_and_services", "identity": "unresolved", "fundraising_evidence": "not_processed", "finance": "not_processed"},
+    {"name": "Bush Heritage Australia", "stratum": "environment_membership", "identity": "unresolved", "fundraising_evidence": "not_processed", "finance": "not_processed"},
+    {"name": "The Smith Family", "stratum": "education", "identity": "unresolved", "fundraising_evidence": "not_processed", "finance": "not_processed"},
+    {"name": "Asylum Seeker Resource Centre", "stratum": "refugee_services_advocacy", "identity": "unresolved", "fundraising_evidence": "not_processed", "finance": "not_processed"},
+    {"name": "Lifeline Australia", "stratum": "federated_brand", "identity": "unresolved", "fundraising_evidence": "not_processed", "finance": "not_processed"},
+    {"name": "Orange Sky Australia", "stratum": "mobile_service", "identity": "unresolved", "fundraising_evidence": "not_processed", "finance": "not_processed"}
+  ],
+  "retained_review_fixture": "tests/fixtures/fundraising_review_profile.json",
+  "boundary": "The retained four-subject review fixture is anonymous and may not be joined to these real-charity cohort handles. No source acquisition, identity resolution, or fundraising claim occurs here."
+}

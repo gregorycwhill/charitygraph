@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from .models import FundraisingComponent, FundraisingEstimate, MoneyObservation
+from .models import FundraisingEstimate, MoneyObservation
 
 
 def _fixture_observation(value: object) -> MoneyObservation:
@@ -42,40 +42,9 @@ def estimate_fundraising(source: dict) -> FundraisingEstimate | None:
             note="Explicit fundraising expenditure disclosed by the organisation.",
         )
 
-    heuristic_labels = {
-        "marketing",
-        "public relations",
-        "pr",
-        "fundraising events",
-        "donor acquisition",
-    }
-    components = []
-    for row in fr.get("expense_components", []):
-        if row["label"].strip().lower() in heuristic_labels:
-            components.append(
-                FundraisingComponent(
-                    label=row["label"],
-                    amount=_fixture_observation(row["value"]),
-                    evidence_ids=list(row.get("evidence_ids", [])),
-                )
-            )
-
-    if components:
-        value = sum((c.amount.normalised_amount for c in components), Decimal("0"))
-        evidence_ids = sorted({eid for c in components for eid in c.evidence_ids})
-        return FundraisingEstimate(
-            normalised_amount=value,
-            normalised_currency="AUD",
-            reporting_period_label=period,
-            financial_record_id=financial_record_id,
-            method="heuristic_estimate",
-            confidence="medium",
-            evidence_ids=evidence_ids,
-            components=components,
-            rule_id="CB-FUND-H03",
-            note="Marketing, public-relations and clearly fundraising-related components included by demo rule CB-FUND-H03.",
-        )
-
-    # Absence is a valid result.  Coverage records explain why the capability
-    # is unavailable; do not manufacture a scalar from total expenses or peers.
+    # Labels are not an attribution rule.  A generic card builder cannot turn
+    # marketing, events, public-relations, or donor-acquisition rows into a
+    # fundraising amount: their source-native scope and component treatment
+    # must be governed by the typed finance path before any reconstruction or
+    # bounds can be considered.
     return None
