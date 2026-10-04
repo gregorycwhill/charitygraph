@@ -12,11 +12,14 @@ DATA_PACKAGE = Path(os.environ.get("CHARITYGRAPH_S0_DATA_PACKAGE", Path(__file__
 
 
 def copy_package(source: Path, target: Path) -> None:
-    for item in source.rglob("*"):
-        if item.is_file() and ".git" not in item.parts:
-            destination = target / item.relative_to(source)
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(item, destination)
+    # The authority loader consumes only its top-level S0 artifacts and the
+    # policy tree.  Copying the entire Data repository pulls immutable release
+    # records into a short pytest path (and is neither necessary nor portable
+    # on Windows).
+    for item in source.glob("SCALE_S0_*"):
+        if item.is_file():
+            shutil.copyfile(item, target / item.name)
+    shutil.copytree(source / "policies", target / "policies", dirs_exist_ok=True)
 
 
 def test_authorised_production_package_validates_without_synthetic_approval() -> None:
