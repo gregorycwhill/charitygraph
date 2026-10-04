@@ -51,6 +51,16 @@ def classify_relationship(
         return ARCHITECTURE_GAP
     source_subject, source_kind = _scope(source)
     target_subject, target_kind = _scope(target)
+    # The task output carries the endpoint kind as well as the ID.  Treat a
+    # disagreement with the registered scope as a structural gap, rather than
+    # letting the registered kind silently reinterpret provider output.  This
+    # keeps a role from being persisted under a different scope type than the
+    # one that was reviewed with the evidence packet.
+    if (
+        relationship.source_scope_kind != source_kind
+        or relationship.target_scope_kind != target_kind
+    ):
+        return ARCHITECTURE_GAP
     if source_subject == target_subject:
         if source_kind == "organisation" and target_kind in {"program", "service"}:
             return PARTY_ROLE_IN_SCOPE
@@ -126,6 +136,16 @@ def build_party_role_projection(
         role=relationship.role,
         context_record_id=observation_id,
         scope_id=scope_id,
+        valid_from=(
+            relationship.observation_time.effective_from
+            if relationship.observation_time is not None
+            else None
+        ),
+        valid_to=(
+            relationship.observation_time.effective_to
+            if relationship.observation_time is not None
+            else None
+        ),
         lineage=(
             LineageEdge(edge_type="derived_from", source_artifact_id=role_id, target_artifact_id=observation_id),
             LineageEdge(edge_type="derived_from", source_artifact_id=role_id, target_artifact_id=recovery_result_id),

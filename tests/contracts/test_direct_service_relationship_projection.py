@@ -62,8 +62,20 @@ def test_distinct_durable_subjects_remain_subject_relationships():
     assert classify_relationship(relationship, scopes, durable_subject_ids={ORG, OTHER}) == SUBJECT_TO_SUBJECT
 
 
+def test_declared_scope_kinds_must_match_registered_scopes():
+    relationship = _relationship()
+    scopes = {
+        ORG_SCOPE: _scope(ORG_SCOPE, ORG, "service"),
+        SERVICE: _scope(SERVICE, ORG, "service"),
+    }
+    assert classify_relationship(relationship, scopes, durable_subject_ids={ORG}) == ARCHITECTURE_GAP
+
+
 def test_service_scope_is_not_promoted_just_to_persist_a_relationship():
-    relationship = _relationship(source_scope_id=SERVICE, target_scope_id=SERVICE_2)
+    relationship = _relationship(
+        source_scope_id=SERVICE,
+        target_scope_id=SERVICE_2,
+    ).model_copy(update={"source_scope_kind": "service", "target_scope_kind": "service"})
     scopes = {
         SERVICE: _scope(SERVICE, ORG, "service"),
         SERVICE_2: _scope(SERVICE_2, ORG, "service"),
@@ -94,3 +106,26 @@ def test_party_role_projection_preserves_typed_role_scope_and_evidence_lineage()
         "modelresult:" + "7" * 32,
         "modeltask:" + "8" * 32,
     }
+
+
+def test_party_role_projection_preserves_relationship_effective_range():
+    relationship = DirectServiceRelationship.model_validate(_relationship().model_dump() | {
+        "observation_time": {
+            "observed_at": NOW,
+            "effective_from": "2026-01-01",
+            "effective_to": "2026-06-30",
+        },
+    })
+    _, party_role = build_party_role_projection(
+        relationship,
+        party_id=ORG,
+        scope_id=SERVICE,
+        source_record_ids=("srcrec:" + "6" * 32,),
+        recovery_result_id="modelresult:" + "7" * 32,
+        original_task_id="modeltask:" + "8" * 32,
+        relationship_index=0,
+        created_at=NOW,
+        producer={"kind": "code", "producer_id": "projection"},
+    )
+    assert party_role.valid_from.isoformat() == "2026-01-01"
+    assert party_role.valid_to.isoformat() == "2026-06-30"

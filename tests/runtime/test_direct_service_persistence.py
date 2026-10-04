@@ -129,3 +129,39 @@ def test_contextual_party_role_projection_is_evidence_bound_and_replayable(tmp_p
     assert {edge["target_record_id"] for edge in edges} == {observation.record_id, "modelresult:" + "7" * 32}
     assert catalog.integrity_check() == "ok"
     catalog.close()
+
+
+def test_contextual_party_role_round_trip_preserves_relationship_effective_range(tmp_path):
+    catalog = SQLiteCatalog(tmp_path / "role-time.sqlite3").open(initialize=True)
+    catalog.register_subject(_subject())
+    scope = ScopeRecord(
+        record_id="scope:" + "7" * 32,
+        created_at=NOW,
+        producer={"kind": "code", "producer_id": "fixture"},
+        subject_id=SUBJECT,
+        scope_kind="service",
+        label="Service",
+    )
+    catalog.register_scope(scope)
+    locator = catalog.register_evidence_locator(
+        EvidenceLocator(kind="document", source_record_id=SOURCE, page=1),
+        evidence_locator_id="S001:L0002",
+    )["evidence_locator_id"]
+    relationship = DirectServiceRelationship(
+        source_scope_kind="organisation", source_scope_id="scope:" + "8" * 32,
+        source_label="source", target_scope_kind="service", target_scope_id=scope.record_id,
+        target_label="target", role="operator", direction="source_to_target",
+        evidence=({"locator": locator, "role": "supporting"},),
+        observation_time={"observed_at": NOW, "effective_from": "2026-01-01", "effective_to": "2026-06-30"},
+    )
+    observation, party_role = build_party_role_projection(
+        relationship, party_id=SUBJECT, scope_id=scope.record_id,
+        source_record_ids=(SOURCE,), recovery_result_id="modelresult:" + "7" * 32,
+        original_task_id="modeltask:" + "8" * 32, relationship_index=0,
+        created_at=NOW, producer={"kind": "code", "producer_id": "fixture"},
+    )
+    persist_party_role_projection(catalog, observation, party_role, created_at=NOW)
+    stored = catalog.get_party_role(party_role.record_id)
+    assert stored["valid_from"] == "2026-01-01"
+    assert stored["valid_to"] == "2026-06-30"
+    catalog.close()
