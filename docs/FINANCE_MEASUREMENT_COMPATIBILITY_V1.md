@@ -6,7 +6,7 @@
 
 This contract extends, rather than replaces, `MoneyObservation` exact unit normalisation and the existing `Financials`, `FinancialStatementObservation`, `FinancialLineItem`, and `FunctionalExpenseAllocation` records. It never rewrites a printed financial-statement row or source label.
 
-`FundraisingMoneyMeasurement` carries the original wording, evidence, exact period, subject/consolidation identity, recognition, gross/net, GST, pass-through and cost-attribution treatment. Unknown is a valid persisted state and is incompatible for addition. `decide_addition_compatibility` is mechanical validation over supplied structured fields; it does not classify prose.
+`FundraisingMoneyMeasurement` carries the original wording, evidence, exact period, subject/consolidation identity, recognition, gross/net, GST, pass-through, cost-attribution, allocation method/basis, and approximation status. Unknown is a valid persisted state and is incompatible for addition. `decide_addition_compatibility` is mechanical validation over supplied structured fields; it does not classify prose.
 
 ## Decision rule
 
