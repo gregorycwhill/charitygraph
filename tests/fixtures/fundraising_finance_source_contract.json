@@ -1,0 +1,15 @@
+{
+  "contract_version": "1.0",
+  "source_families": [
+    "annual_report_or_financial_statements", "acnc_or_nscoa_return",
+    "state_fundraising_disclosure", "campaign_report", "platform_report",
+    "provider_record", "organisation_disclosure"
+  ],
+  "cases": {
+    "compatible_direct_campaign_components": "Two disjoint, source-grouped direct campaign costs may be added only after all measurement dimensions agree.",
+    "incompatible_organisation_campaign": "An organisation statement amount cannot be combined with, or promoted to, a campaign amount.",
+    "incompatible_allocated_direct": "An allocated component and a direct component remain separate.",
+    "incompatible_possible": "A possible component is retained for a bounds envelope, not deterministic addition.",
+    "incompatible_excluded": "An excluded component is retained as a reasoned exclusion, not an expense fact."
+  }
+}

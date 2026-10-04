@@ -34,7 +34,12 @@ AllocationMethod = Literal[
     "direct_source_reported", "source_reported_functional_allocation",
     "deterministic_reconstruction", "not_applicable", "unknown",
 ]
-SourceRole = Literal["audited_financial_statement", "regulator_return", "organisation_disclosure", "platform_report", "unknown"]
+SourceRole = Literal[
+    "audited_financial_statement", "annual_report", "regulator_return",
+    "acnc_return", "nscoa_mapping", "state_fundraising_disclosure",
+    "organisation_disclosure", "campaign_report", "platform_report",
+    "provider_record", "unknown",
+]
 Assurance = Literal["audited", "reviewed", "unaudited", "unknown"]
 
 
