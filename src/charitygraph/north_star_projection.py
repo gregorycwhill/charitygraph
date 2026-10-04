@@ -23,6 +23,20 @@ class NorthStarLensOutput(_Strict):
     projection_contract_id: ClassVar[Literal["north-star-v0.1"]] = "north-star-v0.1"
     assignments: tuple[SectionAssignment, ...]
 
+    @model_validator(mode="after")
+    def assigns_each_packet_key_once(self):
+        """Reject ambiguous lens output at the typed boundary.
+
+        The runner must still check its supplied key set, but duplicate output
+        keys are intrinsically invalid regardless of which runner consumes the
+        response.  Keeping this here prevents a later consumer from silently
+        choosing one of two section assignments for the same observation.
+        """
+        keys = tuple(item.observation_key for item in self.assignments)
+        if len(set(keys)) != len(keys):
+            raise ValueError("each observation_key may have one lens assignment")
+        return self
+
 
 class SectionAssignmentVNext(_Strict):
     observation_key: str = Field(pattern=r"^O[0-9]{3}$")
@@ -41,6 +55,13 @@ class SectionAssignmentVNext(_Strict):
 class NorthStarLensOutputVNext(_Strict):
     projection_contract_id: Literal["north-star-v0.2"]
     assignments: tuple[SectionAssignmentVNext, ...]
+
+    @model_validator(mode="after")
+    def assigns_each_packet_key_once(self):
+        keys = tuple(item.observation_key for item in self.assignments)
+        if len(set(keys)) != len(keys):
+            raise ValueError("each observation_key may have one lens assignment")
+        return self
 
 
 # Keep the historical lens wire schema stable for retained v0.1 outputs.
