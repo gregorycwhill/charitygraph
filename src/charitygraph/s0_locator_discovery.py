@@ -244,6 +244,24 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         self._transport_invoked = False
         self._physical_crossing = False
         self._last_send_authorizing_now: datetime | None = None
+        # A process may die after atomically recording send-started but before
+        # it can persist the provider receipt.  That state is recoverable for
+        # receipt/failure recording, but never for another POST.  Hydrate only
+        # the exact three-way crossing state; every partial or terminal shape
+        # remains fail-closed rather than being guessed into a lifecycle.
+        delivery = catalog.get_provider_request_attempt(delivery_attempt_id)
+        physical = catalog.get_physical_attempt(request.physical_attempt_id)
+        trace = catalog.get_standard_transport_trace(request.physical_attempt_id)
+        states = (
+            delivery.get("status") if delivery else None,
+            physical.get("status") if physical else None,
+            trace.get("status") if trace else None,
+        )
+        if states == ("send_started", "send_started", "CROSSING_STARTED"):
+            self._started = True
+            self._physical_crossing = True
+        elif states != ("prepared", "prepared", "NOT_SENT"):
+            raise ScalePreflightError("locator search durable lifecycle is incomplete, terminal, or ambiguous")
 
     def _now(self) -> datetime:
         value = self._clock()
@@ -278,6 +296,8 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
 
     def begin(self, *, request_identity: str, locator_subject_ref: str,
               locator_abn: str, query: str) -> None:
+        if self._started:
+            raise ScalePreflightError("locator search provider crossing is already durably started")
         if request_identity != self.request_identity:
             # The stable request identity is carried by the frozen packet and
             # cannot be substituted by a query caller.
