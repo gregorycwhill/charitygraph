@@ -629,6 +629,16 @@ class CandidateObservation(ArtifactRecord, Generic[PayloadT]):
     def _record_prefix(cls, value: str) -> str:
         return _prefix(value, "candidate:", "record_id")
 
+    @field_validator("subject_id")
+    @classmethod
+    def _subject(cls, value: str | None) -> str | None:
+        return None if value is None else _prefix(value, "subject:", "subject_id")
+
+    @field_validator("scope_id")
+    @classmethod
+    def _scope(cls, value: str | None) -> str | None:
+        return None if value is None else _prefix(value, "scope:", "scope_id")
+
     @field_validator("domain", "claim_basis_proposed", "extraction_method", "generation_policy_id")
     @classmethod
     def _text(cls, value: str) -> str:
@@ -773,6 +783,11 @@ class CanonicalObservation(ArtifactRecord, Generic[PayloadT]):
     @classmethod
     def _subject(cls, value: str) -> str:
         return _prefix(value, "subject:", "subject_id")
+
+    @field_validator("scope_id")
+    @classmethod
+    def _scope(cls, value: str | None) -> str | None:
+        return None if value is None else _prefix(value, "scope:", "scope_id")
 
     @field_validator("domain", "claim_basis", "extraction_method")
     @classmethod

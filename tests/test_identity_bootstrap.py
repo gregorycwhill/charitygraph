@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import csv
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
-from charitygraph.identity_bootstrap import _archive_rows, identity_map_hash
+from charitygraph.contracts import ArtifactRef, SchemaRef, SourceRecord, SubjectRecord, deterministic_id
+from charitygraph.identity_bootstrap import _archive_rows, _verify_identity_authority_ref, identity_map_hash
+from charitygraph.runtime import SQLiteCatalog
 
 
 def test_archive_identity_rows_require_exact_abn_and_name(tmp_path: Path) -> None:
@@ -39,3 +42,33 @@ def test_bootstrap_module_has_no_semantic_task_or_provider_entrypoint() -> None:
     assert "responses.create" not in text
     assert "model_task" not in text
     assert "provider_calls" not in text
+
+
+def test_reused_subject_identity_authority_mismatch_fails_without_rewriting_subject(tmp_path: Path) -> None:
+    """The bootstrap reuse path must not mutate governed subject identity evidence."""
+    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    catalog = SQLiteCatalog(tmp_path / "catalog.sqlite3").open(initialize=True)
+    source = SourceRecord(
+        record_id=deterministic_id("srcrec:", {
+            "source_family": "registry", "source_version": None,
+            "source_locator": "fixture://identity", "payload_hash": "3" * 64,
+        }), created_at=now,
+        producer={"kind": "code", "producer_id": "fixture"}, source_family="registry",
+        source_role="identity", source_locator="fixture://identity", observed_at=now,
+        payload_ref="artifact:" + "2" * 32, payload_hash="3" * 64,
+    )
+    catalog.register_source_record(source)
+    subject = SubjectRecord(
+        record_id="subjectrecord:" + "4" * 32, created_at=now,
+        producer={"kind": "human", "producer_id": "reviewer"}, subject_id="subject:" + "5" * 32,
+        subject_kind="organisation", lifecycle_status="active", identity_policy_id="identity-v1",
+        identity_authority_refs=(ArtifactRef(
+            artifact_id=source.record_id, content_hash="0" * 64,
+            schema=SchemaRef(schema_id="urn:charitygraph:builder:schema:source-record:1.0", schema_version="1.0"),
+        ),),
+    )
+    catalog.register_subject(subject)
+    before = catalog.get_subject(subject.subject_id)
+    with pytest.raises(RuntimeError, match="explicit identity correction"):
+        _verify_identity_authority_ref(catalog, subject.subject_id)
+    assert catalog.get_subject(subject.subject_id) == before

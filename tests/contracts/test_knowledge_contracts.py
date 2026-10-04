@@ -26,6 +26,17 @@ def test_candidate_identity_states_are_explicit():
         candidate(subject_id=SUBJECT, identity_state="ambiguous")
 
 
+def test_candidate_and_canonical_scope_identity_fields_are_typed_ids():
+    cand = candidate()
+    dec = decision(cand)
+    with pytest.raises(ValidationError, match="subject_id must use subject: typed ID"):
+        candidate(subject_id="abn:123", identity_state="resolved")
+    with pytest.raises(ValidationError, match="scope_id must use scope: typed ID"):
+        candidate(scope_id="program:unpromoted")
+    with pytest.raises(ValidationError, match="scope_id must use scope: typed ID"):
+        observation(cand, dec, scope_id="program:unpromoted")
+
+
 def test_candidate_fingerprint_changes_with_payload_not_creation_metadata():
     first = candidate()
     changed = candidate(record_id="candidate:" + "8" * 32, payload=Payload(value="different"))

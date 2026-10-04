@@ -106,24 +106,27 @@ def _source_record_hash(catalog: SQLiteCatalog, source_record_id: str) -> str:
     return canonical_sha256(SourceRecord.model_validate(json.loads(row["material_json"])))
 
 
-def _repair_identity_authority_ref(catalog: SQLiteCatalog, subject_id: str) -> None:
+def _verify_identity_authority_ref(catalog: SQLiteCatalog, subject_id: str) -> None:
+    """Require persisted identity evidence to remain byte-for-byte attributable.
+
+    A subject record is governed identity evidence, not a cache entry.  A stale
+    source hash therefore requires an explicit identity correction record; the
+    bootstrap path must never silently rewrite the existing subject material.
+    """
     with catalog._connection(immediate=True) as conn:
         row = conn.execute("SELECT material_json FROM subjects WHERE subject_id=?", (subject_id,)).fetchone()
         if row is None:
             return
         material = json.loads(row["material_json"])
-        changed = False
         for ref in material.get("identity_authority_refs") or []:
             source = conn.execute("SELECT material_json FROM source_records WHERE source_record_id=?", (ref.get("artifact_id"),)).fetchone()
             if source is not None:
                 source_hash = canonical_sha256(SourceRecord.model_validate(json.loads(source["material_json"])))
                 if ref.get("content_hash") != source_hash:
-                    ref["content_hash"] = source_hash
-                    changed = True
-        if changed:
-            encoded = json.dumps(material, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-            conn.execute("UPDATE subjects SET material_json=?, material_hash=? WHERE subject_id=?", (encoded, _canonical_hash(material), subject_id))
-            conn.commit()
+                    raise RuntimeError(
+                        "persisted identity authority hash differs from its governed SourceRecord; "
+                        "an explicit identity correction is required"
+                    )
 
 
 def _archive_rows(path: Path, cohort: list[dict[str, Any]]) -> dict[str, dict[str, str]]:
@@ -191,7 +194,7 @@ def bootstrap_cohort(*, catalog_path: Path, runtime_root: Path, cohort_path: Pat
             abn = str(cohort_row["abn"])
             existing = _existing_subject(catalog, abn)
             if existing:
-                _repair_identity_authority_ref(catalog, existing["subject_id"])
+                _verify_identity_authority_ref(catalog, existing["subject_id"])
                 source = catalog.get_source_record(existing["acnc_source_record_id"])
                 subject_material = json.loads(existing["material_json"])
                 created_by_bootstrap = (subject_material.get("producer") or {}).get("producer_id") == "phase5-top100-subject-bootstrap"
