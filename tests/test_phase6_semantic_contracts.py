@@ -391,6 +391,18 @@ def test_not_found_coverage_must_be_bound_to_the_defined_reviewed_universe():
         _coverage(item_overrides={"method": {"reviewed_source_record_ids": ("srcrec:outside",)}})
 
 
+@pytest.mark.parametrize("state", ("not_applicable", "unknown"))
+def test_coverage_applicability_cannot_escape_its_declared_evidence_universe(state):
+    overrides = {
+        "state": state,
+        "applicable_source_record_ids": ("srcrec:outside",),
+    }
+    if state == "not_applicable":
+        overrides["rationale"] = "This field does not apply to the defined organisation scope."
+    with pytest.raises(ValidationError, match="applicability is limited to sources"):
+        _coverage(item_overrides={"method": overrides})
+
+
 @pytest.mark.parametrize(
     ("state", "source_status"),
     [("source_unavailable", "source_unavailable"), ("not_processed", "not_processed"), ("processing_failed", "processing_failed"), ("not_acquired", "not_acquired"), ("unknown", "unknown")],

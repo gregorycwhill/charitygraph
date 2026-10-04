@@ -216,6 +216,8 @@ class ReviewedEvidenceCoverage(StrictModel):
         for item in self.items:
             if item.universe_id != self.universe.universe_id:
                 raise ValueError("coverage item must reference its containing reviewed evidence universe")
+            if any(source_id not in source_status for source_id in item.applicable_source_record_ids):
+                raise ValueError("coverage applicability is limited to sources in its containing reviewed evidence universe")
             for evidence in item.evidence:
                 if evidence.source_record_id not in source_status or source_status[evidence.source_record_id] != "reviewed":
                     raise ValueError("coverage evidence must bind to a reviewed source in this universe")
