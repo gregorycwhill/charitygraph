@@ -46,3 +46,20 @@ reconstructed, bounded and unavailable expenditure; explicit refusal of the
 two tempting arithmetic calculations; source-reported derivative provenance;
 and prohibited metric names. Finance compatibility and fundraising money-scope
 tests remain the adjacent contract checks.
+
+## Guarded integration record
+
+This change is a local unpublished commit on
+`terra/t06-enforce-safe-fundraising-financial-derivatives`:
+`5b1bc1db6833f8e59d0f889d0cd2bb6497ddcad3`. It is a follow-up to the isolated
+baseline commit `fe0c0d44efec0459b358f7533f25a39bf44dd1b8`.
+
+When a maintainer selects a clean target branch, the exact host-side inputs are:
+
+```text
+git cherry-pick fe0c0d44efec0459b358f7533f25a39bf44dd1b8
+git cherry-pick 5b1bc1db6833f8e59d0f889d0cd2bb6497ddcad3
+```
+
+No publication, merge, source acquisition, or public-contract action is
+authorised by this record.
