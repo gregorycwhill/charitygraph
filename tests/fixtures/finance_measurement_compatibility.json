@@ -1,0 +1,19 @@
+{
+  "contract_version": "1.0",
+  "source_examples": [
+    {
+      "name": "audited_statement_direct_cost_components",
+      "source_role": "audited_financial_statement",
+      "source_wording": "Direct fundraising costs — appeal A",
+      "evidence_id": "ev:annual-report:page-18",
+      "note": "Fixture only: the wording and grouping are retained; no allocation to fundraising method is implied."
+    },
+    {
+      "name": "regulator_return_donations",
+      "source_role": "regulator_return",
+      "source_wording": "Donations and bequests",
+      "evidence_id": "ev:regulator-return:2025",
+      "note": "A regulator field remains donations, not fundraising-generated revenue."
+    }
+  ]
+}
