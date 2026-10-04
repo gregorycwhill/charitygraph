@@ -53,6 +53,27 @@ def test_s0_executor_locator_dry_run_never_calls_provider(tmp_path):
     assert fake.calls == 0
 
 
+def test_s0_executor_rejects_a_lookalike_gate_before_provider_crossing(tmp_path):
+    """Only the real durable gate may take ownership of the provider seam."""
+    catalog, _, packet, prepared = _prepared_catalog(tmp_path)
+    fake = FakeLocator()
+
+    class LookalikeGate:
+        request_identity = packet.provider_request_identity
+        request = prepared.request
+
+    fake.execution_gate = LookalikeGate()
+    from .test_s0_locator_search_lifecycle import NOW
+    executor = ScaleS0Executor(catalog=catalog, attempt_id="attempt:locator", builder_commit_sha="a" * 40,
+                               runtime_root=tmp_path, locator_provider=fake, now=lambda: NOW)
+    work = S0LocatorWork(packet.packet_id, prepared.request, prepared.delivery_attempt_id,
+                         prepared.client_request_id, packet.locator_query)
+    with pytest.raises(ScalePreflightError, match="canonical durable execution gate"):
+        executor.run(locator=(work,))
+    assert fake.calls == 0
+    assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
+
+
 def test_s0_executor_locator_live_and_terminal_reentry_are_idempotent(tmp_path):
     catalog, _, packet, prepared = _prepared_catalog(tmp_path)
     fake = FakeLocator()

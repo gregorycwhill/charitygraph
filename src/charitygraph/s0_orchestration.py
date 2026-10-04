@@ -221,6 +221,12 @@ class ScaleS0Executor:
                                      if self.locator_provider_factory is not None else self.locator_provider)
             supplied_gate = getattr(item_locator_provider, "execution_gate", None)
             if supplied_gate is not None:
+                # A provider-owned gate is allowed only for the canonical
+                # durable gate.  Merely providing matching-looking request
+                # attributes must not let an adapter suppress begin(), since
+                # that would put an unproved object directly before search().
+                if not isinstance(supplied_gate, S0LocatorSearchExecutionGate):
+                    raise ScalePreflightError("locator provider must use the canonical durable execution gate")
                 if (getattr(supplied_gate, "request_identity", None) != packet.provider_request_identity
                         or getattr(getattr(supplied_gate, "request", None), "physical_attempt_id", None) != item.request.physical_attempt_id):
                     raise ScalePreflightError("locator provider gate is bound to a different request")
