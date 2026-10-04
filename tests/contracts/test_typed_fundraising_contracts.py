@@ -12,7 +12,7 @@ from charitygraph.models import (
     FundraisingProviderRelationship,
     SubjectRelationship,
 )
-from charitygraph.north_star_projection import project_fundraising
+from charitygraph.north_star_projection import FundraisingProjection, project_fundraising
 
 
 SCOPE = FundraisingObservationScope(
@@ -112,6 +112,13 @@ def test_projection_is_lossless_for_currentness_and_missingness_and_ignores_lega
     assert result.practices[0].lifecycle == "current"
     assert result.practices[1].coverage_status == "not_yet_processed"
     assert CauseBaseCard.model_json_schema()["properties"]["fundraising_methods"]["deprecated"] is True
+
+
+def test_existing_fundraising_projection_shape_remains_constructible_without_optional_section_data():
+    result = FundraisingProjection(practices=(), campaigns=(), provider_relationships=())
+    assert result.money == ()
+    assert result.coverage == ()
+    assert result.evidence == ()
 
 
 def test_duplicate_typed_assignments_fail_closed_on_the_card():
