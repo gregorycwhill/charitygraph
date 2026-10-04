@@ -15,6 +15,7 @@ from .finance_measurement import (
     FundraisingMoneyMeasurement,
     decide_addition_compatibility,
 )
+from .fundraising_finance_source_contract import FundraisingFinanceSourceObservation
 
 
 LINKAGE_CONTRACT_VERSION = "1.0"
@@ -96,4 +97,42 @@ def decide_linked_addition_compatibility(
         status="compatible" if not reasons else "incompatible",
         reasons=list(dict.fromkeys(reasons)),
         measurement_decision=measurement_decision,
+    )
+
+
+def link_source_observation_at_smallest_scope(
+    source: FundraisingFinanceSourceObservation,
+    *,
+    note: str | None = None,
+) -> FundraisingMoneyScopeLink:
+    """Create the only automatic money-to-scope link allowed by this contract.
+
+    The source observation is already a governed record of the source's
+    declared scope.  An organisation-level row therefore remains *unknown*
+    for downstream attribution, even where a practice, campaign, or provider
+    is present elsewhere in the review set.  A lower-grain row can be linked
+    only to that exact declared scope and identifier.  This deliberately has
+    no method-count, temporal-proximity, or presence-based fallback.
+    """
+    if source.coverage_status != "observed":
+        raise ValueError("only observed source facts can be linked to a fundraising scope")
+
+    reporting_entity = source.measurement.reporting_subject_causebase_id
+    if source.scope_kind == "organisation":
+        return FundraisingMoneyScopeLink(
+            measurement=source.measurement,
+            linkage_status="unknown",
+            reporting_entity_causebase_id=reporting_entity,
+            note=note or "The source reports an organisation-level amount; no lower-grain attribution is asserted.",
+        )
+
+    return FundraisingMoneyScopeLink(
+        measurement=source.measurement,
+        linkage_status="explicit",
+        attributed_scope_kind=source.scope_kind,
+        attributed_scope_id=source.scope_id,
+        reporting_entity_causebase_id=reporting_entity,
+        linkage_evidence_ids=list(source.measurement.evidence_ids),
+        linkage_source_wording=source.source_native_wording,
+        note=note,
     )

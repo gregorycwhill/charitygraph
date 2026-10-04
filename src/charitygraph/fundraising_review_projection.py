@@ -76,7 +76,11 @@ def render_markdown(artifact: FundraisingReviewArtifact) -> str:
         if subject.money:
             for link in subject.money:
                 measurement: FundraisingMoneyMeasurement = link.measurement
-                scope = link.attributed_scope_kind if link.linkage_status == "explicit" else "organisation (not attributed)"
+                scope = (
+                    f"{link.attributed_scope_kind} `{link.attributed_scope_id}`"
+                    if link.linkage_status == "explicit"
+                    else "organisation (not attributed)"
+                )
                 lines.append(f"- `{measurement.observation_id}`: {measurement.amount.normalised_amount} {measurement.amount.normalised_currency}; `{measurement.measure_kind}`; period `{measurement.period.label}`; scope `{scope}`; linkage `{link.linkage_status}`; source wording: {measurement.source_wording}")
         else:
             lines.append("- No money fact available in the selected evidence.")

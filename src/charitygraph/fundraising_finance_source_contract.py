@@ -25,7 +25,13 @@ FinanceSourceFamily = Literal[
     "state_fundraising_disclosure", "campaign_report", "platform_report",
     "provider_record", "organisation_disclosure",
 ]
-FinanceScopeKind = Literal["organisation", "campaign"]
+# The source can expressly name a scope below the reporting entity.  This is
+# deliberately a scope declaration supplied by the extractor/reviewer, not a
+# classification of nearby prose.
+FinanceScopeKind = Literal[
+    "organisation", "fundraising_portfolio", "practice", "campaign", "appeal",
+    "provider_relationship",
+]
 ComponentTreatment = Literal["direct", "allocated", "possible", "excluded"]
 ProductionMethod = Literal["direct_source_claim", "deterministic_parsing", "governed_semantic_inference"]
 ReviewStatus = Literal["reviewed", "automation_governed", "research_only"]
@@ -69,8 +75,8 @@ class FundraisingFinanceSourceObservation(BaseModel):
             expected = self.measurement.reporting_subject_causebase_id
             if self.measurement.reporting_scope != "subject" or not expected or self.scope_id != expected:
                 raise ValueError("organisation scope must retain the subject reporting entity")
-        if self.scope_kind == "campaign" and not self.measurement.fundraising_activity_id:
-            raise ValueError("campaign scope requires source-supported fundraising_activity_id")
+        if self.scope_kind in {"campaign", "appeal"} and not self.measurement.fundraising_activity_id:
+            raise ValueError("campaign or appeal scope requires source-supported fundraising_activity_id")
         return self
 
 

@@ -10,7 +10,9 @@ from charitygraph.fundraising_money_linkage import (
     LINKAGE_CONTRACT_VERSION,
     FundraisingMoneyScopeLink,
     decide_linked_addition_compatibility,
+    link_source_observation_at_smallest_scope,
 )
+from charitygraph.fundraising_finance_source_contract import FundraisingFinanceSourceObservation
 
 
 def measurement(**changes):
@@ -84,3 +86,42 @@ def test_fixture_preserves_t05_positive_and_negative_cases_and_contract_version(
     fixture = json.loads(Path("tests/fixtures/fundraising_money_scope_linkage.json").read_text())
     assert fixture["contract_version"] == LINKAGE_CONTRACT_VERSION
     assert {"positive_organisation", "positive_portfolio", "negative_mixed_row", "negative_aggregate"} <= set(fixture["t05_study_cases"])
+
+
+def source(scope_kind, scope_id, **changes):
+    values = {
+        "observation_id": "source:link", "measurement": measurement(),
+        "source_family": "state_fundraising_disclosure", "source_id": "source:state:2025",
+        "source_locator": "return / fundraising expenses", "source_native_wording": "Face-to-face appeal costs",
+        "subject_binding_basis": "registered charity identifier", "scope_kind": scope_kind,
+        "scope_id": scope_id, "component_treatment": "direct",
+        "production_method": "direct_source_claim", "review_status": "reviewed", "coverage_status": "observed",
+    }
+    values.update(changes)
+    return FundraisingFinanceSourceObservation(**values)
+
+
+def test_factory_links_only_the_source_declared_lower_grain_scope():
+    campaign_source = source("campaign", "campaign:appeal-a")
+    linked = link_source_observation_at_smallest_scope(campaign_source)
+    assert linked.linkage_status == "explicit"
+    assert (linked.attributed_scope_kind, linked.attributed_scope_id) == ("campaign", "campaign:appeal-a")
+    assert linked.linkage_source_wording == campaign_source.source_native_wording
+
+
+def test_factory_keeps_aggregate_organisation_money_unknown_despite_observed_methods():
+    aggregate_source = source(
+        "organisation", "cb:charity",
+        measurement=measurement(fundraising_activity_id=None, source_wording="Total fundraising expenses"),
+    )
+    linked = link_source_observation_at_smallest_scope(aggregate_source)
+    assert linked.linkage_status == "unknown"
+    assert linked.attributed_scope_kind == "organisation"
+    assert linked.attributed_scope_id is None
+    assert "lower-grain attribution" in linked.note
+
+
+def test_factory_rejects_non_observed_source_state_instead_of_guessing_a_scope():
+    missing = source("campaign", "campaign:appeal-a", coverage_status="not_found_in_scoped_source", missingness_note="No amount stated.")
+    with pytest.raises(ValueError, match="only observed"):
+        link_source_observation_at_smallest_scope(missing)
