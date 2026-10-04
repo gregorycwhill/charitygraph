@@ -1,0 +1,25 @@
+{
+  "contract_version": "1.0",
+  "t05_study_cases": {
+    "positive_organisation": "c12: total income is an organisation-level statement row",
+    "positive_portfolio": "c15: fundraising share is a fundraising-portfolio allocation, with approximate derived amount only",
+    "negative_mixed_row": "c14: mixed Donations, Fundraisings, Lectures row cannot be split to a method, campaign, appeal, or provider",
+    "negative_aggregate": "c15: portfolio total cannot be allocated among observed methods or campaigns"
+  },
+  "controlled_explicit_examples": [
+    {
+      "id": "campaign-direct-cost-a",
+      "scope": "campaign",
+      "source_wording": "Direct fundraising cost -- Appeal A",
+      "linkage_source_wording": "Appeal A direct costs",
+      "evidence_ids": ["ev:statement", "ev:note-appeal-a"]
+    },
+    {
+      "id": "practice-direct-cost-f2f",
+      "scope": "practice",
+      "source_wording": "Face-to-face recruitment cost",
+      "linkage_source_wording": "Face-to-face recruitment costs",
+      "evidence_ids": ["ev:statement", "ev:note-f2f"]
+    }
+  ]
+}
