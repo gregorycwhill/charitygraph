@@ -89,14 +89,14 @@ class FundraisingEvidence(_Strict):
 # with an empty set can still be retained as membership, registration, search or
 # research evidence, but cannot produce a fundraising-practice observation.
 _ROLE_FACETS: dict[EvidenceRole, frozenset[Facet]] = {
-    "first_party_practice_page": frozenset({"practice", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage", "payment_transfer_instrument", "delivery_party", "compensation", "resource_sought", "destination_restriction", "donor_funder_class"}),
-    "first_party_campaign_page": frozenset({"campaign", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage", "payment_transfer_instrument", "resource_sought", "destination_restriction", "donor_funder_class"}),
+    "first_party_practice_page": frozenset({"practice", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage", "payment_transfer_instrument", "delivery_party", "compensation", "resource_sought", "destination_restriction", "donor_funder_class", "provider"}),
+    "first_party_campaign_page": frozenset({"campaign", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage", "payment_transfer_instrument", "resource_sought", "destination_restriction", "donor_funder_class", "provider"}),
     "annual_report_statement": frozenset({"practice", "campaign", "setting", "channel", "commitment_pattern", "digital_distribution", "donor_relationship_stage", "payment_transfer_instrument", "delivery_party", "compensation", "resource_sought", "destination_restriction", "donor_funder_class"}),
     "regulator_registration": frozenset(),
     "pfra_membership": frozenset(),
     "agency_provider_case_evidence": frozenset({"provider", "practice", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage", "payment_transfer_instrument", "delivery_party", "compensation", "resource_sought", "destination_restriction", "donor_funder_class"}),
     "agency_client_directory": frozenset({"provider"}),
-    "platform_campaign_page": frozenset({"campaign", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage"}),
+    "platform_campaign_page": frozenset({"campaign", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage", "provider"}),
     "industry_record": frozenset(),
     "procurement_or_job_evidence": frozenset(),
     "scoped_source_inventory": frozenset(),

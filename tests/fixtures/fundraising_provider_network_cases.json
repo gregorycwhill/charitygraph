@@ -1,0 +1,7 @@
+[
+  {"name":"resolved_agency","provider_state":"resolved","provider_subject_id":"provider:agency-a","provider_kind":"agency","lifecycle":"current","review_status":"reviewed","expected":"candidate_evidence_discovery"},
+  {"name":"resolved_platform","provider_state":"resolved","provider_subject_id":"provider:platform-a","provider_kind":"platform","lifecycle":"current","review_status":"reviewed","expected":"candidate_evidence_discovery"},
+  {"name":"ambiguous_provider_identity","provider_state":"ambiguous","provider_subject_id":null,"provider_kind":"agency","lifecycle":"unknown","review_status":"reviewed","expected":"do_not_seed"},
+  {"name":"former_provider_relationship","provider_state":"resolved","provider_subject_id":"provider:former-a","provider_kind":"agency","lifecycle":"ended","review_status":"reviewed","expected":"review_only"},
+  {"name":"unreviewed_relationship","provider_state":"resolved","provider_subject_id":"provider:platform-b","provider_kind":"platform","lifecycle":"current","review_status":"not_reviewed","expected":"review_only"}
+]
