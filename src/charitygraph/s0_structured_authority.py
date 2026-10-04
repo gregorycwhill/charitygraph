@@ -17,11 +17,8 @@ from .scale_s0 import ScalePreflightError, locator_search_request_body_sha256, v
 SCHEMA = "urn:charitygraph:s0:locator-execution-authority"
 VERSION = 1
 SCOPE = "s0_locator_only"
-CURRENT_ATTEMPT_ID = "attempt:s0:22"
-# Attempt 21 crossed the zero-reservation boundary and is immutable evidence,
-# not a candidate for a retry after its Builder identity changed.
-HISTORICAL_ATTEMPT_ID = "attempt:s0:21"
-_HISTORICAL_ATTEMPT_IDS = frozenset(("attempt:s0:20", HISTORICAL_ATTEMPT_ID))
+CURRENT_ATTEMPT_ID = "attempt:s0:21"
+HISTORICAL_ATTEMPT_ID = "attempt:s0:20"
 _LIVE_ATTEMPT_IDS = frozenset((CURRENT_ATTEMPT_ID,))
 
 
@@ -88,9 +85,9 @@ class LocatorAuthorityMaterial:
         return canonical_sha256(self.material())
 
     def validate(self, *, historical: bool = False) -> None:
-        permitted = _LIVE_ATTEMPT_IDS | (_HISTORICAL_ATTEMPT_IDS if historical else set())
+        permitted = _LIVE_ATTEMPT_IDS | ({HISTORICAL_ATTEMPT_ID} if historical else set())
         if self.attempt_id not in permitted:
-            message = ("superseded S0 attempt is not live-executable" if self.attempt_id in _HISTORICAL_ATTEMPT_IDS
+            message = ("superseded S0 attempt is not live-executable" if self.attempt_id == HISTORICAL_ATTEMPT_ID
                        else "unknown S0 attempt is not live-executable")
             raise ScalePreflightError(message)
         bindings = (self.mandate_id, self.mandate_hash, self.aggregate_policy_bundle_hash, self.population_policy_hash)
