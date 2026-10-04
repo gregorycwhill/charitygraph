@@ -252,10 +252,24 @@ class S0LocatorSearchExecutionGate(LocatorSearchExecutionGate):
         delivery = catalog.get_provider_request_attempt(delivery_attempt_id)
         physical = catalog.get_physical_attempt(request.physical_attempt_id)
         trace = catalog.get_standard_transport_trace(request.physical_attempt_id)
+        # Status agreement alone is not a recovery proof.  A torn/manual
+        # repair can leave three plausibly-shaped rows that belong to
+        # different requests.  Before permitting receipt recovery, rebind
+        # every durable edge to the frozen request identities supplied to this
+        # gate.  In particular, never infer a receipt target from a row that
+        # merely happens to be in ``send_started``.
+        from .scale_s0 import locator_search_request_body_sha256
+        if (delivery is None or physical is None or trace is None
+                or delivery.get("provider_request_item_id") != request_identity
+                or delivery.get("physical_attempt_id") != request.physical_attempt_id
+                or physical.get("provider_request_id") != request_identity
+                or trace.get("client_request_id") != client_request_id
+                or trace.get("request_body_sha256") != locator_search_request_body_sha256(packet.locator_query)):
+            raise ScalePreflightError("locator search durable lifecycle identities are corrupt or substituted")
         states = (
-            delivery.get("status") if delivery else None,
-            physical.get("status") if physical else None,
-            trace.get("status") if trace else None,
+            delivery.get("status"),
+            physical.get("status"),
+            trace.get("status"),
         )
         if states == ("send_started", "send_started", "CROSSING_STARTED"):
             self._started = True

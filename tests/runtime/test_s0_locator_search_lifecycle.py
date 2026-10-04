@@ -211,6 +211,37 @@ def test_restart_after_durable_send_started_can_only_record_the_existing_receipt
     assert restarted_catalog.get_physical_receipt(prepared.request.physical_attempt_id)["provider_receipt_id"] == "response:recovered"
 
 
+@pytest.mark.parametrize("table,column,value", (
+    ("physical_attempts", "provider_request_id", "request:substituted"),
+    ("standard_transport_traces", "client_request_id", "client:substituted"),
+    ("standard_transport_traces", "request_body_sha256", "f" * 64),
+))
+def test_restart_rejects_corrupt_send_started_identity_edges(tmp_path, table, column, value):
+    """Corrupt/torn durable rows must not be guessed into receipt recovery."""
+    catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
+    live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    gate = S0LocatorSearchExecutionGate(preflight=live, request=prepared.request, catalog=catalog,
+                                        delivery_attempt_id=prepared.delivery_attempt_id,
+                                        client_request_id=prepared.client_request_id,
+                                        request_identity=packet.provider_request_identity, now=NOW)
+    gate.begin(request_identity=packet.provider_request_identity, locator_subject_ref=SUBJECT,
+               locator_abn=ABN, query=packet.locator_query)
+    where_column = "physical_attempt_id"
+    where_value = prepared.request.physical_attempt_id
+    with catalog._connection(immediate=True) as conn:
+        conn.execute(f"UPDATE {table} SET {column}=? WHERE {where_column}=?", (value, where_value))
+        catalog._commit(conn)
+    restarted_catalog = SQLiteCatalog(tmp_path / "locator.sqlite3").open()
+    restarted_live = ScaleS0Preflight.from_catalog(
+        restarted_catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
+    with pytest.raises(ScalePreflightError, match="identities are corrupt or substituted"):
+        S0LocatorSearchExecutionGate(
+            preflight=restarted_live, request=prepared.request, catalog=restarted_catalog,
+            delivery_attempt_id=prepared.delivery_attempt_id,
+            client_request_id=prepared.client_request_id,
+            request_identity=packet.provider_request_identity, now=NOW)
+
+
 def test_legacy_locator_trace_body_fails_closed_before_send_started(tmp_path):
     catalog, mandate, packet, prepared = _prepared_catalog(tmp_path)
     with catalog._connection(immediate=True) as conn:
@@ -218,13 +249,11 @@ def test_legacy_locator_trace_body_fails_closed_before_send_started(tmp_path):
                      ("f" * 64, prepared.request.physical_attempt_id))
         catalog._commit(conn)
     live = ScaleS0Preflight.from_catalog(catalog, mandate_id=mandate.mandate_id, packet_id=packet.packet_id)
-    gate = S0LocatorSearchExecutionGate(preflight=live, request=prepared.request, catalog=catalog,
-                                        delivery_attempt_id=prepared.delivery_attempt_id,
-                                        client_request_id=prepared.client_request_id,
-                                        request_identity=packet.provider_request_identity, now=NOW)
-    with pytest.raises(ScalePreflightError, match="trace body does not match"):
-        gate.begin(request_identity=packet.provider_request_identity,
-                   locator_subject_ref=SUBJECT, locator_abn=ABN, query=packet.locator_query)
+    with pytest.raises(ScalePreflightError, match="identities are corrupt or substituted"):
+        S0LocatorSearchExecutionGate(preflight=live, request=prepared.request, catalog=catalog,
+                                     delivery_attempt_id=prepared.delivery_attempt_id,
+                                     client_request_id=prepared.client_request_id,
+                                     request_identity=packet.provider_request_identity, now=NOW)
     assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
 
 
