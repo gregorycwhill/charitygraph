@@ -3,6 +3,7 @@ from datetime import date
 import pytest
 
 from charitygraph.models import CauseBaseCard, CoverageObservation, FinancialPeriod, SourceResolution
+from charitygraph.pipeline import build_card
 
 
 def test_source_resolution_keeps_ambiguity_and_review_state_explicit():
@@ -45,3 +46,13 @@ def test_card_rejects_duplicate_effective_coverage_capabilities():
                 CoverageObservation(capability="website", status="retrieval_failed"),
             ],
         )
+
+
+def test_generic_card_building_does_not_turn_unassessed_fundraising_into_source_absence():
+    card = build_card({
+        "causebase_id": "cb_unassessed", "legal_name": "Unassessed", "display_name": "Unassessed",
+        "entity_status": "registered", "evidence": [], "financials": {},
+    }, "test")
+
+    coverage = next(item for item in card.coverage if item.capability == "fundraising_expenditure")
+    assert coverage.status == "not_yet_processed"

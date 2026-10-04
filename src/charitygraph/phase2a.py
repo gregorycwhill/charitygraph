@@ -84,7 +84,11 @@ def materialise_acnc_gate2_entities(
         coverage = [
             {"capability": "regulatory", "status": "observed", "evidence_ids": [acnc_evidence], "observed_at": "2026-08-10"},
             {"capability": "annual_report", "status": "observed" if report_extracts else "not_yet_processed", "observed_at": "2026-08-10"},
-            {"capability": "website", "status": web_extract.get("status") if web_extract else ("not_yet_processed" if candidate.get("website") else "not_available_from_source"), "observed_at": "2026-08-10"},
+            # A missing website locator is not an assessment that no website
+            # exists or that a source is unavailable.  No web retrieval has
+            # happened in either case, so retain the acquisition/processing
+            # gap explicitly.
+            {"capability": "website", "status": web_extract.get("status") if web_extract else "not_yet_processed", "observed_at": "2026-08-10"},
             {"capability": "fundraising_expenditure", "status": "not_yet_processed", "observed_at": "2026-08-10"},
         ]
         financials: dict[str, Any] | None = None
