@@ -9,6 +9,18 @@ geography/setting when supplied, production method, review state and coverage
 or missingness. It does not classify unrestricted prose: that decision remains
 with the governed extractor or reviewer that supplied the typed measurement.
 
+## Deterministic statement-heading mapping
+
+The extractor has a deliberately small mapping for exact headings in an
+identified annual report or financial statement: `Fundraising costs`, `Costs
+of fundraising`, `Direct fundraising costs`, `Fundraising income`,
+`Fundraising revenue`, and `Gross fundraising proceeds`. It maps these to a
+typed source-native measurement only when the row also carries the normal
+period, scope, binding and accounting metadata. Generic `Income`, `Donations`,
+`Marketing`, net headings, and headings from other source families are not
+mapped. They remain review-only or unavailable rather than becoming a
+fundraising fact by keyword proximity.
+
 The permitted source families are annual report/financial statements;
 ACNC/NSCOA return mappings where a source supports the mapping; state
 fundraising disclosures; campaign and platform reports; provider records; and

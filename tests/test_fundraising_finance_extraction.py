@@ -1,7 +1,10 @@
 from decimal import Decimal
 import pytest
 
-from charitygraph.fundraising_finance_extraction import normalise_fundraising_finance_row
+from charitygraph.fundraising_finance_extraction import (
+    deterministic_statement_measure_kind,
+    normalise_fundraising_finance_row,
+)
 
 
 def row(**changes):
@@ -19,8 +22,35 @@ def test_pdf_or_structured_row_is_parsed_with_scale_sign_and_complete_provenance
 
 
 def test_unknown_or_generic_labels_cannot_be_silently_promoted():
-    with pytest.raises(Exception): normalise_fundraising_finance_row(row(measure_kind=None))
+    with pytest.raises(Exception): normalise_fundraising_finance_row(row(source_native_wording="Marketing", measure_kind=None))
     with pytest.raises(Exception): normalise_fundraising_finance_row(row(source_native_wording="Marketing", measure_kind="direct_fundraising_cost", measurement_id=None))
+
+
+@pytest.mark.parametrize(("heading", "expected"), [
+    ("Fundraising costs", "total_fundraising_cost"),
+    (" Direct   Fundraising Costs ", "direct_fundraising_cost"),
+    ("Fundraising income", "recognised_revenue"),
+    ("Gross fundraising proceeds", "gross_proceeds"),
+])
+def test_exact_financial_statement_headings_have_a_governed_source_native_mapping(heading, expected):
+    source_row = row(source_native_wording=heading, measure_kind=None)
+    assert deterministic_statement_measure_kind(source_row) == expected
+    assert normalise_fundraising_finance_row(source_row).observation.measurement.measure_kind == expected
+
+
+@pytest.mark.parametrize("heading", ["Donations", "Income", "Marketing", "Net fundraising income"])
+def test_statement_mapping_refuses_generic_or_net_headings(heading):
+    source_row = row(source_native_wording=heading, measure_kind=None)
+    assert deterministic_statement_measure_kind(source_row) is None
+    with pytest.raises(Exception):
+        normalise_fundraising_finance_row(source_row)
+
+
+def test_statement_mapping_cannot_be_reused_for_non_statement_sources():
+    source_row = row(source_family="organisation_disclosure", source_native_wording="Fundraising costs", measure_kind=None)
+    assert deterministic_statement_measure_kind(source_row) is None
+    with pytest.raises(Exception):
+        normalise_fundraising_finance_row(source_row)
 
 
 @pytest.mark.parametrize("status", ["not_found_in_scoped_source", "not_processed", "unavailable"])

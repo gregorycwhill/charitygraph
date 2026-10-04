@@ -21,6 +21,38 @@ from .sources.documents import parse_money_observation
 EXTRACTION_CONTRACT_VERSION = "1.0"
 ExtractionOutcome = Literal["observed", "not_found_in_scoped_source", "not_processed", "unavailable"]
 
+# These are source-native statement headings, not a general keyword classifier.
+# The mapping is deliberately exact after whitespace/case normalisation and is
+# restricted to an explicitly identified financial-statement source.  In
+# particular, it does not turn a row headed merely "donations", "marketing",
+# or "income" into a fundraising fact.
+_STATEMENT_HEADING_MEASURE_KINDS = {
+    "fundraising costs": "total_fundraising_cost",
+    "costs of fundraising": "total_fundraising_cost",
+    "direct fundraising costs": "direct_fundraising_cost",
+    "fundraising income": "recognised_revenue",
+    "fundraising revenue": "recognised_revenue",
+    "gross fundraising proceeds": "gross_proceeds",
+}
+
+
+def deterministic_statement_measure_kind(row: dict[str, Any]) -> str | None:
+    """Return a narrowly governed metric mapping for a statement row.
+
+    This is a source-native mapping, not an inference from nearby prose.  It
+    intentionally leaves all accounting, scope, period and attribution fields
+    to the reviewed row so that they continue to fail closed in the money
+    contract.
+    """
+    if row.get("source_family") != "annual_report_or_financial_statements":
+        return None
+    if row.get("source_role") not in {"audited_financial_statement", "annual_report"}:
+        return None
+    wording = row.get("source_native_wording")
+    if not isinstance(wording, str):
+        return None
+    return _STATEMENT_HEADING_MEASURE_KINDS.get(" ".join(wording.casefold().split()))
+
 
 class FundraisingFinanceExtraction(BaseModel):
     """One adapter result, including explicit source-scoped non-results."""
@@ -73,9 +105,13 @@ def normalise_fundraising_finance_row(row: dict[str, Any]) -> FundraisingFinance
         str(raw_value), currency=row.get("currency", "AUD"),
         unit_scale=Decimal(str(row.get("unit_scale", 1))), unit_label=row.get("unit_label"),
     )
+    # A producer may supply a governed metric directly.  When it does not, a
+    # small, auditable mapping covers only exact financial-statement headings.
+    # Anything else remains untyped and Pydantic rejects it.
+    measure_kind = row.get("measure_kind") or deterministic_statement_measure_kind(row)
     measurement = FundraisingMoneyMeasurement(
         observation_id=row["measurement_id"], amount=amount,
-        measure_kind=row["measure_kind"], source_wording=row["source_native_wording"],
+        measure_kind=measure_kind, source_wording=row["source_native_wording"],
         evidence_ids=row["evidence_ids"], period=_period(row["period"]),
         reporting_scope=row["reporting_scope"],
         reporting_subject_causebase_id=row.get("reporting_subject_causebase_id"),
