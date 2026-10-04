@@ -1,0 +1,96 @@
+{
+  "cohort_selection_rule": "Twenty-four bounded, source-adapter-shaped cases selected to cover every F2F lifecycle outcome, PFRA binding states, attribution grains, finance-only negative controls, and scoped non-findings. These are regression fixtures, not production acquisitions or prevalence estimates.",
+  "cohort_size": 24,
+  "evidence_universe": "Each case contains one governed source-adapter output; no prose classification, source retrieval, subject resolution, or financial allocation is performed by the runner.",
+  "metrics": {
+    "campaign_or_provider_candidate": {
+      "count": 3,
+      "denominator": 24
+    },
+    "currentness_distribution": {
+      "current": 3,
+      "discontinued": 2,
+      "historical": 3,
+      "not_found_in_scoped_source": 3,
+      "recent": 4,
+      "unknown": 9
+    },
+    "false_positive_risk_cases": {
+      "count": 12,
+      "denominator": 24
+    },
+    "money_coverage": {
+      "available": 14,
+      "not_found": 3,
+      "not_processed": 2,
+      "unavailable": 5
+    },
+    "money_observation_available": {
+      "count": 14,
+      "denominator": 24
+    },
+    "pfra_industry_binding_confirmed": {
+      "count": 3,
+      "denominator": 5
+    },
+    "practice_evidence_observed": {
+      "count": 12,
+      "denominator": 24
+    },
+    "share_or_bounds_available": {
+      "count": 0,
+      "denominator": 14
+    },
+    "smallest_attribution_grain_for_available_money": {
+      "campaign": 2,
+      "organisation": 9,
+      "practice": 2,
+      "provider_relationship": 1
+    },
+    "unresolved_or_ambiguous_binding": {
+      "count": 4,
+      "denominator": 24
+    }
+  },
+  "report_version": "1.0",
+  "residual_gaps": [
+    "Fixture cohort exercises typed adapter outputs only; it does not establish real-world prevalence.",
+    "No source-supported share or bounds fixture is available, so no share/bounds metric is promoted.",
+    "Organisation-level financial observations remain explicitly unattributed to a practice, campaign, or provider."
+  ],
+  "review_examples": {
+    "campaign_or_provider": [
+      "c08",
+      "c10",
+      "c20"
+    ],
+    "finance_without_method_attribution": [
+      "c03",
+      "c04",
+      "c07",
+      "c09",
+      "c14",
+      "c15",
+      "c16",
+      "c18",
+      "c23"
+    ],
+    "negative_controls": [
+      "c02",
+      "c05",
+      "c12",
+      "c13",
+      "c14",
+      "c22",
+      "c23",
+      "c24"
+    ],
+    "pfra_not_practice": [
+      "c01",
+      "c02",
+      "c03",
+      "c04",
+      "c05"
+    ]
+  }
+}
