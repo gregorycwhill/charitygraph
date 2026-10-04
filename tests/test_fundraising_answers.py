@@ -48,3 +48,18 @@ def test_historical_f2f_is_unknown_not_a_false_currentness_answer():
     answer = answer_fundraising_question(historical, FundraisingQuestion(kind="current_f2f"))
     assert answer.status == "unknown"
     assert answer.observation_ids == ()
+
+
+def test_pledges_and_platform_processed_amounts_are_not_called_income_or_proceeds():
+    subject = item()
+    for measure_kind in ("pledged", "platform_processed_amount"):
+        payload = subject.money_links[0].model_dump(mode="json")
+        payload["measurement"]["measure_kind"] = measure_kind
+        payload["measurement"]["source_wording"] = measure_kind.replace("_", " ")
+        limited = FundraisingQueryInput(
+            card=subject.card,
+            money_links=(FundraisingMoneyScopeLink.model_validate(payload),),
+        )
+        answer = answer_fundraising_question(limited, FundraisingQuestion(kind="disclosed_income_or_proceeds"))
+        assert answer.status == "unknown"
+        assert answer.money_observation_ids == ()

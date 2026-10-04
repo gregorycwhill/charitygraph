@@ -17,6 +17,15 @@ from .models import CoverageObservation, EvidenceRef
 
 FUNDRAISING_ANSWER_CONTRACT_VERSION = "fundraising-answer.v1"
 
+# These are source-described inflows.  A pledge is a commitment rather than an
+# income/proceeds fact, and a platform-processed amount need not have reached
+# the charity; neither can answer an income/proceeds question by itself.
+_INCOME_OR_PROCEEDS_KINDS = frozenset({
+    "amount_raised", "gross_proceeds", "donations_received", "cash_received",
+    "ticket_sales", "merchandise_sales", "sponsorship_revenue",
+    "recognised_revenue",
+})
+
 QuestionKind = Literal[
     "current_f2f", "evidenced_methods", "external_provider", "disclosed_costs",
     "disclosed_income_or_proceeds", "amounts_linked_to_activity", "unknowns",
@@ -102,7 +111,10 @@ def answer_fundraising_question(item: FundraisingQueryInput, question: Fundraisi
 
     if question.kind in {"disclosed_costs", "disclosed_income_or_proceeds"}:
         costs = question.kind == "disclosed_costs"
-        money = tuple(link for link in item.money_links if (link.measurement.measure_kind in _EXPENDITURE_KINDS) == costs)
+        money = tuple(
+            link for link in item.money_links
+            if link.measurement.measure_kind in (_EXPENDITURE_KINDS if costs else _INCOME_OR_PROCEEDS_KINDS)
+        )
         return _answer(item, question, status="supported" if money else "unknown", statement=("Disclosed fundraising costs retain their source scope, period and measurement semantics." if costs else "Disclosed fundraising income/proceeds retain their source scope, period and measurement semantics.") if money else "No compatible disclosed money fact is available in this bounded input.", money=money, wording=tuple(link.measurement.source_wording for link in money), coverage=_coverage(item, "fundraising_money", "fundraising_expenditure"))
 
     if question.kind == "amounts_linked_to_activity":
