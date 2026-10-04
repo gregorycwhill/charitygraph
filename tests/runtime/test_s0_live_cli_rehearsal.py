@@ -5,6 +5,8 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pytest
+
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.runtime.catalog import canonical_execution_configuration_hash
 from charitygraph.s0_locator_discovery import freeze_locator_search_packet, prepare_locator_search_request
@@ -57,7 +59,7 @@ def _make_catalog(path: Path, subjects: tuple[str, ...], pricing_id: str):
     return attempt, work
 
 
-def test_three_item_cli_rehearsal_is_sequential_and_exactly_once(tmp_path, monkeypatch):
+def test_live_cli_rejects_legacy_opaque_a3_rehearsal_before_provider_construction(tmp_path, monkeypatch):
     snapshot = load_supervisor_capture(CAPTURE, expected_sha256=CAPTURE_SHA)
     db = tmp_path / "rehearsal.sqlite3"
     attempt, work = _make_catalog(db, ("subject:locator", "subject:locator", "subject:locator"), snapshot.record_id)
@@ -75,28 +77,8 @@ def test_three_item_cli_rehearsal_is_sequential_and_exactly_once(tmp_path, monke
     argv = ["--catalog", str(db), "--attempt-id", attempt.attempt_id, "--builder-commit-sha", "a" * 40, "--runtime-root", str(tmp_path), "--work", str(work_path),
             "--pricing-capture", str(CAPTURE), "--pricing-capture-sha256", CAPTURE_SHA, "--cohort-id", "cohort:locator", "--attested-by", "Greg",
             "--observed-at", now, "--setting-name", "Share inputs and outputs with OpenAI", "--observed-value", "Disabled", "--provider-project", PROJECT, "--execution-authority", "authority:rehearsal"]
-    assert main(argv) == 0
-    assert len(posts) == 3
-    assert [item[0] for item in posts] == ["POST", "POST", "POST"]
-    assert all(item[2].get("Openai-project") == PROJECT for item in posts)
-    assert all(json.loads(item[3])["tool_choice"] == {"type": "web_search"} for item in posts)
-    assert all(json.loads(item[3])["include"] == ["web_search_call.action.sources"] for item in posts)
-    assert sorted(json.loads(item[3])["input"] for item in posts) == sorted(item["query"] for item in work)
-    with SQLiteCatalog(db).open() as catalog:
-        rows = catalog.list_provider_request_items(attempt.run_id)
-        assert len(rows) == 3 and all(row["status"] == "completed" for row in rows)
-        assert len({row["provider_request_item_id"] for row in rows}) == 3
-        assert len({row["physical_attempt_id"] for row in rows}) == 3
-        attempts = catalog.list_provider_request_attempts()
-        assert len(attempts) == 3 and len({row["delivery_attempt_id"] for row in attempts}) == 3
-        with catalog._connection() as conn:
-            traces = conn.execute("SELECT request_body_sha256 FROM standard_transport_traces ORDER BY delivery_attempt_id").fetchall()
-        assert sorted(row["request_body_sha256"] for row in traces) == sorted(
-            locator_search_request_body_sha256(item["query"]) for item in work)
-        assert sorted(__import__("hashlib").sha256(item[3]).hexdigest() for item in posts) == sorted(
-            row["request_body_sha256"] for row in traces)
-        with catalog._connection() as conn:
-            assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='actual'").fetchone()[0] == 3
-            assert conn.execute("SELECT count(*) FROM cost_entries WHERE entry_type='reservation_release'").fetchone()[0] == 3
-    assert main(argv) == 0
-    assert len(posts) == 3
+    # The legacy fixture deliberately has no structured checkpoint/material.
+    # It must stop before constructing a client or emitting a provider POST.
+    with pytest.raises(SystemExit, match="A3 fields"):
+        main(argv)
+    assert not posts
