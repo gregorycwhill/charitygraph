@@ -1,0 +1,13 @@
+{
+  "sequence_statuses": ["historical", "recent", "current", "discontinued"],
+  "last_evidenced_at": "2026-07-01",
+  "explicit_cessation_dates": ["2026-06-30"],
+  "unknown_and_scoped_silence": {
+    "last_evidenced_at": null,
+    "practice_observed": [null, null]
+  },
+  "post_cessation_contradiction": {
+    "review_required": true,
+    "evidence_ids": ["STOP", "LATER"]
+  }
+}
