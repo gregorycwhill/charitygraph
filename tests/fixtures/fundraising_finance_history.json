@@ -1,0 +1,10 @@
+{
+  "contract_version": "1.0",
+  "nominal_amounts": true,
+  "cases": [
+    {"id": "like_for_like_annual_cost", "expected_status": "comparable", "note": "Exact same July reporting-year anchor; direct audited accrual cost."},
+    {"id": "restated_comparative", "expected_status": "discontinuity", "expected_reason": "restatement_present", "note": "Keep both originally reported and restated source facts; do not replace either."},
+    {"id": "classification_shift", "expected_status": "discontinuity", "expected_reason": "classification_changed", "note": "A source line relabelled to fundraising and marketing cannot be compared to fundraising costs."},
+    {"id": "six_month_transition", "expected_status": "discontinuity", "expected_reason": "nonstandard_or_inexact_reporting_period", "note": "No annualisation of a six-month reporting period."}
+  ]
+}
