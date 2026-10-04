@@ -11,7 +11,8 @@ release, Viewer surface, production source adapter, or Top-100 cohort.
 
 Builder repository/worktree: `C:\CharityGraph-runtime\cg-fundraising-publication-288`  
 Local branch: `cg-fundraising-publication-288`  
-Integrated tip: `97626d3349bb0c561d809ca64314d266997a962a`
+Integrated code tip: `97626d3349bb0c561d809ca64314d266997a962a`  
+Packet commit: `faaa6181977a894736366daf0580a9c8487d1fec`
 
 The integration base was `e384a5efacf9f3e6fc5856b716f4f89ded5ef5ff`
 (`cg-t10-bounded-real-fundraising-cohort`).  Local integration commits are:
@@ -56,7 +57,7 @@ currentness), `a54d526` (typed contracts), `8a93cd9` (finance compatibility),
   not a public card or release renderer.
 
 Data authority is on local branch `phase5-direct-service-v1.2-closeout`, at
-`282733f16e2540c4f4456de6ac0cf0aae5821618`.  Its governing records are
+`282733f`.  Its governing records are
 `FUNDRAISING_VOCABULARY_MEASUREMENT_RESEARCH_GATE_2026-10-04.md` (`c5681c0`),
 `FUNDRAISING_SUCCESSOR_MATRIX_2026-10-04.md` (`08f143e`), and the retained
 design status notice (`282733f`).
@@ -102,8 +103,8 @@ implied by this packet.
 
 No remote action was performed.  If a maintainer authorises publication of the
 review-only Builder integration, first fetch and compare the selected target
-base, then push **only** `cg-fundraising-publication-288` at
-`97626d3349bb0c561d809ca64314d266997a962a` and open a PR to the explicitly
+base, then push **only** the resolved local tip of
+`cg-fundraising-publication-288` and open a PR to the explicitly
 chosen Builder target branch.  PR title: `Review-only fundraising semantic
 contracts and cohort gates`.  Include this packet, the focused 55-pass result,
 and the Data authority commits `c5681c0`, `08f143e`, and `282733f`; require
