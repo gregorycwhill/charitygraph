@@ -51,6 +51,12 @@ def test_s0_executor_locator_dry_run_never_calls_provider(tmp_path):
     summary = executor.run(locator=(work,), dry_run=True)
     assert summary.provider_posts == 0 and summary.counts == {"eligible": 1}
     assert fake.calls == 0
+    # The positive provider-free rehearsal reaches the last durable state
+    # before transport: it validates the real preflight but preserves the
+    # prepared lifecycle and its NOT_SENT trace for later human-authorised use.
+    assert catalog.get_provider_request_item(packet.provider_request_identity)["status"] == "prepared"
+    assert catalog.get_physical_attempt(prepared.request.physical_attempt_id)["status"] == "prepared"
+    assert catalog.get_standard_transport_trace(prepared.request.physical_attempt_id)["status"] == "NOT_SENT"
 
 
 def test_s0_executor_rejects_a_lookalike_gate_before_provider_crossing(tmp_path):
