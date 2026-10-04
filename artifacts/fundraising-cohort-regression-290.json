@@ -1,0 +1,161 @@
+{
+  "cohort_selection_rule": "Fifty heterogeneous, adversarial source-adapter review cases. Each has a retained fixture source descriptor, locator, wording, binding outcome and review state. Cases are selected by error class, not prevalence; they cannot satisfy the independent real-source cohort gate.",
+  "cohort_size": 50,
+  "evidence_universe": "Deterministic local source-adapter outputs only. Source identifiers and locators are fixture handles, not retrieved public documents or a claim of source rights.",
+  "metrics": {
+    "adjudicated_cases": {
+      "count": 50,
+      "denominator": 50
+    },
+    "campaign_or_provider_candidate": {
+      "count": 11,
+      "denominator": 50
+    },
+    "contradiction_controls": {
+      "count": 1,
+      "denominator": 50
+    },
+    "currentness_distribution": {
+      "current": 17,
+      "discontinued": 3,
+      "historical": 6,
+      "not_found_in_scoped_source": 4,
+      "recent": 10,
+      "unknown": 10
+    },
+    "explicit_campaign": {
+      "count": 10,
+      "denominator": 50
+    },
+    "explicit_provider_relationship": {
+      "count": 3,
+      "denominator": 50
+    },
+    "false_positive_risk_cases": {
+      "count": 15,
+      "denominator": 50
+    },
+    "fixture_evidence_descriptor_complete_cases": {
+      "count": 50,
+      "denominator": 50
+    },
+    "incompatible_finance": {
+      "count": 2,
+      "denominator": 50
+    },
+    "money_coverage": {
+      "available": 25,
+      "incompatible_finance": 2,
+      "not_found": 3,
+      "not_processed": 3,
+      "unavailable": 17
+    },
+    "money_observation_available": {
+      "count": 25,
+      "denominator": 50
+    },
+    "per_method_practice_evidence": {
+      "appeal": 2,
+      "bequest": 1,
+      "community_event": 3,
+      "donation": 1,
+      "face_to_face": 9,
+      "giving_day": 2,
+      "major_giving": 2,
+      "membership": 1,
+      "peer_to_peer": 2,
+      "raffle": 2,
+      "regular_giving": 2,
+      "workplace_giving": 1
+    },
+    "pfra_industry_binding_confirmed": {
+      "count": 2,
+      "denominator": 4
+    },
+    "practice_evidence_observed": {
+      "count": 35,
+      "denominator": 50
+    },
+    "share_or_bounds_available": {
+      "count": 0,
+      "denominator": 25
+    },
+    "smallest_attribution_grain_for_available_money": {
+      "campaign": 8,
+      "organisation": 12,
+      "practice": 3,
+      "provider_relationship": 2
+    },
+    "unresolved_or_ambiguous_binding": {
+      "count": 5,
+      "denominator": 50
+    }
+  },
+  "promotion_status": "local_review_only_fixture; not a source acquisition or a population claim",
+  "report_version": "2.0",
+  "residual_gaps": [
+    "Fixture cohort exercises typed adapter outputs only; it does not establish real-world prevalence.",
+    "No source-supported share or bounds fixture is available, so no share/bounds metric is promoted.",
+    "Organisation-level financial observations remain explicitly unattributed to a practice, campaign, or provider."
+  ],
+  "review_examples": {
+    "campaign_or_provider": [
+      "s04",
+      "s08",
+      "s12",
+      "s21",
+      "s26",
+      "s27",
+      "s33",
+      "s34",
+      "s37",
+      "s40",
+      "s49"
+    ],
+    "contradiction_controls": [
+      "s50"
+    ],
+    "finance_without_method_attribution": [
+      "s02",
+      "s09",
+      "s10",
+      "s16",
+      "s17",
+      "s19",
+      "s23",
+      "s30",
+      "s39",
+      "s44",
+      "s45",
+      "s47"
+    ],
+    "incompatible_finance": [
+      "s11",
+      "s36"
+    ],
+    "negative_controls": [
+      "s05",
+      "s07",
+      "s09",
+      "s18",
+      "s23",
+      "s24",
+      "s28",
+      "s32",
+      "s46",
+      "s48"
+    ],
+    "pfra_not_practice": [
+      "s06",
+      "s07",
+      "s28",
+      "s44"
+    ]
+  },
+  "runtime_and_cost": {
+    "bottleneck": "independent source-rights, identity and review adjudication; not compute cost",
+    "provider_calls": 0,
+    "runner_mode": "deterministic local fixture projection",
+    "source_retrieval_performed": false
+  }
+}
