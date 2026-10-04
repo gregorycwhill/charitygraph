@@ -61,9 +61,14 @@ class FundraisingMoneyScopeLink(BaseModel):
                     raise ValueError("organisation linkage uses reporting entity, not a separate scope ID")
             elif not self.attributed_scope_id:
                 raise ValueError("non-organisation linkage requires attributed_scope_id")
-        if self.attributed_scope_kind == "organisation" and self.measurement.reporting_scope == "subject":
+        # A scope link can narrow a measurement to a campaign or practice, but
+        # it cannot change who reported a subject-scoped measurement.  Without
+        # this check a caller could attach an otherwise valid campaign link to
+        # a same-named or same-domain charity by supplying a different
+        # ``reporting_entity_causebase_id``.
+        if self.measurement.reporting_scope == "subject":
             if reporting_entity != self.measurement.reporting_subject_causebase_id:
-                raise ValueError("organisation linkage must retain the measurement reporting entity")
+                raise ValueError("scope linkage must retain the measurement reporting entity")
         return self
 
 

@@ -31,10 +31,11 @@ def measurement(**changes):
 
 
 def explicit(scope, scope_id, **changes):
+    reporting_entity = changes.get("reporting_subject_causebase_id", "cb:charity")
     values = {
         "measurement": measurement(**changes), "linkage_status": "explicit",
         "attributed_scope_kind": scope, "attributed_scope_id": scope_id,
-        "reporting_entity_causebase_id": "cb:charity", "linkage_evidence_ids": ["ev:note"],
+        "reporting_entity_causebase_id": reporting_entity, "linkage_evidence_ids": ["ev:note"],
         "linkage_source_wording": "Appeal A direct costs",
     }
     return FundraisingMoneyScopeLink(**values)
