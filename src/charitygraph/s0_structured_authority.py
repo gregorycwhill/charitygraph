@@ -81,7 +81,10 @@ class LocatorAuthorityMaterial:
 
     @property
     def hash(self) -> str:
-        self.validate()
+        # Digesting retained immutable evidence is read-only verification, not
+        # live admission.  The live boundary still calls validate() without
+        # this historical allowance.
+        self.validate(historical=True)
         return canonical_sha256(self.material())
 
     def validate(self, *, historical: bool = False) -> None:
@@ -171,7 +174,7 @@ def frozen_locator_material_sha256(subjects: Sequence[FrozenLocatorQueries]) -> 
 def compile_locator_authority(authority: LocatorAuthorityMaterial,
                               subjects: Sequence[FrozenLocatorQueries]) -> CompiledLocatorAuthority:
     """Compile exactly one executable first query per authority-bound subject."""
-    authority.validate()
+    authority.validate(historical=True)
     for subject in subjects: subject.validate()
     if frozen_locator_material_sha256(subjects) != authority.frozen_material_sha256:
         raise ScalePreflightError("frozen locator material SHA does not match structured authority")
@@ -206,7 +209,7 @@ def compile_live_locator_packets(*, mandate: Any, execution_attempt: Any, pricin
 
 
 def validate_mandate_binding(authority: LocatorAuthorityMaterial, *, mandate_id: str, mandate_hash: str) -> None:
-    authority.validate()
+    authority.validate(historical=True)
     if authority.mandate_id is not None and (authority.mandate_id, authority.mandate_hash) != (mandate_id, mandate_hash):
         raise ScalePreflightError("structured authority mandate binding substitution")
 
