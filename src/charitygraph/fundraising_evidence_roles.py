@@ -22,6 +22,8 @@ EvidenceRole = Literal[
 Facet = Literal[
     "practice", "campaign", "setting", "channel", "provider",
     "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage",
+    "payment_transfer_instrument", "delivery_party", "compensation",
+    "resource_sought", "destination_restriction", "donor_funder_class",
 ]
 Binding = Literal["confirmed", "ambiguous", "unresolved"]
 ReviewStatus = Literal["not_reviewed", "reviewed", "rejected"]
@@ -87,12 +89,12 @@ class FundraisingEvidence(_Strict):
 # with an empty set can still be retained as membership, registration, search or
 # research evidence, but cannot produce a fundraising-practice observation.
 _ROLE_FACETS: dict[EvidenceRole, frozenset[Facet]] = {
-    "first_party_practice_page": frozenset({"practice", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage"}),
-    "first_party_campaign_page": frozenset({"campaign", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage"}),
-    "annual_report_statement": frozenset({"practice", "campaign", "setting", "channel", "commitment_pattern", "digital_distribution", "donor_relationship_stage"}),
+    "first_party_practice_page": frozenset({"practice", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage", "payment_transfer_instrument", "delivery_party", "compensation", "resource_sought", "destination_restriction", "donor_funder_class"}),
+    "first_party_campaign_page": frozenset({"campaign", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage", "payment_transfer_instrument", "resource_sought", "destination_restriction", "donor_funder_class"}),
+    "annual_report_statement": frozenset({"practice", "campaign", "setting", "channel", "commitment_pattern", "digital_distribution", "donor_relationship_stage", "payment_transfer_instrument", "delivery_party", "compensation", "resource_sought", "destination_restriction", "donor_funder_class"}),
     "regulator_registration": frozenset(),
     "pfra_membership": frozenset(),
-    "agency_provider_case_evidence": frozenset({"provider", "practice", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage"}),
+    "agency_provider_case_evidence": frozenset({"provider", "practice", "setting", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage", "payment_transfer_instrument", "delivery_party", "compensation", "resource_sought", "destination_restriction", "donor_funder_class"}),
     "agency_client_directory": frozenset({"provider"}),
     "platform_campaign_page": frozenset({"campaign", "channel", "commitment_pattern", "currentness", "digital_distribution", "donor_relationship_stage"}),
     "industry_record": frozenset(),

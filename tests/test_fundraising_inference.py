@@ -79,6 +79,54 @@ def test_direct_contact_channels_are_specific_and_composable():
     assert all(row.disposition == "candidate" for row in output.candidates)
 
 
+def test_supported_practice_families_are_independent_not_competing_categories():
+    """One reviewed statement can support several independent practices."""
+    families = evidence("families", facets=("practice", "commitment_pattern"))
+    output = compile_fundraising_candidates((families,), (
+        claim("regular", "families", "fundraising.regular_giving", source_phrase="Join our regular giving program."),
+        claim("p2p", "families", "fundraising.peer_to_peer", source_phrase="Fundraise with your friends."),
+        claim("community", "families", "fundraising.community", source_phrase="Community groups fundraise for us."),
+        claim("event", "families", "fundraising.events", source_phrase="Hold a fundraising event."),
+        claim("bequest", "families", "fundraising.bequests", source_phrase="Leave a gift in your Will."),
+        claim("major", "families", "fundraising.major_gifts", source_phrase="Our major gifts program."),
+        claim("corporate", "families", "fundraising.corporate_partnerships", source_phrase="Partner with us as a business."),
+        claim("workplace", "families", "fundraising.workplace_giving", source_phrase="Give through your workplace."),
+        claim("raffle", "families", "fundraising.raffles_lotteries", source_phrase="Enter our charity raffle."),
+        claim("retail", "families", "fundraising.retail_goods_collections", source_phrase="Donate goods to our op shop."),
+    ))
+    assert {row.canonical_term_id for row in output.candidates} == {
+        "fundraising.regular_giving", "fundraising.peer_to_peer", "fundraising.community",
+        "fundraising.events", "fundraising.bequests", "fundraising.major_gifts",
+        "fundraising.corporate_partnerships", "fundraising.workplace_giving",
+        "fundraising.raffles_lotteries", "fundraising.retail_goods_collections",
+    }
+    assert all(row.disposition == "candidate" for row in output.candidates)
+
+
+@pytest.mark.parametrize(("term", "native_phrase"), [
+    ("fundraising.bequests", "Donations and bequests: $100,000"),
+    ("fundraising.grantseeking", "Foundation grant received: $100,000"),
+    ("fundraising.corporate_partnerships", "Corporate sponsorship revenue: $100,000"),
+])
+def test_funding_source_income_cannot_be_promoted_as_a_fundraising_practice(term, native_phrase):
+    """A reported receipt is retained as finance evidence, not a method claim."""
+    finance = evidence("finance", role="annual_report_statement", facets=()).model_copy(update={
+        "source_wording": native_phrase,
+    })
+    with pytest.raises(ValueError, match="required practice facet"):
+        compile_fundraising_candidates((finance,), (
+            claim("incorrect-category", "finance", term, source_phrase=native_phrase),
+        ))
+
+
+def test_payment_instrument_requires_its_own_evidence_facet():
+    practice = evidence("program", facets=("practice",))
+    with pytest.raises(ValueError, match="required payment_transfer_instrument facet"):
+        compile_fundraising_candidates((practice,), (
+            claim("debit", "program", "fundraising.direct_debit", source_phrase="Pay by direct debit."),
+        ))
+
+
 def test_generic_online_donation_does_not_overclaim_paid_acquisition_or_current_campaign():
     donation_page = evidence("donate-online", facets=("channel",)).model_copy(update={
         "source_wording": "Donate online through our secure website.",

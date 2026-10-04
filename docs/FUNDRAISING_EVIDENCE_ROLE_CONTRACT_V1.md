@@ -17,6 +17,8 @@ Status: implemented review-only contract. This version does not authorise source
 | Industry record, procurement/job evidence | research context unless a separately governed role is approved | practice deployment or currentness |
 | Scoped source inventory | coverage description only | absence or negative practice claim |
 
-The validator rejects a source attempting a facet outside its role. Promotion additionally requires a confirmed subject binding, observed coverage, a reviewed extraction and, for currentness, source-supplied validity time. Ambiguous/unresolved binding is blocked. Scoped silence is `coverage_only`. `pfra_membership` and `regulator_registration` have explicit mechanical non-inference gates.
+The validator rejects a source attempting a facet outside its role. It separately gates payment/transfer instrument, delivery party, compensation, resource sought, destination restriction and donor/funder class: a practice assertion does not silently establish any of these. Promotion additionally requires a confirmed subject binding, observed coverage, a reviewed extraction and, for currentness, source-supplied validity time. Ambiguous/unresolved binding is blocked. Scoped silence is `coverage_only`. `pfra_membership` and `regulator_registration` have explicit mechanical non-inference gates.
+
+Reported grant, bequest and corporate/sponsorship receipts remain finance or funding-source relationship evidence unless the source independently asserts a solicitation/program practice. In particular, they cannot be promoted as grant-seeking, bequest or corporate-partnership practice merely from an income label.
 
 The fixture contains strong (reviewed, directly scoped first-party), weak (review pending), negative (PFRA and regulator attempts), ambiguous-binding and scoped-silence cases. It preserves source-native wording rather than using keyword matching.

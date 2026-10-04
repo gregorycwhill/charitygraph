@@ -161,6 +161,12 @@ _EVIDENCE_FACET_BY_TERM_FACET = {
     "commitment_pattern": "commitment_pattern",
     "digital_distribution": "digital_distribution",
     "donor_relationship_stage": "donor_relationship_stage",
+    "payment_transfer_instrument": "payment_transfer_instrument",
+    "delivery_party": "delivery_party",
+    "compensation": "compensation",
+    "resource_sought": "resource_sought",
+    "destination_restriction": "destination_restriction",
+    "donor_funder_class": "donor_funder_class",
 }
 _METHOD_BY_PRODUCTION = {
     "direct_extract": "direct_observation",
