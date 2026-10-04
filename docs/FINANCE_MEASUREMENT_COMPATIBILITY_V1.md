@@ -1,7 +1,7 @@
 # Finance measurement compatibility v1
 
-**Status:** Implemented internal contract  
-**Version:** 1.0  
+**Status:** Implemented internal contract
+**Version:** 1.0
 **Scope:** deciding whether two source-native fundraising money observations can be added in one deterministic calculation.
 
 This contract extends, rather than replaces, `MoneyObservation` exact unit normalisation and the existing `Financials`, `FinancialStatementObservation`, `FinancialLineItem`, and `FunctionalExpenseAllocation` records. It never rewrites a printed financial-statement row or source label.

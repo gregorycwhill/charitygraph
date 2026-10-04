@@ -1,6 +1,6 @@
 # Fundraising Vocabulary v1 Candidate
 
-**Status:** Governed candidate for review; not a published taxonomy or assignment rule.  
+**Status:** Governed candidate for review; not a published taxonomy or assignment rule.
 **Scope:** CharityGraph fundraising practices, campaigns and financial evidence.
 
 This candidate uses composable facets rather than a mutually exclusive method hierarchy. A single evidence-backed observation may independently record strategy/program, solicitation mechanism, communication channel, setting/placement, resource sought, commitment pattern, payment/transfer instrument, donor relationship stage, delivery party, compensation, destination/restriction and donor/funder class. Absence of a facet is unknown, not negative evidence.
