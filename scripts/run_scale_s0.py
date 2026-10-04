@@ -61,7 +61,10 @@ def main(argv: list[str] | None = None) -> int:
         a3_fields = (args.cohort_id, args.attested_by, args.observed_at, args.setting_name,
                      args.observed_value, args.provider_project, args.execution_authority,
                      args.structured_authority, args.structured_authority_sha256)
-        if args.preflight and any(value is not None for value in a3_fields):
+        if args.preflight:
+            # A provider-free rehearsal is still an S0 entry path.  Letting an
+            # entirely omitted A3 tuple bypass this branch made an empty-work
+            # preflight look valid without proving any current authority.
             if any(value is None for value in a3_fields):
                 raise SystemExit("structured preflight requires complete explicit A3 fields")
             row = catalog.get_scale_s0_execution_attempt(args.attempt_id)

@@ -99,6 +99,13 @@ def checkpoint_structured_locator_preprovider(*, catalog: Any, attempt: Any, aut
     validate_live_bindings(authority, attempt_id=attempt.attempt_id, run_id=attempt.run_id,
                            builder_commit_sha=attempt.builder_commit_sha, data_merge_sha=attempt.data_commit_sha,
                            provider_project=authority.provider_project)
+    # The checkpoint identity is the immutable structured authority hash, not
+    # the wall-clock time a harmless pre-provider retry happened.  Reuse the
+    # original timestamp so registration remains an exact idempotent replay
+    # (and still lets the catalog revalidate the whole persisted material).
+    existing = catalog.get_scale_s0_locator_preprovider_checkpoint(
+        execution_attempt_id=attempt.attempt_id, authority_hash=compiled.authority.hash)
+    created_at = existing["material"]["created_at"] if existing is not None else now
     checkpoint = {
         "checkpoint_id": "checkpoint:s0-locator:" + compiled.authority.hash,
         "execution_attempt_id": attempt.attempt_id, "run_id": attempt.run_id,
@@ -106,7 +113,7 @@ def checkpoint_structured_locator_preprovider(*, catalog: Any, attempt: Any, aut
         "frozen_subjects": [subject.material() for subject in frozen_subjects],
         "slots": [asdict(slot) for slot in compiled.slots], "max_physical_calls": compiled.max_physical_calls,
         "max_new_exposure_usd": str(compiled.max_new_exposure_usd), "a3_state": "pending",
-        "reservations": 0, "send_started": 0, "provider_attempts": 0, "created_at": now,
+        "reservations": 0, "send_started": 0, "provider_attempts": 0, "created_at": created_at,
     }
     return catalog.register_scale_s0_locator_preprovider_checkpoint(checkpoint)
 

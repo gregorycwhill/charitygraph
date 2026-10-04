@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -16,6 +16,7 @@ from charitygraph.s0_structured_authority import (
     frozen_locator_material_sha256,
 )
 from charitygraph.scale_s0 import ExecutionAttemptIdentity, ScaleS0Preflight
+from charitygraph.scale_s0 import ScalePreflightError
 from charitygraph.scale_s0 import locator_search_request_body_sha256
 from charitygraph.s0_pricing import load_supervisor_capture
 from scripts.run_scale_s0 import main
@@ -136,8 +137,11 @@ def test_structured_a3_preflight_reaches_provider_boundary_without_attestation_o
         catalog.register_run({"record_id": attempt.run_id, "run_kind": "s0", "status": "planned",
                               "configuration_hash": attempt.configuration_hash, "created_at": NOW})
         ScaleS0Preflight.register_durable_execution_attempt(catalog, attempt)
-        checkpoint_structured_locator_preprovider(catalog=catalog, attempt=attempt, authority=authority,
-                                                  frozen_subjects=frozen, now=NOW)
+        initial = checkpoint_structured_locator_preprovider(catalog=catalog, attempt=attempt, authority=authority,
+                                                            frozen_subjects=frozen, now=NOW)
+        replayed = checkpoint_structured_locator_preprovider(catalog=catalog, attempt=attempt, authority=authority,
+                                                             frozen_subjects=frozen, now=NOW + timedelta(minutes=5))
+        assert replayed["material_hash"] == initial["material_hash"]
     authority_path = tmp_path / "attempt21-authority.json"
     authority_path.write_text(json.dumps(authority.material()), encoding="utf-8")
     work_path = tmp_path / "work.json"
@@ -150,6 +154,30 @@ def test_structured_a3_preflight_reaches_provider_boundary_without_attestation_o
             "--provider-project", PROJECT, "--execution-authority", authority.hash,
             "--structured-authority", str(authority_path), "--structured-authority-sha256", authority.hash]
     assert main(argv) == 0
+    with SQLiteCatalog(db).open() as catalog:
+        checkpoint = catalog.get_scale_s0_locator_preprovider_checkpoint(
+            execution_attempt_id=attempt.attempt_id, authority_hash=authority.hash)
+        assert checkpoint is not None
+        assert checkpoint["material"]["authority"] == authority.material()
+        assert checkpoint["material"]["frozen_subjects"] == [item.material() for item in frozen]
+        assert checkpoint["material"]["a3_state"] == "pending"
+        for table in ("scale_s0_attestation_windows", "budget_reservations", "provider_request_attempts"):
+            with catalog._connection() as conn:
+                assert conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] == 0
+
+    # Re-enter through the production CLI with hostile A3 variants.  These
+    # must fail before any durable reservation or provider construction.
+    bad_hash = list(argv)
+    bad_hash[bad_hash.index("--execution-authority") + 1] = "f" * 64
+    with pytest.raises(ScalePreflightError, match="hash does not match"):
+        main(bad_hash)
+    stale = list(argv)
+    stale[stale.index("--observed-at") + 1] = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+    with pytest.raises(ScalePreflightError, match="stale"):
+        main(stale)
+    authority_path.write_text('{"schema":"malformed"}', encoding="utf-8")
+    with pytest.raises(ScalePreflightError, match="legacy or incomplete"):
+        main(argv)
     with SQLiteCatalog(db).open() as catalog:
         for table in ("scale_s0_attestation_windows", "budget_reservations", "provider_request_attempts"):
             with catalog._connection() as conn:
@@ -165,3 +193,8 @@ def test_structured_a3_preflight_rejects_incomplete_inputs_before_provider(tmp_p
     with pytest.raises(SystemExit, match="structured preflight requires complete explicit A3 fields"):
         main(["--catalog", str(db), "--attempt-id", "attempt:s0:21", "--builder-commit-sha", "a" * 40,
               "--runtime-root", str(tmp_path), "--work", str(work), "--preflight", "--cohort-id", "x"])
+    # An entirely omitted A3 tuple was previously able to bypass the
+    # conditional validation branch when the work list was empty.
+    with pytest.raises(SystemExit, match="structured preflight requires complete explicit A3 fields"):
+        main(["--catalog", str(db), "--attempt-id", "attempt:s0:21", "--builder-commit-sha", "a" * 40,
+              "--runtime-root", str(tmp_path), "--work", str(work), "--preflight"])
