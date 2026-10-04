@@ -16,7 +16,10 @@ def test_fixture_build_round_trip(tmp_path: Path):
 
     assert len(cards) == 3
     assert cards[0].fundraising_expenditure is not None
-    assert cards[1].fundraising_expenditure is not None
+    # Source components with no explicit attribution are not a fundraising
+    # expenditure fact.  Preserve the unavailable/not-processed state rather
+    # than reconstructing a point estimate from labels or totals.
+    assert cards[1].fundraising_expenditure is None
     assert cards[2].fundraising_expenditure is None
     assert all(
         card.fundraising_expenditure is None
@@ -97,7 +100,6 @@ def test_publication_rejects_financial_total_duplicated_across_subject_cards(tmp
         Path("tests/fixtures/source/entities.json"), dataset_version="test-0.1"
     )
     cards[1].financial_records[0].financial_record_id = cards[0].financial_records[0].financial_record_id
-    cards[1].fundraising_expenditure.financial_record_id = cards[0].financial_records[0].financial_record_id
     for metric in cards[1].financial_metrics:
         metric.observations[0].financial_record_id = cards[0].financial_records[0].financial_record_id
     render_publication(cards, vectors, similarities, tmp_path, require_parquet=False)
