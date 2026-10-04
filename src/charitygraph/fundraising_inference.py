@@ -176,6 +176,17 @@ _METHOD_BY_PRODUCTION = {
 _PROMOTION_PRIORITY = {"blocked": 4, "coverage_only": 3, "review_only": 2, "promotable": 1}
 
 
+def _normalise_source_text(value: str) -> str:
+    """Normalise only presentation whitespace/case for source-phrase binding.
+
+    This is deliberately not a method classifier: punctuation, words and their
+    order remain source-native.  It lets an adapter retain a sentence fragment
+    without an otherwise harmless difference in whitespace or casing making a
+    reviewed assertion impossible to compile.
+    """
+    return " ".join(value.casefold().split())
+
+
 def _scope_key(scope: EvidenceScope) -> str:
     return json.dumps(scope.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
 
@@ -222,6 +233,10 @@ def compile_fundraising_candidates(
             raise ValueError(
                 f"claim {claim.claim_id} maps {term.term_id} but evidence {item.evidence_id} "
                 f"does not assert required {required_facet} facet"
+            )
+        if _normalise_source_text(claim.source_phrase) not in _normalise_source_text(item.source_wording):
+            raise ValueError(
+                f"claim {claim.claim_id} source phrase is not retained in evidence {item.evidence_id} wording"
             )
         if term is None:
             unprocessed.append(claim.claim_id)

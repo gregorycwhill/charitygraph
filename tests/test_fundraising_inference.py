@@ -14,7 +14,7 @@ from charitygraph.fundraising_inference import (
 def evidence(identifier: str, *, role="first_party_practice_page", binding="confirmed", coverage="observed", facets=("practice",)):
     return FundraisingEvidence(
         evidence_id=identifier, source_id=f"source-{identifier}", source_role=role,
-        locator=f"/evidence/{identifier}", source_wording="Source-native fundraising assertion.",
+        locator=f"/evidence/{identifier}", source_wording="Source-native fundraising assertion: face-to-face fundraising.",
         subject_binding=binding, binding_basis="linked organisation identifier", observed_at=date(2026, 10, 1),
         valid_from=date(2026, 9, 1), scope=EvidenceScope(kind="organisation", identifier="org-1"),
         production_method="governed_semantic_inference", review_status="reviewed", coverage=coverage,
@@ -46,23 +46,30 @@ def test_campaign_candidate_retains_campaign_identity_alongside_the_method():
     campaign_evidence = evidence("appeal").model_copy(update={
         "source_role": "first_party_campaign_page", "asserted_facets": ("campaign", "channel"),
         "scope": EvidenceScope(kind="campaign", identifier="winter-appeal"),
+        "source_wording": "Winter Appeal online fundraising campaign.",
     })
     output = compile_fundraising_candidates((campaign_evidence,), (
-        claim("appeal", "appeal", "fundraising.digital", candidate_kind="campaign", campaign_name="Winter Appeal"),
+        claim("appeal", "appeal", "fundraising.digital", candidate_kind="campaign", campaign_name="Winter Appeal",
+              source_phrase="Winter Appeal online fundraising campaign."),
     ))
     candidate = output.candidates[0]
     assert (candidate.candidate_kind, candidate.campaign_name, candidate.canonical_term_id) == ("campaign", "Winter Appeal", "fundraising.digital")
 
 
 def test_unknown_term_is_preserved_unresolved_not_guessed():
-    output = compile_fundraising_candidates((evidence("one"),), (claim("unknown", "one", term=None, mapping_predicate="no_match", source_phrase="mystery drive"),))
+    unknown_evidence = evidence("one").model_copy(update={"source_wording": "Mystery drive."})
+    output = compile_fundraising_candidates((unknown_evidence,), (claim("unknown", "one", term=None, mapping_predicate="no_match", source_phrase="mystery drive"),))
     assert output.candidates[0].disposition == "unresolved"
     assert output.candidates[0].canonical_term_id is None
     assert output.unprocessed_claim_ids == ("unknown",)
 
 
 def test_direct_contact_channels_are_specific_and_composable():
-    direct = evidence("direct", facets=("practice", "channel", "digital_distribution"))
+    direct = evidence("direct", facets=("practice", "channel", "digital_distribution")).model_copy(update={
+        "source_wording": "Our callers make telephone appeals. Our direct-mail appeal was posted in June. "
+        "Text GIVE to donate by SMS. Our email appeal asks supporters to donate. Donate through our website. "
+        "Our social appeal asks supporters to donate. We ran paid social advertising for the appeal.",
+    })
     output = compile_fundraising_candidates((direct,), (
         claim("telephone", "direct", "fundraising.telephone", source_phrase="Our callers make telephone appeals."),
         claim("mail", "direct", "fundraising.direct_mail", source_phrase="Our direct-mail appeal was posted in June."),
@@ -79,9 +86,34 @@ def test_direct_contact_channels_are_specific_and_composable():
     assert all(row.disposition == "candidate" for row in output.candidates)
 
 
+def test_source_phrase_must_bind_direct_mail_candidate_to_retained_wording():
+    evidence_row = evidence("mail", facets=("channel",)).model_copy(update={
+        "source_wording": "Email supporters about our winter appeal.",
+    })
+    with pytest.raises(ValueError, match="source phrase is not retained"):
+        compile_fundraising_candidates((evidence_row,), (
+            claim("mail", "mail", "fundraising.direct_mail", source_phrase="Our direct-mail appeal was posted."),
+        ))
+
+
+def test_direct_mail_can_use_a_source_native_postal_phrase_with_governed_mapping():
+    evidence_row = evidence("mail", facets=("channel",)).model_copy(update={
+        "source_wording": "We sent a postal appeal to supporters in June.",
+    })
+    candidate = compile_fundraising_candidates((evidence_row,), (
+        claim("mail", "mail", "fundraising.direct_mail", source_phrase="sent a postal appeal to supporters"),
+    )).candidates[0]
+    assert candidate.canonical_term_id == "fundraising.direct_mail"
+    assert candidate.source_phrases == ("sent a postal appeal to supporters",)
+
+
 def test_supported_practice_families_are_independent_not_competing_categories():
     """One reviewed statement can support several independent practices."""
-    families = evidence("families", facets=("practice", "commitment_pattern"))
+    families = evidence("families", facets=("practice", "commitment_pattern")).model_copy(update={
+        "source_wording": "Join our regular giving program. Fundraise with your friends. Community groups fundraise for us. "
+        "Hold a fundraising event. Leave a gift in your Will. Our major gifts program. Partner with us as a business. "
+        "Give through your workplace. Enter our charity raffle. Donate goods to our op shop.",
+    })
     output = compile_fundraising_candidates((families,), (
         claim("regular", "families", "fundraising.regular_giving", source_phrase="Join our regular giving program."),
         claim("p2p", "families", "fundraising.peer_to_peer", source_phrase="Fundraise with your friends."),
