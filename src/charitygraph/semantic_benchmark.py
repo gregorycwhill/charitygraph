@@ -327,7 +327,7 @@ class DonorRepublicFunraisinAdapter(FundraisingIndustryAdapter):
             value = " ".join(line.split())
             if not value or not re.search(r"\$|campaign|event|challenge|run|walk|ride|top\s*30", value, re.I):
                 continue
-            amounts = re.findall(r"(?:AUD\s*)?\$?\s*[0-9][0-9,]*(?:\.\d+)?\s*(?:m|k)?", value, re.I)
+            amounts = re.findall(r"(?:AUD\s*)?\$\s*[0-9][0-9,]*(?:\.\d+)?(?:\s*(?:m|k))?", value, re.I)
             records.append({"source_record_id": f"{self.name}:{index}", "source_url": source_url or self.source_url, "source_location": f"line:{index}", "source_text": value, "campaign_label": value, "reported_amount_2023": amounts[0] if amounts else None, "reported_amount_2024": amounts[1] if len(amounts) > 1 else None, "source_variance": "not_computed", "caveat": "Public revenue may omit offline funds; amounts are source-native benchmark metrics, not accounting revenue."})
         return records
 
@@ -339,7 +339,7 @@ class DonorRepublicFunraisinAdapter(FundraisingIndustryAdapter):
             if match:
                 parts = [x.strip() for x in re.split(r"\||\t", line) if x.strip()]
                 if len(parts) >= 3 and 1 <= int(match.group(1)) <= 30:
-                    amounts = re.findall(r"(?:AUD\s*)?\$?\s*[0-9][0-9,]*(?:\.\d+)?\s*(?:m|k)?", value, re.I)
+                    amounts = re.findall(r"(?:AUD\s*)?\$\s*[0-9][0-9,]*(?:\.\d+)?(?:\s*(?:m|k))?", value, re.I)
                     rows.append({"source_record_id": f"{self.name}:row:{match.group(1)}", "source_url": source_url or self.source_url, "source_location": f"row:{match.group(1)}", "source_text": value, "record_type": "top30_campaign", "rank": int(match.group(1)), "campaign_event_name": parts[1], "charity_source_organisation_label": parts[2], "activity_mechanic": parts[3] if len(parts) > 3 else None, "reported_amount_2023": amounts[0] if amounts else None, "reported_amount_2024": amounts[1] if len(amounts) > 1 else None, "source_reported_variance": parts[5] if len(parts) > 5 else None, "reporting_year": 2024, "source_edition": "Top 30 for 2024", "offline_revenue_caveat": "Public revenue may omit offline funds."})
         if rows: return rows[:30]
         # pdf text extraction represents the actual table as whitespace columns.
