@@ -37,10 +37,16 @@ Representative payload:
 
 `FundraisingProviderRelationship` requires explicit subject and provider roles and wraps
 the common `SubjectRelationship` (including its resolved target CauseBase ID); no agency
-relationship is inferred from F2F evidence.
+relationship is inferred from F2F evidence. Its scope must bind to the containing charity,
+and the embedded relationship evidence must be retained by the wrapper. `subject_role` is
+the containing charity's role, while `provider_role` is the resolved target's role; this is
+a directed relationship, not an organisation-wide practice assertion.
 
 The containing card rejects repeated provider assignments with the same resolved target,
 provider role and scope, even if supplied with different IDs or client/commissioner roles.
+Repeated observations at different `observed_at` times are still the same assignment for
+this check. A campaign and provider case may coexist with zero standing-practice
+observations; no round-trip projection promotes either into a practice.
 It also validates evidence IDs in both the fundraising wrapper and the embedded common
 relationship. This fails closed rather than choosing between contradictory role assertions.
 

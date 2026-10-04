@@ -632,7 +632,12 @@ class FundraisingCampaignObservation(BaseModel):
 
 
 class FundraisingProviderRelationship(BaseModel):
-    """Directed relationship using the common resolved-subject relationship model."""
+    """A directed, scoped link from this charity to a resolved provider subject.
+
+    ``subject_role`` belongs to the containing charity and ``provider_role`` to
+    ``relationship.target_causebase_id``.  It is deliberately not a claim that
+    the provider's case-study client has an organisation-wide practice.
+    """
 
     schema_version: Literal["fundraising-provider-relationship-v1"] = "fundraising-provider-relationship-v1"
     relationship_id: str = Field(pattern=r"^fpr_[a-z0-9][a-z0-9_-]*$")
@@ -652,8 +657,15 @@ class FundraisingProviderRelationship(BaseModel):
     def validate_provider_evidence(self):
         if self.relationship.relationship_type != self.provider_role:
             raise ValueError("provider role must agree with the common relationship type")
-        if self.coverage_status == "observed" and not self.evidence_ids:
-            raise ValueError("an observed provider relationship requires evidence")
+        if self.scope.scope_kind == "unknown" or not self.scope.scope_subject_causebase_id:
+            raise ValueError("a provider relationship requires a bound subject scope")
+        if self.relationship.target_causebase_id == self.scope.scope_subject_causebase_id:
+            raise ValueError("a provider relationship cannot use the scoped subject as its provider target")
+        if self.coverage_status == "observed":
+            if not self.evidence_ids or not self.relationship.evidence_ids:
+                raise ValueError("an observed provider relationship requires evidence in both relationship and wrapper")
+            if not set(self.relationship.evidence_ids).issubset(self.evidence_ids):
+                raise ValueError("provider relationship evidence must be retained by the fundraising wrapper")
         return self
 
 
@@ -793,8 +805,10 @@ class CauseBaseCard(BaseModel):
             missing = {evidence_id for item in observations for evidence_id in item.evidence_ids} - evidence_ids
             if missing:
                 raise ValueError(f"{label} evidence IDs missing from card: {sorted(missing)}")
-        provider_relationship_keys: set[tuple[str, str, str]] = set()
+        provider_relationship_keys: set[tuple[object, ...]] = set()
         for provider_relationship in self.fundraising_provider_relationships:
+            if provider_relationship.scope.scope_subject_causebase_id != self.causebase_id:
+                raise ValueError("provider relationship scope must bind to the containing card subject")
             # A repeated directed link with a new identifier is not a second
             # role.  It would make the identity of a provider assignment
             # ambiguous, including where its two copies name different client
@@ -802,7 +816,14 @@ class CauseBaseCard(BaseModel):
             key = (
                 provider_relationship.relationship.target_causebase_id,
                 provider_relationship.provider_role,
-                provider_relationship.scope.model_dump_json(),
+                # Observation time is provenance, not a new provider
+                # assignment.  Excluding it makes repeated observations with
+                # conflicting client/commissioner roles fail closed.
+                provider_relationship.scope.scope_kind,
+                provider_relationship.scope.scope_subject_causebase_id,
+                tuple(sorted(provider_relationship.scope.geography)),
+                provider_relationship.scope.valid_from,
+                provider_relationship.scope.valid_to,
             )
             if key in provider_relationship_keys:
                 raise ValueError("duplicate or contradictory fundraising provider role assignment")

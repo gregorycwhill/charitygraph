@@ -168,6 +168,31 @@ def test_typed_fundraising_compile_project_round_trip_preserves_distinct_subject
     assert round_tripped.provider_relationships[0].relationship.status == "ended"
 
 
+def test_campaign_and_provider_evidence_do_not_become_a_standing_practice_on_round_trip():
+    """A provider case study can describe one appeal without asserting a practice."""
+    campaign = FundraisingCampaignObservation(
+        observation_id="fc_provider_case", campaign_name="Spring Appeal",
+        source_native_phrase="Provider delivered the Spring Appeal",
+        canonical_facets=("fundraising.face_to_face",), scope=SCOPE,
+        lifecycle="ended", source_role="industry_context", evidence_ids=["ev_fundraising"],
+    )
+    provider = FundraisingProviderRelationship(
+        relationship_id="fpr_case", relationship=PROVIDER_LINK,
+        subject_role="client", provider_role="fundraising_service_provider",
+        scope=SCOPE, lifecycle="historical", source_role="industry_context",
+        evidence_ids=["ev_fundraising"],
+    )
+    round_tripped = CauseBaseCard.model_validate(card(
+        fundraising_campaign_observed=[campaign], fundraising_provider_relationships=[provider],
+    ).model_dump(mode="json"))
+    projected = project_fundraising(round_tripped)
+
+    assert projected.practices == ()
+    assert projected.campaigns[0].campaign_name == "Spring Appeal"
+    assert projected.provider_relationships[0].subject_role == "client"
+    assert projected.provider_relationships[0].relationship.target_causebase_id == "cb_provider"
+
+
 def test_duplicate_or_contradictory_provider_role_assignments_fail_closed():
     first = FundraisingProviderRelationship(
         relationship_id="fpr_first", relationship=PROVIDER_LINK,
@@ -182,11 +207,49 @@ def test_duplicate_or_contradictory_provider_role_assignments_fail_closed():
     with pytest.raises(ValueError, match="duplicate or contradictory"):
         card(fundraising_provider_relationships=[first, contradictory])
 
+    # A later observation is fresh provenance for the same assignment, not a
+    # way to retain conflicting direction/client-role assertions.
+    later_contradictory = contradictory.model_copy(update={
+        "relationship_id": "fpr_later", "scope": SCOPE.model_copy(update={"observed_at": date(2026, 3, 1)}),
+    })
+    with pytest.raises(ValueError, match="duplicate or contradictory"):
+        card(fundraising_provider_relationships=[first, later_contradictory])
+
+    reordered_geography = contradictory.model_copy(update={
+        "relationship_id": "fpr_reordered", "scope": SCOPE.model_copy(update={"geography": ["AU", "NSW"]}),
+    })
+    geographic_first = first.model_copy(update={"scope": SCOPE.model_copy(update={"geography": ["NSW", "AU"]})})
+    with pytest.raises(ValueError, match="duplicate or contradictory"):
+        card(fundraising_provider_relationships=[geographic_first, reordered_geography])
+
     with pytest.raises(ValueError, match="missing from card"):
         card(fundraising_provider_relationships=[FundraisingProviderRelationship(
             relationship_id="fpr_unknown_evidence", relationship=SubjectRelationship(
                 relationship_type="fundraising_service_provider", target_causebase_id="cb_provider",
                 evidence_ids=["ev_missing"],
             ), subject_role="commissioner", provider_role="fundraising_service_provider",
-            scope=SCOPE, evidence_ids=["ev_fundraising"],
+            scope=SCOPE, evidence_ids=["ev_fundraising", "ev_missing"],
         )])
+
+
+def test_provider_identity_scope_and_evidence_binding_fail_closed():
+    with pytest.raises(ValueError, match="bound subject scope"):
+        FundraisingProviderRelationship(
+            relationship_id="fpr_unbound", relationship=PROVIDER_LINK,
+            subject_role="client", provider_role="fundraising_service_provider",
+            scope=FundraisingObservationScope(), evidence_ids=["ev_fundraising"],
+        )
+    with pytest.raises(ValueError, match="retained by the fundraising wrapper"):
+        FundraisingProviderRelationship(
+            relationship_id="fpr_unlinked_evidence", relationship=PROVIDER_LINK,
+            subject_role="client", provider_role="fundraising_service_provider",
+            scope=SCOPE, evidence_ids=["ev_other"],
+        )
+    relation = FundraisingProviderRelationship(
+        relationship_id="fpr_other_subject", relationship=PROVIDER_LINK,
+        subject_role="client", provider_role="fundraising_service_provider",
+        scope=SCOPE.model_copy(update={"scope_subject_causebase_id": "cb_other"}),
+        evidence_ids=["ev_fundraising"],
+    )
+    with pytest.raises(ValueError, match="containing card subject"):
+        card(fundraising_provider_relationships=[relation])
