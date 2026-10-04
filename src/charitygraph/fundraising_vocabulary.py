@@ -1,4 +1,4 @@
-"""Candidate, faceted fundraising vocabulary; it is not an assignment engine.
+"""Governed fundraising vocabulary v1; it is not an assignment engine.
 
 The values here name stable CharityGraph facets.  Source-native labels and
 external schemes remain separately represented in ``SOURCE_SCHEMES`` and
@@ -27,6 +27,10 @@ MappingPredicate = Literal[
     "related_match", "no_match",
 ]
 SchemeDisposition = Literal["incorporated", "mapped", "reference_only", "unresolved"]
+VocabularyStatus = Literal["governed_review_only"]
+UnmappedReason = Literal[
+    "explicit_no_match", "not_in_crosswalk", "ambiguous_source_term", "insufficient_evidence",
+]
 
 
 class FacetTerm(_Strict):
@@ -50,7 +54,7 @@ class SourceScheme(_Strict):
 class CrosswalkEntry(_Strict):
     scheme_id: str
     source_term: str
-    native_term_id: str | None = None
+    native_term_ids: tuple[str, ...] = ()
     predicate: MappingPredicate
     rationale: str
     unresolved_note: str | None = None
@@ -58,18 +62,19 @@ class CrosswalkEntry(_Strict):
     @model_validator(mode="after")
     def mapping_has_consistent_target(self):
         if self.predicate == "no_match":
-            if self.native_term_id is not None:
+            if self.native_term_ids:
                 raise ValueError("no_match must not name a native term")
             if not self.unresolved_note:
                 raise ValueError("no_match requires an unresolved note")
-        elif self.native_term_id is None:
+        elif not self.native_term_ids:
             raise ValueError("a non-no_match mapping requires a native term")
         return self
 
 
 class FundraisingVocabularyV1(_Strict):
-    vocabulary_id: Literal["charitygraph-fundraising-v1-candidate"]
-    status: Literal["candidate"]
+    vocabulary_id: Literal["charitygraph-fundraising-v1"]
+    version: Literal["1.0.0"]
+    status: VocabularyStatus
     terms: tuple[FacetTerm, ...]
     source_schemes: tuple[SourceScheme, ...]
     crosswalk: tuple[CrosswalkEntry, ...]
@@ -83,9 +88,60 @@ class FundraisingVocabularyV1(_Strict):
         if len(scheme_ids) != len(set(scheme_ids)):
             raise ValueError("scheme IDs must be unique")
         unknown_schemes = {entry.scheme_id for entry in self.crosswalk} - set(scheme_ids)
-        unknown_terms = {entry.native_term_id for entry in self.crosswalk if entry.native_term_id} - set(ids)
+        unknown_terms = {
+            term_id for entry in self.crosswalk for term_id in entry.native_term_ids
+        } - set(ids)
         if unknown_schemes or unknown_terms:
             raise ValueError(f"unknown crosswalk references: schemes={unknown_schemes}, terms={unknown_terms}")
+        return self
+
+
+class VocabularyTermReference(_Strict):
+    """A version-pinned native term reference for ingestion or projection code.
+
+    This is a reference only.  The surrounding observation remains responsible
+    for evidence, subject/scope, valid time, source role and review state.
+    """
+
+    vocabulary_id: Literal["charitygraph-fundraising-v1"] = "charitygraph-fundraising-v1"
+    vocabulary_version: Literal["1.0.0"] = "1.0.0"
+    term_id: str = Field(pattern=r"^fundraising\.[a-z0-9_]+$")
+
+    @model_validator(mode="after")
+    def term_is_registered_in_this_version(self):
+        known = {term.term_id for term in FUNDRAISING_VOCABULARY_V1.terms}
+        if self.term_id not in known:
+            raise ValueError(f"unknown fundraising vocabulary v1 term: {self.term_id}")
+        return self
+
+
+class UnmappedSourceTerm(_Strict):
+    """An explicit non-assignment; never silently converted to a native term."""
+
+    scheme_id: str
+    source_term: str = Field(min_length=1)
+    reason: UnmappedReason
+    note: str = Field(min_length=1)
+
+
+class CrosswalkResolution(_Strict):
+    """Deterministic result of an exact registered crosswalk lookup."""
+
+    scheme_id: str
+    source_term: str
+    matched: bool
+    predicate: MappingPredicate | None = None
+    native_terms: tuple[VocabularyTermReference, ...] = ()
+    unmapped: UnmappedSourceTerm | None = None
+
+    @model_validator(mode="after")
+    def check_resolution_shape(self):
+        if self.matched and self.unmapped is not None:
+            raise ValueError("a mapped crosswalk resolution cannot be unmapped")
+        if self.matched and not self.native_terms:
+            raise ValueError("a mapped crosswalk resolution requires native terms")
+        if not self.matched and self.unmapped is None:
+            raise ValueError("an unmatched crosswalk resolution requires an explicit unmapped term")
         return self
 
 
@@ -123,21 +179,52 @@ SOURCE_SCHEMES = (
 )
 
 CROSSWALK = (
-    CrosswalkEntry(scheme_id="pfra_f2f", source_term="face-to-face fundraising", native_term_id="fundraising.face_to_face", predicate="close_match", rationale="Both name in-person solicitation; native facets deliberately leave setting, party and commitment unasserted."),
-    CrosswalkEntry(scheme_id="pfra_f2f", source_term="donor recruited", native_term_id="fundraising.acquisition", predicate="related_match", rationale="Recruitment supports an acquisition-stage reading when the source asserts it; it is not itself a channel or payment term."),
+    CrosswalkEntry(scheme_id="pfra_f2f", source_term="face-to-face fundraising", native_term_ids=("fundraising.face_to_face",), predicate="close_match", rationale="Both name in-person solicitation; native facets deliberately leave setting, party and commitment unasserted."),
+    CrosswalkEntry(scheme_id="pfra_f2f", source_term="donor recruited", native_term_ids=("fundraising.acquisition",), predicate="related_match", rationale="Recruitment supports an acquisition-stage reading when the source asserts it; it is not itself a channel or payment term."),
     CrosswalkEntry(scheme_id="fia_awards", source_term="award winner/finalist", predicate="no_match", rationale="Recognition is source-native contextual evidence, not a fundraising-method concept.", unresolved_note="May be represented as award/recognition evidence under a separately governed context model."),
     CrosswalkEntry(scheme_id="uk_fundraising_regulator", source_term="fundraising method", predicate="no_match", rationale="The generic label combines different semantic axes in guidance.", unresolved_note="Map only individual, definition-supported source terms in a future version."),
     CrosswalkEntry(scheme_id="acnc_ais", source_term="donations and bequests", predicate="no_match", rationale="This is a reported finance/income term, not evidence of a fundraising practice or generated revenue.", unresolved_note="Preserve as source-native finance evidence."),
     CrosswalkEntry(scheme_id="nscoa", source_term="fundraising expense", predicate="no_match", rationale="Expense is a financial measurement concept, not an allocation to method or campaign.", unresolved_note="Use the governed financial measurement model with scope and attribution bounds."),
-    CrosswalkEntry(scheme_id="donor_republic_funraisin", source_term="peer-to-peer event", native_term_id="fundraising.peer_to_peer", predicate="broader_match", rationale="The source compound includes event context; native P2P and event facets can be independently asserted when evidence supports each."),
+    CrosswalkEntry(scheme_id="donor_republic_funraisin", source_term="peer-to-peer event", native_term_ids=("fundraising.peer_to_peer",), predicate="broader_match", rationale="The source compound includes event context; native P2P and event facets can be independently asserted when evidence supports each."),
 )
 
 FUNDRAISING_VOCABULARY_V1 = FundraisingVocabularyV1(
-    vocabulary_id="charitygraph-fundraising-v1-candidate", status="candidate",
+    vocabulary_id="charitygraph-fundraising-v1", version="1.0.0", status="governed_review_only",
     terms=TERMS, source_schemes=SOURCE_SCHEMES, crosswalk=CROSSWALK,
 )
 
 
 def machine_representation() -> dict[str, object]:
-    """Return a JSON-safe candidate artifact for controlled review, never publication."""
+    """Return the JSON-safe governed artifact; it is not a public enum or assignment rule."""
     return FUNDRAISING_VOCABULARY_V1.model_dump(mode="json")
+
+
+def resolve_crosswalk(scheme_id: str, source_term: str) -> CrosswalkResolution:
+    """Resolve an exact registered source term without normalising or interpreting prose.
+
+    Callers retain the supplied source wording and evidence separately.  An
+    unknown string is explicit `not_in_crosswalk`, not evidence of absence.
+    """
+    for entry in CROSSWALK:
+        if entry.scheme_id == scheme_id and entry.source_term == source_term:
+            if entry.predicate == "no_match":
+                return CrosswalkResolution(
+                    scheme_id=scheme_id, source_term=source_term, matched=False,
+                    predicate=entry.predicate,
+                    unmapped=UnmappedSourceTerm(
+                        scheme_id=scheme_id, source_term=source_term,
+                        reason="explicit_no_match", note=entry.unresolved_note or entry.rationale,
+                    ),
+                )
+            return CrosswalkResolution(
+                scheme_id=scheme_id, source_term=source_term, matched=True,
+                predicate=entry.predicate,
+                native_terms=tuple(VocabularyTermReference(term_id=term_id) for term_id in entry.native_term_ids),
+            )
+    return CrosswalkResolution(
+        scheme_id=scheme_id, source_term=source_term, matched=False,
+        unmapped=UnmappedSourceTerm(
+            scheme_id=scheme_id, source_term=source_term, reason="not_in_crosswalk",
+            note="No exact registered crosswalk entry exists in fundraising vocabulary v1.",
+        ),
+    )

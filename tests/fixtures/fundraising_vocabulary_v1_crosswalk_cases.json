@@ -1,0 +1,21 @@
+[
+  {
+    "scheme_id": "pfra_f2f",
+    "source_term": "face-to-face fundraising",
+    "matched": true,
+    "predicate": "close_match",
+    "native_term_ids": ["fundraising.face_to_face"]
+  },
+  {
+    "scheme_id": "acnc_ais",
+    "source_term": "donations and bequests",
+    "matched": false,
+    "unmapped_reason": "explicit_no_match"
+  },
+  {
+    "scheme_id": "pfra_f2f",
+    "source_term": "membership listing",
+    "matched": false,
+    "unmapped_reason": "not_in_crosswalk"
+  }
+]

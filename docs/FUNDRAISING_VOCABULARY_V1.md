@@ -1,11 +1,20 @@
-# Fundraising Vocabulary v1 Candidate
+# Fundraising Vocabulary v1
 
-**Status:** Governed candidate for review; not a published taxonomy or assignment rule.
+**Status:** Frozen governed internal contract, version 1.0.0; review-only and not a published taxonomy or assignment rule.
 **Scope:** CharityGraph fundraising practices, campaigns and financial evidence.
+
+**Authority:** The bounded fundraising research gate authorises this internal
+freeze only. It does not authorise source acquisition, production adapters,
+public enums, Viewer work, releases, or scale.
 
 This candidate uses composable facets rather than a mutually exclusive method hierarchy. A single evidence-backed observation may independently record strategy/program, solicitation mechanism, communication channel, setting/placement, resource sought, commitment pattern, payment/transfer instrument, donor relationship stage, delivery party, compensation, destination/restriction and donor/funder class. Absence of a facet is unknown, not negative evidence.
 
-The machine-readable candidate is `charitygraph.fundraising_vocabulary.FUNDRAISING_VOCABULARY_V1`. It is deliberately vocabulary-only: it does not extract prose, infer current use, make instance assignments or allocate money.
+The machine-readable contract is `charitygraph.fundraising_vocabulary.FUNDRAISING_VOCABULARY_V1`.
+It is deliberately vocabulary-only: it does not extract prose, infer current
+use, make instance assignments or allocate money. Ingestion and projection code
+use the version-pinned `VocabularyTermReference` and exact-lookup
+`resolve_crosswalk`. An unregistered or explicit non-equivalence returns an
+`UnmappedSourceTerm`; it is never coerced to `other` or a native term.
 
 ## Representative composition
 
@@ -24,6 +33,22 @@ Crosswalk entries preserve their predicate, rationale and unresolved/non-equival
 ## Evidence and measurement boundaries
 
 Use a source’s own term and version/date alongside any mapping. A mapping is never evidence that a charity uses a practice. Store supporting source, evidence span, subject/scope, valid time and currentness separately. Do not derive return on investment, cost to raise a dollar, donor-acquisition cost, effectiveness, causal uplift or profitability. Reported raffle/event/retail/sponsorship amounts also require their source accounting context and are not automatically donations or fundraising-generated revenue.
+
+## Versioning and extension
+
+`charitygraph-fundraising-v1` version `1.0.0` has stable term identifiers.
+Editorial label clarification that does not alter meaning is patch-level
+documentation work. A changed definition, facet, exclusion, mapping predicate,
+or source-scheme version requires a new vocabulary version and an explicit
+mapping from the old version. New terms require a governed proposal that records
+source wording, source/version, scope, rights and non-equivalence analysis.
+Deprecated terms stay resolvable; historical observations are never silently
+reassigned.
+
+The contract intentionally has no catch-all native term. `not_in_crosswalk`,
+`explicit_no_match`, `ambiguous_source_term`, and `insufficient_evidence` are
+first-class unmapped outcomes. They describe crosswalk disposition, not whether
+a charity does or does not fundraise.
 
 ## Open research gaps
 
