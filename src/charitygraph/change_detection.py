@@ -48,7 +48,14 @@ def build_change_profile(previous: dict[str, Any], current: dict[str, Any]) -> C
         "beneficiaries": ("beneficiaries",),
         "geography": ("geography",),
         "funding": ("funding_sources",),
-        "fundraising": ("fundraising_methods", "fundraising_expenditure"),
+        # Deprecated flat observations are intentionally excluded: a legacy
+        # compatibility payload cannot drive canonical refresh work.
+        "fundraising": (
+            "fundraising_practice_observed",
+            "fundraising_campaign_observed",
+            "fundraising_provider_relationships",
+            "fundraising_expenditure",
+        ),
         "relationships": ("relationships",),
         "classifications": ("classifications",),
         "source_native": ("source_native_records",),

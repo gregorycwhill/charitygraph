@@ -47,7 +47,21 @@ relationship. This fails closed rather than choosing between contradictory role 
 ## Compatibility
 
 `FundraisingMethodObservation` and `CauseBaseCard.fundraising_methods` remain readable
-for historical payloads, but the field is marked deprecated in JSON Schema. There is no
-lossy automatic migration: its flat values mix axes and cannot safely become typed
-assertions. `project_fundraising` projects only the three typed collections, preserving
-their lifecycle and coverage/missingness states unchanged.
+for historical payloads, but the field is marked deprecated in JSON Schema and no active
+canonical projection reads it. `project_fundraising` projects only the three typed
+collections, preserving lifecycle and coverage/missingness states unchanged.
+
+`fundraising_legacy_migration.migrate_legacy_fundraising_method` is the only supported
+compatibility adapter. It deterministically carries a small, explicit list of one-to-one
+legacy labels into a **single** practice facet when an evidence binding is present. Its
+output retains the deprecated label, source-role `unknown`, deterministic production
+method, low confidence and an uncertainty note; it does not invent source wording,
+setting, agency, payment instrument, recurring commitment or currentness. Old `current`
+is therefore migrated as typed lifecycle `unknown`; old `historical`/`stale` becomes
+`historical` only. `appeals`, `fundraising_events`, `other`, evidence-free values and any
+future unmapped label are returned as `retained_legacy_unknown` with a reason. They must
+remain available for review and must not be guessed into a campaign or practice.
+
+New production code must write a typed practice, campaign or provider relationship
+directly. The generic report extractor records a generic fundraising mention as coverage
+only; it no longer emits the deprecated catch-all method observation.

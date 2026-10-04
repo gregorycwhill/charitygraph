@@ -12,7 +12,7 @@ from decimal import Decimal
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-from .models import CauseBaseCard, ComparativePeriodAmount, CoverageObservation, DerivativeAssessment, DerivedRevenueShare, EvidenceRef, FinancialLineItem, Financials, FinancialStatementObservation, FinancialStatementRow, FunctionalExpenseAllocation, FundraisingMethodObservation, FundingSourceObservation, MoneyObservation, ParticipationObservation, ProgramObservation, RevenueShareComponent, SourceNativeRecord, StructuredValueObservation, SynthesisMetadata, TaxStatus
+from .models import CauseBaseCard, ComparativePeriodAmount, CoverageObservation, DerivativeAssessment, DerivedRevenueShare, EvidenceRef, FinancialLineItem, Financials, FinancialStatementObservation, FinancialStatementRow, FunctionalExpenseAllocation, FundingSourceObservation, MoneyObservation, ParticipationObservation, ProgramObservation, RevenueShareComponent, SourceNativeRecord, StructuredValueObservation, SynthesisMetadata, TaxStatus
 from .render import file_sha256, render_publication
 
 GENERATOR_VERSION = "0.5.0-rc4"
@@ -485,11 +485,9 @@ def _reports(card: CauseBaseCard, extracts: list[dict], locators: list[dict], no
         card.source_native_records.append(SourceNativeRecord(source_record_id=record_id, source_family="organisation-report-extract", dataset_version="2026-08-14-private-extraction", source_url=source_url, retrieved_at=now, observed_at=observed, source_fields={"filename": title, "source_sha256": extract["source_sha256"], "page_count": extract.get("page_count"), "discovery_basis": "ACNC public profile Documents field"}, source_payload={"rows": rows, "diagnostics": extract.get("extraction_diagnostics", {})}, canonical_field_mappings={"rows[].label": "financial_records[].*_breakdown", "rows[].current": "financial_records[].*_breakdown[].amount"}, evidence_ids=[evidence_id]))
         if any(page.get("visual_observations") for page in extract.get("pages", [])):
             pending_visual_allocations.append((extract, evidence_id, _report_period(extract)))
-        # Preserve a report's fundraising signal without inferring a channel or
-        # an amount where the source does not state one.
+        # A generic fundraising mention is coverage evidence, not a practice,
+        # campaign, provider relationship or legacy flat "other" method.
         fundraising_pages = [page["page"] for page in extract.get("pages", []) if "fundrais" in page.get("text", "").casefold()]
-        if fundraising_pages:
-            card.fundraising_methods.append(FundraisingMethodObservation(method="other", status="current", observed_at=observed, evidence_ids=[evidence_id]))
         # A report can support participation evidence but is not an action
         # destination. Preserve the observation as plain text unless a separate
         # acquired action URL is explicitly available.
