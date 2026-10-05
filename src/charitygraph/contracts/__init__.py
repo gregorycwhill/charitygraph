@@ -22,6 +22,7 @@ from .tasks import (
     PaidOutputCategory, ProviderUsage, TaskRun, model_task_cache_key, validate_task_run_tasks,
 )
 from .program import ProgramCandidate
+from .fundability import (FundabilityCoverage, DestinationResolution, Audience, DesignationType, EndpointType, OfferStatus, FundabilityPredicate, FundabilityEvidenceRef, FundabilityProposition, FundabilityV1, project_observation as fundability_project_observation)
 from .direct_service import (
     CoverageState, DirectServiceEvidenceRef, DirectServiceProposition,
     DirectServiceSemanticOutput, DirectServiceSection, DirectServicePropositionType,
@@ -73,6 +74,7 @@ __all__ = [
     "canonical_sha256", "deterministic_id", "model_task_cache_key", "new_opaque_id", "seal_record",
     "validate_promotion_chain", "validate_task_run_tasks", "validate_typed_id", "verify_record_hash",
     "ConceptMapping", "MappingPredicate", "ProgramCandidate", "ProgramCandidateOutput",
+    "FundabilityCoverage", "DestinationResolution", "Audience", "DesignationType", "EndpointType", "OfferStatus", "FundabilityPredicate", "FundabilityEvidenceRef", "FundabilityProposition", "FundabilityV1", "fundability_project_observation",
     "EvidenceSelectionOutput", "DiscoveryDisposition", "OperationalStatus", "DISCOVERY_OUTPUT_SCHEMA", "DISCOVERY_OUTPUT_SCHEMA_V2", "DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED", "ProgramServiceDiscoveryOutput", "ProgramServiceDiscoveryOutputV2", "ProgramServiceProposal", "ProgramServiceProposalV2", "discovery_schema", "discovery_schema_hash", "discovery_schema_v2", "discovery_schema_v2_hash", "discovery_schema_v2_corrected", "discovery_schema_v2_corrected_hash", "discovery_output_schema_ref", "discovery_output_schema_ref_v2", "discovery_output_schema_ref_v2_corrected", "SDGAlignmentOutput", "SchemeDisposition", "SemanticConclusion",
     "EvidenceMeaning", "SemanticEvidence", "TaxonomyAssignment", "TaxonomyAssignmentOutput", "TaxonomyConcept",
     "TaxonomyScheme", "TaxonomySelection", "TaxonomyVersion",

@@ -246,7 +246,7 @@ class ScopeRecord(ArtifactRecord):
     )
     subject_id: str
     scope_kind: Literal[
-        "organisation", "program", "service", "project", "campaign",
+        "organisation", "program", "service", "project", "campaign", "fund", "appeal",
         "site", "geographic", "reporting_group", "other",
     ]
     label: str | None = None
