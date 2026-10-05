@@ -1,6 +1,7 @@
 """Regression proof for the bounded, official-source packet 296.
 
-The companion adjudication packet lives in the Data experimental worktree.  These are
+The companion adjudication packet is retained as review evidence in the Data product
+documentation.  These are
 atomic source claims, not a scraper or a payment-form test.
 """
 from datetime import datetime, timezone

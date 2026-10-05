@@ -14,12 +14,12 @@ def _schema(name: str) -> SchemaRef:
     return SchemaRef(schema_id=f"urn:charitygraph:builder:schema:{name}:1.0", schema_version="1.0")
 
 
-FundabilityCoverage = Literal["supported", "explicitly_unavailable", "not_found_in_reviewed_public_giving_channels", "source_silent", "not_acquired", "not_processed", "stale", "unknown"]
+FundabilityCoverage = Literal["supported", "conditional", "explicitly_unavailable", "not_found_in_reviewed_public_giving_channels", "source_silent", "not_acquired", "not_processed", "stale", "unknown"]
 DestinationResolution = Literal["resolved", "candidate", "ambiguous", "unresolved"]
 Audience = Literal["public", "major_donor", "institutional", "corporate", "member", "unknown"]
 DesignationType = Literal["unrestricted", "source_stated_designation", "source_stated_preference", "source_reported_restricted", "contractual_restriction", "negotiated", "unknown"]
 EndpointType = Literal["first_party_form", "official_third_party_form", "contact_route", "phone", "email", "offline_instruction", "other"]
-OfferStatus = Literal["current", "historical", "stale", "unknown"]
+OfferStatus = Literal["current", "historical", "stale", "closed", "unknown"]
 FundabilityPredicate = Literal["giving_offer_observed", "offer_audience_observed", "designation_available_observed", "designation_explicitly_unavailable_observed", "designation_terms_observed", "redirection_terms_observed", "excess_funds_terms_observed", "shared_cost_terms_observed", "gift_condition_observed", "commitment_pattern_observed", "action_endpoint_observed"]
 
 
@@ -97,6 +97,8 @@ def project_observation(proposition: FundabilityProposition, *, record_id: str, 
     """Project only §8 fact content. It never creates §13 allocation or §14 funding facts."""
     if proposition.coverage_state in {"supported", "explicitly_unavailable"} and not proposition.evidence:
         raise ValueError("supported projection requires retained evidence")
+    if subject_id != proposition.accepting_subject_id:
+        raise ValueError("§8 offer observation must be attached to its accepting subject")
     value: dict[str, CanonicalValue] = {
         "giving_context_id": proposition.giving_context_id, "accepting_subject_id": proposition.accepting_subject_id,
         "destination_resolution": proposition.destination_resolution, "audience": proposition.audience,

@@ -1,6 +1,7 @@
 """Regression guard for the review-only, official-source F2 reality slice.
 
-The companion packet is deliberately local to the Data experimental worktree.  These
+The companion packet is retained as canonical review evidence in the Data product
+documentation.  These
 atoms preserve the reviewed source statements; they do not drive payment, discovery,
 or a public projection.
 """
