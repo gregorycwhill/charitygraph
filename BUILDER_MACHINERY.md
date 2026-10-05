@@ -1,4 +1,4 @@
-﻿# Builder machinery grounding map
+# Builder machinery grounding map
 
 **Status:** Compact operational companion to the canonical Builder architecture  
 **Scope:** Existing evidence-acquisition, representation, interpretation, governance and projection machinery  
