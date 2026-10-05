@@ -1,4 +1,4 @@
-# Builder machinery grounding map
+﻿# Builder machinery grounding map
 
 **Status:** Compact operational companion to the canonical Builder architecture  
 **Scope:** Existing evidence-acquisition, representation, interpretation, governance and projection machinery  
@@ -12,7 +12,7 @@ The North Star says what CharityGraph is trying to know and project. This docume
 
 Read these in order:
 
-1. Data [`NORTH_STAR_TARGET_CARD.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/NORTH_STAR_TARGET_CARD.md), the active pointer to immutable North Star v0.2;
+1. Data [`NORTH_STAR_TARGET_CARD.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/NORTH_STAR_TARGET_CARD.md), the active pointer to immutable North Star v0.3; mappings across versions are explicit and version-bound;
 2. this `BUILDER_MACHINERY.md`;
 3. Builder [`ARCHITECTURE.md`](ARCHITECTURE.md);
 4. Data `CURRENT_STATE.md` plus the current roadmap and implementation plan; then
@@ -30,6 +30,9 @@ The order keeps product intent and existing capability ahead of local implementa
 - Model output is candidate knowledge unless promoted by applicable governance. Missing, not applicable, retrieval failure and not-yet-processed remain distinct states.
 - Domain and section logic does not independently discover sources. Acquisition is centrally governed and reusable.
 - A URL is a provenance/discovery locator, not by itself the evidence object. Where bytes can be captured, preserve immutable captured bytes and SHA before interpretation; derived representations remain reproducible secondary artefacts.
+- North Star references are version-bound: bare section numbers are not durable semantic identity, and mappings across North Star versions must name both contract identities.
+- Source authority is proposition-specific, not a universal source-quality score. Preserve source role and source-native metric wording.
+- Giving Offers, historical funding and expenditure are distinct proposition families; current fundability is a governed projection, not an intrinsic program boolean.
 
 ## 4. End-to-end machinery map
 
@@ -50,6 +53,20 @@ These are durable capability seams; filenames are current proven pointers and ma
 | Governance/promotion | architecture governance records and applicable policies | Decisions, promotion, rejection and supersession |
 | Projection | existing validation/reprojection/rendering path | Governed observations into cards and release candidates |
 | Validation/release | existing RC4/release audit and validation machinery | Consistency, allowlists, diagnostics and release gates |
+
+### Durable planning seams
+
+Subject-led acquisition remains centrally governed, and source-family-led enumeration is also supported: high-density registries, directories, industry bodies and platforms can enumerate candidates efficiently. Discovery is separate from conservative identity binding and source-role governance. Plan work by claim family and route tasks by proposition, not by a universal source score. Durable seams include scoped destination identity resolution; claim-family planning and routing; cross-domain compatibility/reconciliation; question/answer projection; and actionability/freshness for volatile propositions such as Giving Offers, appeals and service availability. A Fundable Universe is a projection over governed knowledge and explicit coverage, not a stored shadow list.
+
+The current repository does not establish a stable productised Giving Offer implementation path suitable for canonical citation; the generic seam is intentional and an implementation pointer is deferred.
+
+```text
+central discovery / source-family enumeration
+  -> immutable source objects -> representations -> evidence fragments
+  -> typed candidates -> governance / identity resolution -> governed knowledge
+  -> cards | compatible joins | question projections
+       (coverage, freshness and abstention remain explicit)
+```
 
 Historical/released evidence is part of this map: RC4 and released audits show `acnc-ais-detail`, `organisation-report-extract`, report rows and visual-escalation diagnostics operating on real charities.
 
@@ -123,7 +140,11 @@ service/capacity/availability, governance appointments, commitments/ethos,
 and outcome/evaluation observations. No G2/satellite or product hypothesis is
 canonical merely because an experiment or this map mentions it.
 
-## 9. Before-building archaeology gate
+## 9. Projection and answer boundary
+
+Cards are one derivative among several. Analyst answers, Fundable Universes, comparison views and question projections are projections over governed knowledge plus explicit coverage; none becomes a shadow semantic store.
+
+## 10. Before-building archaeology gate
 
 Before implementing a new acquisition, representation, extraction, semantic or projection capability:
 
@@ -141,11 +162,11 @@ canonical path. Retrieval/compression experiments likewise do not create a
 storage contract: proposition granularity can lose material context and cause
 retrieval misses, so preserve evidence, qualifiers and drill-down paths.
 
-## 10. Product-feedback cadence
+## 11. Product-feedback cadence
 
 Development should regularly return visible product output on which semantic, editorial and user-value feedback can be given. Several consecutive execution turns without such output are a drift signal. Repeated `continue` without new product feedback is a smell unless the work is genuinely mechanical and already bounded toward a visible result. This is a cadence and attention rule, not a rigid numeric gate.
 
-## 11. What this document is not / maintenance rule
+## 12. What this document is not / maintenance rule
 
 This is not a replacement for `ARCHITECTURE.md`, a harness or runtime manual, a phase history, a list of every script, authority to revive superseded semantics or change public contracts, or a claim that every referenced historical implementation remains production-canonical forever.
 
