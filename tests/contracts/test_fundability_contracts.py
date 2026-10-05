@@ -32,3 +32,7 @@ def test_scope_vnext_supports_fund_and_appeal_without_subject_promotion():
     common=dict(subject_id=SUBJECT, created_at=NOW, producer=ProducerRef(kind="code", producer_id="test"))
     assert ScopeRecord(record_id="scope:"+"d"*32, scope_kind="fund", **common).scope_kind == "fund"
     assert ScopeRecord(record_id="scope:"+"e"*32, scope_kind="appeal", **common).scope_kind == "appeal"
+def test_conditional_terms_and_closed_status_are_not_current_availability():
+    assert p(predicate="redirection_terms_observed", coverage_state="conditional", status="closed").coverage_state == "conditional"
+    with pytest.raises(ValueError):
+        project_observation(p(), record_id="observation:"+"f"*64, subject_id="subject:"+"c"*32, created_at=NOW, producer=ProducerRef(kind="code", producer_id="test"))
