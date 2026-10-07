@@ -16,3 +16,32 @@ class CorrectionTriageResult:
  scenario_id:str; accepted:bool; correction_class:CorrectionClass; loci:tuple[CorrectionLocus,...]; governance_required:bool=True
  def compare_expected(self,expected):
   expected.validate(); return self.scenario_id==expected.id and self.correction_class==expected.correction_class and self.loci==expected.loci
+
+@dataclass(frozen=True)
+class GovernedObservation:
+ """Tiny evaluation projection of the existing append-only knowledge rule.
+
+ It deliberately models lineage, not a second correction store or final-output
+ patch.  Production persistence and decisions remain the canonical machinery.
+ """
+ observation_id:str; value:str; valid_from:str; valid_to:str|None=None; supersedes:str|None=None
+
+def evaluate_governed_replacement(*, prior: GovernedObservation, decision: str,
+                                  replacement_value: str|None, locus: CorrectionLocus,
+                                  challenge_basis: str, affiliation: str="") -> tuple[GovernedObservation, GovernedObservation|None]:
+ """Return immutable historical prior plus an optional governed successor.
+
+ A challenger affiliation never accepts a change.  Projection-only fixes do
+ not mutate governed knowledge; insufficient/rejected challenges retain it.
+ """
+ if decision not in {"accept_governed_replacement", "accept_qualification", "reject_insufficient", "reject_unsupported"}:
+  raise ValueError("a governed decision is required")
+ if decision.startswith("reject_") or not challenge_basis.strip():
+  return prior, None
+ if locus is CorrectionLocus.PROJECTION:
+  return prior, None
+ if not replacement_value:
+  raise ValueError("accepted governed replacement needs a replacement value")
+ closed=GovernedObservation(prior.observation_id, prior.value, prior.valid_from, "decision-time", prior.supersedes)
+ successor=GovernedObservation(f"{prior.observation_id}-superseding", replacement_value, "decision-time", None, prior.observation_id)
+ return closed, successor
