@@ -36,6 +36,8 @@ The order keeps product intent and existing capability ahead of local implementa
 
 ## 4. End-to-end machinery map
 
+Challenges enter the same governed knowledge path: resolve target and scope, classify the correction, select the earliest material locus, require the applicable decision, append a replacement/supersession when accepted, invalidate dependent state, and build the next validated projection. The internal Semantic Demand contracts are bounded evaluation seams only; they are not a public submission API, moderation queue, override file, or second semantic store. Accepted real corrections may become anonymised regression scenarios only after separate review.
+
 These are durable capability seams; filenames are current proven pointers and may move without changing the seam.
 
 | Seam | Current/proven pointer | Role |
