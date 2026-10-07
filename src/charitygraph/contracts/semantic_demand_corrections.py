@@ -7,10 +7,12 @@ class CorrectionLocus(str,Enum):
  SOURCE_ACQUISITION="source_acquisition"; SOURCE_VERSION="source_version"; REPRESENTATION="representation"; EVIDENCE_EXTRACTION="evidence_extraction"; IDENTITY_BINDING="identity_binding"; SCOPE_BINDING="scope_binding"; SEMANTIC_MAPPING="semantic_mapping"; CLASSIFICATION="classification"; GOVERNANCE_ADJUDICATION="governance_adjudication"; CANONICAL_OBSERVATION="canonical_observation"; COVERAGE="coverage"; PROJECTION="projection"
 @dataclass(frozen=True)
 class CorrectionChallengeScenario:
- id:str; correction_class:CorrectionClass; loci:tuple[CorrectionLocus,...]; disposition:str; creates_authority:bool=False
+ id:str; correction_class:CorrectionClass; primary_locus:CorrectionLocus; loci:tuple[CorrectionLocus,...]; disposition:str; creates_authority:bool=False
  def validate(self):
   if self.creates_authority: raise ValueError("evaluation scenario cannot create authority")
   if not self.loci: raise ValueError("correction locus required")
+  if self.primary_locus not in self.loci: raise ValueError("primary correction locus must be an intervention locus")
+  if self.primary_locus is CorrectionLocus.PROJECTION and len(self.loci) != 1: raise ValueError("projection is primary only for a projection-only error")
 @dataclass(frozen=True)
 class CorrectionTriageResult:
  scenario_id:str; accepted:bool; correction_class:CorrectionClass; loci:tuple[CorrectionLocus,...]; governance_required:bool=True

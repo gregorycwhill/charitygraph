@@ -1,7 +1,7 @@
 import pytest
 
 from charitygraph.contracts.semantic_demand_corrections import (
-    CorrectionLocus, GovernedObservation, evaluate_governed_replacement,
+    CorrectionChallengeScenario, CorrectionClass, CorrectionLocus, GovernedObservation, evaluate_governed_replacement,
 )
 
 
@@ -43,3 +43,17 @@ def test_projection_only_fix_cannot_silently_overwrite_governed_observation():
 def test_unsupported_accepted_change_fails_closed():
     with pytest.raises(ValueError, match="replacement"):
         evaluate_governed_replacement(prior=observation(), decision="accept_governed_replacement", replacement_value=None, locus=CorrectionLocus.CANONICAL_OBSERVATION, challenge_basis="unsupported assertion")
+
+
+def test_primary_locus_is_not_downstream_reprojection():
+    scenario = CorrectionChallengeScenario("source-version", CorrectionClass.SOURCE_VERSION_CHANGE,
+        CorrectionLocus.SOURCE_VERSION, (CorrectionLocus.SOURCE_VERSION,), "accept_governed_replacement")
+    scenario.validate()
+    assert CorrectionLocus.PROJECTION not in scenario.loci
+
+
+def test_projection_cannot_be_claimed_primary_for_upstream_error():
+    scenario = CorrectionChallengeScenario("bad", CorrectionClass.CLASSIFICATION_ERROR,
+        CorrectionLocus.PROJECTION, (CorrectionLocus.CLASSIFICATION, CorrectionLocus.PROJECTION), "accept_governed_replacement")
+    with pytest.raises(ValueError, match="projection"):
+        scenario.validate()
