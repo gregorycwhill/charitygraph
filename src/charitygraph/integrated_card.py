@@ -16,7 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from .contracts.knowledge import Observation, RelationshipStatement, ScopeRecord, SubjectRecord
 
 
-ProjectionContractId = Literal["north-star-v0.1", "north-star-v0.2"]
+ProjectionContractId = Literal["north-star-v0.1", "north-star-v0.2", "north-star-v0.3"]
 
 
 @dataclass(frozen=True)
@@ -64,14 +64,22 @@ NORTH_STAR_PROJECTION_V0_1 = NorthStarProjectionContract(
     section_titles=SECTION_TITLES_V0_1,
     relationship_section_id=12,
 )
-NORTH_STAR_PROJECTION_VNEXT = NorthStarProjectionContract(
+NORTH_STAR_PROJECTION_V0_2 = NorthStarProjectionContract(
     projection_contract_id="north-star-v0.2",
     section_titles=SECTION_TITLES_VNEXT,
     relationship_section_id=12,
 )
+NORTH_STAR_PROJECTION_V0_3 = NorthStarProjectionContract(
+    projection_contract_id="north-star-v0.3",
+    section_titles=SECTION_TITLES_VNEXT,
+    relationship_section_id=12,
+)
+# Compatibility name retained for the prior active v0.2 implementation.
+NORTH_STAR_PROJECTION_VNEXT = NORTH_STAR_PROJECTION_V0_2
 _PROJECTION_CONTRACTS = MappingProxyType({
     NORTH_STAR_PROJECTION_V0_1.projection_contract_id: NORTH_STAR_PROJECTION_V0_1,
-    NORTH_STAR_PROJECTION_VNEXT.projection_contract_id: NORTH_STAR_PROJECTION_VNEXT,
+    NORTH_STAR_PROJECTION_V0_2.projection_contract_id: NORTH_STAR_PROJECTION_V0_2,
+    NORTH_STAR_PROJECTION_V0_3.projection_contract_id: NORTH_STAR_PROJECTION_V0_3,
 })
 
 
@@ -313,7 +321,7 @@ def compile_matrix(
 
 __all__ = [
     "CardEvidence", "CoverageInput", "IntegratedGraph", "NORTH_STAR_PROJECTION_V0_1",
-    "NORTH_STAR_PROJECTION_VNEXT", "NorthStarProjectionContract", "ProjectionContractId",
+    "NORTH_STAR_PROJECTION_V0_2", "NORTH_STAR_PROJECTION_V0_3", "NORTH_STAR_PROJECTION_VNEXT", "NorthStarProjectionContract", "ProjectionContractId",
     "SECTION_TITLES_V0_1", "SECTION_TITLES_VNEXT", "SectionCoverage",
     "compile_coverage", "compile_matrix", "project_subject",
 ]
