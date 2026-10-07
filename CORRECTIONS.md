@@ -13,3 +13,5 @@ Submissions can concern identity, facts, staleness, self-description, classifica
 Accepted changes are append-only governed inputs. They invalidate dependent candidates, observations, coverage assessments, summaries, classifications, embeddings, similarities and release projections as applicable. Rejections do not erase appropriate history. Retraction and exceptional privacy, abuse or legal removal use explicit procedures.
 
 Sensitive notable_context and potentially harmful claims receive expedited re-review. Organisations may provide attributed self-description and challenge support; they do not obtain editorial veto over adequately supported independent observations.
+
+Correction locus is the earliest material governed layer known to be wrong: source/acquisition, representation/extraction, identity or scope binding, semantic mapping/classification, governance adjudication, canonical observation, coverage, or projection. One-off governed replacement is valid; repeated common-root corrections require bounded upstream remediation. Semantic demand correction scenarios are evaluation artefacts only, never correction authority, and never a post-hoc output override.
