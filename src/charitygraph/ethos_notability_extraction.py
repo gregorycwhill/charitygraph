@@ -253,3 +253,39 @@ def run_ethos_extraction(universe: "RetainedCaptureUniverse", provider: Extracti
             ledger_path.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
         return result
     return run_extraction(build_ethos_notability_packet(universe), provider, ledger_path=ledger_path)
+
+
+def run_notable_history_extraction(universe: "RetainedCaptureUniverse", provider: ExtractionProvider, *, ledger_path: Path | None = None) -> dict[str, Any]:
+    """Run §17 from the centrally retained capture universe only.
+
+    History is an offline semantic consumer of the same shared retained
+    source universe as §15.  A missing retained view is a central coverage
+    gap: it produces an explicit abstention and never invokes the provider.
+    """
+    from .retained_capture import build_ethos_notability_packet
+
+    if not universe.captures:
+        result = {
+            "contract_id": CONTRACT_ID,
+            "contract_hash": artifact_hash(CONTRACT_ID),
+            "prompt_version": PROMPT_VERSION,
+            "prompt_hash": artifact_hash(PROMPT),
+            "schema_version": SCHEMA_VERSION,
+            "schema_hash": artifact_hash(OUTPUT_SCHEMA),
+            "packet_id": None,
+            "packet_hash": None,
+            "provider": None,
+            "model": None,
+            "validation": {"accepted": True, "reasons": ()},
+            "abstention": {"section_id": 17, "state": "COVERAGE_GAP", "reason": "no_retained_relevant_source"},
+            "handoff": {"state": "ABSTAINED", "candidate_count": 0, "coverage_gap": "no_retained_relevant_source", "route": route_task_metadata(section_id=17, risk_family="missingness")},
+        }
+        if ledger_path:
+            ledger_path.parent.mkdir(parents=True, exist_ok=True)
+            ledger_path.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
+        return result
+    return run_extraction(build_ethos_notability_packet(universe), provider, ledger_path=ledger_path)
+
+
+# Explicit section naming for callers that use the domain term.
+run_history_extraction = run_notable_history_extraction
