@@ -1,0 +1,11 @@
+# CG347 packet-local extraction handoff
+
+Contract `ethos-notability-extraction-v1` accepts `FrozenEthosNotabilityPacket` and invokes an `ExtractionProvider`. A packet binds one subject, permitted scopes, immutable packet hash, and evidence records (evidence/source-record/lineage IDs, exact text, source role, and known dates). It is the complete evidence universe. The output is `CandidateBundle`: zero/many typed §15/§17 candidates, `abstain`, or `unresolved`; malformed or ungrounded output is rejected. Candidate models are separate from `EthosObservation` and `NotableEvent` and this module has no projection/admission import.
+
+The prompt and schema prohibit inference, scope/time/source-role blending, all listed non-transfers, §16 ownership violations, and background retrieval. Validation rejects malformed schema, unknown evidence, wrong subject/scope, malformed or source-date-as-event-date fields, incomplete inquiry status, and malformed lineage relationships. Its contract, prompt, and schema are versioned in `charitygraph.ethos_notability_extraction` as `CONTRACT_ID`, `PROMPT_VERSION`, and `SCHEMA_VERSION`; each run records stable SHA-256 hashes.
+
+The production-capable `OpenAIResponsesExtractionProvider` uses the existing `openai_client.responses_create` abstraction; tests inject a provider-free fake.
+
+`run_extraction(packet, provider, ledger_path=...)` persists raw output, contract/prompt/schema hashes, packet identity, provider/model, tokens/cost, attempts/escalation, validation, and an S0 metadata-only handoff.  Valid output is **REVIEW_MATERIAL**; it cannot instantiate or project a governed observation.  Invalid output fails closed.  A future empirical runner supplies only frozen packets and may select the provider/model externally.
+
+`OPENAI_API_KEY` was available but was not used. Live smoke is `LIVE_SMOKE_NOT_RUN`: the three retained real controls in `reality_corpus_ethos_notability_v1.json` contain only case identifiers/outcomes and no frozen source text, evidence/source/lineage IDs, bound scope, or packet hash. They cannot be transformed into a legal packet without acquiring or inventing evidence. No bounded live call was therefore made; this is plumbing, not an accuracy/certification result.
