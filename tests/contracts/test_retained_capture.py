@@ -126,6 +126,8 @@ def test_ethos_and_notable_history_reuse_one_capture_with_network_denied(monkeyp
         raise AssertionError("semantic execution attempted network acquisition")
 
     monkeypatch.setattr(urllib.request, "urlopen", denied)
+    import socket
+    monkeypatch.setattr(socket, "create_connection", denied)
     ethos = run_ethos_extraction(universe, OfflineProvider())
     history = run_history_extraction(universe, OfflineProvider())
     assert ethos["validation"]["accepted"] and history["validation"]["accepted"]
@@ -187,6 +189,8 @@ def test_capture_once_provider_free_path_reaches_review_and_private_v03_projecti
         raise AssertionError("semantic execution attempted network acquisition")
 
     monkeypatch.setattr(urllib.request, "urlopen", denied)
+    import socket
+    monkeypatch.setattr(socket, "create_connection", denied)
     ethos_run = run_ethos_extraction(section_15, FixtureProvider())
     history_run = run_history_extraction(section_17, FixtureProvider())
     assert ethos_run["handoff"]["state"] == history_run["handoff"]["state"] == "REVIEW_REQUIRED"
