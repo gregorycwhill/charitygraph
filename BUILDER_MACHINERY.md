@@ -28,7 +28,7 @@ The order keeps product intent and existing capability ahead of local implementa
 - Use native PDF extraction before OCR or model vision; escalate narrowly when unresolved material actually needs it.
 - Python controls stable mechanics: acquisition, hashing, joins, preparation, scheduling, validation and release compilation. Unrestricted prose interpretation is a model task under the semantic heuristic gate.
 - Model output is candidate knowledge unless promoted by applicable governance. Missing, not applicable, retrieval failure and not-yet-processed remain distinct states.
-- Domain and section logic does not independently discover sources. Acquisition is centrally governed and reusable.
+- **Acquire once, interpret many:** domain and section logic never independently discovers or fetches sources. The central governed acquisition layer captures each approved source version once as an immutable source object, retains reusable representations, and exposes bounded slices to every relevant semantic domain. A domain may select/slice `EvidenceFragment` or packet views, but a gap records a coverage gap or `SourceOpportunity` back to central planning/acquisition; it never authorises network discovery. Refresh is central reacquisition as a new source version, not a section-specific duplicate capture. This rule is subordinate to and operationally grounded by `ARCHITECTURE.md` §3.1.
 - A URL is a provenance/discovery locator, not by itself the evidence object. Where bytes can be captured, preserve immutable captured bytes and SHA before interpretation; derived representations remain reproducible secondary artefacts.
 - North Star references are version-bound: bare section numbers are not durable semantic identity, and mappings across North Star versions must name both contract identities.
 - Source authority is proposition-specific, not a universal source-quality score. Preserve source role and source-native metric wording.
@@ -61,8 +61,8 @@ Subject-led acquisition remains centrally governed, and source-family-led enumer
 The current repository does not establish a stable productised Giving Offer implementation path suitable for canonical citation; the generic seam is intentional and an implementation pointer is deferred.
 
 ```text
-central discovery / source-family enumeration
-  -> immutable source objects -> representations -> evidence fragments
+central discovery / governed acquisition and version refresh
+  -> shared immutable source objects -> reusable representations -> domain/section evidence slices
   -> typed candidates -> governance / identity resolution -> governed knowledge
   -> cards | compatible joins | question projections
        (coverage, freshness and abstention remain explicit)

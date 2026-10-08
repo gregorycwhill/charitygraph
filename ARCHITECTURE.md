@@ -57,6 +57,23 @@ Builder is not:
 - an LLM that writes whole cards directly from a dossier;
 - a system in which an operational database, cache state, or a current card is the sole source of truth.
 
+### 3.1 Acquire once, interpret many
+
+**Formal invariant:** source discovery and acquisition are a central, governed responsibility, not a
+semantic-domain or section responsibility. Raw/source-native material—including ACNC records,
+annual or financial reports, official-site captures, Wikipedia/Wikimedia and other approved
+sources—is captured as immutable, versioned source objects and reusable representations before
+semantic interpretation. The same captured source version and its retained representations are
+available to every relevant semantic domain and section.
+
+Domain workers may select or slice bounded `EvidenceFragment` or packet views from retained source
+objects and representations, but they must not perform network discovery or source acquisition. A
+semantic evidence gap records a coverage gap or `SourceOpportunity` for central planning/acquisition;
+it does not authorise the domain worker to fetch anything. Refresh or reacquisition is also central:
+it creates a new source version, which is then reused by all relevant domains. Thus “once” means once
+per governed source version, not never refresh. Section-specific duplicate captures and private
+evidence silos are architectural violations.
+
 ## 4. Internal record model
 
 The internal model is a typed artefact graph. Each persisted artefact has an ID, schema name and version, content hash, creation provenance, and explicit relationships to its inputs.
@@ -153,10 +170,10 @@ Every relationship states what happened. The initial controlled edge vocabulary 
 
 ## 6. Pipeline stages and gates
 
-The production flow is:
+The production flow is centrally acquired and shared before semantic slicing:
 
 ```text
-plan → acquire → parse → bind → evidence → candidates → decide → canonicalise
+plan → central acquire/version → parse/represent → bind → shared evidence slices → candidates → decide → canonicalise
                                                                ↓
                                       release ← derive ← assess coverage
 ```
