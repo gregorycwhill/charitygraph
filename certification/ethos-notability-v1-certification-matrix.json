@@ -1,0 +1,24 @@
+{
+  "certification_id": "CG-ETHOS-NOTABILITY-CERTIFICATION-344-TERRA",
+  "corpus_id": "cg-reality-corpus-ethos-notability-v1", "corpus_version": "1.0.0",
+  "corpus_sha256": "f49735791652d3a65ab627138662653c76a615496f0f154a325bf8729d662c1b",
+  "population": {"total": 14, "real": 3, "synthetic": 11},
+  "cases": [
+    {"case_id":"RC-01","expected":"rejected","observed":"rejected","classification":"match","subfamily":"beneficiary_non_transfer","kind":"real"},
+    {"case_id":"RC-02","expected":"rejected","observed":"rejected","classification":"match","subfamily":"beneficiary_non_transfer","kind":"real"},
+    {"case_id":"RC-03","expected":"missing:not_found","observed":"missing:not_found","classification":"match","subfamily":"missingness","kind":"real"},
+    {"case_id":"RC-04","expected":"accepted","observed":"accepted","classification":"match","subfamily":"self_described","kind":"synthetic"},
+    {"case_id":"RC-05","expected":"accepted","observed":"accepted","classification":"match","subfamily":"formal_affiliation","kind":"synthetic"},
+    {"case_id":"RC-06","expected":"accepted","observed":"accepted","classification":"match","subfamily":"historical_temporal","kind":"synthetic"},
+    {"case_id":"RC-07","expected":"accepted","observed":"accepted","classification":"match","subfamily":"external_characterisation","kind":"synthetic"},
+    {"case_id":"RC-08","expected":"rejected","observed":"rejected","classification":"match","subfamily":"commitment_practice","kind":"synthetic"},
+    {"case_id":"RC-09","expected":"rejected","observed":"rejected","classification":"match","subfamily":"parent_non_transfer","kind":"synthetic"},
+    {"case_id":"RC-10","expected":"accepted","observed":"accepted","classification":"match","subfamily":"founder","kind":"synthetic"},
+    {"case_id":"RC-11","expected":"accepted","observed":"accepted","classification":"match","subfamily":"merger_lineage","kind":"synthetic"},
+    {"case_id":"RC-12","expected":"accepted","observed":"accepted","classification":"match","subfamily":"recognition","kind":"synthetic"},
+    {"case_id":"RC-13","expected":"accepted","observed":"accepted","classification":"match","subfamily":"inquiry_section_boundary","kind":"synthetic"},
+    {"case_id":"RC-14","expected":"accepted_deduped","observed":"accepted_deduped","classification":"match","subfamily":"milestone_dedupe","kind":"synthetic"}
+  ],
+  "metrics": {"expected_observed_matches":"14/14","unsupported_positive_emission":"0/5 prohibited-positive controls","forbidden_inference":"0/5","wrong_subject_scope_transfer":"0/3","temporal_currentness_error":"0/1","source_role_epistemic_role_error":"0/2","section_16_17_boundary_error":"0/1","event_identity_dedupe_error":"0/1","qualification_disagreement_loss":"0/1","missingness_to_negative_fact":"0/1","provenance_lineage_defect":"0/14","unresolved_case_rate":"0/14"},
+  "limits": "Contract execution only. Three real controls establish no empirical extraction-rate estimate; all positive semantic subfamilies except non-transfer/missingness are synthetic."
+}
