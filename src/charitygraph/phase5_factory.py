@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Any
 from .contracts.ids import deterministic_id
 from .phase5_delivery import DeliveryPolicy
+from .s0_ethos_notability_routing import route_task_metadata
 
 
 @dataclass(frozen=True)
@@ -47,7 +48,10 @@ class FactoryPlan:
         tasks=[]
         for item in self.logical_tasks:
             cache=hashlib.sha256(item["logical_task_id"].encode()).hexdigest()
-            tasks.append({"record_id": deterministic_id("modeltask:", {"logical_task_id": item["logical_task_id"]}), "subject_id":item["subject_id"], "cohort_id":cohort_id, "task_type":"structured_extraction", "task_schema":{"schema_id":"urn:charitygraph:phase5:rehearsal:1"}, "cache_key":cache, "provider_id":"fake", "model_snapshot":"phase5-rehearsal-v1", "logical_task_id":item["logical_task_id"], "difficulty":item["difficulty"]})
+            task = {"record_id": deterministic_id("modeltask:", {"logical_task_id": item["logical_task_id"]}), "subject_id":item["subject_id"], "cohort_id":cohort_id, "task_type":"structured_extraction", "task_schema":{"schema_id":"urn:charitygraph:phase5:rehearsal:1"}, "cache_key":cache, "provider_id":"fake", "model_snapshot":"phase5-rehearsal-v1", "logical_task_id":item["logical_task_id"], "difficulty":item["difficulty"]}
+            if item.get("section_id") in (15, 17):
+                task.update(route_task_metadata(section_id=item["section_id"], risk_family=item.get("risk_family", "source_native"), source_native=item.get("source_native", False), unresolved=item.get("unresolved", False)))
+            tasks.append(task)
         return tuple(tasks)
 
 
