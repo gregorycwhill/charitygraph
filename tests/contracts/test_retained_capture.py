@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import pytest
 
 from charitygraph.contracts import ArtifactRef, EvidenceFragment, SchemaRef, SourceRecord, canonical_sha256, deterministic_id
+from charitygraph.ethos_notability_extraction import ProviderResponse, run_ethos_extraction, run_history_extraction
 from charitygraph.retained_capture import RetainedCapture, RetainedCaptureUniverse, RetainedSubjectBinding, build_ethos_notability_packet
 
 
@@ -98,3 +99,42 @@ def test_one_retained_source_can_feed_distinct_selection_versions_without_copyin
     section_17 = build_ethos_notability_packet(RetainedCaptureUniverse(subject_id="subject:one", permitted_scope_ids=("scope:one",), captures=(retained,), packet_selection_version="section-17-v1"))
     assert section_15.evidence[0].source_blob_hash == section_17.evidence[0].source_blob_hash == SOURCE_HASH
     assert section_15.packet_hash != section_17.packet_hash
+
+
+def test_ethos_and_notable_history_reuse_one_capture_with_network_denied(monkeypatch):
+    """Both semantic domains consume one retained capture; neither acquires."""
+    import urllib.request
+
+    retained = capture()
+    universe = RetainedCaptureUniverse(
+        subject_id="subject:one", permitted_scope_ids=("scope:one",), captures=(retained,)
+    )
+    packets = []
+
+    class OfflineProvider:
+        def extract(self, *, packet, **_):
+            packets.append(packet)
+            return ProviderResponse(
+                '{"outcome":"abstain","ethos_candidates":[],"history_candidates":[],"reason":"offline fixture"}',
+                "offline-fixture", "none",
+            )
+
+    def denied(*_, **__):
+        raise AssertionError("semantic execution attempted network acquisition")
+
+    monkeypatch.setattr(urllib.request, "urlopen", denied)
+    ethos = run_ethos_extraction(universe, OfflineProvider())
+    history = run_history_extraction(universe, OfflineProvider())
+    assert ethos["validation"]["accepted"] and history["validation"]["accepted"]
+    assert len(packets) == 2
+    assert packets[0].evidence[0].source_blob_id == packets[1].evidence[0].source_blob_id == retained.source_blob.artifact_id
+    assert packets[0].evidence[0].source_version == packets[1].evidence[0].source_version == "1"
+    assert packets[0].evidence[0].lineage_id == packets[1].evidence[0].lineage_id == retained.lineage_id
+
+    class DeliberateNetworkProvider:
+        def extract(self, **_):
+            urllib.request.urlopen("https://example.invalid/acquire")
+            raise AssertionError("unreachable")
+
+    with pytest.raises(AssertionError, match="network acquisition"):
+        run_ethos_extraction(universe, DeliberateNetworkProvider())
