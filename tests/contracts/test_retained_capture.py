@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from charitygraph.contracts import ArtifactRef, EvidenceFragment, SchemaRef, SourceRecord, deterministic_id
-from charitygraph.retained_capture import RetainedCapture, RetainedCaptureUniverse, build_ethos_notability_packet
+from charitygraph.contracts import ArtifactRef, EvidenceFragment, SchemaRef, SourceRecord, canonical_sha256, deterministic_id
+from charitygraph.retained_capture import RetainedCapture, RetainedCaptureUniverse, RetainedSubjectBinding, build_ethos_notability_packet
 
 
 NOW = datetime(2026, 10, 9, tzinfo=timezone.utc)
@@ -15,7 +15,7 @@ SOURCE_BLOB = "srcblob:" + SOURCE_HASH
 REPRESENTATION = "artifact:" + REP_HASH
 
 
-def capture(*, source_blob=SOURCE_BLOB, fragment_content_ref=REPRESENTATION):
+def capture(*, source_blob=SOURCE_BLOB, fragment_content_ref=REPRESENTATION, locator="p1:1", fragment_hash=FRAGMENT_HASH):
     source_identity = {"source_family": "fixture", "source_version": "1", "source_locator": "fixture:retained", "payload_hash": SOURCE_HASH}
     source = SourceRecord(
         record_id=deterministic_id("srcrec:", source_identity), created_at=NOW,
@@ -23,17 +23,24 @@ def capture(*, source_blob=SOURCE_BLOB, fragment_content_ref=REPRESENTATION):
         source_family="fixture", source_role="fixture", source_version="1", source_locator="fixture:retained",
         retrieved_at=NOW, observed_at=NOW, payload_ref=SOURCE_BLOB, payload_hash=SOURCE_HASH,
     )
-    fragment_identity = {"source_record_id": source.record_id, "locator": "p1:1", "fragment_hash": FRAGMENT_HASH,
+    fragment_identity = {"source_record_id": source.record_id, "locator": locator, "fragment_hash": fragment_hash,
                          "selection_method": "central-preparation", "selection_policy_version": "1"}
     fragment = EvidenceFragment(
         record_id=deterministic_id("evidence:", fragment_identity), created_at=NOW,
         producer={"kind": "code", "producer_id": "test", "version": "1"},
         source_record=ArtifactRef(artifact_id=source.record_id, content_hash="d" * 64, schema=SCHEMA),
-        fragment_kind="text", locator="p1:1", content_ref=fragment_content_ref, fragment_hash=FRAGMENT_HASH,
+        fragment_kind="text", locator=locator, content_ref=fragment_content_ref, fragment_hash=fragment_hash,
         selection_method="central-preparation", selection_policy_version="1", observed_at=NOW,
     )
     return RetainedCapture(
-        source_record=source, source_blob=ArtifactRef(artifact_id=source_blob, content_hash=SOURCE_HASH, schema=SCHEMA),
+        source_record=source,
+        subject_binding=RetainedSubjectBinding(
+            binding_id="binding:" + canonical_sha256({
+                "source_record_id": source.record_id, "subject_id": "subject:one", "state": "resolved", "policy_version": "fixture-v1",
+            }),
+            source_record_id=source.record_id, subject_id="subject:one", policy_version="fixture-v1",
+        ),
+        source_blob=ArtifactRef(artifact_id=source_blob, content_hash=SOURCE_HASH, schema=SCHEMA),
         representation=ArtifactRef(artifact_id=REPRESENTATION, content_hash=REP_HASH, schema=SCHEMA),
         representation_input_artifact_ids=(SOURCE_BLOB,), evidence_fragment=fragment,
         text="A centrally retained bounded statement.", source_role="supporting",
@@ -50,6 +57,9 @@ def test_retained_capture_builds_existing_347_packet_with_continuous_lineage():
     assert packet.evidence[0].source_record_id == retained.source_record.record_id
     assert packet.evidence[0].lineage_id == retained.lineage_id
     assert packet.evidence[0].text == retained.text
+    assert packet.evidence[0].source_blob_hash == SOURCE_HASH
+    assert packet.evidence[0].fragment_locator == "p1:1"
+    assert packet.evidence[0].subject_binding_id == retained.subject_binding.binding_id
 
 
 def test_packet_identity_changes_with_retained_capture_content_and_never_acquires():
@@ -71,3 +81,20 @@ def test_retained_capture_rejects_broken_source_representation_fragment_lineage(
     kwargs = {change: "srcblob:" + "e" * 64 if change == "source_blob" else "artifact:" + "e" * 64}
     with pytest.raises(ValueError, match=message):
         capture(**kwargs)
+
+
+def test_universe_fail_closes_on_conflicting_subject_binding_or_capture_identity():
+    retained = capture()
+    with pytest.raises(ValueError, match="subject binding"):
+        RetainedCaptureUniverse(subject_id="subject:other", permitted_scope_ids=("scope:one",), captures=(retained,))
+    conflicting = capture(locator="p2:1", fragment_hash="e" * 64).model_copy(update={"representation": ArtifactRef(artifact_id=REPRESENTATION, content_hash="e" * 64, schema=SCHEMA)})
+    with pytest.raises(ValueError, match="conflicting representation"):
+        RetainedCaptureUniverse(subject_id="subject:one", permitted_scope_ids=("scope:one",), captures=(retained, conflicting))
+
+
+def test_one_retained_source_can_feed_distinct_selection_versions_without_copying_capture():
+    retained = capture()
+    section_15 = build_ethos_notability_packet(RetainedCaptureUniverse(subject_id="subject:one", permitted_scope_ids=("scope:one",), captures=(retained,), packet_selection_version="section-15-v1"))
+    section_17 = build_ethos_notability_packet(RetainedCaptureUniverse(subject_id="subject:one", permitted_scope_ids=("scope:one",), captures=(retained,), packet_selection_version="section-17-v1"))
+    assert section_15.evidence[0].source_blob_hash == section_17.evidence[0].source_blob_hash == SOURCE_HASH
+    assert section_15.packet_hash != section_17.packet_hash

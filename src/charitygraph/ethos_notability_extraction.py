@@ -36,6 +36,22 @@ class PacketEvidence(_Strict):
     source_role: Literal["supporting", "corroborating", "context"]
     retrieved_at: datetime | None = None
     event_or_effective_date: str | None = None
+    # These are capture provenance, not a second source store.  They let a
+    # candidate be traced all the way back to the shared retained capture.
+    source_family: str | None = None
+    source_version: str | None = None
+    source_locator: str | None = None
+    source_blob_id: str | None = None
+    source_blob_hash: str | None = None
+    representation_id: str | None = None
+    representation_hash: str | None = None
+    representation_input_artifact_ids: tuple[str, ...] = ()
+    fragment_locator: str | None = None
+    fragment_hash: str | None = None
+    selection_method: str | None = None
+    selection_policy_version: str | None = None
+    subject_binding_id: str | None = None
+    subject_binding_policy_version: str | None = None
 
 
 class FrozenEthosNotabilityPacket(_Strict):
@@ -45,6 +61,7 @@ class FrozenEthosNotabilityPacket(_Strict):
     permitted_scope_ids: tuple[str, ...] = Field(min_length=1)
     evidence: tuple[PacketEvidence, ...] = Field(min_length=1)
     contract_id: Literal["ethos-notability-extraction-v1"] = CONTRACT_ID
+    packet_selection_version: str = "central-packet-selection-v1"
 
     @model_validator(mode="after")
     def packet_is_bound(self):
