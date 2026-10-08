@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .contracts import ArtifactRef, EvidenceFragment, SourceRecord, canonical_sha256
 from .ethos_notability_extraction import FrozenEthosNotabilityPacket, PacketEvidence
+from .coverage_planning import CoverageAssessment
 
 
 class _Strict(BaseModel):
@@ -133,6 +134,7 @@ class RetainedCaptureUniverse(_Strict):
     # worker must turn that into a coverage-gap abstention, never acquire.
     captures: tuple[RetainedCapture, ...] = ()
     packet_selection_version: str = Field(default="central-packet-selection-v1", min_length=1)
+    coverage_assessments: tuple[CoverageAssessment, ...] = ()
 
     @model_validator(mode="after")
     def _bounded_and_unique(self) -> "RetainedCaptureUniverse":
@@ -156,6 +158,12 @@ class RetainedCaptureUniverse(_Strict):
                 previous = identities.setdefault(artifact_id, content_hash)
                 if previous != content_hash:
                     raise ValueError(f"conflicting {label} capture identity")
+        for assessment in self.coverage_assessments:
+            if assessment.subject_id != self.subject_id:
+                raise ValueError("coverage assessment subject does not match universe")
+        keys = [(item.section_id, item.claim_family) for item in self.coverage_assessments]
+        if len(keys) != len(set(keys)):
+            raise ValueError("coverage assessments must be unique per section and claim family")
         return self
 
 

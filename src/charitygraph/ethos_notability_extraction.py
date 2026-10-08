@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from .ethos_history import EthosRole, HistoryFamily, HistorySourceRole, EventStatus, notable_event_candidate_id
 from .openai_client import ApiUsage, estimate_response_cost, responses_create
 from .s0_ethos_notability_routing import route_task_metadata
+from .coverage_planning import CoverageAssessment, route_coverage_gap
 
 if TYPE_CHECKING:
     from .retained_capture import RetainedCaptureUniverse
@@ -233,6 +234,8 @@ def run_ethos_extraction(universe: "RetainedCaptureUniverse", provider: Extracti
     from .retained_capture import build_ethos_notability_packet
 
     if not universe.captures:
+        assessment = next((item for item in universe.coverage_assessments if item.section_id == 15), CoverageAssessment(subject_id=universe.subject_id, section_id=15, claim_family="ethos", state="not_found_in_assessed_captures", reason="no retained relevant source in the assessed capture universe"))
+        opportunity = route_coverage_gap(assessment, desired_source_family="ethos")
         result = {
             "contract_id": CONTRACT_ID,
             "contract_hash": artifact_hash(CONTRACT_ID),
@@ -246,7 +249,7 @@ def run_ethos_extraction(universe: "RetainedCaptureUniverse", provider: Extracti
             "model": None,
             "validation": {"accepted": True, "reasons": ()},
             "abstention": {"section_id": 15, "state": "COVERAGE_GAP", "reason": "no_retained_relevant_source"},
-            "handoff": {"state": "ABSTAINED", "candidate_count": 0, "coverage_gap": "no_retained_relevant_source", "route": route_task_metadata(section_id=15, risk_family="missingness")},
+            "handoff": {"state": "ABSTAINED", "candidate_count": 0, "coverage_gap": "no_retained_relevant_source", "coverage_assessment": assessment.model_dump(mode="json"), "source_opportunity": opportunity.model_dump(mode="json"), "route": route_task_metadata(section_id=15, risk_family="missingness")},
         }
         if ledger_path:
             ledger_path.parent.mkdir(parents=True, exist_ok=True)
@@ -265,6 +268,8 @@ def run_notable_history_extraction(universe: "RetainedCaptureUniverse", provider
     from .retained_capture import build_ethos_notability_packet
 
     if not universe.captures:
+        assessment = next((item for item in universe.coverage_assessments if item.section_id == 17), CoverageAssessment(subject_id=universe.subject_id, section_id=17, claim_family="notable_history", state="not_found_in_assessed_captures", reason="no retained relevant source in the assessed capture universe"))
+        opportunity = route_coverage_gap(assessment, desired_source_family="notable_history")
         result = {
             "contract_id": CONTRACT_ID,
             "contract_hash": artifact_hash(CONTRACT_ID),
@@ -278,7 +283,7 @@ def run_notable_history_extraction(universe: "RetainedCaptureUniverse", provider
             "model": None,
             "validation": {"accepted": True, "reasons": ()},
             "abstention": {"section_id": 17, "state": "COVERAGE_GAP", "reason": "no_retained_relevant_source"},
-            "handoff": {"state": "ABSTAINED", "candidate_count": 0, "coverage_gap": "no_retained_relevant_source", "route": route_task_metadata(section_id=17, risk_family="missingness")},
+            "handoff": {"state": "ABSTAINED", "candidate_count": 0, "coverage_gap": "no_retained_relevant_source", "coverage_assessment": assessment.model_dump(mode="json"), "source_opportunity": opportunity.model_dump(mode="json"), "route": route_task_metadata(section_id=17, risk_family="missingness")},
         }
         if ledger_path:
             ledger_path.parent.mkdir(parents=True, exist_ok=True)
