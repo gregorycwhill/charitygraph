@@ -11,13 +11,16 @@ from datetime import datetime
 from hashlib import sha256
 import json
 from pathlib import Path
-from typing import Any, Literal, Mapping, Protocol
+from typing import TYPE_CHECKING, Any, Literal, Mapping, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .ethos_history import EthosRole, HistoryFamily, HistorySourceRole, EventStatus, notable_event_candidate_id
 from .openai_client import ApiUsage, estimate_response_cost, responses_create
 from .s0_ethos_notability_routing import route_task_metadata
+
+if TYPE_CHECKING:
+    from .retained_capture import RetainedCaptureUniverse
 
 CONTRACT_ID = "ethos-notability-extraction-v1"
 PROMPT_VERSION = "ethos-notability-extraction-prompt-v1"
@@ -59,7 +62,7 @@ class FrozenEthosNotabilityPacket(_Strict):
     packet_hash: str = Field(min_length=1)
     subject_id: str = Field(min_length=1)
     permitted_scope_ids: tuple[str, ...] = Field(min_length=1)
-    evidence: tuple[PacketEvidence, ...] = Field(min_length=1)
+    evidence: tuple[PacketEvidence, ...] = ()
     contract_id: Literal["ethos-notability-extraction-v1"] = CONTRACT_ID
     packet_selection_version: str = "central-packet-selection-v1"
 
@@ -217,3 +220,36 @@ def run_extraction(packet: FrozenEthosNotabilityPacket, provider: ExtractionProv
     if ledger_path:
         ledger_path.parent.mkdir(parents=True, exist_ok=True); ledger_path.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
     return result
+
+
+def run_ethos_extraction(universe: "RetainedCaptureUniverse", provider: ExtractionProvider, *, ledger_path: Path | None = None) -> dict[str, Any]:
+    """Run §15 from the centrally retained capture universe only.
+
+    This is the semantic-worker entry point: the universe is converted to the
+    existing CG347 packet and is the complete evidence boundary.  An empty
+    universe is a central coverage gap, so it abstains locally and does not
+    cross the provider boundary.
+    """
+    from .retained_capture import build_ethos_notability_packet
+
+    if not universe.captures:
+        result = {
+            "contract_id": CONTRACT_ID,
+            "contract_hash": artifact_hash(CONTRACT_ID),
+            "prompt_version": PROMPT_VERSION,
+            "prompt_hash": artifact_hash(PROMPT),
+            "schema_version": SCHEMA_VERSION,
+            "schema_hash": artifact_hash(OUTPUT_SCHEMA),
+            "packet_id": None,
+            "packet_hash": None,
+            "provider": None,
+            "model": None,
+            "validation": {"accepted": True, "reasons": ()},
+            "abstention": {"section_id": 15, "state": "COVERAGE_GAP", "reason": "no_retained_relevant_source"},
+            "handoff": {"state": "ABSTAINED", "candidate_count": 0, "coverage_gap": "no_retained_relevant_source", "route": route_task_metadata(section_id=15, risk_family="missingness")},
+        }
+        if ledger_path:
+            ledger_path.parent.mkdir(parents=True, exist_ok=True)
+            ledger_path.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
+        return result
+    return run_extraction(build_ethos_notability_packet(universe), provider, ledger_path=ledger_path)

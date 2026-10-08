@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
-from charitygraph.ethos_notability_extraction import FrozenEthosNotabilityPacket, ProviderResponse, run_extraction, validate_bundle
+from charitygraph.ethos_notability_extraction import FrozenEthosNotabilityPacket, ProviderResponse, run_ethos_extraction, run_extraction, validate_bundle
+from charitygraph.retained_capture import RetainedCaptureUniverse
 
 PACKET=FrozenEthosNotabilityPacket(packet_id="p1",packet_hash="packet-hash",subject_id="subject:one",permitted_scope_ids=("scope:one",),evidence=({"evidence_id":"e1","source_record_id":"s1","lineage_id":"l1","text":"We state a commitment.","source_role":"supporting"},))
 class Fake:
@@ -31,3 +32,11 @@ def test_temporal_and_predecessor_boundaries_fail_closed():
 def test_malformed_and_unresolved_are_explicit():
  assert not validate_bundle(PACKET,'not json').accepted
  assert validate_bundle(PACKET,{"outcome":"unresolved","ethos_candidates":[],"history_candidates":[],"reason":"source is silent"}).accepted
+
+def test_empty_retained_universe_abstains_as_section_15_coverage_gap_without_provider(tmp_path):
+ class ExplodingProvider:
+  def extract(self, **_): raise AssertionError("provider must not be called for a coverage gap")
+ out=run_ethos_extraction(RetainedCaptureUniverse(subject_id="subject:one", permitted_scope_ids=("scope:one",)), ExplodingProvider(), ledger_path=tmp_path/'gap.json')
+ assert out["abstention"] == {"section_id": 15, "state": "COVERAGE_GAP", "reason": "no_retained_relevant_source"}
+ assert out["handoff"]["state"] == "ABSTAINED"
+ assert out["handoff"]["coverage_gap"] == "no_retained_relevant_source"

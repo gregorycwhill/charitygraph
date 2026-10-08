@@ -128,7 +128,10 @@ class RetainedCaptureUniverse(_Strict):
 
     subject_id: str = Field(min_length=1)
     permitted_scope_ids: tuple[str, ...] = Field(min_length=1)
-    captures: tuple[RetainedCapture, ...] = Field(min_length=1)
+    # An empty universe is meaningful: central acquisition can explicitly say
+    # that no relevant retained representation was available.  The semantic
+    # worker must turn that into a coverage-gap abstention, never acquire.
+    captures: tuple[RetainedCapture, ...] = ()
     packet_selection_version: str = Field(default="central-packet-selection-v1", min_length=1)
 
     @model_validator(mode="after")
