@@ -136,6 +136,16 @@ work. A dedicated specialist call remains an escalation, recovery and research
 lane unless an explicit evidence-backed architecture decision changes that
 status.
 
+The shared-context seam is a conditional transport capability, not a semantic
+default: it may transmit each exact retained representation once while keeping
+its source, scope/time and section bindings replayable. A changed/missing
+representation, identity mismatch, duplicate transmission or failed quality
+gate routes to the dedicated/baseline recovery lane; it never triggers
+in-worker acquisition, source substitution or Python prose interpretation.
+The CG353/CG354 evidence record keeps the dedicated `ethos-notability-
+extraction-v1` lane as the private default-capable path pending an evaluable
+quality and dangerous-error comparison.
+
 A directly authorised reasoning agent may interpret represented evidence in a
 disposable experiment. That establishes experimental evidence, not a
 replacement provider seam or automatically governed production knowledge.

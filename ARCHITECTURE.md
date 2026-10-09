@@ -74,6 +74,12 @@ it creates a new source version, which is then reused by all relevant domains. T
 per governed source version, not never refresh. Section-specific duplicate captures and private
 evidence silos are architectural violations.
 
+### 3.2 Semantic-read and representation durability
+
+The retained source representation is the durable semantic-read unit. Before one source is presented to more than one compatible semantic task, Builder should prefer a single provenance-preserving shared context **when frozen comparative evidence shows that quality, dangerous-error, provenance and review gates still hold**. Fewer calls alone never establishes a default.
+
+Shared context is mechanical: it may deduplicate exact immutable representation hashes, preserve every section binding/source role/scope/time field, validate identity and replay inputs, and route a failed or uncertain case to a dedicated specialist lane. It must not infer Ethos, Notability or other prose meaning. Missing or changed retained bytes are a representation continuity/coverage fault, not authority to reacquire inside a semantic worker or silently substitute a source. Every semantic call remains replayable from the retained representation, prompt, schema, model, packet/context hash and provider telemetry.
+
 ## 4. Internal record model
 
 The internal model is a typed artefact graph. Each persisted artefact has an ID, schema name and version, content hash, creation provenance, and explicit relationships to its inputs.
