@@ -91,7 +91,17 @@ def main():
     schemas={"A":strict_schema(COMPACT_V02_SCHEMA),"B":strict_schema(OUTPUT_SCHEMA),"C":strict_schema(UNIFIED_SCHEMA)}
     report={"experiment_id":ledger["experiment_id"],"model":MODEL,"provider_path":"openai.responses","corpus_sha256":EXPECTED,"unified_prompt_version":UNIFIED_PROMPT_VERSION,"arms":{a:[] for a in arms},"schema_hashes":{k:canonical_hash(v) for k,v in schemas.items()}}
     for case in sorted(cases):
-        p15=next(p for p in corpus["packets"] if p["case_id"]==case and p["section"]==15); rows=evidence_for(p15,args.representations,args.fallback_representations)
+        p15=next(p for p in corpus["packets"] if p["case_id"]==case and p["section"]==15)
+        try:
+            rows=evidence_for(p15,args.representations,args.fallback_representations)
+        except ValueError as exc:
+            # An immutable packet defect is a local, no-call outcome.  It must
+            # not trigger locator substitution, re-acquisition, or prevent
+            # independent frozen controls from being measured.
+            for arm in arms:
+                report["arms"][arm].append({"case_id":case,"packet_hash":p15["packet_hash"],"request_hash":None,"response_hash":None,"raw_response":None,"valid":False,"validation_reasons":[str(exc)],"telemetry":{"input_tokens":0,"output_tokens":0,"cost_usd":"0","response_id":None},"packet_failure":True})
+            args.output.parent.mkdir(parents=True,exist_ok=True); args.output.write_text(json.dumps(report,indent=2)+"\n")
+            continue
         packet=dedicated_packet(p15,rows); general=compact_input(rows)
         for arm,prompt,schema in (("A",general,schemas["A"]),("B",PROMPT+"\nPACKET:\n"+packet.model_dump_json(),schemas["B"]),("C",UNIFIED_PROMPT+"\nEVIDENCE:\n"+"\n".join(f"{s} {l} ({e.get('source_role','context')}):\n{t}" for s,l,e,t in rows)[:12000]+"\nETHOS/NOTABILITY PACKET:\n"+packet.model_dump_json(),schemas["C"])):
             if arm not in arms: continue
