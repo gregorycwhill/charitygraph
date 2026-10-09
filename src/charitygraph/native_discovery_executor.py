@@ -19,6 +19,7 @@ from typing import Any, Callable, Mapping, Sequence
 from .contracts import (DISCOVERY_OUTPUT_SCHEMA_V2, DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED, ModelResult, ModelTask, ProgramServiceDiscoveryOutput, ProgramServiceDiscoveryOutputV2, discovery_schema, discovery_schema_v2)
 from .contracts.ids import deterministic_id
 from .openai_client import ApiResult, estimate_response_cost, responses_create
+from .execution_identity import bind_execution_identity, assert_execution_identity, write_identity_manifest
 from .runtime import SQLiteCatalog
 
 
@@ -142,19 +143,34 @@ def execute_native_discovery(
     if task_v2 != output_v2:
         raise ValueError("v2 discovery requires matching task and output schema identities")
     prompt = build_prompt(task, evidence_content, v2=task_v2)
+    schema = (discovery_schema_v2 if task_v2 else discovery_schema)(tuple(item.evidence_id for item in task.evidence_inputs))
+    packet_selection = [{"evidence_id": item.evidence_id, "selection_hash": getattr(item, "selection_hash", None), "content_hash": getattr(item, "content_hash", None)} for item in task.evidence_inputs]
+    retained_source_manifest = sorted(packet_selection, key=lambda item: item["evidence_id"])
+    requested_identity = getattr(task, "parameters", {}).get("execution_identity") if getattr(task, "parameters", None) else None
+    execution_identity = bind_execution_identity(
+        prompt=prompt, schema=schema,
+        packet_selection_contract="native-discovery-evidence-selection",
+        packet_selection_version="2",
+        packet_selection=packet_selection,
+        retained_source_manifest=retained_source_manifest,
+        provider=task.provider_id, model=task.model_snapshot,
+        experiment_arm=getattr(task, "parameters", {}).get("experiment_arm", "unspecified") if getattr(task, "parameters", None) else "unspecified",
+    )
+    if requested_identity is not None:
+        assert_execution_identity(requested_identity, execution_identity)
     runtime = Path(runtime_root).resolve()
     input_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
     io_dir = runtime / "input-output"
     io_dir.mkdir(parents=True, exist_ok=True)
     input_path = io_dir / f"{task_run_id.replace(':', '_')}.input.txt"
     input_path.write_text(prompt, encoding="utf-8")
+    write_identity_manifest(io_dir / f"{task_run_id.replace(':', '_')}.execution-identity.json", requested=requested_identity or execution_identity.as_dict(), executed=execution_identity)
     input_artifact_id = "canary-input-" + input_hash
     catalog.index_artifact(artifact_id=input_artifact_id, content_hash=input_hash, schema_id=task.task_schema.schema_id, schema_version=task.task_schema.schema_version, storage_path=str(input_path), availability="available", created_at=now, indexed_at=now)
     response: ApiResult | None = None
     raw_response_path: Path | None = None
     transmitted = False
     try:
-        schema = (discovery_schema_v2 if task_v2 else discovery_schema)(tuple(item.evidence_id for item in task.evidence_inputs))
         catalog.mark_authorized_call_transmitted(slot["slot_key"], now=now)
         transmitted = True
         response = request_fn(model=task.model_snapshot, input_text=prompt, text_format={"type": "json_schema", "name": "program_service_discovery", "schema": schema}, max_output_tokens=MAX_OUTPUT_TOKENS, max_attempts=2)
