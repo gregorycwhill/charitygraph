@@ -74,14 +74,18 @@ def call(ledger, prompt, schema, cap):
     return response, entry
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("--corpus",type=Path,required=True); ap.add_argument("--representations",type=Path,required=True); ap.add_argument("--fallback-representations",type=Path); ap.add_argument("--output",type=Path,required=True); ap.add_argument("--ledger",type=Path,required=True); ap.add_argument("--cap",default="2.00"); ap.add_argument("--case",action="append",dest="cases"); ap.add_argument("--arm",action="append",choices=("A","B","C"),dest="arms"); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--corpus",type=Path,required=True); ap.add_argument("--representations",type=Path,required=True); ap.add_argument("--fallback-representations",type=Path); ap.add_argument("--output",type=Path,required=True); ap.add_argument("--ledger",type=Path,required=True); ap.add_argument("--cap",default="2.00"); ap.add_argument("--case",action="append",dest="cases"); ap.add_argument("--arm",action="append",choices=("A","B","C"),dest="arms"); ap.add_argument("--final-holdout",action="store_true",help="explicitly release the fixed blind controls for the final no-tuning comparison"); args=ap.parse_args()
     corpus=json.loads(args.corpus.read_text(encoding="utf-8")); assert corpus.get("corpus_sha256")==EXPECTED and corpus.get("provider_calls")==0
     ledger=json.loads(args.ledger.read_text()) if args.ledger.exists() else {"experiment_id":"CG-UNIFIED-SEMANTIC-EXTRACTION-353","entries":[]}
-    # Challenge IDs are fixed by the immutable CG352 naming convention.  Blinds are never read.
-    cases={p["case_id"] for p in corpus["packets"] if int(p["case_id"].split("-")[1])<=10}
+    # The final holdout is an all-five, explicit release: no selective blind
+    # reading is allowed.  Ordinary workshop runs remain challenge-only.
+    challenge={p["case_id"] for p in corpus["packets"] if int(p["case_id"].split("-")[1])<=10}
+    blind={p["case_id"] for p in corpus["packets"] if int(p["case_id"].split("-")[1])>10}
+    cases=blind if args.final_holdout else challenge
     if args.cases:
         requested=set(args.cases)
-        if not requested <= cases: raise ValueError("requested case is not a frozen challenge case")
+        if not requested <= cases: raise ValueError("requested case is outside the permitted frozen split")
+        if args.final_holdout and requested != blind: raise ValueError("final holdout must execute all five fixed blind controls")
         cases=requested
     arms=tuple(args.arms or ("A","B","C"))
     schemas={"A":strict_schema(COMPACT_V02_SCHEMA),"B":strict_schema(OUTPUT_SCHEMA),"C":strict_schema(UNIFIED_SCHEMA)}
