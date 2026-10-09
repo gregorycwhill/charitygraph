@@ -125,6 +125,17 @@ decision, not an automatic consequence of model output. Reprojection and
 rendering consume governed records; they do not become a second semantic
 store.
 
+Shared retained evidence should be read in as few model calls as quality can
+safely support: combining independently typed outputs is preferable to
+duplicating a packet across calls only after frozen comparative evidence meets
+its quality, provenance and review gates. This is an economics and transport
+rule, never permission for Python to infer English-language Ethos or
+Notability semantics. Python may move, slice, hash, validate, route and
+enforce provenance/schema boundaries; semantic understanding remains model
+work. A dedicated specialist call remains an escalation, recovery and research
+lane unless an explicit evidence-backed architecture decision changes that
+status.
+
 A directly authorised reasoning agent may interpret represented evidence in a
 disposable experiment. That establishes experimental evidence, not a
 replacement provider seam or automatically governed production knowledge.
