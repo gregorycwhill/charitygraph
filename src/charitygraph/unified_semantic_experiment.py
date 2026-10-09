@@ -28,6 +28,15 @@ METRICS = (
     "input_tokens", "output_tokens", "calls", "usd_per_organisation",
 )
 
+# C keeps the two output domains typed separately.  These instructions make
+# the §15/§17 boundary explicit inside the one-call envelope; they do not add
+# a taxonomy, a case-specific rule, or any evidence interpretation in Python.
+UNIFIED_PROMPT_VERSION = "cg353-unified-prompt-v2"
+UNIFIED_PROMPT = """Extract compact supported knowledge and separately extract §15 Ethos and §17 Notable History candidate material from the labelled retained evidence and frozen packet.
+The supplied material is the complete admissible evidence universe: do not browse, retrieve, use background knowledge, or invent a fact. Return only JSON matching the unified schema.
+For general atoms, every atom needs supporting source/locator evidence; keep scope, time and qualifications explicit.
+For ethos_notability, every positive candidate requires exact packet evidence_ids. Abstain when unsupported. Do not infer ethos from beneficiaries, names, geography, imagery, people, parents/networks, tone, or omission. Do not transfer parent/network, predecessor/successor, historical/current, or award/recognition meaning. Preserve qualifications and disagreement. An inquiry/review can be a §17 occurrence only; never make it a §16 allegation, finding, sanction, or remediation. Keep different scope, time, or source-role claims separate. Ethos/notability is candidate/review material, never a governed observation or public assertion."""
+
 
 def canonical_hash(value: Any) -> str:
     return sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()

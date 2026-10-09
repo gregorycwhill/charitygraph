@@ -16,7 +16,7 @@ from charitygraph.compact_knowledge import COMPACT_V02_SCHEMA, CompactKnowledgeO
 from charitygraph.ethos_notability_extraction import (CandidateBundle, OUTPUT_SCHEMA, PROMPT,
     FrozenEthosNotabilityPacket, PacketEvidence, validate_bundle)
 from charitygraph.openai_client import estimate_response_cost, responses_create
-from charitygraph.unified_semantic_experiment import MODEL, UNIFIED_SCHEMA, UnifiedSemanticOutput, canonical_hash, enforce_spend
+from charitygraph.unified_semantic_experiment import MODEL, UNIFIED_PROMPT, UNIFIED_PROMPT_VERSION, UNIFIED_SCHEMA, UnifiedSemanticOutput, canonical_hash, enforce_spend
 
 EXPECTED = "120e20160adbfd27a53b526b200e85841850ded612a839dd4381110295300644"
 GENERAL_PROMPT = """Extract compact supported knowledge only from the labelled retained evidence below.
@@ -74,17 +74,23 @@ def call(ledger, prompt, schema, cap):
     return response, entry
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("--corpus",type=Path,required=True); ap.add_argument("--representations",type=Path,required=True); ap.add_argument("--fallback-representations",type=Path); ap.add_argument("--output",type=Path,required=True); ap.add_argument("--ledger",type=Path,required=True); ap.add_argument("--cap",default="2.00"); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--corpus",type=Path,required=True); ap.add_argument("--representations",type=Path,required=True); ap.add_argument("--fallback-representations",type=Path); ap.add_argument("--output",type=Path,required=True); ap.add_argument("--ledger",type=Path,required=True); ap.add_argument("--cap",default="2.00"); ap.add_argument("--case",action="append",dest="cases"); ap.add_argument("--arm",action="append",choices=("A","B","C"),dest="arms"); args=ap.parse_args()
     corpus=json.loads(args.corpus.read_text(encoding="utf-8")); assert corpus.get("corpus_sha256")==EXPECTED and corpus.get("provider_calls")==0
     ledger=json.loads(args.ledger.read_text()) if args.ledger.exists() else {"experiment_id":"CG-UNIFIED-SEMANTIC-EXTRACTION-353","entries":[]}
     # Challenge IDs are fixed by the immutable CG352 naming convention.  Blinds are never read.
     cases={p["case_id"] for p in corpus["packets"] if int(p["case_id"].split("-")[1])<=10}
+    if args.cases:
+        requested=set(args.cases)
+        if not requested <= cases: raise ValueError("requested case is not a frozen challenge case")
+        cases=requested
+    arms=tuple(args.arms or ("A","B","C"))
     schemas={"A":strict_schema(COMPACT_V02_SCHEMA),"B":strict_schema(OUTPUT_SCHEMA),"C":strict_schema(UNIFIED_SCHEMA)}
-    report={"experiment_id":ledger["experiment_id"],"model":MODEL,"provider_path":"openai.responses","corpus_sha256":EXPECTED,"arms":{a:[] for a in ("A","B","C")},"schema_hashes":{k:canonical_hash(v) for k,v in schemas.items()}}
+    report={"experiment_id":ledger["experiment_id"],"model":MODEL,"provider_path":"openai.responses","corpus_sha256":EXPECTED,"unified_prompt_version":UNIFIED_PROMPT_VERSION,"arms":{a:[] for a in arms},"schema_hashes":{k:canonical_hash(v) for k,v in schemas.items()}}
     for case in sorted(cases):
         p15=next(p for p in corpus["packets"] if p["case_id"]==case and p["section"]==15); rows=evidence_for(p15,args.representations,args.fallback_representations)
         packet=dedicated_packet(p15,rows); general=compact_input(rows)
-        for arm,prompt,schema in (("A",general,schemas["A"]),("B",PROMPT+"\nPACKET:\n"+packet.model_dump_json(),schemas["B"]),("C",general+"\nETHOS/NOTABILITY PACKET:\n"+packet.model_dump_json(),schemas["C"])):
+        for arm,prompt,schema in (("A",general,schemas["A"]),("B",PROMPT+"\nPACKET:\n"+packet.model_dump_json(),schemas["B"]),("C",UNIFIED_PROMPT+"\nEVIDENCE:\n"+"\n".join(f"{s} {l} ({e.get('source_role','context')}):\n{t}" for s,l,e,t in rows)[:12000]+"\nETHOS/NOTABILITY PACKET:\n"+packet.model_dump_json(),schemas["C"])):
+            if arm not in arms: continue
             response,entry=call(ledger,prompt,schema,args.cap); raw=response.output_text
             valid=False; reasons=[]
             try:
