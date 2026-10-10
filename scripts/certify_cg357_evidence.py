@@ -53,10 +53,13 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--repair", type=Path,
+                        help="CG358 retained central retry manifest; old CG357 evidence remains immutable")
     args = parser.parse_args()
     cohort = load(args.root / "cohort.json")
     regulatory = load(args.root / "regulatory" / "source-attempt-manifest.json")
     rich = load(args.root / "rich" / "source-attempt-manifest.json")
+    repair = load(args.repair / "source-attempt-manifest.json") if args.repair else None
     frozen = load(args.root / "frozen" / "frozen-corpus.json")
     cohort_material = {key: cohort[key] for key in cohort if key not in {"frozen_at", "cohort_sha256"}}
     if sha(cohort_material) != cohort["cohort_sha256"] or len(cohort["cases"]) != 15:
@@ -65,23 +68,29 @@ def main() -> int:
         raise RuntimeError("packet lineage mismatch")
     regulatory_ok, regulatory_defects = verify_attempts(args.root / "regulatory", regulatory)
     rich_ok, rich_defects = verify_attempts(args.root / "rich", rich)
+    repair_ok, repair_defects = (verify_attempts(args.repair, repair) if repair else (True, []))
     successes = sum(x["status"] == "captured" for x in regulatory["attempts"] + rich["attempts"])
     failures = sum(x["status"] != "captured" for x in regulatory["attempts"] + rich["attempts"])
+    repair_successes = sum(x["status"] == "captured" for x in (repair or {}).get("attempts", []))
+    repair_failures = sum(x["status"] != "captured" for x in (repair or {}).get("attempts", []))
     checks = {key: {"passed": True, "detail": "verified against CG357 retained corpus"} for key in REQUIRED_READINESS_CHECKS}
-    checks["durable_store_integrity"] = {"passed": regulatory_ok and rich_ok, "detail": "raw and representation SHA-256 verified; defects=" + repr(regulatory_defects + rich_defects)}
-    checks["offline_replay"] = {"passed": regulatory_ok and rich_ok, "detail": "30 frozen section packets replay from retained local bytes only"}
+    integrity_ok = regulatory_ok and rich_ok and repair_ok
+    checks["durable_store_integrity"] = {"passed": integrity_ok, "detail": "raw and representation SHA-256 verified; defects=" + repr(regulatory_defects + rich_defects + repair_defects)}
+    checks["offline_replay"] = {"passed": integrity_ok, "detail": "30 frozen section packets replay from retained local bytes only"}
     checks["organisation_identity_universe"] = {"passed": cohort["identity_map_hash"] == "55dc192a4d226fc3769f8408d5fdf6467f11710b9687f8f72c3f2a0ba10024aa", "detail": "verified 100-subject governed map"}
     checks["cohort_frozen"] = {"passed": True, "detail": f"15-case manifest {cohort['cohort_sha256']}"}
-    checks["source_acquisition_complete"] = {"passed": len(regulatory["attempts"]) == 15 and len(rich["attempts"]) == 45, "detail": f"bounded sweep retained {successes} successes and {failures} failures"}
+    repair_complete = repair is not None and repair.get("repairable_transport_failures_exhausted") is True
+    checks["source_acquisition_complete"] = {"passed": len(regulatory["attempts"]) == 15 and len(rich["attempts"]) == 45 and repair_complete,
+                                             "detail": f"CG357 bounded sweep retained {successes} successes and {failures} failures; CG358 separately retried {repair_successes + repair_failures} repairable transport failures ({repair_successes} captured, {repair_failures} unavailable); repairable_transport_failures_exhausted={repair_complete}"}
     # Reference adjudication is deliberately not manufactured by this mechanical
     # program; it must be independently created from the frozen sources.
     checks["ethos_reference_evaluable"] = {"passed": False, "detail": "source-only independent §15 reference has not yet been adjudicated"}
     checks["history_reference_evaluable"] = {"passed": False, "detail": "source-only independent §17 reference has not yet been adjudicated"}
-    checks["provenance_integrity"] = {"passed": regulatory_ok and rich_ok, "detail": "each captured attempt binds source, representation, subject and locator"}
+    checks["provenance_integrity"] = {"passed": integrity_ok and repair_complete, "detail": "each captured attempt binds source, representation, subject and locator; retry records hash-link to immutable predecessor attempts"}
     checks["provider_ledger_reconciled"] = {"passed": True, "detail": "CG356 closed ledger: 33 physical / 31 logical; unchanged"}
     checks["semantic_network_disabled"] = {"passed": True, "detail": "certifier imports no network or provider transport; CG357 provider calls=0"}
-    result = write_readiness_artifact(args.out, checks, context={"run_id": "CG-SEMANTIC-EVIDENCE-READINESS-EXECUTION-357-TERRA", "cohort_sha256": cohort["cohort_sha256"], "regulatory_manifest_sha256": regulatory["manifest_sha256"], "rich_manifest_sha256": rich["manifest_sha256"], "frozen_corpus_sha256": frozen["corpus_sha256"], "source_successes": successes, "source_failures": failures, "provider_calls": 0, "authenticated_github_mutations": 0})
-    print(json.dumps({"state": result["state"], "artifact_hash": result["artifact_hash"], "successes": successes, "failures": failures}, sort_keys=True))
+    result = write_readiness_artifact(args.out, checks, context={"run_id": "CG-SEMANTIC-EVIDENCE-READINESS-COMPLETION-358-TERRA", "cohort_sha256": cohort["cohort_sha256"], "regulatory_manifest_sha256": regulatory["manifest_sha256"], "rich_manifest_sha256": rich["manifest_sha256"], "repair_manifest_sha256": repair.get("manifest_sha256") if repair else None, "frozen_corpus_sha256": frozen["corpus_sha256"], "source_successes": successes + repair_successes, "source_failures": failures + repair_failures, "provider_calls": 0, "authenticated_github_mutations": 0})
+    print(json.dumps({"state": result["state"], "artifact_hash": result["artifact_hash"], "successes": successes + repair_successes, "failures": failures + repair_failures}, sort_keys=True))
     return 0
 
 

@@ -12,6 +12,7 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
 
@@ -25,6 +26,35 @@ def sha(data: bytes) -> str:
 
 def stamp() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def normalise_web_locator(locator: object) -> str:
+    """Return a fetchable HTTPS locator for an ACNC bare web domain.
+
+    This is deliberately transport-only: absolute HTTP(S) locators are returned
+    byte-for-byte, while only a syntactically valid domain (with optional
+    port/path/query/fragment) receives an HTTPS scheme.  Other schemes and
+    malformed values remain explicit acquisition failures rather than guesses.
+    """
+    if not isinstance(locator, str) or not locator or locator != locator.strip():
+        raise ValueError("locator must be a non-empty, whitespace-free string")
+    parsed = urlsplit(locator)
+    if parsed.scheme:
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            raise ValueError(f"unsupported absolute locator: {locator!r}")
+        return locator
+    if locator.startswith("//") or parsed.netloc:
+        raise ValueError(f"locator has no supported scheme: {locator!r}")
+    host = parsed.path.split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+    # Domains only; do not turn arbitrary labels, paths, IP literals, or local
+    # names into network destinations.
+    labels = host.split(".")
+    if (len(labels) < 2 or any(not label or len(label) > 63 or
+                               label[0] == "-" or label[-1] == "-" or
+                               not all(ch.isascii() and (ch.isalnum() or ch == "-") for ch in label)
+                               for label in labels)):
+        raise ValueError(f"unsupported bare web domain: {locator!r}")
+    return "https://" + locator
 
 
 def fetch(locator: str) -> tuple[bytes, str, int, str]:
@@ -73,15 +103,77 @@ def failure(case: dict, family: str, requested: str, error: Exception | str) -> 
             "acquisition_method": "central_regulatory_profile_locator_v2"}
 
 
+def retryable_bare_domain_failure(item: dict) -> bool:
+    """Whether an old failed official-site record is repairable by this rule."""
+    if item.get("source_family") != "official_website" or item.get("status") == "captured":
+        return False
+    try:
+        normalise_web_locator(item.get("requested_locator"))
+    except ValueError:
+        return False
+    return not urlsplit(str(item.get("requested_locator"))).scheme
+
+
+def acquisition_complete(*, original_attempts: list[dict], retry_attempts: list[dict]) -> bool:
+    """A bounded plan is complete only after every repairable transport failure ran."""
+    retried = {item.get("predecessor_attempt_sha256") for item in retry_attempts}
+    return all(sha(canon(item)) in retried for item in original_attempts if retryable_bare_domain_failure(item))
+
+
+def run_repairs(*, cohort: dict, prior_rich: Path, out: Path) -> dict:
+    """Retry only historical bare-domain failures, retaining old/new provenance separately."""
+    old = json.loads((prior_rich / "source-attempt-manifest.json").read_text(encoding="utf-8"))
+    cases = {case["case_id"]: case for case in cohort["cases"]}
+    out.mkdir(parents=True, exist_ok=True)
+    attempts: list[dict] = []
+    for predecessor in old["attempts"]:
+        if not retryable_bare_domain_failure(predecessor):
+            continue
+        case = cases[predecessor["case_id"]]
+        predecessor_hash = sha(canon(predecessor))
+        requested = str(predecessor["requested_locator"])
+        normalised = normalise_web_locator(requested)
+        try:
+            body, resolved, status, media = fetch(normalised)
+            item = retain(out, case=case, family="official_website", role="supporting",
+                          requested=requested, body=body, resolved=resolved, status=status,
+                          media=media, source_version="central-retry:" + predecessor_hash)
+        except Exception as exc:
+            item = failure(case, "official_website", requested, exc)
+        item.update({"predecessor_attempt_sha256": predecessor_hash,
+                     "normalised_locator": normalised,
+                     "retry_reason": "repair bare-domain transport locator",
+                     "acquisition_method": "central_regulatory_profile_locator_v3_retry"})
+        attempts.append(item)
+    manifest = {"corpus_id": "empirical-ethos-notability-rich-v2-repair", "version": "3.0.0",
+                "cohort_sha256": sha(canon(cohort)), "prior_manifest_sha256": old["manifest_sha256"],
+                "network_owner": "central_acquisition_only", "provider_calls": 0,
+                "attempts": attempts, "acquisition_finished_at": stamp()}
+    manifest["repairable_transport_failures_exhausted"] = acquisition_complete(
+        original_attempts=old["attempts"], retry_attempts=attempts)
+    manifest["manifest_sha256"] = sha(canon(manifest))
+    (out / "source-attempt-manifest.json").write_bytes(canon(manifest))
+    return manifest
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cohort", required=True, type=Path)
     parser.add_argument("--prior-retained", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--retry-prior-rich", type=Path,
+                        help="retry only eligible bare-domain failures from this retained rich corpus")
     args = parser.parse_args()
     cohort = json.loads(args.cohort.read_text(encoding="utf-8"))
     if len(cohort.get("cases", [])) != 15 or sum(c["arm"] == "challenge" for c in cohort["cases"]) != 10:
         raise SystemExit("frozen cohort shape is invalid")
+    if args.retry_prior_rich:
+        manifest = run_repairs(cohort=cohort, prior_rich=args.retry_prior_rich, out=args.out)
+        print(json.dumps({"retried": len(manifest["attempts"]),
+                          "captured": sum(x["status"] == "captured" for x in manifest["attempts"]),
+                          "repairable_transport_failures_exhausted": manifest["repairable_transport_failures_exhausted"],
+                          "manifest_sha256": manifest["manifest_sha256"]}, indent=2))
+        return 0
     prior = json.loads((args.prior_retained / "source-attempt-manifest.json").read_text(encoding="utf-8"))
     prior_by_case = {item["case_id"]: item for item in prior["attempts"] if item["status"] == "captured"}
     args.out.mkdir(parents=True, exist_ok=True)
