@@ -37,6 +37,10 @@ def verify_attempts(root: Path, manifest: dict) -> tuple[bool, list[str]]:
             defects.append(f"{item['case_id']}:missing durable identity")
             continue
         raw = root / "raw" / raw_hash
+        # The original central regulatory capture used a JSON suffix; the
+        # generic rich capture did not.  Both retain exact hash-addressed bytes.
+        if not raw.is_file() and (root / "raw" / f"{raw_hash}.json").is_file():
+            raw = root / "raw" / f"{raw_hash}.json"
         rep = root / item["representation_locator"]
         if not raw.is_file() or hashlib.sha256(raw.read_bytes()).hexdigest() != raw_hash:
             defects.append(f"{item['case_id']}:raw integrity")
