@@ -205,9 +205,17 @@ No model output is labelled `human_governed`. Automation is authorised by a sepa
 
 Create or supersede typed `CanonicalObservation` records from accepted decisions. Canonicalisation preserves the approved proposition, subject/scope, world time, observation time, claim basis, extraction method, evidence, source records, confidence where meaningful, and warnings.
 
+#### Semantic losslessness and the least-specific defensible truth
+
+Builder must preserve the highest level of semantic specificity actually supported by the evidence. Ask: **“What is the most specific proposition that the evidence actually supports?”** The answer may be precise or vague; both can be valid governed knowledge. Prefer the most specific supported interpretation; otherwise preserve the **least-specific defensible truth**, record the unresolved specificity, and do not convert semantic ambiguity into missingness or discard a broad assertion merely because the ontology permits a finer representation.
+
+For example, evidence saying “Baptist” may support a governed Baptist assertion while ownership, governance, operation, principles, beneficiary orientation, service restriction and denomination remain unresolved. It does not support inventing any of those relationships. Unknown detail must not erase known fact. Refinement is information-preserving: later evidence can qualify, supersede or decompose the coarse assertion while retaining the original source support and lineage.
+
 ### 6.9 Assess coverage
 
 Coverage is computed against an explicit capability, source scope, time window, and policy version. `not_found_in_source` is valid only after that defined assessment; it is never inferred from an empty result list.
+
+Coverage must distinguish **no governed evidence** from **governed evidence exists but finer semantic decomposition is unresolved**. The latter is not missingness: broad governed assertions remain available to appropriate search, discovery and comparison projections, with their supported specificity and unresolved detail visible. Semantic vagueness/ambiguity and evidentiary absence are separate states even when both limit a finer-grained answer.
 
 ### 6.10 Derive
 
