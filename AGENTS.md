@@ -11,6 +11,27 @@ Builder is Python-controlled and LLM-powered. Follow the sibling Data repository
 
 ## Boundaries
 
+### Source Universe v1 (Product Owner decision, 11 October 2026)
+
+Routine Builder acquisition is admitted for exactly seven source families:
+`acnc_register`, `acnc_ais_bundle`, `ato_abr_dgr`, `official_website`,
+`annual_report`, `wikipedia_wikimedia`, and `pfra`. This list is exhaustive.
+Non-admitted classes fail closed and require Product Owner approval; sparse
+evidence is not permission for discovery. Evaluation may inspect the open
+world, but Builder may not.
+
+For `official_website`, begin with the governed organisation-specific locator,
+normally the ACNC Website field. Permit only safe URL normalisation, ordinary
+redirects and a very small deterministic locator-derived adjacency set. Each
+candidate must be identity-verified as the intended Australian charity/site;
+never substitute an international parent, overseas branch, sister affiliate,
+similarly named entity or federation/network site. Preserve repair lineage.
+Unresolved bounded repair remains an acquisition/identity state.
+
+- **Builder failure:** an admitted instance/rule was not successfully acquired or processed.
+- **Source-policy gap:** evidence would require a non-admitted family or material rule expansion; `DECISION_REQUIRED` for Product Owner.
+- **Genuine evidence gap:** the admitted universe was assessed and does not support the requested proposition/detail.
+
 - Do not add raw sources, private evidence, reports, website snapshots, prompts, model responses, runtime state, caches, credentials, logs or debug files to Git.
 - Do not manually edit generated public projections.
 - Do not change public contract 0.5, immutable release bytes, schemas, Viewer selection or compatibility identifiers without a separately approved migration.
