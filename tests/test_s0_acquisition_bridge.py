@@ -113,6 +113,34 @@ def test_durable_bridge_records_restart_idempotently_and_constructs_preflight(tm
     assert bundles and sum(len(item.packet_ids) for item in bundles) == len(packets)
 
 
+def test_distinct_same_family_resources_append_through_governed_catalogue(tmp_path):
+    """Concrete locator identity prevents the historic definition collision."""
+    value = mandate()
+    catalog = SQLiteCatalog(tmp_path / "same-family.sqlite3").open(initialize=True)
+    planner = SourcePlanner(value)
+    acquisition = GovernedAcquisition(value)
+    snapshots = []
+    for subject, locator, body in (
+        (SUBJECTS[0], "https://fixture.invalid/acnc/one", b'{"abn":"one"}'),
+        (SUBJECTS[1], "https://fixture.invalid/acnc/two", b'{"abn":"two"}'),
+    ):
+        plan = planner.plan(subject_id=subject, scope_id="scope:organisation", source_family="acnc_register",
+            acquisition_mechanism="fixture", policy_classification="OPEN_WEB_PUBLIC", source_role="register_identity",
+            authority_role="ACNC", requirement="mandatory", locator=locator, created_at=NOW)
+        snapshots.append(acquisition.acquire(plan, open_web(plan), OfflineResponse(body, "application/json", locator),
+            representation=DocumentRepresentation.NATIVE_STRUCTURED, representation_mode="structured_source_native_data",
+            now=NOW, catalog=catalog, offline=True))
+    # Retry remains idempotent, while the independently authorised second
+    # locator must be represented by a different immutable definition.
+    assert acquisition.acquire(plan, open_web(plan), OfflineResponse(body, "application/json", locator),
+        representation=DocumentRepresentation.NATIVE_STRUCTURED, representation_mode="structured_source_native_data",
+        now=NOW, catalog=catalog, offline=True) == snapshots[-1]
+    with catalog._connection() as connection:
+        assert connection.execute("SELECT count(*) FROM source_definitions").fetchone()[0] == 2
+        assert connection.execute("SELECT count(*) FROM source_records").fetchone()[0] == 2
+        assert connection.execute("SELECT count(*) FROM acquisition_receipts").fetchone()[0] == 2
+
+
 def test_eight_subject_offline_fixture_matrix_and_false_absence_states():
     value, planner = mandate(), None
     planner = SourcePlanner(value)

@@ -41,6 +41,28 @@ def _utc(value: datetime | None = None) -> str:
     return value.astimezone(timezone.utc).isoformat()
 
 
+def _source_definition_id(plan: "SourcePlan", resolved_locator: str) -> str:
+    """Return the immutable definition identity for one concrete resource.
+
+    A definition is not merely a transport family.  Reusing a family/mechanism
+    id made the second independently authorised resource collide with the
+    first resource's immutable locator and authority-role material in the
+    catalogue.  First-party ids remain governed by their established policy;
+    other families use the same concrete canonical-locator boundary.
+    """
+    locator = canonical_locator(resolved_locator)
+    if plan.source_family in {"official_first_party_web", "official_website"}:
+        return concrete_first_party_source_definition_id(
+            subject_ref=plan.subject_id, canonical_locator=locator,
+            source_family=plan.source_family,
+        )
+    return "srcdef:" + _hash({
+        "source_family": plan.source_family,
+        "acquisition_mechanism": plan.acquisition_mechanism,
+        "canonical_locator": locator,
+    })
+
+
 @dataclass(frozen=True)
 class MandatePopulation:
     """Canonical population whose membership is derived only from the mandate."""
@@ -295,12 +317,11 @@ class GovernedAcquisition:
             when = now or datetime.now(timezone.utc)
             if when.tzinfo is None:
                 raise ScalePreflightError("acquisition timestamp must be timezone-aware")
-            # CG-S0-PO-2026-09-22 A1: first-party definitions are concrete and
-            # immutable per subject and canonical locator.  Other source-family
-            # identities retain their established material boundary.
-            definition_id = (concrete_first_party_source_definition_id(subject_ref=plan.subject_id, canonical_locator=canonical_locator(response.locator), source_family=plan.source_family)
-                             if plan.source_family in {"official_first_party_web", "official_website"} else
-                             "srcdef:" + _hash({"family": plan.source_family, "mechanism": plan.acquisition_mechanism}))
+            # Definitions are immutable concrete-resource records.  Retain
+            # the established first-party identity and give every other family
+            # a canonical-locator component as well, so independently
+            # authorised same-family resources append rather than collide.
+            definition_id = _source_definition_id(plan, response.locator)
             definition = SourceDefinition(record_id=definition_id,
                 created_at=when, producer={"kind": "code", "producer_id": "scale-s0-acquisition-bridge", "version": "1"},
                 definition_version="1", publisher=plan.authority_role, source_class=plan.source_family,
