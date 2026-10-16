@@ -142,21 +142,24 @@ def _pricing(path: Path, expected_ids: set[str]) -> tuple[dict[str, Any], dict[s
 def prepare_frozen_experiment(*, subject_manifest: Path, demand_manifest: Path, corpus_manifest: Path,
                               rights_decisions: Path, pricing_snapshot: Path, runtime_root: Path,
                               catalog_path: Path, authorization_catalog_path: Path,
-                              authorization_text_hash: str, now: datetime | None = None) -> dict[str, Any]:
+                              authorization_text_hash: str, provider_account_project: str,
+                              now: datetime | None = None) -> dict[str, Any]:
     """Pin a frozen cohort into normal Standard rows; never sends a provider request."""
     timestamp = _now(now)
+    if not isinstance(provider_account_project, str) or not provider_account_project.strip():
+        raise FrozenExperimentError("frozen experiment requires an exact provider project binding")
     subjects, demands, instances = load_frozen_instances(subject_manifest=subject_manifest, demand_manifest=demand_manifest)
     subject_hash, demand_hash = _file_sha(subject_manifest), _file_sha(demand_manifest)
     corpus_by_subject = _corpora(corpus_manifest, {item["subject_id"] for item in instances})
     pricing, cost_by_instance = _pricing(pricing_snapshot, {item["instance_id"] for item in instances})
     contract = _contract()
-    cohort_identity = {"subject_manifest_sha256": subject_hash, "demand_manifest_sha256": demand_hash, "corpus_manifest_sha256": _file_sha(corpus_manifest), "rights_decisions_sha256": _file_sha(rights_decisions), "pricing_snapshot_sha256": _file_sha(pricing_snapshot), "contract_identity_hash": contract.identity_hash()}
+    cohort_identity = {"subject_manifest_sha256": subject_hash, "demand_manifest_sha256": demand_hash, "corpus_manifest_sha256": _file_sha(corpus_manifest), "rights_decisions_sha256": _file_sha(rights_decisions), "pricing_snapshot_sha256": _file_sha(pricing_snapshot), "contract_identity_hash": contract.identity_hash(), "provider_account_project": provider_account_project}
     cohort_id, run_id = _id("cohort:", cohort_identity), _id("run:", cohort_identity)
     aggregate_aud = sum((Decimal(cost_by_instance[item["instance_id"]]["aud"]) for item in instances), Decimal("0"))
     mandate_id = _id("mandate:", {"kind": "frozen-experiment-standard-luna-v1", **cohort_identity})
     allowed_contract = {"contract_key": contract.contract_id + ":" + contract.contract_version, **contract.identity_payload(), "claim_families": list(contract.claim_families), "provider_schema_name": contract.provider_schema_name}
     allowed_contract["contract_identity_hash"] = contract.identity_hash()
-    mandate = {"manifest_version": "execution-mandate-v1", "mandate_id": mandate_id, "purpose": "private frozen experiment", "phase_scope": "frozen-experiment", "provider": "openai", "delivery_mode": "standard", "model": "gpt-5.6-luna", "reasoning_effort": "low", "max_concurrency": 1, "automatic_retries": 0, "semantic_retries": 0, "fallbacks": [], "ambiguous_resend": False, "aggregate_hard_aud": str(aggregate_aud), "per_request_hard_aud": str(max(Decimal(v["aud"]) for v in cost_by_instance.values())), "allowed_contracts": [allowed_contract], "excluded_authorities": ["governed_promotion", "adjudication", "card_projection", "public_release", "source_acquisition"], "termination": ["aggregate_authority_exhausted", "explicit_revocation", "identity_or_rights_drift"]}
+    mandate = {"manifest_version": "execution-mandate-v1", "mandate_id": mandate_id, "purpose": "private frozen experiment", "phase_scope": "frozen-experiment", "frozen_input_identity": cohort_identity, "provider": "openai", "provider_account_project": provider_account_project, "delivery_mode": "standard", "model": "gpt-5.6-luna", "reasoning_effort": "low", "max_concurrency": 1, "automatic_retries": 0, "semantic_retries": 0, "fallbacks": [], "ambiguous_resend": False, "aggregate_hard_aud": str(aggregate_aud), "per_request_hard_aud": str(max(Decimal(v["aud"]) for v in cost_by_instance.values())), "allowed_contracts": [allowed_contract], "excluded_authorities": ["governed_promotion", "adjudication", "card_projection", "public_release", "source_acquisition"], "termination": ["aggregate_authority_exhausted", "explicit_revocation", "identity_or_rights_drift"]}
     catalog = SQLiteCatalog(catalog_path, authorization_path=authorization_catalog_path).open(initialize=True)
     rows: list[dict[str, Any]] = []
     try:
@@ -172,6 +175,10 @@ def prepare_frozen_experiment(*, subject_manifest: Path, demand_manifest: Path, 
             packet = materialize_execution_packet(task=task, corpus=corpus, contract=contract, runtime_root=runtime_root, catalog_path=catalog_path, model="gpt-5.6-luna", reasoning_effort="low", service_tier="default")
             _rights(rights_decisions, packet.evidence_units)
             compiled = serialize_execution_packet_request(task, packet, delivery_job_id=job_id, delivery_mode="standard")
+            # Persist only a JSON round-trippable body, then hash that exact
+            # durable material.  This makes the pre-send hash invariant hold
+            # even when a provider schema/prompt contains Unicode edge cases.
+            frozen_body = json.loads(_canonical(compiled.body).decode("utf-8"))
             bound = cost_by_instance[instance["instance_id"]]
             reservation_id = _id("reservation:", {"request": compiled.provider_request_item_id, "aud": bound["aud"]})
             physical_id, delivery_id = _id("physical:", compiled.provider_request_item_id), _id("deliveryattempt:", compiled.provider_request_item_id)
@@ -181,17 +188,24 @@ def prepare_frozen_experiment(*, subject_manifest: Path, demand_manifest: Path, 
             catalog.prepare_physical_attempt(physical_attempt_id=physical_id, run_id=run_id, subject_id=task["subject_id"], delivery_mode="standard", provider_request_id=compiled.provider_request_item_id, model_task_ids=(task["logical_task_id"],), reservation_id=reservation_id, now=timestamp)
             catalog.create_provider_request_item(provider_request_item_id=compiled.provider_request_item_id, run_id=run_id, model_task_id=task["logical_task_id"], provider_id="openai", model_route="gpt-5.6-luna", requested_delivery_mode="standard", effective_service_tier="standard", delivery_job_id=job_id, physical_attempt_id=physical_id, now=timestamp)
             catalog.create_provider_request_attempt(delivery_attempt_id=delivery_id, provider_request_item_id=compiled.provider_request_item_id, physical_attempt_id=physical_id, delivery_job_id=job_id, attempt_ordinal=1, authorization_id=mandate_id, attempt_class="initial", predecessor_attempt_id=None, now=timestamp)
-            schema = compiled.body["text"]["format"]["schema"]
-            rows.append({"instance_id": instance["instance_id"], "provider": "openai", "provider_request_item_id": compiled.provider_request_item_id, "logical_task_id": task["logical_task_id"], "contract_id": contract.contract_id, "contract_version": contract.contract_version, "contract_identity_hash": contract.identity_hash(tuple(unit.evidence_id for unit in packet.evidence_units)), "task_profile": contract.task_profile, "task_profile_version": contract.task_profile_version, "prompt_sha256": contract.prompt_sha256, "schema_id": contract.schema_id, "schema_version": contract.schema_version, "schema_hash": _sha(schema), "provider_schema_name": compiled.schema_name, "model": compiled.model, "reasoning_effort": "low", "delivery_mode": "standard", "provider_service_tier": None, "max_output_tokens": 8000, "request_body": compiled.body, "request_body_sha256": body_sha256(canonical_standard_body_bytes(compiled.body)), "hard_max_aud": bound["aud"], "hard_max_usd": bound["usd"], "reservation_id": reservation_id, "mandate_reservation_id": reservation_id, "physical_attempt_id": physical_id, "delivery_attempt_id": delivery_id, "scope_id": None, "evidence_ids": [unit.evidence_id for unit in packet.evidence_units], "packet_hash": packet.packet_hash})
+            schema = frozen_body["text"]["format"]["schema"]
+            rows.append({"instance_id": instance["instance_id"], "provider": "openai", "provider_account_project": provider_account_project, "provider_request_item_id": compiled.provider_request_item_id, "logical_task_id": task["logical_task_id"], "contract_id": contract.contract_id, "contract_version": contract.contract_version, "contract_identity_hash": contract.identity_hash(tuple(unit.evidence_id for unit in packet.evidence_units)), "task_profile": contract.task_profile, "task_profile_version": contract.task_profile_version, "prompt_sha256": contract.prompt_sha256, "schema_id": contract.schema_id, "schema_version": contract.schema_version, "schema_hash": _sha(schema), "provider_schema_name": compiled.schema_name, "model": compiled.model, "reasoning_effort": "low", "delivery_mode": "standard", "provider_service_tier": None, "max_output_tokens": 8000, "request_body": frozen_body, "request_body_sha256": body_sha256(canonical_standard_body_bytes(frozen_body)), "hard_max_aud": bound["aud"], "hard_max_usd": bound["usd"], "reservation_id": reservation_id, "mandate_reservation_id": reservation_id, "physical_attempt_id": physical_id, "delivery_attempt_id": delivery_id, "scope_id": None, "evidence_ids": [unit.evidence_id for unit in packet.evidence_units], "packet_hash": packet.packet_hash})
     finally:
         catalog.close()
-    return {"schema": "charitygraph.frozen-experiment-prepared-run/v1", "cohort_id": cohort_id, "run_id": run_id, "mandate_id": mandate_id, "pricing_snapshot_sha256": cohort_identity["pricing_snapshot_sha256"], "aggregate_hard_usd": str(sum((Decimal(item["hard_max_usd"]) for item in rows), Decimal("0"))), "aggregate_hard_aud": str(aggregate_aud), "rows": rows, "prepared_run_hash": _sha(rows)}
+    # Packet compilation may share schema internals across rows. Recompute the
+    # body identity after the complete materialization loop so every pinned
+    # hash covers the exact final durable body rather than a transient object.
+    for row in rows:
+        row["request_body_sha256"] = body_sha256(canonical_standard_body_bytes(row["request_body"]))
+    return {"schema": "charitygraph.frozen-experiment-prepared-run/v1", "cohort_id": cohort_id, "run_id": run_id, "mandate_id": mandate_id, "provider_account_project": provider_account_project, "pricing_snapshot_sha256": cohort_identity["pricing_snapshot_sha256"], "aggregate_hard_usd": str(sum((Decimal(item["hard_max_usd"]) for item in rows), Decimal("0"))), "aggregate_hard_aud": str(aggregate_aud), "rows": rows, "prepared_run_hash": _sha(rows)}
 
 
 def execute_prepared_standard(*, prepared: Mapping[str, Any], catalog_path: Path, authorization_catalog_path: Path, runtime_root: Path, provider: Any, now: datetime | None = None) -> dict[str, Any]:
     """Execute only pre-pinned rows through the existing exactly-once transport."""
     catalog = SQLiteCatalog(catalog_path, authorization_path=authorization_catalog_path).open()
     try:
+        if getattr(provider, "provider_account_project", None) != prepared.get("provider_account_project"):
+            raise FrozenExperimentError("provider project does not match the prepared frozen run")
         # This is deliberately immediately before the coordinator: it checks the
         # durable request/physical/delivery rows and active budget authority that
         # the coordinator will consume, without crossing a provider boundary.

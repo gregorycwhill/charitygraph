@@ -11,10 +11,15 @@ import json
 from pathlib import Path
 
 from charitygraph.frozen_experiment import execute_prepared_standard, prepare_frozen_experiment
-from charitygraph.phase5_standard_transport import OpenAIHTTPStandardClient
+from charitygraph.phase5_standard_transport import OpenAIHTTPStandardClient, body_sha256, canonical_standard_body_bytes
 
 
 def _write_exact(path: Path, value: dict) -> None:
+    if isinstance(value.get("rows"), list):
+        for row in value["rows"]:
+            if isinstance(row, dict) and isinstance(row.get("request_body"), dict):
+                row["request_body_sha256"] = body_sha256(canonical_standard_body_bytes(row["request_body"]))
+        value["prepared_run_hash"] = hashlib.sha256(json.dumps(value["rows"], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
     if path.exists() and path.read_text(encoding="utf-8") != payload:
         raise RuntimeError(f"refusing to overwrite different frozen execution evidence: {path}")
@@ -42,7 +47,7 @@ def _args() -> argparse.Namespace:
 def main() -> int:
     args = _args()
     if args.mode == "prepare":
-        required = ("subject_manifest", "demand_manifest", "corpus_manifest", "rights_decisions", "pricing_snapshot", "authorization_text")
+        required = ("subject_manifest", "demand_manifest", "corpus_manifest", "rights_decisions", "pricing_snapshot", "authorization_text", "provider_project")
         missing = [name for name in required if getattr(args, name) is None]
         if missing:
             raise SystemExit("prepare requires: " + ", ".join("--" + item.replace("_", "-") for item in missing))
@@ -52,7 +57,7 @@ def main() -> int:
             corpus_manifest=args.corpus_manifest, rights_decisions=args.rights_decisions,
             pricing_snapshot=args.pricing_snapshot, runtime_root=args.runtime_root,
             catalog_path=args.catalog, authorization_catalog_path=args.authorization_catalog,
-            authorization_text_hash=authorization_hash,
+            authorization_text_hash=authorization_hash, provider_account_project=args.provider_project,
         )
         _write_exact(args.prepared, prepared)
         print(json.dumps({key: prepared[key] for key in ("cohort_id", "run_id", "mandate_id", "pricing_snapshot_sha256", "prepared_run_hash")}, sort_keys=True))

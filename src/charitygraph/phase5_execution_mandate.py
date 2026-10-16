@@ -165,6 +165,8 @@ def evaluate_execution_against_mandate(catalog: Any, mandate_id: str, request: M
         return MandateEvaluation(MandateDecision.HUMAN_AUTHORIZATION_REQUIRED, "mandate has not been explicitly activated", mandate_id=mandate_id)
     if request.get("provider") != "openai":
         return MandateEvaluation(MandateDecision.PROVIDER_NOT_ALLOWED, "provider is outside mandate", mandate_id=mandate_id)
+    if request.get("provider_account_project") != json.loads(mandate["scope_json"]).get("provider_account_project"):
+        return MandateEvaluation(MandateDecision.IDENTITY_DRIFT, "provider project is outside mandate", mandate_id=mandate_id)
     if request.get("delivery_mode") != "standard":
         return MandateEvaluation(MandateDecision.DELIVERY_NOT_ALLOWED, "delivery mode is outside mandate", mandate_id=mandate_id)
     if request.get("model") != "gpt-5.6-luna" or request.get("reasoning_effort") != "low":
