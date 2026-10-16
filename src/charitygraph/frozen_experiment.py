@@ -202,6 +202,7 @@ def prepare_frozen_experiment(*, subject_manifest: Path, demand_manifest: Path, 
 
 def execute_prepared_standard(*, prepared: Mapping[str, Any], catalog_path: Path, authorization_catalog_path: Path, runtime_root: Path, provider: Any, now: datetime | None = None) -> dict[str, Any]:
     """Execute only pre-pinned rows through the existing exactly-once transport."""
+    execution_time = _now(now)
     catalog = SQLiteCatalog(catalog_path, authorization_path=authorization_catalog_path).open()
     try:
         if getattr(provider, "provider_account_project", None) != prepared.get("provider_account_project"):
@@ -211,7 +212,7 @@ def execute_prepared_standard(*, prepared: Mapping[str, Any], catalog_path: Path
         # the coordinator will consume, without crossing a provider boundary.
         for row in prepared["rows"]:
             certify_standard_execution_row(catalog, row, mandate_id=prepared["mandate_id"])
-        return StandardCampaignCoordinator(catalog=catalog, provider=provider, runtime_root=runtime_root, max_concurrency=1, now=now, mandate_evaluator=lambda row: __import__("charitygraph.phase5_execution_mandate", fromlist=["evaluate_execution_against_mandate"]).evaluate_execution_against_mandate(catalog, prepared["mandate_id"], row, now=now)).run(list(prepared["rows"]))
+        return StandardCampaignCoordinator(catalog=catalog, provider=provider, runtime_root=runtime_root, max_concurrency=1, now=execution_time, mandate_evaluator=lambda row: __import__("charitygraph.phase5_execution_mandate", fromlist=["evaluate_execution_against_mandate"]).evaluate_execution_against_mandate(catalog, prepared["mandate_id"], row, now=execution_time)).run(list(prepared["rows"]))
     finally:
         catalog.close()
 
