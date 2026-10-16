@@ -46,18 +46,23 @@ def certify_standard_execution_row(catalog: Any, row: Mapping[str, Any], *, mand
         raise ValueError("execution certification delivery attempt already has provider crossing evidence")
     with catalog._authorization_connection() as conn:
         authorization = conn.execute(
-            "SELECT e.status mandate_status,e.per_request_hard_aud,r.status mandate_reservation_status,r.reserved_aud mandate_reserved_aud,"
-            "b.status budget_status,b.reserved_aud budget_reserved_aud "
+            "SELECT e.status mandate_status,e.per_request_hard_aud,r.status mandate_reservation_status,r.reserved_aud mandate_reserved_aud "
             "FROM execution_mandate_reservations r JOIN execution_mandates e ON e.mandate_id=r.mandate_id "
-            "JOIN budget_reservations b ON b.reservation_id=r.reservation_id "
             "WHERE r.mandate_id=? AND r.reservation_id=?",
             (mandate_id, row["mandate_reservation_id"]),
+        ).fetchone()
+    # Budget reservations live in the run catalogue, while mandate state may
+    # deliberately live in a separate durable authorization authority.
+    with catalog._connection() as conn:
+        budget = conn.execute(
+            "SELECT status,reserved_aud FROM budget_reservations WHERE reservation_id=?",
+            (row["mandate_reservation_id"],),
         ).fetchone()
     required = Decimal(str(row["hard_max_aud"]))
     if (authorization is None or authorization["mandate_status"] != "active"
             or authorization["mandate_reservation_status"] != "active"
-            or authorization["budget_status"] != "active"
-            or Decimal(authorization["mandate_reserved_aud"]) != Decimal(authorization["budget_reserved_aud"])
+            or budget is None or budget["status"] != "active"
+            or Decimal(authorization["mandate_reserved_aud"]) != Decimal(budget["reserved_aud"])
             or Decimal(authorization["mandate_reserved_aud"]) < required
             or required > Decimal(authorization["per_request_hard_aud"])):
         raise ValueError("execution certification authority or active corrected reservation is missing, insufficient, or over cap")

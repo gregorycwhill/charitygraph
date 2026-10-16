@@ -50,6 +50,7 @@ class SemanticExecutionPacket:
     supplied_concept_ids: tuple[str, ...]
     route: dict[str, Any]
     packet_hash: str
+    demand: dict[str, Any] | None = None
 
     def material(self) -> dict[str, Any]:
         return {
@@ -65,6 +66,7 @@ class SemanticExecutionPacket:
             "scopes": [{"scope_id": item.scope_id, "scope_kind": item.scope_kind, "label": item.label} for item in self.scopes],
             "supplied_concept_ids": list(self.supplied_concept_ids),
             "route": self.route,
+            "demand": self.demand,
         }
 
 
@@ -166,8 +168,11 @@ def materialize_execution_packet(*, task: dict[str, Any], corpus: dict[str, Any]
     if contract.task_profile == "direct_service_semantics" and any(scope.scope_id.startswith("srcrec:") for scope in scopes):
         raise ExecutionPacketUnready("source record IDs cannot be used as direct-service scope IDs")
     route = {"model": model, "reasoning_effort": reasoning_effort, "service_tier": service_tier}
-    material = {"logical_task_id": task["logical_task_id"], "subject_id": task["subject_id"], "semantic_contract_id": contract.contract_id, "semantic_contract_hash": contract.identity_hash(tuple(item.evidence_id for item in units)), "evidence_corpus_hash": task["evidence_corpus_hash"], "evidence_units": [item.__dict__ for item in units], "scopes": [item.__dict__ for item in scopes], "supplied_concept_ids": [], "route": route}
-    return SemanticExecutionPacket(task["logical_task_id"], task["subject_id"], contract.contract_id, contract.identity_hash(tuple(item.evidence_id for item in units)), task["evidence_corpus_hash"], units, scopes, (), route, sha256_json(material))
+    demand = task.get("demand")
+    if demand is not None and not isinstance(demand, dict):
+        raise ExecutionPacketUnready("task demand binding must be an object")
+    material = {"logical_task_id": task["logical_task_id"], "subject_id": task["subject_id"], "semantic_contract_id": contract.contract_id, "semantic_contract_hash": contract.identity_hash(tuple(item.evidence_id for item in units)), "evidence_corpus_hash": task["evidence_corpus_hash"], "evidence_units": [item.__dict__ for item in units], "scopes": [item.__dict__ for item in scopes], "supplied_concept_ids": [], "route": route, "demand": demand}
+    return SemanticExecutionPacket(task["logical_task_id"], task["subject_id"], contract.contract_id, contract.identity_hash(tuple(item.evidence_id for item in units)), task["evidence_corpus_hash"], units, scopes, (), route, sha256_json(material), demand)
 
 
 def render_packet_prompt(packet: SemanticExecutionPacket, contract: SemanticContract) -> str:
@@ -178,6 +183,15 @@ def render_packet_prompt(packet: SemanticExecutionPacket, contract: SemanticCont
         scope_text = "\n".join(f"{scope.scope_id} | {scope.scope_kind} | {scope.label}" for scope in packet.scopes)
         evidence_text = "\n\n".join(f"[{item.locator_ids[0]}]\n{item.content}" for item in packet.evidence_units)
         return contract.prompt_template.replace("{subject_id}", packet.subject_id).replace("{scope_text}", scope_text).replace("{evidence}", evidence_text)
+    if contract.task_profile == "evidence_selection":
+        demand = getattr(packet, "demand", None)
+        if not isinstance(demand, dict) or not isinstance(demand.get("demand_id"), str) or not isinstance(demand.get("semantic_signature"), str):
+            raise ExecutionPacketUnready("frozen evidence assessment requires a pinned demand ID and signature")
+        evidence_text = "\n\n".join(f"[{item.evidence_id}]\n{item.content}" for item in packet.evidence_units)
+        return (contract.prompt_template.replace("{subject_id}", packet.subject_id)
+                .replace("{demand_id}", demand["demand_id"])
+                .replace("{semantic_signature}", demand["semantic_signature"])
+                .replace("{evidence}", evidence_text))
     raise ExecutionPacketUnready(f"no executable packet renderer for {contract.task_profile}")
 
 

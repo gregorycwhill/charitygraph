@@ -10,9 +10,10 @@ import hashlib
 import json
 from collections.abc import Callable
 from datetime import datetime, timezone
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urldefrag, urljoin, urlsplit, urlunsplit
 
 from .contracts import AcquisitionReceipt
 from .contracts.ids import deterministic_id
@@ -29,7 +30,8 @@ from .phase5_baseline_corpus import (
 from .runtime import SQLiteCatalog
 
 
-CAMPAIGN_VERSION = "phase5-known-url-official-website-acquisition-v1"
+CAMPAIGN_VERSION = "phase5-known-url-official-website-acquisition-v2"
+MAX_LOCATOR_DERIVED_ADJACENCIES = 8
 DISCOVERY_REQUIRED_ABNS = frozenset({
     "30157737329", "60964279191", "47613674461", "94178965125",
     "84114483091", "22627812672", "16641057338", "85182077563",
@@ -44,6 +46,22 @@ class AcquisitionCampaignError(RuntimeError):
     """A campaign invariant failed before an external operation."""
 
 
+class _DirectHrefCollector(HTMLParser):
+    """Collect direct document links without interpreting their language."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.hrefs: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag != "a":
+            return
+        for name, value in attrs:
+            if name.casefold() == "href" and value:
+                self.hrefs.append(value)
+                return
+
+
 def _json_hash(value: Any) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
 
@@ -56,6 +74,38 @@ def _url(value: str, *, allow_historical_userinfo: bool = False) -> str:
     if (parsed.username is not None or parsed.password is not None) and not allow_historical_userinfo:
         raise AcquisitionCampaignError("governed official URL contains URL user-info and cannot cross the network boundary")
     return normalized
+
+
+def locator_derived_adjacencies(*, parent_url: str, body: bytes, allowed_hosts: set[str], maximum: int = MAX_LOCATOR_DERIVED_ADJACENCIES) -> list[str]:
+    """Return a small, deterministic, same-site direct-link set.
+
+    This deliberately uses only document structure and URI mechanics.  Link
+    wording, URL wording, frequency and relevance are never inspected.  A
+    child inherits the already-verified governed-site binding only after its
+    parent capture succeeded and it remains within the governed host set.
+    """
+    if maximum < 0 or maximum > MAX_LOCATOR_DERIVED_ADJACENCIES:
+        raise AcquisitionCampaignError("locator-derived adjacency maximum exceeds the governed bound")
+    collector = _DirectHrefCollector()
+    collector.feed(body.decode("utf-8", errors="replace"))
+    candidates: list[str] = []
+    seen = {parent_url}
+    for href in collector.hrefs:
+        candidate, _fragment = urldefrag(urljoin(parent_url, href))
+        parsed = urlsplit(candidate)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            continue
+        if parsed.username is not None or parsed.password is not None:
+            continue
+        if parsed.hostname.casefold() not in allowed_hosts:
+            continue
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        candidates.append(candidate)
+        if len(candidates) == maximum:
+            break
+    return candidates
 
 
 def _profiles(path: Path) -> dict[str, Any]:
@@ -107,6 +157,9 @@ def build_campaign(*, profiles_path: Path, identity_map_path: Path, inventory_pa
             "permitted_redirect_hosts": hosts, "redirect_policy": "same_governed_host_or_www_counterpart_only",
             "timeout_seconds": 45, "max_response_bytes": 30_000_000,
             "max_initial_requests": 1, "retry_policy": "no_automatic_retry",
+            "max_locator_derived_adjacencies": MAX_LOCATOR_DERIVED_ADJACENCIES,
+            "adjacency_policy": "direct_html_anchor_same_governed_host_document_order",
+            "adjacency_identity_policy": "inherits_verified_governed_site_binding_with_parent_capture_lineage",
             "retention_strategy": "content_addressed_raw_bytes_then_receipt_then_source_record",
             "governed_url_evidence": "acnc_profile.data.Website",
             "current_source_state": state, "current_source_reason": str(item.get("reason") or ""),
@@ -123,8 +176,8 @@ def build_campaign(*, profiles_path: Path, identity_map_path: Path, inventory_pa
         raise AcquisitionCampaignError("known-URL campaign is not exactly 80 unique rows/attempt identities")
     immutable = {
         "campaign_version": CAMPAIGN_VERSION,
-        "campaign_id": "acqcampaign:phase5-top100-known-url-official-website-v1",
-        "source_policy": {"method": "GET", "no_post": True, "no_forms": True, "no_authentication": True, "no_crawl": True, "no_sitemap": True, "no_url_discovery": True, "max_initial_requests_per_subject": 1, "timeout_seconds": 45, "max_response_bytes": 30_000_000, "retry_policy": "no_automatic_retry"},
+        "campaign_id": "acqcampaign:phase5-top100-known-url-official-website-v2",
+        "source_policy": {"method": "GET", "no_post": True, "no_forms": True, "no_authentication": True, "no_crawl": True, "no_sitemap": True, "no_url_discovery": True, "max_initial_requests_per_subject": 1, "max_locator_derived_adjacencies_per_subject": MAX_LOCATOR_DERIVED_ADJACENCIES, "timeout_seconds": 45, "max_response_bytes": 30_000_000, "retry_policy": "no_automatic_retry"},
         "rows": rows,
         "excluded_subjects": exclusions,
         "preparation_inputs": {"profiles_sha256": hashlib.sha256(profiles_path.read_bytes()).hexdigest(), "identity_map_sha256": hashlib.sha256(identity_map_path.read_bytes()).hexdigest(), "source_inventory_sha256": hashlib.sha256(inventory_path.read_bytes()).hexdigest()},
@@ -146,6 +199,10 @@ def validate_campaign(manifest: dict[str, Any], *, historical_attempt_ids: set[s
     for row in rows:
         if row.get("http_method") != "GET" or row.get("max_initial_requests") != 1 or row.get("retry_policy") != "no_automatic_retry":
             raise AcquisitionCampaignError("campaign row expands the bounded acquisition policy")
+        if row.get("max_locator_derived_adjacencies") != MAX_LOCATOR_DERIVED_ADJACENCIES:
+            raise AcquisitionCampaignError("campaign row expands the locator-derived adjacency bound")
+        if row.get("adjacency_policy") != "direct_html_anchor_same_governed_host_document_order":
+            raise AcquisitionCampaignError("campaign row has an ungoverned adjacency policy")
         if row.get("abn") in DISCOVERY_REQUIRED_ABNS or row.get("abn") == RANK_67_ABN:
             raise AcquisitionCampaignError("campaign contains an excluded ABN")
         normalized = _url(
@@ -235,7 +292,22 @@ def execute_row(*, row: dict[str, Any], ledger: NetworkLedger, catalog: SQLiteCa
     fetched = fetched or ledger.fetch(**request_arguments(row))
     catalog.register_source_definition(source_definition("official_website", timestamp))
     if fetched["ok"]:
-        return {"attempt_id": row["acquisition_attempt_id"], "outcome": "acquired_successfully", "lineage": persist_available(catalog=catalog, store=store, family="official_website", requested_url=row["normalized_initial_url"], resolved_url=fetched["resolved_url"], body=fetched["body"], media_type=fetched["media_type"], role="official_homepage", source_version=None, origin=MaterialOrigin.NEWLY_ACQUIRED, now=timestamp)}
+        lineage = persist_available(catalog=catalog, store=store, family="official_website", requested_url=row["normalized_initial_url"], resolved_url=fetched["resolved_url"], body=fetched["body"], media_type=fetched["media_type"], role="official_homepage", source_version=None, origin=MaterialOrigin.NEWLY_ACQUIRED, now=timestamp)
+        adjacency_results: list[dict[str, Any]] = []
+        if fetched["media_type"] in {"text/html", "application/xhtml+xml"}:
+            for candidate in locator_derived_adjacencies(parent_url=fetched["resolved_url"], body=fetched["body"], allowed_hosts=set(row["permitted_redirect_hosts"]), maximum=row["max_locator_derived_adjacencies"]):
+                try:
+                    adjacent = ledger.fetch(source_family="official_website", url=candidate, allowed_hosts=set(row["permitted_redirect_hosts"]), timeout_seconds=row["timeout_seconds"], max_bytes=row["max_response_bytes"])
+                except NetworkPolicyError:
+                    event = ledger.events[-1] if ledger.events else {"outcome": "blocked", "error_class": "NetworkPolicyError"}
+                    adjacency_results.append({"requested_url": candidate, "outcome": _failure_outcome(event), "event": event, "parent_source_record_id": lineage["source_record_id"], "identity_basis": row["adjacency_identity_policy"]})
+                    continue
+                if adjacent["ok"]:
+                    child_lineage = persist_available(catalog=catalog, store=store, family="official_website", requested_url=candidate, resolved_url=adjacent["resolved_url"], body=adjacent["body"], media_type=adjacent["media_type"], role="official_locator_adjacency", source_version=None, origin=MaterialOrigin.NEWLY_ACQUIRED, now=timestamp)
+                    adjacency_results.append({"requested_url": candidate, "outcome": "acquired_successfully", "lineage": child_lineage, "parent_source_record_id": lineage["source_record_id"], "identity_basis": row["adjacency_identity_policy"]})
+                else:
+                    adjacency_results.append({"requested_url": candidate, "outcome": _failure_outcome(adjacent["event"]), "event": adjacent["event"], "parent_source_record_id": lineage["source_record_id"], "identity_basis": row["adjacency_identity_policy"]})
+        return {"attempt_id": row["acquisition_attempt_id"], "outcome": "acquired_successfully", "lineage": lineage, "locator_derived_adjacencies": adjacency_results}
     event = fetched["event"]
     outcome = _failure_outcome(event)
     receipt = AcquisitionReceipt(record_id=deterministic_id("acq:", {"attempt_id": row["acquisition_attempt_id"], "outcome": outcome}), created_at=timestamp, producer={"kind": "code", "producer_id": CAMPAIGN_VERSION, "version": "1"}, source_definition_id=source_definition("official_website", timestamp).record_id, requested_locator=_receipt_locator(row["normalized_initial_url"]), outcome="failed" if outcome != "http_terminal_failure" else "unavailable", response_status=event.get("response_status"), tool_id="urllib", tool_version="stdlib", error_class=str(event.get("error_class") or outcome))
@@ -310,4 +382,4 @@ def execute_campaign(*, manifest: dict[str, Any], runtime_root: Path, catalog_pa
     return {"manifest_sha256": manifest["manifest_sha256"], "state_path": str(state_path), "attempts": attempts, "network_events": len(ledger.events)}
 
 
-__all__ = ["AcquisitionCampaignError", "CAMPAIGN_VERSION", "DISCOVERY_REQUIRED_ABNS", "build_campaign", "execute_campaign", "execute_row", "rehearse_network_edge", "request_arguments", "validate_campaign"]
+__all__ = ["AcquisitionCampaignError", "CAMPAIGN_VERSION", "DISCOVERY_REQUIRED_ABNS", "MAX_LOCATOR_DERIVED_ADJACENCIES", "build_campaign", "execute_campaign", "execute_row", "locator_derived_adjacencies", "rehearse_network_edge", "request_arguments", "validate_campaign"]

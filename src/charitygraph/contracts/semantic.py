@@ -152,6 +152,55 @@ class TaxonomyAssignmentOutput(StrictModel):
         return self
 
 
+class OperationalActivitySelection(StrictModel):
+    """A proposed assignment from the governed native activity vocabulary.
+
+    Native activity identifiers deliberately do not share the external-scheme
+    ``concept:`` namespace.  Treating them as taxonomy selections made a
+    valid bounded activity proposal impossible to validate.
+    """
+
+    activity_id: str
+    evidence: tuple[SemanticEvidence, ...]
+    rationale: str
+    confidence: Literal["low", "medium", "high"] | None = None
+
+    @field_validator("activity_id")
+    @classmethod
+    def _activity(cls, value: str) -> str:
+        value = require_nonblank(value, "activity_id")
+        if not value.startswith("activity."):
+            raise ValueError("operational activity selections require activity.* IDs")
+        return value
+
+    @field_validator("evidence")
+    @classmethod
+    def _evidence(cls, value: tuple[SemanticEvidence, ...]) -> tuple[SemanticEvidence, ...]:
+        if not value:
+            raise ValueError("operational activity selections require evidence")
+        return value
+
+    @field_validator("rationale")
+    @classmethod
+    def _rationale(cls, value: str) -> str:
+        return require_nonblank(value)
+
+
+class OperationalActivityAssignmentOutput(StrictModel):
+    """Evidence-bound proposed activity assignments; never a source assertion."""
+
+    conclusion: SemanticConclusion
+    selections: tuple[OperationalActivitySelection, ...] = ()
+
+    @model_validator(mode="after")
+    def _selection_state(self) -> "OperationalActivityAssignmentOutput":
+        if self.conclusion.outcome in {"resolved", "supported"} and not self.selections:
+            raise ValueError("resolved operational activity output requires selections")
+        if len({selection.activity_id for selection in self.selections}) != len(self.selections):
+            raise ValueError("operational activity selections must be unique")
+        return self
+
+
 class SDGAlignmentOutput(StrictModel):
     conclusion: SemanticConclusion
     sdg_selections: tuple[TaxonomySelection, ...] = ()
@@ -190,7 +239,7 @@ SEMANTIC_OUTPUT_MODELS = {
     "program_decomposition": ProgramCandidateOutput,
     "classie_subject_assignment": TaxonomyAssignmentOutput,
     "classie_population_assignment": TaxonomyAssignmentOutput,
-    "operational_activity_assignment": TaxonomyAssignmentOutput,
+    "operational_activity_assignment": OperationalActivityAssignmentOutput,
     "sdg_alignment": SDGAlignmentOutput,
     "evidence_selection": EvidenceSelectionOutput,
     "direct_service_semantics": DirectServiceSemanticOutput,

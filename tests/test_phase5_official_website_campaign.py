@@ -10,6 +10,7 @@ from charitygraph.phase5_official_website_campaign import (
     _failure_outcome,
     build_campaign,
     execute_row,
+    locator_derived_adjacencies,
     rehearse_network_edge,
     validate_campaign,
 )
@@ -121,6 +122,51 @@ def test_successful_fixture_retains_exact_bytes_and_lineage_once(tmp_path) -> No
         assert store.read(result["lineage"]["artifact_id"]) == body
         assert catalog.get_acquisition_receipt(result["lineage"]["acquisition_receipt_id"]) is not None
         assert catalog.get_source_record(result["lineage"]["source_record_id"]) is not None
+    finally:
+        catalog.close()
+
+
+@pytest.mark.parametrize("case_id", (
+    "smith_family_learning_for_life_sdg",
+    "mission_australia_service_decomposition",
+    "world_vision_sdg",
+))
+def test_direct_same_site_html_adjacencies_are_bounded_structural_and_durably_hashed(tmp_path, case_id) -> None:
+    profiles, identities, inventory = _inputs(tmp_path)
+    row = build_campaign(profiles_path=profiles, identity_map_path=identities, inventory_path=inventory)["rows"][0]
+    root = row["normalized_initial_url"]
+    # The candidate selection deliberately ignores link wording.  It retains
+    # direct document order, excludes cross-site/non-HTTP links and follows a
+    # fixed maximum only after the governed locator capture succeeds.
+    html = f'''<html><body>
+      <a href="/{case_id}/first">unrelated wording</a><a href="https://elsewhere.invalid/no">outside</a>
+      <a href="/{case_id}/second#section">more wording</a><a href="mailto:info@example.org">mail</a>
+      <a href="/{case_id}/first">duplicate</a><a href="/{case_id}/third">another</a>
+    </body></html>'''.encode()
+    expected = [f"https://www.example0.org/{case_id}/{suffix}" for suffix in ("first", "second", "third")]
+    assert locator_derived_adjacencies(parent_url=root, body=html, allowed_hosts=set(row["permitted_redirect_hosts"])) == expected
+
+    responses = {root: html, **{url: f"<html>{index}</html>".encode() for index, url in enumerate(expected)}}
+
+    class Ledger:
+        def __init__(self): self.calls = []
+        def fetch(self, **kwargs):
+            self.calls.append(kwargs)
+            url = kwargs["url"]
+            return {"ok": True, "body": responses[url], "resolved_url": url, "media_type": "text/html", "event": {"outcome": "available"}}
+
+    ledger = Ledger()
+    catalog = SQLiteCatalog(tmp_path / "catalog.sqlite3").open(initialize=True)
+    try:
+        store = ContentAddressedArtifactStore(tmp_path / "runtime", allowed_roots=(tmp_path,))
+        result = execute_row(row=row, ledger=ledger, catalog=catalog, store=store, fetched={"ok": True, "body": html, "resolved_url": root, "media_type": "text/html", "event": {"outcome": "available"}})
+        children = result["locator_derived_adjacencies"]
+        assert [item["requested_url"] for item in children] == expected
+        assert [call["url"] for call in ledger.calls] == expected
+        assert all(item["lineage"]["artifact_id"].startswith("srcblob:") for item in children)
+        assert all(store.exists(item["lineage"]["artifact_id"]) for item in children)
+        assert all(item["parent_source_record_id"] == result["lineage"]["source_record_id"] for item in children)
+        assert all(item["identity_basis"] == row["adjacency_identity_policy"] for item in children)
     finally:
         catalog.close()
 

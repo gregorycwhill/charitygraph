@@ -131,10 +131,10 @@ def _task(profile: str, family: str, version: str = "1") -> dict:
     return {"logical_task_id": "semtask:test", "task_profile": profile, "task_profile_version": version, "claim_family_id": family, "prompt_policy_version": contract.planner_prompt_policy_version, "schema_version": contract.planner_schema_version, "evidence_corpus_hash": "e" * 64}
 
 
-def test_registry_covers_all_active_families_and_only_two_are_production_bound() -> None:
-    assert len(REGISTRY) == 14
-    assert sum(contract.executable for contract in REGISTRY) == 2
-    assert {contract.task_profile for contract in REGISTRY if contract.executable} == {"program_service_discovery", "direct_service_semantics"}
+def test_registry_covers_active_families_and_the_private_frozen_experiment_seam() -> None:
+    assert len(REGISTRY) == 15
+    assert sum(contract.executable for contract in REGISTRY) == 3
+    assert {contract.task_profile for contract in REGISTRY if contract.executable} == {"program_service_discovery", "direct_service_semantics", "evidence_selection"}
     direct = [contract for contract in REGISTRY if contract.task_profile == "direct_service_semantics"]
     assert {contract.task_profile_version for contract in direct} == {"1", "2"}
     assert next(contract for contract in direct if contract.task_profile_version == "2").authority_state == "candidate_for_review"

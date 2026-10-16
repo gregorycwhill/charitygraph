@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .contracts.discovery import discovery_schema_v2, discovery_schema_v2_corrected
+from .contracts.semantic import EvidenceSelectionOutput
 from .native_discovery_executor import DISCOVERY_PROMPT_V2, DISCOVERY_PROMPT_V2_CORRECTED, PROMPT_TEMPLATE_VERSION_V2, PROMPT_TEMPLATE_VERSION_V2_CORRECTED
 
 
@@ -279,6 +280,32 @@ def _production_discovery() -> SemanticContract:
     )
 
 
+def _production_frozen_evidence_assessment() -> SemanticContract:
+    """Reusable private experiment lens over supplied governed evidence.
+
+    This is deliberately an evidence-selection/conclusion task, not a new
+    canonical proposition type.  It is suitable for frozen evaluation cohorts
+    whose demand text is already pinned in their manifest.
+    """
+    from .strict_schema import strictify_schema
+    return SemanticContract(
+        contract_id="urn:charitygraph:builder:semantic-contract:evidence-selection-v1", contract_version="1.0",
+        task_profile="evidence_selection", task_profile_version="1", claim_families=("evidence-selection-v1",),
+        prompt_template="""You are performing a bounded CharityGraph evidence assessment. Return only the strict JSON object matching the supplied schema. Use ONLY the supplied evidence. Do not use outside knowledge, source discovery, or unstated assumptions. Preserve insufficient evidence, ambiguity, and not-applicable states. Cite only supplied evidence IDs. This response is an unpromoted private experiment result, not a canonical observation.\n\nTARGET SUBJECT: {subject_id}\nFROZEN DEMAND ID: {demand_id}\nFROZEN DEMAND SIGNATURE: {semantic_signature}\n\nPACKET EVIDENCE:\n{evidence}""",
+        prompt_id="evidence-selection-frozen-experiment:prompt:v1",
+        output_schema=strictify_schema(EvidenceSelectionOutput.model_json_schema()),
+        schema_id="urn:charitygraph:builder:schema:evidence-selection-output:1.0", schema_version="1.0",
+        evidence_policy={"mode": "task_ordered_frozen_evidence", "outside_knowledge": False, "allowed_reference_field": "selected_evidence_ids"},
+        grounding_requirements=("all selected evidence IDs are supplied", "missingness and ambiguity remain explicit"),
+        adapter_id="charitygraph.frozen_experiment.validate_evidence_selection", adapter_version="1.0",
+        route_class="lower_cost_constrained_semantic", reasoning_policy="low", authority_state="production_bound",
+        publication_boundary="private frozen-experiment result only; no canonical promotion or release",
+        planner_prompt_policy_version="evidence-selection-v1:prompt-policy:v1",
+        planner_schema_version="urn:charitygraph:frozen-experiment:evidence-selection:v1",
+        provider_schema_name="evidence_selection_v1", source_refs=("src/charitygraph/contracts/semantic.py",),
+    )
+
+
 def direct_service_representation_schema_v1_2() -> dict[str, Any]:
     """Build the provider-safe V1.2 wire schema.
 
@@ -349,7 +376,7 @@ HISTORICAL_DISCOVERY_V2_CONTRACT = _historical_production_discovery()
 
 def build_registry() -> tuple[SemanticContract, ...]:
     contracts = [
-        _production_discovery(), _production_direct_service(), _production_direct_service_v1_2(),
+        _production_discovery(), _production_direct_service(), _production_direct_service_v1_2(), _production_frozen_evidence_assessment(),
         _draft("taxonomy-assignment-v1", "taxonomy_assignment", "taxonomy assignment", "lower_cost_constrained_semantic", "low", "src/charitygraph/contracts/semantic.py"),
         _draft("typed-relationship-role-v1", "relationship_role_extraction", "typed relationship-role extraction", "stronger_semantic_judgement", "high", "src/charitygraph/contracts/knowledge.py"),
         _draft("fundraising-practice-proposed-v1", "fundraising-practice-proposed-v1", "source-faithful fundraising practice", "stronger_semantic_judgement", "high", "src/charitygraph/phase5_preflight.py"),
@@ -409,6 +436,9 @@ def resolve_result_adapter(contract: SemanticContract) -> Callable[..., Any]:
     if contract.adapter_id == "charitygraph.contracts.direct_service_wire.v12_wire_to_domain":
         from .contracts.direct_service_wire import v12_wire_to_domain
         return v12_wire_to_domain
+    if contract.adapter_id == "charitygraph.frozen_experiment.validate_evidence_selection":
+        from .frozen_experiment import validate_evidence_selection
+        return validate_evidence_selection
     raise LookupError(f"semantic result adapter is not registered: {contract.adapter_id}")
 
 

@@ -45,7 +45,8 @@ from .conduct_compliance import (
     review_flags as conduct_review_flags,
 )
 from .semantic import (
-    EvidenceMeaning, EvidenceSelectionOutput, ProgramCandidateOutput, SDGAlignmentOutput,
+    EvidenceMeaning, EvidenceSelectionOutput, OperationalActivityAssignmentOutput,
+    OperationalActivitySelection, ProgramCandidateOutput, SDGAlignmentOutput,
     SemanticConclusion, SemanticEvidence, TaxonomyAssignmentOutput, TaxonomySelection,
 )
 from .taxonomy import (
@@ -74,7 +75,7 @@ __all__ = [
     "validate_promotion_chain", "validate_task_run_tasks", "validate_typed_id", "verify_record_hash",
     "ConceptMapping", "MappingPredicate", "ProgramCandidate", "ProgramCandidateOutput",
     "EvidenceSelectionOutput", "DiscoveryDisposition", "OperationalStatus", "DISCOVERY_OUTPUT_SCHEMA", "DISCOVERY_OUTPUT_SCHEMA_V2", "DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED", "ProgramServiceDiscoveryOutput", "ProgramServiceDiscoveryOutputV2", "ProgramServiceProposal", "ProgramServiceProposalV2", "discovery_schema", "discovery_schema_hash", "discovery_schema_v2", "discovery_schema_v2_hash", "discovery_schema_v2_corrected", "discovery_schema_v2_corrected_hash", "discovery_output_schema_ref", "discovery_output_schema_ref_v2", "discovery_output_schema_ref_v2_corrected", "SDGAlignmentOutput", "SchemeDisposition", "SemanticConclusion",
-    "EvidenceMeaning", "SemanticEvidence", "TaxonomyAssignment", "TaxonomyAssignmentOutput", "TaxonomyConcept",
+    "EvidenceMeaning", "SemanticEvidence", "OperationalActivityAssignmentOutput", "OperationalActivitySelection", "TaxonomyAssignment", "TaxonomyAssignmentOutput", "TaxonomyConcept",
     "TaxonomyScheme", "TaxonomySelection", "TaxonomyVersion",
     "CoverageState", "DirectServiceEvidenceRef", "DirectServiceProposition",
     "DirectServiceSemanticOutput", "DirectServiceSection", "DirectServicePropositionType",
