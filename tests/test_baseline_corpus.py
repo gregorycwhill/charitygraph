@@ -13,6 +13,7 @@ from charitygraph.baseline_corpus import (
     MaterialOrigin,
     RepresentationReadiness,
     build_corpus_manifest,
+    compile_provider_evidence_corpus,
     enumerate_site_candidates,
     load_v05_cards,
     normalise_host,
@@ -114,6 +115,19 @@ def test_official_website_bound_material_is_not_empty():
     manifest = build_corpus_manifest(subject_id="subject:website", profile_version="baseline-v1", members=[member(source_family="official_website", source_record_ids=("srcrec:homepage",), artifact_ids=("srcblob:" + "h" * 64,))])
     assert len(manifest.material_members) == 1
     assert manifest.material_members[0].source_family == "official_website"
+
+
+def test_provider_corpus_admission_is_family_neutral_and_preserves_representation_gaps():
+    report = member(source_family="annual_report", source_record_ids=("srcrec:report",), artifact_ids=("srcblob:" + "r" * 64,), representation_readiness=RepresentationReadiness.PARTIAL, representation_artifact_ids=("repr:" + "r" * 64,), representation_gaps=("page-2",))
+    abr = member(source_family="ato_abr_dgr", source_record_ids=("srcrec:abr",), artifact_ids=("srcblob:" + "d" * 64,))
+    website = member(source_family="official_website", source_record_ids=("srcrec:website",), artifact_ids=("srcblob:" + "w" * 64,))
+    withheld = member(source_family="annual_report", source_record_ids=("srcrec:unready",), artifact_ids=("srcblob:" + "u" * 64,), representation_readiness=RepresentationReadiness.NOT_ATTEMPTED)
+    manifest = build_corpus_manifest(subject_id="subject:admission", profile_version="baseline-v1", members=[report, abr, website, withheld])
+    compiled = compile_provider_evidence_corpus([manifest])
+    assert {item["source_family"] for item in compiled["corpora"][0]["material_members"]} == {"annual_report", "ato_abr_dgr", "official_website"}
+    states = {item["source_family"] + ":" + str(item["member_ordinal"]): item for item in compiled["admission_ledger"]}
+    assert states["annual_report:0"]["representation_gaps"] == ["page-2"]
+    assert states["annual_report:3"]["disposition"] == "representation_not_ready"
 
 
 def test_filing_bundle_selects_ais_and_same_period_attachments_by_metadata():

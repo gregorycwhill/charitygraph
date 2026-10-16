@@ -288,21 +288,51 @@ def _production_frozen_evidence_assessment() -> SemanticContract:
     whose demand text is already pinned in their manifest.
     """
     from .strict_schema import strictify_schema
+
+    def schema_for_evidence(evidence_ids: tuple[str, ...]) -> dict[str, Any]:
+        """Bind every wire evidence reference to the exact frozen packet IDs."""
+        if evidence_ids and len(set(evidence_ids)) != len(evidence_ids):
+            raise ValueError("evidence-selection schema requires unique packet evidence identities")
+        schema = strictify_schema(EvidenceSelectionOutput.model_json_schema())
+        if not evidence_ids:
+            return schema
+        allowed = list(evidence_ids)
+
+        def constrain(value: Any) -> None:
+            if isinstance(value, dict):
+                properties = value.get("properties")
+                if isinstance(properties, dict):
+                    for name, child in properties.items():
+                        if name == "evidence_id":
+                            child.clear(); child.update({"type": "string", "enum": allowed})
+                        elif name in {"selected_evidence_ids", "rejected_evidence_ids", "evidence_ids"} and isinstance(child, dict):
+                            items = child.get("items")
+                            if isinstance(items, dict):
+                                items.clear(); items.update({"type": "string", "enum": allowed})
+                for child in value.values():
+                    constrain(child)
+            elif isinstance(value, list):
+                for item in value:
+                    constrain(item)
+
+        constrain(schema)
+        return schema
+
     return SemanticContract(
-        contract_id="urn:charitygraph:builder:semantic-contract:evidence-selection-v1", contract_version="1.0",
-        task_profile="evidence_selection", task_profile_version="1", claim_families=("evidence-selection-v1",),
-        prompt_template="""You are performing a bounded CharityGraph evidence assessment. Return only the strict JSON object matching the supplied schema. Use ONLY the supplied evidence. Do not use outside knowledge, source discovery, or unstated assumptions. Preserve insufficient evidence, ambiguity, and not-applicable states. Cite only supplied evidence IDs. This response is an unpromoted private experiment result, not a canonical observation.\n\nTARGET SUBJECT: {subject_id}\nFROZEN DEMAND ID: {demand_id}\nFROZEN DEMAND SIGNATURE: {semantic_signature}\n\nPACKET EVIDENCE:\n{evidence}""",
-        prompt_id="evidence-selection-frozen-experiment:prompt:v1",
-        output_schema=strictify_schema(EvidenceSelectionOutput.model_json_schema()),
-        schema_id="urn:charitygraph:builder:schema:evidence-selection-output:1.0", schema_version="1.0",
+        contract_id="urn:charitygraph:builder:semantic-contract:evidence-selection-v1", contract_version="1.1",
+        task_profile="evidence_selection", task_profile_version="2", claim_families=("evidence-selection-v1",),
+        prompt_template="""You are performing a bounded CharityGraph evidence assessment. Return only the strict JSON object matching the supplied schema. Use ONLY the supplied evidence. Do not use outside knowledge, source discovery, or unstated assumptions. Preserve insufficient evidence, ambiguity, and not-applicable states. Cite only supplied evidence IDs. Account for every proposition in the frozen demand signature: mark it supported only when its supplied evidence satisfies the requested subject/scope and time; otherwise retain an unresolved or not-established state and qualification. Do not turn an allegation into a finding. This response is an unpromoted private experiment result, not a canonical observation.\n\nTARGET SUBJECT: {subject_id}\nFROZEN DEMAND ID: {demand_id}\nFROZEN DEMAND SIGNATURE: {semantic_signature}\n\nPACKET EVIDENCE:\n{evidence}""",
+        prompt_id="evidence-selection-frozen-experiment:prompt:v1.1-scope",
+        output_schema=None,
+        schema_id="urn:charitygraph:builder:schema:evidence-selection-output:1.1", schema_version="1.1-demand-scope",
         evidence_policy={"mode": "task_ordered_frozen_evidence", "outside_knowledge": False, "allowed_reference_field": "selected_evidence_ids"},
-        grounding_requirements=("all selected evidence IDs are supplied", "missingness and ambiguity remain explicit"),
-        adapter_id="charitygraph.frozen_experiment.validate_evidence_selection", adapter_version="1.0",
+        grounding_requirements=("all selected evidence IDs are supplied", "missingness and ambiguity remain explicit", "every frozen demand proposition has explicit evidence, scope, and temporal status", "positive conclusions require every material proposition to be supported at the supplied scope and time"),
+        adapter_id="charitygraph.frozen_experiment.validate_evidence_selection", adapter_version="1.1",
         route_class="lower_cost_constrained_semantic", reasoning_policy="low", authority_state="production_bound",
         publication_boundary="private frozen-experiment result only; no canonical promotion or release",
-        planner_prompt_policy_version="evidence-selection-v1:prompt-policy:v1",
-        planner_schema_version="urn:charitygraph:frozen-experiment:evidence-selection:v1",
-        provider_schema_name="evidence_selection_v1", source_refs=("src/charitygraph/contracts/semantic.py",),
+        planner_prompt_policy_version="evidence-selection-v1:prompt-policy:v2-demand-scope",
+        planner_schema_version="urn:charitygraph:frozen-experiment:evidence-selection:v2",
+        provider_schema_name="evidence_selection_v1", schema_factory_id="charitygraph.phase5_semantic_contracts.evidence_selection_schema_v1_1", schema_factory=schema_for_evidence, source_refs=("src/charitygraph/contracts/semantic.py",),
     )
 
 

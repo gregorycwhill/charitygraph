@@ -182,7 +182,12 @@ def evaluate_execution_against_mandate(catalog: Any, mandate_id: str, request: M
     contract_match = False
     for raw in mandate.get("contracts", []):
         item = json.loads(raw["contract_json"]) if isinstance(raw, dict) and "contract_json" in raw else raw
-        if all(request.get(key) == item.get(key) for key in ("contract_id", "contract_version", "task_profile", "task_profile_version", "prompt_sha256", "schema_id", "schema_version", "provider_schema_name", "contract_identity_hash")):
+        fixed_identity = ("contract_id", "contract_version", "task_profile", "task_profile_version", "prompt_sha256", "schema_id", "schema_version", "provider_schema_name")
+        exact_contract = request.get("contract_identity_hash") == item.get("contract_identity_hash")
+        governed_factory = (item.get("schema_hash_rule") == "packet-bound governed schema factory"
+                            and bool(item.get("schema_factory_id"))
+                            and request.get("schema_factory_id") == item.get("schema_factory_id"))
+        if all(request.get(key) == item.get(key) for key in fixed_identity) and (exact_contract or governed_factory):
             contract_match = True
             break
     if not contract_match:

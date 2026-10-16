@@ -101,9 +101,20 @@ def _decode_retained(content: bytes, artifact_id: str) -> str:
     if content.startswith(b"%PDF"):
         raise ExecutionPacketUnready(f"PDF evidence has no retained deterministic text representation: {artifact_id}")
     try:
-        return content.decode("utf-8")
+        decoded = content.decode("utf-8")
     except UnicodeDecodeError as exc:
         raise ExecutionPacketUnready(f"retained evidence is not deterministically text-readable: {artifact_id}") from exc
+    try:
+        representation = json.loads(decoded)
+    except json.JSONDecodeError:
+        return decoded
+    pages = representation.get("pages") if isinstance(representation, dict) else None
+    if not isinstance(pages, list):
+        return decoded
+    text = [str(page["text"]) for page in pages if isinstance(page, dict) and isinstance(page.get("text"), str)]
+    if not text:
+        raise ExecutionPacketUnready(f"retained document representation has no deterministic text: {artifact_id}")
+    return "\n\n".join(text)
 
 
 def _materialize_units(corpus: dict[str, Any], store: ContentAddressedArtifactStore, catalog_path: Path, *, require_locators: bool = False) -> tuple[EvidenceUnit, ...]:

@@ -4,8 +4,12 @@ from datetime import datetime, timezone
 
 from charitygraph.contracts import SourceRecord
 from charitygraph.contracts.ids import deterministic_id
+from charitygraph.baseline_corpus import AcquisitionState, BindingState, CorpusMember, DiscoveryState, MaterialOrigin, build_corpus_manifest, compile_provider_evidence_corpus
 from charitygraph.evidence_store import ContentAddressedArtifactStore
-from charitygraph.frozen_experiment import execute_prepared_standard, prepare_frozen_experiment
+import pytest
+
+from charitygraph.frozen_experiment import execute_prepared_standard, prepare_frozen_experiment, validate_evidence_selection
+from charitygraph.phase5_semantic_contracts import executable_contract_for
 from charitygraph.phase5_standard_transport import StandardProviderResponse
 from charitygraph.runtime import SQLiteCatalog
 
@@ -19,6 +23,20 @@ class _Provider:
         result = {"id": "resp_fixture", "status": "completed", "incomplete_details": None, "usage": {"input_tokens": 2, "output_tokens": 1}}
         raw = json.dumps(result, separators=(",", ":")).encode()
         return StandardProviderResponse(200, "req_fixture", result, raw, client_request_id, "req_fixture", "fixture", request_started_at, True)
+
+
+def test_evidence_selection_schema_binds_all_evidence_reference_fields_and_requires_scope_accounting():
+    contract = executable_contract_for({"task_profile": "evidence_selection", "task_profile_version": "2", "claim_family_id": "evidence-selection-v1", "prompt_policy_version": "evidence-selection-v1:prompt-policy:v2-demand-scope", "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v2"})
+    schema = contract.schema_for_evidence(("evidence:one", "evidence:two"))
+    rendered = json.dumps(schema)
+    assert "evidence:one" in rendered and "evidence:two" in rendered
+    signature = json.dumps({"propositions": ["claim-a", "claim-b"]})
+    output = {"selected_evidence_ids": ["evidence:one"], "rejected_evidence_ids": ["evidence:two"], "proposition_support": [{"proposition": "claim-a", "support_state": "supported", "evidence_ids": ["evidence:one"], "scope_status": "subject", "temporal_status": "satisfied"}, {"proposition": "claim-b", "support_state": "unresolved", "evidence_ids": ["evidence:two"], "scope_status": "unresolved", "temporal_status": "unresolved", "qualification": "packet does not establish the required scope"}], "conclusion": {"outcome": "insufficient_evidence", "evidence": [{"evidence_id": "evidence:one", "role": "supporting"}]}}
+    parsed = validate_evidence_selection(output, allowed_evidence_ids={"evidence:one", "evidence:two"}, demand_signature=signature)
+    assert parsed.proposition_support[1].support_state == "unresolved"
+    output["conclusion"]["evidence"][0]["evidence_id"] = "evidence:other"
+    with pytest.raises(ValueError, match="outside its packet"):
+        validate_evidence_selection(output, allowed_evidence_ids={"evidence:one", "evidence:two"}, demand_signature=signature)
 
 
 def test_prepare_and_provider_free_standard_rehearsal_uses_durable_lifecycle(tmp_path):
@@ -39,7 +57,16 @@ def test_prepare_and_provider_free_standard_rehearsal_uses_durable_lifecycle(tmp
     pricing = runtime / "frozen-pricing-snapshot.json"
     subject_manifest.write_text(json.dumps({"selection_state": "FROZEN_BEFORE_SEMANTIC_RESULT_INSPECTION", "subjects": [{"subject_id": subject}]}), encoding="utf-8")
     demand_manifest.write_text(json.dumps({"selection_state": "FROZEN_BEFORE_SEMANTIC_RESULT_INSPECTION", "instances": [{"instance_id": "instance:fixture", "subject_id": subject, "demand_id": "demand:fixture", "semantic_signature": "fixture demand"}]}), encoding="utf-8")
-    corpus.write_text(json.dumps({"corpora": [{"subject_id": subject, "material_members": [{"source_family": "acnc_register", "source_record_ids": [record_id], "artifact_ids": [artifact.artifact_id]}]}]}), encoding="utf-8")
+    governed = compile_provider_evidence_corpus([build_corpus_manifest(
+        subject_id=subject, profile_version="baseline-v1", members=[CorpusMember(
+            source_family="acnc_register", source_definition_id="srcdef:fixture",
+            acquisition_receipt_ids=("acq:fixture",), artifact_ids=(artifact.artifact_id,),
+            source_record_ids=(record_id,), discovery=DiscoveryState.RESOLVED,
+            acquisition=AcquisitionState.AVAILABLE, subject_binding=BindingState.BOUND,
+            material_origin=MaterialOrigin.REUSED_EXISTING,
+        )],
+    )])
+    corpus.write_text(json.dumps(governed), encoding="utf-8")
     rights.write_text(json.dumps({"decisions": [{"decision_id": "rights:fixture", "source_artifact_id": artifact.artifact_id, "source_record_id": record_id, "source_origin_url": "fixture:source", "source_role": "identity", "acquisition_lineage_ids": ["acq:fixture"], "transmitted_representation_sha256": hashlib.sha256(content).hexdigest(), "rights_policy_id": "PUBLIC_FACTS_ONLY_V1", "provider_processing_policy_id": "openai-responses-private-processing-v1", "rights_basis": "public_facts_only", "evidence_locator": "fixture:rights", "evidence_sha256": "a" * 64, "assessed_on": "2026-10-16", "assessment_scope": "private bounded analytical processing", "local_retention_allowed": False, "provider_transmission_allowed": True, "public_redistribution_allowed": False, "representation_class": "structured_factual", "publicly_accessible_without_circumvention": True, "access_controls_bypassed": False, "lawfully_acquired": True, "analytical_purpose": "semantic_analysis", "provider_no_training_default": True, "provider_data_sharing_opt_in": False, "factual_representation_only": True}]}), encoding="utf-8")
     pricing.write_text(json.dumps({"provider": "openai", "model": "gpt-5.6-luna", "snapshot_id": "fixture-pricing-v1", "aud_per_usd": "1.52", "provider_rates_usd_per_million_tokens": {"input": "0.20", "cached_input": "0.02", "cache_write_input": "0.25", "output": "1.20"}, "requests": [{"instance_id": "instance:fixture", "hard_max_usd": "0.01", "hard_max_aud": "0.02"}]}), encoding="utf-8")
     prepared = prepare_frozen_experiment(subject_manifest=subject_manifest, demand_manifest=demand_manifest, corpus_manifest=corpus, rights_decisions=rights, pricing_snapshot=pricing, runtime_root=runtime, catalog_path=catalog_path, authorization_catalog_path=authority, authorization_text_hash="b" * 64, provider_account_project="proj_fixture", now=now)

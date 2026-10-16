@@ -141,6 +141,12 @@ class SourceCoverage(CorpusModel):
     notes: tuple[str, ...] = ()
 
 
+ADMITTED_SOURCE_FAMILIES_V1 = frozenset({
+    "acnc_register", "acnc_ais_bundle", "ato_abr_dgr", "official_website",
+    "annual_report", "wikipedia_wikimedia", "pfra",
+})
+
+
 def sha256_json(value: Any) -> str:
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
@@ -251,6 +257,54 @@ def build_corpus_manifest(*, subject_id: str, profile_version: str, members: lis
     material_hash = sha256_json(material)
     provenance = sha256_json({**material, "cohort_id": cohort_id, "run_id": run_id, "retrieval_timestamps": retrieval_timestamps, "builder_commit": builder_commit})
     return CorpusManifest(corpus_id=f"corpus:{material_hash}", subject_id=subject_id, corpus_profile_version=profile_version, material_members=tuple(members), cohort_id=cohort_id, run_id=run_id, retrieval_timestamps=retrieval_timestamps, builder_commit=builder_commit, derived_representation_ids=tuple(a for member in members for a in member.representation_artifact_ids), material_identity_hash=material_hash, provenance_hash=provenance)
+
+
+def compile_provider_evidence_corpus(manifests: list[CorpusManifest]) -> dict[str, Any]:
+    """Admit only already-governed, packet-ready material without semantic ranking.
+
+    The accompanying ledger preserves why every retained corpus member was
+    admitted or withheld.  It is intentionally mechanical: source family and
+    persisted acquisition/binding/representation states are the only inputs.
+    """
+    corpora: list[dict[str, Any]] = []
+    ledger: list[dict[str, Any]] = []
+    for manifest in sorted(manifests, key=lambda item: item.subject_id):
+        admitted: list[dict[str, Any]] = []
+        for ordinal, member in enumerate(manifest.material_members):
+            disposition = "admitted"
+            if member.source_family not in ADMITTED_SOURCE_FAMILIES_V1:
+                disposition = "source_family_not_admitted"
+            elif member.acquisition not in {AcquisitionState.AVAILABLE, AcquisitionState.PARTIAL, AcquisitionState.NOT_MODIFIED}:
+                disposition = "acquisition_not_available"
+            elif member.subject_binding != BindingState.BOUND:
+                disposition = "subject_not_bound"
+            elif member.representation_readiness not in {RepresentationReadiness.READY, RepresentationReadiness.PARTIAL, RepresentationReadiness.NOT_REQUIRED}:
+                disposition = "representation_not_ready"
+            elif not (member.representation_artifact_ids or member.artifact_ids):
+                disposition = "no_retained_artifact"
+            row = {
+                "subject_id": manifest.subject_id, "corpus_id": manifest.corpus_id,
+                "member_ordinal": ordinal, "source_family": member.source_family,
+                "source_definition_id": member.source_definition_id,
+                "acquisition": member.acquisition.value,
+                "subject_binding": member.subject_binding.value,
+                "representation_readiness": member.representation_readiness.value,
+                "disposition": disposition,
+                "representation_gaps": list(member.representation_gaps),
+            }
+            ledger.append(row)
+            if disposition == "admitted":
+                admitted.append(member.model_dump(mode="json"))
+        corpora.append({
+            "subject_id": manifest.subject_id, "corpus_id": manifest.corpus_id,
+            "material_identity_hash": manifest.material_identity_hash,
+            "material_members": admitted,
+        })
+    return {
+        "schema": "charitygraph.governed-provider-corpus/v1",
+        "corpora": corpora,
+        "admission_ledger": ledger,
+    }
 
 
 def represent_pdf(path: str | Path, *, vision_extractor: Callable[[dict], Any] | None = None) -> dict[str, Any]:

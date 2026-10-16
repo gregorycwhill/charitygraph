@@ -215,6 +215,7 @@ class SDGAlignmentOutput(StrictModel):
 class EvidenceSelectionOutput(StrictModel):
     selected_evidence_ids: tuple[str, ...] = ()
     rejected_evidence_ids: tuple[str, ...] = ()
+    proposition_support: tuple["EvidencePropositionSupport", ...] = ()
     conclusion: SemanticConclusion
 
     @model_validator(mode="after")
@@ -223,6 +224,41 @@ class EvidenceSelectionOutput(StrictModel):
         if selected & set(self.rejected_evidence_ids):
             raise ValueError("evidence cannot be both selected and rejected")
         return self
+
+
+class EvidencePropositionSupport(StrictModel):
+    """Mechanical support account for one supplied demand proposition."""
+
+    proposition: str
+    support_state: Literal["supported", "unresolved", "not_established"]
+    evidence_ids: tuple[str, ...] = ()
+    scope_status: Literal["subject", "bounded_scope", "unresolved"]
+    temporal_status: Literal["satisfied", "unresolved"]
+    qualification: str | None = None
+
+    @field_validator("proposition")
+    @classmethod
+    def _proposition(cls, value: str) -> str:
+        return require_nonblank(value, "proposition")
+
+    @field_validator("qualification")
+    @classmethod
+    def _qualification(cls, value: str | None) -> str | None:
+        return None if value is None else require_nonblank(value)
+
+    @model_validator(mode="after")
+    def _support_shape(self) -> "EvidencePropositionSupport":
+        if self.support_state == "supported":
+            if not self.evidence_ids:
+                raise ValueError("supported demand propositions require evidence IDs")
+            if self.scope_status == "unresolved" or self.temporal_status == "unresolved":
+                raise ValueError("supported demand propositions require resolved scope and time")
+        elif self.evidence_ids and not self.qualification:
+            raise ValueError("unresolved or not-established propositions with evidence IDs require a qualification")
+        return self
+
+
+EvidenceSelectionOutput.model_rebuild()
 
 
 TASK_OUTPUT_SCHEMAS = {
