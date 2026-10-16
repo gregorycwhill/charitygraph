@@ -16,7 +16,7 @@ from typing import Any, Mapping
 
 from .phase5_execution_mandate import manifest_hash
 from .phase5_execution_packet import ExecutionPacketUnready, materialize_execution_packet
-from .phase5_openai_dry_run import serialize_execution_packet_request
+from .phase5_openai_dry_run import PRICING, standard_actual_cost, serialize_execution_packet_request
 from .phase5_semantic_contracts import executable_contract_for
 from .phase5_pre_send_certification import certify_standard_execution_row
 from .phase5_standard_transport import StandardCampaignCoordinator, body_sha256, canonical_standard_body_bytes
@@ -207,12 +207,78 @@ def execute_prepared_standard(*, prepared: Mapping[str, Any], catalog_path: Path
     try:
         if getattr(provider, "provider_account_project", None) != prepared.get("provider_account_project"):
             raise FrozenExperimentError("provider project does not match the prepared frozen run")
+        pricing_path = Path(runtime_root) / "frozen-pricing-snapshot.json"
+        if _file_sha(pricing_path) != prepared.get("pricing_snapshot_sha256"):
+            raise FrozenExperimentError("frozen pricing snapshot is missing or differs from prepared identity")
+        pricing, _ = _pricing(pricing_path, {str(row["instance_id"]) for row in prepared["rows"]})
+        expected_rates = {key: str(value) for key, value in PRICING["gpt-5.6-luna"].items()}
+        if pricing.get("provider_rates_usd_per_million_tokens") != expected_rates:
+            raise FrozenExperimentError("frozen pricing rates differ from established Luna pricing mechanism")
+
+        def reconcile(row: Mapping[str, Any], usage: Any, provider_receipt_id: str) -> dict[str, Any]:
+            if not isinstance(usage, Mapping):
+                raise FrozenExperimentError("completed provider receipt lacks usage accounting")
+            item = catalog.get_provider_request_item(str(row["provider_request_item_id"]))
+            physical = catalog.get_physical_attempt(str(row["physical_attempt_id"]))
+            receipt = catalog.get_physical_receipt(str(row["physical_attempt_id"]))
+            if (item is None or item.get("status") != "completed" or item.get("provider_receipt_id") != provider_receipt_id
+                    or physical is None or physical.get("status") != "validated"
+                    or receipt is None or receipt.get("provider_receipt_id") != provider_receipt_id
+                    or receipt.get("provider_request_id") != row["provider_request_item_id"]):
+                raise FrozenExperimentError("actual-cost reconciliation is not bound to a completed durable provider receipt")
+            durable_usage = receipt.get("usage_json")
+            if isinstance(durable_usage, str):
+                durable_usage = json.loads(durable_usage)
+            if dict(durable_usage or {}) != dict(usage):
+                raise FrozenExperimentError("provider usage differs from durable receipt")
+            usd, aud = standard_actual_cost(dict(usage), Decimal(str(pricing["aud_per_usd"])), model="gpt-5.6-luna")
+            if usd > Decimal(str(row["hard_max_usd"])) or aud > Decimal(str(row["hard_max_aud"])):
+                raise FrozenExperimentError("actual provider cost exceeds its pinned per-request exposure")
+            reservation_id = str(row["reservation_id"])
+            fx_identity = "fxsnapshot:" + _sha({"pricing_snapshot_sha256": prepared["pricing_snapshot_sha256"], "aud_per_usd": str(pricing["aud_per_usd"])})
+            entry_key = "actual:frozen:" + str(row["provider_request_item_id"])
+            catalog.record_accounting_actual(
+                entry_key=entry_key, provider_request_item_id=str(row["provider_request_item_id"]),
+                provider_receipt_id=provider_receipt_id, reservation_id=reservation_id,
+                provider_amount=usd, provider_currency="USD", accounting_amount=aud,
+                accounting_currency="AUD", pricing_snapshot_id=str(pricing["snapshot_id"]),
+                fx_snapshot_id=fx_identity, usage=usage, recorded_at=execution_time,
+            )
+            release_key = "release:frozen:" + str(row["provider_request_item_id"])
+            if catalog.get_cost_entry(release_key) is None:
+                position = catalog.accounting_reservation_position(reservation_id)
+                if Decimal(position["outstanding"]) > 0:
+                    catalog.release_reservation(reservation_id, {"amount": str(position["outstanding"]), "currency": "AUD"}, now=execution_time, entry_key=release_key)
+            catalog.settle_execution_mandate_reservation(
+                mandate_id=str(prepared["mandate_id"]), reservation_id=str(row["mandate_reservation_id"]),
+                actual_aud=aud, ambiguous=False, now=execution_time,
+            )
+            return {"entry_key": entry_key, "actual_usd": str(usd), "actual_aud": str(aud), "pricing_snapshot_id": str(pricing["snapshot_id"])}
+
         # This is deliberately immediately before the coordinator: it checks the
         # durable request/physical/delivery rows and active budget authority that
         # the coordinator will consume, without crossing a provider boundary.
         for row in prepared["rows"]:
-            certify_standard_execution_row(catalog, row, mandate_id=prepared["mandate_id"])
-        return StandardCampaignCoordinator(catalog=catalog, provider=provider, runtime_root=runtime_root, max_concurrency=1, now=execution_time, mandate_evaluator=lambda row: __import__("charitygraph.phase5_execution_mandate", fromlist=["evaluate_execution_against_mandate"]).evaluate_execution_against_mandate(catalog, prepared["mandate_id"], row, now=execution_time)).run(list(prepared["rows"]))
+            durable = catalog.get_provider_request_item(str(row["provider_request_item_id"]))
+            if durable is not None and durable.get("status") == "completed":
+                receipt = catalog.get_physical_receipt(str(row["physical_attempt_id"]))
+                if receipt is None:
+                    raise FrozenExperimentError("completed provider item lacks a durable receipt")
+                usage = receipt.get("usage_json")
+                if isinstance(usage, str):
+                    usage = json.loads(usage)
+                reconcile(row, usage, str(receipt["provider_receipt_id"]))
+            else:
+                certify_standard_execution_row(catalog, row, mandate_id=prepared["mandate_id"])
+        return StandardCampaignCoordinator(
+            catalog=catalog, provider=provider, runtime_root=runtime_root, max_concurrency=1,
+            now=execution_time,
+            on_reconciled=lambda row, response, usage: reconcile(
+                row, usage,
+                "standard-receipt:" + hashlib.sha256((str(row["provider_request_item_id"]) + ":" + str(response.body["id"])).encode()).hexdigest(),
+            ),
+            mandate_evaluator=lambda row: __import__("charitygraph.phase5_execution_mandate", fromlist=["evaluate_execution_against_mandate"]).evaluate_execution_against_mandate(catalog, prepared["mandate_id"], row, now=execution_time),
+        ).run(list(prepared["rows"]))
     finally:
         catalog.close()
 

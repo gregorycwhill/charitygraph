@@ -36,12 +36,12 @@ def test_prepare_and_provider_free_standard_rehearsal_uses_durable_lifecycle(tmp
     demand_manifest = tmp_path / "demands.json"
     corpus = tmp_path / "corpus.json"
     rights = tmp_path / "rights.json"
-    pricing = tmp_path / "pricing.json"
+    pricing = runtime / "frozen-pricing-snapshot.json"
     subject_manifest.write_text(json.dumps({"selection_state": "FROZEN_BEFORE_SEMANTIC_RESULT_INSPECTION", "subjects": [{"subject_id": subject}]}), encoding="utf-8")
     demand_manifest.write_text(json.dumps({"selection_state": "FROZEN_BEFORE_SEMANTIC_RESULT_INSPECTION", "instances": [{"instance_id": "instance:fixture", "subject_id": subject, "demand_id": "demand:fixture", "semantic_signature": "fixture demand"}]}), encoding="utf-8")
     corpus.write_text(json.dumps({"corpora": [{"subject_id": subject, "material_members": [{"source_family": "acnc_register", "source_record_ids": [record_id], "artifact_ids": [artifact.artifact_id]}]}]}), encoding="utf-8")
     rights.write_text(json.dumps({"decisions": [{"decision_id": "rights:fixture", "source_artifact_id": artifact.artifact_id, "source_record_id": record_id, "source_origin_url": "fixture:source", "source_role": "identity", "acquisition_lineage_ids": ["acq:fixture"], "transmitted_representation_sha256": hashlib.sha256(content).hexdigest(), "rights_policy_id": "PUBLIC_FACTS_ONLY_V1", "provider_processing_policy_id": "openai-responses-private-processing-v1", "rights_basis": "public_facts_only", "evidence_locator": "fixture:rights", "evidence_sha256": "a" * 64, "assessed_on": "2026-10-16", "assessment_scope": "private bounded analytical processing", "local_retention_allowed": False, "provider_transmission_allowed": True, "public_redistribution_allowed": False, "representation_class": "structured_factual", "publicly_accessible_without_circumvention": True, "access_controls_bypassed": False, "lawfully_acquired": True, "analytical_purpose": "semantic_analysis", "provider_no_training_default": True, "provider_data_sharing_opt_in": False, "factual_representation_only": True}]}), encoding="utf-8")
-    pricing.write_text(json.dumps({"provider": "openai", "model": "gpt-5.6-luna", "requests": [{"instance_id": "instance:fixture", "hard_max_usd": "0.01", "hard_max_aud": "0.02"}]}), encoding="utf-8")
+    pricing.write_text(json.dumps({"provider": "openai", "model": "gpt-5.6-luna", "snapshot_id": "fixture-pricing-v1", "aud_per_usd": "1.52", "provider_rates_usd_per_million_tokens": {"input": "0.20", "cached_input": "0.02", "cache_write_input": "0.25", "output": "1.20"}, "requests": [{"instance_id": "instance:fixture", "hard_max_usd": "0.01", "hard_max_aud": "0.02"}]}), encoding="utf-8")
     prepared = prepare_frozen_experiment(subject_manifest=subject_manifest, demand_manifest=demand_manifest, corpus_manifest=corpus, rights_decisions=rights, pricing_snapshot=pricing, runtime_root=runtime, catalog_path=catalog_path, authorization_catalog_path=authority, authorization_text_hash="b" * 64, provider_account_project="proj_fixture", now=now)
     provider = _Provider()
     provider.provider_account_project = "proj_fixture"
@@ -51,3 +51,9 @@ def test_prepare_and_provider_free_standard_rehearsal_uses_durable_lifecycle(tmp
     assert prepared["provider_account_project"] == "proj_fixture"
     assert prepared["rows"][0]["provider_account_project"] == "proj_fixture"
     assert prepared["rows"][0]["request_body_sha256"] == hashlib.sha256(json.dumps(prepared["rows"][0]["request_body"], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    catalog = SQLiteCatalog(catalog_path, authorization_path=authority).open()
+    try:
+        assert catalog.get_cost_entry("actual:frozen:" + prepared["rows"][0]["provider_request_item_id"]) is not None
+        assert catalog.get_cost_entry("release:frozen:" + prepared["rows"][0]["provider_request_item_id"]) is not None
+    finally:
+        catalog.close()
