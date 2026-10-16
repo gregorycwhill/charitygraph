@@ -63,7 +63,7 @@ def main() -> int:
     # This construction is intentionally reachable only in execute mode.
     result = execute_prepared_standard(
         prepared=prepared, catalog_path=args.catalog, authorization_catalog_path=args.authorization_catalog, runtime_root=args.runtime_root,
-        provider=OpenAIHTTPStandardClient(provider_project=args.provider_project),
+        provider=OpenAIHTTPStandardClient(provider_account_project=args.provider_project),
     )
     print(json.dumps(result, sort_keys=True))
     return 0
