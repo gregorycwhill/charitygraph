@@ -3,6 +3,8 @@
 **Status:** Development/remediation evidence for Sol and Product Owner review; not a semantic adjudication or source-policy decision.
 **Scope:** The already-frozen CG406 inputs only. No acquisition, provider request, source-universe expansion, or mutation of frozen material was performed.
 
+The 17 October 2026 public-source PDF/XLSX private-provider transmission decision does not alter this classification. It changes transmission treatment for material already within Source Universe v1; it neither admits nor supplies the independent authority/finding source required by SDC-0019.
+
 ## Classification
 
 `CANDIDATE_SOURCE_GAP` — a Product Owner source-policy decision may be needed.

@@ -21,6 +21,7 @@ class ExecutionPacketUnready(RuntimeError):
 class EvidenceUnit:
     evidence_id: str
     artifact_id: str
+    source_artifact_id: str
     content_hash: str
     byte_count: int
     content: str
@@ -60,7 +61,7 @@ class SemanticExecutionPacket:
             "semantic_contract_hash": self.semantic_contract_hash,
             "evidence_corpus_hash": self.evidence_corpus_hash,
             "evidence_units": [
-                {"evidence_id": item.evidence_id, "artifact_id": item.artifact_id, "content_hash": item.content_hash, "byte_count": item.byte_count, "content": item.content, "source_record_id": item.source_record_id, "source_family": item.source_family, "source_role": item.source_role, "source_locator": item.source_locator, "locator_ids": list(item.locator_ids)}
+                {"evidence_id": item.evidence_id, "artifact_id": item.artifact_id, "source_artifact_id": item.source_artifact_id, "content_hash": item.content_hash, "byte_count": item.byte_count, "content": item.content, "source_record_id": item.source_record_id, "source_family": item.source_family, "source_role": item.source_role, "source_locator": item.source_locator, "locator_ids": list(item.locator_ids)}
                 for item in self.evidence_units
             ],
             "scopes": [{"scope_id": item.scope_id, "scope_kind": item.scope_kind, "label": item.label} for item in self.scopes],
@@ -155,7 +156,8 @@ def _materialize_units(corpus: dict[str, Any], store: ContentAddressedArtifactSt
                 if locator is not None and locator.get("artifact_id") and locator["artifact_id"] != artifact_id:
                     raise ExecutionPacketUnready(f"evidence locator does not resolve to the retained artifact: {evidence_id}")
                 units.append(EvidenceUnit(
-                    evidence_id=evidence_id, artifact_id=artifact_id, content_hash=digest,
+                    evidence_id=evidence_id, artifact_id=artifact_id,
+                    source_artifact_id=record["payload_ref"], content_hash=digest,
                     byte_count=len(content_bytes), content=_decode_retained(content_bytes, artifact_id),
                     source_record_id=record["source_record_id"], source_family=record["source_family"],
                     source_role=record["source_role"], source_locator=record["source_locator"], locator_ids=(evidence_id,) if require_locators else (),

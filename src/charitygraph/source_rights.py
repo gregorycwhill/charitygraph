@@ -16,12 +16,14 @@ from .contracts.common import Sha256, StrictModel, require_nonblank
 
 RightsBasis = Literal[
     "explicit_open_license", "explicit_terms_permission", "direct_permission",
-    "statutory_exception", "public_facts_only", "unknown", "prohibited",
+    "statutory_exception", "public_facts_only", "public_source_private_processing",
+    "unknown", "prohibited",
 ]
 RepresentationClass = Literal[
     "bounded_excerpt", "structured_factual", "complete_or_near_complete_work", "unclear",
 ]
 FAIR_DEALING_POLICY_ID = "AU_FAIR_DEALING_ANALYTICAL_PROCESSING_V1"
+PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID = "CG_PUBLIC_SOURCE_PRIVATE_PROVIDER_TRANSMISSION_V1"
 OPENAI_PROVIDER_POLICY_ID = "OPENAI_API_BUSINESS_NO_TRAINING_DEFAULT_AS_OF_2026_09_13_V1"
 RIGHTS_POLICY_REGISTRY = {
     FAIR_DEALING_POLICY_ID: {
@@ -30,6 +32,14 @@ RIGHTS_POLICY_REGISTRY = {
         "scope": "bounded private analytical processing of lawfully accessible public material",
         "public_redistribution": False,
         "complete_or_near_complete_work": False,
+    },
+    PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID: {
+        "version": "1.0.0",
+        "basis": "public_source_private_processing",
+        "scope": "full or partial governed public PDF/XLSX material for private analytical processing",
+        "public_redistribution": False,
+        "complete_or_near_complete_work": True,
+        "payload_caps_are_rights_conditions": False,
     },
     "CC_BY_3_0_AU_V1": {"version": "1.0.0", "basis": "explicit_open_license"},
     "CC_BY_4_0_V1": {"version": "1.0.0", "basis": "explicit_open_license"},
@@ -117,8 +127,23 @@ class ArtifactRightsDecision(StrictModel):
             )
             if not all(required):
                 raise ValueError("Fair Dealing V1 predicates are not all satisfied")
+        if self.rights_basis == "public_source_private_processing" and self.provider_transmission_allowed:
+            required = (
+                self.rights_policy_id == PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID,
+                self.provider_processing_policy_id == OPENAI_PROVIDER_POLICY_ID,
+                self.provider_no_training_default,
+                self.provider_data_sharing_opt_in is False,
+                self.publicly_accessible_without_circumvention is True,
+                self.access_controls_bypassed is False,
+                self.lawfully_acquired is True,
+                self.analytical_purpose in _ANALYTICAL_PURPOSES,
+                self.representation_class in {"bounded_excerpt", "structured_factual", "complete_or_near_complete_work"},
+                not self.explicit_prohibition_found,
+            )
+            if not all(required):
+                raise ValueError("public-source private-provider predicates are not all satisfied")
         if self.provider_transmission_allowed and self.rights_basis not in {
-            "explicit_open_license", "explicit_terms_permission", "direct_permission", "public_facts_only", "statutory_exception",
+            "explicit_open_license", "explicit_terms_permission", "direct_permission", "public_facts_only", "statutory_exception", "public_source_private_processing",
         }:
             raise ValueError("provider transmission requires an affirmative rights basis")
         return self

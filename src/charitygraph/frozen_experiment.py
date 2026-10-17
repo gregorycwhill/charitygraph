@@ -136,7 +136,7 @@ def _rights(path: Path, units: tuple[Any, ...]) -> None:
     except Exception as exc:
         raise FrozenExperimentError("rights decisions are invalid") from exc
     blockers = require_provider_rights(decisions, [{
-        "source_artifact_id": unit.artifact_id, "source_record_id": unit.source_record_id,
+        "source_artifact_id": unit.source_artifact_id, "source_record_id": unit.source_record_id,
         "source_locator": unit.source_locator, "source_role": unit.source_role,
         "exact_transmitted_representation": unit.content,
     } for unit in units])
@@ -188,10 +188,21 @@ def prepare_frozen_experiment(*, subject_manifest: Path, demand_manifest: Path, 
     catalog = SQLiteCatalog(catalog_path, authorization_path=authorization_catalog_path).open(initialize=True)
     rows: list[dict[str, Any]] = []
     try:
-        catalog.register_cohort({"record_id": cohort_id, "cohort_code": "FROZEN_EXPERIMENT", "definition_version": "1", "membership_hash": _sha([item["instance_id"] for item in instances]), "budget_cap": {"amount": str(aggregate_aud), "currency": "AUD"}, "created_at": timestamp})
-        catalog.register_run({"record_id": run_id, "cohort_id": cohort_id, "run_kind": "frozen-experiment-standard", "status": "planned", "configuration_hash": _sha({"cohort": cohort_identity, "mandate": mandate}), "created_at": timestamp})
+        # A preparation can be interrupted after durable registration. Reuse
+        # that immutable identity instead of treating its operational timestamp
+        # as changed semantic material on resume.
+        if catalog.get_cohort(cohort_id) is None:
+            catalog.register_cohort({"record_id": cohort_id, "cohort_code": "FROZEN_EXPERIMENT", "definition_version": "1", "membership_hash": _sha([item["instance_id"] for item in instances]), "budget_cap": {"amount": str(aggregate_aud), "currency": "AUD"}, "created_at": timestamp})
+        if catalog.get_run(run_id) is None:
+            catalog.register_run({"record_id": run_id, "cohort_id": cohort_id, "run_kind": "frozen-experiment-standard", "status": "planned", "configuration_hash": _sha({"cohort": cohort_identity, "mandate": mandate}), "created_at": timestamp})
         catalog.register_execution_mandate(mandate_id=mandate_id, manifest_hash=manifest_hash(mandate), authorization_text_hash=authorization_text_hash, scope=mandate, contract_allowlist=tuple(mandate["allowed_contracts"]), aggregate_hard_aud=mandate["aggregate_hard_aud"], per_request_hard_aud=mandate["per_request_hard_aud"], phase_scope=mandate["phase_scope"], now=timestamp)
-        catalog.activate_execution_mandate(mandate_id=mandate_id, authorization_text_hash=authorization_text_hash, authorized_by="product-owner", now=timestamp)
+        existing_mandate = catalog.get_execution_mandate(mandate_id)
+        if existing_mandate is None:
+            raise FrozenExperimentError("prepared mandate did not persist")
+        if existing_mandate["status"] == "proposed":
+            catalog.activate_execution_mandate(mandate_id=mandate_id, authorization_text_hash=authorization_text_hash, authorized_by="product-owner", now=timestamp)
+        elif existing_mandate["status"] != "active":
+            raise FrozenExperimentError("prepared mandate is not active")
         job_id = _id("deliveryjob:", {"run_id": run_id, "pricing_snapshot_sha256": cohort_identity["pricing_snapshot_sha256"]})
         catalog.create_delivery_job(delivery_job_id=job_id, run_id=run_id, provider_id="openai", model_route="gpt-5.6-luna", delivery_mode="standard", pricing_snapshot_id="pricing:" + cohort_identity["pricing_snapshot_sha256"], now=timestamp)
         for instance in instances:

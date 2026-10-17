@@ -7,6 +7,7 @@ from charitygraph.source_rights import (
     ArtifactRightsDecision,
     FAIR_DEALING_POLICY_ID,
     OPENAI_PROVIDER_POLICY_ID,
+    PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID,
     require_provider_rights,
 )
 
@@ -105,6 +106,34 @@ def test_fair_dealing_does_not_grant_local_retention():
 def test_fair_dealing_policy_never_authorizes_retention_even_when_provider_is_blocked():
     with pytest.raises(ValueError, match="does not authorize local retention"):
         decision(provider_transmission_allowed=False, local_retention_allowed=True)
+
+
+@pytest.mark.parametrize("source_role", ["annual_report", "financial_workbook"])
+def test_public_pdf_or_workbook_can_be_transmitted_in_full_under_product_owner_policy(source_role):
+    result = decision(
+        source_role=source_role,
+        rights_policy_id=PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID,
+        rights_basis="public_source_private_processing",
+        representation_class="complete_or_near_complete_work",
+    )
+    assert result.provider_transmission_allowed
+
+
+@pytest.mark.parametrize("changes", [
+    {"publicly_accessible_without_circumvention": False},
+    {"access_controls_bypassed": True},
+    {"lawfully_acquired": False},
+    {"provider_no_training_default": False},
+    {"provider_data_sharing_opt_in": True},
+])
+def test_public_source_private_provider_policy_remains_fail_closed(changes):
+    with pytest.raises(ValueError, match="public-source private-provider"):
+        decision(
+            rights_policy_id=PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID,
+            rights_basis="public_source_private_processing",
+            representation_class="complete_or_near_complete_work",
+            **changes,
+        )
 
 
 def test_exact_hash_and_artifact_lineage_are_required():
