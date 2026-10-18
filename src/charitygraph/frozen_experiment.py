@@ -103,7 +103,8 @@ def validate_evidence_selection(output: Mapping[str, Any], *, allowed_evidence_i
     if not referenced.issubset(allowed_evidence_ids):
         raise ValueError("evidence-selection output references evidence outside its packet")
     required = {item["proposition_id"] for item in demand_propositions(demand_signature)}
-    required_requirements = {item["requirement_id"] for item in demand_requirements(demand_signature)}
+    requirements = {item["requirement_id"]: item for item in demand_requirements(demand_signature)}
+    required_requirements = set(requirements)
     if required:
         support = {item.proposition_id: item for item in parsed.proposition_support}
         if len(support) != len(parsed.proposition_support):
@@ -121,9 +122,16 @@ def validate_evidence_selection(output: Mapping[str, Any], *, allowed_evidence_i
         for item in requirement_support.values():
             if not set(item.evidence_ids).issubset(allowed_evidence_ids):
                 raise ValueError("demand requirement support references evidence outside its packet")
+            kind = requirements[item.requirement_id]["kind"]
+            if item.support_state == "guarded" and kind != "non_inference":
+                raise ValueError("only frozen non-inference requirements may be marked guarded")
         if parsed.conclusion.outcome in {"resolved", "supported"} and any(item.support_state != "supported" for item in support.values()):
             raise ValueError("positive evidence-selection conclusion has unresolved material proposition scope")
-        if parsed.conclusion.outcome in {"resolved", "supported"} and any(item.support_state != "supported" for item in requirement_support.values()):
+        if parsed.conclusion.outcome in {"resolved", "supported"} and any(
+            item.support_state != "supported"
+            and not (requirements[item.requirement_id]["kind"] == "non_inference" and item.support_state == "guarded")
+            for item in requirement_support.values()
+        ):
             raise ValueError("positive evidence-selection conclusion has unresolved frozen demand requirements")
     return parsed
 
@@ -167,10 +175,10 @@ def load_frozen_instances(*, subject_manifest: Path, demand_manifest: Path) -> t
 
 def _contract() -> Any:
     return executable_contract_for({
-        "task_profile": "evidence_selection", "task_profile_version": "2",
+        "task_profile": "evidence_selection", "task_profile_version": "3",
         "claim_family_id": "evidence-selection-v1",
-        "prompt_policy_version": "evidence-selection-v1:prompt-policy:v4-demand-integrity",
-        "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v4",
+        "prompt_policy_version": "evidence-selection-v1:prompt-policy:v5-evidence-claim-interface",
+        "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v5",
     })
 
 

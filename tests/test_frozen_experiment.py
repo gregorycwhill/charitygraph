@@ -47,7 +47,7 @@ def _signature(propositions):
 
 
 def test_evidence_selection_schema_binds_all_evidence_reference_fields_and_requires_scope_accounting():
-    contract = executable_contract_for({"task_profile": "evidence_selection", "task_profile_version": "2", "claim_family_id": "evidence-selection-v1", "prompt_policy_version": "evidence-selection-v1:prompt-policy:v4-demand-integrity", "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v4"})
+    contract = executable_contract_for({"task_profile": "evidence_selection", "task_profile_version": "3", "claim_family_id": "evidence-selection-v1", "prompt_policy_version": "evidence-selection-v1:prompt-policy:v5-evidence-claim-interface", "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v5"})
     signature = _signature(["claim-a", "claim-b"])
     proposition_ids = tuple(item["proposition_id"] for item in demand_propositions(signature))
     schema = contract.schema_for_packet(("evidence:one", "evidence:two"), proposition_ids)
@@ -144,10 +144,38 @@ def test_partial_support_and_service_scope_boundaries_remain_explicit():
     positive["conclusion"]["rationale"] = "one proposition is asserted as supported"
     with pytest.raises(ValueError, match="unresolved material proposition scope"):
         validate_evidence_selection(positive, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
-    weak_positive = deepcopy(partial)
-    weak_positive["proposition_support"][0].update({"support_state": "supported", "scope_status": "subject", "scope_basis": "beneficiary_category"})
-    with pytest.raises(ValueError, match="cannot alone establish"):
-        validate_evidence_selection(weak_positive, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
+    # Scope-basis is a model assertion about cited source prose, not a Python
+    # semantic classifier.  A bounded source-backed assertion is retained for
+    # adjudication; it still cannot promote an overall positive while another
+    # frozen proposition or requirement is unresolved.
+    bounded = deepcopy(partial)
+    bounded["proposition_support"][0].update({"support_state": "supported", "scope_status": "bounded_scope", "scope_basis": "beneficiary_category", "temporal_status": "satisfied"})
+    assert validate_evidence_selection(bounded, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
+    bounded_positive = deepcopy(bounded)
+    bounded_positive["conclusion"].update({"outcome": "supported", "rationale": "other frozen obligations remain unresolved"})
+    with pytest.raises(ValueError, match="unresolved frozen demand requirements"):
+        validate_evidence_selection(bounded_positive, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
+
+
+def test_non_inference_guard_is_not_evidence_and_is_typed_to_the_frozen_requirement():
+    signature = _signature(["cited proposition"])
+    proposition_id = demand_propositions(signature)[0]["proposition_id"]
+    requirements = _requirement_support(signature, state="supported")
+    guard = next(item for item in demand_requirements(signature) if item["kind"] == "non_inference")
+    guard_support = next(item for item in requirements if item["requirement_id"] == guard["requirement_id"])
+    guard_support.update({"support_state": "guarded", "evidence_ids": [], "qualification": "The assessor acknowledges the supplied non-inference guard; this is not source evidence."})
+    output = {
+        "selected_evidence_ids": ["evidence:one"], "rejected_evidence_ids": [],
+        "demand_requirement_support": requirements,
+        "proposition_support": [{"proposition_id": proposition_id, "support_state": "supported", "evidence_ids": ["evidence:one"], "scope_status": "subject", "temporal_status": "satisfied", "scope_basis": "not_applicable"}],
+        "conclusion": {"outcome": "supported", "rationale": "fixture", "evidence": [{"evidence_id": "evidence:one", "role": "supporting"}]},
+    }
+    assert validate_evidence_selection(output, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
+    improper = deepcopy(output)
+    non_guard = next(item for item in improper["demand_requirement_support"] if item["requirement_id"] != guard["requirement_id"])
+    non_guard.update({"support_state": "guarded", "evidence_ids": [], "qualification": "not source evidence"})
+    with pytest.raises(ValueError, match="only frozen non-inference"):
+        validate_evidence_selection(improper, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
 
 
 def test_prepare_and_provider_free_standard_rehearsal_uses_durable_lifecycle(tmp_path):

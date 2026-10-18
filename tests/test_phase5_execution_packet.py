@@ -40,6 +40,11 @@ def _catalog(path, record_id, payload_hash):
             evidence_locator_id TEXT PRIMARY KEY, artifact_id TEXT, source_record_id TEXT,
             kind TEXT, locator_json TEXT, material_hash TEXT
         );
+        CREATE TABLE external_identifiers (
+            external_identifier_id TEXT PRIMARY KEY, subject_id TEXT, scheme TEXT,
+            identifier_value TEXT, issuing_authority TEXT, valid_from TEXT,
+            valid_to TEXT, material_json TEXT, material_hash TEXT, status TEXT
+        );
         """
     )
     conn.execute("INSERT INTO source_records VALUES (?, ?, ?, ?, ?, ?)", (record_id, "test", "test", "https://example.test", "", payload_hash))
@@ -110,13 +115,17 @@ def test_packet_uses_retained_document_representation_text_without_losing_artifa
     record_id = "srcrec:report"
     catalog = tmp_path / "catalog.sqlite3"
     _catalog(catalog, record_id, hashlib.sha256(representation).hexdigest())
-    contract = executable_contract_for({"task_profile": "evidence_selection", "task_profile_version": "2", "claim_family_id": "evidence-selection-v1", "prompt_policy_version": "evidence-selection-v1:prompt-policy:v2-demand-scope", "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v2"})
+    contract = executable_contract_for({"task_profile": "evidence_selection", "task_profile_version": "3", "claim_family_id": "evidence-selection-v1", "prompt_policy_version": "evidence-selection-v1:prompt-policy:v5-evidence-claim-interface", "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v5"})
     task = _task(contract)
+    task["demand"] = {"demand_id": "demand:packet-test", "semantic_signature": json.dumps({"propositions": ["fixture proposition"], "subjects": ["fixture subject"], "joins": ["fixture relation"], "operations": ["screen"], "forbidden": ["fixture non-inference"], "evidence": "fixture evidence", "intent": "fixture intent", "temporal": "fixture time"})}
     corpus = {"subject_id": task["subject_id"], "material_members": [{"source_family": "annual_report", "source_record_ids": [record_id], "artifact_ids": ["srcblob:" + "a" * 64], "representation_artifact_ids": [stored.artifact_id]}]}
     packet = materialize_execution_packet(task=task, corpus=corpus, contract=contract, runtime_root=runtime, catalog_path=catalog, model="gpt-5.6-luna", reasoning_effort="low", service_tier="default")
     assert packet.evidence_units[0].artifact_id == stored.artifact_id
     assert packet.evidence_units[0].source_record_id == record_id
-    assert packet.evidence_units[0].content == "retained report page"
+    assert packet.evidence_units[0].content == "[source_native_page:1]\nretained report page"
+    prompt = render_packet_prompt(packet, contract)
+    assert "source_native_locator: https://example.test" in prompt
+    assert f"transmitted_representation_id: {stored.artifact_id}" in prompt
 
 
 def test_direct_service_packet_requires_governed_scopes_before_serialization(tmp_path):

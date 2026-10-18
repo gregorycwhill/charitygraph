@@ -1,0 +1,13 @@
+{
+  "schema": "charitygraph.evidence-artifact-inventory/v1",
+  "hash_algorithm": "sha256",
+  "inventory_scope": "all packet artifacts except this inventory, whose hash is reported at handoff",
+  "artifacts": [
+    {"path":"evidence/cg406-v13-evidence-to-claim-reconciliation/candidate-packet-preflight.json","sha256":"03fb2013f934447c44cae706595038af8bf6f8ed8733936dcd16e1febbd150dd","bytes":4436},
+    {"path":"evidence/cg406-v13-evidence-to-claim-reconciliation/case-diagnosis.md","sha256":"4594827c3b52501273cf68c3bb35def476b5b7bfc2d83bed92061238c5720da5","bytes":6517},
+    {"path":"evidence/cg406-v13-evidence-to-claim-reconciliation/handoff.json","sha256":"a88354a7ab597b6cddecf8ca9bce06365266aeaa6346408d0cf429384c5b02cc","bytes":1127},
+    {"path":"evidence/cg406-v13-evidence-to-claim-reconciliation/summary.md","sha256":"4bc10a935a737b6d5df930e9f522ec8c08a291ad19e4f41933a8b74befac08a6","bytes":1606},
+    {"path":"evidence/cg406-v13-evidence-to-claim-reconciliation/test-results.json","sha256":"7e9766f4bb275c96be7ce1074c6ce316e8f806dafd9ce21f1dede95ec3a4d277","bytes":656},
+    {"path":"evidence/cg406-v13-evidence-to-claim-reconciliation/validation-results.json","sha256":"cd228643a4c51e1ca37feba4299fe3d194eb410a4fcec2607f69b917debc32cf","bytes":1445}
+  ]
+}

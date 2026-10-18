@@ -1,0 +1,20 @@
+{
+  "schema": "charitygraph.cg406-v13-evidence-to-claim-handoff/v1",
+  "status": "provider_free_regression_complete",
+  "branch": "gate3-cg406-remediation",
+  "base_head": "c52288767c821eefcaeed88a412ecc1713ffbfe3",
+  "frozen_v13_result_manifest_self_sha256": "04cf508dc11bea243212b14839befc26c085d55dbb8a3b78241f45afd0073ed1",
+  "provider_posts": 0,
+  "source_universe_change": false,
+  "frozen_inputs_changed": false,
+  "frozen_results_changed": false,
+  "oracle_changed": false,
+  "next_execution_authorization": "not granted by this packet",
+  "remaining_limitations": [
+    "Semantic entailment of cited prose remains for independent adjudication; Python makes no English-language determination.",
+    "Good Friday governed binding has no valid_from/valid_to even though the cited ABR record contains its own active-from date.",
+    "UWA has no selected evidence of the demand-specific award/commitment/payment joins.",
+    "Leukaemia has a retained metric but no study-scoped design/population/missingness evidence.",
+    "The full-suite Scale S0 fixture failures are environmental and excluded from this tranche."
+  ]
+}

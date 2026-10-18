@@ -250,7 +250,25 @@ def render_packet_prompt(packet: SemanticExecutionPacket, contract: SemanticCont
         demand = getattr(packet, "demand", None)
         if not isinstance(demand, dict) or not isinstance(demand.get("demand_id"), str) or not isinstance(demand.get("semantic_signature"), str):
             raise ExecutionPacketUnready("frozen evidence assessment requires a pinned demand ID and signature")
-        evidence_text = "\n\n".join(f"[{item.evidence_id}]\n{item.content}" for item in packet.evidence_units)
+        # This envelope is entirely packet-derived.  It supplies the model
+        # with the source-native route for each citation without attempting to
+        # infer claim meaning from prose.  Document representations retain
+        # their ``source_native_page:N`` markers in ``content``.
+        evidence_text = "\n\n".join(
+            "\n".join((
+                f"[evidence_id:{item.evidence_id}]",
+                f"source_record_id: {item.source_record_id}",
+                f"source_family: {item.source_family}",
+                f"source_role: {item.source_role}",
+                f"source_native_locator: {item.source_locator}",
+                f"source_artifact_id: {item.source_artifact_id}",
+                f"transmitted_representation_id: {item.artifact_id}",
+                f"transmitted_representation_sha256: {item.content_hash}",
+                "SOURCE-NATIVE REPRESENTATION:",
+                item.content,
+            ))
+            for item in packet.evidence_units
+        )
         from .frozen_experiment import demand_propositions, demand_requirements
         propositions = demand_propositions(demand["semantic_signature"])
         proposition_text = "\n".join(f"{item['proposition_id']} | {item['proposition']}" for item in propositions)

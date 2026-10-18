@@ -1,0 +1,22 @@
+{
+  "schema": "charitygraph.cg406-v13-evidence-to-claim-preflight/v1",
+  "provider_posts": 0,
+  "frozen_v13_result_manifest_self_sha256": "04cf508dc11bea243212b14839befc26c085d55dbb8a3b78241f45afd0073ed1",
+  "contract_version": "1.4",
+  "schema_version": "1.4-provenance-claim-separation",
+  "prompt_sha256": "a7e12820cd551613f48db3afb86dc1e3cfb0a69b3098b3978e2f8f58ca47cb68",
+  "rows": [
+    {"instance_id":"cg406:subject:54a09c18d354495eb2fde6a01480b86b:SDC-0037","demand_id":"SDC-0037","packet_hash":"2ac43c408ef86d27b119f72bb36e08f534a1d763cdf20ae912e6ab308eb46a04","schema_hash":"d5b943de36eb2ac6e36ec453660105c593973d32972d8faf814a9ded705d91f8","evidence_count":5,"source_native_envelopes":true,"page_marker_count":23},
+    {"instance_id":"cg406:subject:00fd5d9d7b844d74ae64c4f47f7c4538:SDC-0051","demand_id":"SDC-0051","packet_hash":"962f07f2f7e7e8fca5f86f18d509209ddf5cf4359db07074f81c3e65eff96ee5","schema_hash":"bbe7dfc23f7cdbe9177181464154924f39f8632ed97e2c99b80270c686150ba6","evidence_count":7,"source_native_envelopes":true,"page_marker_count":29},
+    {"instance_id":"cg406:subject:6da4240b384242a78455a01fc28e0ed8:SDC-0003","demand_id":"SDC-0003","packet_hash":"687f67473d6c0091b007db70fb4905a65dca6c1479d5ba7b2fee73bb8b2655c6","schema_hash":"467540e482f9927ea4451b8a95ee3f59e35fdcac68ed1c5a8faf7665c8c94e98","evidence_count":6,"source_native_envelopes":true,"page_marker_count":28},
+    {"instance_id":"cg406:subject:78393016b9ad44dd832cfa913b7122ba:SDC-0005","demand_id":"SDC-0005","packet_hash":"2bfa67bc071a37a73d276a38f5db6b00035f3c7df38681b93800f6d67adfe799","schema_hash":"c8ce7e1c86408c331f455f3643b04cb46fd0e6131acd6ddc4cb7ae375302dfa2","evidence_count":5,"source_native_envelopes":true,"page_marker_count":0},
+    {"instance_id":"cg406:subject:1f6be8711c364328b77cf6cb5d5d44ab:SDC-0025","demand_id":"SDC-0025","packet_hash":"a59cc8fa5f4736ad45808fd8a313dca1d473405cec9f2e39da2928490b020144","schema_hash":"9251b820ce2bec8cd527c7b52f072ce4f71c4976ca2d41bef5f8138c691a8d4c","evidence_count":5,"source_native_envelopes":true,"page_marker_count":55},
+    {"instance_id":"cg406:subject:04549d1f5c7f4f658e4e33c8eee4f0fe:SDC-0026","demand_id":"SDC-0026","packet_hash":"63a34a209b0eaa40c9d70599f329b4ec56ed8438f3d5ba56263947e504e6b88d","schema_hash":"592c95254c3a20be089729c182d9a6506004bc7c4c240bcfa165933aa7dd4faf","evidence_count":5,"source_native_envelopes":true,"page_marker_count":31},
+    {"instance_id":"cg406:subject:43db3f46f7274c8382905701f287ec09:SDC-0038","demand_id":"SDC-0038","packet_hash":"80565f480a33a147fc06c72b39982b119758c1df80ac0ac13340db484de9ade2","schema_hash":"321dbcaef69b8c3ab8f74b5dcecf76ce078820850ed167323f4c8e06331a6d26","evidence_count":5,"source_native_envelopes":true,"page_marker_count":30},
+    {"instance_id":"cg406:subject:771dbdb52fe54cb49ebcce20f72bd250:SDC-0007","demand_id":"SDC-0007","packet_hash":"9b2eff328cdc644e02ad039633cf3efcb3f856fda70cbc65cd7bdb69384ab79a","schema_hash":"f1a6387676d9aaf775f5507386be20fd8966b4f47ffd08d4658b8826a559cee3","evidence_count":6,"source_native_envelopes":true,"page_marker_count":0},
+    {"instance_id":"cg406:subject:d0b269be3d5d4b6db24d6d203637dfa5:SDC-0014","demand_id":"SDC-0014","packet_hash":"a340248c62251fa0979c0066af3da9858b554f55788e34d60c868185841f3b6a","schema_hash":"50beddb5fabc4b0e1bc0c78b8c7876672dae78f6573ca62c9384f8450e13f503","evidence_count":4,"source_native_envelopes":true,"page_marker_count":19},
+    {"instance_id":"cg406:subject:96135bad66c645ecb487fba1f059240c:SDC-0028","demand_id":"SDC-0028","packet_hash":"1d10ec4e6f46d728af1077296f406715286abf63db8c83313db99d7cac09f267","schema_hash":"3e55fdb4ea6ac26d463ec50cacbacce0d05f746de09aaad712299f53dfd621de","evidence_count":5,"source_native_envelopes":true,"page_marker_count":40},
+    {"instance_id":"cg406:subject:99d810fb8e6e4ac7adc2ee0dd3e7e095:SDC-0019","demand_id":"SDC-0019","packet_hash":"92ec68d7ffcefa1d40e9d76b8b020070399f536a411b021b1f733a1224f78471","schema_hash":"154714536ff8a271c706b39cf953af55d8fd74cc771490fc0098c0b2689fd1bf","evidence_count":4,"source_native_envelopes":true,"page_marker_count":24},
+    {"instance_id":"cg406:subject:93f185643c194b2da46032afc9521b30:SDC-0052","demand_id":"SDC-0052","packet_hash":"041d6bed08d704c453c7798d7dd47071ec7e49f48b4c03d382cf3a29533745b1","schema_hash":"36390a451917435d157b7548a59d617cea2daaedc4a5eab6dcd9d742bf9547ec","evidence_count":6,"source_native_envelopes":true,"page_marker_count":29}
+  ]
+}

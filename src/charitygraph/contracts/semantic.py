@@ -238,7 +238,7 @@ class DemandRequirementSupport(StrictModel):
     """
 
     requirement_id: str
-    support_state: Literal["supported", "unresolved", "not_established"]
+    support_state: Literal["supported", "guarded", "unresolved", "not_established"]
     evidence_ids: tuple[str, ...] = ()
     qualification: str | None = None
 
@@ -256,13 +256,29 @@ class DemandRequirementSupport(StrictModel):
     def _support_shape(self) -> "DemandRequirementSupport":
         if self.support_state == "supported" and not self.evidence_ids:
             raise ValueError("supported frozen demand requirements require evidence IDs")
-        if self.support_state != "supported" and self.evidence_ids and not self.qualification:
+        # ``guarded`` is deliberately not an evidentiary finding.  It is the
+        # assessor's acknowledgement of an exact frozen non-inference guard;
+        # the packet validator decides whether that state is even available
+        # for the requirement's typed kind.  It must remain qualified so it
+        # cannot be mistaken for a source assertion.
+        if self.support_state == "guarded" and not self.qualification:
+            raise ValueError("guarded frozen demand requirements require a qualification")
+        if self.support_state not in {"supported", "guarded"} and self.evidence_ids and not self.qualification:
             raise ValueError("unresolved or not-established frozen requirements with evidence IDs require a qualification")
         return self
 
 
 class EvidencePropositionSupport(StrictModel):
-    """Mechanical support account for one supplied demand proposition."""
+    """Mechanical account of a model's cited proposition assertion.
+
+    ``scope_basis`` records the model's reading of the cited material.  It is
+    not a machine-proof of semantic entailment: source family/role and the
+    source-native locator are supplied separately in the execution packet,
+    while semantic entailment remains available for adjudication.  The
+    validator therefore checks citations, exact frozen identity, scope/time
+    completeness, and conclusion admissibility without pretending that a
+    categorical model label can interpret source prose.
+    """
 
     proposition_id: str
     support_state: Literal["supported", "unresolved", "not_established"]
@@ -293,8 +309,6 @@ class EvidencePropositionSupport(StrictModel):
                 raise ValueError("supported demand propositions require evidence IDs")
             if self.scope_status == "unresolved" or self.temporal_status == "unresolved":
                 raise ValueError("supported demand propositions require resolved scope and time")
-            if self.scope_basis in {"program_metadata", "beneficiary_category", "charity_address", "program_location", "operational_geography", "unresolved"}:
-                raise ValueError("reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope")
         elif self.evidence_ids and not self.qualification:
             raise ValueError("unresolved or not-established propositions with evidence IDs require a qualification")
         return self
