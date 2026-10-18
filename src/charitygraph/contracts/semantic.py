@@ -215,6 +215,7 @@ class SDGAlignmentOutput(StrictModel):
 class EvidenceSelectionOutput(StrictModel):
     selected_evidence_ids: tuple[str, ...] = ()
     rejected_evidence_ids: tuple[str, ...] = ()
+    demand_requirement_support: tuple["DemandRequirementSupport", ...] = ()
     proposition_support: tuple["EvidencePropositionSupport", ...] = ()
     conclusion: SemanticConclusion
 
@@ -223,6 +224,40 @@ class EvidenceSelectionOutput(StrictModel):
         selected = set(self.selected_evidence_ids)
         if selected & set(self.rejected_evidence_ids):
             raise ValueError("evidence cannot be both selected and rejected")
+        return self
+
+
+class DemandRequirementSupport(StrictModel):
+    """An assessment of one exact, packet-supplied demand requirement.
+
+    Requirement identities are assigned from frozen structured demand bytes.
+    They are not model-generated labels and are deliberately separate from
+    proposition labels, so an assessor cannot silently replace a demanded
+    referent, relation, evidence standard, time obligation, or prohibited
+    inference with a neighbouring claim.
+    """
+
+    requirement_id: str
+    support_state: Literal["supported", "unresolved", "not_established"]
+    evidence_ids: tuple[str, ...] = ()
+    qualification: str | None = None
+
+    @field_validator("requirement_id")
+    @classmethod
+    def _requirement(cls, value: str) -> str:
+        return require_nonblank(value, "requirement_id")
+
+    @field_validator("qualification")
+    @classmethod
+    def _qualification(cls, value: str | None) -> str | None:
+        return None if value is None else require_nonblank(value)
+
+    @model_validator(mode="after")
+    def _support_shape(self) -> "DemandRequirementSupport":
+        if self.support_state == "supported" and not self.evidence_ids:
+            raise ValueError("supported frozen demand requirements require evidence IDs")
+        if self.support_state != "supported" and self.evidence_ids and not self.qualification:
+            raise ValueError("unresolved or not-established frozen requirements with evidence IDs require a qualification")
         return self
 
 

@@ -41,9 +41,14 @@ class GovernedScope:
 
 @dataclass(frozen=True)
 class GovernedIdentityBinding:
+    binding_id: str
     scheme: str
     identifier_value: str
     issuing_authority: str
+    valid_from: str | None
+    valid_to: str | None
+    source_record_ids: tuple[str, ...]
+    material_hash: str
 
 
 @dataclass(frozen=True)
@@ -73,7 +78,7 @@ class SemanticExecutionPacket:
                 for item in self.evidence_units
             ],
             "scopes": [{"scope_id": item.scope_id, "scope_kind": item.scope_kind, "label": item.label} for item in self.scopes],
-            "identity_bindings": [{"scheme": item.scheme, "identifier_value": item.identifier_value, "issuing_authority": item.issuing_authority} for item in self.identity_bindings],
+            "identity_bindings": [item.__dict__ for item in self.identity_bindings],
             "supplied_concept_ids": list(self.supplied_concept_ids),
             "route": self.route,
             "demand": self.demand,
@@ -102,10 +107,23 @@ def _read_catalog_metadata(catalog_path: Path, source_record_ids: set[str], subj
                 raise ExecutionPacketUnready(f"evidence locator is not bound to the retained source record: {locator_id}")
             locators[locator_id] = dict(row)
         scopes = tuple(GovernedScope(str(row[0]), str(row[1]), str(row[2] or "")) for row in conn.execute("SELECT scope_id, scope_kind, label FROM subject_scopes WHERE subject_id=? AND lifecycle_status='active' ORDER BY scope_id", (subject_id,)).fetchall())
-        identities = tuple(GovernedIdentityBinding(str(row[0]), str(row[1]), str(row[2])) for row in conn.execute("SELECT scheme, identifier_value, issuing_authority FROM external_identifiers WHERE subject_id=? AND status='active' ORDER BY scheme, identifier_value, issuing_authority", (subject_id,)).fetchall())
+        identities: list[GovernedIdentityBinding] = []
+        for row in conn.execute("SELECT external_identifier_id, scheme, identifier_value, issuing_authority, valid_from, valid_to, material_json, material_hash FROM external_identifiers WHERE subject_id=? AND status='active' ORDER BY scheme, identifier_value, issuing_authority", (subject_id,)).fetchall():
+            try:
+                material = json.loads(str(row[6]))
+            except json.JSONDecodeError as exc:
+                raise ExecutionPacketUnready(f"governed identity binding is not structured JSON: {row[0]}") from exc
+            source_record_ids = material.get("source_record_ids") if isinstance(material, dict) else None
+            if not isinstance(source_record_ids, list) or not source_record_ids or any(not isinstance(item, str) or not item for item in source_record_ids):
+                raise ExecutionPacketUnready(f"governed identity binding lacks source-record provenance: {row[0]}")
+            identities.append(GovernedIdentityBinding(
+                binding_id=str(row[0]), scheme=str(row[1]), identifier_value=str(row[2]), issuing_authority=str(row[3]),
+                valid_from=None if row[4] is None else str(row[4]), valid_to=None if row[5] is None else str(row[5]),
+                source_record_ids=tuple(source_record_ids), material_hash=str(row[7]),
+            ))
     finally:
         conn.close()
-    return records, locators, scopes, identities
+    return records, locators, scopes, tuple(identities)
 
 
 def _decode_retained(content: bytes, artifact_id: str) -> str:
@@ -119,10 +137,29 @@ def _decode_retained(content: bytes, artifact_id: str) -> str:
         representation = json.loads(decoded)
     except json.JSONDecodeError:
         return decoded
-    pages = representation.get("pages") if isinstance(representation, dict) else None
-    if not isinstance(pages, list):
+    if not isinstance(representation, dict) or not isinstance(representation.get("pages"), list):
         return decoded
-    text = [str(page["text"]) for page in pages if isinstance(page, dict) and isinstance(page.get("text"), str)]
+    return render_source_native_pages(representation, artifact_id)
+
+
+def render_source_native_pages(representation: dict[str, Any], artifact_id: str = "representation") -> str:
+    """Render retained document pages with deterministic source-native locators.
+
+    This is a transport representation only: it preserves every retained page
+    in order and adds its source page number/ordinal.  It performs no lexical
+    relevance ranking, extraction, or interpretation.
+    """
+    pages = representation.get("pages")
+    if not isinstance(pages, list):
+        raise ExecutionPacketUnready(f"retained document representation has no page list: {artifact_id}")
+    text: list[str] = []
+    for ordinal, page in enumerate(pages, start=1):
+        if not isinstance(page, dict) or not isinstance(page.get("text"), str):
+            continue
+        page_number = page.get("page_number", ordinal)
+        if not isinstance(page_number, int) or page_number < 1:
+            page_number = ordinal
+        text.append(f"[source_native_page:{page_number}]\n{page['text']}")
     if not text:
         raise ExecutionPacketUnready(f"retained document representation has no deterministic text: {artifact_id}")
     return "\n\n".join(text)
@@ -195,7 +232,8 @@ def materialize_execution_packet(*, task: dict[str, Any], corpus: dict[str, Any]
     if demand is not None and not isinstance(demand, dict):
         raise ExecutionPacketUnready("task demand binding must be an object")
     proposition_ids = () if not isinstance(demand, dict) else tuple(item["proposition_id"] for item in __import__("charitygraph.frozen_experiment", fromlist=["demand_propositions"]).demand_propositions(demand.get("semantic_signature")))
-    identity_hash = contract.schema_hash_for_packet(tuple(item.evidence_id for item in units), proposition_ids)
+    requirement_ids = () if not isinstance(demand, dict) else tuple(item["requirement_id"] for item in __import__("charitygraph.frozen_experiment", fromlist=["demand_requirements"]).demand_requirements(demand.get("semantic_signature")))
+    identity_hash = contract.schema_hash_for_packet(tuple(item.evidence_id for item in units), proposition_ids, requirement_ids)
     material = {"logical_task_id": task["logical_task_id"], "subject_id": task["subject_id"], "semantic_contract_id": contract.contract_id, "semantic_contract_hash": identity_hash, "evidence_corpus_hash": task["evidence_corpus_hash"], "evidence_units": [item.__dict__ for item in units], "scopes": [item.__dict__ for item in scopes], "identity_bindings": [item.__dict__ for item in identity_bindings], "supplied_concept_ids": [], "route": route, "demand": demand}
     return SemanticExecutionPacket(task["logical_task_id"], task["subject_id"], contract.contract_id, identity_hash, task["evidence_corpus_hash"], units, scopes, identity_bindings, (), route, sha256_json(material), demand)
 
@@ -213,16 +251,18 @@ def render_packet_prompt(packet: SemanticExecutionPacket, contract: SemanticCont
         if not isinstance(demand, dict) or not isinstance(demand.get("demand_id"), str) or not isinstance(demand.get("semantic_signature"), str):
             raise ExecutionPacketUnready("frozen evidence assessment requires a pinned demand ID and signature")
         evidence_text = "\n\n".join(f"[{item.evidence_id}]\n{item.content}" for item in packet.evidence_units)
-        from .frozen_experiment import demand_propositions
+        from .frozen_experiment import demand_propositions, demand_requirements
         propositions = demand_propositions(demand["semantic_signature"])
         proposition_text = "\n".join(f"{item['proposition_id']} | {item['proposition']}" for item in propositions)
-        identity_text = "\n".join(f"{item.scheme} | {item.identifier_value} | {item.issuing_authority}" for item in packet.identity_bindings) or "No active governed authority identifier is available."
+        requirement_text = json.dumps(demand_requirements(demand["semantic_signature"]), ensure_ascii=False, sort_keys=True)
+        identity_text = json.dumps([item.__dict__ for item in packet.identity_bindings], ensure_ascii=False, sort_keys=True) or "[]"
         return (contract.prompt_template.replace("{subject_id}", packet.subject_id)
                 .replace("{demand_id}", demand["demand_id"])
                 .replace("{identity_bindings}", identity_text)
                 .replace("{propositions}", proposition_text)
+                .replace("{demand_requirements}", requirement_text)
                 .replace("{evidence}", evidence_text))
     raise ExecutionPacketUnready(f"no executable packet renderer for {contract.task_profile}")
 
 
-__all__ = ["ExecutionPacketUnready", "EvidenceUnit", "GovernedScope", "GovernedIdentityBinding", "SemanticExecutionPacket", "materialize_execution_packet", "render_packet_prompt"]
+__all__ = ["ExecutionPacketUnready", "EvidenceUnit", "GovernedScope", "GovernedIdentityBinding", "SemanticExecutionPacket", "materialize_execution_packet", "render_packet_prompt", "render_source_native_pages"]

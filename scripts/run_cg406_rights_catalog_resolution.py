@@ -24,6 +24,7 @@ from charitygraph.contracts.ids import deterministic_id
 from charitygraph.evidence_store import ContentAddressedArtifactStore
 from charitygraph.frozen_experiment import prepare_frozen_experiment
 from charitygraph.phase5_baseline_corpus import native_pdf_representation, source_definition
+from charitygraph.phase5_execution_packet import render_source_native_pages
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.source_rights import PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID
 from charitygraph.source_transmission import payload_selection, render_complete_workbook
@@ -150,9 +151,7 @@ def main(args):
     def derived(value, artifact):
         encoded = (json.dumps(value, ensure_ascii=False, sort_keys=True) + "\n").encode(); result = store.put_derived(encoded, input_artifact_ids=(artifact,), created_at=now)
         if isinstance(value.get("pages"), list):
-            rendered = "\n\n".join(str(page["text"]) for page in value["pages"] if isinstance(page, dict) and isinstance(page.get("text"), str))
-            if not rendered: raise RuntimeError("bounded representation has no deterministic text")
-            return result.artifact_id, rendered
+            return result.artifact_id, render_source_native_pages(value, artifact)
         return result.artifact_id, encoded.decode()
 
     def decision(*, artifact, record_id, event, role, receipt, rendered, policy, basis, cls, factual):

@@ -29,6 +29,19 @@ class FrozenExperimentError(RuntimeError):
     """Frozen input, rights, pricing, or lifecycle identity is not exact."""
 
 
+def _frozen_signature(signature: str | None) -> dict[str, Any]:
+    """Load the frozen structured demand without interpreting its prose."""
+    if signature is None:
+        raise ValueError("frozen demand signature is absent")
+    try:
+        value = json.loads(signature)
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise ValueError("frozen demand signature must be structured JSON") from exc
+    if not isinstance(value, dict):
+        raise ValueError("frozen demand signature must be an object")
+    return value
+
+
 def demand_propositions(signature: str | None) -> tuple[dict[str, str], ...]:
     """Assign packet-stable identities to the exact frozen proposition bytes.
 
@@ -36,18 +49,45 @@ def demand_propositions(signature: str | None) -> tuple[dict[str, str], ...]:
     identifier.  This deliberately does not infer, normalize, or paraphrase
     natural language.
     """
-    if signature is None:
-        return ()
-    try:
-        value = json.loads(signature)
-    except (TypeError, json.JSONDecodeError) as exc:
-        raise ValueError("frozen demand signature must be structured JSON") from exc
+    value = _frozen_signature(signature)
     propositions = value.get("propositions") if isinstance(value, dict) else None
     if not isinstance(propositions, list) or not propositions or any(not isinstance(item, str) or not item.strip() for item in propositions):
         raise ValueError("frozen demand signature has no concrete proposition set")
     if len(propositions) != len(set(propositions)):
         raise ValueError("frozen demand signature repeats a proposition")
     return tuple({"proposition_id": "proposition:" + hashlib.sha256(item.encode("utf-8")).hexdigest(), "proposition": item} for item in propositions)
+
+
+def demand_requirements(signature: str | None) -> tuple[dict[str, str], ...]:
+    """Assign stable IDs to the exact typed dimensions of a frozen demand.
+
+    This is intentionally a structural compiler.  It neither classifies nor
+    normalises natural language: every emitted value is an exact value from a
+    named field in the frozen signature.  A future provider must account for
+    these requirements alongside the proposition labels.
+    """
+    value = _frozen_signature(signature)
+    specifications: list[tuple[str, str, str]] = []
+    for field, kind in (("subjects", "referent"), ("joins", "relation"), ("operations", "operation"), ("forbidden", "non_inference")):
+        entries = value.get(field)
+        if not isinstance(entries, list) or not entries or any(not isinstance(item, str) or not item.strip() for item in entries):
+            raise ValueError(f"frozen demand signature has no concrete {field}")
+        specifications.extend((kind, field, item) for item in entries)
+    for field, kind in (("evidence", "evidence_standard"), ("intent", "intent"), ("temporal", "temporal")):
+        item = value.get(field)
+        if not isinstance(item, str) or not item.strip():
+            raise ValueError(f"frozen demand signature has no concrete {field}")
+        specifications.append((kind, field, item))
+    result = []
+    for kind, field, requirement in specifications:
+        material = {"kind": kind, "field": field, "requirement": requirement}
+        result.append({
+            "requirement_id": "requirement:" + _sha(material),
+            "kind": kind,
+            "field": field,
+            "requirement": requirement,
+        })
+    return tuple(result)
 
 
 def validate_evidence_selection(output: Mapping[str, Any], *, allowed_evidence_ids: set[str], demand_signature: str | None = None) -> EvidenceSelectionOutput:
@@ -63,6 +103,7 @@ def validate_evidence_selection(output: Mapping[str, Any], *, allowed_evidence_i
     if not referenced.issubset(allowed_evidence_ids):
         raise ValueError("evidence-selection output references evidence outside its packet")
     required = {item["proposition_id"] for item in demand_propositions(demand_signature)}
+    required_requirements = {item["requirement_id"] for item in demand_requirements(demand_signature)}
     if required:
         support = {item.proposition_id: item for item in parsed.proposition_support}
         if len(support) != len(parsed.proposition_support):
@@ -72,8 +113,18 @@ def validate_evidence_selection(output: Mapping[str, Any], *, allowed_evidence_i
         for item in support.values():
             if not set(item.evidence_ids).issubset(allowed_evidence_ids):
                 raise ValueError("proposition support references evidence outside its packet")
+        requirement_support = {item.requirement_id: item for item in parsed.demand_requirement_support}
+        if len(requirement_support) != len(parsed.demand_requirement_support):
+            raise ValueError("evidence-selection output repeats a frozen demand requirement")
+        if set(requirement_support) != required_requirements:
+            raise ValueError("evidence-selection output must account for every frozen demand requirement exactly once")
+        for item in requirement_support.values():
+            if not set(item.evidence_ids).issubset(allowed_evidence_ids):
+                raise ValueError("demand requirement support references evidence outside its packet")
         if parsed.conclusion.outcome in {"resolved", "supported"} and any(item.support_state != "supported" for item in support.values()):
             raise ValueError("positive evidence-selection conclusion has unresolved material proposition scope")
+        if parsed.conclusion.outcome in {"resolved", "supported"} and any(item.support_state != "supported" for item in requirement_support.values()):
+            raise ValueError("positive evidence-selection conclusion has unresolved frozen demand requirements")
     return parsed
 
 
@@ -118,8 +169,8 @@ def _contract() -> Any:
     return executable_contract_for({
         "task_profile": "evidence_selection", "task_profile_version": "2",
         "claim_family_id": "evidence-selection-v1",
-        "prompt_policy_version": "evidence-selection-v1:prompt-policy:v3-proposition-identity-scope",
-        "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v3",
+        "prompt_policy_version": "evidence-selection-v1:prompt-policy:v4-demand-integrity",
+        "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v4",
     })
 
 
