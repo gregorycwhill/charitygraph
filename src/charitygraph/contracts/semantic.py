@@ -229,17 +229,22 @@ class EvidenceSelectionOutput(StrictModel):
 class EvidencePropositionSupport(StrictModel):
     """Mechanical support account for one supplied demand proposition."""
 
-    proposition: str
+    proposition_id: str
     support_state: Literal["supported", "unresolved", "not_established"]
     evidence_ids: tuple[str, ...] = ()
     scope_status: Literal["subject", "bounded_scope", "unresolved"]
     temporal_status: Literal["satisfied", "unresolved"]
+    scope_basis: Literal[
+        "not_applicable", "direct_service_coverage", "eligibility_criteria",
+        "program_metadata", "beneficiary_category", "charity_address",
+        "program_location", "operational_geography", "unresolved",
+    ]
     qualification: str | None = None
 
-    @field_validator("proposition")
+    @field_validator("proposition_id")
     @classmethod
     def _proposition(cls, value: str) -> str:
-        return require_nonblank(value, "proposition")
+        return require_nonblank(value, "proposition_id")
 
     @field_validator("qualification")
     @classmethod
@@ -253,6 +258,8 @@ class EvidencePropositionSupport(StrictModel):
                 raise ValueError("supported demand propositions require evidence IDs")
             if self.scope_status == "unresolved" or self.temporal_status == "unresolved":
                 raise ValueError("supported demand propositions require resolved scope and time")
+            if self.scope_basis in {"program_metadata", "beneficiary_category", "charity_address", "program_location", "operational_geography", "unresolved"}:
+                raise ValueError("reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope")
         elif self.evidence_ids and not self.qualification:
             raise ValueError("unresolved or not-established propositions with evidence IDs require a qualification")
         return self

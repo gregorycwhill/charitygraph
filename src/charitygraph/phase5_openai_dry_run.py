@@ -317,13 +317,19 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
     model, effort = resolve_model(task)
     contract = executable_contract_for(task)
     evidence_ids = tuple(item.evidence_id for item in packet.evidence_units)
-    schema = contract.schema_for_evidence(evidence_ids)
+    proposition_ids = ()
+    if contract.task_profile == "evidence_selection":
+        from .frozen_experiment import demand_propositions
+        if not isinstance(packet.demand, dict):
+            raise ExecutionPacketUnready("evidence-selection packet has no frozen demand")
+        proposition_ids = tuple(item["proposition_id"] for item in demand_propositions(packet.demand.get("semantic_signature")))
+    schema = contract.schema_for_packet(evidence_ids, proposition_ids)
     _validate_schema(schema)
     if not contract.provider_schema_name:
         raise ValueError(f"contract {contract.contract_id} has no explicit provider schema name")
     schema_name = validate_provider_schema_name(contract.provider_schema_name)
     provider_service_tier = validate_provider_service_tier(provider_service_tier_for_delivery_mode(delivery_mode))
-    schema_hash = contract.schema_hash_for_evidence(evidence_ids)
+    schema_hash = contract.schema_hash_for_packet(evidence_ids, proposition_ids)
     request_item_id = provider_request_identity(task, contract, model=model, reasoning_effort=effort, delivery_mode=delivery_mode, provider_schema_name=schema_name, schema_hash=schema_hash, evidence_ids=evidence_ids, max_output_tokens=DISCOVERY_MAX_OUTPUT_TOKENS)
     prompt = render_packet_prompt(packet, contract)
     evidence_bindings = [
@@ -343,10 +349,10 @@ def serialize_execution_packet_request(task: dict[str, Any], packet: SemanticExe
         "store": False,
         "input": [
             {"role": "developer", "content": [{"type": "input_text", "text": prompt}]},
-            {"role": "user", "content": [{"type": "input_text", "text": json.dumps({"logical_task_id": task["logical_task_id"], "claim_family_id": task["claim_family_id"], "task_profile": task["task_profile"], "prompt_policy_version": task["prompt_policy_version"], "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract": contract.identity_payload(evidence_ids), "evidence_policy": contract.evidence_policy, "evidence_bindings": evidence_bindings}, ensure_ascii=False, sort_keys=True)}]},
+            {"role": "user", "content": [{"type": "input_text", "text": json.dumps({"logical_task_id": task["logical_task_id"], "claim_family_id": task["claim_family_id"], "task_profile": task["task_profile"], "prompt_policy_version": task["prompt_policy_version"], "evidence_corpus_hash": task["evidence_corpus_hash"], "semantic_contract": {**contract.identity_payload(evidence_ids), "packet_schema_sha256": schema_hash, "packet_proposition_ids": list(proposition_ids)}, "evidence_policy": contract.evidence_policy, "evidence_bindings": evidence_bindings}, ensure_ascii=False, sort_keys=True)}]},
         ],
         "text": {"format": {"type": "json_schema", "name": schema_name, "strict": True, "schema": schema}},
-        "metadata": {"logical_task_id": task["logical_task_id"], "provider_request_item_id": request_item_id, "delivery_job_id": delivery_job_id, "claim_family_id": task["claim_family_id"], "semantic_contract_id": contract.contract_id, "semantic_contract_hash": contract.identity_hash(evidence_ids)},
+        "metadata": {"logical_task_id": task["logical_task_id"], "provider_request_item_id": request_item_id, "delivery_job_id": delivery_job_id, "claim_family_id": task["claim_family_id"], "semantic_contract_id": contract.contract_id, "semantic_contract_hash": contract.identity_hash()},
     }
     if provider_service_tier is not None:
         body["service_tier"] = provider_service_tier

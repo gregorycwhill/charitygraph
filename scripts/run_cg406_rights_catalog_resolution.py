@@ -19,7 +19,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from charitygraph.baseline_corpus import CorpusManifest, CorpusMember, build_corpus_manifest, compile_provider_evidence_corpus, extract_pfra_members, resolve_wikipedia_candidate
-from charitygraph.contracts import AcquisitionReceipt, SourceRecord
+from charitygraph.contracts import AcquisitionReceipt, ArtifactRef, ExternalIdentifier, SchemaRef, SourceRecord, SubjectRecord
+from charitygraph.contracts.ids import deterministic_id
 from charitygraph.evidence_store import ContentAddressedArtifactStore
 from charitygraph.frozen_experiment import prepare_frozen_experiment
 from charitygraph.phase5_baseline_corpus import native_pdf_representation, source_definition
@@ -61,14 +62,32 @@ def abr_facts(body: bytes):
     return {"representation_kind": "source_native_structured_facts", "source_format": "html_table", "rows": parser.rows}
 
 
-def report_excerpt(source_path: Path, source_artifact_id: str):
+class SourceNativeHtmlText(HTMLParser):
+    """Mechanical HTML-to-text representation preserving source order only."""
+    def __init__(self):
+        super().__init__(); self.parts=[]; self._ignored=0
+    def handle_starttag(self, tag, attrs):
+        if tag in {"script", "style"}: self._ignored += 1
+    def handle_endtag(self, tag):
+        if tag in {"script", "style"} and self._ignored: self._ignored -= 1
+    def handle_data(self, data):
+        if not self._ignored: self.parts.append(data)
+
+
+def source_native_html_representation(body: bytes, source_artifact_id: str):
+    parser = SourceNativeHtmlText(); parser.feed(body.decode("utf-8", "replace")); parser.close()
+    rendered = text(" ".join(parser.parts))
+    if not rendered: raise RuntimeError(f"official-site source has no deterministic text: {source_artifact_id}")
+    return {"representation_kind": "source_native_html_text", "source_artifact_id": source_artifact_id,
+            "selection_status": "complete_source_native_representation", "text": rendered}
+
+
+def source_native_report_pages(source_path: Path, source_artifact_id: str):
     report = native_pdf_representation(source_path)
-    page_count = len(report["pages"])
-    count = min(5, page_count // 5)
-    if count < 1: count = 1
-    return {"representation_kind": "bounded_pdf_excerpt", "source_artifact_id": source_artifact_id,
-            "source_page_count": page_count, "selected_page_count": count,
-            "pages": report["pages"][:count]}
+    if not report.get("pages"): raise RuntimeError(f"annual report has no deterministic source-native pages: {source_artifact_id}")
+    return {"representation_kind": "source_native_page_set", "source_artifact_id": source_artifact_id,
+            "source_page_count": len(report["pages"]), "selection_status": "complete_source_native_page_set_provider_relevance_pending",
+            "pages": report["pages"]}
 
 
 def source_path(objects: Path, artifact_id: str) -> Path:
@@ -98,6 +117,9 @@ def main(args):
     if output.exists() and (output / "catalog.sqlite3").exists(): raise RuntimeError("output must be a new development runtime")
     output.mkdir(parents=True, exist_ok=True)
     objects = phase5 / "objects"; events = network_events(phase5 / "network-cache")
+    official_objects = args.official_source_runtime.resolve() / "objects"
+    official_events = network_events(args.official_source_runtime.resolve() / "network-cache")
+    official_corpora = args.official_corpus_dir.resolve()
     corpus = json.loads((frozen / "governed-provider-corpus.json").read_text(encoding="utf-8"))
     subjects = json.loads(args.subject_manifest.read_text(encoding="utf-8"))["subjects"]
     subject_by_id = {item["subject_id"]: item for item in subjects}
@@ -108,18 +130,20 @@ def main(args):
     now = datetime.now(UTC)
     classifications=[]; decisions=[]; corpora=[]; copied=set()
 
-    def put_existing(artifact_id):
+    def put_existing(artifact_id, roots=(objects,)):
         if artifact_id in copied: return
-        origin = (frozen / "objects" if (frozen / "objects" / "objects" / "sha256" / artifact_id.split(":",1)[1][:2] / artifact_id.split(":",1)[1]).exists() else objects)
+        candidates = (frozen / "objects", *roots)
+        origin = next((root for root in candidates if source_path(root, artifact_id).is_file()), None)
+        if origin is None: raise RuntimeError(f"retained artifact is missing from governed roots: {artifact_id}")
         body = source_path(origin, artifact_id).read_bytes(); stored = store.put(body, created_at=now)
         if stored.artifact_id != artifact_id: raise RuntimeError("source artifact hash drift")
         copied.add(artifact_id)
 
-    def record(row, family, role, receipt_id):
-        artifact = row["artifact_ids"][0]; digest = artifact.split(":",1)[1]; event = events.get(digest)
+    def record(row, family, role, receipt_id, *, event_map=events, roots=(objects,)):
+        artifact = row["artifact_ids"][0]; digest = artifact.split(":",1)[1]; event = event_map.get(digest)
         if event is None: raise RuntimeError(f"missing retained acquisition metadata: {artifact}")
-        definition = source_definition(family, now); catalog.register_source_definition(definition); put_existing(artifact)
-        catalog.record_acquisition_receipt(AcquisitionReceipt(record_id=receipt_id, created_at=now, producer={"kind":"code","producer_id":"cg406-rights-catalog-resolution","version":"1"}, source_definition_id=definition.record_id, requested_locator=event["requested_url"], resolved_locator=event.get("resolved_url") or event["requested_url"], retrieved_at=now, outcome="available", response_status=event.get("response_status") or 200, media_type=event.get("media_type") or "application/octet-stream", content_hash=digest, byte_size=len(source_path(objects, artifact).read_bytes()), artifact_id=artifact, tool_id="reconstructed_from_governed_receipt", tool_version="1"))
+        definition = source_definition(family, now); catalog.register_source_definition(definition); put_existing(artifact, roots)
+        catalog.record_acquisition_receipt(AcquisitionReceipt(record_id=receipt_id, created_at=now, producer={"kind":"code","producer_id":"cg406-rights-catalog-resolution","version":"1"}, source_definition_id=definition.record_id, requested_locator=event["requested_url"], resolved_locator=event.get("resolved_url") or event["requested_url"], retrieved_at=now, outcome="available", response_status=event.get("response_status") or 200, media_type=event.get("media_type") or "application/octet-stream", content_hash=digest, byte_size=len(source_path(next(root for root in roots if source_path(root, artifact).is_file()), artifact).read_bytes()), artifact_id=artifact, tool_id="reconstructed_from_governed_receipt", tool_version="1"))
         catalog.register_source_record(SourceRecord(record_id=row["source_record_ids"][0], created_at=now, producer={"kind":"code","producer_id":"cg406-rights-catalog-resolution","version":"1"}, source_family=family, source_role=role, source_version=row.get("effective_period"), source_locator=event.get("resolved_url") or event["requested_url"], observed_at=now, retrieved_at=now, media_type=event.get("media_type") or "application/octet-stream", payload_ref=artifact, payload_hash=digest, attribution=definition.publisher))
         return event, artifact
 
@@ -141,6 +165,24 @@ def main(args):
         put_existing(row["payload_ref"]); catalog.register_source_record(SourceRecord.model_validate(row))
     decisions.extend(old_rights)
 
+    # The frozen subject manifest is governed identity knowledge.  Rebind its
+    # exact ABN to the durable subject and the packet's retained ACNC record;
+    # this is context for the assessor, not a demand that every source repeat
+    # CharityGraph's opaque internal subject ID.
+    for subject in subjects:
+        subject_id, abn = subject["subject_id"], str(subject["abn"])
+        corpus_row = next(item for item in corpus["corpora"] if item["subject_id"] == subject_id)
+        acnc = next(item for item in corpus_row["material_members"] if item["source_family"] == "acnc_register")
+        artifact = acnc["artifact_ids"][0]
+        catalog.register_subject(SubjectRecord(
+            record_id=deterministic_id("subjectrecord:", {"subject_id":subject_id,"abn":abn,"source_record_id":acnc["source_record_ids"][0]}),
+            created_at=now, producer={"kind":"code","producer_id":"cg406-rights-catalog-resolution","version":"2"},
+            subject_id=subject_id, subject_kind="organisation", lifecycle_status="active", display_name=subject.get("display_name"),
+            external_identifiers=(ExternalIdentifier(scheme="ABN", value=abn, issuing_authority="Australian Business Register", source_record_ids=(acnc["source_record_ids"][0],)),),
+            identity_authority_refs=(ArtifactRef(artifact_id=acnc["source_record_ids"][0], content_hash=artifact.split(":",1)[1], schema=SchemaRef(schema_id="urn:charitygraph:builder:schema:source-record:1.0", schema_version="1.0")),),
+            identity_policy_id=str(subject.get("identity_policy_id") or "acnc-registered-charity-bootstrap-v1"),
+        ))
+
     for corpus_row in corpus["corpora"]:
         subject_id=corpus_row["subject_id"]; member_rows=[]
         for item in corpus_row["material_members"]: member_rows.append(item)
@@ -153,8 +195,12 @@ def main(args):
                 if body.startswith(b"%PDF-"):
                     # The excerpt is selected for payload economy, not because
                     # the full public report lacks transmission permission.
-                    value=report_excerpt(source_path(objects,artifact),artifact)
-                    payload_reason="economic_optimization"
+                    value=source_native_report_pages(source_path(objects,artifact),artifact)
+                    # Payload-selection's stable enum records that no
+                    # rights narrowing occurred.  The representation itself
+                    # records that source-native page provenance is retained
+                    # pending a later bounded relevance task.
+                    payload_reason="transport_rendering"
                 else:
                     # Complete source-native workbook transport rendering: no
                     # sheet, range, or cell limit is imposed by rights policy.
@@ -180,6 +226,19 @@ def main(args):
             else:
                 entry["payload_classification"] = "SOURCE_NATIVE_STRUCTURED_FACTUAL_PAYLOAD"
             classifications.append(entry)
+        official_path = official_corpora / (str(corpus_row["abn"]) + ".json")
+        if official_path.is_file():
+            official_manifest = json.loads(official_path.read_text(encoding="utf-8"))
+            sites = [item for item in official_manifest.get("material_members", []) if item.get("source_family") == "official_website" and item.get("acquisition") in {"available", "partial"} and item.get("subject_binding") == "bound"]
+            if len(sites) > 1: raise RuntimeError(f"multiple governed official-site members for frozen subject: {subject_id}")
+            if sites:
+                site = sites[0]; receipt = site["acquisition_receipt_ids"][0]
+                event, artifact = record(site, "official_website", "official_homepage", receipt, event_map=official_events, roots=(official_objects,))
+                value = source_native_html_representation(source_path(official_objects, artifact).read_bytes(), artifact)
+                representation, rendered = derived(value, artifact)
+                decision(artifact=artifact, record_id=site["source_record_ids"][0], event=event, role="official_homepage", receipt=receipt, rendered=rendered, policy=PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID, basis="public_source_private_processing", cls="complete_or_near_complete_work", factual=False)
+                member_rows.append({**site, "representation_artifact_ids":[representation], "representation_readiness":"ready"})
+                classifications.append({"subject_id":subject_id,"source_family":"official_website","source_record_id":site["source_record_ids"][0],"source_artifact_id":artifact,"catalog_classification":"CATALOG_MECHANICAL_GAP","rights_classification":"RIGHTS_ALREADY_DETERMINED_ALLOW","proposed_representation":value["representation_kind"],"rights_policy_id":PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID,"payload_classification":"SOURCE_NATIVE_COMPLETE_REPRESENTATION","result":"ALLOW"})
         manifests=[CorpusMember.model_validate(x) for x in member_rows]
         corpora.append(build_corpus_manifest(subject_id=subject_id,profile_version="cg406-development-rights-resolution-v1",members=manifests).model_dump(mode="json"))
     catalog.close()
@@ -195,4 +254,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser=argparse.ArgumentParser(); parser.add_argument("--frozen",type=Path,required=True); parser.add_argument("--phase5",type=Path,required=True); parser.add_argument("--subject-manifest",type=Path,required=True); parser.add_argument("--demand-manifest",type=Path,required=True); parser.add_argument("--output",type=Path,required=True); main(parser.parse_args())
+    parser=argparse.ArgumentParser(); parser.add_argument("--frozen",type=Path,required=True); parser.add_argument("--phase5",type=Path,required=True); parser.add_argument("--official-source-runtime",type=Path,required=True); parser.add_argument("--official-corpus-dir",type=Path,required=True); parser.add_argument("--subject-manifest",type=Path,required=True); parser.add_argument("--demand-manifest",type=Path,required=True); parser.add_argument("--output",type=Path,required=True); main(parser.parse_args())

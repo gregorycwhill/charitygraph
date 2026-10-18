@@ -1,5 +1,6 @@
 import hashlib
 import json
+from copy import deepcopy
 from datetime import datetime, timezone
 
 from charitygraph.contracts import SourceRecord
@@ -8,7 +9,7 @@ from charitygraph.baseline_corpus import AcquisitionState, BindingState, CorpusM
 from charitygraph.evidence_store import ContentAddressedArtifactStore
 import pytest
 
-from charitygraph.frozen_experiment import execute_prepared_standard, prepare_frozen_experiment, validate_evidence_selection
+from charitygraph.frozen_experiment import demand_propositions, execute_prepared_standard, prepare_frozen_experiment, validate_evidence_selection
 from charitygraph.phase5_semantic_contracts import executable_contract_for
 from charitygraph.phase5_standard_transport import StandardProviderResponse
 from charitygraph.runtime import SQLiteCatalog
@@ -26,17 +27,77 @@ class _Provider:
 
 
 def test_evidence_selection_schema_binds_all_evidence_reference_fields_and_requires_scope_accounting():
-    contract = executable_contract_for({"task_profile": "evidence_selection", "task_profile_version": "2", "claim_family_id": "evidence-selection-v1", "prompt_policy_version": "evidence-selection-v1:prompt-policy:v2-demand-scope", "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v2"})
-    schema = contract.schema_for_evidence(("evidence:one", "evidence:two"))
-    rendered = json.dumps(schema)
-    assert "evidence:one" in rendered and "evidence:two" in rendered
+    contract = executable_contract_for({"task_profile": "evidence_selection", "task_profile_version": "2", "claim_family_id": "evidence-selection-v1", "prompt_policy_version": "evidence-selection-v1:prompt-policy:v3-proposition-identity-scope", "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v3"})
     signature = json.dumps({"propositions": ["claim-a", "claim-b"]})
-    output = {"selected_evidence_ids": ["evidence:one"], "rejected_evidence_ids": ["evidence:two"], "proposition_support": [{"proposition": "claim-a", "support_state": "supported", "evidence_ids": ["evidence:one"], "scope_status": "subject", "temporal_status": "satisfied"}, {"proposition": "claim-b", "support_state": "unresolved", "evidence_ids": ["evidence:two"], "scope_status": "unresolved", "temporal_status": "unresolved", "qualification": "packet does not establish the required scope"}], "conclusion": {"outcome": "insufficient_evidence", "evidence": [{"evidence_id": "evidence:one", "role": "supporting"}]}}
+    proposition_ids = tuple(item["proposition_id"] for item in demand_propositions(signature))
+    schema = contract.schema_for_packet(("evidence:one", "evidence:two"), proposition_ids)
+    rendered = json.dumps(schema)
+    assert "evidence:one" in rendered and "evidence:two" in rendered and all(item in rendered for item in proposition_ids)
+    output = {"selected_evidence_ids": ["evidence:one"], "rejected_evidence_ids": ["evidence:two"], "proposition_support": [{"proposition_id": proposition_ids[0], "support_state": "supported", "evidence_ids": ["evidence:one"], "scope_status": "subject", "temporal_status": "satisfied", "scope_basis": "not_applicable"}, {"proposition_id": proposition_ids[1], "support_state": "unresolved", "evidence_ids": ["evidence:two"], "scope_status": "unresolved", "temporal_status": "unresolved", "scope_basis": "unresolved", "qualification": "packet does not establish the required scope"}], "conclusion": {"outcome": "insufficient_evidence", "evidence": [{"evidence_id": "evidence:one", "role": "supporting"}]}}
     parsed = validate_evidence_selection(output, allowed_evidence_ids={"evidence:one", "evidence:two"}, demand_signature=signature)
-    assert parsed.proposition_support[1].support_state == "unresolved"
+    assert parsed.proposition_support[1].proposition_id == proposition_ids[1]
     output["conclusion"]["evidence"][0]["evidence_id"] = "evidence:other"
     with pytest.raises(ValueError, match="outside its packet"):
         validate_evidence_selection(output, allowed_evidence_ids={"evidence:one", "evidence:two"}, demand_signature=signature)
+
+
+def test_packet_proposition_identities_fail_closed_for_generic_noncanonical_patterns():
+    signature = json.dumps({"propositions": ["one frozen proposition", "another frozen proposition"]})
+    ids = [item["proposition_id"] for item in demand_propositions(signature)]
+    valid = {
+        "selected_evidence_ids": ["evidence:one"],
+        "rejected_evidence_ids": [],
+        "proposition_support": [
+            {"proposition_id": ids[0], "support_state": "supported", "evidence_ids": ["evidence:one"], "scope_status": "subject", "temporal_status": "satisfied", "scope_basis": "not_applicable"},
+            {"proposition_id": ids[1], "support_state": "not_established", "evidence_ids": [], "scope_status": "unresolved", "temporal_status": "unresolved", "scope_basis": "unresolved", "qualification": "not shown in the packet"},
+        ],
+        "conclusion": {"outcome": "insufficient_evidence", "evidence": [{"evidence_id": "evidence:one", "role": "supporting"}]},
+    }
+    # These cover label paraphrase, raw demand text, case/punctuation drift,
+    # a foreign identifier, duplicate coverage, omission, and substitution.
+    mutations = (
+        lambda value: value["proposition_support"][0].update({"proposition_id": "proposition:paraphrased"}),
+        lambda value: value["proposition_support"][0].update({"proposition_id": "one frozen proposition"}),
+        lambda value: value["proposition_support"][0].update({"proposition_id": ids[0].upper()}),
+        lambda value: value["proposition_support"][0].update({"proposition_id": ids[0] + " "}),
+        lambda value: value["proposition_support"][0].update({"proposition_id": "proposition:" + "0" * 64}),
+        lambda value: value["proposition_support"].__setitem__(1, {**value["proposition_support"][1], "proposition_id": ids[0]}),
+        lambda value: value["proposition_support"].pop(),
+        lambda value: value["proposition_support"].reverse(),
+    )
+    for mutate in mutations[:-1]:
+        candidate = deepcopy(valid)
+        mutate(candidate)
+        with pytest.raises(ValueError):
+            validate_evidence_selection(candidate, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
+    # Reordering itself is harmless: exact identity coverage, not response order,
+    # is the contract.
+    reordered = deepcopy(valid)
+    mutations[-1](reordered)
+    assert validate_evidence_selection(reordered, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
+
+
+def test_partial_support_and_service_scope_boundaries_remain_explicit():
+    signature = json.dumps({"propositions": ["service cohort proposition", "time proposition"]})
+    ids = [item["proposition_id"] for item in demand_propositions(signature)]
+    partial = {
+        "selected_evidence_ids": ["evidence:one"], "rejected_evidence_ids": [],
+        "proposition_support": [
+            {"proposition_id": ids[0], "support_state": "unresolved", "evidence_ids": ["evidence:one"], "scope_status": "unresolved", "temporal_status": "satisfied", "scope_basis": "program_location", "qualification": "program location does not establish eligible service cohort"},
+            {"proposition_id": ids[1], "support_state": "supported", "evidence_ids": ["evidence:one"], "scope_status": "subject", "temporal_status": "satisfied", "scope_basis": "not_applicable"},
+        ],
+        "conclusion": {"outcome": "insufficient_evidence", "evidence": [{"evidence_id": "evidence:one", "role": "supporting"}]},
+    }
+    assert validate_evidence_selection(partial, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
+    positive = deepcopy(partial)
+    positive["conclusion"]["outcome"] = "supported"
+    positive["conclusion"]["rationale"] = "one proposition is asserted as supported"
+    with pytest.raises(ValueError, match="unresolved material proposition scope"):
+        validate_evidence_selection(positive, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
+    weak_positive = deepcopy(partial)
+    weak_positive["proposition_support"][0].update({"support_state": "supported", "scope_status": "subject", "scope_basis": "beneficiary_category"})
+    with pytest.raises(ValueError, match="cannot alone establish"):
+        validate_evidence_selection(weak_positive, allowed_evidence_ids={"evidence:one"}, demand_signature=signature)
 
 
 def test_prepare_and_provider_free_standard_rehearsal_uses_durable_lifecycle(tmp_path):
@@ -56,7 +117,7 @@ def test_prepare_and_provider_free_standard_rehearsal_uses_durable_lifecycle(tmp
     rights = tmp_path / "rights.json"
     pricing = runtime / "frozen-pricing-snapshot.json"
     subject_manifest.write_text(json.dumps({"selection_state": "FROZEN_BEFORE_SEMANTIC_RESULT_INSPECTION", "subjects": [{"subject_id": subject}]}), encoding="utf-8")
-    demand_manifest.write_text(json.dumps({"selection_state": "FROZEN_BEFORE_SEMANTIC_RESULT_INSPECTION", "instances": [{"instance_id": "instance:fixture", "subject_id": subject, "demand_id": "demand:fixture", "semantic_signature": "fixture demand"}]}), encoding="utf-8")
+    demand_manifest.write_text(json.dumps({"selection_state": "FROZEN_BEFORE_SEMANTIC_RESULT_INSPECTION", "instances": [{"instance_id": "instance:fixture", "subject_id": subject, "demand_id": "demand:fixture", "semantic_signature": json.dumps({"propositions": ["fixture proposition"]})}]}), encoding="utf-8")
     governed = compile_provider_evidence_corpus([build_corpus_manifest(
         subject_id=subject, profile_version="baseline-v1", members=[CorpusMember(
             source_family="acnc_register", source_definition_id="srcdef:fixture",

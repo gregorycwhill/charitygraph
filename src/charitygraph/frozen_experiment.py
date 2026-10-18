@@ -29,9 +29,15 @@ class FrozenExperimentError(RuntimeError):
     """Frozen input, rights, pricing, or lifecycle identity is not exact."""
 
 
-def _demand_propositions(signature: str | None) -> set[str]:
+def demand_propositions(signature: str | None) -> tuple[dict[str, str], ...]:
+    """Assign packet-stable identities to the exact frozen proposition bytes.
+
+    The provider sees an identifier and its frozen text, but returns only the
+    identifier.  This deliberately does not infer, normalize, or paraphrase
+    natural language.
+    """
     if signature is None:
-        return set()
+        return ()
     try:
         value = json.loads(signature)
     except (TypeError, json.JSONDecodeError) as exc:
@@ -39,7 +45,9 @@ def _demand_propositions(signature: str | None) -> set[str]:
     propositions = value.get("propositions") if isinstance(value, dict) else None
     if not isinstance(propositions, list) or not propositions or any(not isinstance(item, str) or not item.strip() for item in propositions):
         raise ValueError("frozen demand signature has no concrete proposition set")
-    return set(propositions)
+    if len(propositions) != len(set(propositions)):
+        raise ValueError("frozen demand signature repeats a proposition")
+    return tuple({"proposition_id": "proposition:" + hashlib.sha256(item.encode("utf-8")).hexdigest(), "proposition": item} for item in propositions)
 
 
 def validate_evidence_selection(output: Mapping[str, Any], *, allowed_evidence_ids: set[str], demand_signature: str | None = None) -> EvidenceSelectionOutput:
@@ -54,9 +62,9 @@ def validate_evidence_selection(output: Mapping[str, Any], *, allowed_evidence_i
     referenced |= {item.evidence_id for item in parsed.conclusion.evidence}
     if not referenced.issubset(allowed_evidence_ids):
         raise ValueError("evidence-selection output references evidence outside its packet")
-    required = _demand_propositions(demand_signature)
+    required = {item["proposition_id"] for item in demand_propositions(demand_signature)}
     if required:
-        support = {item.proposition: item for item in parsed.proposition_support}
+        support = {item.proposition_id: item for item in parsed.proposition_support}
         if len(support) != len(parsed.proposition_support):
             raise ValueError("evidence-selection output repeats a frozen demand proposition")
         if set(support) != required:
@@ -110,8 +118,8 @@ def _contract() -> Any:
     return executable_contract_for({
         "task_profile": "evidence_selection", "task_profile_version": "2",
         "claim_family_id": "evidence-selection-v1",
-        "prompt_policy_version": "evidence-selection-v1:prompt-policy:v2-demand-scope",
-        "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v2",
+        "prompt_policy_version": "evidence-selection-v1:prompt-policy:v3-proposition-identity-scope",
+        "schema_version": "urn:charitygraph:frozen-experiment:evidence-selection:v3",
     })
 
 
@@ -225,7 +233,7 @@ def prepare_frozen_experiment(*, subject_manifest: Path, demand_manifest: Path, 
             catalog.create_provider_request_item(provider_request_item_id=compiled.provider_request_item_id, run_id=run_id, model_task_id=task["logical_task_id"], provider_id="openai", model_route="gpt-5.6-luna", requested_delivery_mode="standard", effective_service_tier="standard", delivery_job_id=job_id, physical_attempt_id=physical_id, now=timestamp)
             catalog.create_provider_request_attempt(delivery_attempt_id=delivery_id, provider_request_item_id=compiled.provider_request_item_id, physical_attempt_id=physical_id, delivery_job_id=job_id, attempt_ordinal=1, authorization_id=mandate_id, attempt_class="initial", predecessor_attempt_id=None, now=timestamp)
             schema = frozen_body["text"]["format"]["schema"]
-            rows.append({"instance_id": instance["instance_id"], "provider": "openai", "provider_account_project": provider_account_project, "provider_request_item_id": compiled.provider_request_item_id, "logical_task_id": task["logical_task_id"], "contract_id": contract.contract_id, "contract_version": contract.contract_version, "contract_identity_hash": contract.identity_hash(tuple(unit.evidence_id for unit in packet.evidence_units)), "schema_factory_id": contract.schema_factory_id, "task_profile": contract.task_profile, "task_profile_version": contract.task_profile_version, "prompt_sha256": contract.prompt_sha256, "schema_id": contract.schema_id, "schema_version": contract.schema_version, "schema_hash": _sha(schema), "provider_schema_name": compiled.schema_name, "model": compiled.model, "reasoning_effort": "low", "delivery_mode": "standard", "provider_service_tier": None, "max_output_tokens": 8000, "request_body": frozen_body, "request_body_sha256": body_sha256(canonical_standard_body_bytes(frozen_body)), "hard_max_aud": bound["aud"], "hard_max_usd": bound["usd"], "reservation_id": reservation_id, "mandate_reservation_id": reservation_id, "physical_attempt_id": physical_id, "delivery_attempt_id": delivery_id, "scope_id": None, "evidence_ids": [unit.evidence_id for unit in packet.evidence_units], "packet_hash": packet.packet_hash})
+            rows.append({"instance_id": instance["instance_id"], "provider": "openai", "provider_account_project": provider_account_project, "provider_request_item_id": compiled.provider_request_item_id, "logical_task_id": task["logical_task_id"], "contract_id": contract.contract_id, "contract_version": contract.contract_version, "contract_identity_hash": contract.identity_hash(), "schema_factory_id": contract.schema_factory_id, "task_profile": contract.task_profile, "task_profile_version": contract.task_profile_version, "prompt_sha256": contract.prompt_sha256, "schema_id": contract.schema_id, "schema_version": contract.schema_version, "schema_hash": _sha(schema), "provider_schema_name": compiled.schema_name, "model": compiled.model, "reasoning_effort": "low", "delivery_mode": "standard", "provider_service_tier": None, "max_output_tokens": 8000, "request_body": frozen_body, "request_body_sha256": body_sha256(canonical_standard_body_bytes(frozen_body)), "hard_max_aud": bound["aud"], "hard_max_usd": bound["usd"], "reservation_id": reservation_id, "mandate_reservation_id": reservation_id, "physical_attempt_id": physical_id, "delivery_attempt_id": delivery_id, "scope_id": None, "evidence_ids": [unit.evidence_id for unit in packet.evidence_units], "packet_hash": packet.packet_hash})
     finally:
         catalog.close()
     # Packet compilation may share schema internals across rows. Recompute the
@@ -319,4 +327,4 @@ def execute_prepared_standard(*, prepared: Mapping[str, Any], catalog_path: Path
         catalog.close()
 
 
-__all__ = ["FrozenExperimentError", "load_frozen_instances", "validate_evidence_selection", "prepare_frozen_experiment", "execute_prepared_standard"]
+__all__ = ["FrozenExperimentError", "demand_propositions", "load_frozen_instances", "validate_evidence_selection", "prepare_frozen_experiment", "execute_prepared_standard"]
