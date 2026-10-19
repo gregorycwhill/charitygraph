@@ -25,6 +25,7 @@ RepresentationClass = Literal[
 FAIR_DEALING_POLICY_ID = "AU_FAIR_DEALING_ANALYTICAL_PROCESSING_V1"
 PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID = "CG_PUBLIC_SOURCE_PRIVATE_PROVIDER_TRANSMISSION_V1"
 OPENAI_PROVIDER_POLICY_ID = "OPENAI_API_BUSINESS_NO_TRAINING_DEFAULT_AS_OF_2026_09_13_V1"
+PUBLIC_FACTS_ONLY_POLICY_ID = "PUBLIC_FACTS_ONLY_V1"
 RIGHTS_POLICY_REGISTRY = {
     FAIR_DEALING_POLICY_ID: {
         "version": "1.0.0",
@@ -43,7 +44,7 @@ RIGHTS_POLICY_REGISTRY = {
     },
     "CC_BY_3_0_AU_V1": {"version": "1.0.0", "basis": "explicit_open_license"},
     "CC_BY_4_0_V1": {"version": "1.0.0", "basis": "explicit_open_license"},
-    "PUBLIC_FACTS_ONLY_V1": {"version": "1.0.0", "basis": "public_facts_only"},
+    PUBLIC_FACTS_ONLY_POLICY_ID: {"version": "1.0.0", "basis": "public_facts_only"},
 }
 _ANALYTICAL_PURPOSES = {
     "charitygraph_research", "semantic_analysis", "classification", "extraction",
