@@ -22,7 +22,7 @@ JSON object only after the destination trust/egress boundary is explicitly
 authorised:
 
 ```json
-{"authority":{"approved":true,"authority_envelope":"gate4-local","source":"chatgpt"},"content":"Record a harmless transport probe only; do not start a watcher, call a provider, acquire sources, publish, merge, or modify product state.","content_sha256":"1e107d80657d02763fc6a85a5e3b38af1065d6f790ae75b25f0ba45da11081e7","created_at":"2026-10-20T12:30:00+00:00","instruction_id":"gate4:supervisory-roundtrip:20261020","operation":"bridge_probe","schema_version":"charitygraph.autonomous-instruction/v1","target":{"branch":"gate3-cg406-remediation","head":"a23993efd697c200eddfb5f029c08c6f9372160a","model":"luna-high","repository":"charitygraph","workspace_path":"C:\\CharityGraph-clean\\charitygraph"}}
+{"authority":{"approved":true,"authority_envelope":"gate4-local","source":"chatgpt"},"content":"Record a harmless transport probe only; do not start a watcher, call a provider, acquire sources, publish, merge, or modify product state.","content_sha256":"1e107d80657d02763fc6a85a5e3b38af1065d6f790ae75b25f0ba45da11081e7","created_at":"2026-10-20T12:30:00+00:00","instruction_id":"gate4:supervisory-roundtrip:20261020","operation":"bridge_probe","schema_version":"charitygraph.autonomous-instruction/v1","target":{"branch":"gate3-cg406-remediation","head":"91c00bc5530beee12facb155013078f1c28d27bf","model":"luna-high","repository":"charitygraph","workspace_path":"C:\\CharityGraph-clean\\charitygraph"}}
 ```
 
 The `content_sha256` is the SHA-256 of the exact `content` string, not of the
