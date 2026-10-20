@@ -28,7 +28,7 @@ from charitygraph.runtime import SQLiteCatalog
 
 
 EVIDENCE = ROOT / "evidence" / "gate3-final-semantic-review" / "case-assessments.json"
-RUNTIME = ROOT / "runtime" / "gate4-autonomous-loop-20261020"
+RUNTIME = ROOT / "runtime" / "gate4-autonomous-loop-20261020-commit2"
 NOW = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
 
 
@@ -151,7 +151,7 @@ def run_builder_demo(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def run_restart_demo() -> dict[str, Any]:
-    db = RUNTIME / "restart-v2.sqlite3"
+    db = RUNTIME / "restart-v4.sqlite3"
     catalog = SQLiteCatalog(db).open(initialize=True)
     cohort_id, run_id = "cohort:gate4-restart-20261020", "run:gate4-restart-20261020"
     register(catalog, cohort_id, run_id)
@@ -180,7 +180,7 @@ def main() -> None:
     rows = subject_rows()
     bridge = LocalAutonomousBridge(RUNTIME / "bridge", workspace=ROOT).open()
     instruction = InstructionEnvelope.create(
-        instruction_id="gate4:autonomous-builder-demo:20261020:v3",
+        instruction_id="gate4:autonomous-builder-demo:20261020:v5",
         content="Execute the private provider-free Gate 4 Builder rehearsal over three retained Gate 3 review subjects; no acquisition, paid provider call, promotion, publication, merge or gate decision.",
         target={"repository": "charitygraph", "workspace_path": str(ROOT), "branch": branch, "head": head},
         created_at=NOW,
