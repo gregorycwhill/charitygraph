@@ -211,7 +211,7 @@ class LocalAutonomousBridge:
 
     def _verify_target(self, envelope: InstructionEnvelope) -> dict[str, Any]:
         target = envelope.target
-        observed: dict[str, Any] = {"repository": target["repository"], "workspace_path": target["workspace_path"], "branch": target["branch"], "expected_head": target["head"]}
+        observed: dict[str, Any] = {"repository": target["repository"], "workspace_path": target["workspace_path"], "branch": target["branch"], "expected_head": target["head"], "model": target["model"]}
         if self.workspace is None:
             observed["verified"] = False
             observed["verification_note"] = "host workspace was not configured"
@@ -388,6 +388,19 @@ class LocalAutonomousBridge:
             if result.get("error_json"):
                 result["error"] = json.loads(result.pop("error_json"))
             return result
+
+    def status_summary(self, instruction_id: str) -> dict[str, Any]:
+        """Return concise human-readable status backed by the durable row."""
+        row = self.inspect(instruction_id)
+        return {
+            "instruction_id": instruction_id,
+            "status": row["status"],
+            "owner": row["owner"],
+            "attempts": row["attempts"],
+            "result_path": row["result_path"],
+            "result_sha256": row["result_sha256"],
+            "updated_at": row["updated_at"],
+        }
 
     def events(self, instruction_id: str) -> list[dict[str, Any]]:
         with self._connect() as conn:

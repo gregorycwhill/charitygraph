@@ -53,6 +53,7 @@ def test_claim_and_result_are_durable_and_single_owner(tmp_path):
     assert done["status"] == "complete"
     assert bridge.inspect("gate4:test")["status"] == "complete"
     assert bridge.complete("gate4:test", owner="watcher-a", result={"different": True})["result_sha256"] == done["result_sha256"]
+    assert bridge.status_summary("gate4:test")["status"] == "complete"
 
 
 def test_stale_lease_requires_explicit_reconciliation(tmp_path):

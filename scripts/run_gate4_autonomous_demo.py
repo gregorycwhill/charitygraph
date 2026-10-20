@@ -182,7 +182,7 @@ def main() -> None:
     instruction = InstructionEnvelope.create(
         instruction_id="gate4:autonomous-builder-demo:20261020:v5",
         content="Execute the private provider-free Gate 4 Builder rehearsal over three retained Gate 3 review subjects; no acquisition, paid provider call, promotion, publication, merge or gate decision.",
-        target={"repository": "charitygraph", "workspace_path": str(ROOT), "branch": branch, "head": head},
+        target={"repository": "charitygraph", "workspace_path": str(ROOT), "branch": branch, "head": head, "model": "luna-high"},
         created_at=NOW,
     )
     submission = bridge.submit(instruction)
