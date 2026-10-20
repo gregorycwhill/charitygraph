@@ -210,7 +210,19 @@ class CutoverWatcher:
             "error": error,
             "last_result": result,
         }
-        _atomic_write(self.status_path, payload)
+        status_bytes = _json_bytes(payload)
+        status_error: PermissionError | None = None
+        for attempt in range(12):
+            try:
+                self.status_path.parent.mkdir(parents=True, exist_ok=True)
+                self.status_path.write_bytes(status_bytes)
+                status_error = None
+                break
+            except PermissionError as exc:
+                status_error = exc
+                time.sleep(0.5 * (attempt + 1))
+        if status_error is not None:
+            raise status_error
         _atomic_write(self.runtime_root / "status.json", payload)
 
     def preflight(self) -> dict[str, Any]:
