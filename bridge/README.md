@@ -1,4 +1,4 @@
-# Controlled G4-O1B bridge cutover
+# Controlled G4-O1C bridge cutover
 
 The sole supported entrypoint for the cutover is:
 
@@ -13,7 +13,15 @@ canonical UTF-8 JSON line followed by LF and contain the
 claims the legacy queue, supervisor inbox, technical-spec Markdown, campaign
 state, or historical `.json` files.
 
-The only enabled cutover operation is `bridge_probe`. It records a harmless
-transport result and performs no product, provider, source, publication, or
-GitHub action. The adapter owns the only claim ledger; the launcher owns only
-process supervision.
+The enabled operations are `bridge_probe` and the bounded
+`codex_engineering` operation. `bridge_probe` records a harmless transport
+result. `codex_engineering` launches exactly one `codex exec` subprocess using
+the `luna-high` -> `gpt-5.6-luna` / high-reasoning mapping, workspace-write
+sandbox, a report path under `reports/`, and durable process/session evidence.
+It does not permit provider/source acquisition, GitHub mutation, publication,
+merge, release, gate closure, host actions, or follow-on dispatch.
+
+The adapter owns the only claim ledger; the launcher owns only process
+supervision. The canonical live status is
+`cg-g4-o1c-cutover-status.json`; the older
+`cg-g4-o1b-cutover-status.json` is preserved as historical/stale evidence.
