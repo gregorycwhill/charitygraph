@@ -133,6 +133,7 @@ class InstructionEnvelope:
 
 _ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{2,127}$")
 _FORBIDDEN_OPERATIONS = {"publish", "merge", "release", "acquire_sources", "paid_provider_execution", "close_gate"}
+SUPPORTED_ENGINEERING_MODELS = {"luna-high"}
 
 
 def validate_envelope(envelope: InstructionEnvelope) -> None:
@@ -147,11 +148,13 @@ def validate_envelope(envelope: InstructionEnvelope) -> None:
     if envelope.operation in _FORBIDDEN_OPERATIONS:
         raise InvalidInstruction(f"operation is outside the local engineering envelope: {envelope.operation}")
     target = envelope.target
-    for field in ("repository", "workspace_path", "branch", "head"):
+    for field in ("repository", "workspace_path", "branch", "head", "model"):
         if not target.get(field):
             raise InvalidInstruction(f"target.{field} is required")
     if not re.fullmatch(r"[0-9a-f]{40}", str(target["head"])):
         raise InvalidInstruction("target.head must be a full commit identity")
+    if target["model"] not in SUPPORTED_ENGINEERING_MODELS:
+        raise InvalidInstruction(f"unsupported target model: {target['model']}")
 
 
 class LocalAutonomousBridge:
@@ -247,6 +250,38 @@ class LocalAutonomousBridge:
             )
             self._event(conn, envelope.instruction_id, "submitted", {"content_sha256": envelope.content_sha256, "target": target}, now)
         return {"accepted": True, "duplicate": False, "status": "pending", "instruction_id": envelope.instruction_id, "content_sha256": envelope.content_sha256}
+
+    def import_materialized_instruction(self, path: str | Path) -> dict[str, Any]:
+        """Import exactly one UTF-8 canonical-JSON export from a host mirror.
+
+        The mirror, not this adapter, is responsible for obtaining/exporting
+        the native connected document.  This boundary deliberately accepts
+        only the documented byte representation and never interprets the
+        instruction body as shell or Python authority.
+        """
+        source = Path(path)
+        raw = source.read_bytes()
+        if raw.startswith(b"\xef\xbb\xbf"):
+            raise InvalidInstruction("UTF-8 BOM is not permitted in materialized instructions")
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise InvalidInstruction("materialized instruction must be UTF-8") from exc
+        if not text.endswith("\n") or text.count("\n") != 1:
+            raise InvalidInstruction("materialized instruction must be one canonical JSON line")
+        try:
+            raw_object = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise InvalidInstruction("materialized instruction is not JSON") from exc
+        if not isinstance(raw_object, dict):
+            raise InvalidInstruction("materialized instruction must be a JSON object")
+        expected = canonical_json(raw_object) + "\n"
+        if expected != text:
+            raise InvalidInstruction("materialized instruction bytes are not canonical JSON")
+        envelope = InstructionEnvelope.from_dict(raw_object)
+        result = self.submit(envelope)
+        result.update({"materialized_path": str(source.resolve()), "materialized_sha256": hashlib.sha256(raw).hexdigest()})
+        return result
 
     def claim(self, *, owner: str, now: datetime | None = None, lease_seconds: int = 900) -> InstructionEnvelope:
         if not owner.strip():
@@ -362,4 +397,5 @@ class LocalAutonomousBridge:
 __all__ = [
     "AmbiguousInterruption", "BridgeError", "ClaimUnavailable", "DuplicateInstruction", "InstructionEnvelope",
     "InvalidInstruction", "LocalAutonomousBridge", "StaleOwnership", "canonical_json", "sha256_text", "validate_envelope",
+    "SUPPORTED_ENGINEERING_MODELS",
 ]

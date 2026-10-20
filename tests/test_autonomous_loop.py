@@ -25,6 +25,7 @@ def envelope(*, instruction_id="gate4:test", content="run the private rehearsal"
             "workspace_path": "C:/workspace/charitygraph",
             "branch": "gate4-test",
             "head": HEAD,
+            "model": "luna-high",
         },
         created_at=datetime(2026, 10, 20, tzinfo=timezone.utc),
     )
@@ -77,9 +78,32 @@ def test_invalid_authority_and_forbidden_operation_fail_closed(tmp_path):
     bad["operation"] = "publish"
     with pytest.raises(InvalidInstruction):
         bridge.submit(InstructionEnvelope.from_dict(bad))
+    bad = envelope().as_dict()
+    bad["target"]["model"] = "terra-high"
+    with pytest.raises(InvalidInstruction, match="unsupported target model"):
+        bridge.submit(InstructionEnvelope.from_dict(bad))
 
 
 def test_claim_requires_an_available_instruction(tmp_path):
     bridge = LocalAutonomousBridge(tmp_path).open()
     with pytest.raises(ClaimUnavailable):
         bridge.claim(owner="watcher-a")
+
+
+def test_materialized_import_requires_exact_utf8_canonical_bytes(tmp_path):
+    bridge = LocalAutonomousBridge(tmp_path / "bridge").open()
+    source = tmp_path / "instruction.json"
+    source.write_text(__import__("json").dumps(envelope().as_dict(), sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8", newline="\n")
+    imported = bridge.import_materialized_instruction(source)
+    assert imported["accepted"] is True
+    assert len(imported["materialized_sha256"]) == 64
+    source.write_bytes(b"\xef\xbb\xbf" + source.read_bytes())
+    with pytest.raises(InvalidInstruction, match="BOM"):
+        LocalAutonomousBridge(tmp_path / "other").open().import_materialized_instruction(source)
+
+
+def test_materialized_import_rejects_pretty_or_multi_line_json(tmp_path):
+    source = tmp_path / "pretty.json"
+    source.write_text(__import__("json").dumps(envelope().as_dict(), indent=2) + "\n", encoding="utf-8", newline="\n")
+    with pytest.raises(InvalidInstruction, match="canonical JSON line"):
+        LocalAutonomousBridge(tmp_path / "bridge").open().import_materialized_instruction(source)
