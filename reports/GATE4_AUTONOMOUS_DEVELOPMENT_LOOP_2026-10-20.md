@@ -44,11 +44,11 @@ The run produced:
 - simulated rehearsal cost of AUD 0.004000, explicitly not actual provider expenditure;
 - candidate/coverage output with `not_promoted` projection status for successful subjects and explicit failure/missingness status for the failed subject.
 
-The durable result is at `runtime/gate4-autonomous-loop-20261020/bridge/results/gate4_autonomous-builder-demo_20261020_v3.json`.
+The durable result is at `runtime/gate4-autonomous-loop-20261020-commit2/bridge/results/gate4_autonomous-builder-demo_20261020_v5.json`.
 
-Result SHA-256: `0fcfc6334dad724686747882d0de7328c255de1c530f63ecfebf0515d36f36d9`.
+Result SHA-256: `12266b9de0ae73340ca77ffee7835a0b57cbb4810940d78170cc743121eefdc1`.
 
-Runtime databases are local, rebuildable and Git-ignored: `runtime/gate4-autonomous-loop-20261020/`.
+Runtime databases are local, rebuildable and Git-ignored: `runtime/gate4-autonomous-loop-20261020-commit2/`.
 
 ## Gate 4 evidence matrix
 
@@ -86,7 +86,8 @@ The full repository suite reached 99% but had 15 pre-existing environment-depend
 Integration instance:
 
 - Builder branch: `gate3-cg406-remediation`
-- Builder HEAD: `ca6aeb01cb02b0ae76ea6b6dbe52aac2c3c7c9ef`
+- Builder HEAD during the final execution: `84b792114a628f02cf1a2344520759f929426507`
+- Implementation commit: `2e15b2d61b13a9dd2c67d4a415c0351042aaa5ad`; rehearsal-identity commit: `84b792114a628f02cf1a2344520759f929426507`
 - Data handoff commit: `f5f154cf2e3f107a9a2563c94626a0e39419fd3e`
 - Builder workspace: `C:\CharityGraph-clean\charitygraph`
 - Data evidence: retained local review packet, not regenerated or modified
