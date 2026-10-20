@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -82,7 +83,12 @@ class CutoverWatcher:
     @property
     def fence_path(self) -> Path:
         candidates = sorted(self.artifacts_root.glob("cg-g4-o1b-dormant-state-fence-20261020*.json"))
-        return candidates[-1] if candidates else self.artifacts_root / FENCE_NAME
+        if not candidates:
+            return self.artifacts_root / FENCE_NAME
+        def version(path: Path) -> int:
+            match = re.search(r"-v(\d+)\.json$", path.name)
+            return int(match.group(1)) if match else 1
+        return max(candidates, key=lambda path: (version(path), path.name))
 
     @property
     def status_path(self) -> Path:
