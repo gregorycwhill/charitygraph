@@ -77,6 +77,7 @@ class InstructionEnvelope:
     operation: str
     created_at: str
     schema_version: str = "charitygraph.autonomous-instruction/v1"
+    execution: dict[str, Any] | None = None
 
     @classmethod
     def create(
@@ -88,6 +89,7 @@ class InstructionEnvelope:
         operation: str = "builder_rehearsal",
         created_at: datetime | None = None,
         authority: dict[str, Any] | None = None,
+        execution: dict[str, Any] | None = None,
     ) -> "InstructionEnvelope":
         return cls(
             instruction_id=instruction_id,
@@ -97,10 +99,11 @@ class InstructionEnvelope:
             target=target,
             operation=operation,
             created_at=iso(created_at or utc_now()),
+            execution=execution,
         )
 
     def as_dict(self) -> dict[str, Any]:
-        return {
+        value = {
             "schema_version": self.schema_version,
             "instruction_id": self.instruction_id,
             "content": self.content,
@@ -110,6 +113,9 @@ class InstructionEnvelope:
             "operation": self.operation,
             "created_at": self.created_at,
         }
+        if self.execution is not None:
+            value["execution"] = self.execution
+        return value
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> "InstructionEnvelope":
@@ -126,6 +132,7 @@ class InstructionEnvelope:
             operation=str(raw["operation"]),
             created_at=str(raw["created_at"]),
             schema_version=str(raw.get("schema_version", "")),
+            execution=dict(raw["execution"]) if raw.get("execution") is not None else None,
         )
         validate_envelope(envelope)
         return envelope
