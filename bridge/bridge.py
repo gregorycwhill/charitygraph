@@ -81,7 +81,8 @@ class CutoverWatcher:
 
     @property
     def fence_path(self) -> Path:
-        return self.artifacts_root / FENCE_NAME
+        candidates = sorted(self.artifacts_root.glob("cg-g4-o1b-dormant-state-fence-20261020*.json"))
+        return candidates[-1] if candidates else self.artifacts_root / FENCE_NAME
 
     @property
     def status_path(self) -> Path:

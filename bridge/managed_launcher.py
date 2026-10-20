@@ -25,7 +25,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     command = [
         sys.executable,
-        str(HERE / "bridge.py"),
+        str(HERE.parent / "bridge.py"),
         "watch",
         "--artifacts-root",
         args.artifacts_root,
