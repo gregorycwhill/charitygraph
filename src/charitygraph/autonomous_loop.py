@@ -237,7 +237,6 @@ class LocalAutonomousBridge:
 
     def submit(self, envelope: InstructionEnvelope) -> dict[str, Any]:
         validate_envelope(envelope)
-        target = self._verify_target(envelope)
         now = iso(utc_now())
         raw = canonical_json(envelope.as_dict())
         inbox_path = self.root / "inbox" / f"{_safe_filename(envelope.instruction_id)}.json"
@@ -248,6 +247,11 @@ class LocalAutonomousBridge:
                 if existing["content_sha256"] != envelope.content_sha256:
                     raise DuplicateInstruction("instruction_id was submitted with different content")
                 return {"accepted": False, "duplicate": True, "status": existing["status"], "instruction_id": envelope.instruction_id}
+            # A durable duplicate must be recognised before live target
+            # verification.  Historical completed instructions may target a
+            # prior committed HEAD; re-checking that identity on restart must
+            # never turn a terminal record into a replay or rejection.
+            target = self._verify_target(envelope)
             if inbox_path.exists() and inbox_path.read_text(encoding="utf-8") != raw:
                 raise DuplicateInstruction("immutable inbox file conflicts with instruction")
             inbox_path.write_text(raw + "\n", encoding="utf-8", newline="\n")
@@ -458,6 +462,12 @@ class LocalAutonomousBridge:
     def events(self, instruction_id: str) -> list[dict[str, Any]]:
         with self._connect() as conn:
             return [dict(row) | {"event": json.loads(row["event_json"])} for row in conn.execute("SELECT * FROM events WHERE instruction_id=? ORDER BY event_id", (instruction_id,))]
+
+    def mission_ledger(self):
+        """Return O1E mission state on this adapter's same SQLite database."""
+        from .mission_ledger import MissionLedger
+
+        return MissionLedger(self.db_path).open()
 
 
 __all__ = [

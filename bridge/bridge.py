@@ -36,6 +36,11 @@ from charitygraph.autonomous_loop import (  # noqa: E402
     LocalAutonomousBridge,
     sha256_text,
 )
+from charitygraph.bounded_authority import (  # noqa: E402
+    BoundedAuthorityError,
+    capture_workspace,
+    validate_execution as validate_bounded_execution,
+)
 
 
 FENCE_NAME = "cg-g4-o1b-dormant-state-fence-20261020.json"
@@ -404,6 +409,17 @@ class CutoverWatcher:
         change_policy = execution.get("change_policy")
         if change_policy not in {"report_only", "bounded_workspace"}:
             raise InvalidInstruction("engineering execution.change_policy is not supported")
+        if change_policy == "bounded_workspace":
+            try:
+                validate_bounded_execution(
+                    execution,
+                    target=envelope.target,
+                    workspace=capture_workspace(self.workspace_root),
+                    authority=envelope.authority,
+                    route_active=CODE_CHANGE_ROUTE_ACTIVE,
+                )
+            except BoundedAuthorityError as exc:
+                raise InvalidInstruction(str(exc)) from exc
         if change_policy == "bounded_workspace":
             if execution.get("authority_version") != IMPLEMENTATION_AUTHORITY_VERSION:
                 raise InvalidInstruction("bounded implementation authority_version is unsupported")
