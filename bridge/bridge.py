@@ -47,6 +47,10 @@ ENGINEERING_RESULT_PREFIX = "cg-g4-o1c-result-"
 ENGINEERING_OPERATION = "codex_engineering"
 RESULT_SCHEMA = "charitygraph.g4-o1c-result/v1"
 CODEX_MODEL_MAP = {"luna-high": {"cli_model": "gpt-5.6-luna", "reasoning_effort": "high"}}
+HEARTBEAT_SECONDS = 120.0
+IMPLEMENTATION_AUTHORITY_VERSION = "charitygraph.g4-o1d-local-implementation/v1"
+IMPLEMENTATION_SCOPE = "bounded_local_builder_code_change"
+CODE_CHANGE_ROUTE_ACTIVE = False
 
 
 def utc_now() -> str:
@@ -57,13 +61,13 @@ def _json_bytes(value: dict[str, Any]) -> bytes:
     return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
 
 
-def _atomic_write(path: Path, value: dict[str, Any]) -> None:
+def _atomic_write_bytes(path: Path, raw: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     os.close(fd)
     temp = Path(name)
     try:
-        temp.write_bytes(_json_bytes(value))
+        temp.write_bytes(raw)
         for attempt in range(8):
             try:
                 temp.replace(path)
@@ -74,6 +78,10 @@ def _atomic_write(path: Path, value: dict[str, Any]) -> None:
                 time.sleep(0.25 * (attempt + 1))
     finally:
         temp.unlink(missing_ok=True)
+
+
+def _atomic_write(path: Path, value: dict[str, Any]) -> None:
+    _atomic_write_bytes(path, _json_bytes(value))
 
 
 def _git(cwd: Path, *args: str) -> str:
@@ -146,6 +154,21 @@ class CutoverWatcher:
         self.watcher_pid = os.getpid()
         self.instance_id = f"g4-o1b-{self.watcher_pid}-{os.urandom(6).hex()}"
         self.processed_sources: dict[str, str] = {}
+        self.heartbeat_seconds = HEARTBEAT_SECONDS
+        self._status_initialised = False
+        self._status_sequence = 0
+        self._last_publication_monotonic: float | None = None
+        self._last_status_substantive: dict[str, Any] | None = None
+        self._last_event: str | None = None
+        self._last_event_at: str | None = None
+        self._last_result: dict[str, Any] | None = None
+        self._last_result_identity: dict[str, Any] | None = None
+        terminal = self.adapter.latest_terminal()
+        if terminal:
+            self._last_event = terminal["last_event"]
+            self._last_event_at = terminal["last_event_at"]
+            self._last_result = terminal["result"]
+            self._last_result_identity = self._result_identity(terminal)
 
     @property
     def fence_path(self) -> Path:
@@ -160,6 +183,84 @@ class CutoverWatcher:
     @property
     def status_path(self) -> Path:
         return self.artifacts_root / STATUS_NAME
+
+    @staticmethod
+    def _result_identity(terminal: dict[str, Any], result: dict[str, Any] | None = None) -> dict[str, Any]:
+        value = result if result is not None else terminal.get("result")
+        disposition = (value or {}).get("execution_state") or terminal.get("status")
+        return {
+            "instruction_id": terminal.get("instruction_id"),
+            "status": terminal.get("status"),
+            "disposition": disposition,
+            "result_path": terminal.get("result_path"),
+            "result_sha256": terminal.get("result_sha256"),
+            "completed_at": terminal.get("updated_at"),
+        }
+
+    def _substantive_status(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return {key: value for key, value in payload.items() if key not in {"updated_at", "publication"}}
+
+    def _set_event(
+        self,
+        *,
+        event: str | None,
+        event_at: str | None = None,
+        result: dict[str, Any] | None = None,
+    ) -> None:
+        if event is None:
+            return
+        if event in {"preflight_passed", "watcher_started"} and self._last_result is not None:
+            return
+        self._last_event = event
+        self._last_event_at = event_at or utc_now()
+        if result is not None:
+            self._last_result = result
+            self._last_result_identity = {
+                "instruction_id": result.get("instruction_id"),
+                "status": "complete" if result.get("execution_state", "").endswith("COMPLETED") else "terminal",
+                "disposition": result.get("execution_state"),
+                "result_path": result.get("local_result_path"),
+                "result_sha256": result.get("local_result_sha256"),
+                "completed_at": result.get("completed_at"),
+            }
+
+    def _status_payload(self, *, state: str, error: str | None = None, publication_kind: str = "state_transition") -> dict[str, Any]:
+        payload = {
+            "schema": "charitygraph.g4-o1c-cutover-status/v1",
+            "updated_at": utc_now(),
+            "watcher_state": state,
+            "managed_mode": True,
+            "launcher_pid": self.launcher_pid,
+            "child_watcher_pid": self.watcher_pid,
+            "watcher_instance_id": self.instance_id,
+            "runtime_fingerprint": self._fingerprint(),
+            "workspace_path": str(self.workspace_root),
+            "branch": _git(self.workspace_root, "branch", "--show-current"),
+            "head": _git(self.workspace_root, "rev-parse", "HEAD"),
+            "ingress": {
+                "folder": str(self.artifacts_root),
+                "allowlisted_filename_prefix": INSTRUCTION_PREFIX,
+                "allowlisted_filename_suffix": INSTRUCTION_SUFFIX,
+                "legacy_queue_and_specs_ignored": True,
+                "code_change_route": {
+                    "version": IMPLEMENTATION_AUTHORITY_VERSION,
+                    "active": CODE_CHANGE_ROUTE_ACTIVE,
+                    "policy": "bounded_workspace",
+                    "scope": IMPLEMENTATION_SCOPE,
+                    "acceptance_required": "separate ChatGPT-originated supervisory acceptance test",
+                },
+            },
+            "fence_path": str(self.fence_path),
+            "status_filename": STATUS_NAME,
+            "supported_operations": ["bridge_probe", ENGINEERING_OPERATION],
+            "execution_authority": "one adapter ledger and one managed Codex worker",
+            "last_event": self._last_event,
+            "last_event_at": self._last_event_at,
+            "last_result": self._last_result,
+            "last_result_identity": self._last_result_identity,
+            "error": error,
+        }
+        return payload
 
     def _read_fence(self) -> dict[str, Any]:
         if not self.fence_path.exists():
@@ -183,39 +284,40 @@ class CutoverWatcher:
             h.update(path.read_bytes())
         return h.hexdigest()
 
-    def _write_status(self, *, state: str, last_event: str | None = None, error: str | None = None, result: dict[str, Any] | None = None) -> None:
-        payload: dict[str, Any] = {
-            "schema": "charitygraph.g4-o1c-cutover-status/v1",
-            "updated_at": utc_now(),
-            "watcher_state": state,
-            "managed_mode": True,
-            "launcher_pid": self.launcher_pid,
-            "child_watcher_pid": self.watcher_pid,
-            "watcher_instance_id": self.instance_id,
-            "runtime_fingerprint": self._fingerprint(),
-            "workspace_path": str(self.workspace_root),
-            "branch": _git(self.workspace_root, "branch", "--show-current"),
-            "head": _git(self.workspace_root, "rev-parse", "HEAD"),
-            "ingress": {
-                "folder": str(self.artifacts_root),
-                "allowlisted_filename_prefix": INSTRUCTION_PREFIX,
-                "allowlisted_filename_suffix": INSTRUCTION_SUFFIX,
-                "legacy_queue_and_specs_ignored": True,
-            },
-            "fence_path": str(self.fence_path),
-            "status_filename": STATUS_NAME,
-            "supported_operations": ["bridge_probe", ENGINEERING_OPERATION],
-            "execution_authority": "one adapter ledger and one managed Codex worker",
-            "last_event": last_event,
-            "error": error,
-            "last_result": result,
+    def _write_status(
+        self,
+        *,
+        state: str,
+        last_event: str | None = None,
+        error: str | None = None,
+        result: dict[str, Any] | None = None,
+        force: bool = False,
+        publication_kind: str = "state_transition",
+    ) -> bool:
+        self._set_event(event=last_event, result=result)
+        payload = self._status_payload(state=state, error=error, publication_kind=publication_kind)
+        substantive = self._substantive_status(payload)
+        now_monotonic = time.monotonic()
+        unchanged = substantive == self._last_status_substantive
+        heartbeat_due = (
+            self._last_publication_monotonic is not None
+            and now_monotonic - self._last_publication_monotonic >= self.heartbeat_seconds
+        )
+        if not force and unchanged and not heartbeat_due:
+            return False
+        if unchanged and heartbeat_due:
+            publication_kind = "heartbeat"
+        self._status_sequence += 1
+        payload["publication"] = {
+            "kind": publication_kind,
+            "sequence": self._status_sequence,
+            "heartbeat_seconds": self.heartbeat_seconds,
         }
         status_bytes = _json_bytes(payload)
         status_error: PermissionError | None = None
         for attempt in range(12):
             try:
-                self.status_path.parent.mkdir(parents=True, exist_ok=True)
-                self.status_path.write_bytes(status_bytes)
+                _atomic_write_bytes(self.status_path, status_bytes)
                 status_error = None
                 break
             except PermissionError as exc:
@@ -224,13 +326,21 @@ class CutoverWatcher:
         if status_error is not None:
             raise status_error
         _atomic_write(self.runtime_root / "status.json", payload)
+        self._last_status_substantive = substantive
+        self._last_publication_monotonic = now_monotonic
+        self._status_initialised = True
+        return True
 
     def preflight(self) -> dict[str, Any]:
         if not self.artifacts_root.is_dir():
             raise RuntimeError(f"Drive-synced artifacts folder is missing: {self.artifacts_root}")
         fence = self._read_fence()
         observed = {"fence": fence, "branch": _git(self.workspace_root, "branch", "--show-current"), "head": _git(self.workspace_root, "rev-parse", "HEAD")}
-        self._write_status(state="READY", last_event="preflight_passed")
+        self._write_status(
+            state="READY",
+            last_event=None if self._status_initialised else (self._last_event or "preflight_passed"),
+            force=not self._status_initialised,
+        )
         return observed
 
     def _candidate_paths(self) -> list[Path]:
@@ -245,6 +355,28 @@ class CutoverWatcher:
         path = self.artifacts_root / f"{prefix}{safe}.json"
         _atomic_write(path, result)
         return str(path)
+
+    def _publish_report(self, instruction_id: str, report_path: Path, report_sha256: str) -> dict[str, Any]:
+        raw = report_path.read_bytes()
+        safe = "".join(ch if ch.isalnum() or ch in "-_." else "_" for ch in instruction_id)
+        suffix = report_path.suffix.lower() or ".txt"
+        filename = f"cg-g4-o1c-report-{safe}-{report_sha256[:16]}{suffix}"
+        destination = self.artifacts_root / filename
+        if destination.exists():
+            existing = destination.read_bytes()
+            if hashlib.sha256(existing).hexdigest() != report_sha256 or len(existing) != len(raw):
+                raise DuplicateInstruction("immutable private report path contains different bytes")
+        else:
+            _atomic_write_bytes(destination, raw)
+        return {
+            "private": True,
+            "folder": str(self.artifacts_root),
+            "file_name": filename,
+            "file_identity": f"{filename}:{report_sha256}",
+            "path": str(destination),
+            "sha256": report_sha256,
+            "byte_length": len(raw),
+        }
 
     def _validate_engineering(self, envelope: Any) -> dict[str, Any]:
         if envelope.operation != ENGINEERING_OPERATION:
@@ -262,13 +394,32 @@ class CutoverWatcher:
         execution = envelope.execution
         if not isinstance(execution, dict):
             raise InvalidInstruction("engineering operation requires an execution object")
-        allowed_execution = {"mode", "change_policy", "model", "report_path", "timeout_seconds"}
+        base_execution = {"mode", "change_policy", "model", "report_path", "timeout_seconds"}
+        implementation_execution = {"authority_version", "scope", "allowed_paths", "commit_policy"}
+        allowed_execution = base_execution | implementation_execution if execution.get("change_policy") == "bounded_workspace" else base_execution
         if set(execution) - allowed_execution:
             raise InvalidInstruction("engineering execution contains unsupported authority fields")
         if execution.get("mode") != "codex_exec":
             raise InvalidInstruction("engineering execution.mode must be codex_exec")
-        if execution.get("change_policy") not in {"report_only", "bounded_workspace"}:
+        change_policy = execution.get("change_policy")
+        if change_policy not in {"report_only", "bounded_workspace"}:
             raise InvalidInstruction("engineering execution.change_policy is not supported")
+        if change_policy == "bounded_workspace":
+            if execution.get("authority_version") != IMPLEMENTATION_AUTHORITY_VERSION:
+                raise InvalidInstruction("bounded implementation authority_version is unsupported")
+            if execution.get("scope") != IMPLEMENTATION_SCOPE:
+                raise InvalidInstruction("bounded implementation scope is unsupported")
+            allowed_paths = execution.get("allowed_paths")
+            if not isinstance(allowed_paths, list) or not allowed_paths or not all(isinstance(item, str) for item in allowed_paths):
+                raise InvalidInstruction("bounded implementation allowed_paths must be a non-empty list")
+            for allowed_path in allowed_paths:
+                normalised_path = allowed_path.replace("\\", "/")
+                if normalised_path.startswith("/") or ":" in normalised_path or any(part in {"", ".", ".."} for part in normalised_path.split("/")):
+                    raise InvalidInstruction("bounded implementation allowed_paths must remain relative")
+            if execution.get("commit_policy") != "local_commit_only":
+                raise InvalidInstruction("bounded implementation commit_policy is unsupported")
+            if not CODE_CHANGE_ROUTE_ACTIVE:
+                raise InvalidInstruction("bounded implementation route is inactive pending supervisory acceptance")
         if execution.get("model") != envelope.target["model"]:
             raise InvalidInstruction("engineering execution.model must match target.model")
         if envelope.target["model"] not in CODEX_MODEL_MAP:
@@ -375,7 +526,7 @@ class CutoverWatcher:
             state = "CODEX_EXECUTION_FAILED_UNEXPECTED_CHANGES"
         else:
             state = "CODEX_ENGINEERING_COMPLETED"
-        return {
+        result = {
             "schema": RESULT_SCHEMA,
             "instruction_id": envelope.instruction_id,
             "content_sha256": envelope.content_sha256,
@@ -417,6 +568,9 @@ class CutoverWatcher:
             },
             "completed_at": finished_at,
         }
+        if state == "CODEX_ENGINEERING_COMPLETED":
+            result["report_publication"] = self._publish_report(envelope.instruction_id, report_path, report_sha or "")
+        return result
 
     def _process_candidate(self, source: Path) -> dict[str, Any] | None:
         source_bytes = source.read_bytes()
@@ -425,6 +579,13 @@ class CutoverWatcher:
         if previous == source_sha:
             return None
         try:
+            preview, _ = self.adapter.read_materialized_instruction(source)
+            if (
+                preview.operation == ENGINEERING_OPERATION
+                and isinstance(preview.execution, dict)
+                and preview.execution.get("change_policy") == "bounded_workspace"
+            ):
+                self._validate_engineering(preview)
             imported = self.adapter.import_materialized_instruction(source)
         except (InvalidInstruction, DuplicateInstruction) as exc:
             self.processed_sources[str(source)] = source_sha
@@ -481,11 +642,11 @@ class CutoverWatcher:
             outcome = self._process_candidate(source)
             if outcome is not None:
                 results.append(outcome)
+        self._write_status(state="READY", publication_kind="heartbeat")
         return results
 
     def run_forever(self, *, poll_seconds: float = 2.0) -> None:
         self.preflight()
-        self._write_status(state="RUNNING", last_event="watcher_started")
         while True:
             try:
                 self.process_once()

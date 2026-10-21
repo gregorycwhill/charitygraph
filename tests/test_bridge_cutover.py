@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -68,6 +69,88 @@ def test_cutover_rejects_bom_and_pretty_input(tmp_path, monkeypatch):
     assert len(outcomes) == 2
     assert all(item["state"] == "REJECTED" for item in outcomes)
     assert not list(artifacts.glob("cg-g4-o1b-result-*.json"))
+
+
+def test_idle_polling_deduplicates_status_and_bounded_heartbeat(tmp_path, monkeypatch):
+    workspace = Path(__file__).resolve().parents[1]
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    runtime = tmp_path / "runtime"
+    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=workspace, text=True).strip()
+    branch = subprocess.check_output(["git", "branch", "--show-current"], cwd=workspace, text=True).strip()
+    monkeypatch.setattr("bridge.bridge._git", lambda cwd, *args: branch if args == ("branch", "--show-current") else head)
+    (artifacts / FENCE_NAME).write_text(json.dumps(_fence(workspace, head, branch)), encoding="utf-8")
+    watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    writes = []
+    real_write = bridge_module._atomic_write_bytes
+
+    def counted_write(path, raw):
+        if path == watcher.status_path:
+            writes.append(raw)
+        return real_write(path, raw)
+
+    monkeypatch.setattr(bridge_module, "_atomic_write_bytes", counted_write)
+    watcher.process_once()
+    assert len(writes) == 1
+    watcher.process_once()
+    assert len(writes) == 1
+    watcher._last_publication_monotonic -= watcher.heartbeat_seconds + 1
+    watcher.process_once()
+    assert len(writes) == 2
+    assert json.loads(writes[-1].decode())["publication"]["kind"] == "heartbeat"
+
+
+def test_terminal_result_is_restored_and_survives_idle_preflight(tmp_path, monkeypatch):
+    workspace = Path(__file__).resolve().parents[1]
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    runtime = tmp_path / "runtime"
+    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=workspace, text=True).strip()
+    branch = subprocess.check_output(["git", "branch", "--show-current"], cwd=workspace, text=True).strip()
+    monkeypatch.setattr("bridge.bridge._git", lambda cwd, *args: branch if args == ("branch", "--show-current") else head)
+    (artifacts / FENCE_NAME).write_text(json.dumps(_fence(workspace, head, branch)), encoding="utf-8")
+    watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    envelope = _envelope(head, "gate4:terminal:restore", workspace_path=str(workspace.resolve()), branch=branch)
+    watcher.adapter.submit(envelope)
+    claimed = watcher.adapter.claim(owner="test-owner")
+    watcher.adapter.begin(claimed.instruction_id, owner="test-owner")
+    watcher.adapter.complete(
+        claimed.instruction_id,
+        owner="test-owner",
+        result={"schema": "test-result/v1", "execution_state": "TEST_COMPLETED", "instruction_id": claimed.instruction_id},
+    )
+    restored = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    restored.process_once()
+    status = json.loads((artifacts / STATUS_NAME).read_text(encoding="utf-8"))
+    assert status["last_event"] == "completed"
+    assert status["last_result"]["execution_state"] == "TEST_COMPLETED"
+    assert status["last_result_identity"]["instruction_id"] == claimed.instruction_id
+
+
+def test_production_poll_entrypoint_publishes_idle_status_once(tmp_path):
+    workspace, head = _engineering_workspace(tmp_path)
+    artifacts = tmp_path / "watch-artifacts"
+    artifacts.mkdir()
+    runtime = tmp_path / "watch-runtime"
+    (artifacts / FENCE_NAME).write_text(json.dumps(_fence(workspace, head, "gate4-test")), encoding="utf-8")
+    command = [
+        sys.executable,
+        str(Path(__file__).resolve().parents[1] / "bridge" / "bridge.py"),
+        "poll",
+        "--artifacts-root",
+        str(artifacts),
+        "--workspace-root",
+        str(workspace),
+        "--runtime-root",
+        str(runtime),
+        "--poll-seconds",
+        "0.05",
+    ]
+    env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+    completed = subprocess.run(command, cwd=workspace, env=env, capture_output=True, text=True, timeout=10)
+    assert completed.returncode == 0, completed.stderr
+    status = json.loads((artifacts / STATUS_NAME).read_text(encoding="utf-8"))
+    assert status["publication"]["sequence"] == 1
 
 
 def _engineering_workspace(tmp_path):
@@ -145,6 +228,11 @@ def test_engineering_operation_launches_codex_and_is_single_use(tmp_path, monkey
     assert captured["command"][0:4] == ["codex", "exec", "--model", "gpt-5.6-luna"]
     assert "--sandbox" in captured["command"] and "workspace-write" in captured["command"]
     assert json.loads((artifacts / f"{ENGINEERING_RESULT_PREFIX}{envelope.instruction_id.replace(':', '_')}.json").read_text(encoding="utf-8"))["schema"] == "charitygraph.g4-o1c-result/v1"
+    report_publication = outcome["report_publication"]
+    assert report_publication["private"] is True
+    assert report_publication["byte_length"] > 0
+    assert report_publication["sha256"] == outcome["engineering_report"]["sha256"]
+    assert Path(report_publication["path"]).is_file()
 
     second = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).process_once()
     assert second[0]["duplicate"] is True
@@ -160,6 +248,29 @@ def test_engineering_operation_rejects_authority_expansion_before_claim(tmp_path
     outcome = watcher.process_once()[0]
     assert outcome["state"] == "NOT_EXECUTED"
     assert "unexpected authority envelope" in outcome["error"]
+
+
+def test_bounded_implementation_route_is_versioned_but_inactive(tmp_path):
+    workspace, head = _engineering_workspace(tmp_path)
+    envelope = _engineering_instruction(workspace, head, instruction_id="gate4:engineering:bounded-inactive")
+    raw = envelope.as_dict()
+    raw["execution"] = {
+        "mode": "codex_exec",
+        "change_policy": "bounded_workspace",
+        "model": "luna-high",
+        "report_path": "reports/g4-o1d-bounded-inactive.md",
+        "timeout_seconds": 30,
+        "authority_version": "charitygraph.g4-o1d-local-implementation/v1",
+        "scope": "bounded_local_builder_code_change",
+        "allowed_paths": ["bridge/bridge.py", "tests/test_bridge_cutover.py"],
+        "commit_policy": "local_commit_only",
+    }
+    artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, InstructionEnvelope.from_dict(raw))
+    outcome = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).process_once()[0]
+    assert outcome["state"] == "REJECTED"
+    assert "route is inactive" in outcome["error"]
+    with pytest.raises(Exception):
+        CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).adapter.inspect("gate4:engineering:bounded-inactive")
 
 
 def test_engineering_operation_real_codex_cli_rehearsal(tmp_path):

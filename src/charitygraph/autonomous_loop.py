@@ -267,6 +267,14 @@ class LocalAutonomousBridge:
         instruction body as shell or Python authority.
         """
         source = Path(path)
+        envelope, raw = self.read_materialized_instruction(source)
+        result = self.submit(envelope)
+        result.update({"materialized_path": str(source.resolve()), "materialized_sha256": hashlib.sha256(raw).hexdigest()})
+        return result
+
+    def read_materialized_instruction(self, path: str | Path) -> tuple[InstructionEnvelope, bytes]:
+        """Read and validate a canonical materialized instruction without submitting it."""
+        source = Path(path)
         raw = source.read_bytes()
         if raw.startswith(b"\xef\xbb\xbf"):
             raise InvalidInstruction("UTF-8 BOM is not permitted in materialized instructions")
@@ -286,9 +294,47 @@ class LocalAutonomousBridge:
         if expected != text:
             raise InvalidInstruction("materialized instruction bytes are not canonical JSON")
         envelope = InstructionEnvelope.from_dict(raw_object)
-        result = self.submit(envelope)
-        result.update({"materialized_path": str(source.resolve()), "materialized_sha256": hashlib.sha256(raw).hexdigest()})
-        return result
+        return envelope, raw
+
+    def latest_terminal(self) -> dict[str, Any] | None:
+        """Return the newest durable terminal result for status recovery."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM instructions WHERE status IN ('complete','failed') "
+                "ORDER BY updated_at DESC, instruction_id DESC LIMIT 1"
+            ).fetchone()
+            if row is None:
+                return None
+            event = conn.execute(
+                "SELECT event_type,recorded_at FROM events WHERE instruction_id=? "
+                "ORDER BY event_id DESC LIMIT 1",
+                (row["instruction_id"],),
+            ).fetchone()
+        result = None
+        result_path = row["result_path"]
+        if result_path:
+            try:
+                result = json.loads(Path(result_path).read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                result = None
+        error = None
+        if row["error_json"]:
+            try:
+                error = json.loads(row["error_json"])
+            except json.JSONDecodeError:
+                error = {"raw": row["error_json"]}
+        return {
+            "instruction_id": row["instruction_id"],
+            "status": row["status"],
+            "attempts": row["attempts"],
+            "result_path": result_path,
+            "result_sha256": row["result_sha256"],
+            "result": result,
+            "error": error,
+            "updated_at": row["updated_at"],
+            "last_event": event["event_type"] if event else None,
+            "last_event_at": event["recorded_at"] if event else row["updated_at"],
+        }
 
     def claim(self, *, owner: str, now: datetime | None = None, lease_seconds: int = 900) -> InstructionEnvelope:
         if not owner.strip():
