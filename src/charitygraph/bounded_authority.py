@@ -1,7 +1,7 @@
 """Fail-closed O1F bounded local implementation authority.
 
-The policy is certification machinery only.  The route is deliberately
-inactive until a separate ChatGPT supervisory acceptance changes that state.
+The policy is certification machinery for the separately authorised bounded
+local implementation route.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from typing import Any
 
 IMPLEMENTATION_AUTHORITY_VERSION = "charitygraph.g4-o1d-local-implementation/v1"
 IMPLEMENTATION_SCOPE = "bounded_local_builder_code_change"
-CODE_CHANGE_ROUTE_ACTIVE = False
+CODE_CHANGE_ROUTE_ACTIVE = True
 ALLOWED_AUTHORITY = {"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"}
 
 

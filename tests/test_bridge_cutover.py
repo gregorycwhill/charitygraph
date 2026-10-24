@@ -262,15 +262,15 @@ def test_engineering_operation_rejects_authority_expansion_before_claim(tmp_path
     assert "unexpected authority envelope" in outcome["error"]
 
 
-def test_bounded_implementation_route_is_versioned_but_inactive(tmp_path):
+def test_bounded_implementation_route_is_versioned_and_active(tmp_path):
     workspace, head = _engineering_workspace(tmp_path)
-    envelope = _engineering_instruction(workspace, head, instruction_id="gate4:engineering:bounded-inactive")
+    envelope = _engineering_instruction(workspace, head, instruction_id="gate4:engineering:bounded-active")
     raw = envelope.as_dict()
     raw["execution"] = {
         "mode": "codex_exec",
         "change_policy": "bounded_workspace",
         "model": "luna-high",
-        "report_path": "reports/g4-o1d-bounded-inactive.md",
+        "report_path": "reports/g4-o1d-bounded-active.md",
         "timeout_seconds": 30,
         "authority_version": "charitygraph.g4-o1d-local-implementation/v1",
         "scope": "bounded_local_builder_code_change",
@@ -278,11 +278,11 @@ def test_bounded_implementation_route_is_versioned_but_inactive(tmp_path):
         "commit_policy": "local_commit_only",
     }
     artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, InstructionEnvelope.from_dict(raw))
-    outcome = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).process_once()[0]
-    assert outcome["state"] == "REJECTED"
-    assert "route is inactive" in outcome["error"]
-    with pytest.raises(Exception):
-        CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).adapter.inspect("gate4:engineering:bounded-inactive")
+    watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    validated = watcher._validate_engineering(InstructionEnvelope.from_dict(raw))
+    assert validated["change_policy"] == "bounded_workspace"
+    assert validated["model"] == "luna-high"
+    assert not list(artifacts.glob(f"{ENGINEERING_RESULT_PREFIX}*.json"))
 
 
 def test_engineering_operation_real_codex_cli_rehearsal(tmp_path):

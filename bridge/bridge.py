@@ -58,7 +58,7 @@ CODEX_MODEL_MAP = {"luna-high": {"cli_model": "gpt-5.6-luna", "reasoning_effort"
 HEARTBEAT_SECONDS = 120.0
 IMPLEMENTATION_AUTHORITY_VERSION = "charitygraph.g4-o1d-local-implementation/v1"
 IMPLEMENTATION_SCOPE = "bounded_local_builder_code_change"
-CODE_CHANGE_ROUTE_ACTIVE = False
+CODE_CHANGE_ROUTE_ACTIVE = True
 
 
 def utc_now() -> str:

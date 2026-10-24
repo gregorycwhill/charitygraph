@@ -258,7 +258,7 @@ def test_dispatch_rejects_superseded_accepted_review(tmp_path):
     assert dispatched["event_type"] == "dispatch_authorised"
 
 
-def test_bounded_authority_rejects_when_inactive_and_report_only_stays_narrow(tmp_path):
+def test_bounded_authority_accepts_when_active_and_report_only_stays_narrow(tmp_path):
     repo, head = git_repo(tmp_path)
     snapshot = capture_workspace(repo)
     target = {"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"}
@@ -273,8 +273,10 @@ def test_bounded_authority_rejects_when_inactive_and_report_only_stays_narrow(tm
         "allowed_paths": ["src/example.py", "tests/test_example.py"],
         "commit_policy": "local_commit_only",
     }
+    validated = validate_execution(execution, target=target, workspace=snapshot, authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"})
+    assert validated["allowed_paths"] == ("src/example.py", "tests/test_example.py")
     with pytest.raises(InactiveImplementationRoute):
-        validate_execution(execution, target=target, workspace=snapshot, authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"})
+        validate_execution(execution, target=target, workspace=snapshot, authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"}, route_active=False)
     assert report_only_execution({"mode": "codex_exec", "change_policy": "report_only", "model": "luna-high", "report_path": "reports/read-only.md", "timeout_seconds": 60})["change_policy"] == "report_only"
     with pytest.raises(BoundedAuthorityError):
         report_only_execution(execution)
