@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,14 +18,17 @@ from charitygraph.bounded_authority import (
 )
 from charitygraph.mission_ledger import (
     CompareAndSwapConflict,
+    DecisionNotDispatchable,
     DuplicateMissionEvent,
     MissionContract,
     MissionLedger,
     StaleMissionIdentity,
     StaleReviewCursor,
+    ReviewClaimRequired,
     SupervisorClaimUnavailable,
 )
 from charitygraph.autonomous_loop import InstructionEnvelope, LocalAutonomousBridge
+from bridge import bridge as bridge_module
 
 
 NOW = datetime(2026, 10, 21, 12, 0, tzinfo=timezone.utc)
@@ -87,31 +91,52 @@ def test_supervisor_claims_are_compare_and_swap_and_review_cursor_survives_resta
     ledger.release_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="review", owner="hourly", claim_token=first["claim_token"], version=1, now=NOW)
     second = ledger.claim_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="review", owner="interactive", expected_version=1, now=NOW)
     assert second["version"] == 2
-    ledger.release_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="review", owner="interactive", claim_token=second["claim_token"], version=2, now=NOW)
-    dispatch = ledger.claim_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="dispatch", owner="interactive", expected_version=0, now=NOW)
-    with pytest.raises(SupervisorClaimUnavailable):
-        ledger.claim_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="dispatch", owner="hourly", expected_version=1, now=NOW)
-    dispatched = ledger.dispatch("cg-g4-double-loop-20261021-v1", owner="interactive", claim_token=dispatch["claim_token"], version=1, instruction_id="gate4:engineering:successor", instruction_sha256=HASH_A, now=NOW)
-    assert dispatched["event_type"] == "dispatch_authorised"
-    ledger.release_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="dispatch", owner="interactive", claim_token=dispatch["claim_token"], version=1, now=NOW)
-    ledger.append_event("cg-g4-double-loop-20261021-v1", event_key="evidence:2", event_type="evidence_seen", payload={"sha256": HASH_B}, now=NOW)
+    ledger.append_event("cg-g4-double-loop-20261021-v1", event_key="evidence:1", event_type="evidence_seen", payload={"sha256": HASH_A}, now=NOW)
     review = ledger.record_review(
         "cg-g4-double-loop-20261021-v1",
         reviewer_id="interactive",
         decision_id="decision-1",
         cursor_seq=5,
         execution_disposition="READY",
-        semantic_disposition="HOLD_FOR_PRODUCT_REVIEW",
+        semantic_disposition="ACCEPTED",
         decision={"reason": "offline evidence only"},
+        claim_owner="interactive",
+        claim_token=second["claim_token"],
+        claim_version=2,
+        expected_branch="gate4-test",
+        expected_head=head,
+        tranche_id="O1E-O1F",
         now=NOW,
     )
     assert review["duplicate"] is False
+    assert ledger.record_review(
+        "cg-g4-double-loop-20261021-v1", reviewer_id="interactive", decision_id="decision-1", cursor_seq=5,
+        execution_disposition="READY", semantic_disposition="ACCEPTED", decision={"reason": "offline evidence only"}, now=NOW,
+    )["duplicate"] is True
+    ledger.release_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="review", owner="interactive", claim_token=second["claim_token"], version=2, now=NOW)
+    dispatch = ledger.claim_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="dispatch", owner="interactive", expected_version=0, now=NOW)
+    with pytest.raises(SupervisorClaimUnavailable):
+        ledger.claim_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="dispatch", owner="hourly", expected_version=1, now=NOW)
+    dispatched = ledger.dispatch(
+        "cg-g4-double-loop-20261021-v1", owner="interactive", claim_token=dispatch["claim_token"], version=1,
+        instruction_id="gate4:engineering:successor", instruction_sha256=HASH_A, decision_id="decision-1",
+        expected_branch="gate4-test", expected_head=head, tranche_id="O1E-O1F", now=NOW,
+    )
+    assert dispatched["event_type"] == "dispatch_authorised"
+    ledger.release_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="dispatch", owner="interactive", claim_token=dispatch["claim_token"], version=1, now=NOW)
+    dispatch_two = ledger.claim_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="dispatch", owner="hourly", expected_version=1, now=NOW)
+    with pytest.raises(DecisionNotDispatchable):
+        ledger.dispatch(
+            "cg-g4-double-loop-20261021-v1", owner="hourly", claim_token=dispatch_two["claim_token"], version=2,
+            instruction_id="gate4:engineering:duplicate", instruction_sha256=HASH_B, decision_id="decision-1",
+            expected_branch="gate4-test", expected_head=head, tranche_id="O1E-O1F", now=NOW,
+        )
     restarted = MissionLedger(db).open()
     status = restarted.status("cg-g4-double-loop-20261021-v1")
     assert status["review_cursors"][0]["cursor_seq"] == 5
     assert status["latest_decision"]["decision_id"] == "decision-1"
     assert status["latest_decision"]["execution_disposition"] == "READY"
-    assert status["latest_decision"]["semantic_disposition"] == "HOLD_FOR_PRODUCT_REVIEW"
+    assert status["latest_decision"]["semantic_disposition"] == "ACCEPTED"
     assert "Mission cg-g4-double-loop-20261021-v1" in restarted.supervisor_brief("cg-g4-double-loop-20261021-v1")
     assert restarted.record_review(
         "cg-g4-double-loop-20261021-v1",
@@ -119,20 +144,45 @@ def test_supervisor_claims_are_compare_and_swap_and_review_cursor_survives_resta
         decision_id="decision-1",
         cursor_seq=5,
         execution_disposition="READY",
-        semantic_disposition="HOLD_FOR_PRODUCT_REVIEW",
+        semantic_disposition="ACCEPTED",
         decision={"reason": "offline evidence only"},
         now=NOW,
     )["duplicate"] is True
+
+
+def test_review_requires_current_claim_exact_frontier_and_identity(tmp_path):
+    repo, head = git_repo(tmp_path)
+    ledger = MissionLedger(tmp_path / "bridge.sqlite3").open()
+    ledger.start(contract(repo, head))
+    ledger.append_event("cg-g4-double-loop-20261021-v1", event_key="evidence:1", event_type="evidence_seen", payload={"sha256": HASH_A}, now=NOW)
+    with pytest.raises(ReviewClaimRequired):
+        ledger.record_review(
+            "cg-g4-double-loop-20261021-v1", reviewer_id="interactive", decision_id="no-claim", cursor_seq=2,
+            execution_disposition="READY", semantic_disposition="ACCEPTED", decision={},
+            expected_branch="gate4-test", expected_head=head, tranche_id="O1E-O1F", now=NOW,
+        )
+    claim = ledger.claim_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="review", owner="hourly", expected_version=0, now=NOW)
     with pytest.raises(StaleReviewCursor):
-        restarted.record_review(
-            "cg-g4-double-loop-20261021-v1",
-            reviewer_id="interactive",
-            decision_id="decision-2",
-            cursor_seq=1,
-            execution_disposition="READY",
-            semantic_disposition="HOLD_FOR_PRODUCT_REVIEW",
-            decision={},
-            now=NOW,
+        ledger.record_review(
+            "cg-g4-double-loop-20261021-v1", reviewer_id="hourly", decision_id="short", cursor_seq=1,
+            execution_disposition="READY", semantic_disposition="ACCEPTED", decision={},
+            claim_owner="hourly", claim_token=claim["claim_token"], claim_version=1,
+            expected_branch="gate4-test", expected_head=head, tranche_id="O1E-O1F", now=NOW,
+        )
+    ledger.append_event("cg-g4-double-loop-20261021-v1", event_key="evidence:2", event_type="evidence_seen", payload={"sha256": HASH_B}, now=NOW)
+    with pytest.raises(StaleReviewCursor):
+        ledger.record_review(
+            "cg-g4-double-loop-20261021-v1", reviewer_id="hourly", decision_id="stale", cursor_seq=2,
+            execution_disposition="READY", semantic_disposition="ACCEPTED", decision={},
+            claim_owner="hourly", claim_token=claim["claim_token"], claim_version=1,
+            expected_branch="gate4-test", expected_head=head, tranche_id="O1E-O1F", now=NOW,
+        )
+    with pytest.raises(CompareAndSwapConflict):
+        ledger.record_review(
+            "cg-g4-double-loop-20261021-v1", reviewer_id="hourly", decision_id="wrong-owner", cursor_seq=3,
+            execution_disposition="READY", semantic_disposition="ACCEPTED", decision={},
+            claim_owner="other", claim_token=claim["claim_token"], claim_version=1,
+            expected_branch="gate4-test", expected_head=head, tranche_id="O1E-O1F", now=NOW,
         )
 
 
@@ -225,3 +275,104 @@ def test_bounded_diff_guard_preserves_dirty_baseline_and_limits_paths(tmp_path):
     (repo / "notes.txt").write_text("changed baseline\n", encoding="utf-8")
     with pytest.raises(DirtyBaselineViolation, match="pre-existing"):
         verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["src/allowed.py", "notes.txt"])
+
+
+@pytest.mark.parametrize("mutation", ["modify", "delete", "rename", "staged"])
+def test_bounded_diff_guard_rejects_unauthorised_mutations(tmp_path, mutation):
+    repo, _ = git_repo(tmp_path)
+    before = capture_workspace(repo)
+    if mutation == "modify":
+        (repo / "README.md").write_text("changed\n", encoding="utf-8")
+    elif mutation == "delete":
+        (repo / "README.md").unlink()
+    elif mutation == "rename":
+        (repo / "README.md").rename(repo / "RENAMED.md")
+    else:
+        (repo / "staged.py").write_text("x = 1\n", encoding="utf-8")
+        subprocess.run(["git", "add", "staged.py"], cwd=repo, check=True)
+    with pytest.raises(DirtyBaselineViolation):
+        verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["reports/allowed.md"])
+
+
+def test_bounded_diff_guard_rejects_symlink_escape(tmp_path):
+    repo, _ = git_repo(tmp_path)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    before = capture_workspace(repo)
+    try:
+        os.symlink(outside, repo / "escape", target_is_directory=True)
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(f"symlink creation unavailable: {exc}")
+    with pytest.raises(DirtyBaselineViolation, match="symlink/path escape"):
+        verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["escape"])
+
+
+def test_real_codex_execution_quarantines_unauthorised_workspace_change(tmp_path, monkeypatch):
+    repo, head = git_repo(tmp_path)
+    (repo / "reports").mkdir()
+    source = tmp_path / "instruction.json"
+    source.write_text("{}\n", encoding="utf-8")
+    target = {"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"}
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:engineering:workspace-quarantine",
+        content="write the report only",
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        target=target,
+        operation="codex_engineering",
+    )
+    execution = {"mode": "codex_exec", "change_policy": "report_only", "model": "luna-high", "report_path": "reports/quarantine.md", "timeout_seconds": 30}
+
+    class FakeCodex:
+        pid = 4242
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            (repo / "reports" / "quarantine.md").write_text("report\n", encoding="utf-8")
+            (repo / "unauthorised.txt").write_text("must quarantine\n", encoding="utf-8")
+            return b"{}\n", None
+
+    monkeypatch.setattr(bridge_module.shutil, "which", lambda name: "codex")
+    real_popen = subprocess.Popen
+    def fake_popen(command, *args, **kwargs):
+        return real_popen(command, *args, **kwargs) if command and command[0] == "git" else FakeCodex()
+    monkeypatch.setattr(bridge_module.subprocess, "Popen", fake_popen)
+    watcher = bridge_module.CutoverWatcher(artifacts_root=tmp_path / "artifacts", workspace_root=repo, runtime_root=tmp_path / "runtime")
+    result = watcher._run_codex(envelope, source, "a" * 64, execution)
+    assert result["execution_state"] == "CODEX_EXECUTION_FAILED_UNEXPECTED_CHANGES"
+    assert result["workspace_attestation"]["quarantined"] is True
+    assert "unauthorised.txt" in result["workspace_attestation"]["unexpected_paths"]
+    assert result["workspace_attestation"]["verified"] is False
+
+
+def test_codex_failure_still_records_workspace_attestation(tmp_path, monkeypatch):
+    repo, head = git_repo(tmp_path)
+    (repo / "reports").mkdir()
+    source = tmp_path / "instruction.json"
+    source.write_text("{}\n", encoding="utf-8")
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:engineering:workspace-failure",
+        content="fail after inspection",
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        target={"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"},
+        operation="codex_engineering",
+    )
+    execution = {"mode": "codex_exec", "change_policy": "report_only", "model": "luna-high", "report_path": "reports/failure.md", "timeout_seconds": 30}
+
+    class FailedCodex:
+        pid = 4343
+        returncode = 1
+
+        def communicate(self, timeout=None):
+            (repo / "reports" / "failure.md").write_text("failure report\n", encoding="utf-8")
+            return b"failed\n", None
+
+    monkeypatch.setattr(bridge_module.shutil, "which", lambda name: "codex")
+    real_popen = subprocess.Popen
+    def fake_popen(command, *args, **kwargs):
+        return real_popen(command, *args, **kwargs) if command and command[0] == "git" else FailedCodex()
+    monkeypatch.setattr(bridge_module.subprocess, "Popen", fake_popen)
+    watcher = bridge_module.CutoverWatcher(artifacts_root=tmp_path / "artifacts", workspace_root=repo, runtime_root=tmp_path / "runtime")
+    result = watcher._run_codex(envelope, source, "b" * 64, execution)
+    assert result["execution_state"] == "CODEX_EXECUTION_FAILED"
+    assert result["workspace_attestation"]["verified"] is True
+    assert result["workspace_attestation"]["quarantined"] is False

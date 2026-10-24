@@ -43,6 +43,14 @@ class SupervisorClaimUnavailable(MissionLedgerError):
     pass
 
 
+class ReviewClaimRequired(MissionLedgerError):
+    pass
+
+
+class DecisionNotDispatchable(MissionLedgerError):
+    pass
+
+
 class StaleReviewCursor(MissionLedgerError):
     pass
 
@@ -160,10 +168,23 @@ class MissionLedger:
                     semantic_disposition TEXT NOT NULL,
                     decision_json TEXT NOT NULL,
                     decision_sha256 TEXT NOT NULL,
-                    created_at TEXT NOT NULL
+                    created_at TEXT NOT NULL,
+                    dispatch_consumed_at TEXT,
+                    dispatch_consumed_by TEXT,
+                    dispatch_instruction_id TEXT,
+                    dispatch_instruction_sha256 TEXT
                 );
                 """
             )
+            columns = {row["name"] for row in conn.execute("PRAGMA table_info(supervisor_decisions)")}
+            for name, definition in {
+                "dispatch_consumed_at": "TEXT",
+                "dispatch_consumed_by": "TEXT",
+                "dispatch_instruction_id": "TEXT",
+                "dispatch_instruction_sha256": "TEXT",
+            }.items():
+                if name not in columns:
+                    conn.execute(f"ALTER TABLE supervisor_decisions ADD COLUMN {name} {definition}")
         return self
 
     def _connect(self) -> sqlite3.Connection:
@@ -183,6 +204,56 @@ class MissionLedger:
     def _next_seq(conn: sqlite3.Connection, mission_id: str) -> int:
         row = conn.execute("SELECT COALESCE(MAX(event_seq), 0) + 1 AS next_seq FROM mission_events WHERE mission_id=?", (mission_id,)).fetchone()
         return int(row["next_seq"])
+
+    @staticmethod
+    def _latest_eligible_seq(conn: sqlite3.Connection, mission_id: str) -> int:
+        """Return the latest evidence sequence a review is required to cover.
+
+        Claim/release/review/dispatch events are ledger bookkeeping, not new
+        evidence.  Excluding them lets a reviewer claim first and then review
+        the exact evidence frontier without making the claim itself evidence.
+        Any mission or execution/evidence event appended after that frontier
+        makes the cursor stale.
+        """
+        row = conn.execute(
+            "SELECT COALESCE(MAX(event_seq), 0) AS latest FROM mission_events "
+            "WHERE mission_id=? AND event_type NOT IN "
+            "('supervisor_claimed','supervisor_released','supervisor_review_recorded','dispatch_authorised')",
+            (mission_id,),
+        ).fetchone()
+        return int(row["latest"])
+
+    @staticmethod
+    def _contract_conn(conn: sqlite3.Connection, mission_id: str) -> dict[str, Any]:
+        row = conn.execute("SELECT contract_json FROM missions WHERE mission_id=?", (mission_id,)).fetchone()
+        if row is None:
+            raise MissionLedgerError(f"unknown mission: {mission_id}")
+        return json.loads(row["contract_json"])
+
+    @staticmethod
+    def _require_claim_conn(
+        conn: sqlite3.Connection,
+        *,
+        mission_id: str,
+        claim_kind: str,
+        owner: str | None,
+        claim_token: str | None,
+        version: int | None,
+        now_s: str,
+    ) -> sqlite3.Row:
+        if not owner or not claim_token or version is None:
+            raise ReviewClaimRequired(f"current {claim_kind} supervisory claim is required")
+        row = conn.execute(
+            "SELECT * FROM supervisor_claims WHERE mission_id=? AND claim_kind=?",
+            (mission_id, claim_kind),
+        ).fetchone()
+        if row is None:
+            raise ReviewClaimRequired(f"current {claim_kind} supervisory claim is required")
+        if row["owner"] != owner or row["claim_token"] != claim_token or int(row["version"]) != int(version):
+            raise CompareAndSwapConflict(f"{claim_kind} claim owner/token/version is not current")
+        if row["lease_expires_at"] <= now_s:
+            raise SupervisorClaimUnavailable(f"{claim_kind} claim lease has expired")
+        return row
 
     def _append_event_conn(
         self,
@@ -362,36 +433,79 @@ class MissionLedger:
         execution_disposition: str,
         semantic_disposition: str,
         decision: dict[str, Any],
+        claim_owner: str | None = None,
+        claim_token: str | None = None,
+        claim_version: int | None = None,
+        expected_branch: str | None = None,
+        expected_head: str | None = None,
+        tranche_id: str | None = None,
+        review_claim: dict[str, Any] | None = None,
         now: datetime | None = None,
     ) -> dict[str, Any]:
         if cursor_seq < 0:
             raise StaleReviewCursor("cursor_seq must be non-negative")
+        if review_claim is not None:
+            claim_owner = review_claim.get("owner", claim_owner)
+            claim_token = review_claim.get("claim_token", claim_token)
+            claim_version = review_claim.get("version", claim_version)
         now_s = iso(now or utc_now())
-        decision_payload = {
-            "schema": REVIEW_SCHEMA,
-            "decision_id": decision_id,
-            "reviewer_id": reviewer_id,
-            "cursor_seq": cursor_seq,
-            "execution_disposition": execution_disposition,
-            "semantic_disposition": semantic_disposition,
-            "decision": decision,
-        }
-        decision_json = canonical_json(decision_payload)
-        decision_hash = sha256_text(decision_json)
         with self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
             self._mission_state(conn, mission_id)
+            contract = self._contract_conn(conn, mission_id)
             existing = conn.execute("SELECT * FROM supervisor_decisions WHERE decision_id=?", (decision_id,)).fetchone()
             if existing is not None:
-                if existing["decision_sha256"] != decision_hash:
+                stored = json.loads(existing["decision_json"])
+                replay_core = {
+                    "schema": REVIEW_SCHEMA,
+                    "decision_id": decision_id,
+                    "reviewer_id": reviewer_id,
+                    "cursor_seq": cursor_seq,
+                    "execution_disposition": execution_disposition,
+                    "semantic_disposition": semantic_disposition,
+                    "decision": decision,
+                    "mission_id": mission_id,
+                    "tranche_id": contract["tranche_id"],
+                    "repository_identity": {"branch": contract["branch"], "head": contract["head"]},
+                }
+                if stored != replay_core:
                     raise DuplicateMissionEvent("decision_id already contains different bytes")
                 return dict(existing) | {"duplicate": True, "decision": json.loads(existing["decision_json"])}
-            latest = self._next_seq(conn, mission_id) - 1
-            if cursor_seq > latest:
-                raise StaleReviewCursor(f"review cursor {cursor_seq} is beyond latest event {latest}")
+            if not expected_branch or not expected_head or expected_branch != contract["branch"] or expected_head != contract["head"]:
+                raise StaleMissionIdentity(
+                    f"review repository identity must match {contract['branch']}@{contract['head']}"
+                )
+            if tranche_id is None or tranche_id != contract["tranche_id"]:
+                raise StaleMissionIdentity(f"review tranche must match {contract['tranche_id']}")
+            self._require_claim_conn(
+                conn,
+                mission_id=mission_id,
+                claim_kind="review",
+                owner=claim_owner,
+                claim_token=claim_token,
+                version=claim_version,
+                now_s=now_s,
+            )
+            latest = self._latest_eligible_seq(conn, mission_id)
+            if cursor_seq != latest:
+                raise StaleReviewCursor(f"review cursor {cursor_seq} does not cover latest eligible event {latest}")
             cursor = conn.execute("SELECT cursor_seq FROM review_cursors WHERE mission_id=? AND reviewer_id=?", (mission_id, reviewer_id)).fetchone()
             if cursor is not None and cursor_seq < int(cursor["cursor_seq"]):
                 raise StaleReviewCursor(f"review cursor moved backwards from {cursor['cursor_seq']} to {cursor_seq}")
+            decision_payload = {
+                "schema": REVIEW_SCHEMA,
+                "decision_id": decision_id,
+                "reviewer_id": reviewer_id,
+                "cursor_seq": cursor_seq,
+                "execution_disposition": execution_disposition,
+                "semantic_disposition": semantic_disposition,
+                "decision": decision,
+                "mission_id": mission_id,
+                "tranche_id": contract["tranche_id"],
+                "repository_identity": {"branch": expected_branch, "head": expected_head},
+            }
+            decision_json = canonical_json(decision_payload)
+            decision_hash = sha256_text(decision_json)
             conn.execute(
                 "INSERT INTO supervisor_decisions(decision_id,mission_id,reviewer_id,cursor_seq,execution_disposition,semantic_disposition,decision_json,decision_sha256,created_at) VALUES(?,?,?,?,?,?,?,?,?)",
                 (decision_id, mission_id, reviewer_id, cursor_seq, execution_disposition, semantic_disposition, decision_json, decision_hash, now_s),
@@ -403,15 +517,51 @@ class MissionLedger:
             )
         return {"decision_id": decision_id, "mission_id": mission_id, "decision_sha256": decision_hash, "cursor_seq": cursor_seq, "event": event, "duplicate": False}
 
-    def dispatch(self, mission_id: str, *, owner: str, claim_token: str, version: int, instruction_id: str, instruction_sha256: str, now: datetime | None = None) -> dict[str, Any]:
+    def dispatch(
+        self,
+        mission_id: str,
+        *,
+        owner: str,
+        claim_token: str,
+        version: int,
+        instruction_id: str,
+        instruction_sha256: str,
+        decision_id: str,
+        expected_branch: str,
+        expected_head: str,
+        tranche_id: str,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
         _require_hash(instruction_sha256, "instruction_sha256")
         now_s = iso(now or utc_now())
         with self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
-            row = conn.execute("SELECT * FROM supervisor_claims WHERE mission_id=? AND claim_kind='dispatch'", (mission_id,)).fetchone()
-            if row is None or row["owner"] != owner or row["claim_token"] != claim_token or int(row["version"]) != version or row["lease_expires_at"] <= now_s:
-                raise CompareAndSwapConflict("dispatch claim is not current")
-            event = self._append_event_conn(conn, mission_id=mission_id, event_key=f"dispatch:{instruction_id}:{instruction_sha256}", event_type="dispatch_authorised", payload={"instruction_id": instruction_id, "instruction_sha256": instruction_sha256, "owner": owner, "claim_version": version}, now_s=now_s)
+            self._mission_state(conn, mission_id)
+            self._require_claim_conn(conn, mission_id=mission_id, claim_kind="dispatch", owner=owner, claim_token=claim_token, version=version, now_s=now_s)
+            contract = self._contract_conn(conn, mission_id)
+            if (expected_branch, expected_head, tranche_id) != (contract["branch"], contract["head"], contract["tranche_id"]):
+                raise StaleMissionIdentity("dispatch identity does not match the mission contract")
+            decision = conn.execute("SELECT * FROM supervisor_decisions WHERE decision_id=? AND mission_id=?", (decision_id, mission_id)).fetchone()
+            if decision is None:
+                raise DecisionNotDispatchable("dispatch requires a current semantic review decision")
+            if decision["dispatch_consumed_at"] is not None:
+                raise DecisionNotDispatchable("review decision dispatch authority was already consumed")
+            if decision["semantic_disposition"] != "ACCEPTED" or decision["execution_disposition"] in {"PARTIAL", "REJECTED", "DECISION_REQUIRED"}:
+                raise DecisionNotDispatchable("dispatch requires an ACCEPTED, complete semantic review")
+            review = json.loads(decision["decision_json"])
+            if review.get("mission_id") != mission_id or review.get("tranche_id") != tranche_id or review.get("repository_identity") != {"branch": expected_branch, "head": expected_head}:
+                raise DecisionNotDispatchable("review decision does not cover the requested mission, tranche and repository")
+            latest = self._latest_eligible_seq(conn, mission_id)
+            if int(decision["cursor_seq"]) != latest:
+                raise StaleReviewCursor(f"accepted review cursor {decision['cursor_seq']} is stale; latest eligible event is {latest}")
+            updated = conn.execute(
+                "UPDATE supervisor_decisions SET dispatch_consumed_at=?,dispatch_consumed_by=?,dispatch_instruction_id=?,dispatch_instruction_sha256=? "
+                "WHERE decision_id=? AND dispatch_consumed_at IS NULL",
+                (now_s, owner, instruction_id, instruction_sha256, decision_id),
+            )
+            if updated.rowcount != 1:
+                raise DecisionNotDispatchable("review decision dispatch authority was already consumed")
+            event = self._append_event_conn(conn, mission_id=mission_id, event_key=f"dispatch:{decision_id}:{instruction_id}:{instruction_sha256}", event_type="dispatch_authorised", payload={"decision_id": decision_id, "instruction_id": instruction_id, "instruction_sha256": instruction_sha256, "owner": owner, "claim_version": version}, now_s=now_s)
         return event
 
     def status(self, mission_id: str) -> dict[str, Any]:
@@ -465,6 +615,7 @@ class MissionLedger:
 
 __all__ = [
     "CompareAndSwapConflict",
+    "DecisionNotDispatchable",
     "DuplicateMissionEvent",
     "EVENT_SCHEMA",
     "MissionAlreadyExists",
@@ -476,5 +627,6 @@ __all__ = [
     "REVIEW_SCHEMA",
     "StaleMissionIdentity",
     "StaleReviewCursor",
+    "ReviewClaimRequired",
     "SupervisorClaimUnavailable",
 ]

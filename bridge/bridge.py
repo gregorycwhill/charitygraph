@@ -38,8 +38,10 @@ from charitygraph.autonomous_loop import (  # noqa: E402
 )
 from charitygraph.bounded_authority import (  # noqa: E402
     BoundedAuthorityError,
+    DirtyBaselineViolation,
     capture_workspace,
     validate_execution as validate_bounded_execution,
+    verify_allowed_changes,
 )
 
 
@@ -502,36 +504,87 @@ class CutoverWatcher:
             str(last_message_path),
             prompt,
         ]
-        before_status = set(_git(self.workspace_root, "status", "--porcelain=v1", "--untracked-files=all").splitlines())
+        before_workspace = None
+        baseline_error: str | None = None
+        try:
+            # This is the authoritative pre-launch baseline.  It includes
+            # tracked, modified, staged, deleted, renamed and untracked paths;
+            # status-line deltas are not sufficient for a safety boundary.
+            before_workspace = capture_workspace(self.workspace_root)
+        except (OSError, subprocess.CalledProcessError, ValueError) as exc:
+            baseline_error = f"{type(exc).__name__}: {exc}"
         started_at = utc_now()
         launch_error: str | None = None
         returncode: int | None = None
         timed_out = False
         pid: int | None = None
         raw_output = b""
-        try:
-            child = subprocess.Popen(command, cwd=self.workspace_root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env={**os.environ, "CHARITYGRAPH_G4_O1C_ENGINEERING": "1"})
-            pid = child.pid
+        if baseline_error is None:
             try:
-                raw_output, _ = child.communicate(timeout=execution["timeout_seconds"])
-                returncode = child.returncode
-            except subprocess.TimeoutExpired:
-                timed_out = True
-                child.kill()
-                raw_output, _ = child.communicate(timeout=30)
-                returncode = child.returncode
-        except OSError as exc:
-            launch_error = f"{type(exc).__name__}: {exc}"
+                child = subprocess.Popen(command, cwd=self.workspace_root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env={**os.environ, "CHARITYGRAPH_G4_O1C_ENGINEERING": "1"})
+                pid = child.pid
+                try:
+                    raw_output, _ = child.communicate(timeout=execution["timeout_seconds"])
+                    returncode = child.returncode
+                except subprocess.TimeoutExpired:
+                    timed_out = True
+                    child.kill()
+                    raw_output, _ = child.communicate(timeout=30)
+                    returncode = child.returncode
+            except OSError as exc:
+                launch_error = f"{type(exc).__name__}: {exc}"
         finished_at = utc_now()
         output_path.write_bytes(raw_output)
-        after_status = set(_git(self.workspace_root, "status", "--porcelain=v1", "--untracked-files=all").splitlines())
-        new_status = sorted(after_status - before_status)
-        unexpected_changes = [line for line in new_status if execution["report_path"] not in line]
+        after_workspace = None
+        attestation_error = baseline_error
+        if before_workspace is not None:
+            try:
+                after_workspace = capture_workspace(self.workspace_root)
+            except (OSError, subprocess.CalledProcessError, ValueError) as exc:
+                attestation_error = f"{type(exc).__name__}: {exc}"
+        allowed_paths = {execution["report_path"]}
+        if execution.get("change_policy") == "bounded_workspace":
+            allowed_paths.update(execution.get("allowed_paths", []))
+        changed_paths: list[str] = []
+        unexpected_changes: list[str] = []
+        workspace_verification: dict[str, Any] | None = None
+        if before_workspace is not None and after_workspace is not None:
+            changed_paths = sorted(path for path in set(before_workspace.entries) | set(after_workspace.entries) if before_workspace.entries.get(path) != after_workspace.entries.get(path))
+            unexpected_changes = sorted(path for path in changed_paths if path not in allowed_paths)
+            try:
+                workspace_verification = verify_allowed_changes(before_workspace, after_workspace, allowed_paths=sorted(allowed_paths))
+            except DirtyBaselineViolation as exc:
+                attestation_error = str(exc)
+        workspace_attestation = {
+            "verified": workspace_verification is not None and attestation_error is None,
+            "quarantined": bool(attestation_error or unexpected_changes),
+            "allowed_paths": sorted(allowed_paths),
+            "changed_paths": changed_paths,
+            "unexpected_paths": unexpected_changes,
+            "baseline_error": attestation_error,
+            "before": None if before_workspace is None else {
+                "workspace_path": before_workspace.workspace_path,
+                "branch": before_workspace.branch,
+                "head": before_workspace.head,
+                "entries": {path: list(value) for path, value in before_workspace.entries.items()},
+            },
+            "after": None if after_workspace is None else {
+                "workspace_path": after_workspace.workspace_path,
+                "branch": after_workspace.branch,
+                "head": after_workspace.head,
+                "entries": {path: list(value) for path, value in after_workspace.entries.items()},
+            },
+        }
         report_exists = report_path.is_file()
         report_sha = hashlib.sha256(report_path.read_bytes()).hexdigest() if report_exists else None
         event_summary = _event_summary(raw_output)
         if launch_error:
             state = "CODEX_LAUNCH_FAILED"
+        elif attestation_error or unexpected_changes:
+            # A safety-boundary failure takes precedence over the worker's
+            # exit code.  The adapter will durably complete this as a
+            # non-success result, so it cannot be silently retried.
+            state = "CODEX_EXECUTION_FAILED_UNEXPECTED_CHANGES"
         elif timed_out:
             state = "CODEX_EXECUTION_TIMEOUT"
         elif returncode != 0:
@@ -575,6 +628,7 @@ class CutoverWatcher:
                 "launch_error": launch_error,
                 "timed_out": timed_out,
             },
+            "workspace_attestation": workspace_attestation,
             "engineering_report": {
                 "path": str(report_path),
                 "relative_path": execution["report_path"],

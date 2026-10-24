@@ -52,12 +52,20 @@ def _status_paths(status: str) -> dict[str, str]:
             continue
         value = line[3:]
         if " -> " in value:
-            value = value.split(" -> ", 1)[1]
-        paths[value] = line[:2]
+            old, new = value.split(" -> ", 1)
+            # Keep both sides of a rename.  A post-execution comparison that
+            # observes only the destination can otherwise miss deletion of a
+            # pre-existing path.
+            paths[old] = line[:2]
+            paths[new] = line[:2]
+        else:
+            paths[value] = line[:2]
     return paths
 
 
 def _file_sha(path: Path) -> str:
+    if path.is_symlink():
+        return "symlink:" + str(path.readlink())
     if not path.exists():
         return "<missing>"
     digest = hashlib.sha256()
@@ -138,10 +146,37 @@ def validate_execution(execution: dict[str, Any], *, target: dict[str, Any], wor
 
 def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, *, allowed_paths: list[str] | tuple[str, ...]) -> dict[str, Any]:
     allowed = {path.replace("\\", "/") for path in allowed_paths}
+    if before.workspace_path != after.workspace_path:
+        raise DirtyBaselineViolation("workspace path changed during execution")
+    if before.branch != after.branch or before.head != after.head:
+        raise DirtyBaselineViolation(
+            f"repository identity changed during execution: {before.branch}@{before.head} -> {after.branch}@{after.head}"
+        )
     changed = sorted(path for path in set(before.entries) | set(after.entries) if before.entries.get(path) != after.entries.get(path))
     unexpected = sorted(path for path in changed if path not in allowed)
+    root = Path(after.workspace_path)
+    escaped = []
+    for relative in changed:
+        candidate = root / relative
+        try:
+            candidate.relative_to(root)
+        except ValueError:
+            escaped.append(relative)
+            continue
+        current = root
+        parts = Path(relative).parts
+        for part in parts:
+            current = current / part
+            if current.is_symlink():
+                escaped.append(relative)
+                break
+    if escaped:
+        unexpected = sorted(set(unexpected) | set(escaped))
     if unexpected:
-        raise DirtyBaselineViolation(f"unexpected bounded workspace changes: {', '.join(unexpected)}")
+        reason = "unexpected bounded workspace changes: " + ", ".join(unexpected)
+        if escaped:
+            reason += "; symlink/path escape detected"
+        raise DirtyBaselineViolation(reason)
     baseline_changed = sorted(path for path in changed if path in before.entries)
     if baseline_changed:
         raise DirtyBaselineViolation(f"pre-existing dirty baseline was changed: {', '.join(baseline_changed)}")
