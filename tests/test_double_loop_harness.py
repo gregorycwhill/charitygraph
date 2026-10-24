@@ -318,6 +318,21 @@ def test_bounded_diff_guard_preserves_dirty_baseline_and_limits_paths(tmp_path):
         verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["src/allowed.py", "notes.txt"])
 
 
+def test_workspace_snapshot_hashes_embedded_repository_directory(tmp_path):
+    repo, _ = git_repo(tmp_path)
+    nested = repo / "tmp" / "pytest-run" / "repo"
+    nested.mkdir(parents=True)
+    subprocess.run(["git", "init"], cwd=nested, check=True, capture_output=True)
+    (nested / "payload.txt").write_text("first\\n", encoding="utf-8")
+    before = capture_workspace(repo)
+    entry = "tmp/pytest-run/repo/"
+    assert entry in before.entries
+    assert before.entries[entry][1].startswith("directory:")
+    (nested / "payload.txt").write_text("second\\n", encoding="utf-8")
+    after = capture_workspace(repo)
+    assert before.entries[entry][1] != after.entries[entry][1]
+
+
 @pytest.mark.parametrize("mutation", ["modify", "delete", "rename", "staged"])
 def test_bounded_diff_guard_rejects_unauthorised_mutations(tmp_path, mutation):
     repo, _ = git_repo(tmp_path)
@@ -372,7 +387,8 @@ def test_real_codex_execution_quarantines_unauthorised_workspace_change(tmp_path
             (repo / "unauthorised.txt").write_text("must quarantine\n", encoding="utf-8")
             return b"{}\n", None
 
-    monkeypatch.setattr(bridge_module.shutil, "which", lambda name: "codex")
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
     real_popen = subprocess.Popen
     def fake_popen(command, *args, **kwargs):
         return real_popen(command, *args, **kwargs) if command and command[0] == "git" else FakeCodex()
@@ -407,7 +423,8 @@ def test_codex_failure_still_records_workspace_attestation(tmp_path, monkeypatch
             (repo / "reports" / "failure.md").write_text("failure report\n", encoding="utf-8")
             return b"failed\n", None
 
-    monkeypatch.setattr(bridge_module.shutil, "which", lambda name: "codex")
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
     real_popen = subprocess.Popen
     def fake_popen(command, *args, **kwargs):
         return real_popen(command, *args, **kwargs) if command and command[0] == "git" else FailedCodex()

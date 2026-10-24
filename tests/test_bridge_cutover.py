@@ -207,13 +207,14 @@ def test_engineering_operation_launches_codex_and_is_single_use(tmp_path, monkey
             return b'{"type":"thread.started","thread_id":"thread-g4-o1c-test"}\n{"type":"turn.completed","model":"luna-high"}\n', None
 
     def fake_popen(command, **kwargs):
-        if command[0] == "codex":
+        if command[0] == "C:/test/codex.exe":
             captured["command"] = command
             captured["kwargs"] = kwargs
             return FakeCodex()
         return real_popen(command, **kwargs)
 
-    monkeypatch.setattr(bridge_module.shutil, "which", lambda name: "codex")
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
     real_popen = bridge_module.subprocess.Popen
     monkeypatch.setattr(bridge_module.subprocess, "Popen", fake_popen)
     watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
@@ -225,7 +226,7 @@ def test_engineering_operation_launches_codex_and_is_single_use(tmp_path, monkey
     assert outcome["codex_process"]["model_reported"] == "luna-high"
     assert outcome["engineering_report"]["exists"] is True
     assert captured["timeout"] == 30
-    assert captured["command"][0:4] == ["codex", "exec", "--model", "gpt-5.6-luna"]
+    assert captured["command"][0:4] == ["C:/test/codex.exe", "exec", "--model", "gpt-5.6-luna"]
     assert "--sandbox" in captured["command"] and "workspace-write" in captured["command"]
     assert json.loads((artifacts / f"{ENGINEERING_RESULT_PREFIX}{envelope.instruction_id.replace(':', '_')}.json").read_text(encoding="utf-8"))["schema"] == "charitygraph.g4-o1c-result/v1"
     report_publication = outcome["report_publication"]
@@ -236,6 +237,30 @@ def test_engineering_operation_launches_codex_and_is_single_use(tmp_path, monkey
 
     second = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).process_once()
     assert second[0]["duplicate"] is True
+
+
+def test_codex_discovery_uses_installed_location_when_path_is_missing(tmp_path, monkeypatch):
+    local_app_data = tmp_path / "local-app-data"
+    executable = local_app_data / "OpenAI" / "Codex" / "bin" / "build-a" / "codex.exe"
+    executable.parent.mkdir(parents=True)
+    executable.write_bytes(b"test")
+    monkeypatch.setenv("LOCALAPPDATA", str(local_app_data))
+    monkeypatch.delenv("USERPROFILE", raising=False)
+    monkeypatch.delenv("CHARITYGRAPH_CODEX_EXECUTABLE", raising=False)
+    monkeypatch.setattr(bridge_module.shutil, "which", lambda name: None)
+    assert bridge_module._resolve_codex_executable() == str(executable.resolve())
+
+
+def test_engineering_fails_closed_when_codex_validation_fails(tmp_path, monkeypatch):
+    workspace, head = _engineering_workspace(tmp_path)
+    envelope = _engineering_instruction(workspace, head, instruction_id="gate4:engineering:invalid-codex")
+    artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, envelope)
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: (_ for _ in ()).throw(OSError("unusable executable")))
+    outcome = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).process_once()[0]
+    assert outcome["execution_state"] == "CODEX_LAUNCH_FAILED"
+    assert outcome["codex_process"]["launched"] is False
+    assert "unusable executable" in outcome["codex_process"]["launch_error"]
 
 
 def test_engineering_report_only_requires_explicit_timeout(tmp_path):

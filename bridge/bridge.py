@@ -61,6 +61,55 @@ IMPLEMENTATION_SCOPE = "bounded_local_builder_code_change"
 CODE_CHANGE_ROUTE_ACTIVE = True
 
 
+def _resolve_codex_executable() -> str:
+    """Resolve an installed Codex CLI without relying on the launcher PATH."""
+    configured = os.environ.get("CHARITYGRAPH_CODEX_EXECUTABLE")
+    if configured:
+        candidate = Path(configured).expanduser()
+        if candidate.is_file():
+            return str(candidate.resolve())
+        raise FileNotFoundError("CHARITYGRAPH_CODEX_EXECUTABLE does not identify a regular file")
+
+    candidates: list[Path] = []
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data:
+        candidates.extend(Path(local_app_data).glob("OpenAI/Codex/bin/*/codex.exe"))
+    user_profile = os.environ.get("USERPROFILE")
+    if user_profile:
+        candidates.extend(Path(user_profile).glob(".vscode/extensions/openai.chatgpt-*/bin/windows-x86_64/codex.exe"))
+    path_candidate = shutil.which("codex")
+    if path_candidate:
+        candidates.append(Path(path_candidate))
+
+    seen: set[Path] = set()
+    for candidate in sorted(candidates, key=lambda item: item.stat().st_mtime if item.is_file() else -1, reverse=True):
+        try:
+            resolved = candidate.resolve()
+        except OSError:
+            continue
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        if resolved.is_file():
+            return str(resolved)
+    raise FileNotFoundError("no installed Codex executable was found")
+
+
+def _validate_codex_executable(executable: str) -> str:
+    completed = subprocess.run(
+        [executable, "--version"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=15,
+        check=False,
+    )
+    version = completed.stdout.strip()
+    if completed.returncode != 0 or not version:
+        raise OSError(f"Codex executable validation failed with exit code {completed.returncode}")
+    return version
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -285,7 +334,12 @@ class CutoverWatcher:
         return fence
 
     def _fingerprint(self) -> str:
-        files = [REPO_ROOT / "src" / "charitygraph" / "autonomous_loop.py", HERE, REPO_ROOT / "bridge" / "managed_launcher.py"]
+        files = [
+            REPO_ROOT / "src" / "charitygraph" / "autonomous_loop.py",
+            REPO_ROOT / "src" / "charitygraph" / "bounded_authority.py",
+            HERE,
+            REPO_ROOT / "bridge" / "managed_launcher.py",
+        ]
         h = hashlib.sha256()
         for path in files:
             h.update(str(path.relative_to(REPO_ROOT)).encode("utf-8"))
@@ -481,7 +535,6 @@ class CutoverWatcher:
         run_root.mkdir(parents=True, exist_ok=True)
         output_path = run_root / "codex-output.jsonl"
         last_message_path = run_root / "codex-last-message.txt"
-        codex = shutil.which("codex") or "codex"
         model_config = CODEX_MODEL_MAP[envelope.target["model"]]
         prompt = (
             "You are the bounded CharityGraph G4-O1C engineering worker. Execute exactly one local repository task.\n"
@@ -492,7 +545,15 @@ class CutoverWatcher:
             f"The required report path is {execution['report_path']}; write a small, readable report there.\n"
             "The ChatGPT-authored bounded task follows:\n\n" + envelope.content
         )
-        command = [
+        codex: str | None = None
+        codex_version: str | None = None
+        codex_validation_error: str | None = None
+        try:
+            codex = _resolve_codex_executable()
+            codex_version = _validate_codex_executable(codex)
+        except (OSError, subprocess.SubprocessError) as exc:
+            codex_validation_error = f"{type(exc).__name__}: {exc}"
+        command = [] if codex is None else [
             codex,
             "exec",
             "--model",
@@ -526,19 +587,23 @@ class CutoverWatcher:
         pid: int | None = None
         raw_output = b""
         if baseline_error is None:
-            try:
-                child = subprocess.Popen(command, cwd=self.workspace_root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env={**os.environ, "CHARITYGRAPH_G4_O1C_ENGINEERING": "1"})
-                pid = child.pid
+            if codex_validation_error is not None:
+                launch_error = codex_validation_error
+            else:
+                assert codex is not None
                 try:
-                    raw_output, _ = child.communicate(timeout=execution["timeout_seconds"])
-                    returncode = child.returncode
-                except subprocess.TimeoutExpired:
-                    timed_out = True
-                    child.kill()
-                    raw_output, _ = child.communicate(timeout=30)
-                    returncode = child.returncode
-            except OSError as exc:
-                launch_error = f"{type(exc).__name__}: {exc}"
+                    child = subprocess.Popen(command, cwd=self.workspace_root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env={**os.environ, "CHARITYGRAPH_G4_O1C_ENGINEERING": "1"})
+                    pid = child.pid
+                    try:
+                        raw_output, _ = child.communicate(timeout=execution["timeout_seconds"])
+                        returncode = child.returncode
+                    except subprocess.TimeoutExpired:
+                        timed_out = True
+                        child.kill()
+                        raw_output, _ = child.communicate(timeout=30)
+                        returncode = child.returncode
+                except OSError as exc:
+                    launch_error = f"{type(exc).__name__}: {exc}"
         finished_at = utc_now()
         output_path.write_bytes(raw_output)
         after_workspace = None
@@ -621,6 +686,8 @@ class CutoverWatcher:
                 "returncode": returncode,
                 "model_requested": envelope.target["model"],
                 "model_invoked": model_config["cli_model"],
+                "executable": codex,
+                "executable_version": codex_version,
                 "reasoning_effort": model_config["reasoning_effort"],
                 "model_reported": event_summary["reported_model"],
                 "thread_id": event_summary["thread_id"],

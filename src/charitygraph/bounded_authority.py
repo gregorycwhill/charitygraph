@@ -68,6 +68,20 @@ def _file_sha(path: Path) -> str:
         return "symlink:" + str(path.readlink())
     if not path.exists():
         return "<missing>"
+    if path.is_dir():
+        # Git represents an embedded repository as one untracked directory
+        # entry. Hash its contents deterministically rather than attempting
+        # to open the directory itself as a regular file.
+        digest = hashlib.sha256()
+        digest.update(b"directory\\0")
+        for child in sorted(path.iterdir(), key=lambda item: item.name):
+            digest.update(child.name.encode("utf-8", errors="surrogateescape"))
+            digest.update(b"\\0")
+            digest.update(_file_sha(child).encode("utf-8", errors="surrogateescape"))
+            digest.update(b"\\0")
+        return "directory:" + digest.hexdigest()
+    if not path.is_file():
+        raise OSError(f"unsupported workspace entry type: {path}")
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
