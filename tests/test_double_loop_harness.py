@@ -219,6 +219,45 @@ def test_mission_stop_and_escalation_are_explicit_terminal_states(tmp_path):
     assert escalated.status("cg-g4-double-loop-20261021-v1")["state"] == "escalated"
 
 
+def test_dispatch_rejects_superseded_accepted_review(tmp_path):
+    repo, head = git_repo(tmp_path)
+    ledger = MissionLedger(tmp_path / "bridge.sqlite3").open()
+    ledger.start(contract(repo, head))
+    ledger.append_event("cg-g4-double-loop-20261021-v1", event_key="evidence:1", event_type="evidence_seen", payload={"sha256": HASH_A}, now=NOW)
+
+    first_claim = ledger.claim_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="review", owner="reviewer-one", expected_version=0, now=NOW)
+    ledger.record_review(
+        "cg-g4-double-loop-20261021-v1", reviewer_id="reviewer-one", decision_id="decision-old", cursor_seq=2,
+        execution_disposition="READY", semantic_disposition="ACCEPTED", decision={"reason": "old acceptance"},
+        claim_owner="reviewer-one", claim_token=first_claim["claim_token"], claim_version=1,
+        expected_branch="gate4-test", expected_head=head, tranche_id="O1E-O1F", now=NOW,
+    )
+    ledger.release_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="review", owner="reviewer-one", claim_token=first_claim["claim_token"], version=1, now=NOW)
+
+    second_claim = ledger.claim_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="review", owner="reviewer-two", expected_version=1, now=NOW)
+    ledger.record_review(
+        "cg-g4-double-loop-20261021-v1", reviewer_id="reviewer-two", decision_id="decision-new", cursor_seq=2,
+        execution_disposition="READY", semantic_disposition="ACCEPTED", decision={"reason": "new acceptance"},
+        claim_owner="reviewer-two", claim_token=second_claim["claim_token"], claim_version=2,
+        expected_branch="gate4-test", expected_head=head, tranche_id="O1E-O1F", now=NOW,
+    )
+    ledger.release_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="review", owner="reviewer-two", claim_token=second_claim["claim_token"], version=2, now=NOW)
+
+    dispatch_claim = ledger.claim_supervisor("cg-g4-double-loop-20261021-v1", claim_kind="dispatch", owner="dispatcher", expected_version=0, now=NOW)
+    with pytest.raises(DecisionNotDispatchable, match="superseded"):
+        ledger.dispatch(
+            "cg-g4-double-loop-20261021-v1", owner="dispatcher", claim_token=dispatch_claim["claim_token"], version=1,
+            instruction_id="gate4:engineering:superseded", instruction_sha256=HASH_A, decision_id="decision-old",
+            expected_branch="gate4-test", expected_head=head, tranche_id="O1E-O1F", now=NOW,
+        )
+    dispatched = ledger.dispatch(
+        "cg-g4-double-loop-20261021-v1", owner="dispatcher", claim_token=dispatch_claim["claim_token"], version=1,
+        instruction_id="gate4:engineering:current", instruction_sha256=HASH_B, decision_id="decision-new",
+        expected_branch="gate4-test", expected_head=head, tranche_id="O1E-O1F", now=NOW,
+    )
+    assert dispatched["event_type"] == "dispatch_authorised"
+
+
 def test_bounded_authority_rejects_when_inactive_and_report_only_stays_narrow(tmp_path):
     repo, head = git_repo(tmp_path)
     snapshot = capture_workspace(repo)

@@ -40,6 +40,7 @@ from charitygraph.bounded_authority import (  # noqa: E402
     BoundedAuthorityError,
     DirtyBaselineViolation,
     capture_workspace,
+    report_only_execution,
     validate_execution as validate_bounded_execution,
     verify_allowed_changes,
 )
@@ -411,6 +412,11 @@ class CutoverWatcher:
         change_policy = execution.get("change_policy")
         if change_policy not in {"report_only", "bounded_workspace"}:
             raise InvalidInstruction("engineering execution.change_policy is not supported")
+        if change_policy == "report_only":
+            try:
+                report_only_execution(execution)
+            except BoundedAuthorityError as exc:
+                raise InvalidInstruction(str(exc)) from exc
         if change_policy == "bounded_workspace":
             try:
                 validate_bounded_execution(

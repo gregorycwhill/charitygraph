@@ -185,8 +185,10 @@ def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, 
 
 def report_only_execution(execution: dict[str, Any]) -> dict[str, Any]:
     allowed = {"mode", "change_policy", "model", "report_path", "timeout_seconds"}
-    if set(execution) != allowed or execution.get("change_policy") != "report_only":
-        raise BoundedAuthorityError("report_only execution contains bounded implementation authority fields")
+    if set(execution) != allowed:
+        raise BoundedAuthorityError("report_only execution must contain exactly mode, change_policy, model, report_path, timeout_seconds")
+    if execution.get("change_policy") != "report_only":
+        raise BoundedAuthorityError("report_only execution must use change_policy=report_only")
     return dict(execution)
 
 

@@ -546,6 +546,17 @@ class MissionLedger:
                 raise DecisionNotDispatchable("dispatch requires a current semantic review decision")
             if decision["dispatch_consumed_at"] is not None:
                 raise DecisionNotDispatchable("review decision dispatch authority was already consumed")
+            latest_review_event = conn.execute(
+                "SELECT event_json FROM mission_events "
+                "WHERE mission_id=? AND event_type='supervisor_review_recorded' "
+                "ORDER BY event_seq DESC LIMIT 1",
+                (mission_id,),
+            ).fetchone()
+            if latest_review_event is None:
+                raise DecisionNotDispatchable("dispatch requires a durably recorded semantic review")
+            latest_review = json.loads(latest_review_event["event_json"])
+            if latest_review.get("decision_id") != decision_id:
+                raise DecisionNotDispatchable("selected review decision was superseded by a later review")
             if decision["semantic_disposition"] != "ACCEPTED" or decision["execution_disposition"] in {"PARTIAL", "REJECTED", "DECISION_REQUIRED"}:
                 raise DecisionNotDispatchable("dispatch requires an ACCEPTED, complete semantic review")
             review = json.loads(decision["decision_json"])

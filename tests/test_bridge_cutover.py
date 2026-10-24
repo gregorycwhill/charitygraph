@@ -238,6 +238,18 @@ def test_engineering_operation_launches_codex_and_is_single_use(tmp_path, monkey
     assert second[0]["duplicate"] is True
 
 
+def test_engineering_report_only_requires_explicit_timeout(tmp_path):
+    workspace, head = _engineering_workspace(tmp_path)
+    envelope = _engineering_instruction(workspace, head, instruction_id="gate4:engineering:missing-timeout")
+    raw = envelope.as_dict()
+    del raw["execution"]["timeout_seconds"]
+    artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, InstructionEnvelope.from_dict(raw))
+    outcome = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).process_once()[0]
+    assert outcome["state"] == "NOT_EXECUTED"
+    assert "exact" in outcome["error"]
+    assert not list(artifacts.glob(f"{ENGINEERING_RESULT_PREFIX}*.json"))
+
+
 def test_engineering_operation_rejects_authority_expansion_before_claim(tmp_path):
     workspace, head = _engineering_workspace(tmp_path)
     envelope = _engineering_instruction(workspace, head)
