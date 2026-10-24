@@ -82,9 +82,13 @@ def main(argv: list[str] | None = None) -> int:
         "--poll-seconds",
         str(args.poll_seconds),
     ]
-    with managed_launcher_lock(args.runtime_root):
-        child = subprocess.Popen(command, cwd=args.workspace_root)
-        return child.wait()
+    try:
+        with managed_launcher_lock(args.runtime_root):
+            child = subprocess.Popen(command, cwd=args.workspace_root)
+            return child.wait()
+    except RuntimeError as exc:
+        print(f"managed launcher: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
