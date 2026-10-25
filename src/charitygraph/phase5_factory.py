@@ -46,8 +46,15 @@ class FactoryPlan:
     def runtime_tasks(self, *, cohort_id: str) -> tuple[dict[str, Any], ...]:
         tasks=[]
         for item in self.logical_tasks:
-            cache=hashlib.sha256(item["logical_task_id"].encode()).hexdigest()
-            tasks.append({"record_id": deterministic_id("modeltask:", {"logical_task_id": item["logical_task_id"]}), "subject_id":item["subject_id"], "cohort_id":cohort_id, "task_type":"structured_extraction", "task_schema":{"schema_id":"urn:charitygraph:phase5:rehearsal:1"}, "cache_key":cache, "provider_id":"fake", "model_snapshot":"phase5-rehearsal-v1", "logical_task_id":item["logical_task_id"], "difficulty":item["difficulty"]})
+            model_task = item.get("_model_task")
+            cache = getattr(model_task, "cache_key", None) or hashlib.sha256(item["logical_task_id"].encode()).hexdigest()
+            runtime = {"record_id": model_task.record_id if model_task is not None else deterministic_id("modeltask:", {"logical_task_id": item["logical_task_id"]}), "subject_id":item["subject_id"], "scope_id":item.get("scope_id"), "cohort_id":cohort_id, "task_type":"structured_extraction", "task_schema":{"schema_id":"urn:charitygraph:phase5:rehearsal:1"}, "cache_key":cache, "provider_id":"fake", "model_snapshot":"phase5-rehearsal-v1", "logical_task_id":item["logical_task_id"], "difficulty":item["difficulty"]}
+            for key in ("source_definition_ids", "acquisition_receipt_ids", "source_record_ids", "evidence_locator_ids", "representation_artifact_ids", "representation_hashes", "rights_policy_ids", "rights_roles", "governed_reference_hash"):
+                if key in item:
+                    runtime[key] = item[key]
+            if model_task is not None:
+                runtime["model_task"] = model_task
+            tasks.append(runtime)
         return tuple(tasks)
 
 
@@ -99,7 +106,7 @@ class ReferenceFactory:
         self.interruptions_observed: list[str] = []
     def seed(self, now: datetime) -> tuple[dict[str, Any], ...]:
         tasks=self.plan.runtime_tasks(cohort_id=self.cohort_id)
-        for task in tasks: self.catalog.register_task(task, run_id=self.run_id, now=now)
+        for task in tasks: self.catalog.register_task(task.get("model_task", task), run_id=self.run_id, now=now)
         return tasks
     def _physical_id(self, package_id: str) -> str:
         return "physical:" + package_id.split(":", 1)[1]

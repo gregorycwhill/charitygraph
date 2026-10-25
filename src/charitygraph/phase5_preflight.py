@@ -190,6 +190,15 @@ class PlannedLogicalTask(StrictPlanModel):
     route_policy_version: str
     difficulty: Literal["deterministic", "lower_cost_constrained_semantic", "stronger_semantic_judgement", "human_risk_review"]
     physical_bundle_opportunity: str | None = None
+    source_definition_ids: tuple[str, ...] = ()
+    acquisition_receipt_ids: tuple[str, ...] = ()
+    source_record_ids: tuple[str, ...] = ()
+    evidence_locator_ids: tuple[str, ...] = ()
+    representation_artifact_ids: tuple[str, ...] = ()
+    representation_hashes: tuple[tuple[str, str], ...] = ()
+    rights_policy_ids: tuple[str, ...] = ()
+    rights_roles: tuple[str, ...] = ()
+    governed_reference_hash: str | None = None
 
 
 def _policy_refs(prefix: str) -> dict[str, str]:
