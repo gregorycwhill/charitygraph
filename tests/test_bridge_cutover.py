@@ -307,6 +307,8 @@ def test_bounded_implementation_route_is_versioned_and_active(tmp_path):
     validated = watcher._validate_engineering(InstructionEnvelope.from_dict(raw))
     assert validated["change_policy"] == "bounded_workspace"
     assert validated["model"] == "luna-high"
+    assert validated["allowed_paths"] == ["bridge/bridge.py", "tests/test_bridge_cutover.py"]
+    assert validated["commit_policy"] == "local_commit_only"
     assert not list(artifacts.glob(f"{ENGINEERING_RESULT_PREFIX}*.json"))
 
 

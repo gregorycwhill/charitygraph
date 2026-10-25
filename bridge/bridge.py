@@ -471,9 +471,10 @@ class CutoverWatcher:
                 report_only_execution(execution)
             except BoundedAuthorityError as exc:
                 raise InvalidInstruction(str(exc)) from exc
+        bounded_authority: dict[str, Any] | None = None
         if change_policy == "bounded_workspace":
             try:
-                validate_bounded_execution(
+                bounded_authority = validate_bounded_execution(
                     execution,
                     target=envelope.target,
                     workspace=capture_workspace(self.workspace_root),
@@ -519,7 +520,24 @@ class CutoverWatcher:
             raise InvalidInstruction("engineering timeout_seconds must be an integer from 30 to 900")
         if len(envelope.content.encode("utf-8")) > 12000:
             raise InvalidInstruction("engineering content exceeds the bounded prompt limit")
-        return {"mode": "codex_exec", "change_policy": execution["change_policy"], "model": execution["model"], "report_path": normalised, "timeout_seconds": timeout}
+        validated = {
+            "mode": "codex_exec",
+            "change_policy": execution["change_policy"],
+            "model": execution["model"],
+            "report_path": normalised,
+            "timeout_seconds": timeout,
+        }
+        if bounded_authority is not None:
+            # The execution worker needs the validated allowlist for its
+            # post-run workspace attestation.  Dropping it here would make a
+            # valid bounded implementation appear to change unauthorized paths.
+            validated.update(
+                authority_version=bounded_authority["authority_version"],
+                scope=bounded_authority["scope"],
+                allowed_paths=list(bounded_authority["allowed_paths"]),
+                commit_policy=execution["commit_policy"],
+            )
+        return validated
 
     def _run_codex(self, envelope: Any, source: Path, source_sha: str, execution: dict[str, Any]) -> dict[str, Any]:
         report_path = (self.workspace_root / execution["report_path"]).resolve()
