@@ -53,4 +53,6 @@ A bounded task may make at most one local-only commit when its explicit task all
 
 A local commit changes the workspace HEAD. The supervisor must then create a new immutable fence for that exact commit through the private Drive artifacts folder. The managed launcher remains idle after the old child stops and automatically restores exactly one watcher only after it sees that newer, exact matching fence. Never push, create a PR, publish, or ask the Product Owner to restart anything as part of this step.
 
+To reconcile a post-commit fence, read the latest Drive fence as the complete template. Create a new `...-v<N>.json` with the next version and ID, `supersedes` set to the prior fence, fresh `recorded_at`, and the exact branch, `head`, and implementation revision from the completed result's local-commit attestation. Preserve the legacy-work fence, preserved historical evidence, activation limits, and non-destructive restrictions. Upload it as a new immutable file to the private artifacts folder; then wait for status to show the same fence and HEAD. Do not overwrite an old fence or create another instruction while status is waiting for the new fence.
+
 `CODEX_ENGINEERING_COMPLETED` proves process and bounded-attestation success, not product acceptance. Inspect the report, diff, tests, and repository state before accepting the product outcome.

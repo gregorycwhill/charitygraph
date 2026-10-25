@@ -9,3 +9,5 @@ Do not assume GitHub contains the local commit or that this ChatGPT session can 
 GitHub/repository documents are product authority. Drive is execution transport only. Report the verified live state and ask only for genuinely missing product authority or context.
 
 For an approved change, submit one fresh immutable `cg-g4-o1b-instruction-*.json` under the protocol. Do not replay historical instructions, use legacy queue/spec/inbox formats, dispatch a second worker, or perform GitHub/publication/provider actions. After a bounded local commit, reconcile a new immutable fence through Drive; the managed launcher will resume only when that exact fence arrives.
+
+For that fence, read the latest fence as a complete template, increment its version, set its prior-fence link and fresh time, and replace only the repository revision/branch/HEAD facts with the attested local commit. Preserve every legacy and safety restriction. Verify live status shows the new fence before dispatching again.
