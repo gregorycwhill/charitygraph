@@ -14,6 +14,7 @@ from charitygraph.bounded_authority import (
     capture_workspace,
     report_only_execution,
     validate_execution,
+    verify_local_commit,
     verify_allowed_changes,
 )
 from charitygraph.mission_ledger import (
@@ -318,6 +319,19 @@ def test_bounded_diff_guard_preserves_dirty_baseline_and_limits_paths(tmp_path):
         verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["src/allowed.py", "notes.txt"])
 
 
+def test_bounded_diff_guard_accepts_one_allowlisted_local_commit(tmp_path):
+    repo, _ = git_repo(tmp_path)
+    before = capture_workspace(repo)
+    (repo / "src").mkdir()
+    (repo / "src" / "allowed.py").write_text("x = 1\n", encoding="utf-8")
+    subprocess.run(["git", "add", "src/allowed.py"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "bounded change"], cwd=repo, check=True, capture_output=True)
+    verified = verify_local_commit(before, capture_workspace(repo), allowed_paths=["src/allowed.py"])
+    assert verified["commit_paths"] == ["src/allowed.py"]
+    assert verified["changed_paths"] == ["src/allowed.py"]
+    assert verified["baseline_preserved"] is True
+
+
 def test_workspace_snapshot_hashes_embedded_repository_directory(tmp_path):
     repo, _ = git_repo(tmp_path)
     nested = repo / "tmp" / "pytest-run" / "repo"
@@ -399,6 +413,55 @@ def test_real_codex_execution_quarantines_unauthorised_workspace_change(tmp_path
     assert result["workspace_attestation"]["quarantined"] is True
     assert "unauthorised.txt" in result["workspace_attestation"]["unexpected_paths"]
     assert result["workspace_attestation"]["verified"] is False
+
+
+def test_bounded_execution_attests_one_allowlisted_local_commit(tmp_path, monkeypatch):
+    repo, head = git_repo(tmp_path)
+    (repo / "reports").mkdir()
+    source = tmp_path / "instruction.json"
+    source.write_text("{}\n", encoding="utf-8")
+    target = {"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"}
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:engineering:local-commit",
+        content="write one bounded report and commit it",
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        target=target,
+        operation="codex_engineering",
+    )
+    execution = {
+        "mode": "codex_exec", "change_policy": "bounded_workspace", "model": "luna-high",
+        "report_path": "reports/commit.md", "timeout_seconds": 30,
+        "authority_version": "charitygraph.g4-o1d-local-implementation/v1",
+        "scope": "bounded_local_builder_code_change",
+        "allowed_paths": ["reports/commit.md", "src/allowed.py"],
+        "commit_policy": "local_commit_only",
+    }
+
+    class FakeCodex:
+        pid = 4243
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            (repo / "reports" / "commit.md").write_text("report\n", encoding="utf-8")
+            (repo / "src").mkdir()
+            (repo / "src" / "allowed.py").write_text("x = 1\n", encoding="utf-8")
+            subprocess.run(["git", "add", "reports/commit.md", "src/allowed.py"], cwd=repo, check=True)
+            subprocess.run(["git", "commit", "-m", "bounded worker change"], cwd=repo, check=True, capture_output=True)
+            return b"{}\n", None
+
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
+    real_popen = subprocess.Popen
+
+    def fake_popen(command, *args, **kwargs):
+        return real_popen(command, *args, **kwargs) if command and command[0] == "git" else FakeCodex()
+
+    monkeypatch.setattr(bridge_module.subprocess, "Popen", fake_popen)
+    watcher = bridge_module.CutoverWatcher(artifacts_root=tmp_path / "artifacts", workspace_root=repo, runtime_root=tmp_path / "runtime")
+    result = watcher._run_codex(envelope, source, "c" * 64, execution)
+    assert result["execution_state"] == "CODEX_ENGINEERING_COMPLETED"
+    assert result["workspace_attestation"]["verified"] is True
+    assert result["workspace_attestation"]["local_commit"]["commit_paths"] == ["reports/commit.md", "src/allowed.py"]
 
 
 def test_codex_failure_still_records_workspace_attestation(tmp_path, monkeypatch):

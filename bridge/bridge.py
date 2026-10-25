@@ -42,6 +42,7 @@ from charitygraph.bounded_authority import (  # noqa: E402
     capture_workspace,
     report_only_execution,
     validate_execution as validate_bounded_execution,
+    verify_local_commit,
     verify_allowed_changes,
 )
 
@@ -637,13 +638,26 @@ class CutoverWatcher:
         changed_paths: list[str] = []
         unexpected_changes: list[str] = []
         workspace_verification: dict[str, Any] | None = None
+        commit_attestation: dict[str, Any] | None = None
         if before_workspace is not None and after_workspace is not None:
-            changed_paths = sorted(path for path in set(before_workspace.entries) | set(after_workspace.entries) if before_workspace.entries.get(path) != after_workspace.entries.get(path))
-            unexpected_changes = sorted(path for path in changed_paths if path not in allowed_paths)
             try:
-                workspace_verification = verify_allowed_changes(before_workspace, after_workspace, allowed_paths=sorted(allowed_paths))
+                if execution.get("change_policy") == "bounded_workspace" and before_workspace.head != after_workspace.head:
+                    commit_attestation = verify_local_commit(
+                        before_workspace,
+                        after_workspace,
+                        allowed_paths=sorted(allowed_paths),
+                    )
+                    workspace_verification = commit_attestation
+                    changed_paths = commit_attestation["changed_paths"]
+                    unexpected_changes = commit_attestation["unexpected_paths"]
+                else:
+                    workspace_verification = verify_allowed_changes(before_workspace, after_workspace, allowed_paths=sorted(allowed_paths))
+                    changed_paths = workspace_verification["changed_paths"]
+                    unexpected_changes = workspace_verification["unexpected_paths"]
             except DirtyBaselineViolation as exc:
                 attestation_error = str(exc)
+                changed_paths = sorted(path for path in set(before_workspace.entries) | set(after_workspace.entries) if before_workspace.entries.get(path) != after_workspace.entries.get(path))
+                unexpected_changes = sorted(path for path in changed_paths if path not in allowed_paths)
         workspace_attestation = {
             "verified": workspace_verification is not None and attestation_error is None,
             "quarantined": bool(attestation_error or unexpected_changes),
@@ -651,6 +665,7 @@ class CutoverWatcher:
             "changed_paths": changed_paths,
             "unexpected_paths": unexpected_changes,
             "baseline_error": attestation_error,
+            "local_commit": commit_attestation,
             "before": None if before_workspace is None else {
                 "workspace_path": before_workspace.workspace_path,
                 "branch": before_workspace.branch,

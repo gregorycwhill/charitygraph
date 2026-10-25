@@ -1,5 +1,10 @@
 # Controlled G4-O1C bridge cutover
 
+For a fresh non-Work ChatGPT Sol product-analysis session, begin with
+[`SUPERVISOR_PROTOCOL.md`](SUPERVISOR_PROTOCOL.md) and
+[`CHATGPT_BOOTSTRAP.md`](CHATGPT_BOOTSTRAP.md). They are the canonical
+supervision guidance for this running transport.
+
 The sole supported entrypoint for the cutover is:
 
 ```powershell

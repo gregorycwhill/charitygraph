@@ -197,6 +197,48 @@ def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, 
     return {"changed_paths": changed, "unexpected_paths": unexpected, "baseline_preserved": not baseline_changed}
 
 
+def verify_local_commit(before: WorkspaceSnapshot, after: WorkspaceSnapshot, *, allowed_paths: list[str] | tuple[str, ...]) -> dict[str, Any]:
+    """Accept one allowlisted direct-child local commit without masking baseline drift."""
+    if before.workspace_path != after.workspace_path or before.branch != after.branch:
+        raise DirtyBaselineViolation("repository workspace or branch changed during local commit")
+    if before.head == after.head:
+        raise DirtyBaselineViolation("local commit attestation requires a new commit")
+    root = Path(after.workspace_path)
+    parents = str(_git(root, "rev-list", "--parents", "-n", "1", after.head)).split()
+    if len(parents) != 2 or parents[1] != before.head:
+        raise DirtyBaselineViolation("local commit must be one non-merge direct child of the starting HEAD")
+    if _git(root, "rev-list", "--count", f"{before.head}..{after.head}") != "1":
+        raise DirtyBaselineViolation("local commit attestation permits exactly one commit")
+    committed_paths = sorted(filter(None, str(_git(root, "diff", "--name-only", "--no-renames", before.head, after.head)).splitlines()))
+    allowed = {path.replace("\\", "/") for path in allowed_paths}
+    unexpected = sorted(path for path in committed_paths if path not in allowed)
+    baseline_committed = sorted(path for path in committed_paths if path in before.entries)
+    symlinks = [path for path in committed_paths if (root / path).is_symlink()]
+    if unexpected or baseline_committed or symlinks:
+        parts: list[str] = []
+        if unexpected:
+            parts.append("unexpected committed paths: " + ", ".join(unexpected))
+        if baseline_committed:
+            parts.append("pre-existing dirty paths were committed: " + ", ".join(baseline_committed))
+        if symlinks:
+            parts.append("committed symlink paths are not permitted: " + ", ".join(symlinks))
+        raise DirtyBaselineViolation("; ".join(parts))
+    worktree_after = WorkspaceSnapshot(
+        workspace_path=after.workspace_path,
+        branch=after.branch,
+        head=before.head,
+        entries=after.entries,
+    )
+    worktree = verify_allowed_changes(before, worktree_after, allowed_paths=allowed_paths)
+    return {
+        "commit_head": after.head,
+        "commit_paths": committed_paths,
+        "changed_paths": sorted(set(worktree["changed_paths"]) | set(committed_paths)),
+        "unexpected_paths": worktree["unexpected_paths"],
+        "baseline_preserved": worktree["baseline_preserved"],
+    }
+
+
 def report_only_execution(execution: dict[str, Any]) -> dict[str, Any]:
     allowed = {"mode", "change_policy", "model", "report_path", "timeout_seconds"}
     if set(execution) != allowed:
@@ -219,5 +261,6 @@ __all__ = [
     "report_only_execution",
     "validate_execution",
     "validate_target",
+    "verify_local_commit",
     "verify_allowed_changes",
 ]
