@@ -960,18 +960,27 @@ class CutoverWatcher:
             return None
         try:
             preview, _ = self.adapter.read_materialized_instruction(source)
+            imported = self.adapter.import_materialized_instruction(source)
+            instruction_id = imported["instruction_id"]
+            summary = self.adapter.status_summary(instruction_id)
+            if imported.get("duplicate") and summary["status"] == "complete":
+                self.processed_sources[str(source)] = source_sha
+                return {"source_path": str(source), "source_sha256": source_sha, **summary, "duplicate": True}
             if (
                 preview.operation == ENGINEERING_OPERATION
                 and isinstance(preview.execution, dict)
                 and preview.execution.get("change_policy") == "bounded_workspace"
             ):
                 self._validate_engineering(preview)
-            imported = self.adapter.import_materialized_instruction(source)
         except (InvalidInstruction, DuplicateInstruction) as exc:
             self.processed_sources[str(source)] = source_sha
-            self._write_status(state="READY", last_event="rejected_input", error=f"{type(exc).__name__}: {exc}")
+            # Invalid materialized files are terminally rejected input, not a
+            # live bridge fault or claim.  Preserve the outcome for callers
+            # but do not leave a stale error on READY after a watcher restart
+            # re-observes a historical malformed file.
+            error = None if isinstance(exc, InvalidInstruction) else f"{type(exc).__name__}: {exc}"
+            self._write_status(state="READY", last_event="rejected_input", error=error)
             return {"source_path": str(source), "source_sha256": source_sha, "state": "REJECTED", "error": str(exc)}
-        instruction_id = imported["instruction_id"]
         summary = self.adapter.status_summary(instruction_id)
         if summary["status"] == "complete":
             self.processed_sources[str(source)] = source_sha

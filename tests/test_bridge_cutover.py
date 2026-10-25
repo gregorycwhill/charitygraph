@@ -177,6 +177,32 @@ def test_terminal_result_is_restored_and_survives_idle_preflight(tmp_path, monke
     status = json.loads((artifacts / STATUS_NAME).read_text(encoding="utf-8"))
     assert status["last_event"] == "completed"
     assert status["last_result"]["execution_state"] == "TEST_COMPLETED"
+
+
+def test_historical_completed_instruction_is_ignored_before_stale_target_validation(tmp_path):
+    workspace, old_head = _engineering_workspace(tmp_path)
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    runtime = tmp_path / "runtime"
+    (artifacts / FENCE_NAME).write_text(json.dumps(_fence(workspace, old_head, "gate4-test")), encoding="utf-8")
+    envelope = _engineering_instruction(workspace, old_head, instruction_id="gate4:engineering:historical-complete")
+    source = artifacts / "cg-g4-o1b-instruction-historical-complete.json"
+    source.write_text(canonical_json(envelope.as_dict()) + "\n", encoding="utf-8", newline="\n")
+    original = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    original.adapter.submit(envelope)
+    claimed = original.adapter.claim(owner="test-owner")
+    original.adapter.begin(claimed.instruction_id, owner="test-owner")
+    original.adapter.complete(claimed.instruction_id, owner="test-owner", result={"schema": "test-result/v1", "execution_state": "TEST_COMPLETED", "instruction_id": claimed.instruction_id})
+    (workspace / "README.md").write_text("new head\n", encoding="utf-8")
+    subprocess.run(["git", "add", "README.md"], cwd=workspace, check=True)
+    subprocess.run(["git", "commit", "-m", "new head"], cwd=workspace, check=True, capture_output=True)
+    new_head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=workspace, text=True).strip()
+    (artifacts / FENCE_NAME).write_text(json.dumps(_fence(workspace, new_head, "gate4-test")), encoding="utf-8")
+
+    outcomes = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).process_once()
+    assert outcomes[0]["duplicate"] is True
+    status = json.loads((artifacts / STATUS_NAME).read_text(encoding="utf-8"))
+    assert status["error"] is None
     assert status["last_result_identity"]["instruction_id"] == claimed.instruction_id
 
 
