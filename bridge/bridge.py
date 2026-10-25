@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -768,34 +769,60 @@ class CutoverWatcher:
                         force=True,
                         publication_kind="execution_transition",
                     )
+                    # ``Popen.communicate(timeout=...)`` has not proved a
+                    # reliable watchdog for the real Codex CLI on Windows:
+                    # its output pipe can remain open while the timeout call
+                    # does not return.  Drain output on a daemon reader and
+                    # enforce the deadline from this watcher thread instead.
+                    collected: dict[str, Any] = {}
+                    output_complete = threading.Event()
+
+                    def collect_output() -> None:
+                        try:
+                            collected["raw"], _ = child.communicate(timeout=None)
+                        except OSError as exc:
+                            collected["error"] = f"{type(exc).__name__}: {exc}"
+                        finally:
+                            output_complete.set()
+
+                    threading.Thread(target=collect_output, name="charitygraph-codex-output", daemon=True).start()
                     deadline = time.monotonic() + execution["timeout_seconds"]
                     while True:
                         remaining = deadline - time.monotonic()
                         if remaining <= 0:
                             timed_out = True
                             child.kill()
-                            raw_output, _ = child.communicate(timeout=30)
+                            if not output_complete.wait(timeout=30):
+                                launch_error = "Codex child did not terminate within 30 seconds of the enforced deadline"
+                            raw_output = collected.get("raw", b"")
+                            if collected.get("error"):
+                                launch_error = collected["error"]
                             returncode = child.returncode
                             break
-                        try:
-                            raw_output, _ = child.communicate(timeout=min(self.heartbeat_seconds, remaining))
+                        if output_complete.wait(timeout=min(self.heartbeat_seconds, remaining)):
+                            raw_output = collected.get("raw", b"")
+                            if collected.get("error"):
+                                launch_error = collected["error"]
                             returncode = child.returncode
                             break
-                        except subprocess.TimeoutExpired:
-                            if time.monotonic() >= deadline:
-                                timed_out = True
-                                child.kill()
-                                raw_output, _ = child.communicate(timeout=30)
-                                returncode = child.returncode
-                                break
-                            if self._active_execution is not None:
-                                self._active_execution["last_local_heartbeat_at"] = utc_now()
-                            self._write_status(
-                                state="EXECUTING",
-                                last_event="execution_heartbeat",
-                                force=True,
-                                publication_kind="execution_heartbeat",
-                            )
+                        if time.monotonic() >= deadline:
+                            timed_out = True
+                            child.kill()
+                            if not output_complete.wait(timeout=30):
+                                launch_error = "Codex child did not terminate within 30 seconds of the enforced deadline"
+                            raw_output = collected.get("raw", b"")
+                            if collected.get("error"):
+                                launch_error = collected["error"]
+                            returncode = child.returncode
+                            break
+                        if self._active_execution is not None:
+                            self._active_execution["last_local_heartbeat_at"] = utc_now()
+                        self._write_status(
+                            state="EXECUTING",
+                            last_event="execution_heartbeat",
+                            force=True,
+                            publication_kind="execution_heartbeat",
+                        )
                 except OSError as exc:
                     launch_error = f"{type(exc).__name__}: {exc}"
         finished_at = utc_now()

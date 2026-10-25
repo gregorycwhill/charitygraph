@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -277,7 +278,7 @@ def test_engineering_operation_launches_codex_and_is_single_use(tmp_path, monkey
     assert outcome["codex_process"]["thread_id"] == "thread-g4-o1c-test"
     assert outcome["codex_process"]["model_reported"] == "luna-high"
     assert outcome["engineering_report"]["exists"] is True
-    assert 0 < captured["timeout"] <= 30
+    assert captured["timeout"] is None
     assert captured["command"][0:4] == ["C:/test/codex.exe", "exec", "--model", "gpt-5.6-luna"]
     assert "--sandbox" in captured["command"] and "workspace-write" in captured["command"]
     assert json.loads((artifacts / f"{ENGINEERING_RESULT_PREFIX}{envelope.instruction_id.replace(':', '_')}.json").read_text(encoding="utf-8"))["schema"] == "charitygraph.g4-o1c-result/v1"
@@ -295,16 +296,14 @@ def test_execution_status_identifies_active_run_and_writes_heartbeats(tmp_path, 
     workspace, head = _engineering_workspace(tmp_path)
     envelope = _engineering_instruction(workspace, head, instruction_id="gate4:engineering:heartbeat")
     artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, envelope)
-    captured = {"calls": 0}
+    release = threading.Event()
 
     class HeartbeatingCodex:
         pid = 7777
         returncode = 0
 
-        def communicate(self, timeout):
-            captured["calls"] += 1
-            if captured["calls"] == 1:
-                raise subprocess.TimeoutExpired("codex", timeout)
+        def communicate(self, timeout=None):
+            assert release.wait(timeout=5)
             report = workspace / "reports" / "g4-o1c-test-report.md"
             report.parent.mkdir(parents=True, exist_ok=True)
             report.write_text("# heartbeat report\n", encoding="utf-8")
@@ -327,6 +326,8 @@ def test_execution_status_identifies_active_run_and_writes_heartbeats(tmp_path, 
         written = write_status(**kwargs)
         if written:
             observed.append(json.loads((artifacts / STATUS_NAME).read_text(encoding="utf-8")))
+        if kwargs.get("publication_kind") == "execution_heartbeat":
+            release.set()
         return written
 
     monkeypatch.setattr(watcher, "_write_status", capture_status)
@@ -338,6 +339,44 @@ def test_execution_status_identifies_active_run_and_writes_heartbeats(tmp_path, 
     assert any(item["publication"]["kind"] == "execution_heartbeat" for item in active)
     assert observed[-1]["watcher_state"] == "READY"
     assert observed[-1]["active_execution"] is None
+
+
+def test_execution_deadline_is_enforced_even_when_codex_output_reader_blocks(tmp_path, monkeypatch):
+    workspace, head = _engineering_workspace(tmp_path)
+    envelope = _engineering_instruction(workspace, head, instruction_id="gate4:engineering:deadline")
+    artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, envelope)
+    released = threading.Event()
+
+    class BlockingCodex:
+        pid = 7878
+        returncode = None
+
+        def communicate(self, timeout=None):
+            released.wait(timeout=5)
+            return b"", None
+
+        def kill(self):
+            self.returncode = -9
+            released.set()
+
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
+    real_popen = bridge_module.subprocess.Popen
+    monkeypatch.setattr(bridge_module.subprocess, "Popen", lambda command, **kwargs: BlockingCodex() if command[0] == "C:/test/codex.exe" else real_popen(command, **kwargs))
+    watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    monkeypatch.setattr(watcher, "_write_status", lambda **kwargs: True)
+    clock = iter((0.0, 31.0))
+    monkeypatch.setattr(bridge_module.time, "monotonic", lambda: next(clock))
+
+    outcome = watcher._run_codex(
+        envelope,
+        artifacts / "cg-g4-o1b-instruction-engineering.json",
+        "d" * 64,
+        {"mode": "codex_exec", "change_policy": "report_only", "model": "luna-high", "report_path": "reports/g4-o1c-test-report.md", "timeout_seconds": 30},
+    )
+    assert outcome["execution_state"] == "CODEX_EXECUTION_TIMEOUT"
+    assert outcome["codex_process"]["timed_out"] is True
+    assert outcome["codex_process"]["returncode"] == -9
 
 
 def test_codex_discovery_uses_installed_location_when_path_is_missing(tmp_path, monkeypatch):
