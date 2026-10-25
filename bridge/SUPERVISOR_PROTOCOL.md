@@ -51,6 +51,6 @@ It must target the just-verified repository, absolute workspace path, branch, fu
 
 A bounded task may make at most one local-only commit when its explicit task allows it. The bridge accepts only one non-merge direct-child commit of the target HEAD; every committed path must be allowlisted, and no pre-existing dirty path may be absorbed. The result records that commit under `workspace_attestation.local_commit`.
 
-A local commit changes the workspace HEAD. The supervisor must then create a new immutable fence for that exact commit and restore the one managed watcher before another instruction. Never push, create a PR, or publish as part of this step.
+A local commit changes the workspace HEAD. The supervisor must then create a new immutable fence for that exact commit through the private Drive artifacts folder. The managed launcher remains idle after the old child stops and automatically restores exactly one watcher only after it sees that newer, exact matching fence. Never push, create a PR, publish, or ask the Product Owner to restart anything as part of this step.
 
 `CODEX_ENGINEERING_COMPLETED` proves process and bounded-attestation success, not product acceptance. Inspect the report, diff, tests, and repository state before accepting the product outcome.

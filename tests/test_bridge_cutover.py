@@ -9,6 +9,7 @@ from pathlib import Path
 
 import bridge.bridge as bridge_module
 import pytest
+from bridge.managed_launcher import matching_fence_identity
 from bridge.bridge import (
     CutoverWatcher,
     ENGINEERING_OPERATION,
@@ -134,6 +135,21 @@ def test_status_publishes_drive_readable_workspace_and_claim_ledger(tmp_path):
     ledger_surface = json.loads((artifacts / SUPERVISOR_LEDGER_NAME).read_text(encoding="utf-8"))
     assert ledger_surface["dispatch_clear"] is False
     assert ledger_surface["active_or_ambiguous_claims"][0]["instruction_id"] == "gate4:engineering:pending-ledger"
+
+
+def test_managed_launcher_only_accepts_an_exact_latest_fence(tmp_path):
+    workspace, head = _engineering_workspace(tmp_path)
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    first = artifacts / FENCE_NAME
+    first.write_text(json.dumps(_fence(workspace, head, "gate4-test")), encoding="utf-8")
+    identity = matching_fence_identity(artifacts, workspace)
+    assert identity is not None
+    assert identity["head"] == head
+
+    latest = artifacts / "cg-g4-o1b-dormant-state-fence-20261020-v2.json"
+    latest.write_text(json.dumps(_fence(workspace, "a" * 40, "gate4-test")), encoding="utf-8")
+    assert matching_fence_identity(artifacts, workspace) is None
 
 
 def test_terminal_result_is_restored_and_survives_idle_preflight(tmp_path, monkeypatch):

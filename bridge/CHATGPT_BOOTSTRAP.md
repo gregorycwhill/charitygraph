@@ -8,4 +8,4 @@ Do not assume GitHub contains the local commit or that this ChatGPT session can 
 
 GitHub/repository documents are product authority. Drive is execution transport only. Report the verified live state and ask only for genuinely missing product authority or context.
 
-For an approved change, submit one fresh immutable `cg-g4-o1b-instruction-*.json` under the protocol. Do not replay historical instructions, use legacy queue/spec/inbox formats, dispatch a second worker, or perform GitHub/publication/provider actions. After a bounded local commit, reconcile a new fence before the next instruction.
+For an approved change, submit one fresh immutable `cg-g4-o1b-instruction-*.json` under the protocol. Do not replay historical instructions, use legacy queue/spec/inbox formats, dispatch a second worker, or perform GitHub/publication/provider actions. After a bounded local commit, reconcile a new immutable fence through Drive; the managed launcher will resume only when that exact fence arrives.
