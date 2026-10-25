@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import hashlib
 import subprocess
-from dataclasses import dataclass
+import tempfile
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -31,11 +32,25 @@ class DirtyBaselineViolation(BoundedAuthorityError):
 
 
 @dataclass(frozen=True)
+class DirtyFileBaseline:
+    """Private pre-execution bytes for an explicitly editable dirty file.
+
+    These bytes never leave the local attestation process.  They allow a
+    three-way reconciliation against HEAD rather than treating an allowlisted
+    pre-existing edit as either invisible or categorically forbidden.
+    """
+
+    base_bytes: bytes
+    dirty_bytes: bytes
+
+
+@dataclass(frozen=True)
 class WorkspaceSnapshot:
     workspace_path: str
     branch: str
     head: str
     entries: dict[str, tuple[str, str, str]]
+    dirty_file_baselines: dict[str, DirtyFileBaseline] = field(default_factory=dict, repr=False)
 
 
 def _git(repo: Path, *args: str, raw: bool = False) -> str | bytes:
@@ -89,11 +104,19 @@ def _file_sha(path: Path) -> str:
     return digest.hexdigest()
 
 
-def capture_workspace(repo: str | Path) -> WorkspaceSnapshot:
+def capture_workspace(repo: str | Path, *, preserve_dirty_paths: set[str] | None = None) -> WorkspaceSnapshot:
     root = Path(repo).resolve()
-    status = str(_git(root, "status", "--porcelain=v1", "--untracked-files=all"))
+    preserved = {item.replace("\\", "/") for item in (preserve_dirty_paths or set())}
+    # Porcelain status deliberately uses a leading space for an unstaged-only
+    # modification.  Do not route it through the text helper, whose normal
+    # ``strip`` behaviour would remove that safety-significant byte from the
+    # first record and corrupt its path.
+    status = bytes(_git(root, "status", "--porcelain=v1", "--untracked-files=all", raw=True)).decode(
+        "utf-8", errors="surrogateescape"
+    ).rstrip("\r\n")
     paths = _status_paths(status)
     entries: dict[str, tuple[str, str, str]] = {}
+    dirty_file_baselines: dict[str, DirtyFileBaseline] = {}
     for relative, status_code in paths.items():
         path = root / relative
         try:
@@ -105,11 +128,24 @@ def capture_workspace(repo: str | Path) -> WorkspaceSnapshot:
             _file_sha(path),
             hashlib.sha256(diff).hexdigest(),
         )
+        if relative in preserved:
+            # An untracked, deleted, symlinked, or non-regular file has no
+            # stable Git ancestor for three-way reconciliation.  Refuse to
+            # make it writable rather than silently weakening the dirty-state
+            # boundary.
+            if status_code == "??" or path.is_symlink() or not path.is_file():
+                raise DirtyBaselineViolation(f"allowlisted dirty path cannot be reconciled safely: {relative}")
+            try:
+                base_bytes = bytes(_git(root, "show", f"HEAD:{relative}", raw=True))
+            except subprocess.CalledProcessError as exc:
+                raise DirtyBaselineViolation(f"allowlisted dirty path has no HEAD baseline: {relative}") from exc
+            dirty_file_baselines[relative] = DirtyFileBaseline(base_bytes=base_bytes, dirty_bytes=path.read_bytes())
     return WorkspaceSnapshot(
         workspace_path=str(root),
         branch=str(_git(root, "branch", "--show-current")),
         head=str(_git(root, "rev-parse", "HEAD")),
         entries=entries,
+        dirty_file_baselines=dirty_file_baselines,
     )
 
 
@@ -192,9 +228,69 @@ def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, 
             reason += "; symlink/path escape detected"
         raise DirtyBaselineViolation(reason)
     baseline_changed = sorted(path for path in changed if path in before.entries)
-    if baseline_changed:
-        raise DirtyBaselineViolation(f"pre-existing dirty baseline was changed: {', '.join(baseline_changed)}")
-    return {"changed_paths": changed, "unexpected_paths": unexpected, "baseline_preserved": not baseline_changed}
+    protected_baseline_changes = sorted(path for path in baseline_changed if path not in allowed)
+    if protected_baseline_changes:
+        raise DirtyBaselineViolation(f"pre-existing dirty baseline was changed outside the allowlist: {', '.join(protected_baseline_changes)}")
+
+    reconciled: dict[str, dict[str, str]] = {}
+    for relative in sorted(path for path in baseline_changed if path in allowed):
+        baseline = before.dirty_file_baselines.get(relative)
+        if baseline is None:
+            raise DirtyBaselineViolation(f"allowlisted dirty path was changed without a pre-execution preservation snapshot: {relative}")
+        current_path = root / relative
+        if current_path.is_symlink() or not current_path.is_file():
+            raise DirtyBaselineViolation(f"allowlisted dirty path is no longer a regular file: {relative}")
+        after_bytes = current_path.read_bytes()
+        # Git's three-way merge is used as a strict preservation proof:
+        #   base   = HEAD before execution
+        #   local  = the user's pre-existing dirty file
+        #   remote = the post-worker file
+        # A clean merge that produces exactly the post-worker bytes proves the
+        # worker's edits are disjoint from, and retain, the existing edits.
+        # Git objects are conventionally LF while a Windows worktree may use
+        # CRLF for both the pre-existing edit and the post-worker file.  Align
+        # only the base's line endings in that narrow, consistent case; any
+        # worker-induced line-ending conversion remains a reconciliation
+        # failure rather than becoming invisible.
+        merge_base_bytes = baseline.base_bytes
+        if (
+            b"\r" not in merge_base_bytes
+            and b"\r\n" in baseline.dirty_bytes
+            and b"\r\n" in after_bytes
+            and b"\r" not in baseline.dirty_bytes.replace(b"\r\n", b"")
+            and b"\r" not in after_bytes.replace(b"\r\n", b"")
+        ):
+            merge_base_bytes = merge_base_bytes.replace(b"\n", b"\r\n")
+        with tempfile.TemporaryDirectory(prefix="charitygraph-dirty-baseline-") as temporary:
+            temporary_root = Path(temporary)
+            local_path = temporary_root / "local"
+            base_path = temporary_root / "base"
+            remote_path = temporary_root / "remote"
+            local_path.write_bytes(baseline.dirty_bytes)
+            base_path.write_bytes(merge_base_bytes)
+            remote_path.write_bytes(after_bytes)
+            merged = subprocess.run(
+                ["git", "merge-file", "-p", str(local_path), str(base_path), str(remote_path)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+        if merged.returncode != 0 or merged.stdout != after_bytes:
+            raise DirtyBaselineViolation(
+                f"allowlisted dirty baseline was not preserved by a clean three-way reconciliation: {relative}"
+            )
+        reconciled[relative] = {
+            "base_sha256": hashlib.sha256(baseline.base_bytes).hexdigest(),
+            "preexisting_sha256": hashlib.sha256(baseline.dirty_bytes).hexdigest(),
+            "after_sha256": hashlib.sha256(after_bytes).hexdigest(),
+            "method": "git-merge-file-clean-exact",
+        }
+    return {
+        "changed_paths": changed,
+        "unexpected_paths": unexpected,
+        "baseline_preserved": True,
+        "dirty_allowlisted_reconciliation": reconciled,
+    }
 
 
 def verify_local_commit(before: WorkspaceSnapshot, after: WorkspaceSnapshot, *, allowed_paths: list[str] | tuple[str, ...]) -> dict[str, Any]:

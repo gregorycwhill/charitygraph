@@ -55,7 +55,9 @@ A local commit changes the workspace HEAD. The supervisor must then create a new
 
 To reconcile a post-commit fence, read the latest Drive fence as the complete template. Create a new `...-v<N>.json` with the next version and ID, `supersedes` set to the prior fence, fresh `recorded_at`, and the exact branch, `head`, and implementation revision from the completed result's local-commit attestation. Preserve the legacy-work fence, preserved historical evidence, activation limits, and non-destructive restrictions. Upload it as a new immutable file to the private artifacts folder; then wait for status to show the same fence and HEAD. Do not overwrite an old fence or create another instruction while status is waiting for the new fence.
 
-`CODEX_ENGINEERING_COMPLETED` proves process and bounded-attestation success, not product acceptance. Inspect the report, diff, tests, and repository state before accepting the product outcome.
+`CODEX_ENGINEERING_COMPLETED` proves process and bounded-attestation success, not product acceptance. Inspect the report, diff, tests, and repository state before accepting the product outcome. A worker report is mirrored privately whenever it exists, including a failed or quarantined terminal result; its `terminal_state` and `product_accepted: false` fields are diagnostic evidence only and never authorise acceptance or replay.
+
+For an explicitly allowlisted tracked file that was already dirty at launch, the bridge snapshots its private pre-edit bytes and reconciles it against its HEAD bytes after the worker exits. It accepts the change only if Git can perform a clean three-way merge of the pre-existing edit and post-worker file and that merge is byte-identical to the post-worker file. A non-allowlisted dirty path must remain unchanged; an overlapping/clobbered allowlisted dirty hunk fails closed. A dirty file can never be absorbed into a local commit.
 
 ## Execution telemetry and safe waiting
 

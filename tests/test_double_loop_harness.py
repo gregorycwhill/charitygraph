@@ -301,22 +301,36 @@ def test_completed_duplicate_is_reconciled_before_stale_head_verification(tmp_pa
     assert duplicate["status"] == "pending"
 
 
-def test_bounded_diff_guard_preserves_dirty_baseline_and_limits_paths(tmp_path):
+def test_bounded_diff_guard_reconciles_allowlisted_dirty_hunks_and_limits_paths(tmp_path):
     repo, _ = git_repo(tmp_path)
-    (repo / "notes.txt").write_text("pre-existing\n", encoding="utf-8")
-    before = capture_workspace(repo)
+    (repo / "README.md").write_text("one\ntwo\nthree\nfour\nfive\n", encoding="utf-8")
+    subprocess.run(["git", "add", "README.md"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "test baseline"], cwd=repo, check=True, capture_output=True)
+    (repo / "README.md").write_text("one\npre-existing user hunk\nthree\nfour\nfive\n", encoding="utf-8")
+    before = capture_workspace(repo, preserve_dirty_paths={"README.md"})
+    (repo / "README.md").write_text("one\npre-existing user hunk\nthree\nfour\nallowlisted worker hunk\n", encoding="utf-8")
     (repo / "src").mkdir()
     (repo / "src" / "allowed.py").write_text("x = 1\n", encoding="utf-8")
     after = capture_workspace(repo)
-    verified = verify_allowed_changes(before, after, allowed_paths=["src/allowed.py"])
-    assert verified["changed_paths"] == ["src/allowed.py"]
+    verified = verify_allowed_changes(before, after, allowed_paths=["README.md", "src/allowed.py"])
+    assert verified["changed_paths"] == ["README.md", "src/allowed.py"]
+    assert verified["dirty_allowlisted_reconciliation"]["README.md"]["method"] == "git-merge-file-clean-exact"
     (repo / "other.py").write_text("unexpected\n", encoding="utf-8")
     with pytest.raises(DirtyBaselineViolation):
-        verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["src/allowed.py"])
+        verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["README.md", "src/allowed.py"])
     (repo / "other.py").unlink()
-    (repo / "notes.txt").write_text("changed baseline\n", encoding="utf-8")
-    with pytest.raises(DirtyBaselineViolation, match="pre-existing"):
-        verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["src/allowed.py", "notes.txt"])
+    (repo / "README.md").write_text("one\nworker clobbered prior hunk\nthree\nfour\nallowlisted worker hunk\n", encoding="utf-8")
+    with pytest.raises(DirtyBaselineViolation, match="not preserved"):
+        verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["README.md", "src/allowed.py"])
+
+
+def test_bounded_diff_guard_rejects_changed_non_allowlisted_dirty_path(tmp_path):
+    repo, _ = git_repo(tmp_path)
+    (repo / "README.md").write_text("baseline\npre-existing user hunk\n", encoding="utf-8")
+    before = capture_workspace(repo, preserve_dirty_paths={"README.md"})
+    (repo / "README.md").write_text("baseline\npre-existing user hunk\nworker hunk\n", encoding="utf-8")
+    with pytest.raises(DirtyBaselineViolation, match="unexpected bounded workspace changes"):
+        verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["reports/allowed.md"])
 
 
 def test_bounded_diff_guard_accepts_one_allowlisted_local_commit(tmp_path):
@@ -413,6 +427,9 @@ def test_real_codex_execution_quarantines_unauthorised_workspace_change(tmp_path
     assert result["workspace_attestation"]["quarantined"] is True
     assert "unauthorised.txt" in result["workspace_attestation"]["unexpected_paths"]
     assert result["workspace_attestation"]["verified"] is False
+    assert result["report_publication"]["terminal_state"] == "CODEX_EXECUTION_FAILED_UNEXPECTED_CHANGES"
+    assert result["report_publication"]["product_accepted"] is False
+    assert Path(result["report_publication"]["path"]).is_file()
 
 
 def test_bounded_execution_attests_one_allowlisted_local_commit(tmp_path, monkeypatch):
@@ -497,3 +514,5 @@ def test_codex_failure_still_records_workspace_attestation(tmp_path, monkeypatch
     assert result["execution_state"] == "CODEX_EXECUTION_FAILED"
     assert result["workspace_attestation"]["verified"] is True
     assert result["workspace_attestation"]["quarantined"] is False
+    assert result["report_publication"]["terminal_state"] == "CODEX_EXECUTION_FAILED"
+    assert result["report_publication"]["product_accepted"] is False

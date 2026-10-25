@@ -729,13 +729,16 @@ class CutoverWatcher:
             str(last_message_path),
             prompt,
         ]
+        allowed_paths = {execution["report_path"]}
+        if execution.get("change_policy") == "bounded_workspace":
+            allowed_paths.update(execution.get("allowed_paths", []))
         before_workspace = None
         baseline_error: str | None = None
         try:
             # This is the authoritative pre-launch baseline.  It includes
             # tracked, modified, staged, deleted, renamed and untracked paths;
             # status-line deltas are not sufficient for a safety boundary.
-            before_workspace = capture_workspace(self.workspace_root)
+            before_workspace = capture_workspace(self.workspace_root, preserve_dirty_paths=allowed_paths)
         except (OSError, subprocess.CalledProcessError, ValueError) as exc:
             baseline_error = f"{type(exc).__name__}: {exc}"
         started_at = utc_now()
@@ -804,9 +807,6 @@ class CutoverWatcher:
                 after_workspace = capture_workspace(self.workspace_root)
             except (OSError, subprocess.CalledProcessError, ValueError) as exc:
                 attestation_error = f"{type(exc).__name__}: {exc}"
-        allowed_paths = {execution["report_path"]}
-        if execution.get("change_policy") == "bounded_workspace":
-            allowed_paths.update(execution.get("allowed_paths", []))
         changed_paths: list[str] = []
         unexpected_changes: list[str] = []
         workspace_verification: dict[str, Any] | None = None
@@ -916,8 +916,13 @@ class CutoverWatcher:
             },
             "completed_at": finished_at,
         }
-        if state == "CODEX_ENGINEERING_COMPLETED":
+        # A report is diagnostic evidence, not an acceptance signal.  Publish
+        # it whenever a worker produced it, including quarantined or failed
+        # runs, so the independent supervisor can diagnose without replaying.
+        if report_exists:
             result["report_publication"] = self._publish_report(envelope.instruction_id, report_path, report_sha or "")
+            result["report_publication"]["terminal_state"] = state
+            result["report_publication"]["product_accepted"] = False
         return result
 
     def _process_candidate(self, source: Path) -> dict[str, Any] | None:
