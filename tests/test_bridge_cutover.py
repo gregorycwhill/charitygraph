@@ -277,7 +277,7 @@ def test_engineering_operation_launches_codex_and_is_single_use(tmp_path, monkey
     assert outcome["codex_process"]["thread_id"] == "thread-g4-o1c-test"
     assert outcome["codex_process"]["model_reported"] == "luna-high"
     assert outcome["engineering_report"]["exists"] is True
-    assert captured["timeout"] == 30
+    assert 0 < captured["timeout"] <= 30
     assert captured["command"][0:4] == ["C:/test/codex.exe", "exec", "--model", "gpt-5.6-luna"]
     assert "--sandbox" in captured["command"] and "workspace-write" in captured["command"]
     assert json.loads((artifacts / f"{ENGINEERING_RESULT_PREFIX}{envelope.instruction_id.replace(':', '_')}.json").read_text(encoding="utf-8"))["schema"] == "charitygraph.g4-o1c-result/v1"
@@ -289,6 +289,55 @@ def test_engineering_operation_launches_codex_and_is_single_use(tmp_path, monkey
 
     second = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).process_once()
     assert second[0]["duplicate"] is True
+
+
+def test_execution_status_identifies_active_run_and_writes_heartbeats(tmp_path, monkeypatch):
+    workspace, head = _engineering_workspace(tmp_path)
+    envelope = _engineering_instruction(workspace, head, instruction_id="gate4:engineering:heartbeat")
+    artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, envelope)
+    captured = {"calls": 0}
+
+    class HeartbeatingCodex:
+        pid = 7777
+        returncode = 0
+
+        def communicate(self, timeout):
+            captured["calls"] += 1
+            if captured["calls"] == 1:
+                raise subprocess.TimeoutExpired("codex", timeout)
+            report = workspace / "reports" / "g4-o1c-test-report.md"
+            report.parent.mkdir(parents=True, exist_ok=True)
+            report.write_text("# heartbeat report\n", encoding="utf-8")
+            return b'{"type":"turn.completed"}\n', None
+
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
+    real_popen = bridge_module.subprocess.Popen
+
+    def fake_popen(command, **kwargs):
+        return HeartbeatingCodex() if command[0] == "C:/test/codex.exe" else real_popen(command, **kwargs)
+
+    monkeypatch.setattr(bridge_module.subprocess, "Popen", fake_popen)
+    watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    watcher.heartbeat_seconds = 0.01
+    observed = []
+    write_status = watcher._write_status
+
+    def capture_status(**kwargs):
+        written = write_status(**kwargs)
+        if written:
+            observed.append(json.loads((artifacts / STATUS_NAME).read_text(encoding="utf-8")))
+        return written
+
+    monkeypatch.setattr(watcher, "_write_status", capture_status)
+    outcome = watcher.process_once()[0]
+    assert outcome["execution_state"] == "CODEX_ENGINEERING_COMPLETED"
+    active = [item for item in observed if item["watcher_state"] == "EXECUTING"]
+    assert any(item["active_execution"]["phase"] == "claimed_preparing" for item in active)
+    assert any(item["active_execution"]["phase"] == "codex_running" for item in active)
+    assert any(item["publication"]["kind"] == "execution_heartbeat" for item in active)
+    assert observed[-1]["watcher_state"] == "READY"
+    assert observed[-1]["active_execution"] is None
 
 
 def test_codex_discovery_uses_installed_location_when_path_is_missing(tmp_path, monkeypatch):

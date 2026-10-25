@@ -59,6 +59,7 @@ ENGINEERING_OPERATION = "codex_engineering"
 RESULT_SCHEMA = "charitygraph.g4-o1c-result/v1"
 CODEX_MODEL_MAP = {"luna-high": {"cli_model": "gpt-5.6-luna", "reasoning_effort": "high"}}
 HEARTBEAT_SECONDS = 120.0
+RESULT_PUBLICATION_GRACE_SECONDS = 180
 IMPLEMENTATION_AUTHORITY_VERSION = "charitygraph.g4-o1d-local-implementation/v1"
 IMPLEMENTATION_SCOPE = "bounded_local_builder_code_change"
 CODE_CHANGE_ROUTE_ACTIVE = True
@@ -235,6 +236,7 @@ class CutoverWatcher:
         self._last_event_at: str | None = None
         self._last_result: dict[str, Any] | None = None
         self._last_result_identity: dict[str, Any] | None = None
+        self._active_execution: dict[str, Any] | None = None
         self._supervision_key: str | None = None
         self._supervision_refs: dict[str, Any] | None = None
         terminal = self.adapter.latest_terminal()
@@ -328,6 +330,14 @@ class CutoverWatcher:
             "status_filename": STATUS_NAME,
             "supported_operations": ["bridge_probe", ENGINEERING_OPERATION],
             "execution_authority": "one adapter ledger and one managed Codex worker",
+            "active_execution": self._active_execution,
+            "telemetry_contract": {
+                "local_status_generated_at": "updated_at",
+                "heartbeat_seconds": self.heartbeat_seconds,
+                "stale_after_seconds": int(self.heartbeat_seconds * 2),
+                "result_publication_grace_seconds": RESULT_PUBLICATION_GRACE_SECONDS,
+                "drive_delivery": "The watcher confirms atomic local writes only; compare Drive modified time with updated_at to observe sync delay.",
+            },
             "supervision": self._publish_supervisory_surface(),
             "last_event": self._last_event,
             "last_event_at": self._last_event_at,
@@ -742,14 +752,47 @@ class CutoverWatcher:
                 try:
                     child = subprocess.Popen(command, cwd=self.workspace_root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env={**os.environ, "CHARITYGRAPH_G4_O1C_ENGINEERING": "1"})
                     pid = child.pid
-                    try:
-                        raw_output, _ = child.communicate(timeout=execution["timeout_seconds"])
-                        returncode = child.returncode
-                    except subprocess.TimeoutExpired:
-                        timed_out = True
-                        child.kill()
-                        raw_output, _ = child.communicate(timeout=30)
-                        returncode = child.returncode
+                    if self._active_execution is not None:
+                        self._active_execution.update(
+                            phase="codex_running",
+                            codex_pid=pid,
+                            codex_started_at=started_at,
+                            last_local_heartbeat_at=started_at,
+                        )
+                    self._write_status(
+                        state="EXECUTING",
+                        last_event="codex_started",
+                        force=True,
+                        publication_kind="execution_transition",
+                    )
+                    deadline = time.monotonic() + execution["timeout_seconds"]
+                    while True:
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0:
+                            timed_out = True
+                            child.kill()
+                            raw_output, _ = child.communicate(timeout=30)
+                            returncode = child.returncode
+                            break
+                        try:
+                            raw_output, _ = child.communicate(timeout=min(self.heartbeat_seconds, remaining))
+                            returncode = child.returncode
+                            break
+                        except subprocess.TimeoutExpired:
+                            if time.monotonic() >= deadline:
+                                timed_out = True
+                                child.kill()
+                                raw_output, _ = child.communicate(timeout=30)
+                                returncode = child.returncode
+                                break
+                            if self._active_execution is not None:
+                                self._active_execution["last_local_heartbeat_at"] = utc_now()
+                            self._write_status(
+                                state="EXECUTING",
+                                last_event="execution_heartbeat",
+                                force=True,
+                                publication_kind="execution_heartbeat",
+                            )
                 except OSError as exc:
                     launch_error = f"{type(exc).__name__}: {exc}"
         finished_at = utc_now()
@@ -907,6 +950,21 @@ class CutoverWatcher:
             execution = self._validate_engineering(envelope) if envelope.operation == ENGINEERING_OPERATION else None
             envelope = self.adapter.claim(owner=owner)
             self.adapter.begin(envelope.instruction_id, owner=owner)
+            if envelope.operation == ENGINEERING_OPERATION:
+                assert execution is not None
+                self._active_execution = {
+                    "instruction_id": envelope.instruction_id,
+                    "content_sha256": envelope.content_sha256,
+                    "phase": "claimed_preparing",
+                    "claimed_at": utc_now(),
+                    "timeout_seconds": execution["timeout_seconds"],
+                }
+                self._write_status(
+                    state="EXECUTING",
+                    last_event="engineering_claimed",
+                    force=True,
+                    publication_kind="execution_transition",
+                )
             if envelope.operation == "bridge_probe":
                 result = {
                     "schema": "charitygraph.g4-o1b-result/v1",
@@ -928,15 +986,28 @@ class CutoverWatcher:
                 result = self._run_codex(envelope, source, source_sha, execution or {})
             else:
                 raise InvalidInstruction(f"unsupported cutover operation: {envelope.operation}")
+            if envelope.operation == ENGINEERING_OPERATION and self._active_execution is not None:
+                self._active_execution.update(
+                    phase="terminal_recording",
+                    codex_finished_at=result["codex_process"]["finished_at"],
+                )
+                self._write_status(
+                    state="FINALIZING",
+                    last_event="codex_finished",
+                    force=True,
+                    publication_kind="execution_transition",
+                )
             local_done = self.adapter.complete(envelope.instruction_id, owner=owner, result=result)
             result["local_result_path"] = local_done["result_path"]
             result["local_result_sha256"] = local_done["result_sha256"]
             result["drive_result_path"] = self._mirror_result(envelope.instruction_id, result)
             self.processed_sources[str(source)] = source_sha
+            self._active_execution = None
             self._write_status(state="READY", last_event="engineering_completed" if envelope.operation == ENGINEERING_OPERATION else "probe_completed", result=result)
             return result
         except (ClaimUnavailable, InvalidInstruction) as exc:
             self.processed_sources[str(source)] = source_sha
+            self._active_execution = None
             self._write_status(state="READY", last_event="candidate_not_executed", error=f"{type(exc).__name__}: {exc}")
             return {"source_path": str(source), "source_sha256": source_sha, "state": "NOT_EXECUTED", "error": str(exc)}
 
