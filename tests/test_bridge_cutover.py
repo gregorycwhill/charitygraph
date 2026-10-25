@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import shutil
@@ -8,7 +9,16 @@ from pathlib import Path
 
 import bridge.bridge as bridge_module
 import pytest
-from bridge.bridge import CutoverWatcher, ENGINEERING_OPERATION, ENGINEERING_RESULT_PREFIX, FENCE_NAME, RESULT_PREFIX, STATUS_NAME
+from bridge.bridge import (
+    CutoverWatcher,
+    ENGINEERING_OPERATION,
+    ENGINEERING_RESULT_PREFIX,
+    FENCE_NAME,
+    RESULT_PREFIX,
+    STATUS_NAME,
+    SUPERVISOR_LEDGER_NAME,
+    SUPERVISOR_WORKSPACE_NAME,
+)
 from charitygraph.autonomous_loop import InstructionEnvelope, canonical_json
 
 
@@ -98,6 +108,32 @@ def test_idle_polling_deduplicates_status_and_bounded_heartbeat(tmp_path, monkey
     watcher.process_once()
     assert len(writes) == 2
     assert json.loads(writes[-1].decode())["publication"]["kind"] == "heartbeat"
+
+
+def test_status_publishes_drive_readable_workspace_and_claim_ledger(tmp_path):
+    workspace, head = _engineering_workspace(tmp_path)
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    runtime = tmp_path / "runtime"
+    (artifacts / FENCE_NAME).write_text(json.dumps(_fence(workspace, head, "gate4-test")), encoding="utf-8")
+    watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    watcher.process_once()
+
+    status = json.loads((artifacts / STATUS_NAME).read_text(encoding="utf-8"))
+    workspace_surface = json.loads((artifacts / SUPERVISOR_WORKSPACE_NAME).read_text(encoding="utf-8"))
+    ledger_surface = json.loads((artifacts / SUPERVISOR_LEDGER_NAME).read_text(encoding="utf-8"))
+    assert status["supervision"]["workspace"]["sha256"] == hashlib.sha256((artifacts / SUPERVISOR_WORKSPACE_NAME).read_bytes()).hexdigest()
+    assert status["supervision"]["ledger"]["sha256"] == hashlib.sha256((artifacts / SUPERVISOR_LEDGER_NAME).read_bytes()).hexdigest()
+    assert workspace_surface["workspace_identity"]["head"] == head
+    assert workspace_surface["dirty_baseline"]["clean"] is True
+    assert workspace_surface["supervisable_files"][0]["path"] == "README.md"
+    assert ledger_surface["dispatch_clear"] is True
+
+    watcher.adapter.submit(_engineering_instruction(workspace, head, instruction_id="gate4:engineering:pending-ledger"))
+    watcher._write_status(state="READY", force=True)
+    ledger_surface = json.loads((artifacts / SUPERVISOR_LEDGER_NAME).read_text(encoding="utf-8"))
+    assert ledger_surface["dispatch_clear"] is False
+    assert ledger_surface["active_or_ambiguous_claims"][0]["instruction_id"] == "gate4:engineering:pending-ledger"
 
 
 def test_terminal_result_is_restored_and_survives_idle_preflight(tmp_path, monkeypatch):

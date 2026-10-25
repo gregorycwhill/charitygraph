@@ -11,9 +11,11 @@ Repository documentation and Git history are canonical for CharityGraph product 
 
 ## First response in a fresh Sol chat
 
-Read the live `cg-g4-o1c-cutover-status.json` and latest `cg-g4-o1b-dormant-state-fence-20261020-v*.json` from the private Drive artifacts folder. Then read `AGENTS.md`, `ARCHITECTURE.md`, `BUILDER_MACHINERY.md`, the relevant implementation/tests, and the Data-governance documents linked from `AGENTS.md`.
+Read the live `cg-g4-o1c-cutover-status.json`, latest `cg-g4-o1b-dormant-state-fence-20261020-v*.json`, and the two status-referenced artifacts `cg-g4-o1c-supervisor-workspace.json` and `cg-g4-o1c-supervisor-ledger.json` from the private Drive artifacts folder.
 
-Report the verified branch/HEAD, fence, route state, active claims, latest terminal evidence, and the smallest useful next product task. A historical `rejected_input` status event is not an active claim; consult the ledger and instruction history before drawing a conclusion. If authority, access, or product context is missing, ask for that specific material. Do not infer it from old queue files, earlier chats, or legacy Drive specifications.
+The supervisor workspace artifact is the independent observation surface for the Windows checkout: it supplies the exact branch/HEAD/tree, fence hash, dirty-path baseline, and a hash catalogue of local product/docs/test files. The ledger artifact is the only Drive-readable statement of non-terminal bridge claims. Do not dispatch unless its hash matches the status reference and `dispatch_clear` is true. A historical `rejected_input` status event is not a claim.
+
+A non-Work ChatGPT session may not be able to read the matching local commit from GitHub. That is expected. First use the workspace catalogue to verify identity and scope. If product context or relevant local source is not otherwise available, create one fresh `report_only` archaeology instruction for the managed worker. It must ask the worker to inspect the named local authority documents, relevant code and tests and to publish a concise, hash-cited context report; it must make no code change. Read that immutable report from Drive before proposing any bounded implementation. Do not ask the Product Owner to open VS Code, use PowerShell, copy files, or bridge the gap manually.
 
 ## Conversation semantics
 

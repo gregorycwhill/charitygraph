@@ -30,3 +30,12 @@ The adapter owns the only claim ledger; the launcher owns only process
 supervision. The canonical live status is
 `cg-g4-o1c-cutover-status.json`; the older
 `cg-g4-o1b-cutover-status.json` is preserved as historical/stale evidence.
+
+For non-Work ChatGPT supervision, live status also hash-references the
+Drive-readable `cg-g4-o1c-supervisor-workspace.json` and
+`cg-g4-o1c-supervisor-ledger.json` artifacts. They expose the local Git
+identity, dirty baseline, safe catalogue of implementation/docs/tests, and
+all non-terminal claims without exposing Windows filesystem or process access.
+When that catalogue is insufficient to understand a proposed change, the
+supervisor uses one provider-free `report_only` archaeology instruction and
+reads the worker's immutable report from Drive before authorising code work.

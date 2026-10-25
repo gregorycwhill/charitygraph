@@ -49,6 +49,8 @@ from charitygraph.bounded_authority import (  # noqa: E402
 
 FENCE_NAME = "cg-g4-o1b-dormant-state-fence-20261020.json"
 STATUS_NAME = "cg-g4-o1c-cutover-status.json"
+SUPERVISOR_WORKSPACE_NAME = "cg-g4-o1c-supervisor-workspace.json"
+SUPERVISOR_LEDGER_NAME = "cg-g4-o1c-supervisor-ledger.json"
 INSTRUCTION_PREFIX = "cg-g4-o1b-instruction-"
 INSTRUCTION_SUFFIX = ".json"
 RESULT_PREFIX = "cg-g4-o1b-result-"
@@ -151,6 +153,18 @@ def _git(cwd: Path, *args: str) -> str:
         return subprocess.check_output(["git", "-c", f"safe.directory={cwd}", *args], cwd=cwd, text=True, stderr=subprocess.STDOUT).strip()
 
 
+def _git_bytes(cwd: Path, *args: str) -> bytes:
+    """Read Git-owned bytes without trusting the worktree's file contents."""
+    command = ["git", *args]
+    completed = subprocess.run(command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+    if completed.returncode == 0:
+        return completed.stdout
+    diagnostics = completed.stdout + completed.stderr
+    if "dubious ownership" not in diagnostics.decode("utf-8", errors="replace").lower():
+        raise subprocess.CalledProcessError(completed.returncode, command, output=diagnostics)
+    return subprocess.check_output(["git", "-c", f"safe.directory={cwd}", *args], cwd=cwd, stderr=subprocess.PIPE)
+
+
 def _event_summary(raw: bytes) -> dict[str, Any]:
     events: list[str] = []
     thread_id: str | None = None
@@ -221,6 +235,8 @@ class CutoverWatcher:
         self._last_event_at: str | None = None
         self._last_result: dict[str, Any] | None = None
         self._last_result_identity: dict[str, Any] | None = None
+        self._supervision_key: str | None = None
+        self._supervision_refs: dict[str, Any] | None = None
         terminal = self.adapter.latest_terminal()
         if terminal:
             self._last_event = terminal["last_event"]
@@ -312,6 +328,7 @@ class CutoverWatcher:
             "status_filename": STATUS_NAME,
             "supported_operations": ["bridge_probe", ENGINEERING_OPERATION],
             "execution_authority": "one adapter ledger and one managed Codex worker",
+            "supervision": self._publish_supervisory_surface(),
             "last_event": self._last_event,
             "last_event_at": self._last_event_at,
             "last_result": self._last_result,
@@ -319,6 +336,118 @@ class CutoverWatcher:
             "error": error,
         }
         return payload
+
+    @staticmethod
+    def _supervisable_path(path: str) -> bool:
+        """Keep the catalogue useful without exporting runtime or credential files."""
+        normalised = path.replace("\\", "/")
+        if normalised.startswith((".git/", "runtime/", ".venv/", "venv/", "__pycache__/")):
+            return False
+        if normalised.lower().endswith((".env", ".pem", ".key", ".p12", ".pfx")):
+            return False
+        if normalised in {"AGENTS.md", "ARCHITECTURE.md", "BUILDER_MACHINERY.md", "README.md"}:
+            return True
+        return normalised.startswith(("src/", "tests/", "bridge/", "docs/", "config/")) and normalised.lower().endswith((".py", ".md", ".json", ".toml", ".yaml", ".yml"))
+
+    def _dirty_paths(self) -> list[dict[str, str]]:
+        raw = _git_bytes(self.workspace_root, "status", "--porcelain=v1", "-z", "--untracked-files=all")
+        fields = raw.split(b"\0")
+        entries: list[dict[str, str]] = []
+        index = 0
+        while index < len(fields):
+            field = fields[index]
+            index += 1
+            if not field:
+                continue
+            if len(field) < 4:
+                continue
+            status = field[:2].decode("ascii", errors="replace")
+            path = field[3:].decode("utf-8", errors="replace").replace("\\", "/")
+            entries.append({"path": path, "status": status})
+            # Porcelain v1 -z encodes the source path of a rename/copy as the
+            # next NUL field.  It is still a dirty baseline path and must be
+            # visible to the supervisor.
+            if status[0] in {"R", "C"} and index < len(fields) and fields[index]:
+                entries.append({"path": fields[index].decode("utf-8", errors="replace").replace("\\", "/"), "status": status})
+                index += 1
+        return sorted(entries, key=lambda item: (item["path"], item["status"]))
+
+    def _workspace_catalogue(self) -> list[dict[str, Any]]:
+        raw = _git_bytes(self.workspace_root, "ls-tree", "-r", "-z", "HEAD")
+        files: list[dict[str, Any]] = []
+        for entry in raw.split(b"\0"):
+            if not entry or b"\t" not in entry:
+                continue
+            metadata, path_raw = entry.split(b"\t", 1)
+            parts = metadata.decode("ascii", errors="replace").split()
+            if len(parts) != 3 or parts[1] != "blob":
+                continue
+            path = path_raw.decode("utf-8", errors="replace").replace("\\", "/")
+            if not self._supervisable_path(path):
+                continue
+            files.append(
+                {
+                    "path": path,
+                    "git_blob_id": parts[2],
+                    "hash_algorithm": "git-object-id",
+                }
+            )
+        return sorted(files, key=lambda item: item["path"])
+
+    def _write_supervisory_artifact(self, name: str, payload: dict[str, Any]) -> dict[str, Any]:
+        raw = _json_bytes(payload)
+        destination = self.artifacts_root / name
+        if not destination.exists() or destination.read_bytes() != raw:
+            _atomic_write_bytes(destination, raw)
+        return {"file_name": name, "sha256": hashlib.sha256(raw).hexdigest(), "byte_length": len(raw)}
+
+    def _publish_supervisory_surface(self) -> dict[str, Any]:
+        """Publish a Drive-readable observation surface without exposing the host.
+
+        The exported workspace catalogue is derived from Git objects, not from
+        arbitrary local files.  The ledger summary contains no task body or
+        claim token.  Either artifact may be read by a non-Work ChatGPT
+        supervisor; neither grants it filesystem, process, or dispatch power.
+        """
+        fence_raw = self.fence_path.read_bytes() if self.fence_path.exists() else b""
+        branch = _git(self.workspace_root, "branch", "--show-current")
+        head = _git(self.workspace_root, "rev-parse", "HEAD")
+        dirty_paths = self._dirty_paths()
+        ledger = self.adapter.supervisory_ledger_summary()
+        key_material = {
+            "branch": branch,
+            "head": head,
+            "fence_sha256": hashlib.sha256(fence_raw).hexdigest(),
+            "dirty_paths": dirty_paths,
+            "ledger": ledger,
+        }
+        key = hashlib.sha256(_json_bytes(key_material)).hexdigest()
+        if self._supervision_key == key and self._supervision_refs is not None:
+            return self._supervision_refs
+        workspace = {
+            "schema": "charitygraph.g4-o1c-supervisor-workspace/v1",
+            "workspace_identity": {
+                "repository": "charitygraph",
+                "workspace_path": str(self.workspace_root),
+                "branch": branch,
+                "head": head,
+                "tree": _git(self.workspace_root, "rev-parse", "HEAD^{tree}"),
+            },
+            "fence": {
+                "file_name": self.fence_path.name,
+                "sha256": hashlib.sha256(fence_raw).hexdigest(),
+            },
+            "dirty_baseline": {"clean": not dirty_paths, "paths": dirty_paths},
+            "supervisable_files": self._workspace_catalogue(),
+        }
+        refs = {
+            "workspace": self._write_supervisory_artifact(SUPERVISOR_WORKSPACE_NAME, workspace),
+            "ledger": self._write_supervisory_artifact(SUPERVISOR_LEDGER_NAME, ledger),
+            "read_contract": "Read both artifacts and require ledger.dispatch_clear=true before creating an instruction.",
+        }
+        self._supervision_key = key
+        self._supervision_refs = refs
+        return refs
 
     def _read_fence(self) -> dict[str, Any]:
         if not self.fence_path.exists():

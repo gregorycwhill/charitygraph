@@ -459,6 +459,54 @@ class LocalAutonomousBridge:
             "updated_at": row["updated_at"],
         }
 
+    def supervisory_ledger_summary(self) -> dict[str, Any]:
+        """Return the read-only execution state needed by an external supervisor.
+
+        The SQLite ledger remains the only authority for claims.  This is a
+        deliberately small projection for a private transport surface: it
+        exposes every non-terminal instruction (including an ambiguous one),
+        but never instruction content or mutable claim tokens.  A supervisor
+        can therefore prove whether dispatch is blocked without access to the
+        Windows runtime or repository.
+        """
+        active_statuses = ("pending", "claimed", "running", "reconciliation_required")
+        with self._connect() as conn:
+            counts = {
+                status: int(
+                    conn.execute("SELECT COUNT(*) FROM instructions WHERE status=?", (status,)).fetchone()[0]
+                )
+                for status in ("pending", "claimed", "running", "reconciliation_required", "complete", "failed")
+            }
+            rows = conn.execute(
+                "SELECT instruction_id,content_sha256,status,owner,lease_expires_at,attempts,created_at,updated_at "
+                "FROM instructions WHERE status IN (?,?,?,?) ORDER BY created_at,instruction_id",
+                active_statuses,
+            ).fetchall()
+            terminal = conn.execute(
+                "SELECT instruction_id,content_sha256,status,attempts,result_sha256,result_path,updated_at "
+                "FROM instructions WHERE status IN ('complete','failed') ORDER BY updated_at DESC,instruction_id DESC LIMIT 1"
+            ).fetchone()
+        blockers = [
+            {
+                "instruction_id": row["instruction_id"],
+                "content_sha256": row["content_sha256"],
+                "status": row["status"],
+                "owner": row["owner"],
+                "lease_expires_at": row["lease_expires_at"],
+                "attempts": row["attempts"],
+                "created_at": row["created_at"],
+                "updated_at": row["updated_at"],
+            }
+            for row in rows
+        ]
+        return {
+            "schema": "charitygraph.g4-o1c-supervisory-ledger/v1",
+            "instruction_counts": counts,
+            "dispatch_clear": not blockers,
+            "active_or_ambiguous_claims": blockers,
+            "latest_terminal": None if terminal is None else dict(terminal),
+        }
+
     def events(self, instruction_id: str) -> list[dict[str, Any]]:
         with self._connect() as conn:
             return [dict(row) | {"event": json.loads(row["event_json"])} for row in conn.execute("SELECT * FROM events WHERE instruction_id=? ORDER BY event_id", (instruction_id,))]
