@@ -3,6 +3,7 @@ from __future__ import annotations
 import subprocess
 import os
 import hashlib
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -64,6 +65,52 @@ def git_repo(tmp_path: Path) -> tuple[Path, str]:
     subprocess.run(["git", "commit", "-m", "initial"], cwd=repo, check=True, capture_output=True)
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
     return repo, head
+
+
+def provenance_adoption_execution(
+    artifacts: Path,
+    *,
+    repo: Path,
+    head: str,
+    artifact_path: str,
+    artifact_sha256: str,
+    source_state: str = "CODEX_ENGINEERING_COMPLETED",
+) -> dict[str, object]:
+    """Create the minimal immutable completed-result proof for adoption tests."""
+    source_name = "cg-g4-o1c-result-prior-adoption-source.json"
+    source = {
+        "schema": "charitygraph.g4-o1c-result/v1",
+        "instruction_id": "gate4:engineering:prior-adoption-source",
+        "execution_state": source_state,
+        "workspace_attestation": {
+            "verified": source_state == "CODEX_ENGINEERING_COMPLETED",
+            "quarantined": source_state != "CODEX_ENGINEERING_COMPLETED",
+            "before": {"head": head, "entries": {}},
+            "after": {"entries": {artifact_path: ["??", artifact_sha256, "0" * 64]}},
+            "changed_paths": [artifact_path],
+        },
+    }
+    raw = json.dumps(source, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    artifacts.mkdir(parents=True, exist_ok=True)
+    (artifacts / source_name).write_bytes(raw)
+    return {
+        "mode": "codex_exec",
+        "change_policy": "provenance_bound_adoption",
+        "model": "luna-high",
+        "report_path": "reports/adoption-result.md",
+        "timeout_seconds": 30,
+        "authority_version": "charitygraph.g4-o1d-local-implementation/v1",
+        "scope": "bounded_local_builder_code_change",
+        "allowed_paths": [artifact_path, "reports/adoption-result.md"],
+        "commit_policy": "local_commit_only",
+        "adopted_artifacts": [{
+            "path": artifact_path,
+            "sha256": artifact_sha256,
+            "source_instruction_id": "gate4:engineering:prior-adoption-source",
+            "source_result_file": source_name,
+            "source_result_sha256": hashlib.sha256(raw).hexdigest(),
+        }],
+    }
 
 
 def test_mission_start_and_duplicate_event_ingestion_are_idempotent(tmp_path):
@@ -352,6 +399,48 @@ def test_bounded_diff_guard_accepts_one_allowlisted_local_commit(tmp_path):
     assert verified["baseline_preserved"] is True
 
 
+def test_provenance_bound_adoption_commits_exact_previously_attested_artifact(tmp_path):
+    repo, _ = git_repo(tmp_path)
+    artifact = repo / "src" / "adopted.py"
+    artifact.parent.mkdir()
+    artifact.write_text("value = 'attested'\n", encoding="utf-8")
+    before = capture_workspace(repo, adopted_untracked_paths={"src/adopted.py"})
+    artifact.write_text("value = 'revised'\n", encoding="utf-8")
+    subprocess.run(["git", "add", "src/adopted.py"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "adopt attested artifact"], cwd=repo, check=True, capture_output=True)
+    verified = verify_local_commit(before, capture_workspace(repo), allowed_paths=["src/adopted.py"])
+    assert verified["commit_paths"] == ["src/adopted.py"]
+    assert verified["provenance_bound_adoption"]["src/adopted.py"]["method"] == "provenance-bound-adoption"
+    assert verified["provenance_bound_adoption"]["src/adopted.py"]["preexisting_sha256"] != verified["provenance_bound_adoption"]["src/adopted.py"]["after_sha256"]
+
+
+def test_provenance_bound_adoption_does_not_absorb_unrelated_dirty_paths(tmp_path):
+    repo, _ = git_repo(tmp_path)
+    artifact = repo / "src" / "adopted.py"
+    artifact.parent.mkdir()
+    artifact.write_text("value = 'attested'\n", encoding="utf-8")
+    (repo / "unrelated.txt").write_text("keep me\n", encoding="utf-8")
+    before = capture_workspace(repo, adopted_untracked_paths={"src/adopted.py"})
+    artifact.write_text("value = 'revised'\n", encoding="utf-8")
+    (repo / "unrelated.txt").write_text("worker changed me\n", encoding="utf-8")
+    with pytest.raises(DirtyBaselineViolation, match="unexpected bounded workspace changes"):
+        verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["src/adopted.py"])
+
+
+def test_provenance_bound_adoption_requires_every_declared_artifact_to_commit(tmp_path):
+    repo, _ = git_repo(tmp_path)
+    artifact = repo / "src" / "adopted.py"
+    artifact.parent.mkdir()
+    artifact.write_text("value = 'attested'\n", encoding="utf-8")
+    before = capture_workspace(repo, adopted_untracked_paths={"src/adopted.py"})
+    (repo / "reports").mkdir()
+    (repo / "reports" / "result.md").write_text("worker report\n", encoding="utf-8")
+    subprocess.run(["git", "add", "reports/result.md"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "missing adoption"], cwd=repo, check=True, capture_output=True)
+    with pytest.raises(DirtyBaselineViolation, match="adopted paths were not committed"):
+        verify_local_commit(before, capture_workspace(repo), allowed_paths=["src/adopted.py", "reports/result.md"])
+
+
 def test_workspace_snapshot_hashes_embedded_repository_directory(tmp_path):
     repo, _ = git_repo(tmp_path)
     nested = repo / "tmp" / "pytest-run" / "repo"
@@ -485,6 +574,80 @@ def test_bounded_execution_attests_one_allowlisted_local_commit(tmp_path, monkey
     assert result["execution_state"] == "CODEX_ENGINEERING_COMPLETED"
     assert result["workspace_attestation"]["verified"] is True
     assert result["workspace_attestation"]["local_commit"]["commit_paths"] == ["reports/commit.md", "src/allowed.py"]
+
+
+def test_provenance_bound_adoption_validates_source_then_attests_local_commit(tmp_path, monkeypatch):
+    repo, head = git_repo(tmp_path)
+    artifact = repo / "src" / "adopted.py"
+    artifact.parent.mkdir()
+    artifact.write_text("value = 'attested'\n", encoding="utf-8")
+    artifact_sha = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    artifacts = tmp_path / "artifacts"
+    execution = provenance_adoption_execution(
+        artifacts, repo=repo, head=head, artifact_path="src/adopted.py", artifact_sha256=artifact_sha
+    )
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:engineering:adopt-attested-artifact",
+        content="revise and locally commit the attested artifact only",
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        target={"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"},
+        operation="codex_engineering",
+        execution=execution,
+    )
+    watcher = bridge_module.CutoverWatcher(artifacts_root=artifacts, workspace_root=repo, runtime_root=tmp_path / "runtime")
+    validated = watcher._validate_engineering(envelope)
+
+    class FakeCodex:
+        pid = 4244
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            artifact.write_text("value = 'revised'\n", encoding="utf-8")
+            (repo / "reports").mkdir()
+            (repo / "reports" / "adoption-result.md").write_text("adoption report\n", encoding="utf-8")
+            subprocess.run(["git", "add", "src/adopted.py", "reports/adoption-result.md"], cwd=repo, check=True)
+            subprocess.run(["git", "commit", "-m", "adopt and revise attested artifact"], cwd=repo, check=True, capture_output=True)
+            return b"{}\n", None
+
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
+    real_popen = subprocess.Popen
+
+    def fake_popen(command, *args, **kwargs):
+        return real_popen(command, *args, **kwargs) if command and command[0] == "git" else FakeCodex()
+
+    monkeypatch.setattr(bridge_module.subprocess, "Popen", fake_popen)
+    source = tmp_path / "instruction.json"
+    source.write_text("{}\n", encoding="utf-8")
+    result = watcher._run_codex(envelope, source, "d" * 64, validated)
+    assert result["execution_state"] == "CODEX_ENGINEERING_COMPLETED"
+    assert result["workspace_attestation"]["verified"] is True
+    assert result["workspace_attestation"]["local_commit"]["commit_paths"] == ["reports/adoption-result.md", "src/adopted.py"]
+    assert result["workspace_attestation"]["local_commit"]["provenance_bound_adoption"]["src/adopted.py"]["preexisting_sha256"] == artifact_sha
+
+
+def test_provenance_bound_adoption_rejects_mismatched_or_failed_source_before_launch(tmp_path):
+    repo, head = git_repo(tmp_path)
+    artifact = repo / "src" / "adopted.py"
+    artifact.parent.mkdir()
+    artifact.write_text("value = 'attested'\n", encoding="utf-8")
+    artifact_sha = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    artifacts = tmp_path / "artifacts"
+    execution = provenance_adoption_execution(
+        artifacts, repo=repo, head=head, artifact_path="src/adopted.py", artifact_sha256=artifact_sha, source_state="CODEX_EXECUTION_FAILED_UNEXPECTED_CHANGES"
+    )
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:engineering:reject-bad-adoption-source",
+        content="this must be rejected before a worker starts",
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        target={"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"},
+        operation="codex_engineering",
+        execution=execution,
+    )
+    watcher = bridge_module.CutoverWatcher(artifacts_root=artifacts, workspace_root=repo, runtime_root=tmp_path / "runtime")
+    with pytest.raises(bridge_module.InvalidInstruction, match="not a completed verified bridge run"):
+        watcher._validate_engineering(envelope)
+    assert artifact.read_text(encoding="utf-8") == "value = 'attested'\n"
 
 
 def test_codex_failure_still_records_workspace_attestation(tmp_path, monkeypatch):

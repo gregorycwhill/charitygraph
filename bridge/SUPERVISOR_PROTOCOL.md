@@ -47,6 +47,14 @@ It must target the just-verified repository, absolute workspace path, branch, fu
 
 `allowed_paths` must be a non-empty list of exact relative paths. Include the fresh report path. The task must prohibit provider/source acquisition, spending, GitHub mutation, publication, merge, release, gate closure, watcher/process management, and follow-on dispatch unless a later explicit authority says otherwise.
 
+`provenance_bound_adoption` is a separate, narrowly-scoped local-commit policy for correcting and promoting artifacts produced by an earlier completed, verified bridge run. It is not a general permission to edit dirty files. It has the same fields as `bounded_workspace`, plus an exact non-empty `adopted_artifacts` list. Every item has exactly:
+
+```json
+{"path":"relative/path","sha256":"<current lowercase SHA-256>","source_instruction_id":"<completed source instruction>","source_result_file":"cg-g4-o1c-result-<source>.json","source_result_sha256":"<lowercase SHA-256>"}
+```
+
+The allowlist must contain exactly the adopted paths and the new report path. Before the worker starts, the bridge verifies the source-result file and its declared hash, requires a `CODEX_ENGINEERING_COMPLETED` source result with a verified non-quarantined workspace attestation at the current HEAD, and requires that source attestation to show each artifact as a newly created untracked file with the same hash still present locally. Quarantined, failed, historical-head, altered, tracked, missing, or unrelated artifacts are rejected before launch. The one direct-child local commit must include every adopted file and no non-allowlisted path; all unrelated dirty paths remain protected.
+
 ## Local commits and completion
 
 A bounded task may make at most one local-only commit when its explicit task allows it. The bridge accepts only one non-merge direct-child commit of the target HEAD; every committed path must be allowlisted, and no pre-existing dirty path may be absorbed. The result records that commit under `workspace_attestation.local_commit`.

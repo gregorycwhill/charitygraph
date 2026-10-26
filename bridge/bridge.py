@@ -599,13 +599,16 @@ class CutoverWatcher:
             raise InvalidInstruction("engineering operation requires an execution object")
         base_execution = {"mode", "change_policy", "model", "report_path", "timeout_seconds"}
         implementation_execution = {"authority_version", "scope", "allowed_paths", "commit_policy"}
-        allowed_execution = base_execution | implementation_execution if execution.get("change_policy") == "bounded_workspace" else base_execution
+        adoption_execution = {"adopted_artifacts"}
+        is_bounded = execution.get("change_policy") in {"bounded_workspace", "provenance_bound_adoption"}
+        is_adoption = execution.get("change_policy") == "provenance_bound_adoption"
+        allowed_execution = base_execution | implementation_execution | (adoption_execution if is_adoption else set()) if is_bounded else base_execution
         if set(execution) - allowed_execution:
             raise InvalidInstruction("engineering execution contains unsupported authority fields")
         if execution.get("mode") != "codex_exec":
             raise InvalidInstruction("engineering execution.mode must be codex_exec")
         change_policy = execution.get("change_policy")
-        if change_policy not in {"report_only", "bounded_workspace"}:
+        if change_policy not in {"report_only", "bounded_workspace", "provenance_bound_adoption"}:
             raise InvalidInstruction("engineering execution.change_policy is not supported")
         if change_policy == "report_only":
             try:
@@ -613,18 +616,20 @@ class CutoverWatcher:
             except BoundedAuthorityError as exc:
                 raise InvalidInstruction(str(exc)) from exc
         bounded_authority: dict[str, Any] | None = None
-        if change_policy == "bounded_workspace":
+        workspace_snapshot = None
+        if is_bounded:
             try:
+                workspace_snapshot = capture_workspace(self.workspace_root)
                 bounded_authority = validate_bounded_execution(
                     execution,
                     target=envelope.target,
-                    workspace=capture_workspace(self.workspace_root),
+                    workspace=workspace_snapshot,
                     authority=envelope.authority,
                     route_active=CODE_CHANGE_ROUTE_ACTIVE,
                 )
             except BoundedAuthorityError as exc:
                 raise InvalidInstruction(str(exc)) from exc
-        if change_policy == "bounded_workspace":
+        if is_bounded:
             if execution.get("authority_version") != IMPLEMENTATION_AUTHORITY_VERSION:
                 raise InvalidInstruction("bounded implementation authority_version is unsupported")
             if execution.get("scope") != IMPLEMENTATION_SCOPE:
@@ -661,6 +666,14 @@ class CutoverWatcher:
             raise InvalidInstruction("engineering timeout_seconds must be an integer from 30 to 900")
         if len(envelope.content.encode("utf-8")) > 12000:
             raise InvalidInstruction("engineering content exceeds the bounded prompt limit")
+        if is_adoption:
+            assert workspace_snapshot is not None and bounded_authority is not None
+            self._validate_adoption_provenance(
+                report_path=normalised,
+                allowed_paths=bounded_authority["allowed_paths"],
+                adopted_artifacts=bounded_authority["adopted_artifacts"],
+                workspace=workspace_snapshot,
+            )
         validated = {
             "mode": "codex_exec",
             "change_policy": execution["change_policy"],
@@ -678,7 +691,76 @@ class CutoverWatcher:
                 allowed_paths=list(bounded_authority["allowed_paths"]),
                 commit_policy=execution["commit_policy"],
             )
+            if is_adoption:
+                validated["adopted_artifacts"] = list(bounded_authority["adopted_artifacts"])
         return validated
+
+    def _validate_adoption_provenance(
+        self,
+        *,
+        report_path: str,
+        allowed_paths: tuple[str, ...],
+        adopted_artifacts: tuple[dict[str, str], ...],
+        workspace: Any,
+    ) -> None:
+        """Prove that each adoption candidate came from a completed bridge run.
+
+        The worker never receives a broad exemption for dirty files.  A source
+        result must attest the exact untracked artifact bytes, and those bytes
+        must still be present at launch.  The immutable result itself is also
+        pinned by its SHA-256 in the new instruction.
+        """
+        adopted_paths = {item["path"] for item in adopted_artifacts}
+        if set(allowed_paths) != adopted_paths | {report_path}:
+            raise InvalidInstruction("provenance-bound adoption allowlist must contain exactly the adopted artifacts and fresh report")
+        if len(set(allowed_paths)) != len(allowed_paths):
+            raise InvalidInstruction("provenance-bound adoption allowlist must not contain duplicates")
+        for artifact in adopted_artifacts:
+            path = artifact["path"]
+            current = self.workspace_root / path
+            current_entry = workspace.entries.get(path)
+            if current.is_symlink() or not current.is_file() or current_entry is None or current_entry[0] != "??":
+                raise InvalidInstruction(f"adopted artifact is no longer the expected untracked file: {path}")
+            if current_entry[1] != artifact["sha256"]:
+                raise InvalidInstruction(f"adopted artifact hash does not match its instruction provenance: {path}")
+            source_path = (self.artifacts_root / artifact["source_result_file"]).resolve()
+            if source_path.parent != self.artifacts_root or not source_path.is_file():
+                raise InvalidInstruction(f"adopted artifact source result is unavailable: {path}")
+            raw = source_path.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != artifact["source_result_sha256"]:
+                raise InvalidInstruction(f"adopted artifact source result hash does not match: {path}")
+            try:
+                source = json.loads(raw.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise InvalidInstruction(f"adopted artifact source result is invalid JSON: {path}") from exc
+            attestation = source.get("workspace_attestation") if isinstance(source, dict) else None
+            if (
+                not isinstance(source, dict)
+                or source.get("schema") != RESULT_SCHEMA
+                or source.get("instruction_id") != artifact["source_instruction_id"]
+                or source.get("execution_state") != "CODEX_ENGINEERING_COMPLETED"
+                or not isinstance(attestation, dict)
+                or attestation.get("verified") is not True
+                or attestation.get("quarantined") is not False
+            ):
+                raise InvalidInstruction(f"adopted artifact source result is not a completed verified bridge run: {path}")
+            before = attestation.get("before")
+            after = attestation.get("after")
+            before_entries = before.get("entries") if isinstance(before, dict) else None
+            after_entries = after.get("entries") if isinstance(after, dict) else None
+            source_entry = after_entries.get(path) if isinstance(after_entries, dict) else None
+            if (
+                not isinstance(before, dict)
+                or before.get("head") != workspace.head
+                or not isinstance(before_entries, dict)
+                or path in before_entries
+                or not isinstance(source_entry, list)
+                or len(source_entry) != 3
+                or source_entry[0] != "??"
+                or source_entry[1] != artifact["sha256"]
+                or path not in attestation.get("changed_paths", [])
+            ):
+                raise InvalidInstruction(f"adopted artifact was not attested as the exact newly-created source output: {path}")
 
     def _run_codex(self, envelope: Any, source: Path, source_sha: str, execution: dict[str, Any]) -> dict[str, Any]:
         report_path = (self.workspace_root / execution["report_path"]).resolve()
@@ -731,15 +813,20 @@ class CutoverWatcher:
             prompt,
         ]
         allowed_paths = {execution["report_path"]}
-        if execution.get("change_policy") == "bounded_workspace":
+        if execution.get("change_policy") in {"bounded_workspace", "provenance_bound_adoption"}:
             allowed_paths.update(execution.get("allowed_paths", []))
+        adopted_paths = {artifact["path"] for artifact in execution.get("adopted_artifacts", [])}
         before_workspace = None
         baseline_error: str | None = None
         try:
             # This is the authoritative pre-launch baseline.  It includes
             # tracked, modified, staged, deleted, renamed and untracked paths;
             # status-line deltas are not sufficient for a safety boundary.
-            before_workspace = capture_workspace(self.workspace_root, preserve_dirty_paths=allowed_paths)
+            before_workspace = capture_workspace(
+                self.workspace_root,
+                preserve_dirty_paths=allowed_paths - adopted_paths,
+                adopted_untracked_paths=adopted_paths,
+            )
         except (OSError, subprocess.CalledProcessError, ValueError) as exc:
             baseline_error = f"{type(exc).__name__}: {exc}"
         started_at = utc_now()
@@ -840,7 +927,7 @@ class CutoverWatcher:
         commit_attestation: dict[str, Any] | None = None
         if before_workspace is not None and after_workspace is not None:
             try:
-                if execution.get("change_policy") == "bounded_workspace" and before_workspace.head != after_workspace.head:
+                if execution.get("change_policy") in {"bounded_workspace", "provenance_bound_adoption"} and before_workspace.head != after_workspace.head:
                     commit_attestation = verify_local_commit(
                         before_workspace,
                         after_workspace,

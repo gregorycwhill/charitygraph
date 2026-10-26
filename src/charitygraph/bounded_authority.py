@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
@@ -52,6 +53,7 @@ class WorkspaceSnapshot:
     head: str
     entries: dict[str, tuple[str, str, str]]
     dirty_file_baselines: dict[str, DirtyFileBaseline] = field(default_factory=dict, repr=False)
+    adopted_file_baselines: dict[str, str] = field(default_factory=dict, repr=False)
 
 
 def _git(repo: Path, *args: str, raw: bool = False) -> str | bytes:
@@ -105,9 +107,17 @@ def _file_sha(path: Path) -> str:
     return digest.hexdigest()
 
 
-def capture_workspace(repo: str | Path, *, preserve_dirty_paths: set[str] | None = None) -> WorkspaceSnapshot:
+def capture_workspace(
+    repo: str | Path,
+    *,
+    preserve_dirty_paths: set[str] | None = None,
+    adopted_untracked_paths: set[str] | None = None,
+) -> WorkspaceSnapshot:
     root = Path(repo).resolve()
     preserved = {item.replace("\\", "/") for item in (preserve_dirty_paths or set())}
+    adopted = {item.replace("\\", "/") for item in (adopted_untracked_paths or set())}
+    if preserved & adopted:
+        raise DirtyBaselineViolation("an adopted path cannot also use dirty-file reconciliation")
     # Porcelain status deliberately uses a leading space for an unstaged-only
     # modification.  Do not route it through the text helper, whose normal
     # ``strip`` behaviour would remove that safety-significant byte from the
@@ -118,6 +128,7 @@ def capture_workspace(repo: str | Path, *, preserve_dirty_paths: set[str] | None
     paths = _status_paths(status)
     entries: dict[str, tuple[str, str, str]] = {}
     dirty_file_baselines: dict[str, DirtyFileBaseline] = {}
+    adopted_file_baselines: dict[str, str] = {}
     for relative, status_code in paths.items():
         path = root / relative
         try:
@@ -129,6 +140,13 @@ def capture_workspace(repo: str | Path, *, preserve_dirty_paths: set[str] | None
             _file_sha(path),
             hashlib.sha256(diff).hexdigest(),
         )
+        if relative in adopted:
+            # Adoption is deliberately narrower than dirty-file reconciliation:
+            # an independently attested artifact may start as an untracked,
+            # regular file, but only its exact pre-launch hash is preserved.
+            if status_code != "??" or path.is_symlink() or not path.is_file():
+                raise DirtyBaselineViolation(f"adopted path must be an untracked regular file: {relative}")
+            adopted_file_baselines[relative] = entries[relative][1]
         if relative in preserved:
             # An untracked, deleted, symlinked, or non-regular file has no
             # stable Git ancestor for three-way reconciliation.  Refuse to
@@ -147,6 +165,7 @@ def capture_workspace(repo: str | Path, *, preserve_dirty_paths: set[str] | None
         head=str(_git(root, "rev-parse", "HEAD")),
         entries=entries,
         dirty_file_baselines=dirty_file_baselines,
+        adopted_file_baselines=adopted_file_baselines,
     )
 
 
@@ -170,10 +189,13 @@ def validate_target(*, target: dict[str, Any], workspace: WorkspaceSnapshot, aut
 
 def validate_execution(execution: dict[str, Any], *, target: dict[str, Any], workspace: WorkspaceSnapshot, authority: dict[str, Any], route_active: bool = CODE_CHANGE_ROUTE_ACTIVE) -> dict[str, Any]:
     expected = {"mode", "change_policy", "model", "report_path", "timeout_seconds", "authority_version", "scope", "allowed_paths", "commit_policy"}
+    adoption = execution.get("change_policy") == "provenance_bound_adoption"
+    if adoption:
+        expected = expected | {"adopted_artifacts"}
     if set(execution) != expected:
         raise BoundedAuthorityError("bounded implementation execution fields are not exact")
-    if execution.get("mode") != "codex_exec" or execution.get("change_policy") != "bounded_workspace":
-        raise BoundedAuthorityError("bounded implementation must use codex_exec/bounded_workspace")
+    if execution.get("mode") != "codex_exec" or execution.get("change_policy") not in {"bounded_workspace", "provenance_bound_adoption"}:
+        raise BoundedAuthorityError("bounded implementation must use codex_exec with a supported bounded change policy")
     if execution.get("authority_version") != IMPLEMENTATION_AUTHORITY_VERSION:
         raise BoundedAuthorityError("bounded implementation authority_version is unsupported")
     if execution.get("scope") != IMPLEMENTATION_SCOPE:
@@ -187,12 +209,33 @@ def validate_execution(execution: dict[str, Any], *, target: dict[str, Any], wor
         normalised = item.replace("\\", "/")
         if normalised.startswith("/") or ":" in normalised or any(part in {"", ".", ".."} for part in normalised.split("/")):
             raise BoundedAuthorityError("bounded implementation allowed_paths must be relative")
+    adopted_artifacts: tuple[dict[str, str], ...] = ()
+    if adoption:
+        raw_adopted = execution.get("adopted_artifacts")
+        if not isinstance(raw_adopted, list) or not raw_adopted:
+            raise BoundedAuthorityError("provenance-bound adoption requires adopted_artifacts")
+        expected_adoption_fields = {"path", "sha256", "source_instruction_id", "source_result_file", "source_result_sha256"}
+        parsed: list[dict[str, str]] = []
+        for item in raw_adopted:
+            if not isinstance(item, dict) or set(item) != expected_adoption_fields or not all(isinstance(item.get(key), str) and item[key] for key in expected_adoption_fields):
+                raise BoundedAuthorityError("each adopted artifact must use the exact provenance schema")
+            path = item["path"].replace("\\", "/")
+            if path not in allowed or path.startswith("/") or ":" in path or any(part in {"", ".", ".."} for part in path.split("/")):
+                raise BoundedAuthorityError("adopted artifact path must be an allowlisted relative path")
+            if not re.fullmatch(r"[0-9a-f]{64}", item["sha256"]) or not re.fullmatch(r"[0-9a-f]{64}", item["source_result_sha256"]):
+                raise BoundedAuthorityError("adopted artifact hashes must be lowercase SHA-256")
+            if not item["source_result_file"].startswith("cg-g4-o1c-result-") or not item["source_result_file"].endswith(".json") or "/" in item["source_result_file"] or "\\" in item["source_result_file"]:
+                raise BoundedAuthorityError("adopted artifact source result must be a bridge result file")
+            parsed.append({**item, "path": path})
+        if len({item["path"] for item in parsed}) != len(parsed):
+            raise BoundedAuthorityError("adopted artifact paths must be unique")
+        adopted_artifacts = tuple(parsed)
     if execution.get("model") != target.get("model"):
         raise BoundedAuthorityError("bounded implementation model does not match target")
     validate_target(target=target, workspace=workspace, authority=authority)
     if not route_active:
         raise InactiveImplementationRoute("bounded implementation route is inactive pending supervisory acceptance")
-    return {"allowed_paths": tuple(allowed), "authority_version": IMPLEMENTATION_AUTHORITY_VERSION, "scope": IMPLEMENTATION_SCOPE}
+    return {"allowed_paths": tuple(allowed), "authority_version": IMPLEMENTATION_AUTHORITY_VERSION, "scope": IMPLEMENTATION_SCOPE, "adopted_artifacts": adopted_artifacts}
 
 
 def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, *, allowed_paths: list[str] | tuple[str, ...], reconciliation_evidence_dir: str | Path | None = None) -> dict[str, Any]:
@@ -234,7 +277,20 @@ def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, 
         raise DirtyBaselineViolation(f"pre-existing dirty baseline was changed outside the allowlist: {', '.join(protected_baseline_changes)}")
 
     reconciled: dict[str, dict[str, str]] = {}
+    adopted: dict[str, dict[str, str]] = {}
     for relative in sorted(path for path in baseline_changed if path in allowed):
+        adopted_baseline = before.adopted_file_baselines.get(relative)
+        if adopted_baseline is not None:
+            current_path = root / relative
+            after_entry = after.entries.get(relative)
+            if current_path.is_symlink() or not current_path.is_file() or after_entry is None or after_entry[0] != "??":
+                raise DirtyBaselineViolation(f"adopted path is no longer an untracked regular file: {relative}")
+            adopted[relative] = {
+                "preexisting_sha256": adopted_baseline,
+                "after_sha256": after_entry[1],
+                "method": "provenance-bound-adoption",
+            }
+            continue
         baseline = before.dirty_file_baselines.get(relative)
         if baseline is None:
             raise DirtyBaselineViolation(f"allowlisted dirty path was changed without a pre-execution preservation snapshot: {relative}")
@@ -300,6 +356,7 @@ def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, 
         "unexpected_paths": unexpected,
         "baseline_preserved": True,
         "dirty_allowlisted_reconciliation": reconciled,
+        "provenance_bound_adoption": adopted,
     }
 
 
@@ -318,7 +375,8 @@ def verify_local_commit(before: WorkspaceSnapshot, after: WorkspaceSnapshot, *, 
     committed_paths = sorted(filter(None, str(_git(root, "diff", "--name-only", "--no-renames", before.head, after.head)).splitlines()))
     allowed = {path.replace("\\", "/") for path in allowed_paths}
     unexpected = sorted(path for path in committed_paths if path not in allowed)
-    baseline_committed = sorted(path for path in committed_paths if path in before.entries)
+    adopted_paths = set(before.adopted_file_baselines)
+    baseline_committed = sorted(path for path in committed_paths if path in before.entries and path not in adopted_paths)
     symlinks = [path for path in committed_paths if (root / path).is_symlink()]
     if unexpected or baseline_committed or symlinks:
         parts: list[str] = []
@@ -329,11 +387,20 @@ def verify_local_commit(before: WorkspaceSnapshot, after: WorkspaceSnapshot, *, 
         if symlinks:
             parts.append("committed symlink paths are not permitted: " + ", ".join(symlinks))
         raise DirtyBaselineViolation("; ".join(parts))
+    missing_adoptions = sorted(adopted_paths - set(committed_paths))
+    if missing_adoptions:
+        raise DirtyBaselineViolation("provenance-bound adopted paths were not committed: " + ", ".join(missing_adoptions))
+    worktree_entries = dict(after.entries)
+    for path in adopted_paths:
+        # The commit has made the file clean, but for preservation proof it is
+        # still the post-worker form of the original untracked artifact.
+        worktree_entries[path] = ("??", _file_sha(root / path), "<committed-adoption>")
     worktree_after = WorkspaceSnapshot(
         workspace_path=after.workspace_path,
         branch=after.branch,
         head=before.head,
-        entries=after.entries,
+        entries=worktree_entries,
+        adopted_file_baselines=before.adopted_file_baselines,
     )
     worktree = verify_allowed_changes(before, worktree_after, allowed_paths=allowed_paths)
     return {
@@ -342,6 +409,7 @@ def verify_local_commit(before: WorkspaceSnapshot, after: WorkspaceSnapshot, *, 
         "changed_paths": sorted(set(worktree["changed_paths"]) | set(committed_paths)),
         "unexpected_paths": worktree["unexpected_paths"],
         "baseline_preserved": worktree["baseline_preserved"],
+        "provenance_bound_adoption": worktree["provenance_bound_adoption"],
     }
 
 
