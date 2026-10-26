@@ -850,7 +850,7 @@ class CutoverWatcher:
                     changed_paths = commit_attestation["changed_paths"]
                     unexpected_changes = commit_attestation["unexpected_paths"]
                 else:
-                    workspace_verification = verify_allowed_changes(before_workspace, after_workspace, allowed_paths=sorted(allowed_paths))
+                    workspace_verification = verify_allowed_changes(before_workspace, after_workspace, allowed_paths=sorted(allowed_paths), reconciliation_evidence_dir=run_root / "dirty-reconciliation")
                     changed_paths = workspace_verification["changed_paths"]
                     unexpected_changes = workspace_verification["unexpected_paths"]
             except DirtyBaselineViolation as exc:
@@ -864,6 +864,7 @@ class CutoverWatcher:
             "changed_paths": changed_paths,
             "unexpected_paths": unexpected_changes,
             "baseline_error": attestation_error,
+            "dirty_reconciliation_evidence_dir": str(run_root / "dirty-reconciliation"),
             "local_commit": commit_attestation,
             "before": None if before_workspace is None else {
                 "workspace_path": before_workspace.workspace_path,

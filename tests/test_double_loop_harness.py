@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import os
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -320,8 +321,13 @@ def test_bounded_diff_guard_reconciles_allowlisted_dirty_hunks_and_limits_paths(
         verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["README.md", "src/allowed.py"])
     (repo / "other.py").unlink()
     (repo / "README.md").write_text("one\nworker clobbered prior hunk\nthree\nfour\nallowlisted worker hunk\n", encoding="utf-8")
+    evidence = tmp_path / "dirty-reconciliation"
     with pytest.raises(DirtyBaselineViolation, match="not preserved"):
-        verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["README.md", "src/allowed.py"])
+        verify_allowed_changes(before, capture_workspace(repo), allowed_paths=["README.md", "src/allowed.py"], reconciliation_evidence_dir=evidence)
+    snapshot = evidence / hashlib.sha256(b"README.md").hexdigest()
+    assert (snapshot / "preexisting.bin").read_bytes().replace(b"\r\n", b"\n") == b"one\npre-existing user hunk\nthree\nfour\nfive\n"
+    assert (snapshot / "post_worker.bin").is_file()
+    assert (snapshot / "manifest.json").is_file()
 
 
 def test_bounded_diff_guard_rejects_changed_non_allowlisted_dirty_path(tmp_path):

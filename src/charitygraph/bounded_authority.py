@@ -6,6 +6,7 @@ local implementation route.
 from __future__ import annotations
 
 import hashlib
+import json
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
@@ -194,7 +195,7 @@ def validate_execution(execution: dict[str, Any], *, target: dict[str, Any], wor
     return {"allowed_paths": tuple(allowed), "authority_version": IMPLEMENTATION_AUTHORITY_VERSION, "scope": IMPLEMENTATION_SCOPE}
 
 
-def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, *, allowed_paths: list[str] | tuple[str, ...]) -> dict[str, Any]:
+def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, *, allowed_paths: list[str] | tuple[str, ...], reconciliation_evidence_dir: str | Path | None = None) -> dict[str, Any]:
     allowed = {path.replace("\\", "/") for path in allowed_paths}
     if before.workspace_path != after.workspace_path:
         raise DirtyBaselineViolation("workspace path changed during execution")
@@ -276,6 +277,15 @@ def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, 
                 check=False,
             )
         if merged.returncode != 0 or merged.stdout != after_bytes:
+            if reconciliation_evidence_dir is not None:
+                evidence = Path(reconciliation_evidence_dir) / hashlib.sha256(relative.encode("utf-8")).hexdigest()
+                evidence.mkdir(parents=True, exist_ok=True)
+                (evidence / "base.bin").write_bytes(merge_base_bytes)
+                (evidence / "preexisting.bin").write_bytes(baseline.dirty_bytes)
+                (evidence / "post_worker.bin").write_bytes(after_bytes)
+                (evidence / "merge.stdout").write_bytes(merged.stdout)
+                (evidence / "merge.stderr").write_bytes(merged.stderr)
+                (evidence / "manifest.json").write_text(json.dumps({"path": relative, "returncode": merged.returncode, "base_sha256": hashlib.sha256(merge_base_bytes).hexdigest(), "preexisting_sha256": hashlib.sha256(baseline.dirty_bytes).hexdigest(), "post_worker_sha256": hashlib.sha256(after_bytes).hexdigest(), "merge_stdout_sha256": hashlib.sha256(merged.stdout).hexdigest(), "merge_stderr_sha256": hashlib.sha256(merged.stderr).hexdigest()}, sort_keys=True) + "\n", encoding="utf-8")
             raise DirtyBaselineViolation(
                 f"allowlisted dirty baseline was not preserved by a clean three-way reconciliation: {relative}"
             )
