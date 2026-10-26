@@ -706,9 +706,10 @@ class CutoverWatcher:
         """Prove that each adoption candidate came from a completed bridge run.
 
         The worker never receives a broad exemption for dirty files.  A source
-        result must attest the exact untracked artifact bytes, and those bytes
-        must still be present at launch.  The immutable result itself is also
-        pinned by its SHA-256 in the new instruction.
+        instruction/result pair must attest the exact untracked artifact bytes
+        on an ancestor of the current target HEAD, and those bytes must still
+        be present at launch.  Both immutable transport files are pinned by
+        their SHA-256 values in the records that reference them.
         """
         adopted_paths = {item["path"] for item in adopted_artifacts}
         if set(allowed_paths) != adopted_paths | {report_path}:
@@ -744,14 +745,46 @@ class CutoverWatcher:
                 or attestation.get("quarantined") is not False
             ):
                 raise InvalidInstruction(f"adopted artifact source result is not a completed verified bridge run: {path}")
+            source_instruction_location = source.get("source_path")
+            source_instruction_sha = source.get("source_sha256")
+            if not isinstance(source_instruction_location, str) or not isinstance(source_instruction_sha, str):
+                raise InvalidInstruction(f"adopted artifact source instruction evidence is unavailable: {path}")
+            source_instruction_path = Path(source_instruction_location).resolve()
+            if source_instruction_path.parent != self.artifacts_root or not source_instruction_path.is_file():
+                raise InvalidInstruction(f"adopted artifact source instruction is unavailable: {path}")
+            source_instruction_raw = source_instruction_path.read_bytes()
+            if hashlib.sha256(source_instruction_raw).hexdigest() != source_instruction_sha:
+                raise InvalidInstruction(f"adopted artifact source instruction hash does not match: {path}")
+            try:
+                source_instruction = json.loads(source_instruction_raw.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise InvalidInstruction(f"adopted artifact source instruction is invalid JSON: {path}") from exc
+            if (
+                not isinstance(source_instruction, dict)
+                or source_instruction.get("schema_version") != "charitygraph.autonomous-instruction/v1"
+                or source_instruction.get("instruction_id") != artifact["source_instruction_id"]
+                or not isinstance(source_instruction.get("content"), str)
+                or source_instruction.get("content_sha256") != sha256_text(source_instruction["content"])
+                or source.get("execution") != source_instruction.get("execution")
+            ):
+                raise InvalidInstruction(f"adopted artifact source instruction does not match its completed result: {path}")
             before = attestation.get("before")
             after = attestation.get("after")
             before_entries = before.get("entries") if isinstance(before, dict) else None
             after_entries = after.get("entries") if isinstance(after, dict) else None
             source_entry = after_entries.get(path) if isinstance(after_entries, dict) else None
+            source_target = source.get("target")
+            instruction_target = source_instruction.get("target") if isinstance(source_instruction, dict) else None
+            source_head = before.get("head") if isinstance(before, dict) else None
             if (
                 not isinstance(before, dict)
-                or before.get("head") != workspace.head
+                or not isinstance(source_head, str)
+                or not isinstance(source_target, dict)
+                or not isinstance(instruction_target, dict)
+                or any(source_target.get(key) != value for key, value in {"repository": "charitygraph", "workspace_path": workspace.workspace_path, "branch": workspace.branch}.items())
+                or any(instruction_target.get(key) != source_target.get(key) for key in {"repository", "workspace_path", "branch", "head", "model"})
+                or source_target.get("head") != source_head
+                or (not isinstance(after, dict) or after.get("head") != source_head)
                 or not isinstance(before_entries, dict)
                 or path in before_entries
                 or not isinstance(source_entry, list)
@@ -759,8 +792,22 @@ class CutoverWatcher:
                 or source_entry[0] != "??"
                 or source_entry[1] != artifact["sha256"]
                 or path not in attestation.get("changed_paths", [])
+                or path not in attestation.get("allowed_paths", [])
             ):
                 raise InvalidInstruction(f"adopted artifact was not attested as the exact newly-created source output: {path}")
+            try:
+                ancestor = subprocess.run(
+                    ["git", "-c", f"safe.directory={self.workspace_root}", "merge-base", "--is-ancestor", source_head, workspace.head],
+                    cwd=self.workspace_root,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    check=False,
+                    timeout=15,
+                )
+            except (OSError, subprocess.SubprocessError) as exc:
+                raise InvalidInstruction(f"adopted artifact ancestry could not be verified: {path}") from exc
+            if ancestor.returncode != 0:
+                raise InvalidInstruction(f"adopted artifact source HEAD is not an ancestor of the current target HEAD: {path}")
 
     def _run_codex(self, envelope: Any, source: Path, source_sha: str, execution: dict[str, Any]) -> dict[str, Any]:
         report_path = (self.workspace_root / execution["report_path"]).resolve()

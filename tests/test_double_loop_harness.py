@@ -78,20 +78,41 @@ def provenance_adoption_execution(
 ) -> dict[str, object]:
     """Create the minimal immutable completed-result proof for adoption tests."""
     source_name = "cg-g4-o1c-result-prior-adoption-source.json"
+    source_instruction_name = "cg-g4-o1b-instruction-prior-adoption-source.json"
+    source_execution = {"mode": "codex_exec", "change_policy": "bounded_workspace"}
+    source_instruction = {
+        "schema_version": "charitygraph.autonomous-instruction/v1",
+        "instruction_id": "gate4:engineering:prior-adoption-source",
+        "content": "create the attested artifact",
+        "authority": {"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        "target": {"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"},
+        "operation": "codex_engineering",
+        "created_at": NOW.isoformat(),
+        "execution": source_execution,
+    }
+    source_instruction["content_sha256"] = hashlib.sha256(source_instruction["content"].encode("utf-8")).hexdigest()
+    source_instruction_raw = json.dumps(source_instruction, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    artifacts.mkdir(parents=True, exist_ok=True)
+    source_instruction_path = artifacts / source_instruction_name
+    source_instruction_path.write_bytes(source_instruction_raw)
     source = {
         "schema": "charitygraph.g4-o1c-result/v1",
         "instruction_id": "gate4:engineering:prior-adoption-source",
         "execution_state": source_state,
+        "target": source_instruction["target"],
+        "execution": source_execution,
+        "source_path": str(source_instruction_path),
+        "source_sha256": hashlib.sha256(source_instruction_raw).hexdigest(),
         "workspace_attestation": {
             "verified": source_state == "CODEX_ENGINEERING_COMPLETED",
             "quarantined": source_state != "CODEX_ENGINEERING_COMPLETED",
             "before": {"head": head, "entries": {}},
-            "after": {"entries": {artifact_path: ["??", artifact_sha256, "0" * 64]}},
+            "after": {"head": head, "entries": {artifact_path: ["??", artifact_sha256, "0" * 64]}},
             "changed_paths": [artifact_path],
+            "allowed_paths": [artifact_path],
         },
     }
     raw = json.dumps(source, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    artifacts.mkdir(parents=True, exist_ok=True)
     (artifacts / source_name).write_bytes(raw)
     return {
         "mode": "codex_exec",
@@ -586,11 +607,17 @@ def test_provenance_bound_adoption_validates_source_then_attests_local_commit(tm
     execution = provenance_adoption_execution(
         artifacts, repo=repo, head=head, artifact_path="src/adopted.py", artifact_sha256=artifact_sha
     )
+    # A later harness-only commit is a normal, safe evolution of the adoption
+    # target. The source result remains valid because its HEAD is an ancestor.
+    (repo / "README.md").write_text("harness advanced\n", encoding="utf-8")
+    subprocess.run(["git", "add", "README.md"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "later harness repair"], cwd=repo, check=True, capture_output=True)
+    current_head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
     envelope = InstructionEnvelope.create(
         instruction_id="gate4:engineering:adopt-attested-artifact",
         content="revise and locally commit the attested artifact only",
         authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
-        target={"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"},
+        target={"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": current_head, "model": "luna-high"},
         operation="codex_engineering",
         execution=execution,
     )
@@ -648,6 +675,39 @@ def test_provenance_bound_adoption_rejects_mismatched_or_failed_source_before_la
     with pytest.raises(bridge_module.InvalidInstruction, match="not a completed verified bridge run"):
         watcher._validate_engineering(envelope)
     assert artifact.read_text(encoding="utf-8") == "value = 'attested'\n"
+
+
+def test_provenance_bound_adoption_rejects_diverged_source_history(tmp_path):
+    repo, initial_head = git_repo(tmp_path)
+    subprocess.run(["git", "checkout", "-b", "source-proof"], cwd=repo, check=True, capture_output=True)
+    (repo / "source-proof.txt").write_text("source history\n", encoding="utf-8")
+    subprocess.run(["git", "add", "source-proof.txt"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "source history"], cwd=repo, check=True, capture_output=True)
+    source_head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
+    subprocess.run(["git", "checkout", "gate4-test"], cwd=repo, check=True, capture_output=True)
+    assert subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip() == initial_head
+    (repo / "current-proof.txt").write_text("current history\n", encoding="utf-8")
+    subprocess.run(["git", "add", "current-proof.txt"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "current history"], cwd=repo, check=True, capture_output=True)
+    current_head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
+    artifact = repo / "src" / "adopted.py"
+    artifact.parent.mkdir()
+    artifact.write_text("value = 'attested'\n", encoding="utf-8")
+    artifacts = tmp_path / "artifacts"
+    execution = provenance_adoption_execution(
+        artifacts, repo=repo, head=source_head, artifact_path="src/adopted.py", artifact_sha256=hashlib.sha256(artifact.read_bytes()).hexdigest()
+    )
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:engineering:reject-diverged-adoption-source",
+        content="this must reject an unrelated source history",
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        target={"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": current_head, "model": "luna-high"},
+        operation="codex_engineering",
+        execution=execution,
+    )
+    watcher = bridge_module.CutoverWatcher(artifacts_root=artifacts, workspace_root=repo, runtime_root=tmp_path / "runtime")
+    with pytest.raises(bridge_module.InvalidInstruction, match="not an ancestor"):
+        watcher._validate_engineering(envelope)
 
 
 def test_codex_failure_still_records_workspace_attestation(tmp_path, monkeypatch):
