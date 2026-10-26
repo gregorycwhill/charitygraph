@@ -66,3 +66,7 @@ While a worker is active, live status uses `watcher_state: EXECUTING` and expose
 The declared timeout is a wall-clock deadline enforced independently of Codex's output reader. On expiry the bridge kills the child, records `CODEX_EXECUTION_TIMEOUT`, and mirrors any report the child managed to write as unaccepted diagnostic evidence. Never replay that instruction.
 
 `updated_at` is the local status-generation time. The watcher can attest its atomic local artifact write but cannot attest Google Drive delivery; compare `updated_at` with the Drive file's modification time. Do not infer pickup failure from one stale observation. For one approved instruction, wait through its declared timeout plus `result_publication_grace_seconds`; treat telemetry as stale only after two missed local heartbeat intervals. A genuinely suspected stall requires all of: no matching terminal result, no matching active instruction/claim, and stale status beyond that window. Report it and wait for explicit recovery authority—never replay, duplicate-dispatch, or restart a worker.
+
+## Windows liveness recovery
+
+Windows Task Scheduler invokes the short-lived managed watchdog after sign-in and periodically while the user session is available. It starts a missing launcher only when the active fence exactly matches the checkout and the durable ledger has no `claimed` or `running` instruction. It refuses recovery when the ledger is unavailable, a claim is active, or the fence is not exact.

@@ -11,6 +11,7 @@ from pathlib import Path
 import bridge.bridge as bridge_module
 import pytest
 from bridge.managed_launcher import matching_fence_identity
+from bridge.managed_watchdog import ensure_launcher
 from bridge.bridge import (
     CutoverWatcher,
     ENGINEERING_OPERATION,
@@ -151,6 +152,29 @@ def test_managed_launcher_only_accepts_an_exact_latest_fence(tmp_path):
     latest = artifacts / "cg-g4-o1b-dormant-state-fence-20261020-v2.json"
     latest.write_text(json.dumps(_fence(workspace, "a" * 40, "gate4-test")), encoding="utf-8")
     assert matching_fence_identity(artifacts, workspace) is None
+
+
+def test_watchdog_refuses_recovery_with_an_active_claim(tmp_path, monkeypatch):
+    workspace, head = _engineering_workspace(tmp_path)
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    runtime = tmp_path / "runtime"
+    (artifacts / FENCE_NAME).write_text(json.dumps(_fence(workspace, head, "gate4-test")), encoding="utf-8")
+    watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    watcher.adapter.submit(_engineering_instruction(workspace, head, instruction_id="gate4:engineering:watchdog-active"))
+    watcher.adapter.claim(owner="test-owner")
+    monkeypatch.setattr("bridge.managed_watchdog._recorded_launcher_is_alive", lambda _: False)
+    assert ensure_launcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime) == "active_claim_present"
+
+
+def test_watchdog_requires_exact_fence_before_starting(tmp_path, monkeypatch):
+    workspace, head = _engineering_workspace(tmp_path)
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    runtime = tmp_path / "runtime"
+    (artifacts / FENCE_NAME).write_text(json.dumps(_fence(workspace, "a" * 40, "gate4-test")), encoding="utf-8")
+    monkeypatch.setattr("bridge.managed_watchdog._recorded_launcher_is_alive", lambda _: False)
+    assert ensure_launcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime) == "fence_not_exact"
 
 
 def test_terminal_result_is_restored_and_survives_idle_preflight(tmp_path, monkeypatch):
