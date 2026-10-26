@@ -809,6 +809,61 @@ class CutoverWatcher:
             if ancestor.returncode != 0:
                 raise InvalidInstruction(f"adopted artifact source HEAD is not an ancestor of the current target HEAD: {path}")
 
+    def _bridge_owned_adoption_commit(self, *, instruction_id: str, allowed_paths: set[str]) -> dict[str, Any]:
+        """Commit the already-attested adoption paths outside the Codex sandbox.
+
+        The worker deliberately has no `.git` write access.  This narrow
+        bridge operation is the only post-worker metadata write: it stages
+        exactly the validated paths, commits only those paths, and preserves
+        any independently staged user paths.
+        """
+        paths = sorted(allowed_paths)
+        command_prefix = ["git", "-c", f"safe.directory={self.workspace_root}"]
+        staged_before = set(filter(None, _git(self.workspace_root, "diff", "--cached", "--name-only").splitlines()))
+        if staged_before & set(paths):
+            raise DirtyBaselineViolation("adoption paths were already staged before the bridge-owned commit")
+        add = subprocess.run(
+            [*command_prefix, "add", "--", *paths],
+            cwd=self.workspace_root,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=False,
+        )
+        if add.returncode != 0:
+            raise DirtyBaselineViolation(f"bridge-owned adoption staging failed: {add.stdout.strip()}")
+        staged_after = set(filter(None, _git(self.workspace_root, "diff", "--cached", "--name-only").splitlines()))
+        missing = sorted(set(paths) - staged_after)
+        if missing:
+            self._unstage_adoption_paths(command_prefix, paths)
+            raise DirtyBaselineViolation("bridge-owned adoption staging omitted paths: " + ", ".join(missing))
+        commit = subprocess.run(
+            [*command_prefix, "commit", "--only", "--no-verify", "-m", f"bridge: adopt {instruction_id}", "--", *paths],
+            cwd=self.workspace_root,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=False,
+        )
+        if commit.returncode != 0:
+            self._unstage_adoption_paths(command_prefix, paths)
+            raise DirtyBaselineViolation(f"bridge-owned adoption commit failed: {commit.stdout.strip()}")
+        return {
+            "actor": "bridge",
+            "staged_paths": paths,
+            "commit_message": f"bridge: adopt {instruction_id}",
+        }
+
+    def _unstage_adoption_paths(self, command_prefix: list[str], paths: list[str]) -> None:
+        """Best-effort rollback of the bridge's own failed exact-path staging."""
+        subprocess.run(
+            [*command_prefix, "reset", "--", *paths],
+            cwd=self.workspace_root,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+
     def _run_codex(self, envelope: Any, source: Path, source_sha: str, execution: dict[str, Any]) -> dict[str, Any]:
         report_path = (self.workspace_root / execution["report_path"]).resolve()
         try:
@@ -972,6 +1027,8 @@ class CutoverWatcher:
         unexpected_changes: list[str] = []
         workspace_verification: dict[str, Any] | None = None
         commit_attestation: dict[str, Any] | None = None
+        bridge_owned_commit: dict[str, Any] | None = None
+        bridge_commit_error: str | None = None
         if before_workspace is not None and after_workspace is not None:
             try:
                 if execution.get("change_policy") in {"bounded_workspace", "provenance_bound_adoption"} and before_workspace.head != after_workspace.head:
@@ -991,6 +1048,41 @@ class CutoverWatcher:
                 attestation_error = str(exc)
                 changed_paths = sorted(path for path in set(before_workspace.entries) | set(after_workspace.entries) if before_workspace.entries.get(path) != after_workspace.entries.get(path))
                 unexpected_changes = sorted(path for path in changed_paths if path not in allowed_paths)
+        report_exists = report_path.is_file()
+        if (
+            execution.get("change_policy") == "provenance_bound_adoption"
+            and before_workspace is not None
+            and after_workspace is not None
+            and before_workspace.head == after_workspace.head
+            and workspace_verification is not None
+            and attestation_error is None
+            and not unexpected_changes
+            and launch_error is None
+            and not timed_out
+            and returncode == 0
+            and report_exists
+        ):
+            try:
+                bridge_owned_commit = self._bridge_owned_adoption_commit(
+                    instruction_id=envelope.instruction_id,
+                    allowed_paths=allowed_paths,
+                )
+                after_workspace = capture_workspace(self.workspace_root)
+                commit_attestation = verify_local_commit(
+                    before_workspace,
+                    after_workspace,
+                    allowed_paths=sorted(allowed_paths),
+                )
+                workspace_verification = commit_attestation
+                changed_paths = commit_attestation["changed_paths"]
+                unexpected_changes = commit_attestation["unexpected_paths"]
+            except (DirtyBaselineViolation, OSError, subprocess.CalledProcessError, ValueError) as exc:
+                bridge_commit_error = str(exc)
+                attestation_error = bridge_commit_error
+                try:
+                    after_workspace = capture_workspace(self.workspace_root)
+                except (OSError, subprocess.CalledProcessError, ValueError):
+                    pass
         workspace_attestation = {
             "verified": workspace_verification is not None and attestation_error is None,
             "quarantined": bool(attestation_error or unexpected_changes),
@@ -1000,6 +1092,7 @@ class CutoverWatcher:
             "baseline_error": attestation_error,
             "dirty_reconciliation_evidence_dir": str(run_root / "dirty-reconciliation"),
             "local_commit": commit_attestation,
+            "bridge_owned_commit": bridge_owned_commit,
             "before": None if before_workspace is None else {
                 "workspace_path": before_workspace.workspace_path,
                 "branch": before_workspace.branch,
@@ -1013,11 +1106,12 @@ class CutoverWatcher:
                 "entries": {path: list(value) for path, value in after_workspace.entries.items()},
             },
         }
-        report_exists = report_path.is_file()
         report_sha = hashlib.sha256(report_path.read_bytes()).hexdigest() if report_exists else None
         event_summary = _event_summary(raw_output)
         if launch_error:
             state = "CODEX_LAUNCH_FAILED"
+        elif bridge_commit_error:
+            state = "CODEX_EXECUTION_FAILED_COMMIT"
         elif attestation_error or unexpected_changes:
             # A safety-boundary failure takes precedence over the worker's
             # exit code.  The adapter will durably complete this as a

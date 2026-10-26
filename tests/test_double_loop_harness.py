@@ -677,6 +677,100 @@ def test_provenance_bound_adoption_rejects_mismatched_or_failed_source_before_la
     assert artifact.read_text(encoding="utf-8") == "value = 'attested'\n"
 
 
+def test_provenance_bound_adoption_uses_bridge_owned_exact_path_commit(tmp_path, monkeypatch):
+    repo, head = git_repo(tmp_path)
+    artifact = repo / "src" / "adopted.py"
+    artifact.parent.mkdir()
+    artifact.write_text("value = 'attested'\n", encoding="utf-8")
+    artifact_sha = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    # This staging is user-owned and must survive the bridge commit unchanged.
+    (repo / "unrelated.txt").write_text("preserve staged work\n", encoding="utf-8")
+    subprocess.run(["git", "add", "unrelated.txt"], cwd=repo, check=True)
+    artifacts = tmp_path / "artifacts"
+    execution = provenance_adoption_execution(
+        artifacts, repo=repo, head=head, artifact_path="src/adopted.py", artifact_sha256=artifact_sha
+    )
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:engineering:bridge-owned-adoption-commit",
+        content="revise the attested artifact and write the report; do not use git",
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        target={"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"},
+        operation="codex_engineering",
+        execution=execution,
+    )
+
+    class FakeCodex:
+        pid = 4245
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            artifact.write_text("value = 'revised'\n", encoding="utf-8")
+            (repo / "reports").mkdir()
+            (repo / "reports" / "adoption-result.md").write_text("bridge-owned commit report\n", encoding="utf-8")
+            return b"{}\n", None
+
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
+    real_popen = subprocess.Popen
+    monkeypatch.setattr(bridge_module.subprocess, "Popen", lambda command, *args, **kwargs: real_popen(command, *args, **kwargs) if command and command[0] == "git" else FakeCodex())
+    watcher = bridge_module.CutoverWatcher(artifacts_root=artifacts, workspace_root=repo, runtime_root=tmp_path / "runtime")
+    source = tmp_path / "instruction.json"
+    source.write_text("{}\n", encoding="utf-8")
+    result = watcher._run_codex(envelope, source, "e" * 64, watcher._validate_engineering(envelope))
+    assert result["execution_state"] == "CODEX_ENGINEERING_COMPLETED"
+    assert result["workspace_attestation"]["bridge_owned_commit"]["actor"] == "bridge"
+    assert result["workspace_attestation"]["local_commit"]["commit_paths"] == ["reports/adoption-result.md", "src/adopted.py"]
+    assert subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=repo, text=True).strip() == "unrelated.txt"
+
+
+def test_provenance_bound_adoption_rolls_back_its_staging_on_bridge_commit_failure(tmp_path, monkeypatch):
+    repo, head = git_repo(tmp_path)
+    artifact = repo / "src" / "adopted.py"
+    artifact.parent.mkdir()
+    artifact.write_text("value = 'attested'\n", encoding="utf-8")
+    artifacts = tmp_path / "artifacts"
+    execution = provenance_adoption_execution(
+        artifacts, repo=repo, head=head, artifact_path="src/adopted.py", artifact_sha256=hashlib.sha256(artifact.read_bytes()).hexdigest()
+    )
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:engineering:bridge-owned-adoption-failure",
+        content="write the report and leave git metadata to the bridge",
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        target={"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"},
+        operation="codex_engineering",
+        execution=execution,
+    )
+
+    class FakeCodex:
+        pid = 4246
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            (repo / "reports").mkdir()
+            (repo / "reports" / "adoption-result.md").write_text("failed commit report\n", encoding="utf-8")
+            return b"{}\n", None
+
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
+    real_popen = subprocess.Popen
+    monkeypatch.setattr(bridge_module.subprocess, "Popen", lambda command, *args, **kwargs: real_popen(command, *args, **kwargs) if command and command[0] == "git" else FakeCodex())
+    real_run = subprocess.run
+
+    def fail_commit(command, *args, **kwargs):
+        if command and command[0] == "git" and "commit" in command:
+            return subprocess.CompletedProcess(command, 1, stdout="synthetic commit denial")
+        return real_run(command, *args, **kwargs)
+
+    monkeypatch.setattr(bridge_module.subprocess, "run", fail_commit)
+    watcher = bridge_module.CutoverWatcher(artifacts_root=artifacts, workspace_root=repo, runtime_root=tmp_path / "runtime")
+    source = tmp_path / "instruction.json"
+    source.write_text("{}\n", encoding="utf-8")
+    result = watcher._run_codex(envelope, source, "f" * 64, watcher._validate_engineering(envelope))
+    assert result["execution_state"] == "CODEX_EXECUTION_FAILED_COMMIT"
+    assert result["workspace_attestation"]["quarantined"] is True
+    assert subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=repo, text=True).strip() == ""
+
+
 def test_provenance_bound_adoption_rejects_diverged_source_history(tmp_path):
     repo, initial_head = git_repo(tmp_path)
     subprocess.run(["git", "checkout", "-b", "source-proof"], cwd=repo, check=True, capture_output=True)

@@ -55,6 +55,8 @@ It must target the just-verified repository, absolute workspace path, branch, fu
 
 The allowlist must contain exactly the adopted paths and the new report path. Before the worker starts, the bridge verifies the source-result file and its declared hash, its original instruction and hash, and requires a `CODEX_ENGINEERING_COMPLETED` source result with a verified non-quarantined workspace attestation on a Git-verified ancestor of the current target HEAD. It requires repository, workspace, and branch identity to remain consistent, and requires that source attestation to show each artifact as a newly created untracked file with the same hash still present locally. Quarantined, failed, diverged-history, altered, tracked, missing, or unrelated artifacts are rejected before launch. The one direct-child local commit must include every adopted file and no non-allowlisted path; all unrelated dirty paths remain protected.
 
+For `provenance_bound_adoption` only, the worker does not write `.git` metadata. After its workspace changes have passed the same fail-closed attestation, the managed bridge stages and commits exactly the approved paths using the local Git authority outside the worker sandbox. It uses `git commit --only` so independently staged unrelated paths are preserved. A staging or commit failure is terminal, rolls back only the bridge's own exact-path staging, and must never be replayed.
+
 ## Local commits and completion
 
 A bounded task may make at most one local-only commit when its explicit task allows it. The bridge accepts only one non-merge direct-child commit of the target HEAD; every committed path must be allowlisted, and no pre-existing dirty path may be absorbed. The result records that commit under `workspace_attestation.local_commit`.
