@@ -771,6 +771,31 @@ def test_provenance_bound_adoption_rolls_back_its_staging_on_bridge_commit_failu
     assert subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=repo, text=True).strip() == ""
 
 
+def test_bridge_owned_adoption_rolls_back_partial_staging_failure(tmp_path, monkeypatch):
+    repo, _ = git_repo(tmp_path)
+    (repo / "adopted.txt").write_text("adopted\n", encoding="utf-8")
+    (repo / "report.md").write_text("report\n", encoding="utf-8")
+    watcher = bridge_module.CutoverWatcher(artifacts_root=tmp_path / "artifacts", workspace_root=repo, runtime_root=tmp_path / "runtime")
+    real_run = subprocess.run
+
+    def partial_add_failure(command, *args, **kwargs):
+        completed = real_run(command, *args, **kwargs)
+        if command and command[0] == "git" and "add" in command:
+            # Simulate Git staging one or more paths before reporting failure.
+            return subprocess.CompletedProcess(command, 1, stdout="synthetic partial add failure")
+        return completed
+
+    monkeypatch.setattr(bridge_module.subprocess, "run", partial_add_failure)
+    with pytest.raises(DirtyBaselineViolation, match="staging failed"):
+        watcher._bridge_owned_adoption_commit(
+            instruction_id="gate4:engineering:partial-stage-rollback",
+            allowed_paths={"adopted.txt", "report.md"},
+        )
+    assert subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=repo, text=True).strip() == ""
+    assert "?? adopted.txt" in subprocess.check_output(["git", "status", "--short"], cwd=repo, text=True)
+    assert "?? report.md" in subprocess.check_output(["git", "status", "--short"], cwd=repo, text=True)
+
+
 def test_provenance_bound_adoption_rejects_diverged_source_history(tmp_path):
     repo, initial_head = git_repo(tmp_path)
     subprocess.run(["git", "checkout", "-b", "source-proof"], cwd=repo, check=True, capture_output=True)

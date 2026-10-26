@@ -831,6 +831,10 @@ class CutoverWatcher:
             check=False,
         )
         if add.returncode != 0:
+            # Git can report a non-zero status after staging a subset of the
+            # requested paths. Roll back only this operation's exact paths
+            # before surfacing the terminal failure.
+            self._unstage_adoption_paths(command_prefix, paths)
             raise DirtyBaselineViolation(f"bridge-owned adoption staging failed: {add.stdout.strip()}")
         staged_after = set(filter(None, _git(self.workspace_root, "diff", "--cached", "--name-only").splitlines()))
         missing = sorted(set(paths) - staged_after)
