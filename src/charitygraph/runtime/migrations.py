@@ -1189,6 +1189,78 @@ CREATE INDEX scale_s0_historical_terminals_state_idx
     ON scale_s0_historical_terminals(terminal_state, terminal_reason);
 """.strip() + "\n"
 
+# Rights governance records remain authoritative in the private, content-addressed
+# file store.  These tables contain only identifiers, hashes, lifecycle state and
+# other safe query metadata; they are a rebuildable SQLite projection.
+CATALOGUE_SQL_V29 = """
+CREATE TABLE rights_projection_records (
+    record_id TEXT PRIMARY KEY
+        CHECK(length(record_id) = 64 AND lower(record_id) = record_id),
+    decision_id TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    source_artifact_id TEXT NOT NULL,
+    source_record_id TEXT NOT NULL,
+    source_role TEXT NOT NULL,
+    representation_artifact_id TEXT,
+    representation_sha256 TEXT NOT NULL
+        CHECK(length(representation_sha256) = 64 AND lower(representation_sha256) = representation_sha256),
+    acquisition_lineage_hash TEXT NOT NULL
+        CHECK(length(acquisition_lineage_hash) = 64 AND lower(acquisition_lineage_hash) = acquisition_lineage_hash),
+    binding_hash TEXT NOT NULL
+        CHECK(length(binding_hash) = 64 AND lower(binding_hash) = binding_hash),
+    rights_basis TEXT NOT NULL,
+    rights_policy_id TEXT NOT NULL,
+    rights_policy_version TEXT NOT NULL,
+    provider_processing_policy_id TEXT,
+    provider_processing_policy_version TEXT,
+    status TEXT NOT NULL CHECK(status IN ('authorized','blocked','unknown','revoked','superseded','review_required')),
+    review_status TEXT NOT NULL CHECK(review_status IN ('current','review_due','under_review','blocked','unknown','revoked','superseded')),
+    expires_on TEXT,
+    supersedes_record_id TEXT,
+    revokes_record_id TEXT,
+    local_retention_status TEXT NOT NULL CHECK(local_retention_status IN ('authorized','blocked','unknown','not_assessed','revoked')),
+    provider_transmission_status TEXT NOT NULL CHECK(provider_transmission_status IN ('authorized','blocked','unknown','not_assessed','revoked')),
+    public_redistribution_status TEXT NOT NULL CHECK(public_redistribution_status IN ('authorized','blocked','unknown','not_assessed','revoked')),
+    actor_kind TEXT NOT NULL CHECK(actor_kind IN ('human','automation_policy','code')),
+    actor_id TEXT NOT NULL,
+    recorded_at TEXT NOT NULL,
+    UNIQUE(binding_hash, record_id),
+    FOREIGN KEY(supersedes_record_id) REFERENCES rights_projection_records(record_id),
+    FOREIGN KEY(revokes_record_id) REFERENCES rights_projection_records(record_id),
+    CHECK(NOT (supersedes_record_id IS NOT NULL AND revokes_record_id IS NOT NULL)),
+    CHECK(supersedes_record_id IS NULL OR supersedes_record_id <> record_id),
+    CHECK(revokes_record_id IS NULL OR revokes_record_id <> record_id)
+);
+CREATE INDEX rights_projection_records_binding_idx
+    ON rights_projection_records(binding_hash, record_id);
+CREATE INDEX rights_projection_records_subject_scope_idx
+    ON rights_projection_records(subject_id, scope, recorded_at, record_id);
+
+CREATE TABLE rights_projection_events (
+    event_id TEXT PRIMARY KEY
+        CHECK(length(event_id) = 64 AND lower(event_id) = event_id),
+    record_id TEXT NOT NULL REFERENCES rights_projection_records(record_id),
+    event_type TEXT NOT NULL CHECK(event_type IN ('created','reviewed','superseded','revoked','review_due')),
+    actor_kind TEXT NOT NULL CHECK(actor_kind IN ('human','automation_policy','code')),
+    actor_id TEXT NOT NULL,
+    recorded_at TEXT NOT NULL,
+    content_hash TEXT NOT NULL UNIQUE
+        CHECK(length(content_hash) = 64 AND lower(content_hash) = content_hash)
+);
+CREATE INDEX rights_projection_events_record_idx
+    ON rights_projection_events(record_id, recorded_at, event_id);
+
+CREATE TABLE rights_projection_current (
+    binding_hash TEXT PRIMARY KEY
+        CHECK(length(binding_hash) = 64 AND lower(binding_hash) = binding_hash),
+    record_id TEXT NOT NULL UNIQUE REFERENCES rights_projection_records(record_id),
+    as_of TEXT NOT NULL
+);
+CREATE INDEX rights_projection_current_record_idx
+    ON rights_projection_current(record_id);
+""".strip() + "\n"
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
     Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
@@ -1218,6 +1290,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(26, "separate_locator_subject_from_external_identifier", CATALOGUE_SQL_V26),
     Migration(27, "structured_locator_authority_preprovider_checkpoint", CATALOGUE_SQL_V27),
     Migration(28, "append_only_historical_s0_terminals", CATALOGUE_SQL_V28),
+    Migration(29, "rebuildable_private_rights_projection", CATALOGUE_SQL_V29),
 )
 
 SUPPORTED_VERSION = MIGRATIONS[-1].version
