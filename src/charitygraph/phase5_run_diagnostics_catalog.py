@@ -13,7 +13,7 @@ import copy
 import hashlib
 import json
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -42,6 +42,7 @@ class PersistedRunDiagnosticSnapshot:
     snapshot_hash: str
     run_record: Mapping[str, Any]
     ledger_snapshot: Mapping[str, Any]
+    provenance_digests: Mapping[str, Any] = field(default_factory=dict)
 
     @property
     def observation_version(self) -> str:
@@ -110,6 +111,103 @@ _TRACE_STATES = {
     "COMPLETED",
 }
 _COST_TYPES = {"reservation_release", "actual", "credit", "adjustment"}
+_PROVENANCE_SCHEMA = "charitygraph.phase5.persisted-operational-provenance/v1"
+_TIMESTAMP_FIELDS = {
+    "created_at",
+    "updated_at",
+    "started_at",
+    "completed_at",
+    "submitted_at",
+    "received_at",
+    "recorded_at",
+    "reserved_at",
+    "expires_at",
+    "lease_expires_at",
+    "next_eligible_at",
+    "send_started_at",
+    "receipt_persisted_at",
+    "request_started_at",
+}
+
+# This is deliberately an allowlist rather than a generic row serialiser.  In
+# particular, payloads, prompts, evidence, response bodies, usage JSON and
+# redacted error text are not inputs to the audit digests.
+_PROVENANCE_FIELDS: dict[str, tuple[str, ...]] = {
+    "run": (
+        "run_id", "cohort_id", "run_kind", "status", "configuration_hash",
+        "created_at", "started_at", "completed_at", "updated_at",
+    ),
+    "tasks": (
+        "model_task_id", "run_id", "subject_id", "scope_id", "cohort_id",
+        "task_type", "task_schema_id", "cache_key", "provider_id",
+        "model_snapshot", "status", "attempt_count", "result_artifact_id",
+        "error_class", "created_at", "updated_at",
+    ),
+    "task_attempts": (
+        "task_run_id", "model_task_id", "attempt_number", "status",
+        "provider_request_id", "provider_batch_id", "submitted_at", "started_at",
+        "completed_at", "retryable", "pricing_snapshot_id", "fx_snapshot_id",
+        "reservation_id", "result_artifact_id", "error_class",
+    ),
+    "provider_request_items": (
+        "provider_request_item_id", "run_id", "model_task_id", "physical_attempt_id",
+        "delivery_job_id", "provider_id", "model_route", "requested_delivery_mode",
+        "effective_service_tier", "status", "provider_request_id", "provider_receipt_id",
+        "created_at", "updated_at",
+    ),
+    "provider_request_attempts": (
+        "delivery_attempt_id", "provider_request_item_id", "physical_attempt_id",
+        "delivery_job_id", "attempt_ordinal", "attempt_class",
+        "predecessor_attempt_id", "status", "provider_request_id", "provider_receipt_id",
+        "failure_class", "created_at", "submitted_at", "completed_at", "updated_at",
+    ),
+    "physical_attempts": (
+        "physical_attempt_id", "run_id", "subject_id", "delivery_mode", "status",
+        "provider_request_id", "reservation_id", "created_at", "send_started_at",
+        "receipt_persisted_at", "updated_at",
+    ),
+    "physical_attempt_members": ("physical_attempt_id", "model_task_id"),
+    "provider_receipts": (
+        "provider_receipt_id", "physical_attempt_id", "provider_request_id", "received_at",
+    ),
+    "delivery_jobs": (
+        "delivery_job_id", "run_id", "provider_id", "model_route", "delivery_mode",
+        "provider_batch_id", "status", "pricing_snapshot_id", "created_at",
+        "submitted_at", "completed_at", "updated_at",
+    ),
+    "standard_transport_traces": (
+        "physical_attempt_id", "delivery_attempt_id", "client_request_id",
+        "request_body_sha256", "status", "request_started_at",
+        "response_headers_received", "updated_at",
+    ),
+    "reservations": (
+        "reservation_id", "cohort_id", "run_id", "reserved_amount", "reserved_aud",
+        "accounting_currency", "status", "reserved_at", "expires_at", "updated_at",
+    ),
+    "reservation_tasks": ("reservation_id", "model_task_id"),
+    "cost_entries": (
+        "entry_key", "entry_hash", "cohort_id", "run_id", "task_run_id",
+        "reservation_id", "entry_type", "paid_output_category", "provider_amount",
+        "provider_currency", "accounting_amount", "aud_amount", "adjustment_direction",
+        "pricing_snapshot_id", "fx_snapshot_id", "recorded_at",
+    ),
+}
+
+_PROVENANCE_ID_FIELDS: dict[str, tuple[str, ...]] = {
+    "run": ("run_id",),
+    "tasks": ("model_task_id",),
+    "task_attempts": ("task_run_id",),
+    "provider_request_items": ("provider_request_item_id",),
+    "provider_request_attempts": ("delivery_attempt_id",),
+    "physical_attempts": ("physical_attempt_id",),
+    "physical_attempt_members": ("physical_attempt_id", "model_task_id"),
+    "provider_receipts": ("provider_receipt_id",),
+    "delivery_jobs": ("delivery_job_id",),
+    "standard_transport_traces": ("physical_attempt_id",),
+    "reservations": ("reservation_id",),
+    "reservation_tasks": ("reservation_id", "model_task_id"),
+    "cost_entries": ("entry_key",),
+}
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -148,8 +246,80 @@ def _decimal(value: Any, field: str) -> Decimal:
     return amount
 
 
-def _iso(value: Any) -> str | None:
-    return value if isinstance(value, str) and value else None
+def _provenance_scalar(value: Any, field: str) -> Any:
+    if value is None or isinstance(value, (str, int, bool)):
+        return value
+    if isinstance(value, Decimal):
+        return str(value)
+    raise PersistedRunDiagnosticsError(f"{field} is not safe operational provenance data")
+
+
+def _provenance_row(group: str, row: Mapping[str, Any]) -> dict[str, Any]:
+    fields = _PROVENANCE_FIELDS[group]
+    return {field: _provenance_scalar(row.get(field), f"{group}.{field}") for field in fields if field in row}
+
+
+def _provenance_manifest(
+    *,
+    run_id: str,
+    schema_version: int,
+    run: Mapping[str, Any],
+    records: Mapping[str, Sequence[Mapping[str, Any]]],
+) -> dict[str, Any]:
+    grouped_rows: dict[str, Sequence[Mapping[str, Any]]] = {"run": (run,), **records}
+    groups: dict[str, dict[str, Any]] = {}
+    aggregate_material: list[dict[str, Any]] = []
+    for group in _PROVENANCE_FIELDS:
+        rows = grouped_rows.get(group, ())
+        id_fields = _PROVENANCE_ID_FIELDS[group]
+        projected_rows = [(_provenance_row(group, row), row) for row in rows]
+        projected_rows.sort(key=lambda pair: (_canonical_bytes(pair[0]), tuple(str(pair[0].get(field) or "") for field in id_fields)))
+        entries: list[dict[str, str]] = []
+        for projected, _row in projected_rows:
+            material = {
+                "schema": _PROVENANCE_SCHEMA,
+                "run_id": run_id,
+                "group": group,
+                "record": projected,
+            }
+            entries.append(
+                {
+                    "record_id": "|".join(str(projected.get(field) or "") for field in id_fields),
+                    "digest": hashlib.sha256(_canonical_bytes(material)).hexdigest(),
+                }
+            )
+        group_material = {
+            "schema": _PROVENANCE_SCHEMA,
+            "run_id": run_id,
+            "schema_version": schema_version,
+            "group": group,
+            "records": entries,
+        }
+        group_digest = hashlib.sha256(_canonical_bytes(group_material)).hexdigest()
+        groups[group] = {"count": len(entries), "digest": group_digest, "records": entries}
+        aggregate_material.append({"group": group, "digest": group_digest, "count": len(entries)})
+    aggregate_digest = hashlib.sha256(_canonical_bytes({
+        "schema": _PROVENANCE_SCHEMA,
+        "run_id": run_id,
+        "schema_version": schema_version,
+        "groups": aggregate_material,
+    })).hexdigest()
+    return {
+        "schema": _PROVENANCE_SCHEMA,
+        "scope": {"run_id": run_id, "schema_version": schema_version},
+        "aggregate_digest": aggregate_digest,
+        "groups": groups,
+    }
+
+
+def _canonical_record_order(records: Mapping[str, Sequence[Mapping[str, Any]]]) -> dict[str, list[dict[str, Any]]]:
+    return {
+        name: sorted(
+            (dict(row) for row in rows),
+            key=lambda row: _canonical_bytes(_json_safe(row)),
+        )
+        for name, rows in records.items()
+    }
 
 
 class PersistedRunDiagnosticsAdapter:
@@ -268,15 +438,26 @@ class PersistedRunDiagnosticsAdapter:
 
     @staticmethod
     def _stable_time(records: Mapping[str, Sequence[Mapping[str, Any]]], run: Mapping[str, Any]) -> str:
-        timestamps: list[str] = []
+        timestamps: list[datetime] = []
         for row in [run, *[item for rows in records.values() for item in rows]]:
-            for key in ("created_at", "updated_at", "completed_at", "received_at", "recorded_at", "reserved_at"):
-                value = _iso(row.get(key))
-                if value:
-                    timestamps.append(value)
-        if timestamps:
-            return max(timestamps)
-        return datetime.now(timezone.utc).isoformat(timespec="microseconds")
+            for key in _TIMESTAMP_FIELDS:
+                if key not in row or row[key] is None:
+                    continue
+                value = row[key]
+                if value is None or (isinstance(value, str) and not value.strip()):
+                    continue
+                if not isinstance(value, str):
+                    raise PersistedRunDiagnosticsError("durable observation timestamp is malformed")
+                try:
+                    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                except ValueError:
+                    raise PersistedRunDiagnosticsError("durable observation timestamp is malformed") from None
+                if parsed.tzinfo is None or parsed.utcoffset() is None:
+                    raise PersistedRunDiagnosticsError("durable observation timestamp is ambiguous")
+                timestamps.append(parsed.astimezone(timezone.utc))
+        if not timestamps:
+            return ""
+        return max(timestamps).isoformat(timespec="microseconds")
 
     @staticmethod
     def _validate_states(run: Mapping[str, Any], records: Mapping[str, Sequence[Mapping[str, Any]]]) -> None:
@@ -504,6 +685,7 @@ class PersistedRunDiagnosticsAdapter:
                 "reservation_tasks": reservation_task_rows,
                 "cost_entries": cost_rows,
             }
+            records = _canonical_record_order(records)
             self._validate_states(run, records)
             self._validate_joins(records, self.run_id)
 
@@ -546,12 +728,25 @@ class PersistedRunDiagnosticsAdapter:
             stable_time = self._stable_time(records, run)
             snapshot_material = _json_safe({"run": run, "records": records})
             snapshot_hash = hashlib.sha256(_canonical_bytes(snapshot_material)).hexdigest()
+            if not stable_time:
+                stable_time = f"evidence:{snapshot_hash}"
+            provenance_digests = _provenance_manifest(
+                run_id=self.run_id,
+                schema_version=schema_version,
+                run=run,
+                records=records,
+            )
             source_ref = str(self.database_path.resolve())
             run_ref = f"sqlite:{source_ref}:run:{self.run_id}:snapshot:{snapshot_hash}"
             ledger_ref = f"sqlite:{source_ref}:ledger:{snapshot_hash}:observed:{stable_time}"
             run_record = {
                 "run_id": self.run_id,
-                "provenance": {"run_record_ref": run_ref, "ledger_snapshot_ref": ledger_ref},
+                "provenance": {
+                    "run_record_ref": run_ref,
+                    "ledger_snapshot_ref": ledger_ref,
+                    "operational_digest_manifest": provenance_digests,
+                    "evidence_scope": "local_persisted_diagnostic_only; provider_evidence_not_claimed",
+                },
                 "results": results,
                 "planned_item_count": len(task_rows),
                 "provider_posts": sum(result["provider_posts"] for result in results),
@@ -589,6 +784,7 @@ class PersistedRunDiagnosticsAdapter:
                 snapshot_hash=snapshot_hash,
                 run_record=run_record,
                 ledger_snapshot=ledger_snapshot,
+                provenance_digests=provenance_digests,
             )
         except sqlite3.Error as exc:
             raise PersistedRunDiagnosticsError("persisted run snapshot failed closed") from exc

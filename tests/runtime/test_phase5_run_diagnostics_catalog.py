@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import sqlite3
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -198,6 +199,45 @@ def _sidecar_hashes(path: Path) -> dict[str, str]:
     return values
 
 
+def _clear_durable_timestamps(path: Path) -> None:
+    tables = (
+        "runs",
+        "tasks",
+        "task_attempts",
+        "physical_attempts",
+        "provider_receipts",
+        "delivery_jobs",
+        "provider_request_items",
+        "provider_request_attempts",
+        "standard_transport_traces",
+        "budget_reservations",
+        "cost_entries",
+    )
+    timestamp_fields = {
+        "created_at",
+        "updated_at",
+        "started_at",
+        "completed_at",
+        "submitted_at",
+        "received_at",
+        "recorded_at",
+        "reserved_at",
+        "expires_at",
+        "lease_expires_at",
+        "next_eligible_at",
+        "send_started_at",
+        "receipt_persisted_at",
+        "request_started_at",
+    }
+    connection = sqlite3.connect(path)
+    for table in tables:
+        columns = {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}
+        for column in sorted(columns & timestamp_fields):
+            connection.execute(f"UPDATE {table} SET {column}=''")
+    connection.commit()
+    connection.close()
+
+
 def test_adapter_reads_actual_persisted_standard_run_read_only_and_stable_after_restart(tmp_path: Path):
     db = tmp_path / "state.sqlite3"
     catalog, rows, provider = _prepare_standard_run(db)
@@ -241,6 +281,67 @@ def test_adapter_reads_actual_persisted_standard_run_read_only_and_stable_after_
     assert second_projection.sha256 == first_projection.sha256
     assert restart_projection.document["summary"]["restart_no_resend"] is True
     reopened.close()
+
+
+def test_adapter_uses_stable_evidence_token_when_durable_timestamps_are_missing(tmp_path: Path):
+    db = tmp_path / "missing-observation-time.sqlite3"
+    catalog, _, _ = _prepare_standard_run(db)
+    catalog.close()
+    _clear_durable_timestamps(db)
+
+    adapter = PersistedRunDiagnosticsAdapter(db, RUN)
+    first = adapter.read_snapshot()
+    first_projection = adapter.project()
+    time.sleep(0.02)
+    second_adapter = PersistedRunDiagnosticsAdapter(db, RUN)
+    second = second_adapter.read_snapshot()
+    second_projection = second_adapter.project()
+
+    assert first.snapshot_observed_at == f"evidence:{first.snapshot_hash}"
+    assert second.snapshot_observed_at == first.snapshot_observed_at
+    assert second.snapshot_hash == first.snapshot_hash
+    assert second.provenance_digests == first.provenance_digests
+    assert second_projection.sha256 == first_projection.sha256
+
+
+def test_adapter_exposes_run_scoped_safe_record_provenance_and_detects_mutation(tmp_path: Path):
+    db = tmp_path / "provenance.sqlite3"
+    catalog, _, _ = _prepare_standard_run(db)
+    catalog.close()
+    first = PersistedRunDiagnosticsAdapter(db, RUN).read_snapshot()
+    manifest = first.provenance_digests
+
+    assert manifest["schema"] == "charitygraph.phase5.persisted-operational-provenance/v1"
+    assert manifest["scope"] == {"run_id": RUN, "schema_version": 29}
+    assert manifest["groups"]["tasks"]["count"] == 2
+    assert len(manifest["groups"]["tasks"]["records"]) == 2
+    assert manifest["groups"]["cost_entries"]["count"] == 4
+    assert first.run_record["provenance"]["operational_digest_manifest"] == manifest
+    assert "usage_json" not in str(manifest)
+    assert "raw_result_ref" not in str(manifest)
+
+    connection = sqlite3.connect(db)
+    connection.execute("UPDATE tasks SET attempt_count=attempt_count+1")
+    connection.commit()
+    connection.close()
+    second = PersistedRunDiagnosticsAdapter(db, RUN).read_snapshot()
+
+    assert second.snapshot_hash != first.snapshot_hash
+    assert second.provenance_digests["aggregate_digest"] != manifest["aggregate_digest"]
+    assert second.provenance_digests["groups"]["tasks"] != manifest["groups"]["tasks"]
+
+
+def test_adapter_fails_closed_for_ambiguous_durable_timestamp(tmp_path: Path):
+    db = tmp_path / "ambiguous-time.sqlite3"
+    catalog, _, _ = _prepare_standard_run(db)
+    catalog.close()
+    connection = sqlite3.connect(db)
+    connection.execute("UPDATE runs SET created_at='2026-10-27T01:02:03' WHERE run_id=?", (RUN,))
+    connection.commit()
+    connection.close()
+
+    with pytest.raises(PersistedRunDiagnosticsError, match="timestamp is ambiguous"):
+        PersistedRunDiagnosticsAdapter(db, RUN).read_snapshot()
 
 
 @pytest.mark.parametrize(
