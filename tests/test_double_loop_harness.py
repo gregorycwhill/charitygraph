@@ -15,7 +15,9 @@ from charitygraph.bounded_authority import (
     InactiveImplementationRoute,
     capture_workspace,
     report_only_execution,
+    validate_clean_commit_paths,
     validate_execution,
+    verify_clean_commit_changes,
     verify_local_commit,
     verify_allowed_changes,
 )
@@ -548,7 +550,7 @@ def test_real_codex_execution_quarantines_unauthorised_workspace_change(tmp_path
     assert Path(result["report_publication"]["path"]).is_file()
 
 
-def test_bounded_execution_attests_one_allowlisted_local_commit(tmp_path, monkeypatch):
+def test_bounded_execution_uses_bridge_owned_one_allowlisted_local_commit(tmp_path, monkeypatch):
     repo, head = git_repo(tmp_path)
     (repo / "reports").mkdir()
     source = tmp_path / "instruction.json"
@@ -556,7 +558,7 @@ def test_bounded_execution_attests_one_allowlisted_local_commit(tmp_path, monkey
     target = {"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"}
     envelope = InstructionEnvelope.create(
         instruction_id="gate4:engineering:local-commit",
-        content="write one bounded report and commit it",
+        content="write one bounded report; the host bridge owns the commit",
         authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
         target=target,
         operation="codex_engineering",
@@ -578,8 +580,6 @@ def test_bounded_execution_attests_one_allowlisted_local_commit(tmp_path, monkey
             (repo / "reports" / "commit.md").write_text("report\n", encoding="utf-8")
             (repo / "src").mkdir()
             (repo / "src" / "allowed.py").write_text("x = 1\n", encoding="utf-8")
-            subprocess.run(["git", "add", "reports/commit.md", "src/allowed.py"], cwd=repo, check=True)
-            subprocess.run(["git", "commit", "-m", "bounded worker change"], cwd=repo, check=True, capture_output=True)
             return b"{}\n", None
 
     monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
@@ -595,6 +595,113 @@ def test_bounded_execution_attests_one_allowlisted_local_commit(tmp_path, monkey
     assert result["execution_state"] == "CODEX_ENGINEERING_COMPLETED"
     assert result["workspace_attestation"]["verified"] is True
     assert result["workspace_attestation"]["local_commit"]["commit_paths"] == ["reports/commit.md", "src/allowed.py"]
+    assert result["workspace_attestation"]["local_commit"]["bridge_actor"] == "bridge"
+    assert result["workspace_attestation"]["local_commit"]["bridge_owned_commit"]["parent_head"] == head
+    assert result["workspace_attestation"]["local_commit"]["bridge_owned_commit"]["new_head"] == result["workspace_attestation"]["local_commit"]["commit_head"]
+
+
+def test_bounded_worker_index_denial_is_host_repaired_and_unrelated_index_survives(tmp_path, monkeypatch):
+    repo, head = git_repo(tmp_path)
+    (repo / "unrelated.txt").write_text("keep staged\n", encoding="utf-8")
+    subprocess.run(["git", "add", "unrelated.txt"], cwd=repo, check=True)
+    target = {"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"}
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:engineering:worker-index-denied",
+        content="write the approved files only; worker Git index access is denied",
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        target=target,
+        operation="codex_engineering",
+    )
+    execution = {
+        "mode": "codex_exec", "change_policy": "bounded_workspace", "model": "luna-high",
+        "report_path": "reports/commit.md", "timeout_seconds": 30,
+        "authority_version": "charitygraph.g4-o1d-local-implementation/v1",
+        "scope": "bounded_local_builder_code_change",
+        "allowed_paths": ["reports/commit.md", "src/allowed.py"],
+        "commit_policy": "local_commit_only",
+    }
+    worker_observed_index_denial = False
+
+    class FakeCodex:
+        pid = 4247
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            nonlocal worker_observed_index_denial
+            denied_index = repo / ".git" / "objects"
+            attempt = subprocess.run(
+                ["git", "add", "--", "README.md"],
+                cwd=repo,
+                env={**os.environ, "GIT_INDEX_FILE": str(denied_index)},
+                capture_output=True,
+                text=True,
+            )
+            worker_observed_index_denial = attempt.returncode != 0
+            (repo / "reports").mkdir()
+            (repo / "reports" / "commit.md").write_text("host commit\n", encoding="utf-8")
+            (repo / "src").mkdir()
+            (repo / "src" / "allowed.py").write_text("x = 1\n", encoding="utf-8")
+            return b"{}\n", None
+
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
+    real_popen = subprocess.Popen
+    monkeypatch.setattr(
+        bridge_module.subprocess,
+        "Popen",
+        lambda command, *args, **kwargs: real_popen(command, *args, **kwargs) if command and command[0] == "git" else FakeCodex(),
+    )
+    watcher = bridge_module.CutoverWatcher(artifacts_root=tmp_path / "artifacts", workspace_root=repo, runtime_root=tmp_path / "runtime")
+    result = watcher._run_codex(envelope, tmp_path / "instruction.json", "1" * 64, execution)
+    assert worker_observed_index_denial is True
+    assert result["execution_state"] == "CODEX_ENGINEERING_COMPLETED"
+    assert result["workspace_attestation"]["local_commit"]["bridge_actor"] == "bridge"
+    assert result["workspace_attestation"]["local_commit"]["commit_paths"] == ["reports/commit.md", "src/allowed.py"]
+    assert subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=repo, text=True).strip() == "unrelated.txt"
+    assert "unrelated.txt" not in subprocess.check_output(["git", "show", "--format=", "--name-only", "HEAD"], cwd=repo, text=True)
+
+
+def test_bounded_validation_rejects_pre_dirty_or_staged_allowlisted_paths(tmp_path):
+    repo, _ = git_repo(tmp_path)
+    (repo / "src").mkdir()
+    (repo / "src" / "allowed.py").write_text("baseline\n", encoding="utf-8")
+    subprocess.run(["git", "add", "src/allowed.py"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "tracked allowlist baseline"], cwd=repo, check=True, capture_output=True)
+    (repo / "src" / "allowed.py").write_text("dirty\n", encoding="utf-8")
+    snapshot = capture_workspace(repo)
+    with pytest.raises(DirtyBaselineViolation, match="pre-dirty or staged"):
+        validate_clean_commit_paths(snapshot, allowed_paths=["src/allowed.py"])
+
+
+def test_bridge_owned_commit_rejects_stale_parent_and_keeps_index_clean(tmp_path):
+    repo, head = git_repo(tmp_path)
+    (repo / "new.txt").write_text("new\n", encoding="utf-8")
+    watcher = bridge_module.CutoverWatcher(artifacts_root=tmp_path / "artifacts", workspace_root=repo, runtime_root=tmp_path / "runtime")
+    with pytest.raises(DirtyBaselineViolation, match="stale HEAD"):
+        watcher._bridge_owned_exact_path_commit(
+            instruction_id="gate4:engineering:stale-parent",
+            parent_head="0" * 40,
+            paths={"new.txt"},
+        )
+    assert subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=repo, text=True).strip() == ""
+    assert subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip() == head
+
+
+def test_clean_commit_attestation_rejects_directory_and_symlink_paths(tmp_path):
+    repo, _ = git_repo(tmp_path)
+    before = capture_workspace(repo)
+    (repo / "directory").mkdir()
+    with pytest.raises(DirtyBaselineViolation, match="regular file"):
+        validate_clean_commit_paths(capture_workspace(repo), allowed_paths=["directory"])
+    (repo / "directory").rmdir()
+    outside = tmp_path / "outside.txt"
+    outside.write_text("outside\n", encoding="utf-8")
+    try:
+        os.symlink(outside, repo / "link.txt")
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(f"symlink creation unavailable: {exc}")
+    with pytest.raises(DirtyBaselineViolation, match="symlink"):
+        verify_clean_commit_changes(before, capture_workspace(repo), allowed_paths=["link.txt"])
 
 
 def test_provenance_bound_adoption_validates_source_then_attests_local_commit(tmp_path, monkeypatch):
@@ -615,7 +722,7 @@ def test_provenance_bound_adoption_validates_source_then_attests_local_commit(tm
     current_head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
     envelope = InstructionEnvelope.create(
         instruction_id="gate4:engineering:adopt-attested-artifact",
-        content="revise and locally commit the attested artifact only",
+        content="revise the attested artifact; the host bridge owns the commit",
         authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
         target={"repository": "charitygraph", "workspace_path": str(repo.resolve()), "branch": "gate4-test", "head": current_head, "model": "luna-high"},
         operation="codex_engineering",
@@ -632,8 +739,6 @@ def test_provenance_bound_adoption_validates_source_then_attests_local_commit(tm
             artifact.write_text("value = 'revised'\n", encoding="utf-8")
             (repo / "reports").mkdir()
             (repo / "reports" / "adoption-result.md").write_text("adoption report\n", encoding="utf-8")
-            subprocess.run(["git", "add", "src/adopted.py", "reports/adoption-result.md"], cwd=repo, check=True)
-            subprocess.run(["git", "commit", "-m", "adopt and revise attested artifact"], cwd=repo, check=True, capture_output=True)
             return b"{}\n", None
 
     monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")

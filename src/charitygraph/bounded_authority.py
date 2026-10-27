@@ -205,6 +205,9 @@ def validate_execution(execution: dict[str, Any], *, target: dict[str, Any], wor
     allowed = execution.get("allowed_paths")
     if not isinstance(allowed, list) or not allowed or not all(isinstance(item, str) and item for item in allowed):
         raise BoundedAuthorityError("bounded implementation allowed_paths must be a non-empty list")
+    normalised_allowed = [item.replace("\\", "/") for item in allowed]
+    if len(set(normalised_allowed)) != len(normalised_allowed):
+        raise BoundedAuthorityError("bounded implementation allowed_paths must be unique")
     for item in allowed:
         normalised = item.replace("\\", "/")
         if normalised.startswith("/") or ":" in normalised or any(part in {"", ".", ".."} for part in normalised.split("/")):
@@ -235,7 +238,75 @@ def validate_execution(execution: dict[str, Any], *, target: dict[str, Any], wor
     validate_target(target=target, workspace=workspace, authority=authority)
     if not route_active:
         raise InactiveImplementationRoute("bounded implementation route is inactive pending supervisory acceptance")
-    return {"allowed_paths": tuple(allowed), "authority_version": IMPLEMENTATION_AUTHORITY_VERSION, "scope": IMPLEMENTATION_SCOPE, "adopted_artifacts": adopted_artifacts}
+    return {"allowed_paths": tuple(normalised_allowed), "authority_version": IMPLEMENTATION_AUTHORITY_VERSION, "scope": IMPLEMENTATION_SCOPE, "adopted_artifacts": adopted_artifacts}
+
+
+def _path_has_symlink_component(root: Path, relative: str) -> bool:
+    current = root
+    for part in Path(relative).parts:
+        current = current / part
+        if current.is_symlink():
+            return True
+    return False
+
+
+def validate_clean_commit_paths(workspace: WorkspaceSnapshot, *, allowed_paths: list[str] | tuple[str, ...]) -> None:
+    """Require ordinary bridge-owned commit paths to be clean at launch.
+
+    A tracked, clean file may be edited by the worker and a path absent from
+    the worktree may be created by it.  Existing dirty, staged, ignored,
+    symlinked, directory and deleted paths are not safe ordinary-commit
+    inputs.  Adoption is intentionally excluded: it has its own provenance
+    and untracked-file rules.
+    """
+    root = Path(workspace.workspace_path)
+    allowed = {path.replace("\\", "/") for path in allowed_paths}
+    for relative in sorted(allowed):
+        if relative in workspace.entries:
+            raise DirtyBaselineViolation(f"ordinary commit path was pre-dirty or staged: {relative}")
+        candidate = root / relative
+        if _path_has_symlink_component(root, relative):
+            raise DirtyBaselineViolation(f"ordinary commit path has a symlink component: {relative}")
+        if not candidate.exists():
+            continue
+        if candidate.is_symlink() or not candidate.is_file():
+            raise DirtyBaselineViolation(f"ordinary commit path must be a regular file: {relative}")
+        tracked = subprocess.run(
+            ["git", "-c", f"safe.directory={root}", "ls-files", "--error-unmatch", "--", relative],
+            cwd=root,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        if tracked.returncode != 0:
+            raise DirtyBaselineViolation(f"ordinary commit path is an existing non-tracked file: {relative}")
+
+
+def verify_clean_commit_changes(
+    before: WorkspaceSnapshot,
+    after: WorkspaceSnapshot,
+    *,
+    allowed_paths: list[str] | tuple[str, ...],
+) -> dict[str, Any]:
+    """Attest worker output that is eligible for a bridge-owned commit."""
+    verified = verify_allowed_changes(before, after, allowed_paths=allowed_paths)
+    root = Path(after.workspace_path)
+    allowed = {path.replace("\\", "/") for path in allowed_paths}
+    changed = verified["changed_paths"]
+    if not changed:
+        raise DirtyBaselineViolation("bridge-owned commit requires at least one changed path")
+    for relative in changed:
+        if relative not in allowed:
+            raise DirtyBaselineViolation(f"changed path is not in the exact commit allowlist: {relative}")
+        status = after.entries.get(relative, ("", "", ""))[0]
+        if status[:1] in {"D", "R", "C"} or status[1:2] in {"D", "R", "C"}:
+            raise DirtyBaselineViolation(f"deletion, rename or copy is not permitted for bridge-owned commits: {relative}")
+        if _path_has_symlink_component(root, relative):
+            raise DirtyBaselineViolation(f"bridge-owned commit path has a symlink component: {relative}")
+        candidate = root / relative
+        if candidate.is_symlink() or not candidate.is_file():
+            raise DirtyBaselineViolation(f"bridge-owned commit path must be a regular file: {relative}")
+    return verified
 
 
 def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, *, allowed_paths: list[str] | tuple[str, ...], reconciliation_evidence_dir: str | Path | None = None) -> dict[str, Any]:
@@ -433,8 +504,10 @@ __all__ = [
     "WorkspaceSnapshot",
     "capture_workspace",
     "report_only_execution",
+    "validate_clean_commit_paths",
     "validate_execution",
     "validate_target",
+    "verify_clean_commit_changes",
     "verify_local_commit",
     "verify_allowed_changes",
 ]

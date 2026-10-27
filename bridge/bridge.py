@@ -42,7 +42,9 @@ from charitygraph.bounded_authority import (  # noqa: E402
     DirtyBaselineViolation,
     capture_workspace,
     report_only_execution,
+    validate_clean_commit_paths,
     validate_execution as validate_bounded_execution,
+    verify_clean_commit_changes,
     verify_local_commit,
     verify_allowed_changes,
 )
@@ -674,6 +676,15 @@ class CutoverWatcher:
                 adopted_artifacts=bounded_authority["adopted_artifacts"],
                 workspace=workspace_snapshot,
             )
+        elif is_bounded:
+            assert workspace_snapshot is not None and bounded_authority is not None
+            try:
+                validate_clean_commit_paths(
+                    workspace_snapshot,
+                    allowed_paths=bounded_authority["allowed_paths"],
+                )
+            except DirtyBaselineViolation as exc:
+                raise InvalidInstruction(str(exc)) from exc
         validated = {
             "mode": "codex_exec",
             "change_policy": execution["change_policy"],
@@ -809,56 +820,102 @@ class CutoverWatcher:
             if ancestor.returncode != 0:
                 raise InvalidInstruction(f"adopted artifact source HEAD is not an ancestor of the current target HEAD: {path}")
 
-    def _bridge_owned_adoption_commit(self, *, instruction_id: str, allowed_paths: set[str]) -> dict[str, Any]:
-        """Commit the already-attested adoption paths outside the Codex sandbox.
+    def _bridge_owned_exact_path_commit(
+        self,
+        *,
+        instruction_id: str,
+        parent_head: str,
+        paths: set[str],
+        commit_message: str | None = None,
+    ) -> dict[str, Any]:
+        """Commit already-attested exact paths outside the Codex sandbox.
 
         The worker deliberately has no `.git` write access.  This narrow
-        bridge operation is the only post-worker metadata write: it stages
-        exactly the validated paths, commits only those paths, and preserves
-        any independently staged user paths.
+        bridge operation is the only post-worker metadata write for either
+        bounded policy: it stages exactly the validated paths, commits only
+        those paths, and preserves any independently staged user paths.
         """
-        paths = sorted(allowed_paths)
+        paths = sorted(path.replace("\\", "/") for path in paths)
+        if not paths:
+            raise DirtyBaselineViolation("bridge-owned commit requires exact paths")
         command_prefix = ["git", "-c", f"safe.directory={self.workspace_root}"]
-        staged_before = set(filter(None, _git(self.workspace_root, "diff", "--cached", "--name-only").splitlines()))
-        if staged_before & set(paths):
-            raise DirtyBaselineViolation("adoption paths were already staged before the bridge-owned commit")
-        add = subprocess.run(
-            [*command_prefix, "add", "--", *paths],
-            cwd=self.workspace_root,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            check=False,
+        observed_head = _git(self.workspace_root, "rev-parse", "HEAD")
+        if observed_head != parent_head:
+            raise DirtyBaselineViolation(
+                f"bridge-owned commit has a stale HEAD: expected {parent_head}, observed {observed_head}"
+            )
+        staged_before = set(
+            filter(None, _git(self.workspace_root, "diff", "--cached", "--name-only", "--no-renames").splitlines())
         )
+        if staged_before & set(paths):
+            raise DirtyBaselineViolation("bridge-owned commit paths were already staged before the bridge commit")
+        try:
+            add = subprocess.run(
+                [*command_prefix, "add", "--", *paths],
+                cwd=self.workspace_root,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError) as exc:
+            self._unstage_exact_paths(command_prefix, paths)
+            raise DirtyBaselineViolation(f"bridge-owned staging failed: {exc}") from exc
         if add.returncode != 0:
             # Git can report a non-zero status after staging a subset of the
             # requested paths. Roll back only this operation's exact paths
             # before surfacing the terminal failure.
-            self._unstage_adoption_paths(command_prefix, paths)
-            raise DirtyBaselineViolation(f"bridge-owned adoption staging failed: {add.stdout.strip()}")
-        staged_after = set(filter(None, _git(self.workspace_root, "diff", "--cached", "--name-only").splitlines()))
-        missing = sorted(set(paths) - staged_after)
-        if missing:
-            self._unstage_adoption_paths(command_prefix, paths)
-            raise DirtyBaselineViolation("bridge-owned adoption staging omitted paths: " + ", ".join(missing))
-        commit = subprocess.run(
-            [*command_prefix, "commit", "--only", "--no-verify", "-m", f"bridge: adopt {instruction_id}", "--", *paths],
-            cwd=self.workspace_root,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            check=False,
-        )
+            self._unstage_exact_paths(command_prefix, paths)
+            raise DirtyBaselineViolation(f"bridge-owned staging failed: {add.stdout.strip()}")
+        try:
+            staged_after = set(
+                filter(None, _git(self.workspace_root, "diff", "--cached", "--name-only", "--no-renames").splitlines())
+            )
+        except (OSError, subprocess.SubprocessError) as exc:
+            self._unstage_exact_paths(command_prefix, paths)
+            raise DirtyBaselineViolation(f"bridge-owned staged-set verification failed: {exc}") from exc
+        expected_staged = staged_before | set(paths)
+        if staged_after != expected_staged:
+            self._unstage_exact_paths(command_prefix, paths)
+            unexpected = sorted(staged_after - expected_staged)
+            missing = sorted(expected_staged - staged_after)
+            details = []
+            if missing:
+                details.append("missing=" + ",".join(missing))
+            if unexpected:
+                details.append("unexpected=" + ",".join(unexpected))
+            raise DirtyBaselineViolation("bridge-owned staging changed the staged set: " + "; ".join(details))
+        commit_message = commit_message or f"bridge: commit {instruction_id}"
+        try:
+            commit = subprocess.run(
+                [*command_prefix, "commit", "--only", "--no-verify", "-m", commit_message, "--", *paths],
+                cwd=self.workspace_root,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError) as exc:
+            self._unstage_exact_paths(command_prefix, paths)
+            raise DirtyBaselineViolation(f"bridge-owned commit failed: {exc}") from exc
         if commit.returncode != 0:
-            self._unstage_adoption_paths(command_prefix, paths)
-            raise DirtyBaselineViolation(f"bridge-owned adoption commit failed: {commit.stdout.strip()}")
+            self._unstage_exact_paths(command_prefix, paths)
+            raise DirtyBaselineViolation(f"bridge-owned commit failed: {commit.stdout.strip()}")
+        new_head = _git(self.workspace_root, "rev-parse", "HEAD")
+        committed_parent = _git(self.workspace_root, "rev-parse", f"{new_head}^")
+        if committed_parent != parent_head:
+            raise DirtyBaselineViolation("bridge-owned commit did not produce the expected direct child")
         return {
             "actor": "bridge",
             "staged_paths": paths,
-            "commit_message": f"bridge: adopt {instruction_id}",
+            "commit_message": commit_message,
+            "parent_head": parent_head,
+            "new_head": new_head,
+            "staged_before": sorted(staged_before),
+            "staged_after": sorted(staged_after),
         }
 
-    def _unstage_adoption_paths(self, command_prefix: list[str], paths: list[str]) -> None:
+    def _unstage_exact_paths(self, command_prefix: list[str], paths: list[str]) -> None:
         """Best-effort rollback of the bridge's own failed exact-path staging."""
         subprocess.run(
             [*command_prefix, "reset", "--", *paths],
@@ -866,6 +923,21 @@ class CutoverWatcher:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             check=False,
+        )
+
+    def _bridge_owned_adoption_commit(
+        self,
+        *,
+        instruction_id: str,
+        allowed_paths: set[str],
+        parent_head: str | None = None,
+    ) -> dict[str, Any]:
+        """Compatibility wrapper retaining the adoption-only call shape."""
+        return self._bridge_owned_exact_path_commit(
+            instruction_id=instruction_id,
+            parent_head=parent_head or _git(self.workspace_root, "rev-parse", "HEAD"),
+            paths=allowed_paths,
+            commit_message=f"bridge: adopt {instruction_id}",
         )
 
     def _run_codex(self, envelope: Any, source: Path, source_sha: str, execution: dict[str, Any]) -> dict[str, Any]:
@@ -933,8 +1005,12 @@ class CutoverWatcher:
                 preserve_dirty_paths=allowed_paths - adopted_paths,
                 adopted_untracked_paths=adopted_paths,
             )
+            if execution.get("change_policy") == "bounded_workspace":
+                validate_clean_commit_paths(before_workspace, allowed_paths=sorted(allowed_paths))
         except (OSError, subprocess.CalledProcessError, ValueError) as exc:
             baseline_error = f"{type(exc).__name__}: {exc}"
+        except DirtyBaselineViolation as exc:
+            baseline_error = str(exc)
         started_at = utc_now()
         launch_error: str | None = None
         returncode: int | None = None
@@ -1036,16 +1112,21 @@ class CutoverWatcher:
         if before_workspace is not None and after_workspace is not None:
             try:
                 if execution.get("change_policy") in {"bounded_workspace", "provenance_bound_adoption"} and before_workspace.head != after_workspace.head:
-                    commit_attestation = verify_local_commit(
-                        before_workspace,
-                        after_workspace,
-                        allowed_paths=sorted(allowed_paths),
-                    )
-                    workspace_verification = commit_attestation
-                    changed_paths = commit_attestation["changed_paths"]
-                    unexpected_changes = commit_attestation["unexpected_paths"]
+                    raise DirtyBaselineViolation("worker changed HEAD; only the host bridge may write the local commit")
                 else:
-                    workspace_verification = verify_allowed_changes(before_workspace, after_workspace, allowed_paths=sorted(allowed_paths), reconciliation_evidence_dir=run_root / "dirty-reconciliation")
+                    if execution.get("change_policy") in {"bounded_workspace", "provenance_bound_adoption"}:
+                        workspace_verification = verify_clean_commit_changes(
+                            before_workspace,
+                            after_workspace,
+                            allowed_paths=sorted(allowed_paths),
+                        )
+                    else:
+                        workspace_verification = verify_allowed_changes(
+                            before_workspace,
+                            after_workspace,
+                            allowed_paths=sorted(allowed_paths),
+                            reconciliation_evidence_dir=run_root / "dirty-reconciliation",
+                        )
                     changed_paths = workspace_verification["changed_paths"]
                     unexpected_changes = workspace_verification["unexpected_paths"]
             except DirtyBaselineViolation as exc:
@@ -1054,7 +1135,7 @@ class CutoverWatcher:
                 unexpected_changes = sorted(path for path in changed_paths if path not in allowed_paths)
         report_exists = report_path.is_file()
         if (
-            execution.get("change_policy") == "provenance_bound_adoption"
+            execution.get("change_policy") in {"bounded_workspace", "provenance_bound_adoption"}
             and before_workspace is not None
             and after_workspace is not None
             and before_workspace.head == after_workspace.head
@@ -1067,10 +1148,19 @@ class CutoverWatcher:
             and report_exists
         ):
             try:
-                bridge_owned_commit = self._bridge_owned_adoption_commit(
-                    instruction_id=envelope.instruction_id,
-                    allowed_paths=allowed_paths,
-                )
+                commit_paths = set(allowed_paths) if execution.get("change_policy") == "provenance_bound_adoption" else set(changed_paths)
+                if execution.get("change_policy") == "provenance_bound_adoption":
+                    bridge_owned_commit = self._bridge_owned_adoption_commit(
+                        instruction_id=envelope.instruction_id,
+                        parent_head=before_workspace.head,
+                        allowed_paths=commit_paths,
+                    )
+                else:
+                    bridge_owned_commit = self._bridge_owned_exact_path_commit(
+                        instruction_id=envelope.instruction_id,
+                        parent_head=before_workspace.head,
+                        paths=commit_paths,
+                    )
                 after_workspace = capture_workspace(self.workspace_root)
                 commit_attestation = verify_local_commit(
                     before_workspace,
@@ -1080,6 +1170,8 @@ class CutoverWatcher:
                 workspace_verification = commit_attestation
                 changed_paths = commit_attestation["changed_paths"]
                 unexpected_changes = commit_attestation["unexpected_paths"]
+                commit_attestation["bridge_actor"] = bridge_owned_commit["actor"]
+                commit_attestation["bridge_owned_commit"] = bridge_owned_commit
             except (DirtyBaselineViolation, OSError, subprocess.CalledProcessError, ValueError) as exc:
                 bridge_commit_error = str(exc)
                 attestation_error = bridge_commit_error

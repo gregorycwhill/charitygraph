@@ -154,6 +154,30 @@ def test_managed_launcher_only_accepts_an_exact_latest_fence(tmp_path):
     assert matching_fence_identity(artifacts, workspace) is None
 
 
+def test_managed_launcher_accepts_only_a_newer_exact_fence_for_reload(tmp_path):
+    workspace, head = _engineering_workspace(tmp_path)
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    first = artifacts / FENCE_NAME
+    first.write_text(json.dumps(_fence(workspace, head, "gate4-test")), encoding="utf-8")
+    launched_with = matching_fence_identity(artifacts, workspace)
+    assert launched_with is not None
+
+    stale = artifacts / "cg-g4-o1b-dormant-state-fence-20261020-v2.json"
+    stale.write_text(json.dumps(_fence(workspace, "a" * 40, "gate4-test")), encoding="utf-8")
+    assert matching_fence_identity(artifacts, workspace) is None
+    stale.unlink()
+
+    newer_payload = _fence(workspace, head, "gate4-test")
+    newer_payload["supersedes"] = FENCE_NAME
+    newer = artifacts / "cg-g4-o1b-dormant-state-fence-20261020-v2.json"
+    newer.write_text(json.dumps(newer_payload), encoding="utf-8")
+    reloaded_with = matching_fence_identity(artifacts, workspace)
+    assert reloaded_with is not None
+    assert reloaded_with != launched_with
+    assert reloaded_with["head"] == head
+
+
 def test_watchdog_refuses_recovery_with_an_active_claim(tmp_path, monkeypatch):
     workspace, head = _engineering_workspace(tmp_path)
     artifacts = tmp_path / "artifacts"
@@ -500,6 +524,62 @@ def test_bounded_implementation_route_is_versioned_and_active(tmp_path):
     assert validated["allowed_paths"] == ["bridge/bridge.py", "tests/test_bridge_cutover.py"]
     assert validated["commit_policy"] == "local_commit_only"
     assert not list(artifacts.glob(f"{ENGINEERING_RESULT_PREFIX}*.json"))
+
+
+def test_bounded_cutover_commits_exact_paths_and_replay_is_duplicate(tmp_path, monkeypatch):
+    workspace, head = _engineering_workspace(tmp_path)
+    (workspace / "unrelated.txt").write_text("preserve staged\n", encoding="utf-8")
+    subprocess.run(["git", "add", "unrelated.txt"], cwd=workspace, check=True)
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:engineering:ordinary-bridge-commit",
+        content="write the bounded files only; the host bridge owns Git metadata",
+        target={"repository": "charitygraph", "workspace_path": str(workspace.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"},
+        operation=ENGINEERING_OPERATION,
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        execution={
+            "mode": "codex_exec", "change_policy": "bounded_workspace", "model": "luna-high",
+            "report_path": "reports/ordinary.md", "timeout_seconds": 30,
+            "authority_version": "charitygraph.g4-o1d-local-implementation/v1",
+            "scope": "bounded_local_builder_code_change",
+            "allowed_paths": ["bridge.py", "reports/ordinary.md"],
+            "commit_policy": "local_commit_only",
+        },
+        created_at=datetime(2026, 10, 20, tzinfo=timezone.utc),
+    )
+    artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, envelope)
+
+    class FakeCodex:
+        pid = 4250
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            (workspace / "bridge.py").write_text("bounded bridge change\n", encoding="utf-8")
+            (workspace / "reports").mkdir()
+            (workspace / "reports" / "ordinary.md").write_text("ordinary bridge commit\n", encoding="utf-8")
+            return b"{}\n", None
+
+    real_popen = subprocess.Popen
+    monkeypatch.setattr(bridge_module, "_resolve_codex_executable", lambda: "C:/test/codex.exe")
+    monkeypatch.setattr(bridge_module, "_validate_codex_executable", lambda executable: "codex-cli test")
+    monkeypatch.setattr(
+        bridge_module.subprocess,
+        "Popen",
+        lambda command, *args, **kwargs: real_popen(command, *args, **kwargs) if command and command[0] == "git" else FakeCodex(),
+    )
+    watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    result = watcher.process_once()[0]
+    assert result["execution_state"] == "CODEX_ENGINEERING_COMPLETED"
+    local_commit = result["workspace_attestation"]["local_commit"]
+    assert local_commit["bridge_actor"] == "bridge"
+    assert local_commit["commit_paths"] == ["bridge.py", "reports/ordinary.md"]
+    assert local_commit["bridge_owned_commit"]["parent_head"] == head
+    assert subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=workspace, text=True).strip() == "unrelated.txt"
+    new_head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=workspace, text=True).strip()
+    (artifacts / "cg-g4-o1b-dormant-state-fence-20261020-v2.json").write_text(
+        json.dumps(_fence(workspace, new_head, "gate4-test")),
+        encoding="utf-8",
+    )
+    assert CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).process_once()[0]["duplicate"] is True
 
 
 def test_engineering_operation_real_codex_cli_rehearsal(tmp_path):
