@@ -267,5 +267,50 @@ class RightsGovernanceProjection:
     def snapshot_hash(self) -> str:
         return hashlib.sha256(canonical_json_bytes(self.snapshot())).hexdigest()
 
+    def current_record(
+        self,
+        *,
+        record_id: str,
+        subject_id: str,
+        scope: str,
+        as_of: date,
+    ) -> dict[str, Any] | None:
+        """Return one verified v29 current row for an exact authority binding.
+
+        The row is only a lookup index.  Callers must still reload the
+        content-addressed record from ``RightsGovernanceStore`` and compare
+        its identity fields.  A stale, incomplete, duplicate, or internally
+        inconsistent current projection fails closed.
+        """
+
+        snapshot = self.snapshot()
+        current_rows = snapshot["current"]
+        if not current_rows:
+            return None
+        expected_as_of = as_of.isoformat()
+        if any(row.get("as_of") != expected_as_of for row in current_rows):
+            raise RightsProjectionError("rights current projection is not materialized for the requested date")
+
+        records = {str(row["record_id"]): row for row in snapshot["records"]}
+        for current in current_rows:
+            current_record_id = str(current.get("record_id", ""))
+            row = records.get(current_record_id)
+            if row is None:
+                raise RightsProjectionError("rights current projection references a missing record")
+            if current.get("binding_hash") != row.get("binding_hash"):
+                raise RightsProjectionError("rights current projection binding hash is corrupt")
+
+        matches = [
+            row for row in records.values()
+            if row.get("record_id") == record_id
+            and row.get("subject_id") == subject_id
+            and row.get("scope") == scope
+            and any(current.get("record_id") == record_id for current in current_rows)
+        ]
+        current_match_count = sum(1 for current in current_rows if current.get("record_id") == record_id)
+        if current_match_count > 1 or len(matches) > 1:
+            raise RightsProjectionError("rights current projection contains duplicate current records")
+        return matches[0] if matches else None
+
 
 __all__ = ["RightsGovernanceProjection", "RightsProjectionError"]
