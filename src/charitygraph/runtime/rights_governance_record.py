@@ -24,6 +24,7 @@ from pydantic import StrictInt, field_validator, model_validator
 
 from ..contracts.canonical import canonical_json_bytes
 from ..contracts.common import Sha256, StrictModel, require_nonblank, utc_datetime
+from .. import source_rights as source_rights_authority
 from ..source_rights import (
     ArtifactRightsDecision,
     BoundedLocalRetentionDecision,
@@ -201,6 +202,15 @@ class RightsGovernanceRecord(StrictModel):
         if policy.get("basis") != self.rights_basis:
             raise RightsGovernanceError("rights policy basis does not match the committed authority")
         self._validate_axis_identities()
+        if self.status in {"blocked", "revoked", "superseded", "unknown"} and any(
+            axis.status == "authorized"
+            for axis in (
+                self.local_retention,
+                self.provider_transmission,
+                self.public_redistribution,
+            )
+        ):
+            raise RightsGovernanceError("inactive overall status cannot contain authorized rights axes")
         if self.supersedes_record_id is not None and self.revokes_record_id is not None:
             raise RightsGovernanceError("one record cannot both supersede and revoke another record")
         if (
@@ -223,8 +233,6 @@ class RightsGovernanceRecord(StrictModel):
                 or self.provider_transmission.policy_version != self.provider_processing_policy_version
             ):
                 raise RightsGovernanceError("provider axis and provider policy binding are inconsistent")
-            self._validate_source_rights_authority()
-        elif self.public_redistribution.status == "authorized":
             self._validate_source_rights_authority()
         if self.local_retention.status == "authorized":
             self._validate_local_retention_authority()
@@ -258,15 +266,44 @@ class RightsGovernanceRecord(StrictModel):
                 if name != "local retention" or axis.policy_version != LOCAL_RETENTION_POLICY_VERSION:
                     raise RightsGovernanceError("local-retention policy identity or version is unsupported")
             elif axis.policy_id == OPENAI_PROVIDER_POLICY_ID:
-                if name != "provider transmission" or not axis.policy_version:
-                    raise RightsGovernanceError("provider policy identity or version is unsupported")
+                if name != "provider transmission":
+                    raise RightsGovernanceError("provider policy identity is unsupported on this rights axis")
+                self._validate_provider_policy_identity(axis)
             else:
                 axis_policy = RIGHTS_POLICY_REGISTRY.get(axis.policy_id or "")
                 if name != "public redistribution" or axis_policy is None or axis_policy.get("version") != axis.policy_version:
                     raise RightsGovernanceError("rights-axis policy identity or version is unsupported")
+                if axis_policy.get("basis") != self.rights_basis:
+                    raise RightsGovernanceError("public rights-axis policy basis is inconsistent with the committed authority")
+                if axis_policy.get("public_redistribution") is False:
+                    raise RightsGovernanceError("committed rights policy does not authorize public redistribution")
+
+    def _validate_provider_policy_identity(self, axis: RightsAxis) -> None:
+        """Accept provider identity only when source_rights supplies an exact mapping.
+
+        The committed source-rights module currently exposes the provider policy
+        identifier but no provider-version registry.  The runtime therefore
+        fails closed instead of turning a caller-provided non-empty version into
+        an independent authority or falling back to a guessed policy.
+        """
+
+        if self.provider_processing_policy_id != axis.policy_id:
+            raise RightsGovernanceError("provider axis and provider policy identity are inconsistent")
+        provider_registry = getattr(source_rights_authority, "PROVIDER_POLICY_REGISTRY", None)
+        if not isinstance(provider_registry, dict):
+            raise RightsGovernanceError(
+                "committed source-rights authority has no exact provider policy version mapping"
+            )
+        policy = provider_registry.get(axis.policy_id)
+        if not isinstance(policy, dict) or policy.get("version") != axis.policy_version:
+            raise RightsGovernanceError(
+                "provider policy identity or version is unsupported by the committed source-rights authority"
+            )
 
     def _validate_source_rights_authority(self) -> None:
-        provider_policy_id = self.provider_processing_policy_id or OPENAI_PROVIDER_POLICY_ID
+        provider_policy_id = self.provider_processing_policy_id
+        if not provider_policy_id:
+            raise RightsGovernanceError("provider authorization cannot silently select a provider policy")
         try:
             ArtifactRightsDecision(
                 decision_id=self.decision_id,
@@ -417,6 +454,13 @@ class RightsGovernanceRecord(StrictModel):
 
         when = as_of or date.today()
         if self.status != "authorized" or self.review_status != "current":
+            return False
+        if (
+            self.local_retention.status == "authorized"
+            and self.retention_lifecycle_status in {"active_until_review", "review_due"}
+            and self.retention_review_due_on is not None
+            and when > self.retention_review_due_on
+        ):
             return False
         return self.expires_on is None or when <= self.expires_on
 
@@ -595,6 +639,11 @@ class RightsGovernanceStore:
         digest = hashlib.sha256(raw).hexdigest()
         if digest != record.content_hash:
             raise RightsStorageError("record content address does not match canonical bytes")
+        existing = self.restore_records()
+        if any(item.content_hash == record.content_hash for item in existing):
+            validate_history(existing)
+        else:
+            validate_history((*existing, record))
         return self._put(raw, digest, kind="records")
 
     def put_event(self, event: RightsGovernanceEvent) -> Path:

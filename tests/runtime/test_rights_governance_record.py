@@ -72,12 +72,7 @@ def _record(**changes: object) -> RightsGovernanceRecord:
             policy_version="1.0.0",
             decision_id="rights:fixture:retention-1",
         ),
-        "provider_transmission": RightsAxis(
-            status="authorized",
-            policy_id="OPENAI_API_BUSINESS_NO_TRAINING_DEFAULT_AS_OF_2026_09_13_V1",
-            policy_version="1.0.0",
-            decision_id="rights:fixture:provider-1",
-        ),
+        "provider_transmission": RightsAxis(status="blocked"),
         "public_redistribution": RightsAxis(status="blocked"),
         "status": "authorized",
         "review_status": "current",
@@ -144,7 +139,7 @@ def test_exact_binding_and_three_rights_axes_are_explicit_and_scope_isolated():
         ("acq:receipt-a", "acq:receipt-b"),
     )
     assert record.local_retention.status == "authorized"
-    assert record.provider_transmission.status == "authorized"
+    assert record.provider_transmission.status == "blocked"
     assert record.public_redistribution.status == "blocked"
     other_scope = _record(scope="scope:fixture-b")
     assert len(resolve_current((record, other_scope), as_of=date(2026, 10, 26))) == 2
@@ -278,6 +273,13 @@ def test_optional_expiry_absent_equality_accepted_and_later_blocked():
     assert resolve_current((equal,), as_of=date(2026, 10, 26)) == (equal,)
     assert resolve_current((later,), as_of=date(2026, 10, 26)) == ()
 
+    overdue = _record(
+        retention_review_due_on=date(2026, 10, 25),
+        retention_lifecycle_status="active_until_review",
+    )
+    assert not overdue.can_promote(as_of=date(2026, 10, 26))
+    assert resolve_current((overdue,), as_of=date(2026, 10, 26)) == ()
+
 
 def test_supersession_and_revocation_are_append_only_and_history_is_non_mutating():
     original = _record()
@@ -294,6 +296,7 @@ def test_supersession_and_revocation_are_append_only_and_history_is_non_mutating
         decision_id="rights:fixture:revocation-1",
         status="revoked",
         review_status="revoked",
+        local_retention=RightsAxis(status="blocked"),
         provider_transmission=RightsAxis(status="revoked"),
         revokes_record_id=original.content_hash,
         recorded_at=datetime(2026, 10, 28, tzinfo=timezone.utc),
@@ -343,7 +346,7 @@ def test_corruption_collision_and_invalid_hash_fail_closed(tmp_path: Path):
     path.write_bytes(path.read_bytes()[:-1] + b"0")
     with pytest.raises(RightsStorageError, match="hash"):
         store.load_record(record.content_hash)
-    with pytest.raises(RightsStorageError, match="collision"):
+    with pytest.raises(RightsStorageError, match="hash"):
         store.put_record(record)
 
     with pytest.raises(ValidationError):
@@ -457,20 +460,42 @@ def test_policy_versions_and_committed_source_rights_predicates_fail_closed():
             ),
         )
 
+    with pytest.raises(ValidationError, match="no exact provider policy version mapping"):
+        _record(
+            provider_transmission=RightsAxis(
+                status="authorized",
+                policy_id="OPENAI_API_BUSINESS_NO_TRAINING_DEFAULT_AS_OF_2026_09_13_V1",
+                policy_version="9.9.9",
+                decision_id="rights:fixture:provider-arbitrary-version",
+            ),
+        )
+
     public_facts = dict(
         rights_basis="public_facts_only",
         rights_policy_id="PUBLIC_FACTS_ONLY_V1",
         local_retention=RightsAxis(status="blocked"),
+        provider_transmission=RightsAxis(
+            status="authorized",
+            policy_id="OPENAI_API_BUSINESS_NO_TRAINING_DEFAULT_AS_OF_2026_09_13_V1",
+            policy_version="1.0.0",
+            decision_id="rights:fixture:provider-public-facts",
+        ),
         factual_representation_only=False,
         representation_class="structured_factual",
     )
-    with pytest.raises(ValidationError, match="source-rights"):
+    with pytest.raises(ValidationError, match="no exact provider policy version mapping"):
         _record(**public_facts)
 
     fair_dealing = dict(
         rights_basis="statutory_exception",
         rights_policy_id="AU_FAIR_DEALING_ANALYTICAL_PROCESSING_V1",
         local_retention=RightsAxis(status="blocked"),
+        provider_transmission=RightsAxis(
+            status="authorized",
+            policy_id="OPENAI_API_BUSINESS_NO_TRAINING_DEFAULT_AS_OF_2026_09_13_V1",
+            policy_version="1.0.0",
+            decision_id="rights:fixture:provider-fair-dealing",
+        ),
         factual_representation_only=True,
         representation_class="structured_factual",
         publicly_accessible_without_circumvention=True,
@@ -480,15 +505,21 @@ def test_policy_versions_and_committed_source_rights_predicates_fail_closed():
         provider_no_training_default=False,
         provider_data_sharing_opt_in=False,
     )
-    with pytest.raises(ValidationError, match="source-rights"):
+    with pytest.raises(ValidationError, match="no exact provider policy version mapping"):
         _record(**fair_dealing)
-    accepted = _record(**{**fair_dealing, "provider_no_training_default": True})
-    assert accepted.provider_transmission_allowed
+    with pytest.raises(ValidationError, match="no exact provider policy version mapping"):
+        _record(**{**fair_dealing, "provider_no_training_default": True})
 
     full_public_source = dict(
         rights_basis="public_source_private_processing",
         rights_policy_id="CG_PUBLIC_SOURCE_PRIVATE_PROVIDER_TRANSMISSION_V1",
         local_retention=RightsAxis(status="blocked"),
+        provider_transmission=RightsAxis(
+            status="authorized",
+            policy_id="OPENAI_API_BUSINESS_NO_TRAINING_DEFAULT_AS_OF_2026_09_13_V1",
+            policy_version="1.0.0",
+            decision_id="rights:fixture:provider-public-source",
+        ),
         representation_class="complete_or_near_complete_work",
         publicly_accessible_without_circumvention=True,
         access_controls_bypassed=False,
@@ -497,7 +528,73 @@ def test_policy_versions_and_committed_source_rights_predicates_fail_closed():
         provider_no_training_default=True,
         provider_data_sharing_opt_in=False,
     )
-    assert _record(**full_public_source).provider_transmission_allowed
+    with pytest.raises(ValidationError, match="no exact provider policy version mapping"):
+        _record(**full_public_source)
+
+    public_known = _record(
+        public_redistribution=RightsAxis(
+            status="authorized",
+            policy_id="CC_BY_4_0_V1",
+            policy_version="1.0.0",
+            decision_id="rights:fixture:public-1",
+        ),
+    )
+    assert public_known.public_redistribution_allowed
+    assert public_known.can_promote(as_of=date(2026, 10, 26))
+
+    with pytest.raises(ValidationError, match="does not authorize public redistribution"):
+        _record(
+            rights_basis="public_source_private_processing",
+            rights_policy_id="CG_PUBLIC_SOURCE_PRIVATE_PROVIDER_TRANSMISSION_V1",
+            local_retention=RightsAxis(status="blocked"),
+            public_redistribution=RightsAxis(
+                status="authorized",
+                policy_id="CG_PUBLIC_SOURCE_PRIVATE_PROVIDER_TRANSMISSION_V1",
+                policy_version="1.0.0",
+                decision_id="rights:fixture:public-forbidden",
+            ),
+        )
+
+    with pytest.raises(ValidationError, match="unsupported"):
+        _record(
+            public_redistribution=RightsAxis(
+                status="authorized",
+                policy_id="CC_BY_4_0_V1",
+                policy_version="9.9.9",
+                decision_id="rights:fixture:public-unsupported-version",
+            ),
+        )
+
+    with pytest.raises(ValidationError, match="basis"):
+        _record(
+            rights_basis="public_facts_only",
+            rights_policy_id="PUBLIC_FACTS_ONLY_V1",
+            local_retention=RightsAxis(status="blocked"),
+            public_redistribution=RightsAxis(
+                status="authorized",
+                policy_id="CC_BY_4_0_V1",
+                policy_version="1.0.0",
+                decision_id="rights:fixture:public-mismatched-basis",
+            ),
+        )
+
+
+def test_inactive_overall_status_cannot_contain_authorized_axes():
+    with pytest.raises(ValidationError, match="inactive overall status"):
+        _record(status="blocked", review_status="blocked")
+
+    with pytest.raises(ValidationError, match="inactive overall status"):
+        _record(
+            status="revoked",
+            review_status="revoked",
+            local_retention=RightsAxis(status="blocked"),
+            public_redistribution=RightsAxis(
+                status="authorized",
+                policy_id="CC_BY_4_0_V1",
+                policy_version="1.0.0",
+                decision_id="rights:fixture:revoked-public",
+            ),
+        )
 
 
 def test_lifecycle_targets_require_same_subject_source_role_lineage_representation_and_scope():
@@ -540,3 +637,12 @@ def test_events_require_existing_deterministic_record_targets(tmp_path: Path):
     )
     with pytest.raises(RightsStorageError, match="target record"):
         store.put_event(event)
+
+
+def test_store_rejects_missing_lifecycle_target_before_persistence(tmp_path: Path):
+    store = RightsGovernanceStore(tmp_path / "root")
+    successor = _record(supersedes_record_id="f" * 64)
+
+    with pytest.raises(RightsGovernanceError, match="missing"):
+        store.put_record(successor)
+    assert not (tmp_path / "root").exists()
