@@ -18,18 +18,21 @@ import stat
 import tempfile
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Literal, Iterable
+from typing import Iterable, Literal, get_args
 
-from pydantic import field_validator, model_validator
+from pydantic import StrictInt, field_validator, model_validator
 
 from ..contracts.canonical import canonical_json_bytes
 from ..contracts.common import Sha256, StrictModel, require_nonblank, utc_datetime
 from ..source_rights import (
+    ArtifactRightsDecision,
+    BoundedLocalRetentionDecision,
     LOCAL_RETENTION_POLICY_ID,
     LOCAL_RETENTION_POLICY_VERSION,
     OPENAI_PROVIDER_POLICY_ID,
     RIGHTS_POLICY_REGISTRY,
-    governed_rights_policy,
+    RepresentationClass,
+    RightsBasis as SourceRightsBasis,
 )
 
 
@@ -37,26 +40,11 @@ FORMAT_VERSION = "charitygraph.rights-governance-record/1"
 SCHEMA_ID = "urn:charitygraph:builder:schema:rights-governance-record"
 SCHEMA_VERSION = "1.0"
 
-# This is the seven-basis vocabulary in the approved source-rights authority.
-# It intentionally does not add a basis for a convenient local implementation.
-RIGHTS_BASES = (
-    "explicit_open_license",
-    "explicit_terms_permission",
-    "direct_permission",
-    "statutory_exception",
-    "public_facts_only",
-    "unknown",
-    "prohibited",
-)
-RightsBasis = Literal[
-    "explicit_open_license",
-    "explicit_terms_permission",
-    "direct_permission",
-    "statutory_exception",
-    "public_facts_only",
-    "unknown",
-    "prohibited",
-]
+# Keep the vocabulary and representation class owned by source_rights.py.  The
+# runtime record is a content-addressed binding/provenance substrate; it must
+# not grow a second substantive rights-policy authority.
+RIGHTS_BASES = get_args(SourceRightsBasis)
+RightsBasis = SourceRightsBasis
 AxisStatus = Literal["authorized", "blocked", "unknown", "not_assessed", "revoked"]
 DecisionStatus = Literal[
     "authorized", "blocked", "unknown", "revoked", "superseded", "review_required"
@@ -66,14 +54,6 @@ ReviewStatus = Literal[
 ]
 ActorKind = Literal["human", "automation_policy", "code"]
 EventType = Literal["created", "reviewed", "superseded", "revoked", "review_due"]
-
-_AUXILIARY_POLICY_VERSIONS = {
-    LOCAL_RETENTION_POLICY_ID: LOCAL_RETENTION_POLICY_VERSION,
-    # The existing provider contract carries an explicit version on each
-    # decision but does not publish a local fixed-version registry entry.
-    OPENAI_PROVIDER_POLICY_ID: None,
-}
-
 
 class RightsGovernanceError(ValueError):
     """Base fail-closed error for records, history, and private storage."""
@@ -98,7 +78,9 @@ class RightsAxis(StrictModel):
 
     @model_validator(mode="after")
     def _metadata_matches_status(self) -> "RightsAxis":
-        if self.status == "authorized" and (not self.policy_id or not self.policy_version):
+        if self.status == "authorized" and (
+            not self.policy_id or not self.policy_version or not self.decision_id
+        ):
             raise RightsGovernanceError("authorized rights axis requires policy identity and version")
         if self.decision_id is not None and self.status == "not_assessed":
             raise RightsGovernanceError("not_assessed rights axis cannot carry a decision identity")
@@ -117,6 +99,7 @@ class RightsGovernanceRecord(StrictModel):
     decision_id: str
     source_artifact_id: str
     source_record_id: str
+    subject_id: str
     source_origin_url: str
     source_role: str
     acquisition_lineage_ids: tuple[str, ...]
@@ -149,9 +132,25 @@ class RightsGovernanceRecord(StrictModel):
     licence_or_terms_url: str | None = None
     restrictions: str | None = None
     assessment_notes: str | None = None
+    representation_class: RepresentationClass = "unclear"
+    factual_representation_only: bool = False
+    publicly_accessible_without_circumvention: bool | None = None
+    access_controls_bypassed: bool | None = None
+    lawfully_acquired: bool | None = None
+    lawful_access_confirmed: bool | None = None
+    analytical_purpose: str | None = None
+    explicit_prohibition_found: bool = False
+    provider_no_training_default: bool = False
+    provider_data_sharing_opt_in: bool | None = None
+    selected_page_count: StrictInt | None = None
+    source_page_count: StrictInt | None = None
+    one_source_native_entity_record: bool = False
+    circumvention_used: bool | None = None
+    retention_lifecycle_status: Literal["active_until_review", "review_due", "deleted", "blocked"] | None = None
+    retention_review_due_on: date | None = None
 
     @field_validator(
-        "decision_id", "source_artifact_id", "source_record_id", "source_origin_url",
+        "decision_id", "source_artifact_id", "source_record_id", "subject_id", "source_origin_url",
         "source_role", "rights_policy_id", "rights_policy_version", "purpose", "scope",
         "evidence_locator", "actor_id",
     )
@@ -160,7 +159,7 @@ class RightsGovernanceRecord(StrictModel):
         return require_nonblank(value)
 
     @field_validator(
-        "representation_artifact_id", "provider_processing_policy_id",
+        "representation_artifact_id", "provider_processing_policy_id", "analytical_purpose",
         "provider_processing_policy_version", "actor_version", "attribution",
         "licence_identifier", "licence_or_terms_url", "restrictions", "assessment_notes",
     )
@@ -196,19 +195,12 @@ class RightsGovernanceRecord(StrictModel):
             raise RightsGovernanceError("scope must be resolved, not unknown or ambiguous")
         if self.rights_basis not in RIGHTS_BASES:
             raise RightsGovernanceError("unknown rights basis")
-        if governed_rights_policy(
-            self.rights_policy_id,
-            self.rights_policy_version,
-            rights_basis=self.rights_basis,
-        ) is None:
+        policy = RIGHTS_POLICY_REGISTRY.get(self.rights_policy_id)
+        if policy is None or policy.get("version") != self.rights_policy_version:
             raise RightsGovernanceError("unknown or version-mismatched rights policy identity")
-        for axis in (self.local_retention, self.provider_transmission, self.public_redistribution):
-            if axis.status == "authorized":
-                expected_version = _AUXILIARY_POLICY_VERSIONS.get(axis.policy_id or "")
-                if expected_version is None and axis.policy_id not in _AUXILIARY_POLICY_VERSIONS and axis.policy_id not in RIGHTS_POLICY_REGISTRY:
-                    raise RightsGovernanceError("unknown rights-axis policy identity")
-                if expected_version is not None and axis.policy_version != expected_version:
-                    raise RightsGovernanceError("rights-axis policy version is unsupported")
+        if policy.get("basis") != self.rights_basis:
+            raise RightsGovernanceError("rights policy basis does not match the committed authority")
+        self._validate_axis_identities()
         if self.supersedes_record_id is not None and self.revokes_record_id is not None:
             raise RightsGovernanceError("one record cannot both supersede and revoke another record")
         if (
@@ -231,6 +223,11 @@ class RightsGovernanceRecord(StrictModel):
                 or self.provider_transmission.policy_version != self.provider_processing_policy_version
             ):
                 raise RightsGovernanceError("provider axis and provider policy binding are inconsistent")
+            self._validate_source_rights_authority()
+        elif self.public_redistribution.status == "authorized":
+            self._validate_source_rights_authority()
+        if self.local_retention.status == "authorized":
+            self._validate_local_retention_authority()
         expected_review = {
             "blocked": {"blocked"},
             "unknown": {"unknown"},
@@ -248,6 +245,111 @@ class RightsGovernanceRecord(StrictModel):
             raise RightsGovernanceError("record identity does not match canonical bytes")
         object.__setattr__(self, "record_id", expected)
         return self
+
+    def _validate_axis_identities(self) -> None:
+        for name, axis in (
+            ("local retention", self.local_retention),
+            ("provider transmission", self.provider_transmission),
+            ("public redistribution", self.public_redistribution),
+        ):
+            if axis.status != "authorized":
+                continue
+            if axis.policy_id == LOCAL_RETENTION_POLICY_ID:
+                if name != "local retention" or axis.policy_version != LOCAL_RETENTION_POLICY_VERSION:
+                    raise RightsGovernanceError("local-retention policy identity or version is unsupported")
+            elif axis.policy_id == OPENAI_PROVIDER_POLICY_ID:
+                if name != "provider transmission" or not axis.policy_version:
+                    raise RightsGovernanceError("provider policy identity or version is unsupported")
+            else:
+                axis_policy = RIGHTS_POLICY_REGISTRY.get(axis.policy_id or "")
+                if name != "public redistribution" or axis_policy is None or axis_policy.get("version") != axis.policy_version:
+                    raise RightsGovernanceError("rights-axis policy identity or version is unsupported")
+
+    def _validate_source_rights_authority(self) -> None:
+        provider_policy_id = self.provider_processing_policy_id or OPENAI_PROVIDER_POLICY_ID
+        try:
+            ArtifactRightsDecision(
+                decision_id=self.decision_id,
+                source_artifact_id=self.source_artifact_id,
+                source_record_id=self.source_record_id,
+                source_origin_url=self.source_origin_url,
+                source_role=self.source_role,
+                acquisition_lineage_ids=self.acquisition_lineage_ids,
+                transmitted_representation_sha256=self.representation_sha256,
+                rights_policy_id=self.rights_policy_id,
+                provider_processing_policy_id=provider_policy_id,
+                rights_basis=self.rights_basis,
+                evidence_locator=self.evidence_locator,
+                evidence_sha256=self.evidence_sha256,
+                assessed_on=self.assessed_on,
+                assessment_scope=self.scope,
+                attribution=self.attribution,
+                licence_identifier=self.licence_identifier,
+                licence_or_terms_url=self.licence_or_terms_url,
+                restrictions=self.restrictions,
+                assessment_notes=self.assessment_notes,
+                local_retention_allowed=self.local_retention.status == "authorized",
+                provider_transmission_allowed=self.provider_transmission.status == "authorized",
+                public_redistribution_allowed=self.public_redistribution.status == "authorized",
+                factual_representation_only=self.factual_representation_only,
+                representation_class=self.representation_class,
+                publicly_accessible_without_circumvention=self.publicly_accessible_without_circumvention,
+                access_controls_bypassed=self.access_controls_bypassed,
+                lawfully_acquired=self.lawfully_acquired,
+                analytical_purpose=self.analytical_purpose or self.purpose,
+                explicit_prohibition_found=self.explicit_prohibition_found,
+                provider_no_training_default=self.provider_no_training_default,
+                provider_data_sharing_opt_in=self.provider_data_sharing_opt_in,
+            )
+        except Exception as exc:
+            raise RightsGovernanceError("committed source-rights authority rejected the record") from exc
+
+    def _validate_local_retention_authority(self) -> None:
+        if self.local_retention.decision_id is None or self.retention_review_due_on is None:
+            raise RightsGovernanceError("authorized local retention requires decision, lifecycle, and review binding")
+        if self.representation_class not in {"bounded_excerpt", "structured_factual"}:
+            raise RightsGovernanceError("local retention requires a supported representation class")
+        if self.lawful_access_confirmed is None or self.circumvention_used is None:
+            raise RightsGovernanceError("local retention requires explicit access and circumvention predicates")
+        try:
+            BoundedLocalRetentionDecision(
+                decision_id=self.local_retention.decision_id,
+                source_artifact_id=self.source_artifact_id,
+                source_record_id=self.source_record_id,
+                source_role=self.source_role,
+                acquisition_lineage_ids=self.acquisition_lineage_ids,
+                representation_sha256=self.representation_sha256,
+                rights_basis=self.rights_basis,
+                representation_class=self.representation_class,
+                purpose=self.purpose,
+                scope=self.scope,
+                selected_page_count=self.selected_page_count,
+                source_page_count=self.source_page_count,
+                one_source_native_entity_record=self.one_source_native_entity_record,
+                lawful_access_confirmed=self.lawful_access_confirmed,
+                circumvention_used=self.circumvention_used,
+                explicit_prohibition_found=self.explicit_prohibition_found,
+                retention_status="authorized",
+                lifecycle_status=self.retention_lifecycle_status or "blocked",
+                review_due_on=self.retention_review_due_on,
+                provider_transmission_decision_id=(
+                    self.provider_transmission.decision_id
+                    if self.provider_transmission.status == "authorized" else None
+                ),
+                provider_transmission_status=self.provider_transmission.status
+                if self.provider_transmission.status in {"authorized", "blocked", "unknown", "not_assessed"}
+                else "unknown",
+                public_redistribution_status=(
+                    "authorized_under_separate_basis"
+                    if self.public_redistribution.status == "authorized" else "not_authorized"
+                ),
+                public_redistribution_decision_id=(
+                    self.public_redistribution.decision_id
+                    if self.public_redistribution.status == "authorized" else None
+                ),
+            )
+        except Exception as exc:
+            raise RightsGovernanceError("committed source-rights authority rejected local retention") from exc
 
     def _payload(self) -> dict[str, object]:
         return self.model_dump(mode="python", exclude={"record_id"}, by_alias=True)
@@ -292,8 +394,15 @@ class RightsGovernanceRecord(StrictModel):
         return self.public_redistribution.status == "authorized"
 
     @property
-    def binding_key(self) -> tuple[str, str, str, str]:
-        return (self.source_artifact_id, self.source_record_id, self.source_role, str(self.representation_sha256))
+    def binding_key(self) -> tuple[str, str, str, str, str, tuple[str, ...]]:
+        return (
+            self.subject_id,
+            self.source_artifact_id,
+            self.source_record_id,
+            self.source_role,
+            str(self.representation_sha256),
+            self.acquisition_lineage_ids,
+        )
 
     @property
     def scope_key(self) -> tuple[str, str]:
@@ -489,6 +598,10 @@ class RightsGovernanceStore:
         return self._put(raw, digest, kind="records")
 
     def put_event(self, event: RightsGovernanceEvent) -> Path:
+        record_target = self._target("records", event.record_id)
+        if not record_target.is_file():
+            raise RightsStorageError("rights event target record is not available")
+        self.load_record(event.record_id)
         raw = export_event(event)
         digest = hashlib.sha256(raw).hexdigest()
         if digest != event.event_id:

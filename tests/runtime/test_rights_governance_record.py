@@ -39,21 +39,33 @@ def _record(**changes: object) -> RightsGovernanceRecord:
         "decision_id": "rights:fixture:decision-1",
         "source_artifact_id": "srcblob:fixture-source",
         "source_record_id": "srcrec:fixture-record",
+        "subject_id": "subject:fixture",
         "source_origin_url": "https://example.invalid/fixture",
         "source_role": "source-native",
         "acquisition_lineage_ids": ("acq:receipt-b", "acq:receipt-a"),
         "representation_artifact_id": "artifact:fixture-representation",
         "representation_sha256": "1" * 64,
-        "rights_basis": "public_facts_only",
-        "rights_policy_id": "PUBLIC_FACTS_ONLY_V1",
+        "rights_basis": "explicit_open_license",
+        "rights_policy_id": "CC_BY_4_0_V1",
         "rights_policy_version": "1.0.0",
         "provider_processing_policy_id": "OPENAI_API_BUSINESS_NO_TRAINING_DEFAULT_AS_OF_2026_09_13_V1",
         "provider_processing_policy_version": "1.0.0",
-        "purpose": "bounded provider-free fixture validation",
+        "purpose": "semantic_analysis",
         "scope": "scope:fixture-a",
         "evidence_locator": "source-record:fixture-record#field",
         "evidence_sha256": "2" * 64,
         "assessed_on": date(2026, 10, 26),
+        "attribution": "Fixture publisher",
+        "licence_identifier": "CC BY 4.0",
+        "licence_or_terms_url": "https://creativecommons.org/licenses/by/4.0/",
+        "representation_class": "structured_factual",
+        "factual_representation_only": True,
+        "lawful_access_confirmed": True,
+        "circumvention_used": False,
+        "explicit_prohibition_found": False,
+        "one_source_native_entity_record": True,
+        "retention_lifecycle_status": "active_until_review",
+        "retention_review_due_on": date(2027, 9, 14),
         "local_retention": RightsAxis(
             status="authorized",
             policy_id="CG_BOUNDED_LOCAL_ANALYTICAL_RETENTION_V1",
@@ -128,7 +140,8 @@ def test_private_store_restarts_loads_and_restores_without_sqlite_or_source_payl
 def test_exact_binding_and_three_rights_axes_are_explicit_and_scope_isolated():
     record = _record()
     assert record.binding_key == (
-        "srcblob:fixture-source", "srcrec:fixture-record", "source-native", "1" * 64
+        "subject:fixture", "srcblob:fixture-source", "srcrec:fixture-record", "source-native", "1" * 64,
+        ("acq:receipt-a", "acq:receipt-b"),
     )
     assert record.local_retention.status == "authorized"
     assert record.provider_transmission.status == "authorized"
@@ -175,6 +188,8 @@ def test_compatibility_matches_existing_artifact_rights_decision_and_sqlite_proj
         assessed_on=record.assessed_on,
         assessment_scope=record.scope,
         assessment_authority=record.actor_id,
+        licence_identifier=record.licence_identifier,
+        licence_or_terms_url=record.licence_or_terms_url,
         local_retention_allowed=record.local_retention.status == "authorized",
         provider_transmission_allowed=record.provider_transmission.status == "authorized",
         public_redistribution_allowed=record.public_redistribution.status == "authorized",
@@ -417,3 +432,111 @@ def test_no_provider_task_attempt_reservation_cost_or_external_side_effects():
         for field in ("task_id", "attempt_id", "reservation_id", "cost", "provider_receipt")
     )
     assert resolve_current((record,), as_of=date(2026, 10, 26)) == (record,)
+
+
+def test_policy_versions_and_committed_source_rights_predicates_fail_closed():
+    with pytest.raises(ValidationError, match="version-mismatched"):
+        _record(rights_policy_version="9.9.9")
+
+    with pytest.raises(ValidationError, match="unsupported"):
+        _record(local_retention=RightsAxis(
+            status="authorized",
+            policy_id="CG_BOUNDED_LOCAL_ANALYTICAL_RETENTION_V1",
+            policy_version="9.9.9",
+            decision_id="rights:fixture:retention-unsupported",
+        ))
+
+    with pytest.raises(ValidationError, match="unsupported"):
+        _record(
+            provider_processing_policy_id="provider:unregistered",
+            provider_transmission=RightsAxis(
+                status="authorized",
+                policy_id="provider:unregistered",
+                policy_version="1.0.0",
+                decision_id="rights:fixture:provider-unsupported",
+            ),
+        )
+
+    public_facts = dict(
+        rights_basis="public_facts_only",
+        rights_policy_id="PUBLIC_FACTS_ONLY_V1",
+        local_retention=RightsAxis(status="blocked"),
+        factual_representation_only=False,
+        representation_class="structured_factual",
+    )
+    with pytest.raises(ValidationError, match="source-rights"):
+        _record(**public_facts)
+
+    fair_dealing = dict(
+        rights_basis="statutory_exception",
+        rights_policy_id="AU_FAIR_DEALING_ANALYTICAL_PROCESSING_V1",
+        local_retention=RightsAxis(status="blocked"),
+        factual_representation_only=True,
+        representation_class="structured_factual",
+        publicly_accessible_without_circumvention=True,
+        access_controls_bypassed=False,
+        lawfully_acquired=True,
+        analytical_purpose="semantic_analysis",
+        provider_no_training_default=False,
+        provider_data_sharing_opt_in=False,
+    )
+    with pytest.raises(ValidationError, match="source-rights"):
+        _record(**fair_dealing)
+    accepted = _record(**{**fair_dealing, "provider_no_training_default": True})
+    assert accepted.provider_transmission_allowed
+
+    full_public_source = dict(
+        rights_basis="public_source_private_processing",
+        rights_policy_id="CG_PUBLIC_SOURCE_PRIVATE_PROVIDER_TRANSMISSION_V1",
+        local_retention=RightsAxis(status="blocked"),
+        representation_class="complete_or_near_complete_work",
+        publicly_accessible_without_circumvention=True,
+        access_controls_bypassed=False,
+        lawfully_acquired=True,
+        analytical_purpose="semantic_analysis",
+        provider_no_training_default=True,
+        provider_data_sharing_opt_in=False,
+    )
+    assert _record(**full_public_source).provider_transmission_allowed
+
+
+def test_lifecycle_targets_require_same_subject_source_role_lineage_representation_and_scope():
+    original = _record()
+    changed = (
+        {"subject_id": "subject:other"},
+        {"source_record_id": "srcrec:other"},
+        {"source_role": "first-party-claim"},
+        {"acquisition_lineage_ids": ("acq:other",)},
+        {"representation_sha256": "2" * 64},
+        {"scope": "scope:other"},
+    )
+    for index, binding_change in enumerate(changed, start=1):
+        successor = _record(
+            **binding_change,
+            decision_id=f"rights:fixture:binding-change-{index}",
+            recorded_at=datetime(2026, 10, 27, tzinfo=timezone.utc),
+            supersedes_record_id=original.content_hash,
+        )
+        with pytest.raises(RightsGovernanceError, match="crosses"):
+            validate_history((original, successor))
+
+
+def test_lifecycle_successor_cycle_fails_closed():
+    original = _record()
+    left = original.model_copy(update={"record_id": "a" * 64, "supersedes_record_id": "b" * 64})
+    right = original.model_copy(update={"record_id": "b" * 64, "supersedes_record_id": "a" * 64})
+    with pytest.raises(RightsGovernanceError, match="cycle"):
+        validate_history((left, right))
+
+
+def test_events_require_existing_deterministic_record_targets(tmp_path: Path):
+    store = RightsGovernanceStore(tmp_path / "root")
+    event = RightsGovernanceEvent(
+        record_id="f" * 64,
+        event_type="reviewed",
+        actor_kind="human",
+        actor_id="actor:fixture-reviewer",
+        recorded_at=RECORDED_AT,
+    )
+    with pytest.raises(RightsStorageError, match="target record"):
+        store.put_event(event)
