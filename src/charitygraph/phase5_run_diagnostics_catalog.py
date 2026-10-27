@@ -189,7 +189,7 @@ _PROVENANCE_FIELDS: dict[str, tuple[str, ...]] = {
         "entry_key", "entry_hash", "cohort_id", "run_id", "task_run_id",
         "reservation_id", "entry_type", "paid_output_category", "provider_amount",
         "provider_currency", "accounting_amount", "aud_amount", "adjustment_direction",
-        "pricing_snapshot_id", "fx_snapshot_id", "recorded_at",
+        "accounting_currency", "pricing_snapshot_id", "fx_snapshot_id", "recorded_at",
     ),
 }
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import sqlite3
 import time
 from datetime import datetime, timedelta, timezone
@@ -329,6 +330,110 @@ def test_adapter_exposes_run_scoped_safe_record_provenance_and_detects_mutation(
     assert second.snapshot_hash != first.snapshot_hash
     assert second.provenance_digests["aggregate_digest"] != manifest["aggregate_digest"]
     assert second.provenance_digests["groups"]["tasks"] != manifest["groups"]["tasks"]
+
+
+def test_accounting_currency_mutation_changes_cost_row_group_and_aggregate_digests_only(tmp_path: Path):
+    db = tmp_path / "currency-provenance.sqlite3"
+    catalog, _, _ = _prepare_standard_run(db)
+    catalog.close()
+
+    first = PersistedRunDiagnosticsAdapter(db, RUN).read_snapshot()
+    first_manifest = first.provenance_digests
+    target_entry_id = first_manifest["groups"]["cost_entries"]["records"][0]["record_id"]
+    connection = sqlite3.connect(db)
+    updated = connection.execute(
+        "UPDATE cost_entries SET accounting_currency='NZD' WHERE entry_key=?",
+        (target_entry_id,),
+    ).rowcount
+    connection.commit()
+    connection.close()
+    assert updated == 1
+
+    second = PersistedRunDiagnosticsAdapter(db, RUN).read_snapshot()
+    second_manifest = second.provenance_digests
+    first_cost_records = {
+        row["record_id"]: row["digest"]
+        for row in first_manifest["groups"]["cost_entries"]["records"]
+    }
+    second_cost_records = {
+        row["record_id"]: row["digest"]
+        for row in second_manifest["groups"]["cost_entries"]["records"]
+    }
+
+    assert second.snapshot_hash != first.snapshot_hash
+    assert second_cost_records[target_entry_id] != first_cost_records[target_entry_id]
+    assert {
+        key: value for key, value in second_cost_records.items() if key != target_entry_id
+    } == {
+        key: value for key, value in first_cost_records.items() if key != target_entry_id
+    }
+    assert second_manifest["groups"]["cost_entries"]["digest"] != first_manifest["groups"]["cost_entries"]["digest"]
+    assert second_manifest["aggregate_digest"] != first_manifest["aggregate_digest"]
+    for group in first_manifest["groups"]:
+        if group != "cost_entries":
+            assert second_manifest["groups"][group] == first_manifest["groups"][group]
+
+    changed_cost = next(
+        row for row in second.ledger_snapshot["cost_entries"] if row["entry_key"] == target_entry_id
+    )
+    assert changed_cost["accounting_currency"] == "NZD"
+    assert changed_cost["accounting_amount"] == "0.125000"
+
+
+def test_adapter_manifest_excludes_injected_sensitive_persisted_values_after_json_serialization(tmp_path: Path):
+    db = tmp_path / "sensitive-provenance.sqlite3"
+    catalog, rows, _ = _prepare_standard_run(db)
+    catalog.close()
+    row = rows[0]
+    task_run_id = "taskrun:" + format(int(row["logical_task_id"].split(":")[-1], 16), "064x")
+    sentinels = {
+        "prompt": "PROMPT_SENTINEL_7f4d",
+        "source": "SOURCE_SENTINEL_7f4d",
+        "response_body": "RESPONSE_BODY_SENTINEL_7f4d",
+        "usage_json": '{"usage_sentinel":"USAGE_JSON_SENTINEL_7f4d"}',
+        "raw_result_ref": "raw-result-ref://RAW_RESULT_SENTINEL_7f4d",
+        "result_ref": "result-ref://RESULT_REFERENCE_SENTINEL_7f4d",
+        "redacted_error": "REDACTED_ERROR_SENTINEL_7f4d",
+        "authorization": "AUTHORIZATION_CREDENTIAL_SENTINEL_7f4d",
+        "transport": "TRANSPORT_METADATA_SENTINEL_7f4d",
+    }
+    task_material = json.dumps(
+        {"prompt": sentinels["prompt"], "source": sentinels["source"]},
+        sort_keys=True,
+    )
+    connection = sqlite3.connect(db)
+    statements = (
+        ("UPDATE tasks SET task_material_json=?, error_message_redacted=? WHERE model_task_id=?", (task_material, sentinels["redacted_error"], row["logical_task_id"])),
+        ("UPDATE task_attempts SET usage_json=?, error_message_redacted=? WHERE task_run_id=?", (sentinels["usage_json"], sentinels["redacted_error"], task_run_id)),
+        ("UPDATE provider_receipts SET raw_result_ref=?, usage_json=? WHERE physical_attempt_id=?", (sentinels["raw_result_ref"], sentinels["usage_json"], row["physical_attempt_id"])),
+        ("UPDATE provider_request_items SET result_ref=?, usage_json=? WHERE provider_request_item_id=?", (sentinels["result_ref"], sentinels["usage_json"], row["provider_request_item_id"])),
+        ("UPDATE provider_request_attempts SET authorization_id=?, result_ref=?, usage_json=?, failure_message_redacted=? WHERE delivery_attempt_id=?", (sentinels["authorization"], sentinels["result_ref"], sentinels["usage_json"], sentinels["redacted_error"], row["delivery_attempt_id"])),
+        ("UPDATE standard_transport_traces SET endpoint=?, response_identity=?, transport_exception=?, usage_json=? WHERE physical_attempt_id=?", ("https://sentinel.invalid/" + sentinels["transport"], sentinels["response_body"], sentinels["transport"], sentinels["usage_json"], row["physical_attempt_id"])),
+    )
+    for statement, parameters in statements:
+        assert connection.execute(statement, parameters).rowcount == 1
+    connection.commit()
+    for statement, parameters in (
+        ("SELECT task_material_json FROM tasks WHERE model_task_id=?", (row["logical_task_id"],)),
+        ("SELECT raw_result_ref FROM provider_receipts WHERE physical_attempt_id=?", (row["physical_attempt_id"],)),
+        ("SELECT authorization_id FROM provider_request_attempts WHERE delivery_attempt_id=?", (row["delivery_attempt_id"],)),
+    ):
+        assert connection.execute(statement, parameters).fetchone()[0]
+    connection.close()
+
+    snapshot = PersistedRunDiagnosticsAdapter(db, RUN).read_snapshot()
+    serialized_manifest = json.dumps(snapshot.provenance_digests, ensure_ascii=False, sort_keys=True)
+    manifest_texts = (str(snapshot.provenance_digests), serialized_manifest)
+    forbidden_field_names = {
+        "task_material_json", "prompt", "source", "response_body", "usage_json",
+        "raw_result_ref", "result_ref", "error_message_redacted",
+        "failure_message_redacted", "authorization_id", "endpoint", "transport_exception",
+    }
+    for manifest_text in manifest_texts:
+        for sentinel in sentinels.values():
+            assert sentinel not in manifest_text
+        for field_name in forbidden_field_names:
+            assert field_name not in manifest_text
 
 
 def test_adapter_fails_closed_for_ambiguous_durable_timestamp(tmp_path: Path):

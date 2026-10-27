@@ -1,8 +1,8 @@
 # G4-O1C P4-D durable observation and row provenance
 
-Date: 2026-10-27 (Australia/Sydney)  
-Branch: `gate3-cg406-remediation`  
-Clean target HEAD: `7fffe4197681feba3d6c1607504076a742628481` (fence v38)  
+Date: 2026-10-27 (Australia/Sydney)
+Branch: `gate3-cg406-remediation`
+Clean target HEAD: `7fffe4197681feba3d6c1607504076a742628481` (fence v38)
 Status: **local offline PARTIAL; Gate 4 OPEN**
 
 ## Scope and authority
