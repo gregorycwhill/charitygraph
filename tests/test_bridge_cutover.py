@@ -484,7 +484,7 @@ def test_engineering_report_only_requires_explicit_timeout(tmp_path):
     del raw["execution"]["timeout_seconds"]
     artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, InstructionEnvelope.from_dict(raw))
     outcome = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime).process_once()[0]
-    assert outcome["state"] == "NOT_EXECUTED"
+    assert outcome["state"] == "REJECTED"
     assert "exact" in outcome["error"]
     assert not list(artifacts.glob(f"{ENGINEERING_RESULT_PREFIX}*.json"))
 
@@ -497,8 +497,46 @@ def test_engineering_operation_rejects_authority_expansion_before_claim(tmp_path
     artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, InstructionEnvelope.from_dict(raw))
     watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
     outcome = watcher.process_once()[0]
-    assert outcome["state"] == "NOT_EXECUTED"
+    assert outcome["state"] == "REJECTED"
     assert "unexpected authority envelope" in outcome["error"]
+    assert watcher.adapter.supervisory_ledger_summary()["dispatch_clear"] is True
+
+
+def test_legacy_zero_attempt_invalid_pending_input_is_terminalised_without_execution(tmp_path):
+    workspace, head = _engineering_workspace(tmp_path)
+    envelope = _engineering_instruction(workspace, head, instruction_id="gate4:engineering:legacy-invalid-pending")
+    raw = envelope.as_dict()
+    raw["execution"] = {
+        "mode": "codex_exec",
+        "change_policy": "bounded_workspace",
+        "model": "luna-high",
+        "report_path": "reports/fresh.md",
+        "timeout_seconds": 30,
+        "authority_version": "charitygraph.g4-o1d-local-implementation/v1",
+        "scope": "bounded_local_builder_code_change",
+        "allowed_paths": ["reports/preexisting.md", "reports/fresh.md"],
+        "commit_policy": "local_commit_only",
+    }
+    invalid = InstructionEnvelope.from_dict(raw)
+    artifacts, runtime = _engineering_artifacts(tmp_path, workspace, head, invalid)
+    (workspace / "reports").mkdir()
+    (workspace / "reports" / "preexisting.md").write_text("must not be adopted\n", encoding="utf-8")
+    watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
+    watcher.adapter.submit(invalid)
+
+    outcome = watcher.process_once()[0]
+
+    assert outcome["state"] == "REJECTED"
+    assert "pre-dirty or staged" in outcome["error"]
+    record = watcher.adapter.inspect(invalid.instruction_id)
+    assert record["status"] == "complete"
+    assert record["attempts"] == 0
+    assert record["owner"] is None
+    result = json.loads(Path(record["result_path"]).read_text(encoding="utf-8"))
+    assert result["execution_state"] == "REJECTED_INPUT"
+    assert result["admission"]["rejection"]["phase"] == "preclaim"
+    assert watcher.adapter.supervisory_ledger_summary()["dispatch_clear"] is True
+    assert (workspace / "reports" / "preexisting.md").read_text(encoding="utf-8") == "must not be adopted\n"
 
 
 def test_bounded_implementation_route_is_versioned_and_active(tmp_path):

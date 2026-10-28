@@ -30,6 +30,7 @@ if str(REPO_ROOT / "src") not in sys.path:
 
 from charitygraph.autonomous_loop import (  # noqa: E402
     AmbiguousInterruption,
+    BridgeError,
     ClaimUnavailable,
     DuplicateInstruction,
     InvalidInstruction,
@@ -1285,27 +1286,84 @@ class CutoverWatcher:
             return None
         try:
             preview, _ = self.adapter.read_materialized_instruction(source)
+            try:
+                existing = self.adapter.inspect(preview.instruction_id)
+            except BridgeError:
+                existing = None
+            if (
+                existing is not None
+                and existing["content_sha256"] == preview.content_sha256
+                and existing["status"] == "complete"
+            ):
+                self.processed_sources[str(source)] = source_sha
+                return {
+                    "source_path": str(source),
+                    "source_sha256": source_sha,
+                    **self.adapter.status_summary(preview.instruction_id),
+                    "duplicate": True,
+                }
+            if preview.operation == ENGINEERING_OPERATION:
+                # Admission must complete before the durable ledger sees a new
+                # instruction. Otherwise a rejected envelope can become a
+                # zero-attempt pending row that blocks later dispatch.
+                self._validate_engineering(preview)
             imported = self.adapter.import_materialized_instruction(source)
             instruction_id = imported["instruction_id"]
             summary = self.adapter.status_summary(instruction_id)
             if imported.get("duplicate") and summary["status"] == "complete":
                 self.processed_sources[str(source)] = source_sha
                 return {"source_path": str(source), "source_sha256": source_sha, **summary, "duplicate": True}
-            if (
-                preview.operation == ENGINEERING_OPERATION
-                and isinstance(preview.execution, dict)
-                and preview.execution.get("change_policy") == "bounded_workspace"
-            ):
-                self._validate_engineering(preview)
         except (InvalidInstruction, DuplicateInstruction) as exc:
+            result = None
+            if isinstance(exc, InvalidInstruction) and "preview" in locals() and preview.operation == ENGINEERING_OPERATION:
+                try:
+                    stored = self.adapter.inspect(preview.instruction_id)
+                except BridgeError:
+                    stored = None
+                if (
+                    stored is not None
+                    and stored["content_sha256"] == preview.content_sha256
+                    and stored["status"] == "pending"
+                    and int(stored["attempts"]) == 0
+                    and stored["owner"] is None
+                    and stored["lease_expires_at"] is None
+                    and stored["result_path"] is None
+                ):
+                    rejection = {"class": "invalid_engineering_admission", "message": str(exc), "phase": "preclaim"}
+                    result = {
+                        "schema": RESULT_SCHEMA,
+                        "instruction_id": preview.instruction_id,
+                        "content_sha256": preview.content_sha256,
+                        "source_path": str(source),
+                        "source_sha256": source_sha,
+                        "authority": preview.authority,
+                        "target": preview.target,
+                        "execution": preview.execution,
+                        "execution_state": "REJECTED_INPUT",
+                        "semantic_product_work": "NOT_PERFORMED",
+                        "provider_calls": 0,
+                        "source_acquisition": False,
+                        "publication": False,
+                        "admission": {"actor": "bridge", "rejection": rejection},
+                        "completed_at": utc_now(),
+                    }
+                    local_done = self.adapter.reject_pending_input(
+                        preview.instruction_id,
+                        actor="bridge",
+                        error=rejection,
+                        result=result,
+                    )
+                    result["local_result_path"] = local_done["result_path"]
+                    result["local_result_sha256"] = local_done["result_sha256"]
+                    result["drive_result_path"] = self._mirror_result(preview.instruction_id, result)
             self.processed_sources[str(source)] = source_sha
             # Invalid materialized files are terminally rejected input, not a
             # live bridge fault or claim.  Preserve the outcome for callers
             # but do not leave a stale error on READY after a watcher restart
             # re-observes a historical malformed file.
             error = None if isinstance(exc, InvalidInstruction) else f"{type(exc).__name__}: {exc}"
-            self._write_status(state="READY", last_event="rejected_input", error=error)
-            return {"source_path": str(source), "source_sha256": source_sha, "state": "REJECTED", "error": str(exc)}
+            self._write_status(state="READY", last_event="rejected_input", error=error, result=result)
+            return {"source_path": str(source), "source_sha256": source_sha, "state": "REJECTED", "error": str(exc), "result": result}
         summary = self.adapter.status_summary(instruction_id)
         if summary["status"] == "complete":
             self.processed_sources[str(source)] = source_sha

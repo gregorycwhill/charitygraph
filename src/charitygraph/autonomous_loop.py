@@ -423,6 +423,64 @@ class LocalAutonomousBridge:
             conn.execute("UPDATE instructions SET status='failed',error_json=?,lease_expires_at=NULL,updated_at=? WHERE instruction_id=?", (canonical_json(error), now_s, instruction_id))
             self._event(conn, instruction_id, "failed", error, now_s)
 
+    def reject_pending_input(
+        self,
+        instruction_id: str,
+        *,
+        actor: str,
+        error: dict[str, Any],
+        result: dict[str, Any],
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        """Terminalise a never-claimed invalid instruction without executing it.
+
+        This is deliberately narrower than ``fail``: it is only for a legacy
+        row that was inserted before host-side admission validation, and cannot
+        consume an attempt, owner lease, or running worker.
+        """
+        if not actor.strip() or not error:
+            raise ClaimUnavailable("pending rejection requires an actor and structured error")
+        now_s = iso(now or utc_now())
+        result_raw = canonical_json(result)
+        result_hash = sha256_text(result_raw)
+        result_path = self.root / "results" / f"{_safe_filename(instruction_id)}.json"
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT * FROM instructions WHERE instruction_id=?", (instruction_id,)).fetchone()
+            if (
+                row is None
+                or row["status"] != "pending"
+                or int(row["attempts"]) != 0
+                or row["owner"] is not None
+                or row["lease_expires_at"] is not None
+                or row["result_path"] is not None
+            ):
+                raise ClaimUnavailable("only an unclaimed zero-attempt pending instruction may be terminally rejected")
+            if result.get("instruction_id") != instruction_id or result.get("content_sha256") != row["content_sha256"]:
+                raise DuplicateInstruction("pending rejection result does not bind the stored instruction")
+            if result_path.exists() and sha256_text(result_path.read_text(encoding="utf-8")) != result_hash:
+                raise DuplicateInstruction("result surface already contains different bytes")
+            fd, temp_name = tempfile.mkstemp(prefix=f"{_safe_filename(instruction_id)}.", suffix=".tmp", dir=self.root / "results")
+            os.close(fd)
+            temp_path = Path(temp_name)
+            try:
+                temp_path.write_text(result_raw + "\n", encoding="utf-8", newline="\n")
+                temp_path.replace(result_path)
+            finally:
+                temp_path.unlink(missing_ok=True)
+            conn.execute(
+                "UPDATE instructions SET status='complete',result_sha256=?,result_path=?,error_json=?,lease_expires_at=NULL,updated_at=? WHERE instruction_id=?",
+                (result_hash, str(result_path), canonical_json(error), now_s, instruction_id),
+            )
+            self._event(
+                conn,
+                instruction_id,
+                "rejected_input",
+                {"actor": actor, "error": error, "result_sha256": result_hash, "result_path": str(result_path)},
+                now_s,
+            )
+        return {"status": "complete", "result_sha256": result_hash, "result_path": str(result_path)}
+
     def reconcile(self, instruction_id: str, *, actor: str, rationale: str, now: datetime | None = None) -> None:
         if not actor.strip() or not rationale.strip():
             raise AmbiguousInterruption("explicit actor and rationale are required")
