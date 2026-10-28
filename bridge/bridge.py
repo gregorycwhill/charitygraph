@@ -1283,7 +1283,25 @@ class CutoverWatcher:
         source_sha = hashlib.sha256(source_bytes).hexdigest()
         previous = self.processed_sources.get(str(source))
         if previous == source_sha:
-            return None
+            # Usually the persisted source cache is an optimization.  A
+            # legacy preclaim rejection is the exception: its source was
+            # observed before the bridge had a way to terminalise the bad
+            # pending row, so a restarted watcher must revisit precisely that
+            # safe, zero-attempt state.
+            try:
+                known_preview, _ = self.adapter.read_materialized_instruction(source)
+                known = self.adapter.inspect(known_preview.instruction_id)
+            except BridgeError:
+                return None
+            if not (
+                known["content_sha256"] == known_preview.content_sha256
+                and known["status"] == "pending"
+                and int(known["attempts"]) == 0
+                and known["owner"] is None
+                and known["lease_expires_at"] is None
+                and known["result_path"] is None
+            ):
+                return None
         try:
             preview, _ = self.adapter.read_materialized_instruction(source)
             try:

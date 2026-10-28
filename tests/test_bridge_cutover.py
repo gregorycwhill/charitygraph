@@ -523,6 +523,8 @@ def test_legacy_zero_attempt_invalid_pending_input_is_terminalised_without_execu
     (workspace / "reports" / "preexisting.md").write_text("must not be adopted\n", encoding="utf-8")
     watcher = CutoverWatcher(artifacts_root=artifacts, workspace_root=workspace, runtime_root=runtime)
     watcher.adapter.submit(invalid)
+    source = artifacts / "cg-g4-o1b-instruction-engineering.json"
+    watcher.processed_sources[str(source)] = hashlib.sha256(source.read_bytes()).hexdigest()
 
     outcome = watcher.process_once()[0]
 
