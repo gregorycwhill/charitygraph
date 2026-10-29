@@ -27,7 +27,10 @@ from charitygraph.phase5_governed_rights_preflight import (
 from charitygraph.runtime import SQLiteCatalog
 from charitygraph.runtime.rights_governance_projection import RightsGovernanceProjection
 from charitygraph.runtime.rights_governance_record import (
+    INTERNAL_PRIVATE_USE_POLICY_ID,
+    INTERNAL_PRIVATE_USE_POLICY_VERSION,
     RightsAxis,
+    RightsGovernanceEvent,
     RightsGovernanceRecord,
     RightsGovernanceStore,
 )
@@ -280,3 +283,60 @@ def test_provider_authorization_is_not_invented_when_source_registry_is_absent(t
     record = fixture["record"]
     assert record.provider_transmission.status == "blocked"
     assert not hasattr(__import__("charitygraph.source_rights", fromlist=["x"]), "PROVIDER_POLICY_REGISTRY")
+
+
+def test_internal_private_use_policy_fails_closed_for_unknown_source_family(tmp_path):
+    fixture = _fixture(tmp_path)
+    scope_id = "scope:" + "e" * 32
+    fixture["catalog"].register_scope(ScopeRecord(
+        record_id=scope_id,
+        created_at=NOW,
+        producer=PRODUCER,
+        subject_id=fixture["record"].subject_id,
+        scope_kind="organisation",
+        label="Internal private-use policy fixture scope",
+    ))
+    values = fixture["record"].model_dump(mode="python")
+    values.pop("record_id", None)
+    values.update({
+        "decision_id": "rights:g4-t3-unknown-family",
+        "scope": scope_id,
+        "rights_basis": "public_source_private_processing",
+        "rights_policy_id": INTERNAL_PRIVATE_USE_POLICY_ID,
+        "rights_policy_version": INTERNAL_PRIVATE_USE_POLICY_VERSION,
+        "local_retention": RightsAxis(
+            status="authorized",
+            policy_id=INTERNAL_PRIVATE_USE_POLICY_ID,
+            policy_version=INTERNAL_PRIVATE_USE_POLICY_VERSION,
+            decision_id="rights:g4-t3-unknown-family:retention",
+        ),
+        "public_redistribution": RightsAxis(status="not_assessed"),
+    })
+    record = RightsGovernanceRecord.model_validate(values)
+    fixture["store"].put_record(record)
+    fixture["store"].put_event(RightsGovernanceEvent(
+        record_id=record.content_hash,
+        event_type="created",
+        actor_kind="human",
+        actor_id="actor:g4-t3-test",
+        recorded_at=NOW,
+    ))
+    fixture["projection"].rebuild_from_store(fixture["store"], as_of=NOW.date())
+    request = fixture["request"].model_copy(update={
+        "reference_id": "governed-rights-ref:g4-t3-unknown-family",
+        "rights_record_id": record.content_hash,
+        "source_family": "unknown_family",
+    })
+
+    result = preflight_governed_rights(
+        (request,),
+        store=fixture["store"],
+        projection=fixture["projection"],
+        catalog=fixture["catalog"],
+        as_of=fixture["now"].date(),
+        retained_bytes=fixture["artifacts"].read,
+    )
+    assert result.accepted_count == 0
+    assert result.diagnostics[0].state == "mismatched"
+    assert "does not cover the source family" in result.diagnostics[0].reason
+    assert _counts(fixture["catalog"]) == (0, 0, 0, 0, 0)

@@ -28,6 +28,8 @@ from .runtime.rights_governance_projection import (
     RightsProjectionError,
 )
 from .runtime.rights_governance_record import (
+    INTERNAL_PRIVATE_USE_POLICY,
+    INTERNAL_PRIVATE_USE_POLICY_ID,
     RightsGovernanceRecord,
     RightsGovernanceStore,
     RightsStorageError,
@@ -192,6 +194,15 @@ def _validate_authority(
             reference, "blocked", "rights record is expired, revoked, superseded, or not current",
             record.content_hash, subject_id=record.subject_id,
         ), None
+    if record.rights_policy_id == INTERNAL_PRIVATE_USE_POLICY_ID:
+        if reference.source_family not in INTERNAL_PRIVATE_USE_POLICY.source_families:
+            return _diagnostic(
+                reference,
+                "mismatched",
+                "internal-private-use policy does not cover the source family",
+                reference.source_family,
+                subject_id=record.subject_id,
+            ), None
     if record.local_retention.status != "authorized" or record.local_retention.decision_id is None:
         return _diagnostic(
             reference, "blocked", "local retention authority is not authorized for the representation",

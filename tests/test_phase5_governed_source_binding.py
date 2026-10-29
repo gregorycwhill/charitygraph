@@ -35,15 +35,22 @@ def test_fixed_cohort_binds_exact_rows_without_source_bytes_or_downstream_work(t
 
     assert len(manifest["rows"]) == 10
     assert manifest["source_bytes_included"] is False
-    assert result.preflight_task_count == 0
+    assert result.preflight_task_count == 10
     assert result.downstream_task_count == 0
+    assert manifest["rights_policy"]["id"] == "CG_INTERNAL_PRIVATE_USE_RIGHTS_POLICY_V1"
+    assert manifest["rights_policy"]["version"] == "1.0.0"
+    assert manifest["rights_policy"]["applicable_operation"] == "local_private_retention_and_processing"
+    assert manifest["rights_policy"]["source_families"] == [
+        "acnc_register", "acnc_ais_bundle", "ato_abr_dgr", "official_website",
+        "annual_report", "wikipedia_wikimedia", "pfra",
+    ]
     assert manifest["summary"] == {
         "candidate_rows": 10,
         "bound_rows": 10,
-        "eligible_private_local_retention_rows": 0,
-        "bound_not_task_eligible_rows": 10,
+        "eligible_private_local_retention_rows": 10,
+        "bound_not_task_eligible_rows": 0,
         "excluded_rows": 0,
-        "preflight_authority_tasks": 0,
+        "preflight_authority_tasks": 10,
         "downstream_tasks": 0,
         "provider_requests": 0,
         "aud_spend": "0.00",
@@ -59,10 +66,13 @@ def test_fixed_cohort_binds_exact_rows_without_source_bytes_or_downstream_work(t
         assert row["representation_sha256"] == candidate.source_sha256
         assert row["scope_id"].startswith("scope:")
         assert len(row["rights_record_id"]) == 64
+        assert row["status"] == "eligible_private_local_retention"
+        assert row["rights_policy_id"] == "CG_INTERNAL_PRIVATE_USE_RIGHTS_POLICY_V1"
+        assert row["rights_policy_version"] == "1.0.0"
         assert row["provider_processing_status"] == "blocked_provider_contract_not_bound"
         assert row["public_redistribution_status"] == "not_assessed"
         assert row["downstream_tasks"] == 0
-        assert "local retention" in " ".join(row["technical_gaps"]).lower() or row["status"] == "bound_not_task_eligible"
+        assert row["technical_gaps"] == ("provider_contract_identity_and_version",)
 
     encoded = json.dumps(manifest, sort_keys=True).encode()
     assert b"source_body" not in encoded

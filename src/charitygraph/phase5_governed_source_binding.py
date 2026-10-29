@@ -38,12 +38,14 @@ from .phase5_governed_rights_preflight import (
 from .runtime import SQLiteCatalog
 from .runtime.rights_governance_projection import RightsGovernanceProjection
 from .runtime.rights_governance_record import (
+    INTERNAL_PRIVATE_USE_POLICY,
+    INTERNAL_PRIVATE_USE_POLICY_ID,
+    INTERNAL_PRIVATE_USE_POLICY_VERSION,
     RightsAxis,
     RightsGovernanceEvent,
     RightsGovernanceRecord,
     RightsGovernanceStore,
 )
-from .source_rights import PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID
 
 
 SELECTED_MANIFEST_SHA256 = "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9"
@@ -153,7 +155,7 @@ def _definition(row: CandidateRow) -> SourceDefinition:
         temporal_semantics="retrieved source material or source-native reporting period",
         publication_eligibility="private_review_only",
         steward="CharityGraph source governance",
-        rights_policy_id=PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID,
+        rights_policy_id=INTERNAL_PRIVATE_USE_POLICY_ID,
     )
 
 
@@ -188,18 +190,19 @@ def _rights_record(row: CandidateRow, scope_id: str, representation_hash: str) -
         representation_artifact_id=f"artifact:{representation_hash}",
         representation_sha256=representation_hash,
         rights_basis="public_source_private_processing",
-        rights_policy_id=PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID,
-        rights_policy_version="1.0.0",
+        rights_policy_id=INTERNAL_PRIVATE_USE_POLICY_ID,
+        rights_policy_version=INTERNAL_PRIVATE_USE_POLICY_VERSION,
         purpose="semantic_analysis",
         scope=scope_id,
         evidence_locator=row.source_locator,
         evidence_sha256=row.source_sha256,
         assessed_on=AS_OF,
-        # The clean T1B validator does not admit the PO's
-        # ``public_source_private_processing`` basis to the local-retention
-        # axis.  Preserve the PO rule in the record, but do not relabel that
-        # axis as authorized or claim task eligibility.
-        local_retention=RightsAxis(status="not_assessed"),
+        local_retention=RightsAxis(
+            status="authorized",
+            policy_id=INTERNAL_PRIVATE_USE_POLICY_ID,
+            policy_version=INTERNAL_PRIVATE_USE_POLICY_VERSION,
+            decision_id=f"rights:g4-t3:{row.ordinal:02d}:local-retention",
+        ),
         provider_transmission=RightsAxis(status="blocked"),
         public_redistribution=RightsAxis(status="not_assessed"),
         status="authorized",
@@ -209,9 +212,16 @@ def _rights_record(row: CandidateRow, scope_id: str, representation_hash: str) -
         actor_version="po-direction-2026-10-29",
         recorded_at=RECORDED_AT,
         attribution="Australian Charities and Not-for-profits Commission",
-        restrictions="Private internal analysis only; provider processing requires a separately bound provider contract; public redistribution was not assessed.",
+        restrictions=(
+            "Private internal analysis only under Product Owner project authority; "
+            "this is not a third-party licence; provider processing requires a "
+            "separately bound provider contract; public redistribution was not assessed."
+        ),
         assessment_notes=(
-            "PO-approved default ALLOW for previously authorised source families and project analysis; "
+            f"{INTERNAL_PRIVATE_USE_POLICY.provenance}; "
+            f"authority={INTERNAL_PRIVATE_USE_POLICY.authority_actor}; "
+            f"basis={INTERNAL_PRIVATE_USE_POLICY.authority_basis}; "
+            f"decision={INTERNAL_PRIVATE_USE_POLICY.decision_reference}; "
             "no concrete applicable explicit exclusion was supplied for this row."
         ),
         representation_class="structured_factual",
@@ -448,7 +458,7 @@ def build_selected_binding_manifest(
                     sorted({diagnostic.reason for diagnostic in result.diagnostics})
                 )
             else:
-                row_result["status"] = "bound_provider_blocked"
+                row_result["status"] = "eligible_private_local_retention"
 
         rows_out.sort(key=lambda item: item["ordinal"])
         manifest_core: dict[str, Any] = {
@@ -456,10 +466,19 @@ def build_selected_binding_manifest(
             "selected_manifest_sha256": SELECTED_MANIFEST_SHA256,
             "as_of": as_of.isoformat(),
             "target": "gate3-cg406-remediation@cef0e792d8826697db735216be9b3f918c7e44ff",
-            "fence": "v44",
+            "fence": "v45",
             "source_families": ["acnc_register", "acnc_ais_bundle"],
             "source_bytes_included": False,
-            "rights_policy": {"id": PUBLIC_SOURCE_PRIVATE_PROVIDER_POLICY_ID, "version": "1.0.0", "basis": "PO-approved internal-use rule"},
+            "rights_policy": {
+                "id": INTERNAL_PRIVATE_USE_POLICY.policy_id,
+                "version": INTERNAL_PRIVATE_USE_POLICY.version,
+                "basis": INTERNAL_PRIVATE_USE_POLICY.authority_basis,
+                "authority_actor": INTERNAL_PRIVATE_USE_POLICY.authority_actor,
+                "applicable_operation": INTERNAL_PRIVATE_USE_POLICY.applicable_operation,
+                "source_families": list(INTERNAL_PRIVATE_USE_POLICY.source_families),
+                "provenance": INTERNAL_PRIVATE_USE_POLICY.provenance,
+                "decision_reference": INTERNAL_PRIVATE_USE_POLICY.decision_reference,
+            },
             "provider_processing": {"status": "blocked", "reason": "exact provider contract identity/version is not bound in the clean T1B authority"},
             "public_redistribution": {"status": "not_assessed", "reason": "outside this private no-send task"},
             "rows": rows_out,

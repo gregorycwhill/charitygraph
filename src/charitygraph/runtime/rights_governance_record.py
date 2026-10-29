@@ -2,8 +2,9 @@
 
 This module is deliberately a substrate, not a rights adjudicator.  It uses
 the field names and affirmative/closed vocabulary of ``ArtifactRightsDecision``
-but does not change the substantive policy registry.  Canonical record bytes
-are the authority; a caller may keep a rebuildable SQLite index separately.
+and carries one explicit Product Owner project policy descriptor.  Canonical
+record bytes are the authority; a caller may keep a rebuildable SQLite index
+separately.
 
 No path is selected or touched at import time.  Storage is used only after a
 caller supplies a private absolute root explicitly.
@@ -16,6 +17,7 @@ import json
 import os
 import stat
 import tempfile
+from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterable, Literal, get_args
@@ -31,7 +33,6 @@ from ..source_rights import (
     LOCAL_RETENTION_POLICY_ID,
     LOCAL_RETENTION_POLICY_VERSION,
     OPENAI_PROVIDER_POLICY_ID,
-    RIGHTS_POLICY_REGISTRY,
     RepresentationClass,
     RightsBasis as SourceRightsBasis,
 )
@@ -41,9 +42,58 @@ FORMAT_VERSION = "charitygraph.rights-governance-record/1"
 SCHEMA_ID = "urn:charitygraph:builder:schema:rights-governance-record"
 SCHEMA_VERSION = "1.0"
 
+
+@dataclass(frozen=True)
+class ProductOwnerInternalPrivateUsePolicy:
+    """Versioned project authority for local private processing only.
+
+    This is Builder policy metadata, not a source licence or a source
+    assertion.  Keeping it separate from source records prevents public
+    accessibility or publisher identity from becoming an inferred right.
+    """
+
+    policy_id: str
+    version: str
+    authority_actor: str
+    authority_basis: str
+    applicable_operation: str
+    source_families: tuple[str, ...]
+    provenance: str
+    decision_reference: str
+
+
+INTERNAL_PRIVATE_USE_POLICY_ID = "CG_INTERNAL_PRIVATE_USE_RIGHTS_POLICY_V1"
+INTERNAL_PRIVATE_USE_POLICY_VERSION = "1.0.0"
+INTERNAL_PRIVATE_USE_POLICY = ProductOwnerInternalPrivateUsePolicy(
+    policy_id=INTERNAL_PRIVATE_USE_POLICY_ID,
+    version=INTERNAL_PRIVATE_USE_POLICY_VERSION,
+    authority_actor="gregory-product-owner",
+    authority_basis="explicit project authority for bounded private CharityGraph processing",
+    applicable_operation="local_private_retention_and_processing",
+    source_families=(
+        "acnc_register", "acnc_ais_bundle", "ato_abr_dgr", "official_website",
+        "annual_report", "wikipedia_wikimedia", "pfra",
+    ),
+    provenance="G4-O1C T3 internal-private-use rights policy, 2026-10-29",
+    decision_reference="G4-T3-INTERNAL-PRIVATE-USE-20261029",
+)
+
+# Existing source-rights policy identities remain valid.  This additional
+# entry is intentionally local and does not alter source_rights.py.
+RIGHTS_POLICY_REGISTRY = {
+    **source_rights_authority.RIGHTS_POLICY_REGISTRY,
+    INTERNAL_PRIVATE_USE_POLICY_ID: {
+        "version": INTERNAL_PRIVATE_USE_POLICY_VERSION,
+        "basis": "public_source_private_processing",
+        "scope": INTERNAL_PRIVATE_USE_POLICY.applicable_operation,
+        "public_redistribution": False,
+        "source_families": INTERNAL_PRIVATE_USE_POLICY.source_families,
+    },
+}
+
 # Keep the vocabulary and representation class owned by source_rights.py.  The
-# runtime record is a content-addressed binding/provenance substrate; it must
-# not grow a second substantive rights-policy authority.
+# internal policy above is project authority for one local operation only; it
+# is not a replacement source licence or provider-policy registry.
 RIGHTS_BASES = get_args(SourceRightsBasis)
 RightsBasis = SourceRightsBasis
 AxisStatus = Literal["authorized", "blocked", "unknown", "not_assessed", "revoked"]
@@ -265,6 +315,9 @@ class RightsGovernanceRecord(StrictModel):
             if axis.policy_id == LOCAL_RETENTION_POLICY_ID:
                 if name != "local retention" or axis.policy_version != LOCAL_RETENTION_POLICY_VERSION:
                     raise RightsGovernanceError("local-retention policy identity or version is unsupported")
+            elif axis.policy_id == INTERNAL_PRIVATE_USE_POLICY_ID:
+                if name != "local retention" or axis.policy_version != INTERNAL_PRIVATE_USE_POLICY_VERSION:
+                    raise RightsGovernanceError("internal-private-use policy identity or version is unsupported")
             elif axis.policy_id == OPENAI_PROVIDER_POLICY_ID:
                 if name != "provider transmission":
                     raise RightsGovernanceError("provider policy identity is unsupported on this rights axis")
@@ -348,6 +401,19 @@ class RightsGovernanceRecord(StrictModel):
             raise RightsGovernanceError("local retention requires a supported representation class")
         if self.lawful_access_confirmed is None or self.circumvention_used is None:
             raise RightsGovernanceError("local retention requires explicit access and circumvention predicates")
+        if self.rights_policy_id == INTERNAL_PRIVATE_USE_POLICY_ID:
+            policy = INTERNAL_PRIVATE_USE_POLICY
+            if self.rights_policy_version != policy.version:
+                raise RightsGovernanceError("internal-private-use policy version is unsupported")
+            if policy.applicable_operation != "local_private_retention_and_processing":
+                raise RightsGovernanceError("internal-private-use operation is unsupported")
+            if not self.lawful_access_confirmed or self.circumvention_used or self.explicit_prohibition_found:
+                raise RightsGovernanceError(
+                    "internal-private-use retention requires lawful access, no circumvention, and no explicit prohibition"
+                )
+            if self.retention_lifecycle_status not in {"active_until_review", "review_due"}:
+                raise RightsGovernanceError("internal-private-use retention requires an auditable lifecycle")
+            return
         try:
             BoundedLocalRetentionDecision(
                 decision_id=self.local_retention.decision_id,
