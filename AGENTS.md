@@ -63,3 +63,11 @@ Before changing Builder logic that touches unrestricted natural-language semanti
 centrally governed evidence universe and persisted reusable representations.
 Sparse evidence may expose a coverage gap, but does not authorise external
 search or new source-family acquisition.
+
+## Product Owner Authority and Execution Continuity (29 October 2026)
+
+- Greg is Product Owner. For previously approved CharityGraph work, the default is execute, verify and continue. Ordinary coding, tests and evidence reconciliation should be handled autonomously without repeated approval.
+- All previously authorised source families, including ACNC, ATO, Wikipedia/Wikimedia, submitted annual reports and the other admitted Source Universe v1 families, are approved for CharityGraph internal project use within their existing source-governance boundaries. A prohibition requires a specific, evidenced and applicable exclusion; speculative permission uncertainty is not a blocker. This addendum does not silently broaden Source Universe v1, provider transmission or public redistribution, and does not invent claims of third-party legal rights.
+- Google Drive access is a standing Product Owner authorisation for the CHATGPT SUPERVISOR, with app-specific permission already “Allow all actions”. Neither Codex nor AGENTS.md can override platform-enforced approvals. Do not ask Greg verbally to reconfirm standing access. If an actual platform prompt or access denial blocks an operation, report its exact type and allow safe independent work to continue. Codex workers must not operate the bridge or Drive, and must not use Greg as a message bus.
+- The supervisor uses single-claim, exact-HEAD, immutable-instruction/fence and dirty-worktree protections. Workers implement only bounded authorised tasks; no watcher/host process management, unauthorised provider spend, GitHub mutation, promotion, release or gate closure. The cumulative existing provider-call approval is AUD10, not a per-run reset.
+- Escalate only a genuinely missing product decision, an explicit applicable prohibition, budget/scope expansion or an unrecoverable technical/platform blocker. Deliver tested and evidenced engineering results for independent supervisory acceptance and successor work.
