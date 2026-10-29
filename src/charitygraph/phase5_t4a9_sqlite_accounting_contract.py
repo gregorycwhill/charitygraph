@@ -34,6 +34,7 @@ _AUTHORITY_FIELDS = (
     "retention_status",
 )
 _VIEW_IDS = {
+    "delivery_jobs": "delivery_job_id",
     "tasks": "model_task_id",
     "task_attempts": "task_run_id",
     "cost_entries": "entry_key",
@@ -47,6 +48,10 @@ _REQUIRED_VIEWS = tuple(_VIEW_IDS)
 _REQUIRED_COLUMNS = {
     # These names and joins are the columns in migrations 1, 10, 11, 13 and
     # 20 as present in the current migration-29 catalogue.
+    "delivery_jobs": (
+        "delivery_job_id", "run_id", "provider_id", "model_route",
+        "status", "pricing_snapshot_id",
+    ),
     "tasks": ("model_task_id", "run_id", "subject_id"),
     "task_attempts": (
         "task_run_id", "model_task_id", "attempt_number", "status",
@@ -66,19 +71,20 @@ _REQUIRED_COLUMNS = {
     "physical_attempt_members": ("physical_attempt_id", "model_task_id"),
     "provider_request_items": (
         "provider_request_item_id", "run_id", "model_task_id",
-        "physical_attempt_id", "status", "provider_request_id",
-        "provider_receipt_id",
+        "physical_attempt_id", "delivery_job_id", "provider_id",
+        "model_route", "status", "provider_request_id", "provider_receipt_id",
     ),
     "provider_request_attempts": (
         "delivery_attempt_id", "provider_request_item_id", "physical_attempt_id",
-        "provider_receipt_id", "status", "provider_request_id",
+        "delivery_job_id", "provider_receipt_id", "status", "provider_request_id",
     ),
     "provider_receipts": (
         "provider_receipt_id", "physical_attempt_id", "provider_request_id",
     ),
 }
-_PENDING_PHYSICAL = {"prepared", "send_started", "held"}
-_PENDING_PROVIDER = {"prepared", "send_started", "submitted", "in_progress", "held"}
+_TERMINAL_PHYSICAL = {"receipt_persisted", "validated", "failed"}
+_TERMINAL_PROVIDER = {"receipt_persisted", "completed", "failed", "expired", "cancelled"}
+_KNOWN_DELIVERY_JOB_STATUSES = {"prepared", "submitted", "in_progress", "completed", "expired", "cancelled", "failed", "held"}
 
 
 @dataclass(frozen=True)
@@ -250,6 +256,7 @@ def _json_object(value: object, label: str, reasons: list[str]) -> Mapping[str, 
 
 
 def _validate_links(rows: Mapping[str, list[dict[str, object]]], reasons: list[str]) -> tuple[Mapping[str, str], ...]:
+    jobs = _index(rows["delivery_jobs"], "delivery_jobs", reasons)
     tasks = _index(rows["tasks"], "tasks", reasons)
     attempts = _index(rows["task_attempts"], "task_attempts", reasons)
     costs = _index(rows["cost_entries"], "cost_entries", reasons)
@@ -265,9 +272,39 @@ def _validate_links(rows: Mapping[str, list[dict[str, object]]], reasons: list[s
                 reasons.append(f"duplicate_provider_request_attempts_physical_attempt_id:{physical_text}")
             provider_attempt_physical_ids.add(physical_text)
     provider_attempts = _index(rows["provider_request_attempts"], "provider_request_attempts", reasons)
+    receipt_physical_ids: set[str] = set()
+    for row in rows["provider_receipts"]:
+        physical_id = row.get("physical_attempt_id")
+        if _valid_id(physical_id):
+            physical_text = str(physical_id)
+            if physical_text in receipt_physical_ids:
+                reasons.append(f"duplicate_provider_receipts_physical_attempt_id:{physical_text}")
+            receipt_physical_ids.add(physical_text)
     receipts = _index(rows["provider_receipts"], "provider_receipts", reasons)
 
+    item_ids_by_physical: dict[str, list[str]] = {}
+    for item_id, row in items.items():
+        physical_id = row.get("physical_attempt_id")
+        if _valid_id(physical_id):
+            item_ids_by_physical.setdefault(str(physical_id), []).append(item_id)
+    provider_attempt_ids_by_physical: dict[str, list[str]] = {}
+    for delivery_id, row in provider_attempts.items():
+        physical_id = row.get("physical_attempt_id")
+        if _valid_id(physical_id):
+            provider_attempt_ids_by_physical.setdefault(str(physical_id), []).append(delivery_id)
+    receipt_ids_by_physical: dict[str, list[str]] = {}
+    for receipt_id, row in receipts.items():
+        physical_id = row.get("physical_attempt_id")
+        if _valid_id(physical_id):
+            receipt_ids_by_physical.setdefault(str(physical_id), []).append(receipt_id)
+
     physical_by_request: dict[str, dict[str, object]] = {}
+    for job_id, row in jobs.items():
+        for field in ("run_id", "provider_id", "model_route"):
+            if not _valid_id(row.get(field)):
+                reasons.append(f"missing_relationship:delivery_jobs.{field}:{job_id}")
+        if row.get("status") not in _KNOWN_DELIVERY_JOB_STATUSES:
+            reasons.append(f"delivery_job_unresolved:{job_id}")
     for physical_id, row in physical.items():
         request_id = row.get("provider_request_id")
         if not _valid_id(request_id):
@@ -276,7 +313,7 @@ def _validate_links(rows: Mapping[str, list[dict[str, object]]], reasons: list[s
             reasons.append(f"duplicate_physical_provider_request_id:{request_id}")
         else:
             physical_by_request[str(request_id)] = row
-        if row.get("status") in _PENDING_PHYSICAL or not _valid_id(row.get("status")):
+        if row.get("status") not in _TERMINAL_PHYSICAL:
             reasons.append(f"physical_attempt_unresolved:{physical_id}")
 
     member_ids: dict[str, set[str]] = {}
@@ -302,7 +339,7 @@ def _validate_links(rows: Mapping[str, list[dict[str, object]]], reasons: list[s
             reasons.append(f"orphaned_provider_request_attempt:{delivery_id}")
         if item_id not in items:
             reasons.append(f"orphaned_provider_request_attempt_item:{delivery_id}")
-        if row.get("status") in _PENDING_PROVIDER or not _valid_id(row.get("status")):
+        if row.get("status") not in _TERMINAL_PROVIDER:
             reasons.append(f"provider_attempt_unresolved:{delivery_id}")
 
     for item_id, row in items.items():
@@ -327,6 +364,15 @@ def _validate_links(rows: Mapping[str, list[dict[str, object]]], reasons: list[s
                 reasons.append(f"contradictory_item_task_identity:{item_id}")
             if task_id not in member_ids.get(str(physical_id), set()):
                 reasons.append(f"missing_relationship:provider_request_items.physical_attempt_members:{item_id}")
+        job_id = row.get("delivery_job_id")
+        if not _valid_id(job_id) or job_id not in jobs:
+            reasons.append(f"orphaned_provider_request_item_delivery_job:{item_id}")
+        else:
+            job = jobs[str(job_id)]
+            if row.get("run_id") != job.get("run_id"):
+                reasons.append(f"contradictory_item_delivery_job_run_identity:{item_id}")
+            if row.get("provider_id") != job.get("provider_id") or row.get("model_route") != job.get("model_route"):
+                reasons.append(f"contradictory_item_delivery_job_route_identity:{item_id}")
 
     for receipt_id, row in receipts.items():
         physical_id = row.get("physical_attempt_id")
@@ -343,14 +389,38 @@ def _validate_links(rows: Mapping[str, list[dict[str, object]]], reasons: list[s
         receipt_id = row.get("provider_receipt_id")
         if physical_id in physical and row.get("provider_request_id") != physical[physical_id].get("provider_request_id"):
             reasons.append(f"contradictory_provider_attempt_physical_identity:{delivery_id}")
+        job_id = row.get("delivery_job_id")
+        if not _valid_id(job_id) or job_id not in jobs:
+            reasons.append(f"orphaned_provider_request_attempt_delivery_job:{delivery_id}")
         if item_id in items:
             item = items[item_id]
+            if item.get("delivery_job_id") != job_id:
+                reasons.append(f"contradictory_provider_attempt_delivery_job_identity:{delivery_id}")
             if item.get("physical_attempt_id") != physical_id or item.get("provider_request_id") != row.get("provider_request_id"):
                 reasons.append(f"contradictory_provider_attempt_item_identity:{delivery_id}")
             if receipt_id != item.get("provider_receipt_id"):
                 reasons.append(f"contradictory_provider_attempt_receipt_identity:{delivery_id}")
         if receipt_id not in receipts:
             reasons.append(f"orphaned_provider_request_attempt_receipt:{delivery_id}")
+
+    for physical_id, row in physical.items():
+        if row.get("status") not in _TERMINAL_PHYSICAL:
+            continue
+        item_ids = item_ids_by_physical.get(physical_id, [])
+        if not item_ids:
+            reasons.append(f"missing_reverse_link:physical_attempts.provider_request_item:{physical_id}")
+        elif len(item_ids) != 1:
+            reasons.append(f"ambiguous_reverse_link:physical_attempts.provider_request_item:{physical_id}")
+        provider_ids = provider_attempt_ids_by_physical.get(physical_id, [])
+        if not provider_ids:
+            reasons.append(f"missing_reverse_link:physical_attempts.provider_request_attempt:{physical_id}")
+        elif len(provider_ids) != 1:
+            reasons.append(f"ambiguous_reverse_link:physical_attempts.provider_request_attempt:{physical_id}")
+        receipt_ids = receipt_ids_by_physical.get(physical_id, [])
+        if not receipt_ids:
+            reasons.append(f"missing_reverse_link:physical_attempts.provider_receipt:{physical_id}")
+        elif len(receipt_ids) != 1:
+            reasons.append(f"ambiguous_reverse_link:physical_attempts.provider_receipt:{physical_id}")
 
     linkage: list[Mapping[str, str]] = []
     for entry_id, cost in costs.items():
@@ -398,6 +468,9 @@ def _validate_links(rows: Mapping[str, list[dict[str, object]]], reasons: list[s
             "provider_request_item_id": str(item_id),
             "provider_receipt_id": str(receipt_id),
             "physical_attempt_id": physical_id,
+            "delivery_job_id": str(item.get("delivery_job_id")),
+            "provider_id": str(item.get("provider_id")),
+            "model_route": str(item.get("model_route")),
             "pricing_snapshot_id": str(cost.get("pricing_snapshot_id")),
             "fx_snapshot_id": str(cost.get("fx_snapshot_id")),
         })
@@ -424,11 +497,17 @@ def _validate_accounting(rows: Mapping[str, list[dict[str, object]]], reasons: l
         if row.get("pricing_snapshot_id") != attempt.get("pricing_snapshot_id") or row.get("fx_snapshot_id") != attempt.get("fx_snapshot_id"):
             reasons.append(f"pricing_fx_identity_conflict:{entry_id}")
         provider_currency = row.get("provider_currency")
-        if provider_currency is not None and (not isinstance(provider_currency, str) or len(provider_currency) != 3 or provider_currency != provider_currency.upper()):
+        if not _valid_id(provider_currency):
+            reasons.append(f"provider_currency_missing:{entry_id}")
+        elif not isinstance(provider_currency, str) or len(provider_currency) != 3 or provider_currency != provider_currency.upper():
             reasons.append(f"provider_currency_invalid:{entry_id}")
         provider_amount = row.get("provider_amount")
-        if provider_currency == "AUD" and provider_amount is not None and accounting is not None:
+        if provider_amount is None:
+            reasons.append(f"provider_amount_missing:{entry_id}")
+            provider = None
+        else:
             provider = _decimal(provider_amount, f"provider_amount:{entry_id}", reasons)
+        if provider_currency == "AUD" and provider is not None and accounting is not None:
             if provider is not None and provider != accounting:
                 reasons.append(f"provider_accounting_amount_mismatch:{entry_id}")
 
