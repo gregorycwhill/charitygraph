@@ -61,12 +61,17 @@ def _valid_sha256(value: object) -> bool:
 
 
 def _parse_amount(value: object, field: str) -> Decimal:
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{field}_invalid")
-    try:
+    if isinstance(value, Decimal):
+        # Decimal is an already-parsed caller value. Copy it explicitly so
+        # float, bool and other implicit coercions remain rejected.
         amount = Decimal(value)
-    except (InvalidOperation, ValueError):
-        raise ValueError(f"{field}_invalid") from None
+    elif isinstance(value, str) and value.strip():
+        try:
+            amount = Decimal(value)
+        except (InvalidOperation, ValueError):
+            raise ValueError(f"{field}_invalid") from None
+    else:
+        raise ValueError(f"{field}_invalid")
     if not amount.is_finite():
         raise ValueError(f"{field}_non_finite")
     if amount < 0:

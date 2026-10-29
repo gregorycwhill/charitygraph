@@ -66,15 +66,30 @@ def test_replay_is_deterministic_and_positive_state_is_non_send():
     assert first.send_authorization == "not_authorized_for_send"
 
 
-def test_independent_pin_rejects_forged_self_hash():
-    raw, pin = packed()
-    forged = snapshot(content_sha256=hashlib.sha256(raw).hexdigest())
-    forged_raw = canonical_json_bytes(forged)
+def test_independent_pin_is_exact_and_not_snapshot_provenance():
+    raw, pin = packed(snapshot(content_sha256="b" * 64))
 
-    result = verify(forged_raw, pin)
+    accepted = verify(raw, pin)
+    assert accepted.status == "BUDGET_EVIDENCE_VERIFIED_NON_SEND"
+    assert accepted.snapshot_sha256 == pin
+
+    rejected = verify(raw, "b" * 64)
+    assert rejected.status == "NOT_VERIFIED"
+    assert "trusted_snapshot_pin_mismatch" in rejected.reasons
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        b'{"project_id":"first","project_id":"second"}',
+        b'{"coverage":{"project_wide":true,"project_wide":false}}',
+    ],
+)
+def test_duplicate_json_keys_at_root_and_nested_levels_fail_closed(raw):
+    result = verify(raw, hashlib.sha256(raw).hexdigest())
 
     assert result.status == "NOT_VERIFIED"
-    assert "trusted_snapshot_pin_mismatch" in result.reasons
+    assert "snapshot_bytes_invalid_json" in result.reasons
 
 
 @pytest.mark.parametrize(
@@ -109,8 +124,39 @@ def test_actual_reserved_and_proposed_reservation_share_the_cap(actual, reserved
         assert reason in result.reasons
 
 
-def test_pending_or_ambiguous_attempt_blocks_even_with_headroom():
-    raw, pin = packed(snapshot(pending_or_ambiguous_physical_attempts=[{"physical_attempt_id": "physical:one", "state": "ambiguous"}]))
+def test_decimal_proposal_is_accepted_without_float_or_bool_coercion():
+    raw, pin = packed()
+
+    result = verify(raw, pin, proposed_max_one_request_reservation_aud=Decimal("1.2500"))
+
+    assert result.status == "BUDGET_EVIDENCE_VERIFIED_NON_SEND"
+    assert result.proposed_max_one_request_reservation_aud == Decimal("1.2500")
+    assert result.headroom_after_proposed_reservation_aud == Decimal("7.75")
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (Decimal("-0.01"), "proposed_reservation_aud_negative"),
+        (Decimal("NaN"), "proposed_reservation_aud_non_finite"),
+        (Decimal("Infinity"), "proposed_reservation_aud_non_finite"),
+        (1.25, "proposed_reservation_aud_invalid"),
+        (True, "proposed_reservation_aud_invalid"),
+        ({"amount": "1.25"}, "proposed_reservation_aud_invalid"),
+    ],
+)
+def test_decimal_proposal_invalid_types_and_values_fail_closed(value, expected):
+    raw, pin = packed()
+
+    result = verify(raw, pin, proposed_max_one_request_reservation_aud=value)
+
+    assert result.status == "NOT_VERIFIED"
+    assert expected in result.reasons
+
+
+@pytest.mark.parametrize("state", ["pending", "ambiguous"])
+def test_pending_or_ambiguous_attempt_blocks_even_with_headroom(state):
+    raw, pin = packed(snapshot(pending_or_ambiguous_physical_attempts=[{"physical_attempt_id": "physical:one", "state": state}]))
 
     result = verify(raw, pin)
 
@@ -137,12 +183,41 @@ def test_stale_project_and_currency_mismatch_are_not_verified(changes, expected)
 
 
 @pytest.mark.parametrize(
+    ("as_of", "expected"),
+    [
+        ("2026-10-28T12:00:00", "snapshot_as_of_not_timezone_aware"),
+        ("2026-10-29T00:00:01Z", "budget_snapshot_as_of_in_future"),
+        ("2026-10-27T23:59:59Z", "budget_snapshot_stale"),
+    ],
+)
+def test_naive_future_and_stale_as_of_values_fail_closed(as_of, expected):
+    raw, pin = packed(snapshot(as_of=as_of))
+
+    result = verify(raw, pin)
+
+    assert result.status == "NOT_VERIFIED"
+    assert expected in result.reasons
+
+
+def test_incomplete_coverage_fails_closed_even_with_other_valid_fields():
+    incomplete = snapshot()
+    incomplete["coverage"] = {**incomplete["coverage"], "physical_attempts_complete": False}
+    raw, pin = packed(incomplete)
+
+    result = verify(raw, pin)
+
+    assert result.status == "NOT_VERIFIED"
+    assert "ledger_coverage_incomplete" in result.reasons
+
+
+@pytest.mark.parametrize(
     ("field", "value", "expected"),
     [
         ("actual_aud", "-0.01", "actual_aud_negative"),
         ("actual_aud", "NaN", "actual_aud_non_finite"),
         ("outstanding_reservations_aud", "Infinity", "outstanding_reservations_aud_non_finite"),
         ("actual_aud", 0.25, "snapshot_bytes_not_canonical"),
+        ("actual_aud", True, "actual_aud_invalid"),
     ],
 )
 def test_decimal_edge_cases_fail_closed(field, value, expected):
@@ -156,9 +231,10 @@ def test_decimal_edge_cases_fail_closed(field, value, expected):
     assert expected in result.reasons
 
 
-def test_verifier_has_no_network_or_filesystem_side_effects(monkeypatch):
+def test_verifier_has_no_network_filesystem_or_provider_side_effects(monkeypatch):
     raw, pin = packed()
     monkeypatch.setattr(socket, "socket", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("network")))
+    monkeypatch.setattr(socket, "create_connection", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("network")))
     monkeypatch.setattr(builtins, "open", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("filesystem")))
 
     result = verify(raw, pin)
