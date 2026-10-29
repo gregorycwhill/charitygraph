@@ -13,7 +13,7 @@ import json
 from collections.abc import Mapping
 from typing import Literal
 
-from pydantic import TypeAdapter, field_validator
+from pydantic import TypeAdapter, ValidationError, field_validator
 
 from .contracts.canonical import canonical_json_bytes
 from .contracts.common import Sha256, StrictModel, require_nonblank
@@ -30,7 +30,7 @@ _SHA256 = TypeAdapter(Sha256)
 class ProviderContractRegistryEntry(StrictModel):
     """Non-secret, source-owned contract/version authority material."""
 
-    schema_id: str = PROVIDER_CONTRACT_REGISTRY_SCHEMA
+    schema_id: Literal[PROVIDER_CONTRACT_REGISTRY_SCHEMA] = PROVIDER_CONTRACT_REGISTRY_SCHEMA
     contract_id: str
     contract_version: str
     provider_policy_id: str
@@ -92,7 +92,7 @@ class _CallerRouteMetadata(StrictModel):
 class ProviderContractRegistryDiagnostic(StrictModel):
     """Content-addressed diagnostic; it intentionally contains no send ticket."""
 
-    schema_id: str = PROVIDER_CONTRACT_REGISTRY_SCHEMA
+    schema_id: Literal[PROVIDER_CONTRACT_REGISTRY_SCHEMA] = PROVIDER_CONTRACT_REGISTRY_SCHEMA
     status: Literal["UNBOUND", "NOT_VERIFIED", "IDENTITY_EVIDENCE_VERIFIED_NON_SEND"]
     authority_input: Literal["missing", "canonical_bytes", "content_addressed_entry", "invalid"]
     trusted_authority_sha256: Sha256 | None = None
@@ -100,6 +100,8 @@ class ProviderContractRegistryDiagnostic(StrictModel):
     registry_entry_sha256: Sha256 | None = None
     contract_id: str | None = None
     contract_version: str | None = None
+    expected_contract_id: str | None = None
+    expected_contract_version: str | None = None
     compared_fields: tuple[str, ...] = ()
     reasons: tuple[str, ...] = ()
     request_ticket: None = None
@@ -108,7 +110,8 @@ class ProviderContractRegistryDiagnostic(StrictModel):
 
     @field_validator(
         "contract_id", "contract_version", "trusted_authority_sha256",
-        "observed_authority_sha256", "registry_entry_sha256",
+        "observed_authority_sha256", "registry_entry_sha256", "expected_contract_id",
+        "expected_contract_version",
     )
     @classmethod
     def _optional_text(cls, value: str | None) -> str | None:
@@ -154,6 +157,14 @@ def _parse_entry(value: ProviderContractRegistryEntry | Mapping[str, object]) ->
     return ProviderContractRegistryEntry.model_validate(value)
 
 
+def _authority_parse_reason(error: ValueError, *, bytes_input: bool) -> str:
+    if isinstance(error, ValidationError) and any(
+        tuple(detail.get("loc", ())) == ("schema_id",) for detail in error.errors()
+    ):
+        return "authority_registry_schema_invalid"
+    return "authority_bytes_invalid" if bytes_input else "authority_entry_invalid"
+
+
 def _load_authority(
     *,
     authority_bytes: bytes | None,
@@ -185,8 +196,8 @@ def _load_authority(
             decoded = json.loads(authority_bytes.decode("utf-8"))
             entry = _parse_entry(decoded)
             canonical = entry.canonical_bytes
-        except (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError):
-            reasons.append("authority_bytes_invalid")
+        except (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError) as error:
+            reasons.append(_authority_parse_reason(error, bytes_input=True))
         if canonical is not None and authority_bytes != canonical:
             reasons.append("authority_bytes_not_canonical")
     else:
@@ -195,8 +206,8 @@ def _load_authority(
             entry = _parse_entry(authority_entry)  # type: ignore[arg-type]
             canonical = entry.canonical_bytes
             observed_hash = hashlib.sha256(canonical).hexdigest()
-        except (TypeError, ValueError):
-            reasons.append("authority_entry_invalid")
+        except (TypeError, ValueError) as error:
+            reasons.append(_authority_parse_reason(error, bytes_input=False))
 
     if trusted_authority_sha256 is None:
         reasons.append("trusted_authority_pin_missing")
@@ -242,6 +253,8 @@ def resolve_source_owned_provider_contract_registry(
     authority_bytes: bytes | None = None,
     authority_entry: ProviderContractRegistryEntry | Mapping[str, object] | None = None,
     trusted_authority_sha256: str | None = None,
+    expected_contract_id: str | None = None,
+    expected_contract_version: str | None = None,
     caller_route: ProviderConfiguration | Mapping[str, object] | None = None,
     source_owned_policy_id: str | None = None,
     source_owned_policy_version: str | None = None,
@@ -274,6 +287,14 @@ def resolve_source_owned_provider_contract_registry(
 
     if entry.status in {"stale", "revoked"}:
         reasons.append(f"source_owned_contract_{entry.status}")
+    if expected_contract_id is None:
+        reasons.append("expected_contract_id_missing")
+    elif entry.contract_id != expected_contract_id:
+        reasons.append("expected_contract_id_mismatch")
+    if expected_contract_version is None:
+        reasons.append("expected_contract_version_missing")
+    elif entry.contract_version != expected_contract_version:
+        reasons.append("expected_contract_version_mismatch")
     if source_owned_policy_id is None:
         reasons.append("source_owned_provider_policy_id_missing")
     elif entry.provider_policy_id != source_owned_policy_id:
@@ -322,6 +343,8 @@ def resolve_source_owned_provider_contract_registry(
         registry_entry_sha256=entry.content_hash,
         contract_id=entry.contract_id,
         contract_version=entry.contract_version,
+        expected_contract_id=expected_contract_id,
+        expected_contract_version=expected_contract_version,
         compared_fields=_unique(compared),
         reasons=_unique(reasons),
     ).sealed()

@@ -7,6 +7,7 @@ import pytest
 
 from charitygraph.contracts.canonical import canonical_json_bytes
 from charitygraph.phase5_t4a_provider_contract_registry import (
+    PROVIDER_CONTRACT_REGISTRY_SCHEMA,
     ProviderContractRegistryEntry,
     resolve_source_owned_provider_contract_registry,
 )
@@ -35,6 +36,7 @@ def _caller(**changes):
 
 def _entry(**changes):
     value = {
+        "schema_id": PROVIDER_CONTRACT_REGISTRY_SCHEMA,
         "contract_id": "contract-fixture",
         "contract_version": "3.2",
         "provider_policy_id": POLICY_ID,
@@ -66,6 +68,8 @@ def _bytes_and_pin(value=None):
 
 
 def _resolve(raw, pin, **kwargs):
+    kwargs.setdefault("expected_contract_id", "contract-fixture")
+    kwargs.setdefault("expected_contract_version", "3.2")
     return resolve_source_owned_provider_contract_registry(
         authority_bytes=raw,
         trusted_authority_sha256=pin,
@@ -99,6 +103,47 @@ def test_independent_pin_rejects_forged_self_attested_hash():
 
     assert result.status == "NOT_VERIFIED"
     assert "trusted_authority_pin_mismatch" in result.reasons
+
+
+@pytest.mark.parametrize(
+    ("expected_contract_id", "expected_contract_version", "expected_reason"),
+    [
+        (None, "3.2", "expected_contract_id_missing"),
+        ("contract-fixture", None, "expected_contract_version_missing"),
+        ("different-contract", "3.2", "expected_contract_id_mismatch"),
+        ("contract-fixture", "different-version", "expected_contract_version_mismatch"),
+    ],
+)
+def test_expected_contract_identity_and_version_are_required_and_exact(
+    expected_contract_id, expected_contract_version, expected_reason
+):
+    raw, pin = _bytes_and_pin()
+    result = _resolve(
+        raw,
+        pin,
+        expected_contract_id=expected_contract_id,
+        expected_contract_version=expected_contract_version,
+    )
+
+    assert result.status == "NOT_VERIFIED"
+    assert expected_reason in result.reasons
+    assert result.expected_contract_id == expected_contract_id
+    assert result.expected_contract_version == expected_contract_version
+
+
+@pytest.mark.parametrize(
+    "schema_id",
+    [
+        "charitygraph.provider-contract-registry/0",
+        "unknown.registry-schema/1",
+    ],
+)
+def test_registry_schema_must_be_the_exact_current_literal(schema_id):
+    raw = canonical_json_bytes({**_entry(), "schema_id": schema_id})
+    result = _resolve(raw, hashlib.sha256(raw).hexdigest())
+
+    assert result.status == "NOT_VERIFIED"
+    assert "authority_registry_schema_invalid" in result.reasons
 
 
 @pytest.mark.parametrize(
