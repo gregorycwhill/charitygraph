@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from .contracts.canonical import canonical_sha256
+
 
 REPRESENTATION_SCHEMA = "urn:charitygraph:builder:schema:acnc-source-native-representation:1.0"
 MANIFEST_SCHEMA_PREFIX = "charitygraph.gate4.t3.selected-binding-manifest/"
@@ -57,6 +59,94 @@ _EXPECTED_BINDINGS = {
     "82147006639": {
         "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b",
         "scope_id": "scope:e71cd138c69b1727c7a7b5d909a66cb9bf9a3af87d1658bb97cd987333d46aa1",
+    },
+}
+
+# Exact source-record and rights identities accepted by the governed T3
+# binding.  These are identifiers only; the source bodies remain outside the
+# repository.  The complete tuple is checked so a valid-looking srcrec value
+# cannot move a representation across a source, subject, scope, or rights
+# binding.
+_EXPECTED_T3_SOURCE_BINDINGS = {
+    1: {
+        "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150",
+        "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+        "source_family": "acnc_register",
+        "source_record_id": "srcrec:4978c7ff7f9694d9d9d6db9ad871a8048cde5940c6e699a2dd4bd15360bcd28d",
+        "representation_sha256": "f7b0522efbf6253cfa13713750a96100c601fd801fd209524f948dc134f0ada2",
+        "rights_record_id": "1d887b9ddf909ade17236230de3c4f34d17e514202774d31925522770510067f",
+    },
+    2: {
+        "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150",
+        "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+        "source_family": "acnc_ais_bundle",
+        "source_record_id": "srcrec:554fa9df1414f0096b9035fea5ac5eee7ffb59e46eb767d6306d40d8f326f08a",
+        "representation_sha256": "70734f7c268aba097a37ab30c75640aca151583c2d616004cc90dffc0e878f1b",
+        "rights_record_id": "f4a57c5d2d048b1a3b28ccb6d8d7e7247c1796ca2aa02c68fe7b89a5440ce20f",
+    },
+    3: {
+        "subject_id": "subject:0889b4decb854e71ab4784479ca95c03",
+        "scope_id": "scope:be9c7fd3d0d859f542cafc07213313253f05e8824509b94b12e6ecc9ab640913",
+        "source_family": "acnc_register",
+        "source_record_id": "srcrec:f05f137023221378d486eef96e0c4efe377bb4811ac63fbbbb9aa8f103c251d2",
+        "representation_sha256": "8382a8ca22b00b71244664d85d6db3d0bdc1bafa40192ffb437e6227c4234773",
+        "rights_record_id": "7f7cb0ad8032d685ff1be8c924f894aea1d085f6a70aca4ca895cf6ab32cb56d",
+    },
+    4: {
+        "subject_id": "subject:0889b4decb854e71ab4784479ca95c03",
+        "scope_id": "scope:be9c7fd3d0d859f542cafc07213313253f05e8824509b94b12e6ecc9ab640913",
+        "source_family": "acnc_ais_bundle",
+        "source_record_id": "srcrec:045161751edf9950655698373906590d67abf2c35ba33dd804b61b3ac95237f8",
+        "representation_sha256": "ea9b75510efe03a1ef829bb5e044988de371d133c3bedbedb060914be438ab33",
+        "rights_record_id": "f62cb8f9f6d6b841a9fa177c572eba45957b616618145b77020044e9c68fd308",
+    },
+    5: {
+        "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d",
+        "scope_id": "scope:dd27dd2827c65677813405fdaac014be3d600fa0d9993ecf464b71b2a7dc6e81",
+        "source_family": "acnc_register",
+        "source_record_id": "srcrec:188a391cee048ab2fa7720aeb2c58f5b1e025039ef674ef8a6fd6ea0ab91dd8a",
+        "representation_sha256": "ead4a76bbbd9ad9aa29d79e82219b707d28f34d5232b00311544b8e6424f925c",
+        "rights_record_id": "a7b671341df5d1f970789274577438d15c2258f4be0e0903e5682eb3818a26d6",
+    },
+    6: {
+        "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d",
+        "scope_id": "scope:dd27dd2827c65677813405fdaac014be3d600fa0d9993ecf464b71b2a7dc6e81",
+        "source_family": "acnc_ais_bundle",
+        "source_record_id": "srcrec:5cc396995aea23edbab90c78b47101651f3a085f34ab088417dc3e1caa6fda25",
+        "representation_sha256": "9649487585e0267792c3b9c7ffa36261f0a5e93e69e87cac3e7f8154622e9678",
+        "rights_record_id": "528bd93255f561419e3ef7e2ce418463548f347ef5daa0d74f66a864c91bf17c",
+    },
+    7: {
+        "subject_id": "subject:1823309bdd06417c9928033603cb6e39",
+        "scope_id": "scope:95767a26704b78a0c75411dbb3322b5076ed5874fc56e335e5a9e20ea4ac0d4a",
+        "source_family": "acnc_register",
+        "source_record_id": "srcrec:5e1c9ac1b0378a22557a9bf804697719133663123e7f603d76eb41fd2601adf4",
+        "representation_sha256": "1ba64e644b28ff4528f6b075d42babb34ad5ee66fa9ce78110077ceef45170e6",
+        "rights_record_id": "6c67f153b4da1c475f192b634dff98f1e5b0b294c65fda05b95a8d354f3171d8",
+    },
+    8: {
+        "subject_id": "subject:1823309bdd06417c9928033603cb6e39",
+        "scope_id": "scope:95767a26704b78a0c75411dbb3322b5076ed5874fc56e335e5a9e20ea4ac0d4a",
+        "source_family": "acnc_ais_bundle",
+        "source_record_id": "srcrec:e94d13fec302f9cefc42569b4d191dae5b360565c8c3d8b4e1cded8ece5c0c52",
+        "representation_sha256": "692829d7188a787f2df3b91df982a2de34e6c86787b19d31d202737a072e07eb",
+        "rights_record_id": "41b37a38584aba73baadff7659f9a252b55ebb2d0a9a7407aaa0c9e108db953d",
+    },
+    9: {
+        "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b",
+        "scope_id": "scope:e71cd138c69b1727c7a7b5d909a66cb9bf9a3af87d1658bb97cd987333d46aa1",
+        "source_family": "acnc_register",
+        "source_record_id": "srcrec:e6529d39e4cf32248a4792142cdc5e5bfb5cb45c5055180f35662344c737544c",
+        "representation_sha256": "a0f9c00f981fe7724262474f10212e08d3a775884055001181b06664c7eac74c",
+        "rights_record_id": "a52cdeb042f46a9f4f96df6fa62c798ca83c4cd413839ec813889109b5f93fc1",
+    },
+    10: {
+        "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b",
+        "scope_id": "scope:e71cd138c69b1727c7a7b5d909a66cb9bf9a3af87d1658bb97cd987333d46aa1",
+        "source_family": "acnc_ais_bundle",
+        "source_record_id": "srcrec:39443daa20d28eadd1164573c635a5c0aa2d89d3b7a8753b14f8321b90f4aea9",
+        "representation_sha256": "b02a4079bd2ac8316123ad9ad7ff8cf9dfe3bf8832ac22bef6b2133d963f0b7f",
+        "rights_record_id": "64aabd8a8fbbe14579c286d4ab73555c165960485264ac9dd0e505c7a53b979f",
     },
 }
 
@@ -205,6 +295,12 @@ def _validate_rows(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
         raise ProjectionValidationError("unsupported T3 manifest schema")
     if manifest.get("selected_manifest_sha256") != EXPECTED_SELECTED_MANIFEST_SHA256:
         raise ProjectionValidationError("selected T3 manifest identity mismatch")
+    manifest_identity = manifest.get("manifest_identity_sha256")
+    if not isinstance(manifest_identity, str):
+        raise ProjectionValidationError("manifest identity is missing")
+    manifest_core = {key: value for key, value in manifest.items() if key != "manifest_identity_sha256"}
+    if canonical_sha256(manifest_core) != manifest_identity:
+        raise ProjectionValidationError("canonical T3 manifest identity mismatch")
     rows = manifest.get("rows")
     if not isinstance(rows, list) or len(rows) != 10:
         raise ProjectionValidationError("the projection requires exactly ten retained T3 rows")
@@ -237,8 +333,9 @@ def _validate_rows(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
             raise ProjectionValidationError("representation artifact identity mismatch")
         if row.get("source_artifact_id") != f"srcblob:{source_hash}":
             raise ProjectionValidationError("source artifact identity mismatch")
-        if not str(_required(row, "source_record_id")).startswith("srcrec:"):
-            raise ProjectionValidationError("source record identity is not content addressed")
+        expected_source = _EXPECTED_T3_SOURCE_BINDINGS.get(ordinal)
+        if expected_source is None or any(row.get(key) != value for key, value in expected_source.items()):
+            raise ProjectionValidationError("manifest source-record/rights binding mismatch")
         per_subject.setdefault(subject_id, []).append(row)
         seen_subjects.add(subject_id)
 

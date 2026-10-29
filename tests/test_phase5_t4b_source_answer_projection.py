@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from charitygraph.contracts.canonical import canonical_sha256
 from charitygraph.phase5_t4b_source_answer_projection import (
     QUESTION_ACTIVITY,
     QUESTION_CURRENTNESS,
@@ -32,6 +33,17 @@ def _copy_representations(destination: Path, *, tamper: str | None = None) -> Pa
 def _copy_manifest(destination: Path, *, row_update: dict[str, object]) -> Path:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     manifest["rows"][0].update(row_update)
+    manifest["manifest_identity_sha256"] = canonical_sha256(
+        {key: value for key, value in manifest.items() if key != "manifest_identity_sha256"}
+    )
+    path = destination / "selected-binding-manifest.json"
+    path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    return path
+
+
+def _copy_manifest_with_update(destination: Path, *, update: dict[str, object]) -> Path:
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    manifest.update(update)
     path = destination / "selected-binding-manifest.json"
     path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     return path
@@ -76,6 +88,34 @@ def test_hash_tampering_is_rejected(tmp_path: Path):
 
     with pytest.raises(ProjectionValidationError, match="hash mismatch"):
         build_source_answer_projection(manifest_path=MANIFEST, representation_root=representations)
+
+
+@pytest.mark.parametrize(
+    "update",
+    [
+        {"selected_manifest_sha256": "0" * 64},
+        {"manifest_identity_sha256": "0" * 64},
+    ],
+)
+def test_manifest_identity_metadata_tampering_is_rejected(tmp_path: Path, update: dict[str, object]):
+    manifest = _copy_manifest_with_update(tmp_path, update=update)
+
+    with pytest.raises(ProjectionValidationError, match="manifest identity"):
+        build_source_answer_projection(manifest_path=manifest, representation_root=REPRESENTATION_ROOT)
+
+
+@pytest.mark.parametrize(
+    "row_update",
+    [
+        {"source_record_id": "srcrec:" + "0" * 64},
+        {"rights_record_id": "0" * 64},
+    ],
+)
+def test_t3_source_record_and_rights_binding_tampering_is_rejected(tmp_path: Path, row_update: dict[str, object]):
+    manifest = _copy_manifest(tmp_path, row_update=row_update)
+
+    with pytest.raises(ProjectionValidationError, match="source-record/rights binding"):
+        build_source_answer_projection(manifest_path=manifest, representation_root=REPRESENTATION_ROOT)
 
 
 @pytest.mark.parametrize("row_update", [{"subject_id": "subject:wrong"}, {"scope_id": "scope:wrong"}])
