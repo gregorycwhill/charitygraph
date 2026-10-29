@@ -3,12 +3,19 @@ from pathlib import Path
 
 from charitygraph.phase5_governed_source_binding import (
     SELECTED_ROWS,
+    SOURCE_EVIDENCE_PROVENANCE_EPOCH,
+    SOURCE_EVIDENCE_PROVENANCE_REVISION,
     ExclusionEvidence,
     build_selected_binding_manifest,
 )
 
 
 ARCHIVE_ROOT = Path(r"C:\CharityGraph-runtime\phase5-top100-baseline-corpus-v1\objects")
+EXECUTION_CONTEXT = {
+    "bridge_fence": "v47",
+    "branch": "gate3-cg406-remediation",
+    "head": "9e4c36cdc5f7383eca58b81fdc6f23238f7cae17",
+}
 
 
 def _copy_selected_archive(destination: Path, *, tampered_ordinal: int | None = None) -> Path:
@@ -25,6 +32,7 @@ def _build(tmp_path: Path, *, exclusions=None, archive_root: Path = ARCHIVE_ROOT
     return build_selected_binding_manifest(
         source_archive_root=archive_root,
         work_root=tmp_path / "work",
+        execution_context=EXECUTION_CONTEXT,
         exclusions=exclusions,
     )
 
@@ -83,10 +91,12 @@ def test_replay_is_byte_and_projection_deterministic(tmp_path):
     first = build_selected_binding_manifest(
         source_archive_root=ARCHIVE_ROOT,
         work_root=tmp_path / "first",
+        execution_context=EXECUTION_CONTEXT,
     )
     second = build_selected_binding_manifest(
         source_archive_root=ARCHIVE_ROOT,
         work_root=tmp_path / "second",
+        execution_context=EXECUTION_CONTEXT,
     )
 
     assert first.manifest_bytes == second.manifest_bytes
@@ -127,3 +137,19 @@ def test_hash_mismatch_fails_closed_for_one_candidate_without_substitution(tmp_p
     assert rows[2]["downstream_tasks"] == 0
     assert result.manifest["summary"]["bound_rows"] == 9
     assert result.manifest["summary"]["downstream_tasks"] == 0
+
+
+def test_bridge_execution_fence_cannot_be_claimed_as_source_provenance_epoch(tmp_path):
+    result = _build(tmp_path)
+    manifest = result.manifest
+
+    assert "fence" not in manifest
+    assert manifest["schema"] == "charitygraph.gate4.t3.selected-binding-manifest/v2"
+    assert manifest["source_evidence_provenance"] == {
+        "epoch": SOURCE_EVIDENCE_PROVENANCE_EPOCH,
+        "producer_revision": SOURCE_EVIDENCE_PROVENANCE_REVISION,
+        "target": "gate3-cg406-remediation@cef0e792d8826697db735216be9b3f918c7e44ff",
+        "selected_manifest_sha256": "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9",
+    }
+    assert manifest["bridge_execution_context"] == EXECUTION_CONTEXT
+    assert manifest["source_evidence_provenance"]["epoch"] != manifest["bridge_execution_context"]["bridge_fence"]

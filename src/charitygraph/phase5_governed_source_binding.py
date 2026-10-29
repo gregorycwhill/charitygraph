@@ -49,6 +49,8 @@ from .runtime.rights_governance_record import (
 
 
 SELECTED_MANIFEST_SHA256 = "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9"
+SOURCE_EVIDENCE_PROVENANCE_EPOCH = "v45"
+SOURCE_EVIDENCE_PROVENANCE_REVISION = "61dd0cd1a89ed22118fc81bab89611eb1ddb2428"
 AS_OF = date(2026, 10, 29)
 RECORDED_AT = datetime(2026, 10, 29, tzinfo=timezone.utc)
 _PRODUCER = ProducerRef(kind="code", producer_id="g4-t3-governed-source-binding", version="1")
@@ -249,6 +251,7 @@ def build_selected_binding_manifest(
     *,
     source_archive_root: str | Path,
     work_root: str | Path,
+    execution_context: Mapping[str, str],
     selected_manifest_sha256: str = SELECTED_MANIFEST_SHA256,
     as_of: date = AS_OF,
     exclusions: Mapping[int, ExclusionEvidence] | None = None,
@@ -263,6 +266,13 @@ def build_selected_binding_manifest(
 
     if selected_manifest_sha256 != SELECTED_MANIFEST_SHA256:
         raise ValueError("selected manifest identity is outside the authorised T3 cohort")
+    required_execution_keys = {"bridge_fence", "branch", "head"}
+    if set(execution_context) != required_execution_keys or any(
+        not isinstance(execution_context[key], str) or not execution_context[key].strip()
+        for key in required_execution_keys
+    ):
+        raise ValueError("execution_context must contain nonblank bridge_fence, branch, and head")
+    execution_context = {key: execution_context[key].strip() for key in required_execution_keys}
     work = Path(work_root).expanduser().resolve()
     if not work.is_absolute():
         raise ValueError("work_root must be absolute")
@@ -462,11 +472,16 @@ def build_selected_binding_manifest(
 
         rows_out.sort(key=lambda item: item["ordinal"])
         manifest_core: dict[str, Any] = {
-            "schema": "charitygraph.gate4.t3.selected-binding-manifest/v1",
+            "schema": "charitygraph.gate4.t3.selected-binding-manifest/v2",
             "selected_manifest_sha256": SELECTED_MANIFEST_SHA256,
             "as_of": as_of.isoformat(),
-            "target": "gate3-cg406-remediation@cef0e792d8826697db735216be9b3f918c7e44ff",
-            "fence": "v45",
+            "source_evidence_provenance": {
+                "epoch": SOURCE_EVIDENCE_PROVENANCE_EPOCH,
+                "producer_revision": SOURCE_EVIDENCE_PROVENANCE_REVISION,
+                "target": "gate3-cg406-remediation@cef0e792d8826697db735216be9b3f918c7e44ff",
+                "selected_manifest_sha256": SELECTED_MANIFEST_SHA256,
+            },
+            "bridge_execution_context": execution_context,
             "source_families": ["acnc_register", "acnc_ais_bundle"],
             "source_bytes_included": False,
             "rights_policy": {
