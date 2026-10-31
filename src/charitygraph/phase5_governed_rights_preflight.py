@@ -35,7 +35,10 @@ from .runtime.rights_governance_record import (
     RightsGovernanceStore,
     RightsStorageError,
 )
-from .g4_provider_policy_registry import resolve_provider_policy_registry
+from .g4_provider_policy_registry import (
+    ProviderPolicyResolution,
+    resolve_provider_policy_registry,
+)
 
 
 RightsPreflightState = Literal[
@@ -159,6 +162,105 @@ def _projection_matches(record: RightsGovernanceRecord, row: dict[str, Any]) -> 
     return all(row.get(key) == value for key, value in expected.items())
 
 
+class ProviderRealSendGate(StrictModel):
+    """Fail-closed result for a future real-provider boundary.
+
+    Provider-free rights preflight never calls this gate.  The current
+    provider-policy resolver cannot produce an authenticated source-owned
+    resolution, so this model cannot become send-ready in this tranche.
+    """
+
+    status: Literal["BLOCKED"] = "BLOCKED"
+    action: Literal["NONE"] = "NONE"
+    allowed: Literal[False] = False
+    real_send_ready: Literal[False] = False
+    host_authentication_required: Literal[True] = True
+    reasons: tuple[str, ...] = ()
+
+    @field_validator("reasons")
+    @classmethod
+    def _reasons_nonblank(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        if any(not isinstance(item, str) or not item.strip() for item in value):
+            raise ValueError("real-send gate reasons must be nonblank")
+        return tuple(dict.fromkeys(value))
+
+
+def _real_send_route_values(route: Mapping[str, Any] | Any | None) -> tuple[dict[str, Any] | None, str | None]:
+    if route is None:
+        return None, "provider_route_missing"
+    if hasattr(route, "model_dump"):
+        raw = route.model_dump(mode="python")
+    elif isinstance(route, Mapping):
+        raw = dict(route)
+    else:
+        return None, "provider_route_invalid"
+    if isinstance(raw.get("route"), Mapping):
+        raw = {**dict(raw["route"]), **{key: value for key, value in raw.items() if key != "route"}}
+    values = {key: raw.get(key) for key in ("provider", "project_id", "service", "endpoint", "model")}
+    if any(value is None or (isinstance(value, str) and not value.strip()) for value in values.values()):
+        return None, "provider_route_incomplete"
+    return values, None
+
+
+def require_authenticated_provider_authority_for_real_send(
+    *,
+    provider_policy_resolution: ProviderPolicyResolution | None = None,
+    rights_authority: RightsGovernanceRecord | None = None,
+    current_v29: Mapping[str, Any] | None = None,
+    caller_route: Mapping[str, Any] | Any | None = None,
+    as_of: date | None = None,
+) -> ProviderRealSendGate:
+    """Require every authority axis before any future real-provider send.
+
+    This explicit boundary is separate from no-send Factory lowering.  It
+    accepts a resolution, not raw caller bytes or a caller-created token, and
+    it always fails closed for the unauthenticated provider-free tranche.
+    """
+
+    reasons: list[str] = []
+    when = as_of or date.today()
+    if provider_policy_resolution is None:
+        reasons.append("source_owned_provider_policy_authority_missing")
+    elif not provider_policy_resolution.authority_verified:
+        reasons.append("source_owned_provider_policy_authority_unauthenticated")
+
+    if rights_authority is None:
+        reasons.append("rights_authority_missing")
+    else:
+        if not rights_authority.can_promote(as_of=when):
+            reasons.append("rights_authority_not_current")
+        if rights_authority.local_retention.status != "authorized":
+            reasons.append("local_retention_rights_missing")
+        if rights_authority.provider_transmission.status != "authorized":
+            reasons.append("provider_transmission_rights_missing")
+
+    if current_v29 is None:
+        reasons.append("current_v29_missing")
+    elif rights_authority is None:
+        reasons.append("current_v29_unbound_without_rights")
+    else:
+        try:
+            current_matches = _projection_matches(rights_authority, dict(current_v29))
+        except (AttributeError, TypeError, ValueError):
+            current_matches = False
+        if not current_matches:
+            reasons.append("current_v29_mismatch")
+
+    caller, route_reason = _real_send_route_values(caller_route)
+    if route_reason is not None:
+        reasons.append(route_reason)
+    elif provider_policy_resolution is None or provider_policy_resolution.route is None:
+        reasons.append("source_owned_provider_route_missing")
+    else:
+        expected = provider_policy_resolution.route.model_dump(mode="python")
+        assert caller is not None
+        for field in ("provider", "project_id", "service", "endpoint", "model"):
+            if caller[field] != expected[field]:
+                reasons.append(f"provider_route_{field}_mismatch")
+
+    return ProviderRealSendGate(reasons=tuple(dict.fromkeys(reasons)))
+
+
 def _validate_optional_provider_policy_authority(
     reference: RightsPreflightReference,
     record: RightsGovernanceRecord,
@@ -245,15 +347,10 @@ def _validate_authority(
             reference, "blocked", "rights record is expired, revoked, superseded, or not current",
             record.content_hash, subject_id=record.subject_id,
         ), None
-    if provider_policy_authority is not None:
-        diagnostic = _validate_optional_provider_policy_authority(
-            reference,
-            record,
-            provider_policy_authority,
-            as_of=as_of,
-        )
-        if diagnostic is not None:
-            return diagnostic, None
+    # ``provider_policy_authority`` is retained for call compatibility, but a
+    # no-send preflight must not turn an optional provider-policy diagnostic
+    # into a provider send gate.  The mandatory real-send boundary is the
+    # separate ``require_authenticated_provider_authority_for_real_send`` API.
     if record.rights_policy_id == INTERNAL_PRIVATE_USE_POLICY_ID:
         if reference.source_family not in INTERNAL_PRIVATE_USE_POLICY.source_families:
             return _diagnostic(
@@ -370,7 +467,12 @@ def preflight_governed_rights(
     route_policy_version: str = "phase5-governed-rights-route-v1",
     provider_policy_authority: Mapping[str, Any] | Any | None = None,
 ) -> GovernedRightsFactoryPreflight:
-    """Validate private rights authority, then invoke clean Factory preflight."""
+    """Validate private rights, then lower to the existing fake-provider plan.
+
+    ``provider_policy_authority`` is accepted for backward compatibility only;
+    it is not a real-send gate and is intentionally not required for this
+    provider-free preflight.
+    """
 
     tasks: list[dict[str, Any]] = []
     diagnostics: list[PreflightDiagnostic] = []
@@ -420,5 +522,6 @@ def preflight_governed_rights(
 
 __all__ = [
     "GovernedRightsFactoryPreflight", "RightsPreflightReference",
-    "RightsPreflightState", "preflight_governed_rights",
+    "RightsPreflightState", "ProviderRealSendGate",
+    "preflight_governed_rights", "require_authenticated_provider_authority_for_real_send",
 ]

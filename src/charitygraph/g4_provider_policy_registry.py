@@ -1,10 +1,12 @@
-"""Provider-free resolver for one source-owned provider policy record.
+"""Provider-free structural resolver for one provider policy record.
 
 The record accepted here is non-secret authority metadata.  It is not a
 configuration default, a transport ticket, a budget approval, or a send
 authorisation.  The resolver is deliberately pure: it reloads the supplied
-canonical bytes, checks an independently supplied content-address pin, and
-returns a deterministic diagnostic without touching storage or the network.
+canonical bytes, checks a caller-supplied content-address comparison, checks
+the record's reference to separately supplied canonical authority-document
+bytes, and returns a deterministic diagnostic without touching storage or the
+network.  No caller input is a source-owned authentication root.
 """
 
 from __future__ import annotations
@@ -84,21 +86,31 @@ class ProviderPolicyRecord(StrictModel):
 
 
 class ProviderPolicyResolution(StrictModel):
-    """Deterministic read-only result; it can never authorize a send."""
+    """Deterministic read-only result; it can never authorize a send.
+
+    The current Builder tranche has no source-owned provider authority binding,
+    so every structurally coherent result is explicitly unauthenticated.
+    ``authority_verified`` is intentionally constrained to ``False`` so an
+    ordinary caller cannot manufacture a privileged resolution object.
+    """
 
     schema_id: Literal[PROVIDER_POLICY_REGISTRY_SCHEMA] = PROVIDER_POLICY_REGISTRY_SCHEMA
-    status: Literal["missing", "invalid", "blocked", "verified"]
-    authority_verified: bool
+    status: Literal["missing", "invalid", "blocked", "STRUCTURE_ONLY_UNAUTHENTICATED"]
+    authority_verified: Literal[False] = False
     observed_record_sha256: Sha256 | None = None
     trusted_record_sha256: Sha256 | None = None
+    observed_authority_document_sha256: Sha256 | None = None
     contract_id: str | None = None
     contract_version: str | None = None
     provider_policy_id: str | None = None
     provider_policy_version: str | None = None
     reasons: tuple[str, ...] = ()
     real_send_ready: Literal[False] = False
+    action: Literal["NONE"] = "NONE"
+    host_authentication_required: Literal[True] = True
     send_authorization: Literal["not_authorized_for_send"] = "not_authorized_for_send"
     content_hash: Sha256 | None = None
+    route: ProviderPolicyRoute | None = None
 
     @field_validator(
         "contract_id", "contract_version", "provider_policy_id", "provider_policy_version",
@@ -194,24 +206,51 @@ def _caller_values(caller_route: Mapping[str, Any] | Any | None) -> tuple[dict[s
 
 def _resolution(
     *,
-    status: Literal["missing", "invalid", "blocked", "verified"],
-    authority_verified: bool,
+    status: Literal["missing", "invalid", "blocked", "STRUCTURE_ONLY_UNAUTHENTICATED"],
     reasons: Iterable[str],
     observed: str | None = None,
-    trusted: str | None = None,
+    authority_document: str | None = None,
     record: ProviderPolicyRecord | None = None,
 ) -> ProviderPolicyResolution:
     return ProviderPolicyResolution(
         status=status,
-        authority_verified=authority_verified,
         observed_record_sha256=observed,
-        trusted_record_sha256=trusted,
+        observed_authority_document_sha256=authority_document,
         contract_id=record.contract_id if record else None,
         contract_version=record.contract_version if record else None,
         provider_policy_id=record.provider_policy_id if record else None,
         provider_policy_version=record.provider_policy_version if record else None,
+        route=record.route if record else None,
         reasons=_unique(reasons),
     ).sealed()
+
+
+def _authority_document_hash(
+    authority_document_bytes: bytes | None,
+    *,
+    record_bytes: bytes,
+) -> tuple[str | None, list[str]]:
+    """Hash exact canonical JSON bytes that are separate from the record.
+
+    The hash is over the supplied bytes, not over the record, its locator, or
+    the record's self-declared hash.  Requiring canonical JSON makes the
+    payload stable while leaving its source-owned schema outside this tranche.
+    """
+
+    if authority_document_bytes is None:
+        return None, ["authority_document_bytes_missing"]
+    if not isinstance(authority_document_bytes, bytes) or not authority_document_bytes:
+        return None, ["authority_document_bytes_invalid"]
+    observed = hashlib.sha256(authority_document_bytes).hexdigest()
+    if authority_document_bytes == record_bytes:
+        return observed, ["authority_document_self_referential"]
+    try:
+        decoded = json.loads(authority_document_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return observed, ["authority_document_not_canonical"]
+    if canonical_json_bytes(decoded) != authority_document_bytes:
+        return observed, ["authority_document_not_canonical"]
+    return observed, []
 
 
 def resolve_provider_policy_registry(
@@ -220,6 +259,7 @@ def resolve_provider_policy_registry(
     authority_record: Mapping[str, Any] | ProviderPolicyRecord | None = None,
     authority_records: Iterable[bytes | Mapping[str, Any] | ProviderPolicyRecord] | None = None,
     trusted_authority_sha256: str | None = None,
+    authority_document_bytes: bytes | None = None,
     expected_contract_id: str | None = None,
     expected_contract_version: str | None = None,
     expected_provider_policy_id: str | None = None,
@@ -228,18 +268,22 @@ def resolve_provider_policy_registry(
     rights_authority: RightsGovernanceRecord | None = None,
     as_of: date | None = None,
 ) -> ProviderPolicyResolution:
-    """Resolve exact source-owned authority without creating send capability.
+    """Resolve structural provider-policy consistency without authentication.
 
     The trusted hash is intentionally separate from the record's own
-    ``authority_content_sha256``.  Caller defaults, URLs, policy names and
-    coherent caller assertions never substitute for that independent pin.
+    ``authority_content_sha256``.  It is only a caller-supplied comparison in
+    this provider-free tranche and never authenticates source ownership.  The
+    record's ``authority_content_sha256`` must equal the SHA-256 of the exact,
+    separately supplied canonical JSON ``authority_document_bytes``.  Caller
+    defaults, URLs, policy names and coherent caller assertions never
+    substitute for source-owned authority.
     """
 
     supplied_count = sum(value is not None for value in (authority_bytes, authority_record, authority_records))
     if supplied_count > 1:
-        return _resolution(status="invalid", authority_verified=False, reasons=("authority_input_ambiguous",))
+        return _resolution(status="invalid", reasons=("authority_input_ambiguous",))
     if supplied_count == 0:
-        return _resolution(status="missing", authority_verified=False, reasons=("source_owned_authority_missing",))
+        return _resolution(status="missing", reasons=("source_owned_authority_missing",))
 
     parsed: list[tuple[ProviderPolicyRecord, str, list[str]]] = []
     raw_values = [authority_bytes] if authority_bytes is not None else [authority_record]
@@ -247,31 +291,38 @@ def resolve_provider_policy_registry(
         try:
             raw_values = list(authority_records)
         except TypeError:
-            return _resolution(status="invalid", authority_verified=False, reasons=("authority_records_invalid",))
+            return _resolution(status="invalid", reasons=("authority_records_invalid",))
         if not raw_values:
-            return _resolution(status="missing", authority_verified=False, reasons=("source_owned_authority_missing",))
+            return _resolution(status="missing", reasons=("source_owned_authority_missing",))
     for raw in raw_values:
         record, observed, reasons = _parse_supplied(raw)  # type: ignore[arg-type]
         if record is None or observed is None:
-            return _resolution(status="invalid", authority_verified=False, reasons=reasons)
+            return _resolution(status="invalid", reasons=reasons)
         parsed.append((record, observed, reasons))
 
     identities = [(item.contract_id, item.contract_version) for item, _hash, _reasons in parsed]
     if len(set(identities)) != len(identities):
-        return _resolution(status="invalid", authority_verified=False, reasons=("duplicate_authority_entries",))
+        return _resolution(status="invalid", reasons=("duplicate_authority_entries",))
     if expected_contract_id is None or expected_contract_version is None:
         return _resolution(
-            status="blocked", authority_verified=False,
+            status="blocked",
             reasons=("expected_contract_identity_missing",),
         )
     selected = [item for item in parsed if item[0].contract_id == expected_contract_id and item[0].contract_version == expected_contract_version]
     if len(selected) != 1:
         return _resolution(
-            status="blocked", authority_verified=False,
+            status="blocked",
             reasons=("expected_contract_identity_mismatch",),
         )
     record, observed, reasons = selected[0]
-    trusted_for_output = trusted_authority_sha256 if _valid_sha256(trusted_authority_sha256) else None
+    record_bytes = record.canonical_bytes
+    authority_document, authority_document_reasons = _authority_document_hash(
+        authority_document_bytes,
+        record_bytes=record_bytes,
+    )
+    reasons.extend(authority_document_reasons)
+    if authority_document is not None and record.authority_content_sha256 != authority_document:
+        reasons.append("authority_content_sha256_mismatch")
     if trusted_authority_sha256 is None:
         reasons.append("trusted_authority_pin_missing")
     elif not _valid_sha256(trusted_authority_sha256):
@@ -330,12 +381,13 @@ def resolve_provider_policy_registry(
 
     if reasons:
         return _resolution(
-            status="blocked", authority_verified=False, reasons=reasons,
-            observed=observed, trusted=trusted_for_output, record=record,
+            status="blocked", reasons=reasons,
+            observed=observed, authority_document=authority_document, record=record,
         )
+    reasons.append("source_owned_authority_unbound")
     return _resolution(
-        status="verified", authority_verified=True, reasons=(),
-        observed=observed, trusted=trusted_for_output, record=record,
+        status="STRUCTURE_ONLY_UNAUTHENTICATED", reasons=reasons,
+        observed=observed, authority_document=authority_document, record=record,
     )
 
 
