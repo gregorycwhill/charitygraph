@@ -114,7 +114,7 @@ def _text(value: Any, field: str, *, required: bool = True) -> str | None:
     return value
 
 
-def _no_float(value: Any, path: str = "snapshot") -> None:
+def _no_float(value: Any, path: str = "snapshot", _seen: set[int] | None = None) -> None:
     if isinstance(value, float):
         raise OperatorHealthError(f"binary floating-point value is not admissible at {path}")
     if isinstance(value, Mapping):
@@ -123,6 +123,14 @@ def _no_float(value: Any, path: str = "snapshot") -> None:
     elif isinstance(value, (tuple, list)):
         for index, child in enumerate(value):
             _no_float(child, f"{path}[{index}]")
+    elif hasattr(value, "__dict__"):
+        seen = _seen if _seen is not None else set()
+        marker = id(value)
+        if marker in seen:
+            return
+        seen.add(marker)
+        for key, child in vars(value).items():
+            _no_float(child, f"{path}.{key}", seen)
 
 
 def _timestamp(value: Any, field: str, issues: list[dict[str, Any]], *, required: bool = False) -> datetime | None:
@@ -192,6 +200,56 @@ def _row_id(row: Mapping[str, Any], group: str, index: int) -> str:
     }.get(group, ("id", "record_id"))
     identifier = _value(row, *names)
     return str(identifier) if identifier not in (None, "") else f"missing:{group}:{index}"
+
+
+def _stable_identity(row: Mapping[str, Any], names: Sequence[str]) -> str | None:
+    value = _value(row, *names)
+    return str(value) if value not in (None, "") else None
+
+
+def _evidence_payload(row: Mapping[str, Any], excluded: set[str]) -> Any:
+    return _canonical({key: value for key, value in row.items() if str(key) not in excluded})
+
+
+def _deduplicate_rows(
+    snapshot: OperatorHealthSnapshot,
+    rows: Sequence[Mapping[str, Any]],
+    issues: list[dict[str, Any]],
+    *,
+    identity_names: Sequence[str],
+    excluded_payload_fields: set[str],
+    duplicate_codes: Sequence[str],
+    conflict_code: str,
+    label: str,
+) -> tuple[tuple[Mapping[str, Any], ...], set[str]]:
+    first_by_identity: dict[str, tuple[Mapping[str, Any], Any]] = {}
+    ambiguous: set[str] = set()
+    without_identity: list[Mapping[str, Any]] = []
+    for row in rows:
+        identity = _stable_identity(row, identity_names)
+        if identity is None:
+            without_identity.append(row)
+            continue
+        payload = _evidence_payload(row, excluded_payload_fields)
+        prior = first_by_identity.get(identity)
+        if prior is None:
+            first_by_identity[identity] = (row, payload)
+            continue
+        if identity in ambiguous:
+            continue
+        if prior[1] == payload:
+            for code in duplicate_codes:
+                _issue(issues, code, "warning", f"duplicate {label} {identity} was counted once", scope=_scope(snapshot), action=f"Retain one immutable {label} identity in the evidence ledger.")
+            continue
+        ambiguous.add(identity)
+        _issue(issues, conflict_code, "error", f"{label} {identity} has conflicting duplicate material", scope=_scope(snapshot), action=f"Reconcile the conflicting {label} rows before using diagnostic totals.")
+    deduplicated = [row for identity, (row, _payload) in first_by_identity.items() if identity not in ambiguous]
+    deduplicated.extend(without_identity)
+    return tuple(deduplicated), ambiguous
+
+
+def _currency_code(value: Any) -> bool:
+    return isinstance(value, str) and len(value) == 3 and value == value.upper() and value.isalpha()
 
 
 def _rows(value: Any, field: str) -> tuple[Mapping[str, Any], ...]:
@@ -330,7 +388,11 @@ def _cost_provenance(row: Mapping[str, Any], snapshot: OperatorHealthSnapshot) -
     pricing = _value(row, "pricing_snapshot_id", "pricing_version")
     fx = _value(row, "fx_snapshot_id", "fx_version")
     source = _value(row, "source_id", default=snapshot.source_id)
-    return (str(pricing) if pricing else None, str(fx) if fx else None, str(source) if source else None)
+    return (
+        pricing.strip() if isinstance(pricing, str) and pricing.strip() else None,
+        fx.strip() if isinstance(fx, str) and fx.strip() else None,
+        source.strip() if isinstance(source, str) and source.strip() else None,
+    )
 
 
 def _ledger_health(snapshot: OperatorHealthSnapshot, issues: list[dict[str, Any]]) -> tuple[str, str]:
@@ -358,11 +420,10 @@ def _ledger_health(snapshot: OperatorHealthSnapshot, issues: list[dict[str, Any]
 
 def _costs(snapshot: OperatorHealthSnapshot, issues: list[dict[str, Any]]) -> dict[str, Any]:
     ledger_state, ledger_reason = _ledger_health(snapshot, issues)
-    rows = snapshot.cost_entries
     seen: dict[str, Mapping[str, Any]] = {}
     usable: list[Mapping[str, Any]] = []
     ambiguous_keys: set[str] = set()
-    for index, row in enumerate(rows):
+    for index, row in enumerate(snapshot.cost_entries):
         key = str(_value(row, "entry_key", "entry_id", default=f"row:{index}"))
         prior = seen.get(key)
         if prior is not None:
@@ -374,9 +435,10 @@ def _costs(snapshot: OperatorHealthSnapshot, issues: list[dict[str, Any]]) -> di
             continue
         seen[key] = row
         usable.append(row)
-    actual_by_receipt: dict[str, tuple[Decimal, str]] = {}
-    actual_total = Decimal(0)
+    actual_by_receipt: dict[str, tuple[Decimal, str, Any]] = {}
+    ambiguous_receipts: set[str] = set()
     release_total = Decimal(0)
+    release_row_count = 0
     forecast_total = Decimal(0)
     currencies: set[str] = set()
     invalid_actual = False
@@ -387,76 +449,98 @@ def _costs(snapshot: OperatorHealthSnapshot, issues: list[dict[str, Any]]) -> di
         raw_amount = _value(row, "accounting_amount", "aud_amount", "amount")
         amount = _decimal(raw_amount, f"cost.{_row_id(row, 'cost', 0)}.amount", issues)
         currency = _value(row, "accounting_currency", "currency", default=None)
-        if amount is None or not isinstance(currency, str) or len(currency) != 3 or currency != currency.upper() or not currency.isalpha():
+        if amount is None or not _currency_code(currency):
             invalid_actual = True
+            _issue(issues, "INVALID_COST_CURRENCY", "error", f"cost {_row_id(row, 'cost', 0)} lacks a valid accounting currency", scope=_scope(snapshot), action="Supply an explicit three-letter accounting currency for every cost row.")
             continue
         currencies.add(currency)
         if entry_type in {"actual", "provider_actual"}:
             pricing, fx, _ = _cost_provenance(row, snapshot)
             provider_amount = _decimal(_value(row, "provider_amount"), f"cost.{_row_id(row, 'cost', 0)}.provider_amount", issues)
             provider_currency = _value(row, "provider_currency")
-            if not pricing or not fx or provider_amount is None or not isinstance(provider_currency, str):
+            if not isinstance(pricing, str) or not pricing.strip() or not isinstance(fx, str) or not fx.strip() or provider_amount is None or not _currency_code(provider_currency):
                 invalid_actual = True
                 _issue(issues, "MISSING_COST_PROVENANCE", "error", f"actual cost { _row_id(row, 'cost', 0)} lacks immutable pricing or FX provenance", scope=_scope(snapshot, run_ids=[str(_value(row, "run_id"))] if _value(row, "run_id") else []), action="Bind the actual to immutable pricing, currency and FX source versions.")
                 continue
-            receipt = _value(row, "provider_receipt_id", "receipt_id")
-            receipt_key = str(receipt) if receipt else f"entry:{_row_id(row, 'cost', 0)}"
+            receipt_key = _stable_identity(row, ("provider_receipt_id", "receipt_id")) or f"entry:{_row_id(row, 'cost', 0)}"
+            payload = _evidence_payload(row, {"provider_receipt_id", "receipt_id", "entry_key", "entry_id"})
             prior_receipt = actual_by_receipt.get(receipt_key)
             if prior_receipt is not None:
-                if prior_receipt != (amount, currency):
+                if receipt_key in ambiguous_receipts:
+                    continue
+                if prior_receipt[2] != payload:
+                    ambiguous_receipts.add(receipt_key)
                     invalid_actual = True
-                    _issue(issues, "AMBIGUOUS_DUPLICATE_RECEIPT", "error", f"receipt {receipt_key} has conflicting actual costs", scope=_scope(snapshot), action="Reconcile duplicate receipt accounting before relying on spend totals.")
+                    _issue(issues, "AMBIGUOUS_RECEIPT_IDENTITY", "error", f"receipt {receipt_key} has conflicting actual-cost observations", scope=_scope(snapshot), action="Reconcile the conflicting receipt observations before relying on spend totals.")
                 else:
                     _issue(issues, "DUPLICATE_RECEIPT", "warning", f"receipt {receipt_key} was counted once", scope=_scope(snapshot), action="Retain one actual ledger entry per provider receipt.")
                 continue
-            actual_by_receipt[receipt_key] = (amount, currency)
-            actual_total += amount
+            actual_by_receipt[receipt_key] = (amount, currency, payload)
         elif entry_type in {"reservation_release", "release"}:
             release_total += amount
+            release_row_count += 1
         else:
             forecast_total += amount
+    actual_total = sum((value[0] for key, value in actual_by_receipt.items() if key not in ambiguous_receipts), Decimal(0))
+    reservation_rows, ambiguous_reservations = _deduplicate_rows(
+        snapshot,
+        snapshot.reservations,
+        issues,
+        identity_names=("reservation_id",),
+        excluded_payload_fields={"reservation_id"},
+        duplicate_codes=("DUPLICATE_RESERVATION_ID", "DUPLICATE_RESERVATION"),
+        conflict_code="AMBIGUOUS_RESERVATION_IDENTITY",
+        label="reservation",
+    )
     reservation_total = Decimal(0)
     reservation_valid = True
-    for row in snapshot.reservations:
+    active_reservations = []
+    for row in reservation_rows:
         status = str(_value(row, "status", default=UNKNOWN))
         if status not in {"active", "held", "reserved", "committed", "leased"}:
             continue
+        active_reservations.append(row)
         amount = _decimal(_value(row, "reserved_aud", "reserved_amount", "amount"), f"reservation.{_row_id(row, 'reservation', 0)}.amount", issues)
         currency = _value(row, "accounting_currency", "currency", default=None)
-        if amount is None or currency != "AUD":
+        if amount is None or not _currency_code(currency) or currency != "AUD":
             reservation_valid = False
         else:
             reservation_total += amount
+    if ambiguous_reservations:
+        reservation_valid = False
     freshness_ok = ledger_state == "observed"
+    difference: Decimal | None = None
     def total(state: str, amount: Decimal | None, count: int, reason: str) -> dict[str, Any]:
         amount_states = {"observed_actual", "committed_reserved", "forecast"}
         return {"state": state, "amount": _decimal_text(amount) if state in amount_states else None, "currency": "AUD" if state in amount_states else None, "entry_count": count, "reason": reason}
     if ledger_state == "stale":
-        actual = total("stale", None, len(actual_by_receipt), ledger_reason)
-        reserved = total("stale", None, len(snapshot.reservations), ledger_reason)
+        actual = total("stale", None, len(actual_by_receipt) - len(ambiguous_receipts), ledger_reason)
+        reserved = total("stale", None, len(active_reservations), ledger_reason)
         forecast = total("stale", None, 0, ledger_reason)
         reconciliation_state = "STALE"
     elif ledger_state != "observed":
         state = "ambiguous" if ambiguous_keys or invalid_actual else ledger_state
-        actual = total(state, None, len(actual_by_receipt), ledger_reason)
-        reserved = total(state, None, len(snapshot.reservations), ledger_reason)
+        actual = total(state, None, len(actual_by_receipt) - len(ambiguous_receipts), ledger_reason)
+        reserved = total(state, None, len(active_reservations), ledger_reason)
         forecast = total(state, None, 0, ledger_reason)
         reconciliation_state = state.upper()
     elif invalid_actual or len(currencies) != 1 or (currencies and currencies != {"AUD"}) or not reservation_valid:
-        actual = total("ambiguous", None, len(actual_by_receipt), "currency, provenance or amount evidence is incomplete")
-        reserved = total("ambiguous", None, len(snapshot.reservations), "currency, provenance or amount evidence is incomplete")
+        actual = total("ambiguous", None, len(actual_by_receipt) - len(ambiguous_receipts), "currency, provenance or amount evidence is incomplete")
+        reserved = total("ambiguous", None, len(active_reservations), "currency, provenance or amount evidence is incomplete")
         forecast = total("ambiguous", None, 0, "currency, provenance or amount evidence is incomplete")
         reconciliation_state = "AMBIGUOUS"
     else:
-        actual = total("observed_actual", actual_total, len(actual_by_receipt), "deduplicated provider receipts with pricing and FX provenance") if actual_by_receipt else total("missing", None, 0, "no actual provider receipt cost evidence supplied")
-        reserved = total("committed_reserved", reservation_total, len(snapshot.reservations), "active/held/committed reservations") if snapshot.reservations else total("missing", None, 0, "no committed reservation evidence supplied")
+        valid_actual_count = len(actual_by_receipt) - len(ambiguous_receipts)
+        actual = total("observed_actual", actual_total, valid_actual_count, "deduplicated provider receipts with pricing and FX provenance") if valid_actual_count else total("missing", None, 0, "no actual provider receipt cost evidence supplied")
+        reserved = total("committed_reserved", reservation_total, len(active_reservations), "active/held/committed reservations") if active_reservations else total("missing", None, 0, "no committed reservation evidence supplied")
         forecast = total("forecast", forecast_total, sum(1 for row in usable if str(_value(row, "entry_type", default="")) == "forecast"), "explicit forecast entries") if any(str(_value(row, "entry_type", default="")) == "forecast" for row in usable) else total("missing", None, 0, "no forecast evidence supplied")
-        difference = reservation_total - actual_total - release_total
-        reconciliation_state = "MISSING" if not actual_by_receipt or not snapshot.reservations else ("RECONCILED" if difference >= 0 else "DISCREPANT")
-        if difference < 0 and actual_by_receipt and snapshot.reservations:
+        difference = reservation_total - actual_total - release_total if release_row_count and valid_actual_count and active_reservations else None
+        reconciliation_state = "MISSING" if not valid_actual_count or not active_reservations or not release_row_count else ("RECONCILED" if difference >= 0 else "DISCREPANT")
+        if difference is not None and difference < 0:
             _issue(issues, "RESERVATION_OVERRUN", "error", "actuals and releases exceed committed reservations", scope=_scope(snapshot), action="Reconcile reservation and actual-cost ledger entries before further work.")
     provenance = {"ledger_source_id": snapshot.ledger_source_id, "ledger_version": snapshot.ledger_version, "ledger_as_of": snapshot.ledger_as_of, "currency": "AUD" if currencies == {"AUD"} else None, "pricing_versions": sorted({str(_cost_provenance(row, snapshot)[0]) for row in usable if _cost_provenance(row, snapshot)[0]}), "fx_versions": sorted({str(_cost_provenance(row, snapshot)[1]) for row in usable if _cost_provenance(row, snapshot)[1]})}
-    return {"ledger_state": ledger_state, "actual": actual, "committed_reserved": reserved, "forecast": forecast, "reservation_releases": {"amount": _decimal_text(release_total) if freshness_ok and not invalid_actual else None, "currency": "AUD" if freshness_ok and not invalid_actual else None, "state": "observed_actual" if freshness_ok and not invalid_actual else ledger_state}, "reconciliation": {"state": reconciliation_state, "actual_minus_release_basis": "actual + releases <= committed reserved", "difference": _decimal_text(reservation_total - actual_total - release_total) if ledger_state == "observed" and not invalid_actual and reservation_valid and currencies == {"AUD"} else None}, "provenance": provenance}
+    release_state = "observed_actual" if freshness_ok and not invalid_actual and release_row_count else ("missing" if freshness_ok and not invalid_actual else ledger_state)
+    return {"ledger_state": ledger_state, "actual": actual, "committed_reserved": reserved, "forecast": forecast, "reservation_releases": {"amount": _decimal_text(release_total) if release_state == "observed_actual" else None, "currency": "AUD" if release_state == "observed_actual" else None, "entry_count": release_row_count, "state": release_state}, "reconciliation": {"state": reconciliation_state, "actual_minus_release_basis": "actual + releases <= committed reserved", "difference": _decimal_text(difference) if difference is not None and ledger_state == "observed" and not invalid_actual and reservation_valid and currencies == {"AUD"} else None}, "provenance": provenance}
 
 
 def _health_flags(snapshot: OperatorHealthSnapshot, rows: Sequence[Mapping[str, Any]], attempts: Sequence[Mapping[str, Any]], receipts: Sequence[Mapping[str, Any]], issues: list[dict[str, Any]], jobs: Sequence[Mapping[str, Any]] = ()) -> dict[str, Any]:
@@ -492,13 +576,29 @@ def _health_flags(snapshot: OperatorHealthSnapshot, rows: Sequence[Mapping[str, 
             flags["retry"].append({**base, "attempt_number": int(attempt_number)})
         if _value(row, "predecessor_attempt_id", "replayed_from", "recovery_of"):
             flags["recovery"].append({**base, "predecessor_attempt_id": str(_value(row, "predecessor_attempt_id", "replayed_from", "recovery_of"))})
-    receipt_ids: set[str] = set()
-    for index, receipt in enumerate(receipts):
-        identifier = _row_id(receipt, "receipt", index)
-        if identifier in receipt_ids:
-            _issue(issues, "DUPLICATE_RECEIPT_ID", "error", f"provider receipt {identifier} is repeated", scope=_scope(snapshot), action="Reconcile duplicate receipt identity before counting provider effects.")
-        receipt_ids.add(identifier)
     return {key: sorted(value, key=lambda row: (str(row.get("run_id") or ""), str(row.get("id") or ""))) for key, value in flags.items()}
+
+
+def _token_count(snapshot: OperatorHealthSnapshot, row: Mapping[str, Any], name: str, issues: list[dict[str, Any]]) -> int | None:
+    usage = _value(row, "usage", "usage_json", default={})
+    raw = _value(row, name, default=_value(usage, name, default=None))
+    if raw is None:
+        return 0
+    if isinstance(raw, bool):
+        _issue(issues, "INVALID_PROVIDER_USAGE", "error", f"receipt {_row_id(row, 'receipt', 0)} has non-integer {name}", scope=_scope(snapshot), action="Reconcile provider usage before relying on token totals.")
+        return None
+    try:
+        value = int(raw)
+    except (TypeError, ValueError, OverflowError):
+        _issue(issues, "INVALID_PROVIDER_USAGE", "error", f"receipt {_row_id(row, 'receipt', 0)} has non-integer {name}", scope=_scope(snapshot), action="Reconcile provider usage before relying on token totals.")
+        return None
+    if str(raw) != str(value) and not isinstance(raw, int):
+        _issue(issues, "INVALID_PROVIDER_USAGE", "error", f"receipt {_row_id(row, 'receipt', 0)} has non-integer {name}", scope=_scope(snapshot), action="Reconcile provider usage before relying on token totals.")
+        return None
+    if value < 0:
+        _issue(issues, "INVALID_PROVIDER_USAGE", "error", f"receipt {_row_id(row, 'receipt', 0)} has negative {name}", scope=_scope(snapshot), action="Reconcile provider usage before relying on token totals.")
+        return None
+    return value
 
 
 def _per_run(snapshot: OperatorHealthSnapshot, groups: Mapping[str, Sequence[Mapping[str, Any]]], issues: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -528,7 +628,29 @@ def project_operator_health(snapshot: Any) -> OperatorHealthProjection:
     start, end, window = _window(data, all_rows, issues)
     elapsed = Decimal(window["elapsed_seconds"]) if window["elapsed_seconds"] is not None else None
     groups = {"runs": data.runs, "jobs": data.jobs, "requests": data.requests, "tasks": data.tasks}
-    flags = _health_flags(data, data.requests, data.attempts, data.receipts, issues, data.jobs)
+    receipt_rows, ambiguous_receipts = _deduplicate_rows(
+        data,
+        data.receipts,
+        issues,
+        identity_names=("provider_receipt_id", "receipt_id"),
+        excluded_payload_fields={"provider_receipt_id", "receipt_id"},
+        duplicate_codes=("DUPLICATE_RECEIPT_ID", "DUPLICATE_RECEIPT"),
+        conflict_code="AMBIGUOUS_RECEIPT_IDENTITY",
+        label="provider receipt",
+    )
+    flags = _health_flags(data, data.requests, data.attempts, receipt_rows, issues, data.jobs)
+    input_tokens = 0
+    output_tokens = 0
+    usage_invalid = False
+    for receipt in receipt_rows:
+        input_value = _token_count(data, receipt, "input_tokens", issues)
+        output_value = _token_count(data, receipt, "output_tokens", issues)
+        if input_value is None or output_value is None:
+            usage_invalid = True
+            continue
+        input_tokens += input_value
+        output_tokens += output_value
+    usage_state = "ambiguous" if ambiguous_receipts or usage_invalid else ("observed" if receipt_rows else "missing")
     for observation in data.observations:
         if str(_value(observation, "state", default="")) in {"ambiguous", "stale", "missing"}:
             _issue(issues, "FACTUAL_OBSERVATION_LIMIT", "warning", "an explicitly supplied observation limits health interpretation", scope=_scope(data, run_ids=[str(_value(observation, "run_id"))] if _value(observation, "run_id") else []), action="Review the supplied observation and retain its uncertainty state.")
@@ -543,7 +665,7 @@ def project_operator_health(snapshot: Any) -> OperatorHealthProjection:
         "latency": {"queue_wait": _latency(data, data.requests, issues, "created_at", "submitted_at", "queue_wait"), "provider_crossing": _latency(data, data.requests, issues, "send_started_at", "received_at", "provider_crossing"), "completion": _latency(data, data.requests, issues, "submitted_at", "completed_at", "completion")},
         "scheduling": {"health": "OBSERVED" if any(_value(row, "scheduled_at") is not None and _value(row, "started_at") is not None for row in data.requests) else UNKNOWN, "sample_count": sum(1 for row in data.requests if _value(row, "scheduled_at") is not None and _value(row, "started_at") is not None), "lag": _latency(data, data.requests, issues, "scheduled_at", "started_at", "scheduling"), "basis": "explicit scheduled_at_to_started_at pairs only"},
         "flags": flags,
-        "provider_usage": {"receipt_count": len(data.receipts), "receipts_with_usage": sum(1 for row in data.receipts if _value(row, "usage", "usage_json", "input_tokens", "output_tokens") is not None), "input_tokens": sum(int(_value(row, "input_tokens", default=_value(_value(row, "usage", default={}), "input_tokens", default=0)) or 0) for row in data.receipts), "output_tokens": sum(int(_value(row, "output_tokens", default=_value(_value(row, "usage", default={}), "output_tokens", default=0)) or 0) for row in data.receipts), "basis": "provider receipt rows only; no provider invocation"},
+        "provider_usage": {"state": usage_state, "receipt_count": len(receipt_rows), "receipts_with_usage": sum(1 for row in receipt_rows if _value(row, "usage", "usage_json", "input_tokens", "output_tokens") is not None), "input_tokens": input_tokens, "output_tokens": output_tokens, "basis": "deduplicated provider receipt identities only; no provider invocation"},
         "cost": _costs(data, issues),
         "per_run": _per_run(data, groups={**groups, "attempts": data.attempts}, issues=issues),
         "issues": sorted(issues, key=lambda issue: (str(issue.get("severity")), str(issue.get("code")), str(issue.get("message")))),

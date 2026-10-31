@@ -138,6 +138,76 @@ def test_retry_recovery_and_duplicate_receipt_are_visible_without_double_countin
     assert {"DUPLICATE_RECEIPT_ID", "DUPLICATE_RECEIPT"} <= codes
 
 
+def test_duplicate_identical_receipt_usage_is_counted_once():
+    receipt = {"provider_receipt_id": "receipt:usage", "input_tokens": 10, "output_tokens": 4}
+    result = project_operator_health(snapshot(receipts=[receipt, dict(receipt)]))
+
+    usage = result.document["provider_usage"]
+    assert usage["state"] == "observed"
+    assert usage["receipt_count"] == 1
+    assert usage["receipts_with_usage"] == 1
+    assert usage["input_tokens"] == 10
+    assert usage["output_tokens"] == 4
+    assert {issue["code"] for issue in result.document["issues"]} >= {"DUPLICATE_RECEIPT_ID", "DUPLICATE_RECEIPT"}
+
+
+def test_conflicting_receipt_identity_fails_usage_closed():
+    result = project_operator_health(snapshot(receipts=[
+        {"provider_receipt_id": "receipt:conflict", "input_tokens": 10, "output_tokens": 4},
+        {"provider_receipt_id": "receipt:conflict", "input_tokens": 11, "output_tokens": 4},
+    ]))
+
+    usage = result.document["provider_usage"]
+    assert usage["state"] == "ambiguous"
+    assert usage["receipt_count"] == 0
+    assert usage["input_tokens"] == 0
+    assert usage["output_tokens"] == 0
+    assert "AMBIGUOUS_RECEIPT_IDENTITY" in {issue["code"] for issue in result.document["issues"]}
+
+
+def test_identical_reservation_identity_is_counted_once():
+    reservation = {"reservation_id": "reservation:repeat", "status": "active", "reserved_amount": "2.00", "accounting_currency": "AUD"}
+    result = project_operator_health(snapshot(**valid_ledger(), reservations=[reservation, dict(reservation)], cost_entries=[valid_cost(), {"entry_key": "release:1", "entry_type": "release", "amount": "0", "accounting_currency": "AUD"}]))
+
+    reserved = result.document["cost"]["committed_reserved"]
+    assert reserved["amount"] == "2"
+    assert reserved["entry_count"] == 1
+    assert {issue["code"] for issue in result.document["issues"]} >= {"DUPLICATE_RESERVATION_ID", "DUPLICATE_RESERVATION"}
+
+
+def test_conflicting_reservation_identity_fails_reserved_total_closed():
+    result = project_operator_health(snapshot(**valid_ledger(), reservations=[
+        {"reservation_id": "reservation:conflict", "status": "active", "reserved_amount": "2.00", "accounting_currency": "AUD"},
+        {"reservation_id": "reservation:conflict", "status": "active", "reserved_amount": "3.00", "accounting_currency": "AUD"},
+    ]))
+
+    reserved = result.document["cost"]["committed_reserved"]
+    assert reserved["state"] == "ambiguous"
+    assert reserved["amount"] is None
+    assert "AMBIGUOUS_RESERVATION_IDENTITY" in {issue["code"] for issue in result.document["issues"]}
+
+
+def test_release_zero_is_distinct_from_unobserved_release_rows():
+    base = dict(
+        **valid_ledger(),
+        reservations=[{"reservation_id": "reservation:1", "status": "active", "reserved_amount": "2.00", "accounting_currency": "AUD"}],
+        cost_entries=[valid_cost()],
+    )
+    missing = project_operator_health(snapshot(**base))
+    zero = project_operator_health(snapshot(**{**base, "cost_entries": [valid_cost(), {
+        "entry_key": "release:1",
+        "entry_type": "release",
+        "amount": "0.00",
+        "accounting_currency": "AUD",
+    }]}))
+
+    assert missing.document["cost"]["reservation_releases"] == {"amount": None, "currency": None, "entry_count": 0, "state": "missing"}
+    assert missing.document["cost"]["reconciliation"]["state"] == "MISSING"
+    assert zero.document["cost"]["reservation_releases"]["amount"] == "0"
+    assert zero.document["cost"]["reservation_releases"]["state"] == "observed_actual"
+    assert zero.document["cost"]["reconciliation"]["state"] == "RECONCILED"
+
+
 def test_conflicting_duplicate_receipt_fails_cost_closed():
     result = project_operator_health(snapshot(
         **valid_ledger(),
@@ -184,7 +254,7 @@ def test_decimal_currency_and_fx_provenance_are_retained():
     result = project_operator_health(snapshot(
         **valid_ledger(),
         reservations=[{"reservation_id": "reservation:1", "status": "active", "reserved_amount": Decimal("2.00"), "accounting_currency": "AUD"}],
-        cost_entries=[valid_cost(amount=Decimal("1.20"))],
+        cost_entries=[valid_cost(amount=Decimal("1.20")), {"entry_key": "release:1", "entry_type": "release", "amount": Decimal("0.00"), "accounting_currency": "AUD"}],
     ))
 
     assert result.document["cost"]["actual"]["amount"] == "1.2"
@@ -275,3 +345,34 @@ def test_adapter_accepts_existing_persisted_run_shape_without_catalog_access():
 def test_rejects_float_input_before_any_diagnostic_work():
     with pytest.raises(OperatorHealthError, match="binary floating-point"):
         project_operator_health(snapshot(requests=[{"request_item_id": "request:1", "ratio": 0.5}]))
+
+
+def test_rejects_float_in_nested_object_adapter():
+    class Adapter:
+        def __init__(self):
+            self.as_of = AS_OF
+            self.source_id = "adapter:test"
+            self.source_version = "adapter:v1"
+            self.evidence_basis = "nested adapter"
+            self.receipts = [{"provider_receipt_id": "receipt:1", "usage": {"input_tokens": 0.5}}]
+
+    with pytest.raises(OperatorHealthError, match="binary floating-point"):
+        project_operator_health(Adapter())
+
+
+def test_canonical_bytes_and_hash_are_order_independent_for_deduplicated_rows():
+    rows = [
+        valid_cost(amount="1.20"),
+        valid_cost(entry_key="cost:duplicate", amount="1.20"),
+    ]
+    first = project_operator_health(snapshot(**valid_ledger(), cost_entries=rows, receipts=[
+        {"provider_receipt_id": "receipt:1", "input_tokens": 10, "output_tokens": 4},
+        {"provider_receipt_id": "receipt:1", "input_tokens": 10, "output_tokens": 4},
+    ]))
+    second = project_operator_health(snapshot(**valid_ledger(), cost_entries=list(reversed(rows)), receipts=[
+        {"provider_receipt_id": "receipt:1", "input_tokens": 10, "output_tokens": 4},
+        {"provider_receipt_id": "receipt:1", "input_tokens": 10, "output_tokens": 4},
+    ][::-1]))
+
+    assert first.canonical_json == second.canonical_json
+    assert first.sha256 == second.sha256
