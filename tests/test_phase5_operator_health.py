@@ -376,3 +376,29 @@ def test_canonical_bytes_and_hash_are_order_independent_for_deduplicated_rows():
 
     assert first.canonical_json == second.canonical_json
     assert first.sha256 == second.sha256
+
+
+def test_unidentifiable_receipt_replay_is_ambiguous_with_null_usage_totals():
+    result = project_operator_health(snapshot(receipts=[
+        {"run_id": "run:1", "input_tokens": 10, "output_tokens": 4},
+        {"run_id": "run:1", "input_tokens": 10, "output_tokens": 4},
+    ]))
+
+    usage = result.document["provider_usage"]
+    assert usage["state"] == "ambiguous"
+    assert usage["input_tokens"] is None
+    assert usage["output_tokens"] is None
+    assert usage["receipts_with_usage"] is None
+    assert "UNIDENTIFIABLE_RECEIPT_IDENTITY" in {issue["code"] for issue in result.document["issues"]}
+
+
+def test_unidentifiable_actual_cost_is_not_observed_even_with_entry_identity():
+    result = project_operator_health(snapshot(
+        **valid_ledger(),
+        reservations=[{"reservation_id": "reservation:1", "status": "active", "reserved_amount": "2.00", "accounting_currency": "AUD"}],
+        cost_entries=[valid_cost(receipt=None)],
+    ))
+
+    assert result.document["cost"]["actual"]["state"] == "ambiguous"
+    assert result.document["cost"]["actual"]["amount"] is None
+    assert "UNIDENTIFIABLE_RECEIPT_IDENTITY" in {issue["code"] for issue in result.document["issues"]}

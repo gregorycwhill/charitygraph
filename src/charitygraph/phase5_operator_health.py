@@ -462,7 +462,18 @@ def _costs(snapshot: OperatorHealthSnapshot, issues: list[dict[str, Any]]) -> di
                 invalid_actual = True
                 _issue(issues, "MISSING_COST_PROVENANCE", "error", f"actual cost { _row_id(row, 'cost', 0)} lacks immutable pricing or FX provenance", scope=_scope(snapshot, run_ids=[str(_value(row, "run_id"))] if _value(row, "run_id") else []), action="Bind the actual to immutable pricing, currency and FX source versions.")
                 continue
-            receipt_key = _stable_identity(row, ("provider_receipt_id", "receipt_id")) or f"entry:{_row_id(row, 'cost', 0)}"
+            receipt_key = _stable_identity(row, ("provider_receipt_id", "receipt_id"))
+            if receipt_key is None:
+                invalid_actual = True
+                _issue(
+                    issues,
+                    "UNIDENTIFIABLE_RECEIPT_IDENTITY",
+                    "error",
+                    f"actual cost {_row_id(row, 'cost', 0)} has no stable provider receipt identity",
+                    scope=_scope(snapshot, run_ids=[str(_value(row, "run_id"))] if _value(row, "run_id") else []),
+                    action="Bind each actual-cost observation to a stable provider receipt identity before relying on spend totals.",
+                )
+                continue
             payload = _evidence_payload(row, {"provider_receipt_id", "receipt_id", "entry_key", "entry_id"})
             prior_receipt = actual_by_receipt.get(receipt_key)
             if prior_receipt is not None:
@@ -638,11 +649,29 @@ def project_operator_health(snapshot: Any) -> OperatorHealthProjection:
         conflict_code="AMBIGUOUS_RECEIPT_IDENTITY",
         label="provider receipt",
     )
-    flags = _health_flags(data, data.requests, data.attempts, receipt_rows, issues, data.jobs)
+    unidentifiable_receipts = tuple(
+        row for row in receipt_rows
+        if _stable_identity(row, ("provider_receipt_id", "receipt_id")) is None
+    )
+    if unidentifiable_receipts:
+        for row in unidentifiable_receipts:
+            _issue(
+                issues,
+                "UNIDENTIFIABLE_RECEIPT_IDENTITY",
+                "error",
+                "provider receipt observation has neither provider_receipt_id nor receipt_id",
+                scope=_scope(data, run_ids=[str(_value(row, "run_id"))] if _value(row, "run_id") else []),
+                action="Retain a stable provider receipt identity before claiming deduplicated usage or actual cost.",
+            )
+    identified_receipts = tuple(
+        row for row in receipt_rows
+        if _stable_identity(row, ("provider_receipt_id", "receipt_id")) is not None
+    )
+    flags = _health_flags(data, data.requests, data.attempts, identified_receipts, issues, data.jobs)
     input_tokens = 0
     output_tokens = 0
     usage_invalid = False
-    for receipt in receipt_rows:
+    for receipt in identified_receipts:
         input_value = _token_count(data, receipt, "input_tokens", issues)
         output_value = _token_count(data, receipt, "output_tokens", issues)
         if input_value is None or output_value is None:
@@ -650,7 +679,7 @@ def project_operator_health(snapshot: Any) -> OperatorHealthProjection:
             continue
         input_tokens += input_value
         output_tokens += output_value
-    usage_state = "ambiguous" if ambiguous_receipts or usage_invalid else ("observed" if receipt_rows else "missing")
+    usage_state = "ambiguous" if ambiguous_receipts or unidentifiable_receipts or usage_invalid else ("observed" if identified_receipts else "missing")
     for observation in data.observations:
         if str(_value(observation, "state", default="")) in {"ambiguous", "stale", "missing"}:
             _issue(issues, "FACTUAL_OBSERVATION_LIMIT", "warning", "an explicitly supplied observation limits health interpretation", scope=_scope(data, run_ids=[str(_value(observation, "run_id"))] if _value(observation, "run_id") else []), action="Review the supplied observation and retain its uncertainty state.")
@@ -665,7 +694,7 @@ def project_operator_health(snapshot: Any) -> OperatorHealthProjection:
         "latency": {"queue_wait": _latency(data, data.requests, issues, "created_at", "submitted_at", "queue_wait"), "provider_crossing": _latency(data, data.requests, issues, "send_started_at", "received_at", "provider_crossing"), "completion": _latency(data, data.requests, issues, "submitted_at", "completed_at", "completion")},
         "scheduling": {"health": "OBSERVED" if any(_value(row, "scheduled_at") is not None and _value(row, "started_at") is not None for row in data.requests) else UNKNOWN, "sample_count": sum(1 for row in data.requests if _value(row, "scheduled_at") is not None and _value(row, "started_at") is not None), "lag": _latency(data, data.requests, issues, "scheduled_at", "started_at", "scheduling"), "basis": "explicit scheduled_at_to_started_at pairs only"},
         "flags": flags,
-        "provider_usage": {"state": usage_state, "receipt_count": len(receipt_rows), "receipts_with_usage": sum(1 for row in receipt_rows if _value(row, "usage", "usage_json", "input_tokens", "output_tokens") is not None), "input_tokens": input_tokens, "output_tokens": output_tokens, "basis": "deduplicated provider receipt identities only; no provider invocation"},
+        "provider_usage": {"state": usage_state, "receipt_count": len(receipt_rows), "receipts_with_usage": sum(1 for row in identified_receipts if _value(row, "usage", "usage_json", "input_tokens", "output_tokens") is not None) if not unidentifiable_receipts and not usage_invalid else None, "input_tokens": None if unidentifiable_receipts or usage_invalid else input_tokens, "output_tokens": None if unidentifiable_receipts or usage_invalid else output_tokens, "basis": "deduplicated provider receipt identities only; no provider invocation"},
         "cost": _costs(data, issues),
         "per_run": _per_run(data, groups={**groups, "attempts": data.attempts}, issues=issues),
         "issues": sorted(issues, key=lambda issue: (str(issue.get("severity")), str(issue.get("code")), str(issue.get("message")))),
