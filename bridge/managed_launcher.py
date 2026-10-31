@@ -18,12 +18,21 @@ HERE = Path(__file__).resolve()
 FENCE_PREFIX = "cg-g4-o1b-dormant-state-fence-20261020"
 
 
+def _quiet_subprocess_kwargs() -> dict[str, int]:
+    """Keep launcher Git checks and watcher starts invisible on Windows."""
+    if os.name != "nt":
+        return {}
+    flag = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    return {"creationflags": flag} if flag else {}
+
+
 def _git(workspace: Path, *args: str) -> str:
     return subprocess.check_output(
         ["git", "-c", f"safe.directory={workspace.resolve()}", *args],
         cwd=workspace,
         text=True,
         stderr=subprocess.STDOUT,
+        **_quiet_subprocess_kwargs(),
     ).strip()
 
 
@@ -147,7 +156,7 @@ def main(argv: list[str] | None = None) -> int:
         with managed_launcher_lock(args.runtime_root):
             launched_with = matching_fence_identity(args.artifacts_root, args.workspace_root)
             while True:
-                child = subprocess.Popen(command, cwd=args.workspace_root)
+                child = subprocess.Popen(command, cwd=args.workspace_root, **_quiet_subprocess_kwargs())
                 returncode = child.wait()
                 if returncode == 0:
                     return 0

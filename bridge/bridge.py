@@ -69,6 +69,19 @@ IMPLEMENTATION_SCOPE = "bounded_local_builder_code_change"
 CODE_CHANGE_ROUTE_ACTIVE = True
 
 
+def _quiet_subprocess_kwargs() -> dict[str, Any]:
+    """Prevent background bridge children from creating visible console windows.
+
+    The managed watcher is launched with ``pythonw.exe`` on Windows.  Console
+    children such as ``git.exe`` and ``codex.exe`` otherwise create a transient
+    window for every safety check, even when their output is redirected.
+    """
+    if os.name != "nt":
+        return {}
+    flag = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    return {"creationflags": flag} if flag else {}
+
+
 def _resolve_codex_executable() -> str:
     """Resolve an installed Codex CLI without relying on the launcher PATH."""
     configured = os.environ.get("CHARITYGRAPH_CODEX_EXECUTABLE")
@@ -111,6 +124,7 @@ def _validate_codex_executable(executable: str) -> str:
         text=True,
         timeout=15,
         check=False,
+        **_quiet_subprocess_kwargs(),
     )
     version = completed.stdout.strip()
     if completed.returncode != 0 or not version:
@@ -151,23 +165,31 @@ def _atomic_write(path: Path, value: dict[str, Any]) -> None:
 
 def _git(cwd: Path, *args: str) -> str:
     try:
-        return subprocess.check_output(["git", *args], cwd=cwd, text=True, stderr=subprocess.STDOUT).strip()
+        return subprocess.check_output(
+            ["git", *args], cwd=cwd, text=True, stderr=subprocess.STDOUT, **_quiet_subprocess_kwargs()
+        ).strip()
     except subprocess.CalledProcessError as exc:
         if "dubious ownership" not in exc.output.lower():
             raise
-        return subprocess.check_output(["git", "-c", f"safe.directory={cwd}", *args], cwd=cwd, text=True, stderr=subprocess.STDOUT).strip()
+        return subprocess.check_output(
+            ["git", "-c", f"safe.directory={cwd}", *args], cwd=cwd, text=True, stderr=subprocess.STDOUT, **_quiet_subprocess_kwargs()
+        ).strip()
 
 
 def _git_bytes(cwd: Path, *args: str) -> bytes:
     """Read Git-owned bytes without trusting the worktree's file contents."""
     command = ["git", *args]
-    completed = subprocess.run(command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+    completed = subprocess.run(
+        command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False, **_quiet_subprocess_kwargs()
+    )
     if completed.returncode == 0:
         return completed.stdout
     diagnostics = completed.stdout + completed.stderr
     if "dubious ownership" not in diagnostics.decode("utf-8", errors="replace").lower():
         raise subprocess.CalledProcessError(completed.returncode, command, output=diagnostics)
-    return subprocess.check_output(["git", "-c", f"safe.directory={cwd}", *args], cwd=cwd, stderr=subprocess.PIPE)
+    return subprocess.check_output(
+        ["git", "-c", f"safe.directory={cwd}", *args], cwd=cwd, stderr=subprocess.PIPE, **_quiet_subprocess_kwargs()
+    )
 
 
 def _event_summary(raw: bytes) -> dict[str, Any]:
@@ -814,6 +836,7 @@ class CutoverWatcher:
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     check=False,
+                    **_quiet_subprocess_kwargs(),
                     timeout=15,
                 )
             except (OSError, subprocess.SubprocessError) as exc:
@@ -858,6 +881,7 @@ class CutoverWatcher:
                 stderr=subprocess.STDOUT,
                 text=True,
                 check=False,
+                **_quiet_subprocess_kwargs(),
             )
         except (OSError, subprocess.SubprocessError) as exc:
             self._unstage_exact_paths(command_prefix, paths)
@@ -895,6 +919,7 @@ class CutoverWatcher:
                 stderr=subprocess.STDOUT,
                 text=True,
                 check=False,
+                **_quiet_subprocess_kwargs(),
             )
         except (OSError, subprocess.SubprocessError) as exc:
             self._unstage_exact_paths(command_prefix, paths)
@@ -924,6 +949,7 @@ class CutoverWatcher:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             check=False,
+            **_quiet_subprocess_kwargs(),
         )
 
     def _bridge_owned_adoption_commit(
@@ -1024,7 +1050,14 @@ class CutoverWatcher:
             else:
                 assert codex is not None
                 try:
-                    child = subprocess.Popen(command, cwd=self.workspace_root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env={**os.environ, "CHARITYGRAPH_G4_O1C_ENGINEERING": "1"})
+                    child = subprocess.Popen(
+                        command,
+                        cwd=self.workspace_root,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        env={**os.environ, "CHARITYGRAPH_G4_O1C_ENGINEERING": "1"},
+                        **_quiet_subprocess_kwargs(),
+                    )
                     pid = child.pid
                     if self._active_execution is not None:
                         self._active_execution.update(
