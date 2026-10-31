@@ -303,7 +303,13 @@ def _trusted_population_inventory(inventory: Mapping[str, Any] | None) -> dict[s
         return None
     scope_id = _non_empty(scope.get("scope_id"))
     scope_kind = _non_empty(scope.get("kind"))
-    if scope_id is None or scope_kind not in {"bounded", "project_wide"}:
+    # This entrypoint has no independently authenticated source-owned
+    # project-wide inventory adapter.  A caller-controlled declaration of
+    # project-wide scope is therefore never a trusted inventory, regardless
+    # of how complete or well-shaped its other fields appear.  Bounded
+    # manifests remain useful for diagnostics but cannot establish project
+    # authority below.
+    if scope_id is None or scope_kind != "bounded":
         return None
     provenance_values = {
         name: _non_empty(provenance.get(name))

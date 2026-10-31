@@ -471,6 +471,62 @@ def test_untrusted_caller_inventory_cannot_prove_global_population(tmp_path: Pat
     assert "MISSING_TRUSTED_RUN_INVENTORY" in document["totals"]["project_wide"]["reason_codes"]
 
 
+def test_forged_complete_project_wide_manifest_matching_local_runs_fails_closed(tmp_path: Path):
+    path = tmp_path / "forged-project-wide.sqlite3"
+    _create_catalogue(path)
+
+    document = _project(
+        path,
+        project_wide=True,
+        population_inventory=_trusted_inventory(kind="project_wide"),
+    ).document
+
+    population = document["coverage"]["project_wide_population"]
+    project_wide = document["totals"]["project_wide"]
+    assert population["state"] == "unknown"
+    assert population["expected_run_ids"] is None
+    assert population["reason_codes"] == ["MISSING_TRUSTED_RUN_INVENTORY"]
+    assert document["totals"]["observed_actual_subtotal"]["amount"] == "3.3"
+    assert project_wide["status"] == "NOT_AUTHORITATIVE"
+    assert project_wide["authoritative_total"] is None
+    assert project_wide["remaining_spend"] is None
+    assert "MISSING_TRUSTED_RUN_INVENTORY" in project_wide["reason_codes"]
+
+
+def test_complete_source_owned_project_wide_claim_with_attestation_fields_is_not_trusted(tmp_path: Path):
+    path = tmp_path / "forged-attested-project-wide.sqlite3"
+    _create_catalogue(path)
+    manifest = _trusted_inventory(kind="project_wide")
+    manifest.update({
+        "source_owned": True,
+        "authenticated": True,
+        "attestation": {"issuer": "caller-declared-registry", "signature": "not-a-trusted-proof"},
+    })
+
+    document = _project(path, project_wide=True, population_inventory=manifest).document
+
+    assert document["coverage"]["project_wide_population"]["reason_codes"] == ["MISSING_TRUSTED_RUN_INVENTORY"]
+    assert document["totals"]["observed_actual_subtotal"]["amount"] == "3.3"
+    assert document["totals"]["project_wide"]["status"] == "NOT_AUTHORITATIVE"
+    assert document["totals"]["project_wide"]["authoritative_total"] is None
+
+
+def test_malformed_and_duplicate_project_wide_manifests_fail_closed(tmp_path: Path):
+    path = tmp_path / "invalid-project-wide-manifests.sqlite3"
+    _create_catalogue(path)
+
+    manifests = [
+        {"state": "source_owned", "source": "caller-list", "run_ids": ["run:one", "run:two"]},
+        _trusted_inventory(run_ids=("run:one", "run:one"), kind="project_wide"),
+    ]
+    for manifest in manifests:
+        document = _project(path, project_wide=True, population_inventory=manifest).document
+        assert document["coverage"]["project_wide_population"]["reason_codes"] == ["MISSING_TRUSTED_RUN_INVENTORY"]
+        assert document["totals"]["project_wide"]["status"] == "NOT_AUTHORITATIVE"
+        assert document["totals"]["project_wide"]["authoritative_total"] is None
+        assert document["totals"]["observed_actual_subtotal"]["amount"] == "3.3"
+
+
 def test_intentionally_omitted_historical_run_is_not_hidden_by_local_equality(tmp_path: Path):
     path = tmp_path / "omitted-history.sqlite3"
     _create_catalogue(path)
@@ -498,7 +554,7 @@ def test_ambiguous_crossing_without_cost_vetoes_authority_even_when_population_i
     connection.commit()
     connection.close()
 
-    document = _project(path, project_wide=True, population_inventory=_trusted_inventory(kind="project_wide")).document
+    document = _project(path, project_wide=True, population_inventory=_trusted_inventory()).document
 
     assert document["coverage"]["project_wide_population"]["state"] == "complete"
     assert document["totals"]["observed_actual_subtotal"]["amount"] == "3.3"
