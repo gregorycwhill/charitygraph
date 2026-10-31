@@ -160,9 +160,68 @@ def test_conflicting_receipt_identity_fails_usage_closed():
     usage = result.document["provider_usage"]
     assert usage["state"] == "ambiguous"
     assert usage["receipt_count"] == 0
-    assert usage["input_tokens"] == 0
-    assert usage["output_tokens"] == 0
+    assert usage["input_tokens"] is None
+    assert usage["output_tokens"] is None
+    assert usage["coverage_reasons"] == ["AMBIGUOUS_RECEIPT_IDENTITY"]
     assert "AMBIGUOUS_RECEIPT_IDENTITY" in {issue["code"] for issue in result.document["issues"]}
+
+
+def test_missing_usage_fields_are_missing_with_null_totals():
+    result = project_operator_health(snapshot(receipts=[{"provider_receipt_id": "receipt:missing", "usage": {"input_tokens": 8}}]))
+
+    usage = result.document["provider_usage"]
+    assert usage["state"] == "missing"
+    assert usage["input_tokens"] is None
+    assert usage["output_tokens"] is None
+    assert usage["coverage_reasons"] == ["MISSING_PROVIDER_USAGE"]
+    assert "MISSING_PROVIDER_USAGE" in {issue["code"] for issue in result.document["issues"]}
+
+
+def test_malformed_usage_json_is_ambiguous_with_null_totals():
+    result = project_operator_health(snapshot(receipts=[{
+        "provider_receipt_id": "receipt:malformed",
+        "usage_json": '{"input_tokens": 4,',
+    }]))
+
+    usage = result.document["provider_usage"]
+    assert usage["state"] == "ambiguous"
+    assert usage["input_tokens"] is None
+    assert usage["output_tokens"] is None
+    assert usage["coverage_reasons"] == ["INVALID_USAGE_JSON"]
+    assert "INVALID_USAGE_JSON" in {issue["code"] for issue in result.document["issues"]}
+
+
+@pytest.mark.parametrize("value", [None, True, "not-a-number"])
+def test_invalid_usage_counts_are_ambiguous_with_null_totals(value):
+    result = project_operator_health(snapshot(receipts=[{
+        "provider_receipt_id": "receipt:invalid",
+        "input_tokens": value,
+        "output_tokens": 0,
+    }]))
+
+    usage = result.document["provider_usage"]
+    assert usage["state"] == "ambiguous"
+    assert usage["input_tokens"] is None
+    assert usage["output_tokens"] is None
+    assert usage["coverage_reasons"] == ["INVALID_PROVIDER_USAGE"]
+
+
+def test_explicit_zero_usage_is_observed_not_missing():
+    result = project_operator_health(snapshot(receipts=[{
+        "provider_receipt_id": "receipt:zero",
+        "input_tokens": 0,
+        "output_tokens": 0,
+    }]))
+
+    assert result.document["provider_usage"] == {
+        "basis": "deduplicated provider receipt identities only; no provider invocation",
+        "coverage_reasons": ["OBSERVED_COMPLETE_USAGE"],
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "receipt_count": 1,
+        "receipts_with_usage": 1,
+        "state": "observed",
+    }
 
 
 def test_identical_reservation_identity_is_counted_once():

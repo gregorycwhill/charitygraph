@@ -92,6 +92,8 @@ _ACTIVE = {"planned", "ready", "leased", "running", "prepared", "submitted", "in
 _SUCCESS = {"succeeded", "success", "completed", "validated", "receipt_persisted"}
 _FAILURE = {"failed", "failed_retryable", "failed_terminal", "cancelled", "expired", "rejected"}
 _AMBIGUOUS = {"ambiguous", "send_ambiguous", "provider_crossing_ambiguous"}
+_USAGE_MISSING = object()
+_USAGE_INVALID = object()
 
 
 def _value(value: Any, *names: str, default: Any = None) -> Any:
@@ -590,11 +592,40 @@ def _health_flags(snapshot: OperatorHealthSnapshot, rows: Sequence[Mapping[str, 
     return {key: sorted(value, key=lambda row: (str(row.get("run_id") or ""), str(row.get("id") or ""))) for key, value in flags.items()}
 
 
+def _usage_container(row: Mapping[str, Any]) -> tuple[Any, str | None]:
+    if "usage" in row:
+        usage = row["usage"]
+    else:
+        usage = _value(row, "usage_json", default=_USAGE_MISSING)
+        if isinstance(usage, str):
+            try:
+                usage = json.loads(usage)
+            except (TypeError, ValueError, json.JSONDecodeError):
+                return _USAGE_INVALID, "INVALID_USAGE_JSON"
+    if usage is _USAGE_MISSING or usage is None:
+        return usage, None
+    if not isinstance(usage, Mapping):
+        return _USAGE_INVALID, "INVALID_USAGE_SHAPE"
+    return usage, None
+
+
+def _usage_value(row: Mapping[str, Any], name: str) -> tuple[bool, Any]:
+    if name in row:
+        return True, row[name]
+    usage, _reason = _usage_container(row)
+    if isinstance(usage, Mapping) and name in usage:
+        return True, usage[name]
+    return False, None
+
+
 def _token_count(snapshot: OperatorHealthSnapshot, row: Mapping[str, Any], name: str, issues: list[dict[str, Any]]) -> int | None:
-    usage = _value(row, "usage", "usage_json", default={})
-    raw = _value(row, name, default=_value(usage, name, default=None))
+    present, raw = _usage_value(row, name)
+    if not present:
+        _issue(issues, "MISSING_PROVIDER_USAGE", "warning", f"receipt {_row_id(row, 'receipt', 0)} lacks required {name}", scope=_scope(snapshot), action="Reconcile provider usage before relying on token totals.")
+        return None
     if raw is None:
-        return 0
+        _issue(issues, "INVALID_PROVIDER_USAGE", "error", f"receipt {_row_id(row, 'receipt', 0)} has null {name}", scope=_scope(snapshot), action="Reconcile provider usage before relying on token totals.")
+        return None
     if isinstance(raw, bool):
         _issue(issues, "INVALID_PROVIDER_USAGE", "error", f"receipt {_row_id(row, 'receipt', 0)} has non-integer {name}", scope=_scope(snapshot), action="Reconcile provider usage before relying on token totals.")
         return None
@@ -610,6 +641,19 @@ def _token_count(snapshot: OperatorHealthSnapshot, row: Mapping[str, Any], name:
         _issue(issues, "INVALID_PROVIDER_USAGE", "error", f"receipt {_row_id(row, 'receipt', 0)} has negative {name}", scope=_scope(snapshot), action="Reconcile provider usage before relying on token totals.")
         return None
     return value
+
+
+def _usage_marker(row: Mapping[str, Any]) -> tuple[str | None, str | None]:
+    state = _value(row, "usage_coverage_state")
+    reason = _value(row, "usage_coverage_reason")
+    if not (isinstance(state, str) and state.strip()):
+        _container, parse_reason = _usage_container(row)
+        if parse_reason is not None:
+            return "ambiguous", parse_reason
+    return (
+        state.strip().lower() if isinstance(state, str) and state.strip() else None,
+        reason.strip() if isinstance(reason, str) and reason.strip() else None,
+    )
 
 
 def _per_run(snapshot: OperatorHealthSnapshot, groups: Mapping[str, Sequence[Mapping[str, Any]]], issues: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -671,15 +715,57 @@ def project_operator_health(snapshot: Any) -> OperatorHealthProjection:
     input_tokens = 0
     output_tokens = 0
     usage_invalid = False
+    usage_missing = False
+    usage_reasons: set[str] = set()
     for receipt in identified_receipts:
+        marker_state, marker_reason = _usage_marker(receipt)
+        if marker_state in {"ambiguous", "invalid"}:
+            usage_invalid = True
+            usage_reasons.add(marker_reason or "INVALID_PROVIDER_USAGE")
+            _issue(
+                issues,
+                marker_reason or "INVALID_PROVIDER_USAGE",
+                "error",
+                f"receipt {_row_id(receipt, 'receipt', 0)} has ambiguous provider usage coverage",
+                scope=_scope(data, run_ids=[str(_value(receipt, "run_id"))] if _value(receipt, "run_id") else []),
+                action="Reconcile provider usage before relying on token totals.",
+            )
+            continue
+        if marker_state == "missing":
+            usage_missing = True
+            usage_reasons.add(marker_reason or "MISSING_PROVIDER_USAGE")
+            _issue(
+                issues,
+                marker_reason or "MISSING_PROVIDER_USAGE",
+                "warning",
+                f"receipt {_row_id(receipt, 'receipt', 0)} has incomplete provider usage coverage",
+                scope=_scope(data, run_ids=[str(_value(receipt, "run_id"))] if _value(receipt, "run_id") else []),
+                action="Reconcile provider usage before relying on token totals.",
+            )
+            continue
+        before = len(issues)
         input_value = _token_count(data, receipt, "input_tokens", issues)
         output_value = _token_count(data, receipt, "output_tokens", issues)
         if input_value is None or output_value is None:
-            usage_invalid = True
+            new_codes = {str(issue["code"]) for issue in issues[before:]}
+            if "INVALID_PROVIDER_USAGE" in new_codes:
+                usage_invalid = True
+                usage_reasons.add("INVALID_PROVIDER_USAGE")
+            else:
+                usage_missing = True
+                usage_reasons.add("MISSING_PROVIDER_USAGE")
             continue
         input_tokens += input_value
         output_tokens += output_value
-    usage_state = "ambiguous" if ambiguous_receipts or unidentifiable_receipts or usage_invalid else ("observed" if identified_receipts else "missing")
+    if ambiguous_receipts:
+        usage_reasons.add("AMBIGUOUS_RECEIPT_IDENTITY")
+    if unidentifiable_receipts:
+        usage_reasons.add("UNIDENTIFIABLE_RECEIPT_IDENTITY")
+    if not identified_receipts and not ambiguous_receipts and not unidentifiable_receipts:
+        usage_reasons.add("NO_IDENTIFIED_RECEIPTS")
+    usage_state = "ambiguous" if ambiguous_receipts or unidentifiable_receipts or usage_invalid else ("missing" if usage_missing or not identified_receipts else "observed")
+    if usage_state == "observed":
+        usage_reasons.add("OBSERVED_COMPLETE_USAGE")
     for observation in data.observations:
         if str(_value(observation, "state", default="")) in {"ambiguous", "stale", "missing"}:
             _issue(issues, "FACTUAL_OBSERVATION_LIMIT", "warning", "an explicitly supplied observation limits health interpretation", scope=_scope(data, run_ids=[str(_value(observation, "run_id"))] if _value(observation, "run_id") else []), action="Review the supplied observation and retain its uncertainty state.")
@@ -694,7 +780,7 @@ def project_operator_health(snapshot: Any) -> OperatorHealthProjection:
         "latency": {"queue_wait": _latency(data, data.requests, issues, "created_at", "submitted_at", "queue_wait"), "provider_crossing": _latency(data, data.requests, issues, "send_started_at", "received_at", "provider_crossing"), "completion": _latency(data, data.requests, issues, "submitted_at", "completed_at", "completion")},
         "scheduling": {"health": "OBSERVED" if any(_value(row, "scheduled_at") is not None and _value(row, "started_at") is not None for row in data.requests) else UNKNOWN, "sample_count": sum(1 for row in data.requests if _value(row, "scheduled_at") is not None and _value(row, "started_at") is not None), "lag": _latency(data, data.requests, issues, "scheduled_at", "started_at", "scheduling"), "basis": "explicit scheduled_at_to_started_at pairs only"},
         "flags": flags,
-        "provider_usage": {"state": usage_state, "receipt_count": len(receipt_rows), "receipts_with_usage": sum(1 for row in identified_receipts if _value(row, "usage", "usage_json", "input_tokens", "output_tokens") is not None) if not unidentifiable_receipts and not usage_invalid else None, "input_tokens": None if unidentifiable_receipts or usage_invalid else input_tokens, "output_tokens": None if unidentifiable_receipts or usage_invalid else output_tokens, "basis": "deduplicated provider receipt identities only; no provider invocation"},
+        "provider_usage": {"state": usage_state, "receipt_count": len(receipt_rows), "receipts_with_usage": len(identified_receipts) if usage_state == "observed" else None, "input_tokens": input_tokens if usage_state == "observed" else None, "output_tokens": output_tokens if usage_state == "observed" else None, "coverage_reasons": sorted(usage_reasons), "basis": "deduplicated provider receipt identities only; no provider invocation"},
         "cost": _costs(data, issues),
         "per_run": _per_run(data, groups={**groups, "attempts": data.attempts}, issues=issues),
         "issues": sorted(issues, key=lambda issue: (str(issue.get("severity")), str(issue.get("code")), str(issue.get("message")))),

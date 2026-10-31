@@ -115,6 +115,7 @@ def test_persisted_catalogue_adapter_is_bounded_read_only_and_stable(tmp_path: P
     assert first.snapshot.coverage["run_selection"] == {"requested": [RUN], "found": [RUN], "missing": [], "bounded": True}
     assert first.document["provider_usage"] == {
         "basis": "deduplicated provider receipt identities only; no provider invocation",
+        "coverage_reasons": ["OBSERVED_COMPLETE_USAGE"],
         "input_tokens": 10,
         "output_tokens": 4,
         "receipt_count": 1,
@@ -128,6 +129,38 @@ def test_persisted_catalogue_adapter_is_bounded_read_only_and_stable(tmp_path: P
     assert first.document["per_run"][0]["scope_ids"] == ["scope:one", "scope:two"]
     assert first.document["catalogue_integration"]["coverage"]["source_lineage"]["source_id"] == "source:runtime-catalogue"
     assert "UNIDENTIFIABLE_RECEIPT_IDENTITY" in {issue["code"] for issue in first.document["issues"]}
+
+
+@pytest.mark.parametrize(
+    ("usage_json", "expected_state", "expected_issue"),
+    [
+        ('{"input_tokens": 4}', "missing", "MISSING_REQUIRED_TOKEN_COUNTS"),
+        ('{"input_tokens": "bad", "output_tokens": 2}', "ambiguous", "INVALID_PROVIDER_USAGE"),
+        ('{"input_tokens": 1.5, "output_tokens": 2}', "ambiguous", "INVALID_PROVIDER_USAGE"),
+        ('{"input_tokens": 4, "output_tokens":', "ambiguous", "INVALID_USAGE_JSON"),
+    ],
+)
+def test_adapter_usage_missingness_is_explicit_and_payload_free(tmp_path: Path, usage_json, expected_state, expected_issue):
+    path = tmp_path / "usage.sqlite3"
+    _create_catalogue(path)
+    connection = sqlite3.connect(path)
+    connection.execute("UPDATE provider_receipts SET usage_json = ? WHERE provider_receipt_id = ?", (usage_json, "receipt:one"))
+    connection.commit()
+    connection.close()
+
+    projection = _adapter(path).project()
+    usage = projection.document["provider_usage"]
+
+    assert usage["state"] == expected_state
+    if expected_state == "observed":
+        assert usage["input_tokens"] == 4
+        assert usage["output_tokens"] == 2
+    else:
+        assert usage["input_tokens"] is None
+        assert usage["output_tokens"] is None
+    if expected_issue:
+        assert expected_issue in {issue["code"] for issue in projection.document["issues"]}
+    assert "bad" not in projection.canonical_json.decode("utf-8")
 
 
 def test_connection_is_forced_query_only_and_source_lineage_is_explicit(tmp_path: Path):

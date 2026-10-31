@@ -59,6 +59,8 @@ _SAFE_FIELDS: dict[str, tuple[str, ...]] = {
     "cost_entries": ("entry_key", "run_id", "task_run_id", "reservation_id", "entry_type", "provider_amount", "provider_currency", "accounting_amount", "aud_amount", "adjustment_direction", "accounting_currency", "pricing_snapshot_id", "fx_snapshot_id", "recorded_at"),
 }
 
+_USAGE_REQUIRED_FIELDS = ("input_tokens", "output_tokens")
+
 
 def _canonical_bytes(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -79,23 +81,58 @@ def _safe_row(row: Mapping[str, Any], fields: Sequence[str]) -> dict[str, Any]:
     return {field: row[field] for field in fields if field in row and row[field] is not None}
 
 
+def _valid_usage_count(value: Any) -> bool:
+    if value is None or isinstance(value, bool):
+        return False
+    if isinstance(value, int):
+        return value >= 0
+    if isinstance(value, str):
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError, OverflowError):
+            return False
+        return parsed >= 0 and str(parsed) == value
+    return False
+
+
 def _usage_row(row: Mapping[str, Any], issues: list[dict[str, Any]], identifier: str) -> dict[str, Any]:
     projected = _safe_row(row, _SAFE_FIELDS["receipts"])
     raw = row.get("usage_json")
     if raw is None:
+        projected["usage_coverage_state"] = "missing"
+        projected["usage_coverage_reason"] = "MISSING_USAGE_JSON"
+        issues.append({"code": "MISSING_USAGE_JSON", "severity": "warning", "message": f"receipt {identifier} usage_json is missing"})
         return projected
     try:
         usage = json.loads(raw) if isinstance(raw, str) else raw
     except (TypeError, ValueError, json.JSONDecodeError):
+        projected["usage_coverage_state"] = "ambiguous"
+        projected["usage_coverage_reason"] = "INVALID_USAGE_JSON"
         issues.append({"code": "INVALID_USAGE_JSON", "severity": "error", "message": f"receipt {identifier} usage_json is not valid structured JSON"})
         return projected
     if not isinstance(usage, Mapping):
+        projected["usage_coverage_state"] = "ambiguous"
+        projected["usage_coverage_reason"] = "INVALID_USAGE_SHAPE"
         issues.append({"code": "INVALID_USAGE_SHAPE", "severity": "error", "message": f"receipt {identifier} usage_json is not an object"})
         return projected
     # Usage is the only receipt material needed by the diagnostic.  Do not
     # retain arbitrary provider response fields, even transiently in the
     # structured snapshot.
-    projected["usage"] = {name: usage[name] for name in ("input_tokens", "output_tokens") if name in usage}
+    invalid_fields = [
+        name for name in _USAGE_REQUIRED_FIELDS
+        if name in usage and not _valid_usage_count(usage[name])
+    ]
+    for name in invalid_fields:
+        issues.append({"code": "INVALID_PROVIDER_USAGE", "severity": "error", "message": f"receipt {identifier} has an invalid {name} type"})
+    projected["usage"] = {name: usage[name] for name in _USAGE_REQUIRED_FIELDS if name in usage and name not in invalid_fields}
+    missing_fields = [name for name in _USAGE_REQUIRED_FIELDS if name not in usage]
+    if invalid_fields:
+        projected["usage_coverage_state"] = "ambiguous"
+        projected["usage_coverage_reason"] = "INVALID_PROVIDER_USAGE"
+    elif missing_fields:
+        projected["usage_coverage_state"] = "missing"
+        projected["usage_coverage_reason"] = "MISSING_REQUIRED_TOKEN_COUNTS"
+        issues.append({"code": "MISSING_REQUIRED_TOKEN_COUNTS", "severity": "warning", "message": f"receipt {identifier} lacks required token counts"})
     return projected
 
 
