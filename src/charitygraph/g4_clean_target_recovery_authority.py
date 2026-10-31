@@ -1,10 +1,10 @@
-"""Pure, dormant authority validation for clean-target T4E recovery.
+"""Pure, dormant structural validation for clean-target T4E recovery.
 
-The candidate envelope is deliberately not authority.  A later bridge may pass
-an independently obtained :class:`TrustedRecoveryPins` value alongside it.
-This module compares the two records and returns a serialisable dry-run plan;
-it does not inspect Git, read source bytes, verify signatures, or perform a
-transaction.
+The candidate envelope and pin record are deliberately not authority.  A
+future bridge may supply an active execution context and host-readback
+implementation, but this pure module has no way to authenticate either one.
+It therefore only returns a non-actionable structural result and never grants
+execution eligibility.
 """
 from __future__ import annotations
 
@@ -12,16 +12,18 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any, Mapping, Protocol
 
 
 RECOVERY_AUTHORITY_VERSION = "recovery-authority-v1"
 PLAN_SCHEMA = "charitygraph.recovery-plan/v1"
+STRUCTURE_VERIFIED_BUT_HOST_AUTHENTICATION_REQUIRED = (
+    "STRUCTURE_VERIFIED_BUT_HOST_AUTHENTICATION_REQUIRED"
+)
 EXPECTED_REPOSITORY = "charitygraph"
 EXPECTED_BRANCH = "gate3-cg406-remediation"
-EXPECTED_HEAD = "070c96a854e1a2ba8e674f21d06f3df602d86006"
-EXPECTED_FENCE_VERSION = "v71"
-EXPECTED_FENCE_SHA256 = "b7eee29b72031f3b3ca501c381921ac28a139304a5782d5709b02159e7bab689"
+POLICY_PROVENANCE_EPOCH = "g4-t4e-recovery-policy-v1"
+RECOVERY_POLICY_PROVENANCE_EPOCH = POLICY_PROVENANCE_EPOCH
 
 EXPECTED_ARTIFACTS = (
     (
@@ -44,6 +46,7 @@ _PIN_FIELDS = frozenset(
         "head",
         "fence_version",
         "fence_sha256",
+        "policy_provenance_epoch",
         "source_instruction_id",
         "source_instruction_sha256",
         "source_result_id",
@@ -61,15 +64,27 @@ _PIN_FIELDS = frozenset(
         "artifact_hashes",
     }
 )
+_ACTIVE_CONTEXT_FIELDS = frozenset(
+    {
+        "repository",
+        "workspace",
+        "branch",
+        "head",
+        "fence_version",
+        "fence_sha256",
+        "policy_provenance_epoch",
+    }
+)
 
 
 @dataclass(frozen=True)
 class TrustedRecoveryPins:
-    """Supervisor/bridge values supplied independently of the candidate.
+    """Evidence pins supplied by a later host integration.
 
-    These pins are inputs to validation, not values inferred from a candidate
-    self-hash, signature, report body, or source bytes.  ``artifact_hashes``
-    is a tuple so the object is immutable and straightforward to transport.
+    These values are inputs to structural validation only.  Constructing this
+    object does not establish independent origin, even though the dataclass is
+    immutable.  ``artifact_hashes`` is a tuple so the object is straightforward
+    to transport.
     """
 
     repository: str
@@ -78,6 +93,7 @@ class TrustedRecoveryPins:
     head: str
     fence_version: str
     fence_sha256: str
+    policy_provenance_epoch: str
     source_instruction_id: str
     source_instruction_sha256: str
     source_result_id: str
@@ -118,6 +134,54 @@ class TrustedRecoveryPins:
 
 # A descriptive alias keeps the later bridge call-site readable.
 IndependentRecoveryPins = TrustedRecoveryPins
+
+
+@dataclass(frozen=True)
+class ActiveBridgeExecutionContext:
+    """The exact active target read back by a future authenticated host.
+
+    This is intentionally separate from the immutable policy/evidence pins.
+    The dataclass carries shape for the future bridge boundary; it is not an
+    authentication credential and cannot make this pure validator actionable.
+    """
+
+    repository: str
+    workspace: str
+    branch: str
+    head: str
+    fence_version: str
+    fence_sha256: str
+    policy_provenance_epoch: str = POLICY_PROVENANCE_EPOCH
+
+    @classmethod
+    def from_mapping(cls, value: Mapping[str, Any]) -> "ActiveBridgeExecutionContext":
+        """Construct an active-context value from a bridge-shaped mapping."""
+
+        if not isinstance(value, Mapping) or set(value) != _ACTIVE_CONTEXT_FIELDS:
+            raise ValueError("active bridge context must contain exactly its context fields")
+        return cls(**{key: value[key] for key in _ACTIVE_CONTEXT_FIELDS})
+
+
+class RecoveryHostReadback(Protocol):
+    """Narrow future bridge seam; implementation and authentication are later work.
+
+    A host implementation must read the current status, fence, result and
+    report bytes, and obtain their independently trusted SHA pins.  Merely
+    implementing this protocol or returning caller-supplied values is not
+    accepted by this module.
+    """
+
+    def active_execution_context(self) -> ActiveBridgeExecutionContext: ...
+
+    def status_bytes(self) -> bytes: ...
+
+    def fence_bytes(self) -> bytes: ...
+
+    def result_bytes(self) -> bytes: ...
+
+    def report_bytes(self) -> bytes: ...
+
+    def independently_trusted_sha256(self, name: str) -> str: ...
 
 
 def canonical_envelope_bytes(envelope: Mapping[str, Any]) -> bytes:
@@ -164,10 +228,14 @@ def _valid_pin_values(pins: TrustedRecoveryPins, reasons: list[str]) -> None:
         reasons.append("trusted_repository_invalid")
     if pins.branch != EXPECTED_BRANCH:
         reasons.append("trusted_branch_invalid")
-    if pins.head != EXPECTED_HEAD:
-        reasons.append("trusted_head_mismatch")
-    if pins.fence_version != EXPECTED_FENCE_VERSION or pins.fence_sha256 != EXPECTED_FENCE_SHA256:
-        reasons.append("trusted_fence_mismatch")
+    if (
+        not isinstance(pins.fence_version, str)
+        or not pins.fence_version.startswith("v")
+        or not pins.fence_version[1:].isdigit()
+    ):
+        reasons.append("trusted_fence_version_invalid")
+    if pins.policy_provenance_epoch != POLICY_PROVENANCE_EPOCH:
+        reasons.append("trusted_policy_provenance_invalid")
     for field in (
         "fence_sha256", "source_instruction_sha256", "source_result_sha256",
         "reconciliation_report_sha256", "reconciliation_result_sha256", "manifest_sha256",
@@ -195,23 +263,28 @@ def _blocked(reasons: list[str]) -> dict[str, Any]:
     }
 
 
-def _eligible_plan(envelope: Mapping[str, Any], pins: TrustedRecoveryPins) -> dict[str, Any]:
+def _structure_verified_plan(
+    envelope: Mapping[str, Any],
+    pins: TrustedRecoveryPins,
+    context: ActiveBridgeExecutionContext,
+) -> dict[str, Any]:
     candidate = envelope["candidate"]
     source = envelope["source"]
     reconciliation = envelope["reconciliation"]
     tests = envelope["tests"]
     return {
         "schema": PLAN_SCHEMA,
-        "status": "DRY_RUN_ELIGIBLE",
-        "action": "DRY_RUN_ONLY",
+        "status": STRUCTURE_VERIFIED_BUT_HOST_AUTHENTICATION_REQUIRED,
+        "action": "NONE",
         "authority_version": RECOVERY_AUTHORITY_VERSION,
+        "policy_provenance_epoch": pins.policy_provenance_epoch,
         "target": {
-            "repository": pins.repository,
-            "workspace": pins.workspace,
-            "branch": pins.branch,
-            "head": pins.head,
-            "fence_version": pins.fence_version,
-            "fence_sha256": pins.fence_sha256,
+            "repository": context.repository,
+            "workspace": context.workspace,
+            "branch": context.branch,
+            "head": context.head,
+            "fence_version": context.fence_version,
+            "fence_sha256": context.fence_sha256,
         },
         "source": {
             "instruction_id": source["instruction"]["id"],
@@ -241,6 +314,7 @@ def _eligible_plan(envelope: Mapping[str, Any], pins: TrustedRecoveryPins) -> di
         },
         "limitations": {
             "dormant": True,
+            "host_authentication_required": True,
             "t3_rights": "BLOCKED",
             "provider_promotion": False,
             "rights_promotion": False,
@@ -253,12 +327,16 @@ def _eligible_plan(envelope: Mapping[str, Any], pins: TrustedRecoveryPins) -> di
 def validate_recovery_authority(
     envelope: Mapping[str, Any],
     trusted_pins: TrustedRecoveryPins | Mapping[str, Any] | None,
+    active_context: ActiveBridgeExecutionContext | Mapping[str, Any] | None = None,
+    host_readback: RecoveryHostReadback | None = None,
 ) -> dict[str, Any]:
-    """Validate a candidate against independent pins and return a dry-run plan.
+    """Validate structure against pins and an active context, never authority.
 
     Every failure is represented as ``{"status": "BLOCKED", ...}`` rather
     than raising or partially authorising a transaction.  No field in the
-    candidate can establish provenance on its own.
+    candidate, pin object, context object, or host protocol implementation can
+    establish provenance on its own.  ``host_readback`` is reserved for the
+    separately reviewed bridge integration and is rejected here if supplied.
     """
 
     reasons: list[str] = []
@@ -271,27 +349,58 @@ def validate_recovery_authority(
     _valid_pin_values(pins, reasons)
     if reasons:
         return _blocked(reasons)
+    if active_context is None:
+        return _blocked(["active_execution_context_missing"])
+    try:
+        context = (
+            active_context
+            if isinstance(active_context, ActiveBridgeExecutionContext)
+            else ActiveBridgeExecutionContext.from_mapping(active_context)
+        )
+    except (TypeError, ValueError):
+        return _blocked(["active_execution_context_invalid"])
+    if host_readback is not None:
+        return _blocked(["host_authentication_integration_unavailable"])
     if not isinstance(envelope, Mapping):
         return _blocked(["envelope_shape_invalid"])
 
     top_keys = {
-        "schema", "target", "source", "candidate", "reconciliation", "tests", "target_state", "scope"
+        "schema", "policy_provenance_epoch", "target", "source", "candidate",
+        "reconciliation", "tests", "target_state", "scope"
     }
     if set(envelope) != top_keys:
         reasons.append("envelope_keys_invalid")
         return _blocked(reasons)
     if envelope["schema"] != f"charitygraph.{RECOVERY_AUTHORITY_VERSION}":
         reasons.append("envelope_version_invalid")
+    if envelope["policy_provenance_epoch"] != pins.policy_provenance_epoch:
+        reasons.append("policy_provenance_mismatch")
 
     target_keys = {"repository", "workspace", "branch", "head", "fence"}
     if _exact(envelope["target"], target_keys, "target", reasons):
         target = envelope["target"]
-        if any(target[field] != getattr(pins, field) for field in ("repository", "workspace", "branch", "head")):
+        if any(
+            target[field] != getattr(context, field)
+            or target[field] != getattr(pins, field)
+            for field in ("repository", "workspace", "branch", "head")
+        ):
             reasons.append("target_identity_mismatch")
         if not _exact(target["fence"], {"version", "sha256"}, "fence", reasons):
             pass
-        elif target["fence"]["version"] != pins.fence_version or target["fence"]["sha256"] != pins.fence_sha256:
+        elif any(
+            target["fence"][field] != getattr(context, context_field)
+            or target["fence"][field] != getattr(pins, context_field)
+            for field, context_field in (("version", "fence_version"), ("sha256", "fence_sha256"))
+        ):
             reasons.append("fence_mismatch")
+
+    if any(
+        getattr(context, field) != getattr(pins, field)
+        for field in ("repository", "workspace", "branch", "head", "fence_version", "fence_sha256")
+    ):
+        reasons.append("active_context_mismatch")
+    if context.policy_provenance_epoch != pins.policy_provenance_epoch:
+        reasons.append("active_policy_provenance_mismatch")
 
     source_keys = {"instruction", "result"}
     if _exact(envelope["source"], source_keys, "source", reasons):
@@ -400,7 +509,7 @@ def validate_recovery_authority(
 
     if reasons:
         return _blocked(reasons)
-    return _eligible_plan(envelope, pins)
+    return _structure_verified_plan(envelope, pins, context)
 
 
 # Short integration spelling for a later bridge caller.
@@ -408,13 +517,15 @@ validate = validate_recovery_authority
 
 
 __all__ = [
+    "ActiveBridgeExecutionContext",
     "EXPECTED_ARTIFACTS",
-    "EXPECTED_HEAD",
-    "EXPECTED_FENCE_SHA256",
-    "EXPECTED_FENCE_VERSION",
     "EXPECTED_TEST_COUNTS",
     "IndependentRecoveryPins",
+    "POLICY_PROVENANCE_EPOCH",
     "RECOVERY_AUTHORITY_VERSION",
+    "RECOVERY_POLICY_PROVENANCE_EPOCH",
+    "RecoveryHostReadback",
+    "STRUCTURE_VERIFIED_BUT_HOST_AUTHENTICATION_REQUIRED",
     "TrustedRecoveryPins",
     "canonical_envelope_bytes",
     "validate",

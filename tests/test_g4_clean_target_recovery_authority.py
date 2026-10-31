@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+from dataclasses import replace
 from typing import Any
 
 import pytest
@@ -14,14 +15,15 @@ def _sha(label: str) -> str:
     return hashlib.sha256(label.encode()).hexdigest()
 
 
-def _pins() -> authority.TrustedRecoveryPins:
+def _pins(*, head: str = "6c88e7da57d85bd4eaf86961b54547668c3eabfd", fence_version: str = "v72") -> authority.TrustedRecoveryPins:
     return authority.TrustedRecoveryPins(
         repository="charitygraph",
         workspace=r"C:\CharityGraph-runtime\clean-target",
-        branch=authority.EXPECTED_BRANCH,
-        head=authority.EXPECTED_HEAD,
-        fence_version=authority.EXPECTED_FENCE_VERSION,
-        fence_sha256=authority.EXPECTED_FENCE_SHA256,
+        branch="gate3-cg406-remediation",
+        head=head,
+        fence_version=fence_version,
+        fence_sha256=_sha(f"fence-{fence_version}"),
+        policy_provenance_epoch=authority.POLICY_PROVENANCE_EPOCH,
         source_instruction_id="instruction-t4e-timeout-20261031",
         source_instruction_sha256=_sha("instruction"),
         source_result_id="result-t4e-timeout-20261031",
@@ -39,9 +41,22 @@ def _pins() -> authority.TrustedRecoveryPins:
     )
 
 
+def _context(pins: authority.TrustedRecoveryPins) -> authority.ActiveBridgeExecutionContext:
+    return authority.ActiveBridgeExecutionContext(
+        repository=pins.repository,
+        workspace=pins.workspace,
+        branch=pins.branch,
+        head=pins.head,
+        fence_version=pins.fence_version,
+        fence_sha256=pins.fence_sha256,
+        policy_provenance_epoch=pins.policy_provenance_epoch,
+    )
+
+
 def _envelope(pins: authority.TrustedRecoveryPins) -> dict[str, Any]:
     return {
         "schema": "charitygraph.recovery-authority-v1",
+        "policy_provenance_epoch": pins.policy_provenance_epoch,
         "target": {
             "repository": pins.repository,
             "workspace": pins.workspace,
@@ -106,19 +121,24 @@ def _envelope(pins: authority.TrustedRecoveryPins) -> dict[str, Any]:
     }
 
 
-def _assert_blocked(envelope: dict[str, Any], pins: authority.TrustedRecoveryPins, reason: str) -> None:
-    plan = authority.validate_recovery_authority(envelope, pins)
+def _assert_blocked(
+    envelope: dict[str, Any],
+    pins: authority.TrustedRecoveryPins,
+    reason: str,
+    context: authority.ActiveBridgeExecutionContext | None = None,
+) -> None:
+    plan = authority.validate_recovery_authority(envelope, pins, context or _context(pins))
     assert plan["status"] == "BLOCKED"
     assert reason in plan["reasons"]
     assert plan["action"] == "NONE"
 
 
-def test_positive_shape_returns_serialisable_dry_run_plan_without_bytes():
+def test_dynamic_v72_shape_is_structural_only_and_not_actionable():
     pins = _pins()
     envelope = _envelope(pins)
-    plan = authority.validate_recovery_authority(envelope, pins)
-    assert plan["status"] == "DRY_RUN_ELIGIBLE"
-    assert plan["action"] == "DRY_RUN_ONLY"
+    plan = authority.validate_recovery_authority(envelope, pins, _context(pins))
+    assert plan["status"] == authority.STRUCTURE_VERIFIED_BUT_HOST_AUTHENTICATION_REQUIRED
+    assert plan["action"] == "NONE"
     assert plan["source"]["terminal_state"] == "CODEX_EXECUTION_TIMEOUT"
     assert plan["candidate"]["files"] == list(envelope["candidate"]["files"])
     assert plan["tests"]["focused_passed"] == 32
@@ -161,7 +181,7 @@ def test_primary_negative_shapes_fail_closed(mutation, reason):
 
 
 def test_missing_independent_pins_never_becomes_authority():
-    plan = authority.validate_recovery_authority(_envelope(_pins()), None)
+    plan = authority.validate_recovery_authority(_envelope(_pins()), None, _context(_pins()))
     assert plan["status"] == "BLOCKED"
     assert plan["reasons"] == ["independent_provenance_missing"]
 
@@ -176,7 +196,7 @@ def test_candidate_self_hash_cannot_replace_independent_pins():
 def test_trusted_pin_allowlist_is_bound_to_the_two_exact_files():
     pins = _pins()
     altered = authority.TrustedRecoveryPins(**{**pins.__dict__, "artifact_hashes": (("other", "4" * 64),)})
-    plan = authority.validate_recovery_authority(_envelope(pins), altered)
+    plan = authority.validate_recovery_authority(_envelope(pins), altered, _context(pins))
     assert plan["status"] == "BLOCKED"
     assert "trusted_artifact_allowlist_invalid" in plan["reasons"]
 
@@ -184,7 +204,7 @@ def test_trusted_pin_allowlist_is_bound_to_the_two_exact_files():
 def test_trusted_pins_cannot_retarget_the_validator_to_another_branch():
     pins = _pins()
     altered = authority.TrustedRecoveryPins(**{**pins.__dict__, "branch": "other-branch"})
-    plan = authority.validate_recovery_authority(_envelope(pins), altered)
+    plan = authority.validate_recovery_authority(_envelope(pins), altered, _context(pins))
     assert plan["status"] == "BLOCKED"
     assert "trusted_branch_invalid" in plan["reasons"]
 
@@ -204,4 +224,70 @@ def test_dirty_staged_untracked_and_ignored_target_is_blocked():
     envelope["target_state"]["untracked_paths"] = ["untracked"]
     envelope["target_state"]["ignored_paths"] = ["ignored"]
     _assert_blocked(envelope, pins, "target_dirty")
+
+
+def test_dynamic_v73_context_is_structurally_valid_but_not_promoted():
+    pins = _pins(
+        head="7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d",
+        fence_version="v73",
+    )
+    plan = authority.validate_recovery_authority(_envelope(pins), pins, _context(pins))
+    assert plan["status"] == authority.STRUCTURE_VERIFIED_BUT_HOST_AUTHENTICATION_REQUIRED
+    assert plan["action"] == "NONE"
+    assert plan["target"]["head"] == pins.head
+    assert plan["target"]["fence_version"] == "v73"
+
+
+def test_caller_controlled_pins_and_context_never_obtain_execution_eligibility():
+    pins = _pins()
+    plan = authority.validate_recovery_authority(_envelope(pins), pins, _context(pins))
+    assert plan["status"] != "DRY_RUN_ELIGIBLE"
+    assert plan["action"] == "NONE"
+    assert "host_authentication_required" in plan["limitations"]
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("head", "0" * 40),
+        ("fence_version", "v71"),
+        ("fence_sha256", _sha("historical-fence")),
+        ("workspace", r"C:\other-workspace"),
+    ],
+)
+def test_mismatched_active_context_fails_closed(field, value):
+    pins = _pins()
+    context = replace(_context(pins), **{field: value})
+    plan = authority.validate_recovery_authority(_envelope(pins), pins, context)
+    assert plan["status"] == "BLOCKED"
+    assert "active_context_mismatch" in plan["reasons"]
+
+
+def test_host_readback_seam_is_not_an_authentication_credential():
+    pins = _pins()
+
+    class CallerMadeReadback:
+        def active_execution_context(self):
+            return _context(pins)
+
+        def status_bytes(self):
+            return b"status"
+
+        def fence_bytes(self):
+            return b"fence"
+
+        def result_bytes(self):
+            return b"result"
+
+        def report_bytes(self):
+            return b"report"
+
+        def independently_trusted_sha256(self, name):
+            return _sha(name)
+
+    plan = authority.validate_recovery_authority(
+        _envelope(pins), pins, _context(pins), CallerMadeReadback()
+    )
+    assert plan["status"] == "BLOCKED"
+    assert plan["reasons"] == ["host_authentication_integration_unavailable"]
 
