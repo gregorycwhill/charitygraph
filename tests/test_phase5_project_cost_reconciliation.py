@@ -6,8 +6,10 @@ import sqlite3
 from pathlib import Path
 
 from charitygraph.phase5_project_cost_reconciliation import (
+    reconcile_project_cost_snapshot,
     project_phase5_project_cost_reconciliation,
 )
+from charitygraph.phase5_operator_health_catalogue import Phase5OperatorHealthCatalogueAdapter
 
 
 AS_OF = "2026-10-31T00:00:00+00:00"
@@ -117,6 +119,12 @@ def test_stale_schema_is_unknown_and_empty_data_is_not_zero(tmp_path: Path):
     assert empty_document["totals"]["actual_incurred_charges"]["state"] == "missing"
     assert empty_document["totals"]["actual_incurred_charges"]["amount"] is None
     assert "MISSING_REQUESTED_RUN" in {item["code"] for item in empty_document["blockers"]}
+
+    empty_project_document = _project(empty, run_ids=("run:missing",), project_wide=True).document
+    assert empty_project_document["coverage"]["project_wide_population"]["state"] == "incomplete"
+    assert "EMPTY_SOURCE_RUN_INVENTORY" in empty_project_document["coverage"]["project_wide_population"]["reason_codes"]
+    assert empty_project_document["totals"]["project_wide"]["authoritative_total"] is None
+    assert empty_project_document["totals"]["project_wide"]["remaining_spend"] is None
 
 
 def test_ambiguous_crossing_and_unknown_cost_are_unreconciled(tmp_path: Path):
@@ -341,3 +349,90 @@ def test_supported_partial_charge_is_not_presented_as_project_total(tmp_path: Pa
     assert {row["identity"]["provider_receipt_id"] for row in document["charges"]} == {"receipt:two"}
     assert document["totals"]["actual_incurred_charges"]["state"] == "unknown"
     assert document["totals"]["actual_incurred_charges"]["amount"] is None
+
+
+def test_project_wide_schema29_population_can_authorise_persisted_total(tmp_path: Path):
+    path = tmp_path / "project-wide.sqlite3"
+    _create_catalogue(path)
+
+    document = _project(path, project_wide=True).document
+
+    population = document["coverage"]["project_wide_population"]
+    assert population["state"] == "complete"
+    assert population["expected_run_ids"] == ["run:one", "run:two"]
+    assert population["observed_run_ids"] == ["run:one", "run:two"]
+    assert document["coverage"]["project_wide_completeness_proven"] is True
+    assert document["totals"]["observed_actual_subtotal"]["amount"] == "3.3"
+    assert document["totals"]["project_wide"] == {
+        "status": "AUTHORITATIVE",
+        "authoritative_total": "3.3",
+        "currency": "AUD",
+        "remaining_spend": None,
+        "basis": "complete source-owned schema29 run population and exact persisted runtime cost/receipt linkage",
+        "reason_codes": [],
+    }
+
+
+def test_population_missing_run_attempt_receipt_and_cost_is_explicit(tmp_path: Path):
+    path = tmp_path / "population-missingness.sqlite3"
+    _create_catalogue(path)
+    connection = sqlite3.connect(path)
+    connection.execute("DELETE FROM task_attempts WHERE task_run_id='taskrun:two'")
+    connection.execute("DELETE FROM provider_receipts WHERE provider_receipt_id='receipt:two'")
+    connection.execute("DELETE FROM cost_entries WHERE entry_key='cost:two'")
+    connection.commit()
+    connection.close()
+
+    document = _project(path, project_wide=True).document
+    run_two = next(row for row in document["coverage"]["project_wide_population"]["run_diagnostics"] if row["run_id"] == "run:two")
+    assert run_two["missingness"] == ["MISSING_COST_RECORD", "MISSING_PROVIDER_RECEIPT_RECORD", "MISSING_TASK_ATTEMPT_RECORD"]
+    assert document["coverage"]["project_wide_population"]["state"] == "incomplete"
+    assert document["totals"]["observed_actual_subtotal"]["amount"] == "1.1"
+    assert document["totals"]["project_wide"]["status"] == "NOT_AUTHORITATIVE"
+    assert document["totals"]["project_wide"]["authoritative_total"] is None
+    assert document["totals"]["project_wide"]["remaining_spend"] is None
+
+
+def test_stale_schema27_population_cannot_become_project_authority(tmp_path: Path):
+    path = tmp_path / "stale-project-wide.sqlite3"
+    _create_catalogue(path, schema_version=27)
+
+    document = _project(path, project_wide=True).document
+
+    population = document["coverage"]["project_wide_population"]
+    assert population["state"] == "incomplete"
+    assert "STALE_OR_UNSUPPORTED_SCHEMA" in population["reason_codes"]
+    assert document["coverage"]["state"] == "unknown"
+    assert document["totals"]["project_wide"]["status"] == "NOT_AUTHORITATIVE"
+    assert document["totals"]["project_wide"]["authoritative_total"] is None
+    assert document["totals"]["project_wide"]["remaining_spend"] is None
+
+
+def test_declared_source_population_missing_run_is_not_silently_zero(tmp_path: Path):
+    path = tmp_path / "missing-run-inventory.sqlite3"
+    _create_catalogue(path)
+    snapshot = Phase5OperatorHealthCatalogueAdapter(
+        path,
+        run_ids=("run:one",),
+        as_of=AS_OF,
+        reporting_window_start=START,
+        reporting_window_end=AS_OF,
+        source_id="source:test",
+    ).read_snapshot()
+
+    document = reconcile_project_cost_snapshot(
+        snapshot,
+        population_inventory={
+            "state": "source_owned",
+            "source": "persisted_schema29_runs",
+            "schema_version": 29,
+            "run_ids": ["run:one", "run:two"],
+        },
+    ).document
+
+    population = document["coverage"]["project_wide_population"]
+    assert population["state"] == "incomplete"
+    assert population["missing_run_ids"] == ["run:two"]
+    assert document["totals"]["observed_actual_subtotal"]["amount"] == "1.1"
+    assert document["totals"]["project_wide"]["status"] == "NOT_AUTHORITATIVE"
+    assert document["totals"]["project_wide"]["authoritative_total"] is None

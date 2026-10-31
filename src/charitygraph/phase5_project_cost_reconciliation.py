@@ -17,9 +17,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .phase5_operator_health_catalogue import (
@@ -281,10 +283,305 @@ def _boundary_diagnostic(
     }, reasons
 
 
+def _discover_persisted_run_inventory(
+    catalogue: str | Path | sqlite3.Connection,
+) -> dict[str, Any]:
+    """Read the source-owned run population without widening the row export.
+
+    The existing catalogue adapter deliberately requires an explicit run
+    selection.  A project-wide diagnostic therefore discovers only the
+    source-owned ``runs.run_id`` inventory here, then passes those exact IDs to
+    that adapter for the bounded typed export.  This helper never creates or
+    mutates a database and never reads provider payloads.
+    """
+
+    owned = False
+    connection: sqlite3.Connection
+    if isinstance(catalogue, sqlite3.Connection):
+        connection = catalogue
+    else:
+        path = Path(catalogue)
+        if not path.is_file():
+            return {
+                "state": "unknown",
+                "source": "persisted_schema29_runs",
+                "run_ids": [],
+                "reason_codes": ["SOURCE_CATALOGUE_UNAVAILABLE"],
+            }
+        wal_path = Path(str(path) + "-wal")
+        if wal_path.exists() and wal_path.stat().st_size:
+            return {
+                "state": "unknown",
+                "source": "persisted_schema29_runs",
+                "run_ids": [],
+                "reason_codes": ["UNSTABLE_SOURCE_CATALOGUE_WAL"],
+            }
+        try:
+            connection = sqlite3.connect(path.resolve().as_uri() + "?mode=ro&immutable=1", uri=True, timeout=5.0)
+        except sqlite3.Error:
+            return {
+                "state": "unknown",
+                "source": "persisted_schema29_runs",
+                "run_ids": [],
+                "reason_codes": ["SOURCE_CATALOGUE_UNREADABLE"],
+            }
+        owned = True
+
+    try:
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA query_only=ON")
+        tables = {
+            str(row[0])
+            for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+        }
+        if "schema_migrations" not in tables or "runs" not in tables:
+            return {
+                "state": "unknown",
+                "source": "persisted_schema29_runs",
+                "run_ids": [],
+                "reason_codes": ["SOURCE_RUN_INVENTORY_UNAVAILABLE"],
+            }
+        row = connection.execute("SELECT MAX(version) FROM schema_migrations").fetchone()
+        schema_version = None if row is None or row[0] is None else int(row[0])
+        run_columns = {str(item[1]) for item in connection.execute("PRAGMA table_info(runs)").fetchall()}
+        if "run_id" not in run_columns:
+            return {
+                "state": "unknown",
+                "source": "persisted_schema29_runs",
+                "schema_version": schema_version,
+                "run_ids": [],
+                "reason_codes": ["SOURCE_RUN_ID_COLUMN_UNAVAILABLE"],
+            }
+        run_ids = tuple(
+            sorted(
+                {
+                    str(item[0])
+                    for item in connection.execute("SELECT run_id FROM runs WHERE run_id IS NOT NULL ORDER BY run_id").fetchall()
+                    if item[0] not in (None, "")
+                }
+            )
+        )
+        reasons = []
+        if schema_version != 29:
+            reasons.append("STALE_OR_UNSUPPORTED_SCHEMA")
+        if not run_ids:
+            reasons.append("EMPTY_SOURCE_RUN_INVENTORY")
+        return {
+            "state": "source_owned" if not reasons else "incomplete",
+            "source": "persisted_schema29_runs",
+            "schema_version": schema_version,
+            "run_ids": list(run_ids),
+            "reason_codes": reasons,
+        }
+    except (sqlite3.Error, TypeError, ValueError):
+        return {
+            "state": "unknown",
+            "source": "persisted_schema29_runs",
+            "run_ids": [],
+            "reason_codes": ["SOURCE_RUN_INVENTORY_UNREADABLE"],
+        }
+    finally:
+        if owned:
+            connection.close()
+
+
+def _population_diagnostic(
+    snapshot: Phase5CatalogueSnapshot,
+    inventory: Mapping[str, Any] | None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Compare the source-owned run inventory with every persisted cost path."""
+
+    observed_run_ids = sorted(str(value) for value in snapshot.run_ids_found)
+    if inventory is None:
+        return {
+            "state": "unknown",
+            "source": None,
+            "expected_run_ids": None,
+            "observed_run_ids": observed_run_ids,
+            "missing_run_ids": [],
+            "run_diagnostics": [],
+            "reason_codes": ["EXPECTED_RUN_INVENTORY_UNAVAILABLE"],
+        }, []
+
+    raw_expected = inventory.get("run_ids")
+    expected_run_ids: list[str] | None = (
+        sorted({str(value) for value in raw_expected})
+        if inventory.get("state") != "unknown" and isinstance(raw_expected, Sequence) and not isinstance(raw_expected, (str, bytes, bytearray))
+        else None
+    )
+    reasons = [str(value) for value in inventory.get("reason_codes", ())]
+    blockers: list[dict[str, Any]] = []
+    if inventory.get("state") == "unknown":
+        reasons.append("EXPECTED_RUN_INVENTORY_UNAVAILABLE")
+    if inventory.get("state") != "source_owned":
+        reasons.append("SOURCE_RUN_INVENTORY_NOT_COMPLETE")
+    if expected_run_ids == []:
+        reasons.append("EMPTY_SOURCE_RUN_INVENTORY")
+
+    records = snapshot.records
+    runs = tuple(records.get("runs", ()))
+    tasks = tuple(records.get("tasks", ()))
+    task_attempts = tuple(records.get("task_attempts", ()))
+    requests = tuple(records.get("requests", ()))
+    attempts = tuple(records.get("attempts", ()))
+    physical = tuple(records.get("physical", ()))
+    receipts = tuple(records.get("receipts", ()))
+    reservations = tuple(records.get("reservations", ()))
+    cost_entries = tuple(records.get("cost_entries", ()))
+
+    task_to_run = {
+        _identifier(row, "model_task_id", "task_id"): _identifier(row, "run_id")
+        for row in tasks
+        if _identifier(row, "model_task_id", "task_id") and _identifier(row, "run_id")
+    }
+    request_to_run = {
+        _identifier(row, "provider_request_item_id", "request_item_id", "request_id"): _identifier(row, "run_id")
+        for row in requests
+        if _identifier(row, "provider_request_item_id", "request_item_id", "request_id") and _identifier(row, "run_id")
+    }
+    physical_to_run = {
+        _identifier(row, "physical_attempt_id"): _identifier(row, "run_id")
+        for row in physical
+        if _identifier(row, "physical_attempt_id") and _identifier(row, "run_id")
+    }
+    task_attempt_run = {
+        _identifier(row, "task_run_id", "attempt_id"): task_to_run.get(_identifier(row, "model_task_id", "task_id") or "")
+        for row in task_attempts
+        if _identifier(row, "task_run_id", "attempt_id")
+    }
+    attempt_run = {
+        _identifier(row, "delivery_attempt_id", "attempt_id"): request_to_run.get(_identifier(row, "provider_request_item_id", "request_item_id") or "")
+        for row in attempts
+        if _identifier(row, "delivery_attempt_id", "attempt_id")
+    }
+    receipt_run = {
+        _identifier(row, "provider_receipt_id", "receipt_id"): physical_to_run.get(_identifier(row, "physical_attempt_id") or "")
+        for row in receipts
+        if _identifier(row, "provider_receipt_id", "receipt_id")
+    }
+    expected_ids_for_rows = expected_run_ids or []
+    counts_by_run: dict[str, dict[str, int]] = {
+        run_id: {name: 0 for name in ("runs", "tasks", "task_attempts", "requests", "attempts", "physical", "receipts", "reservations", "cost_entries")}
+        for run_id in expected_ids_for_rows
+    }
+    for row in runs:
+        run_id = _identifier(row, "run_id")
+        if run_id in counts_by_run:
+            counts_by_run[run_id]["runs"] += 1
+    for row in tasks:
+        run_id = _identifier(row, "run_id")
+        if run_id in counts_by_run:
+            counts_by_run[run_id]["tasks"] += 1
+    for row in task_attempts:
+        run_id = task_attempt_run.get(_identifier(row, "task_run_id", "attempt_id") or "")
+        if run_id in counts_by_run:
+            counts_by_run[run_id]["task_attempts"] += 1
+    for row in requests:
+        run_id = _identifier(row, "run_id")
+        if run_id in counts_by_run:
+            counts_by_run[run_id]["requests"] += 1
+    for row in attempts:
+        run_id = attempt_run.get(_identifier(row, "delivery_attempt_id", "attempt_id") or "")
+        if run_id in counts_by_run:
+            counts_by_run[run_id]["attempts"] += 1
+    for row in physical:
+        run_id = _identifier(row, "run_id")
+        if run_id in counts_by_run:
+            counts_by_run[run_id]["physical"] += 1
+    for row in receipts:
+        run_id = receipt_run.get(_identifier(row, "provider_receipt_id", "receipt_id") or "")
+        if run_id in counts_by_run:
+            counts_by_run[run_id]["receipts"] += 1
+    for row in reservations:
+        run_id = _identifier(row, "run_id")
+        if run_id in counts_by_run:
+            counts_by_run[run_id]["reservations"] += 1
+    for row in cost_entries:
+        run_id = _identifier(row, "run_id")
+        if run_id in counts_by_run:
+            counts_by_run[run_id]["cost_entries"] += 1
+
+    task_ids_by_run: dict[str, set[str]] = {run_id: set() for run_id in expected_ids_for_rows}
+    request_ids_by_run: dict[str, set[str]] = {run_id: set() for run_id in expected_ids_for_rows}
+    physical_ids_by_run: dict[str, set[str]] = {run_id: set() for run_id in expected_ids_for_rows}
+    request_physical_ids_by_run: dict[str, set[str]] = {run_id: set() for run_id in expected_ids_for_rows}
+    for row in tasks:
+        run_id = _identifier(row, "run_id")
+        task_id = _identifier(row, "model_task_id", "task_id")
+        if run_id in task_ids_by_run and task_id:
+            task_ids_by_run[run_id].add(task_id)
+    for row in requests:
+        run_id = _identifier(row, "run_id")
+        request_id = _identifier(row, "provider_request_item_id", "request_item_id", "request_id")
+        if run_id in request_ids_by_run and request_id:
+            request_ids_by_run[run_id].add(request_id)
+        physical_id = _identifier(row, "physical_attempt_id")
+        if run_id in request_physical_ids_by_run and physical_id:
+            request_physical_ids_by_run[run_id].add(physical_id)
+    for row in physical:
+        run_id = _identifier(row, "run_id")
+        physical_id = _identifier(row, "physical_attempt_id")
+        if run_id in physical_ids_by_run and physical_id:
+            physical_ids_by_run[run_id].add(physical_id)
+    task_attempt_task_ids = {_identifier(row, "model_task_id", "task_id") for row in task_attempts}
+    attempt_request_ids = {_identifier(row, "provider_request_item_id", "request_item_id") for row in attempts}
+    receipt_physical_ids = {_identifier(row, "physical_attempt_id") for row in receipts}
+
+    run_diagnostics: list[dict[str, Any]] = []
+    for run_id in expected_ids_for_rows:
+        counts = counts_by_run[run_id]
+        missing: list[str] = []
+        if counts["runs"] == 0:
+            missing.append("MISSING_RUN_RECORD")
+        if task_ids_by_run[run_id] - task_attempt_task_ids:
+            missing.append("MISSING_TASK_ATTEMPT_RECORD")
+        if request_ids_by_run[run_id] - attempt_request_ids:
+            missing.append("MISSING_DELIVERY_ATTEMPT_RECORD")
+        if request_physical_ids_by_run[run_id] - set(physical_to_run):
+            missing.append("MISSING_PHYSICAL_ATTEMPT_RECORD")
+        if physical_ids_by_run[run_id] - receipt_physical_ids:
+            missing.append("MISSING_PROVIDER_RECEIPT_RECORD")
+        if (counts["tasks"] or counts["requests"] or counts["physical"] or counts["receipts"] or counts["reservations"]) and not counts["cost_entries"]:
+            missing.append("MISSING_COST_RECORD")
+        if missing:
+            reasons.extend(missing)
+        run_diagnostics.append({
+            "run_id": run_id,
+            "state": "complete" if not missing else "incomplete",
+            "record_counts": counts,
+            "missingness": sorted(set(missing)),
+        })
+
+    missing_run_ids = sorted(set(expected_ids_for_rows) - set(observed_run_ids))
+    if missing_run_ids:
+        reasons.append("MISSING_RUN_RECORD")
+    if expected_run_ids is not None and sorted(set(expected_run_ids)) != observed_run_ids:
+        reasons.append("SOURCE_RUN_SCOPE_MISMATCH")
+    reasons = sorted(set(reasons))
+    for code in reasons:
+        if code in {"EXPECTED_RUN_INVENTORY_UNAVAILABLE", "SOURCE_RUN_INVENTORY_NOT_COMPLETE", "EMPTY_SOURCE_RUN_INVENTORY"}:
+            severity = "error"
+        else:
+            severity = "error"
+        blockers.append(_blocker(code, 1, severity=severity, identities=missing_run_ids if code == "MISSING_RUN_RECORD" else ()))
+    state = "complete" if inventory.get("state") == "source_owned" and not reasons else "incomplete" if inventory.get("state") != "unknown" else "unknown"
+    return {
+        "state": state,
+        "source": inventory.get("source"),
+        "schema_version": inventory.get("schema_version"),
+        "expected_run_ids": expected_run_ids,
+        "observed_run_ids": observed_run_ids,
+        "missing_run_ids": missing_run_ids,
+        "run_diagnostics": run_diagnostics,
+        "reason_codes": reasons,
+    }, blockers
+
+
 def reconcile_project_cost_snapshot(
     snapshot: Phase5CatalogueSnapshot,
     *,
     coverage_boundary: Mapping[str, Any] | None = None,
+    population_inventory: Mapping[str, Any] | None = None,
 ) -> ProjectCostReconciliationProjection:
     """Reconcile one explicit multi-run catalogue snapshot without I/O."""
 
@@ -358,7 +655,14 @@ def reconcile_project_cost_snapshot(
         selected_run_ids=snapshot.run_ids_requested,
         found_run_ids=found_run_ids,
     )
-    blockers.extend(boundary_blockers)
+    population, population_blockers = _population_diagnostic(snapshot, population_inventory)
+    # A source-owned schema29 run inventory is the completeness boundary for
+    # this diagnostic.  The older caller-supplied external boundary remains
+    # visible, but its absence must not make a complete persisted catalogue
+    # look like it has no population boundary at all.
+    if population_inventory is None or population_inventory.get("source") != "persisted_schema29_runs":
+        blockers.extend(boundary_blockers)
+    blockers.extend(population_blockers)
 
     cohort_ids = set()
     for row in reservations:
@@ -898,6 +1202,32 @@ def reconcile_project_cost_snapshot(
     reserved.update({"gross": gross_record, "reserved": reserved_record, "released": released_record, "net": net_record, "remaining_spend": _amount_record("unknown" if reservation_records else "missing", None, len(reservation_records), "migration-29 export has no remaining-spend authority")})
     estimates = _amount_record("estimate" if estimate_records else "missing", estimate_total if estimate_records else None, len(estimate_records), "explicit estimate/forecast rows only" if estimate_records else "no explicit estimate or forecast rows")
 
+    observed_subtotal_state = "known" if charge_records and not actual_unreconciled_ids else "partial" if charge_records else "missing"
+    observed_subtotal = {
+        "state": observed_subtotal_state,
+        "amount": _decimal_text(known_actual_total) if charge_records else None,
+        "currency": "AUD" if charge_records else None,
+        "entry_count": len(charge_records),
+        "excluded_entry_count": len(actual_unreconciled_ids),
+        "reason": "known receipt-linked actual rows in this bounded source export; not a project-wide total" if charge_records else "no receipt-linked actual rows were safely observed",
+    }
+    authority_reasons: list[str] = []
+    if population["state"] != "complete":
+        authority_reasons.append("PROJECT_WIDE_POPULATION_INCOMPLETE")
+    if schema_state != "supported":
+        authority_reasons.append("STALE_OR_UNSUPPORTED_SCHEMA")
+    if not charge_records or actual_unreconciled_ids or known_charge_state != "known":
+        authority_reasons.append("ACTUAL_COST_ROWS_NOT_FULLY_RECONCILED")
+    authority_reasons = sorted(set(authority_reasons))
+    project_wide_authority = {
+        "status": "AUTHORITATIVE" if not authority_reasons else "NOT_AUTHORITATIVE",
+        "authoritative_total": _decimal_text(known_actual_total) if not authority_reasons else None,
+        "currency": "AUD" if not authority_reasons else None,
+        "remaining_spend": None,
+        "basis": "complete source-owned schema29 run population and exact persisted runtime cost/receipt linkage" if not authority_reasons else "persisted source export is bounded or incomplete; no project-wide total is defensible",
+        "reason_codes": authority_reasons,
+    }
+
     document = {
         "schema": SCHEMA,
         "schema_version": SCHEMA_VERSION,
@@ -923,16 +1253,19 @@ def reconcile_project_cost_snapshot(
             "basis": "existing Phase5OperatorHealthCatalogueAdapter read-only allowlist plus mechanical runtime joins",
         },
         "coverage": {
-            "state": coverage_state,
+            "state": "complete" if project_wide_authority["status"] == "AUTHORITATIVE" else coverage_state,
             "runtime_export": snapshot.coverage,
             "schema": schema,
             "run_selection": snapshot.coverage.get("run_selection", {}),
             "project_wide_boundary": boundary,
-            "project_wide_completeness_proven": boundary["state"] == "authenticated_complete" and not blockers,
+            "project_wide_population": population,
+            "project_wide_completeness_proven": project_wide_authority["status"] == "AUTHORITATIVE",
         },
         "record_counts": {"runs": len(runs), "tasks": len(tasks), "requests": len(requests), "attempts": len(attempts), "receipts": len(receipts), "reservations": len(reservations), "cost_entries": len(cost_entries)},
         "totals": {
             "actual_incurred_charges": actual,
+            "observed_actual_subtotal": observed_subtotal,
+            "project_wide": project_wide_authority,
             "reservations": reserved,
             "estimates": estimates,
             "known_charge_basis": "only rows with exact Decimal AUD amount, pricing/FX identifiers, stable receipt identity, complete runtime linkage and non-ambiguous crossing are included",
@@ -967,6 +1300,8 @@ def project_phase5_project_cost_reconciliation(
     evidence_basis: str = "persisted Phase-5 runtime catalogue; provider evidence not claimed",
     coverage_boundary: Mapping[str, Any] | None = None,
     ledger: Mapping[str, Any] | None = None,
+    project_wide: bool = False,
+    population_inventory: Mapping[str, Any] | None = None,
 ) -> ProjectCostReconciliationProjection:
     """Read selected persisted runs and project a project-wide diagnostic.
 
@@ -975,9 +1310,16 @@ def project_phase5_project_cost_reconciliation(
     explicit authenticated boundary fields validated by this module.
     """
 
+    selected_run_ids = tuple(str(value) for value in run_ids)
+    inventory = population_inventory
+    if project_wide and inventory is None:
+        inventory = _discover_persisted_run_inventory(catalogue)
+        discovered_run_ids = tuple(str(value) for value in inventory.get("run_ids", ()))
+        if discovered_run_ids:
+            selected_run_ids = discovered_run_ids
     adapter = Phase5OperatorHealthCatalogueAdapter(
         catalogue,
-        run_ids=run_ids,
+        run_ids=selected_run_ids,
         as_of=as_of,
         reporting_window_start=reporting_window_start,
         reporting_window_end=reporting_window_end,
@@ -985,7 +1327,11 @@ def project_phase5_project_cost_reconciliation(
         evidence_basis=evidence_basis,
         ledger=ledger,
     )
-    return reconcile_project_cost_snapshot(adapter.read_snapshot(), coverage_boundary=coverage_boundary or ledger)
+    return reconcile_project_cost_snapshot(
+        adapter.read_snapshot(),
+        coverage_boundary=coverage_boundary or ledger,
+        population_inventory=inventory,
+    )
 
 
 def project_phase5_cost_reconciliation(*args: Any, **kwargs: Any) -> ProjectCostReconciliationProjection:
