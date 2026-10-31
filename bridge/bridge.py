@@ -57,6 +57,12 @@ SUPERVISOR_WORKSPACE_NAME = "cg-g4-o1c-supervisor-workspace.json"
 SUPERVISOR_LEDGER_NAME = "cg-g4-o1c-supervisor-ledger.json"
 INSTRUCTION_PREFIX = "cg-g4-o1b-instruction-"
 INSTRUCTION_SUFFIX = ".json"
+# A separate text/plain Doc-export decoder exists, but this prefix is not part
+# of the live candidate set.  Activation requires a separately authorised
+# integration; preserving this raw-JSON-only set is a deliberate safety fence.
+DOC_EXPORT_PREFIX = "cg-g4-o1b-doc-export-"
+DOC_EXPORT_SUFFIX = ".txt"
+DOC_EXPORT_INGRESS_ACTIVE = False
 RESULT_PREFIX = "cg-g4-o1b-result-"
 ENGINEERING_RESULT_PREFIX = "cg-g4-o1c-result-"
 ENGINEERING_OPERATION = "codex_engineering"
