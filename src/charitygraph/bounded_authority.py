@@ -14,6 +14,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from charitygraph.windows_process import quiet_subprocess_kwargs
+
 
 IMPLEMENTATION_AUTHORITY_VERSION = "charitygraph.g4-o1d-local-implementation/v1"
 IMPLEMENTATION_SCOPE = "bounded_local_builder_code_change"
@@ -59,8 +61,34 @@ class WorkspaceSnapshot:
 def _git(repo: Path, *args: str, raw: bool = False) -> str | bytes:
     command = ["git", "-c", f"safe.directory={repo}", *args]
     if raw:
-        return subprocess.check_output(command, cwd=repo, stderr=subprocess.STDOUT)
-    return subprocess.check_output(command, cwd=repo, text=True, stderr=subprocess.STDOUT).strip()
+        return subprocess.check_output(command, cwd=repo, stderr=subprocess.STDOUT, **quiet_subprocess_kwargs())
+    return subprocess.check_output(command, cwd=repo, text=True, stderr=subprocess.STDOUT, **quiet_subprocess_kwargs()).strip()
+
+
+def _index_fingerprints(repo: Path) -> dict[str, str]:
+    """Return staged-object identities using one Git invocation for all paths.
+
+    A workspace snapshot needs to detect index-only changes as well as
+    worktree-byte changes.  Calling ``git diff`` once per dirty path made a
+    large dirty baseline expensive and, on Windows, created a burst of console
+    child processes.  The index already provides a per-path identity, so one
+    ``ls-files -s -z`` read supplies the same staged-change protection.
+    """
+    raw = bytes(_git(repo, "ls-files", "-s", "-z", raw=True))
+    by_path: dict[str, list[str]] = {}
+    for record in raw.split(b"\0"):
+        if not record or b"\t" not in record:
+            continue
+        metadata, path_raw = record.split(b"\t", 1)
+        parts = metadata.decode("ascii", errors="strict").split()
+        if len(parts) != 3:
+            raise OSError("Git index entry has an unexpected format")
+        path = path_raw.decode("utf-8", errors="surrogateescape").replace("\\", "/")
+        by_path.setdefault(path, []).append(":".join(parts))
+    return {
+        path: hashlib.sha256("\0".join(sorted(entries)).encode("ascii")).hexdigest()
+        for path, entries in by_path.items()
+    }
 
 
 def _status_paths(status: str) -> dict[str, str]:
@@ -126,19 +154,16 @@ def capture_workspace(
         "utf-8", errors="surrogateescape"
     ).rstrip("\r\n")
     paths = _status_paths(status)
+    index_fingerprints = _index_fingerprints(root)
     entries: dict[str, tuple[str, str, str]] = {}
     dirty_file_baselines: dict[str, DirtyFileBaseline] = {}
     adopted_file_baselines: dict[str, str] = {}
     for relative, status_code in paths.items():
         path = root / relative
-        try:
-            diff = bytes(_git(root, "diff", "--binary", "HEAD", "--", relative, raw=True))
-        except subprocess.CalledProcessError:
-            diff = b""
         entries[relative] = (
             status_code,
             _file_sha(path),
-            hashlib.sha256(diff).hexdigest(),
+            index_fingerprints.get(relative, "<not-indexed>"),
         )
         if relative in adopted:
             # Adoption is deliberately narrower than dirty-file reconciliation:
@@ -277,6 +302,7 @@ def validate_clean_commit_paths(workspace: WorkspaceSnapshot, *, allowed_paths: 
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             check=False,
+            **quiet_subprocess_kwargs(),
         )
         if tracked.returncode != 0:
             raise DirtyBaselineViolation(f"ordinary commit path is an existing non-tracked file: {relative}")
@@ -402,6 +428,7 @@ def verify_allowed_changes(before: WorkspaceSnapshot, after: WorkspaceSnapshot, 
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 check=False,
+                **quiet_subprocess_kwargs(),
             )
         if merged.returncode != 0 or merged.stdout != after_bytes:
             if reconciliation_evidence_dir is not None:

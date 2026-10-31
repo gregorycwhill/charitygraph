@@ -19,6 +19,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from charitygraph.windows_process import quiet_subprocess_kwargs
+
 
 class BridgeError(RuntimeError):
     """Base class for fail-closed bridge errors."""
@@ -226,8 +228,20 @@ class LocalAutonomousBridge:
         if self.workspace != Path(target["workspace_path"]).resolve():
             raise InvalidInstruction("target workspace does not match configured host workspace")
         try:
-            head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.workspace, text=True, stderr=subprocess.STDOUT).strip()
-            branch = subprocess.check_output(["git", "branch", "--show-current"], cwd=self.workspace, text=True, stderr=subprocess.STDOUT).strip()
+            head = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"],
+                cwd=self.workspace,
+                text=True,
+                stderr=subprocess.STDOUT,
+                **quiet_subprocess_kwargs(),
+            ).strip()
+            branch = subprocess.check_output(
+                ["git", "branch", "--show-current"],
+                cwd=self.workspace,
+                text=True,
+                stderr=subprocess.STDOUT,
+                **quiet_subprocess_kwargs(),
+            ).strip()
         except (OSError, subprocess.CalledProcessError) as exc:
             raise InvalidInstruction(f"unable to verify target workspace: {exc}") from exc
         if head != target["head"] or branch != target["branch"]:
