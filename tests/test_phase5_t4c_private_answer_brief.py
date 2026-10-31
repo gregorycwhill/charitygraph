@@ -37,10 +37,14 @@ def test_composes_five_subjects_fifteen_slots_and_ten_hash_bindings():
     assert len(brief.subjects) == 5
     assert len(brief.answer_slots) == 15
     assert len(brief.source_hash_bindings) == 10
+    assert len(brief.source_rights_bindings) == 10
+    assert len(set(brief.source_rights_bindings)) == 10
     assert {subject.display_name for subject in brief.subjects} == set(LABELS.values())
     assert len({digest for _source_record_id, digest in brief.source_hash_bindings}) == 10
     assert len(brief.north_star_coverage) == 20
     assert brief.north_star_coverage[-1].section_id == 20
+    assert brief.document["schema"] == "charitygraph.gate4.e3.private-answer-brief/v2"
+    assert brief.document["north_star_projection_contract"] == "north-star-v0.3"
 
 
 def test_supported_comparison_values_keep_provenance_and_period_basis():
@@ -55,6 +59,13 @@ def test_supported_comparison_values_keep_provenance_and_period_basis():
         assert all(value.fact_vs_source_statement_vs_inference == "fact" for value in cited_values)
         assert all(value.source_record_id.startswith("srcrec:") for value in cited_values)
         assert all(len(value.representation_sha256) == 64 for value in cited_values)
+        assert all(value.source_role in {"register_identity", "annual_information_statement"} for value in cited_values)
+        assert all(len(value.rights_record_id) == 64 for value in cited_values)
+        assert all(value.rights_policy_id == "CG_PUBLIC_SOURCE_PRIVATE_PROVIDER_TRANSMISSION_V1" for value in cited_values)
+        assert all(value.rights_policy_version == "1.0.0" for value in cited_values)
+        assert all(value.provider_processing_status == "blocked_provider_contract_not_bound" for value in cited_values)
+        assert all(value.public_redistribution_status == "not_assessed" for value in cited_values)
+        assert all(value.binding_status == "bound_not_task_eligible" for value in cited_values)
         assert all(value.field_basis for value in cited_values)
         assert subject.comparison.reporting_period.reporting_period is not None
         assert subject.comparison.reporting_period.source_family == "acnc_ais_bundle"
@@ -69,6 +80,8 @@ def test_currentness_missingness_is_preserved_and_not_negative():
         assert currentness.answer is None
         assert currentness.missingness is not None
         assert currentness.missingness["source_silence_is_not_absence"] is True
+        assert currentness.missingness["status"] == "source_silent"
+        assert currentness.missingness["assessment_basis"]["kind"] == "reviewed_source_silence"
         assert set(currentness.missingness["dimensions"]) == {
             "current_giving_terms",
             "current_service_capacity",
@@ -105,6 +118,28 @@ def test_tampered_answer_hash_binding_is_rejected():
     tampered = replace(projection, records=(tampered_record,) + projection.records[1:])
 
     with pytest.raises(BriefCompositionError, match="hash inventory"):
+        compose_private_answer_brief(tampered, subject_labels=LABELS)
+
+
+@pytest.mark.parametrize("field", ["source_role", "rights_policy_id", "provider_processing_status", "public_redistribution_status"])
+def test_tampered_rights_carriage_is_rejected(field: str):
+    projection = _projection()
+    first = projection.records[0]
+    tampered_record = replace(first, **{field: "tampered"})
+    tampered = replace(projection, records=(tampered_record,) + projection.records[1:])
+
+    with pytest.raises(BriefCompositionError, match="answer envelope"):
+        compose_private_answer_brief(tampered, subject_labels=LABELS)
+
+
+def test_tampered_rights_inventory_is_rejected():
+    projection = _projection()
+    tampered_inventory = list(projection.source_rights_bindings)
+    source_record_id, digest, rights_record_id = tampered_inventory[0]
+    tampered_inventory[0] = (source_record_id, digest, "0" * 64)
+    tampered = replace(projection, source_rights_bindings=tuple(tampered_inventory))
+
+    with pytest.raises(BriefCompositionError, match="source/representation/rights inventory"):
         compose_private_answer_brief(tampered, subject_labels=LABELS)
 
 

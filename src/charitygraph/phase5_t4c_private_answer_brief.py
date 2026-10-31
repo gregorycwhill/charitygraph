@@ -14,6 +14,7 @@ from typing import Any, Mapping, Sequence
 from .phase5_t4b_source_answer_projection import (
     AnswerProjection,
     AnswerRecord,
+    MISSINGNESS_VOCABULARY,
     QUESTION_ACTIVITY,
     QUESTION_CURRENTNESS,
     QUESTION_SCALE,
@@ -34,6 +35,13 @@ class CitedValue:
     source_family: str
     source_record_id: str
     representation_sha256: str
+    source_role: str
+    rights_record_id: str
+    rights_policy_id: str
+    rights_policy_version: str
+    provider_processing_status: str
+    public_redistribution_status: str
+    binding_status: str
     source_date: str | None
     reporting_period: Mapping[str, str] | None
     fact_vs_source_statement_vs_inference: str
@@ -50,6 +58,13 @@ class CitedValue:
             source_family=record.source_family,
             source_record_id=record.source_record_id,
             representation_sha256=record.representation_sha256,
+            source_role=record.source_role,
+            rights_record_id=record.rights_record_id,
+            rights_policy_id=record.rights_policy_id,
+            rights_policy_version=record.rights_policy_version,
+            provider_processing_status=record.provider_processing_status,
+            public_redistribution_status=record.public_redistribution_status,
+            binding_status=record.binding_status,
             source_date=record.source_date,
             reporting_period=None if record.reporting_period is None else dict(record.reporting_period),
             fact_vs_source_statement_vs_inference=record.fact_vs_source_statement_vs_inference,
@@ -64,6 +79,13 @@ class CitedValue:
             "source_family": self.source_family,
             "source_record_id": self.source_record_id,
             "representation_sha256": self.representation_sha256,
+            "source_role": self.source_role,
+            "rights_record_id": self.rights_record_id,
+            "rights_policy_id": self.rights_policy_id,
+            "rights_policy_version": self.rights_policy_version,
+            "provider_processing_status": self.provider_processing_status,
+            "public_redistribution_status": self.public_redistribution_status,
+            "status": self.binding_status,
             "source_date": self.source_date,
             "reporting_period": None if self.reporting_period is None else dict(self.reporting_period),
             "fact_vs_source_statement_vs_inference": self.fact_vs_source_statement_vs_inference,
@@ -124,6 +146,7 @@ class NorthStarCoverage:
     status_by_subject: Mapping[str, str]
     basis: str
     missingness: tuple[str, ...]
+    projection_contract: str = "north-star-v0.3"
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -134,6 +157,7 @@ class NorthStarCoverage:
             "status_by_subject": dict(self.status_by_subject),
             "basis": self.basis,
             "missingness": list(self.missingness),
+            "projection_contract": self.projection_contract,
         }
 
 
@@ -166,19 +190,30 @@ class PrivateAnswerBrief:
     subjects: tuple[SubjectBrief, ...]
     answer_slots: tuple[AnswerRecord, ...]
     source_hash_bindings: tuple[tuple[str, str], ...]
+    source_rights_bindings: tuple[tuple[str, str, str], ...]
     north_star_coverage: tuple[NorthStarCoverage, ...]
     side_effects: Mapping[str, int]
 
     @property
     def document(self) -> dict[str, Any]:
         return {
-            "schema": "charitygraph.gate4.e3.private-answer-brief/v1",
+            "schema": "charitygraph.gate4.e3.private-answer-brief/v2",
             "answer_state_vocabulary": ["supported", "unanswered"],
+            "missingness_vocabulary": list(MISSINGNESS_VOCABULARY),
+            "north_star_projection_contract": "north-star-v0.3",
             "subjects": [subject.as_dict() for subject in self.subjects],
             "answer_slots": [record.as_dict() for record in self.answer_slots],
             "source_hash_bindings": [
                 {"source_record_id": source_record_id, "representation_sha256": digest}
                 for source_record_id, digest in self.source_hash_bindings
+            ],
+            "source_rights_bindings": [
+                {
+                    "source_record_id": source_record_id,
+                    "representation_sha256": representation_sha256,
+                    "rights_record_id": rights_record_id,
+                }
+                for source_record_id, representation_sha256, rights_record_id in self.source_rights_bindings
             ],
             "north_star_coverage": [entry.as_dict() for entry in self.north_star_coverage],
             "side_effects": dict(self.side_effects),
@@ -247,7 +282,20 @@ def _record_map(projection: AnswerProjection) -> dict[str, dict[str, AnswerRecor
         source_bindings[record.source_record_id] = record.representation_sha256
         if not record.source_references:
             raise BriefCompositionError("E2B answer slot has no source reference")
-        envelope_keys = ("subject_id", "scope_id", "source_family", "source_record_id", "representation_sha256")
+        envelope_keys = (
+            "subject_id",
+            "scope_id",
+            "source_family",
+            "source_record_id",
+            "representation_sha256",
+            "source_role",
+            "rights_record_id",
+            "rights_policy_id",
+            "rights_policy_version",
+            "provider_processing_status",
+            "public_redistribution_status",
+            "binding_status",
+        )
         if not any(
             all(getattr(record, key) == getattr(citation, key) for key in envelope_keys)
             for citation in record.source_references
@@ -259,6 +307,12 @@ def _record_map(projection: AnswerProjection) -> dict[str, dict[str, AnswerRecor
         raise BriefCompositionError("E2B projection must retain ten source-record/hash bindings")
     if set(projection.representation_hashes) != set(source_bindings.values()) or len(projection.representation_hashes) != 10:
         raise BriefCompositionError("E2B representation hash inventory does not match answer citations")
+    record_bindings = {
+        (record.source_record_id, record.representation_sha256, record.rights_record_id)
+        for record in projection.records
+    }
+    if len(record_bindings) != 10 or set(projection.source_rights_bindings) != record_bindings:
+        raise BriefCompositionError("E2B source/representation/rights inventory does not match answer citations")
     return grouped
 
 
@@ -367,6 +421,18 @@ def compose_private_answer_brief(
         currentness = records[QUESTION_CURRENTNESS]
         if currentness.answer_state != "unanswered" or currentness.answer is not None:
             raise BriefCompositionError("currentness slot must remain explicitly unanswered")
+        missingness = currentness.missingness
+        if not isinstance(missingness, Mapping) or missingness.get("status") != "source_silent":
+            raise BriefCompositionError("currentness slot must use governed source_silent missingness")
+        basis = missingness.get("assessment_basis")
+        if (
+            not isinstance(basis, Mapping)
+            or basis.get("contract") != "north-star-v0.3"
+            or basis.get("kind") != "reviewed_source_silence"
+        ):
+            raise BriefCompositionError("currentness missingness has no reviewed-source assessment basis")
+        if missingness.get("source_silence_is_not_absence") is not True:
+            raise BriefCompositionError("currentness source silence must not be treated as absence")
         if activity.scope_id != scale.scope_id or scale.scope_id != currentness.scope_id:
             raise BriefCompositionError("the three E2B slots do not share a scope")
         display_name = labels.get(subject_id, subject_id)
@@ -390,6 +456,9 @@ def compose_private_answer_brief(
     source_hash_bindings = tuple(
         sorted({(record.source_record_id, record.representation_sha256) for record in ordered_slots})
     )
+    source_rights_bindings = tuple(
+        sorted({(record.source_record_id, record.representation_sha256, record.rights_record_id) for record in ordered_slots})
+    )
     side_effects = dict(projection.side_effects)
     side_effects.setdefault("provider_calls", 0)
     side_effects.setdefault("transport_requests", 0)
@@ -401,6 +470,7 @@ def compose_private_answer_brief(
         subjects=tuple(subjects),
         answer_slots=ordered_slots,
         source_hash_bindings=source_hash_bindings,
+        source_rights_bindings=source_rights_bindings,
         north_star_coverage=_coverage(
             tuple(subject.subject_id for subject in subjects),
             activity_supported=all(subject.activity.answer_state == "supported" for subject in subjects),

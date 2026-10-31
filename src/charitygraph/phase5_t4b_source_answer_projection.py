@@ -28,6 +28,35 @@ QUESTION_SCALE = "retained_reporting_period_scale"
 QUESTION_CURRENTNESS = "current_giving_capacity_outcomes_governance_conduct"
 QUESTION_IDS = (QUESTION_ACTIVITY, QUESTION_SCALE, QUESTION_CURRENTNESS)
 
+MISSINGNESS_VOCABULARY = (
+    "evidence_present",
+    "not_found_in_reviewed_sources",
+    "source_silent",
+    "not_processed",
+    "source_unavailable",
+    "not_acquired",
+    "processing_failed",
+    "not_reviewed",
+    "unknown",
+    "not_applicable",
+    "withheld",
+    "stale",
+)
+_MISSINGNESS_BASIS_KIND = {
+    "evidence_present": "evidence_present",
+    "not_found_in_reviewed_sources": "reviewed_source_search",
+    "source_silent": "reviewed_source_silence",
+    "not_processed": "processing_not_performed",
+    "source_unavailable": "source_unavailable",
+    "not_acquired": "source_not_acquired",
+    "processing_failed": "processing_failed",
+    "not_reviewed": "review_scope_not_reviewed",
+    "unknown": "unknown_basis",
+    "not_applicable": "proposition_outside_scope",
+    "withheld": "governed_withholding",
+    "stale": "freshness_expired",
+}
+
 MISSING_CURRENTNESS = (
     "current_giving_terms",
     "current_service_capacity",
@@ -150,6 +179,21 @@ _EXPECTED_T3_SOURCE_BINDINGS = {
     },
 }
 
+# These are copied from the authenticated T3 rows as exact carriage values.
+# They are checked independently of the output dataclasses so a row cannot
+# silently change its role, rights policy, or operational/publication state.
+_EXPECTED_T3_CARRIAGE = {
+    ordinal: {
+        "source_role": "register_identity" if ordinal % 2 else "annual_information_statement",
+        "rights_policy_id": "CG_PUBLIC_SOURCE_PRIVATE_PROVIDER_TRANSMISSION_V1",
+        "rights_policy_version": "1.0.0",
+        "provider_processing_status": "blocked_provider_contract_not_bound",
+        "public_redistribution_status": "not_assessed",
+        "status": "bound_not_task_eligible",
+    }
+    for ordinal in range(1, 11)
+}
+
 
 class ProjectionValidationError(ValueError):
     """Raised when a retained identity or representation integrity check fails."""
@@ -163,6 +207,13 @@ class SourceCitation:
     source_record_id: str
     representation_sha256: str
     representation_locator: str
+    source_role: str
+    rights_record_id: str
+    rights_policy_id: str
+    rights_policy_version: str
+    provider_processing_status: str
+    public_redistribution_status: str
+    binding_status: str
     source_date: str | None
     reporting_period: Mapping[str, str] | None
 
@@ -174,6 +225,13 @@ class SourceCitation:
             "source_record_id": self.source_record_id,
             "representation_sha256": self.representation_sha256,
             "representation_locator": self.representation_locator,
+            "source_role": self.source_role,
+            "rights_record_id": self.rights_record_id,
+            "rights_policy_id": self.rights_policy_id,
+            "rights_policy_version": self.rights_policy_version,
+            "provider_processing_status": self.provider_processing_status,
+            "public_redistribution_status": self.public_redistribution_status,
+            "status": self.binding_status,
             "source_date": self.source_date,
             "reporting_period": None if self.reporting_period is None else dict(self.reporting_period),
         }
@@ -192,6 +250,13 @@ class AnswerRecord:
     source_record_id: str
     representation_sha256: str
     representation_locator: str
+    source_role: str
+    rights_record_id: str
+    rights_policy_id: str
+    rights_policy_version: str
+    provider_processing_status: str
+    public_redistribution_status: str
+    binding_status: str
     source_date: str | None
     reporting_period: Mapping[str, str] | None
     fact_vs_source_statement_vs_inference: str
@@ -211,6 +276,13 @@ class AnswerRecord:
             "source_record_id": self.source_record_id,
             "representation_sha256": self.representation_sha256,
             "representation_locator": self.representation_locator,
+            "source_role": self.source_role,
+            "rights_record_id": self.rights_record_id,
+            "rights_policy_id": self.rights_policy_id,
+            "rights_policy_version": self.rights_policy_version,
+            "provider_processing_status": self.provider_processing_status,
+            "public_redistribution_status": self.public_redistribution_status,
+            "status": self.binding_status,
             "source_date": self.source_date,
             "reporting_period": None if self.reporting_period is None else dict(self.reporting_period),
             "fact_vs_source_statement_vs_inference": self.fact_vs_source_statement_vs_inference,
@@ -223,15 +295,25 @@ class AnswerRecord:
 class AnswerProjection:
     records: tuple[AnswerRecord, ...]
     representation_hashes: tuple[str, ...]
+    source_rights_bindings: tuple[tuple[str, str, str], ...]
     side_effects: Mapping[str, int]
 
     @property
     def document(self) -> dict[str, Any]:
         return {
-            "schema": "charitygraph.gate4.t4b.source-native-answer-projection/v1",
+            "schema": "charitygraph.gate4.t4b.source-native-answer-projection/v2",
             "answer_state_vocabulary": ["supported", "unanswered"],
+            "missingness_vocabulary": list(MISSINGNESS_VOCABULARY),
             "records": [record.as_dict() for record in self.records],
             "representation_hashes": list(self.representation_hashes),
+            "source_rights_bindings": [
+                {
+                    "source_record_id": source_record_id,
+                    "representation_sha256": representation_sha256,
+                    "rights_record_id": rights_record_id,
+                }
+                for source_record_id, representation_sha256, rights_record_id in self.source_rights_bindings
+            ],
             "side_effects": dict(self.side_effects),
         }
 
@@ -285,6 +367,13 @@ def _citation(row: Mapping[str, Any], path: Path, body: Mapping[str, Any]) -> So
         source_record_id=str(_required(row, "source_record_id")),
         representation_sha256=str(_required(row, "representation_sha256")),
         representation_locator=str(path),
+        source_role=str(_required(row, "source_role")),
+        rights_record_id=str(_required(row, "rights_record_id")),
+        rights_policy_id=str(_required(row, "rights_policy_id")),
+        rights_policy_version=str(_required(row, "rights_policy_version")),
+        provider_processing_status=str(_required(row, "provider_processing_status")),
+        public_redistribution_status=str(_required(row, "public_redistribution_status")),
+        binding_status=str(_required(row, "status")),
         source_date=None if source_date is None else str(source_date),
         reporting_period=period,
     )
@@ -333,8 +422,13 @@ def _validate_rows(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
             raise ProjectionValidationError("representation artifact identity mismatch")
         if row.get("source_artifact_id") != f"srcblob:{source_hash}":
             raise ProjectionValidationError("source artifact identity mismatch")
-        expected_source = _EXPECTED_T3_SOURCE_BINDINGS.get(ordinal)
-        if expected_source is None or any(row.get(key) != value for key, value in expected_source.items()):
+        expected_source_binding = _EXPECTED_T3_SOURCE_BINDINGS.get(ordinal)
+        expected_carriage = _EXPECTED_T3_CARRIAGE.get(ordinal)
+        if (
+            expected_source_binding is None
+            or expected_carriage is None
+            or any(row.get(key) != value for key, value in {**expected_source_binding, **expected_carriage}.items())
+        ):
             raise ProjectionValidationError("manifest source-record/rights binding mismatch")
         per_subject.setdefault(subject_id, []).append(row)
         seen_subjects.add(subject_id)
@@ -394,7 +488,16 @@ def _unanswered(
     fields: Sequence[str] = (),
     question_id: str = QUESTION_CURRENTNESS,
     question: str = "What current giving terms, service capacity, outcomes, governance or conduct does the retained evidence establish?",
+    missingness_status: str = "source_silent",
 ) -> AnswerRecord:
+    if missingness_status not in MISSINGNESS_VOCABULARY:
+        raise ProjectionValidationError("unsupported governed missingness status")
+    assessment_basis = {
+        "contract": "north-star-v0.3",
+        "kind": _MISSINGNESS_BASIS_KIND[missingness_status],
+        "source_record_ids": sorted({citation.source_record_id for citation in references}),
+        "source_families": sorted({citation.source_family for citation in references}),
+    }
     return AnswerRecord(
         subject_id=subject_id,
         scope_id=scope_id,
@@ -403,15 +506,23 @@ def _unanswered(
         answer_state="unanswered",
         answer=None,
         missingness={
-            "status": "not_established",
+            "status": missingness_status,
             "reason": reason,
+            "assessment_basis": assessment_basis,
             "dimensions": list(MISSING_CURRENTNESS),
-            "source_silence_is_not_absence": True,
+            "source_silence_is_not_absence": missingness_status == "source_silent",
         },
         source_family=primary.source_family,
         source_record_id=primary.source_record_id,
         representation_sha256=primary.representation_sha256,
         representation_locator=primary.representation_locator,
+        source_role=primary.source_role,
+        rights_record_id=primary.rights_record_id,
+        rights_policy_id=primary.rights_policy_id,
+        rights_policy_version=primary.rights_policy_version,
+        provider_processing_status=primary.provider_processing_status,
+        public_redistribution_status=primary.public_redistribution_status,
+        binding_status=primary.binding_status,
         source_date=primary.source_date,
         reporting_period=primary.reporting_period,
         fact_vs_source_statement_vs_inference="not_applicable",
@@ -466,6 +577,13 @@ def _activity_record(register: tuple[Mapping[str, Any], SourceCitation]) -> Answ
         source_record_id=citation.source_record_id,
         representation_sha256=citation.representation_sha256,
         representation_locator=citation.representation_locator,
+        source_role=citation.source_role,
+        rights_record_id=citation.rights_record_id,
+        rights_policy_id=citation.rights_policy_id,
+        rights_policy_version=citation.rights_policy_version,
+        provider_processing_status=citation.provider_processing_status,
+        public_redistribution_status=citation.public_redistribution_status,
+        binding_status=citation.binding_status,
         source_date=citation.source_date,
         reporting_period=citation.reporting_period,
         fact_vs_source_statement_vs_inference="fact",
@@ -523,6 +641,13 @@ def _scale_record(ais: tuple[Mapping[str, Any], SourceCitation]) -> AnswerRecord
         source_record_id=citation.source_record_id,
         representation_sha256=citation.representation_sha256,
         representation_locator=citation.representation_locator,
+        source_role=citation.source_role,
+        rights_record_id=citation.rights_record_id,
+        rights_policy_id=citation.rights_policy_id,
+        rights_policy_version=citation.rights_policy_version,
+        provider_processing_status=citation.provider_processing_status,
+        public_redistribution_status=citation.public_redistribution_status,
+        binding_status=citation.binding_status,
         source_date=citation.source_date,
         reporting_period=period,
         fact_vs_source_statement_vs_inference="fact",
@@ -568,6 +693,10 @@ def build_source_answer_projection(
     return AnswerProjection(
         records=tuple(records),
         representation_hashes=tuple(citation.representation_sha256 for _row, _path, _body, citation in loaded),
+        source_rights_bindings=tuple(
+            (citation.source_record_id, citation.representation_sha256, citation.rights_record_id)
+            for _row, _path, _body, citation in loaded
+        ),
         side_effects={
             "provider_calls": 0,
             "transport_requests": 0,
@@ -587,6 +716,7 @@ __all__ = [
     "QUESTION_CURRENTNESS",
     "QUESTION_SCALE",
     "QUESTION_IDS",
+    "MISSINGNESS_VOCABULARY",
     "SourceCitation",
     "build_source_answer_projection",
 ]

@@ -7,10 +7,12 @@ import pytest
 
 from charitygraph.contracts.canonical import canonical_sha256
 from charitygraph.phase5_t4b_source_answer_projection import (
+    MISSINGNESS_VOCABULARY,
     QUESTION_ACTIVITY,
     QUESTION_CURRENTNESS,
     QUESTION_SCALE,
     ProjectionValidationError,
+    _unanswered,
     build_source_answer_projection,
 )
 
@@ -118,6 +120,24 @@ def test_t3_source_record_and_rights_binding_tampering_is_rejected(tmp_path: Pat
         build_source_answer_projection(manifest_path=manifest, representation_root=REPRESENTATION_ROOT)
 
 
+@pytest.mark.parametrize(
+    "field",
+    [
+        "source_role",
+        "rights_policy_id",
+        "rights_policy_version",
+        "provider_processing_status",
+        "public_redistribution_status",
+        "status",
+    ],
+)
+def test_t3_role_policy_and_status_carriage_tampering_is_rejected(tmp_path: Path, field: str):
+    manifest = _copy_manifest(tmp_path, row_update={field: "tampered"})
+
+    with pytest.raises(ProjectionValidationError, match="source-record/rights binding"):
+        build_source_answer_projection(manifest_path=manifest, representation_root=REPRESENTATION_ROOT)
+
+
 @pytest.mark.parametrize("row_update", [{"subject_id": "subject:wrong"}, {"scope_id": "scope:wrong"}])
 def test_cross_subject_or_scope_manifest_drift_is_rejected(tmp_path: Path, row_update: dict[str, object]):
     manifest = _copy_manifest(tmp_path, row_update=row_update)
@@ -138,6 +158,24 @@ def test_reporting_period_and_provenance_are_retained():
     assert all(record.source_family == "acnc_ais_bundle" for record in scale)
 
 
+def test_t3_rights_and_operational_carriage_is_exact_and_complete():
+    projection = build_source_answer_projection(manifest_path=MANIFEST, representation_root=REPRESENTATION_ROOT)
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    rows = {row["source_record_id"]: row for row in manifest["rows"]}
+
+    assert len(projection.source_rights_bindings) == 10
+    assert len(set(projection.source_rights_bindings)) == 10
+    for record in projection.records:
+        row = rows[record.source_record_id]
+        assert record.source_role == row["source_role"]
+        assert record.rights_record_id == row["rights_record_id"]
+        assert record.rights_policy_id == row["rights_policy_id"]
+        assert record.rights_policy_version == row["rights_policy_version"]
+        assert record.provider_processing_status == row["provider_processing_status"]
+        assert record.public_redistribution_status == row["public_redistribution_status"]
+        assert record.binding_status == row["status"]
+
+
 def test_currentness_missingness_is_explicit_not_negative():
     projection = build_source_answer_projection(manifest_path=MANIFEST, representation_root=REPRESENTATION_ROOT)
     unanswered = [record for record in projection.records if record.question_id == QUESTION_CURRENTNESS]
@@ -150,6 +188,38 @@ def test_currentness_missingness_is_explicit_not_negative():
         == {"current_giving_terms", "current_service_capacity", "outcomes_or_effectiveness", "governance", "conduct_or_adverse_history"}
         for record in unanswered
     )
+    assert all(record.missingness["status"] == "source_silent" for record in unanswered)
+    assert all(record.missingness["assessment_basis"]["contract"] == "north-star-v0.3" for record in unanswered)
+    assert all(record.missingness["assessment_basis"]["kind"] == "reviewed_source_silence" for record in unanswered)
+    assert all(record.fact_vs_source_statement_vs_inference == "not_applicable" for record in unanswered)
+    assert all("source_silent" not in record.fact_vs_source_statement_vs_inference for record in unanswered)
+
+
+@pytest.mark.parametrize(
+    ("status", "basis_kind", "source_silence"),
+    [
+        ("source_silent", "reviewed_source_silence", True),
+        ("not_reviewed", "review_scope_not_reviewed", False),
+        ("not_processed", "processing_not_performed", False),
+        ("not_applicable", "proposition_outside_scope", False),
+    ],
+)
+def test_governed_missingness_states_are_distinct_and_basis_bound(status: str, basis_kind: str, source_silence: bool):
+    projection = build_source_answer_projection(manifest_path=MANIFEST, representation_root=REPRESENTATION_ROOT)
+    currentness = next(record for record in projection.records if record.question_id == QUESTION_CURRENTNESS)
+    record = _unanswered(
+        subject_id=currentness.subject_id,
+        scope_id=currentness.scope_id,
+        primary=currentness.source_references[0],
+        references=currentness.source_references,
+        reason="test-only governed missingness state",
+        missingness_status=status,
+    )
+
+    assert status in MISSINGNESS_VOCABULARY
+    assert record.missingness["status"] == status
+    assert record.missingness["assessment_basis"]["kind"] == basis_kind
+    assert record.missingness["source_silence_is_not_absence"] is source_silence
 
 
 def test_read_only_call_creates_no_files(tmp_path: Path):
