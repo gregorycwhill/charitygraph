@@ -172,12 +172,56 @@ def test_canonical_output_is_deterministic_under_input_order():
     assert left.sha256 == right.sha256 == run_inventory_audit_sha256(left)
 
 
-def test_same_source_key_collision_is_stable():
-    one = source("same", "runtime_export", ["run:a"], evidence_digest={"kind": "stable", "value": "one"})
-    two = source("same", "runtime_export", ["run:b"], evidence_digest={"kind": "stable", "value": "two"})
-    document = audit(one, two)
-    assert len(document["sources"]) == 2
-    assert "SAME_SOURCE_FALSE_INDEPENDENCE" in document["reason_codes"]
+def test_same_source_key_collision_reversal_is_byte_stable():
+    one = source("same", "runtime_export", ["run:b"])
+    two = source("same", "runtime_export", ["run:a"])
+    left = audit_phase5_run_inventory([one, two], as_of=AS_OF)
+    right = audit_phase5_run_inventory([two, one], as_of=AS_OF)
+
+    assert left.canonical_json == right.canonical_json
+    assert left.sha256 == right.sha256 == run_inventory_audit_sha256(left)
+    assert [item["run_ids"] for item in left.document["sources"]] == [["run:a"], ["run:b"]]
+    assert [item["source_key"].rsplit("#", 1)[-1] for item in left.document["sources"]] == ["1", "2"]
+    assert "SAME_SOURCE_FALSE_INDEPENDENCE" in left.document["reason_codes"]
+
+
+def test_three_same_source_key_collisions_have_stable_suffixes():
+    sources = [
+        source("same", "runtime_export", ["run:c"]),
+        source("same", "runtime_export", ["run:a"]),
+        source("same", "runtime_export", ["run:b"]),
+    ]
+    left = audit_phase5_run_inventory(sources, as_of=AS_OF)
+    right = audit_phase5_run_inventory(list(reversed(sources)), as_of=AS_OF)
+
+    assert left.canonical_json == right.canonical_json
+    assert left.sha256 == right.sha256
+    assert [item["run_ids"] for item in left.document["sources"]] == [["run:a"], ["run:b"], ["run:c"]]
+    assert [item["source_key"].rsplit("#", 1)[-1] for item in left.document["sources"]] == ["1", "2", "3"]
+
+
+def test_exact_duplicate_source_records_are_retained_and_byte_stable():
+    one = source("same", "runtime_export", ["run:a"])
+    left = audit_phase5_run_inventory([one, deepcopy(one)], as_of=AS_OF)
+    right = audit_phase5_run_inventory([deepcopy(one), one], as_of=AS_OF)
+
+    assert left.canonical_json == right.canonical_json
+    assert left.sha256 == right.sha256
+    assert len(left.document["sources"]) == 2
+    assert [item["source_key"].rsplit("#", 1)[-1] for item in left.document["sources"]] == ["1", "2"]
+    assert "SAME_SOURCE_FALSE_INDEPENDENCE" in left.document["reason_codes"]
+
+
+def test_same_key_collision_preserves_source_identity_conflict_and_sha():
+    one = source("same", "runtime_export", ["run:a"], source_identity="alpha")
+    two = source("same", "runtime_export", ["run:a"], source_identity="beta")
+    left = audit_phase5_run_inventory([one, two], as_of=AS_OF)
+    right = audit_phase5_run_inventory([two, one], as_of=AS_OF)
+
+    assert left.canonical_json == right.canonical_json
+    assert left.sha256 == right.sha256 == run_inventory_audit_sha256(left)
+    assert left.document["coverage"]["source_identity_mismatch_run_ids"] == ["run:a"]
+    assert "SOURCE_IDENTITY_MISMATCH" in left.document["reason_codes"]
 
 
 def test_invalid_top_level_request_is_rejected():

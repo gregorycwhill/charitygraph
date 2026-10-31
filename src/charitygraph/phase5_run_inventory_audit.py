@@ -253,6 +253,7 @@ def _normalise_source(source: Mapping[str, Any], as_of: datetime) -> dict[str, A
                     "schema_version": record.get("schema_version", schema_version),
                     "source_identity": _text(record.get("source_identity")) or source_identity,
                 })
+    records.sort(key=_canonical_bytes)
     record_ids = {str(record["run_id"]) for record in records}
     if record_ids and record_ids != set(unique_run_ids):
         issues.append("RUN_RECORD_SET_MISMATCH")
@@ -287,6 +288,12 @@ def _role_is_index(role: str | None) -> bool:
     return role in {"run_index", "source_owned_run_index", "project_run_index"} or bool(role and role.endswith("_run_index"))
 
 
+def _normalised_source_sort_key(source: Mapping[str, Any]) -> tuple[str, bytes]:
+    """Order sources by their stable key and normalized content."""
+
+    return (str(source["source_key"]), _canonical_bytes(source))
+
+
 def audit_phase5_run_inventory(
     sources: Sequence[Mapping[str, Any]],
     *,
@@ -303,11 +310,16 @@ def audit_phase5_run_inventory(
         raise RunInventoryAuditError("each source record must be an object")
 
     normalised = [_normalise_source(source, as_of_dt) for source in sources]
-    normalised.sort(key=lambda source: (source["source_key"], source["source_role"] or ""))
-    source_keys = [source["source_key"] for source in normalised]
-    if len(source_keys) != len(set(source_keys)):
-        for index, source in enumerate(normalised):
-            source["source_key"] = f"{source['source_key']}#{index + 1}"
+    normalised.sort(key=_normalised_source_sort_key)
+    collision_sizes: defaultdict[str, int] = defaultdict(int)
+    for source in normalised:
+        collision_sizes[source["source_key"]] += 1
+    collision_indexes: defaultdict[str, int] = defaultdict(int)
+    for source in normalised:
+        source_key = source["source_key"]
+        if collision_sizes[source_key] > 1:
+            collision_indexes[source_key] += 1
+            source["source_key"] = f"{source_key}#{collision_indexes[source_key]}"
 
     union_ids = sorted({run_id for source in normalised for run_id in source["run_ids"]})
     index_ids = sorted({run_id for source in normalised if _role_is_index(source["source_role"]) for run_id in source["run_ids"]})
