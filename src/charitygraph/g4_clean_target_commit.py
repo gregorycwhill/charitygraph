@@ -26,6 +26,18 @@ _HEAD = re.compile(r"^[0-9a-f]{40}$")
 class CleanTargetCommitError(ValueError):
     """Fail-closed validation or transaction error."""
 
+    def __init__(self, message: str, *, object_import_attestation: "ObjectImportAttestation | None" = None) -> None:
+        super().__init__(message)
+        self.object_import_attestation = object_import_attestation
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "error": str(self),
+            "object_import": (
+                self.object_import_attestation.as_dict() if self.object_import_attestation is not None else None
+            ),
+        }
+
 
 @dataclass(frozen=True)
 class ManifestEntry:
@@ -65,6 +77,38 @@ class AnchoredContent:
 
 
 @dataclass(frozen=True)
+class ObjectImportAttestation:
+    """Machine-readable accounting for the host-side pre-CAS object import."""
+
+    import_attempted: bool
+    fetch_completed: bool
+    fetch_head_before_sha256: str | None
+    fetch_head_after_sha256: str | None
+    fetch_head_changed: bool | None
+    reachable_object_ids: tuple[str, ...]
+    objects_present_before: tuple[str, ...]
+    objects_may_have_been_installed: tuple[str, ...]
+    objects_observed_present_after: tuple[str, ...]
+    unlink_performed: bool
+    garbage_collection_policy: str
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "import_attempted": self.import_attempted,
+            "fetch_completed": self.fetch_completed,
+            "fetch_head_before_sha256": self.fetch_head_before_sha256,
+            "fetch_head_after_sha256": self.fetch_head_after_sha256,
+            "fetch_head_changed": self.fetch_head_changed,
+            "reachable_object_ids": list(self.reachable_object_ids),
+            "objects_present_before": list(self.objects_present_before),
+            "objects_may_have_been_installed": list(self.objects_may_have_been_installed),
+            "objects_observed_present_after": list(self.objects_observed_present_after),
+            "unlink_performed": self.unlink_performed,
+            "garbage_collection_policy": self.garbage_collection_policy,
+        }
+
+
+@dataclass(frozen=True)
 class CleanTargetCommitResult:
     dry_run: bool
     parent_head: str
@@ -73,6 +117,7 @@ class CleanTargetCommitResult:
     ref: str
     committed_paths: tuple[str, ...]
     ref_updated: bool
+    object_import: ObjectImportAttestation
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -83,6 +128,7 @@ class CleanTargetCommitResult:
             "ref": self.ref,
             "committed_paths": list(self.committed_paths),
             "ref_updated": self.ref_updated,
+            "object_import": self.object_import.as_dict(),
         }
 
 
@@ -124,6 +170,69 @@ def _git(repo: Path, *args: str, env: Mapping[str, str] | None = None, input_byt
 
 def _git_text(repo: Path, *args: str, env: Mapping[str, str] | None = None) -> str:
     return _git(repo, *args, env=env).decode("utf-8", errors="strict").strip()
+
+
+def _reachable_object_ids(repo: Path, commit: str) -> tuple[str, ...]:
+    object_ids: set[str] = set()
+    for line in _git_text(repo, "rev-list", "--objects", commit).splitlines():
+        object_id = line.split(maxsplit=1)[0]
+        if not _HEAD.fullmatch(object_id):
+            raise CleanTargetCommitError("Git returned an invalid reachable object id")
+        object_ids.add(object_id)
+    return tuple(sorted(object_ids))
+
+
+def _object_is_present(repo: Path, object_id: str) -> bool:
+    command = ["git", "-c", f"safe.directory={repo}", "cat-file", "-e", object_id]
+    completed = subprocess.run(command, cwd=repo, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+    return completed.returncode == 0
+
+
+def _fetch_head_sha256(repo: Path) -> str | None:
+    fetch_head = Path(_git_text(repo, "rev-parse", "--git-path", "FETCH_HEAD"))
+    if not fetch_head.is_absolute():
+        fetch_head = repo / fetch_head
+    try:
+        value = fetch_head.read_bytes()
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        raise CleanTargetCommitError("could not inspect FETCH_HEAD before or after import") from exc
+    return _sha256(value)
+
+
+def _object_import_attestation(
+    *,
+    repository: Path,
+    reachable_object_ids: tuple[str, ...],
+    objects_present_before: tuple[str, ...],
+    fetch_head_before_sha256: str | None,
+    fetch_completed: bool,
+    garbage_collection_policy: str,
+) -> ObjectImportAttestation:
+    objects_present_after = tuple(
+        object_id for object_id in reachable_object_ids if _object_is_present(repository, object_id)
+    )
+    fetch_head_after_sha256 = _fetch_head_sha256(repository)
+    return ObjectImportAttestation(
+        import_attempted=True,
+        fetch_completed=fetch_completed,
+        fetch_head_before_sha256=fetch_head_before_sha256,
+        fetch_head_after_sha256=fetch_head_after_sha256,
+        fetch_head_changed=fetch_head_before_sha256 != fetch_head_after_sha256,
+        reachable_object_ids=reachable_object_ids,
+        objects_present_before=objects_present_before,
+        objects_may_have_been_installed=tuple(
+            object_id for object_id in reachable_object_ids if object_id not in objects_present_before
+        ),
+        objects_observed_present_after=tuple(
+            object_id
+            for object_id in reachable_object_ids
+            if object_id not in objects_present_before and object_id in objects_present_after
+        ),
+        unlink_performed=False,
+        garbage_collection_policy=garbage_collection_policy,
+    )
 
 
 def _validate_path(path: str) -> str:
@@ -238,8 +347,12 @@ def create_clean_target_commit(
     ``repository`` is the host-owned ref/worktree.  It may have unrelated
     dirty files when ``isolated_target`` is a separate clean checkout.  The
     target checkout itself must be completely clean.  All Git writes used to
-    construct the tree occur in a temporary clone outside both repositories;
-    only the explicit non-dry-run CAS updates ``repository``'s branch ref.
+    construct the tree occur in a temporary clone outside both repositories.
+    Non-dry-run operation imports only the proposed objects with
+    ``--no-write-fetch-head`` and then performs the explicit expected-old CAS
+    on ``repository``'s branch ref.  Object-store additions are accounted for,
+    never blindly unlinked, and are left for host-owned reachability-audited
+    garbage collection if CAS fails.
     """
     repository = Path(repository).resolve()
     if not _HEAD.fullmatch(expected_head):
@@ -286,10 +399,71 @@ def create_clean_target_commit(
                 raise CleanTargetCommitError(f"proposed tree bytes do not match candidate bytes: {path}")
         if not dry_run:
             # The proposed objects live only in the disposable build clone.
-            # Install them without touching the host ref/index/worktree, then
-            # use update-ref's expected-old argument as the final CAS fence.
-            _git(repository, "fetch", "--no-tags", str(build), proposed)
+            # Inventory the exact reachable objects absent from the host before
+            # importing them.  A failed CAS cannot safely unlink those objects:
+            # another concurrent ref/worktree may depend on them by then.
+            reachable_object_ids = _reachable_object_ids(build, proposed)
+            objects_present_before = tuple(
+                object_id for object_id in reachable_object_ids if _object_is_present(repository, object_id)
+            )
+            fetch_head_before_sha256 = _fetch_head_sha256(repository)
+            try:
+                _git(repository, "fetch", "--no-tags", "--no-write-fetch-head", str(build), proposed)
+            except CleanTargetCommitError as exc:
+                attestation = _object_import_attestation(
+                    repository=repository,
+                    reachable_object_ids=reachable_object_ids,
+                    objects_present_before=objects_present_before,
+                    fetch_head_before_sha256=fetch_head_before_sha256,
+                    fetch_completed=False,
+                    garbage_collection_policy="retain; host reachability audit required before normal gc/prune",
+                )
+                raise CleanTargetCommitError(str(exc), object_import_attestation=attestation) from exc
+            attestation = _object_import_attestation(
+                repository=repository,
+                reachable_object_ids=reachable_object_ids,
+                objects_present_before=objects_present_before,
+                fetch_head_before_sha256=fetch_head_before_sha256,
+                fetch_completed=True,
+                garbage_collection_policy=(
+                    "retain; reachable from proposed ref after successful CAS; host-owned normal gc/prune only"
+                ),
+            )
             if not _compare_and_swap_ref(repository, ref, proposed, expected_head):
-                raise CleanTargetCommitError("branch ref CAS failed; no target ref was advanced")
-        return CleanTargetCommitResult(dry_run, expected_head, proposed, tree, ref, paths, not dry_run)
+                failed_attestation = ObjectImportAttestation(
+                    import_attempted=attestation.import_attempted,
+                    fetch_completed=attestation.fetch_completed,
+                    fetch_head_before_sha256=attestation.fetch_head_before_sha256,
+                    fetch_head_after_sha256=attestation.fetch_head_after_sha256,
+                    fetch_head_changed=attestation.fetch_head_changed,
+                    reachable_object_ids=attestation.reachable_object_ids,
+                    objects_present_before=attestation.objects_present_before,
+                    objects_may_have_been_installed=attestation.objects_may_have_been_installed,
+                    objects_observed_present_after=attestation.objects_observed_present_after,
+                    unlink_performed=False,
+                    garbage_collection_policy=(
+                        "retain; no unlink; host reachability audit across refs, reflogs, worktrees and concurrent "
+                        "operations is required before normal gc/prune"
+                    ),
+                )
+                raise CleanTargetCommitError(
+                    "branch ref CAS failed; no target ref was advanced",
+                    object_import_attestation=failed_attestation,
+                )
+            object_import = attestation
+        else:
+            object_import = ObjectImportAttestation(
+                import_attempted=False,
+                fetch_completed=False,
+                fetch_head_before_sha256=None,
+                fetch_head_after_sha256=None,
+                fetch_head_changed=None,
+                reachable_object_ids=(),
+                objects_present_before=(),
+                objects_may_have_been_installed=(),
+                objects_observed_present_after=(),
+                unlink_performed=False,
+                garbage_collection_policy="not_applicable; dry-run performed no host import",
+            )
+        return CleanTargetCommitResult(dry_run, expected_head, proposed, tree, ref, paths, not dry_run, object_import)
 

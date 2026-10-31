@@ -66,6 +66,9 @@ def test_success_is_dry_run_and_builds_exact_direct_child(tmp_path: Path):
     assert result.dry_run is True
     assert result.parent_head == head
     assert result.committed_paths == ("src/new.py", "tests/test_new.py")
+    assert result.object_import.import_attempted is False
+    assert result.object_import.objects_may_have_been_installed == ()
+    assert result.as_dict()["object_import"]["garbage_collection_policy"].startswith("not_applicable")
     assert _run(repo, "rev-parse", "HEAD") == head
     assert _run(repo, "status", "--porcelain", "--ignored") == before == ""
 
@@ -126,6 +129,16 @@ def test_main_dirty_worktree_and_index_are_preserved_on_real_cas(tmp_path: Path)
     before_cached = _run(repo, "diff", "--cached", "--name-status", head)
     result = _call(repo, head, target=target, dry_run=False)
     assert result.ref_updated is True
+    assert result.object_import.import_attempted is True
+    assert result.object_import.fetch_completed is True
+    assert result.object_import.fetch_head_changed is False
+    assert result.object_import.objects_may_have_been_installed
+    assert set(result.object_import.objects_may_have_been_installed).issubset(
+        result.object_import.reachable_object_ids
+    )
+    assert set(result.object_import.objects_observed_present_after) == set(
+        result.object_import.objects_may_have_been_installed
+    )
     assert _run(repo, "rev-parse", "HEAD") == result.proposed_head
     assert (repo / "README.md").read_text(encoding="utf-8") == "user edit\n"
     assert _run(repo, "ls-files", "-s") == before_index
@@ -138,12 +151,74 @@ def test_main_dirty_worktree_and_index_are_preserved_on_real_cas(tmp_path: Path)
 def test_cas_rollback_leaves_ref_and_target_unchanged(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     repo, head = _repo(tmp_path)
     target = _target_clone(tmp_path, repo)
+    fetch_head = Path(_run(repo, "rev-parse", "--git-path", "FETCH_HEAD"))
+    if not fetch_head.is_absolute():
+        fetch_head = repo / fetch_head
+    fetch_head.write_bytes(b"pre-existing fetch head\n")
+    before_fetch_head = fetch_head.read_bytes()
     monkeypatch.setattr(transaction, "_compare_and_swap_ref", lambda *args: False)
-    with pytest.raises(transaction.CleanTargetCommitError, match="CAS failed"):
+    with pytest.raises(transaction.CleanTargetCommitError, match="CAS failed") as raised:
         _call(repo, head, target=target, dry_run=False)
+    attestation = raised.value.object_import_attestation
+    assert attestation is not None
+    assert attestation.import_attempted is True
+    assert attestation.fetch_completed is True
+    assert attestation.fetch_head_changed is False
+    assert attestation.fetch_head_before_sha256 == hashlib.sha256(before_fetch_head).hexdigest()
+    assert attestation.fetch_head_after_sha256 == attestation.fetch_head_before_sha256
+    assert attestation.objects_may_have_been_installed
+    assert set(attestation.objects_observed_present_after) == set(attestation.objects_may_have_been_installed)
+    assert attestation.unlink_performed is False
+    assert "no unlink" in attestation.garbage_collection_policy
+    assert raised.value.as_dict()["object_import"]["objects_may_have_been_installed"] == list(
+        attestation.objects_may_have_been_installed
+    )
+    assert fetch_head.read_bytes() == before_fetch_head
     assert _run(repo, "rev-parse", "HEAD") == head
     assert _run(repo, "status", "--porcelain", "--ignored") == ""
     assert _run(target, "status", "--porcelain", "--ignored") == ""
+
+
+def test_concurrent_branch_movement_is_rejected_without_dirty_overlay_change(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    repo, head = _repo(tmp_path)
+    target = _target_clone(tmp_path, repo)
+    (repo / "README.md").write_text("user edit\n", encoding="utf-8")
+    (repo / "staged.txt").write_text("keep staged\n", encoding="utf-8")
+    _run(repo, "add", "staged.txt")
+    before_index = _run(repo, "ls-files", "-s")
+    before_status = _run(repo, "status", "--porcelain", "--ignored")
+
+    moved: list[str] = []
+
+    def move_then_fail(repository: Path, ref: str, new_head: str, expected_head: str) -> bool:
+        tree = _run(repository, "rev-parse", f"{expected_head}^{{tree}}")
+        created = subprocess.run(
+            ["git", "commit-tree", tree, "-p", expected_head],
+            cwd=repository,
+            input="concurrent branch movement\n",
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+        assert created.returncode == 0, created.stdout
+        moved_head = created.stdout.strip()
+        _run(repository, "update-ref", ref, moved_head, expected_head)
+        moved.append(moved_head)
+        return False
+
+    monkeypatch.setattr(transaction, "_compare_and_swap_ref", move_then_fail)
+    with pytest.raises(transaction.CleanTargetCommitError, match="CAS failed") as raised:
+        _call(repo, head, target=target, dry_run=False)
+
+    assert moved
+    assert _run(repo, "rev-parse", "HEAD") == moved[0]
+    assert _run(repo, "ls-files", "-s") == before_index
+    assert _run(repo, "status", "--porcelain", "--ignored") == before_status
+    assert raised.value.object_import_attestation is not None
+    assert raised.value.object_import_attestation.unlink_performed is False
 
 
 def test_no_unexpected_mutations_on_validation_failure(tmp_path: Path):
