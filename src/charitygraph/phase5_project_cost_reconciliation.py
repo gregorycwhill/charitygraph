@@ -17,11 +17,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
-from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .phase5_operator_health_catalogue import (
@@ -283,106 +281,50 @@ def _boundary_diagnostic(
     }, reasons
 
 
-def _discover_persisted_run_inventory(
-    catalogue: str | Path | sqlite3.Connection,
-) -> dict[str, Any]:
-    """Read the source-owned run population without widening the row export.
+def _trusted_population_inventory(inventory: Mapping[str, Any] | None) -> dict[str, Any] | None:
+    """Accept only an independently attested, source-owned run manifest."""
 
-    The existing catalogue adapter deliberately requires an explicit run
-    selection.  A project-wide diagnostic therefore discovers only the
-    source-owned ``runs.run_id`` inventory here, then passes those exact IDs to
-    that adapter for the bounded typed export.  This helper never creates or
-    mutates a database and never reads provider payloads.
-    """
+    if not isinstance(inventory, Mapping) or inventory.get("state") != "source_owned":
+        return None
+    source = _non_empty(inventory.get("source"))
+    raw_run_ids = inventory.get("run_ids")
+    if source is None or source == "persisted_schema29_runs":
+        return None
+    if not isinstance(raw_run_ids, Sequence) or isinstance(raw_run_ids, (str, bytes, bytearray)):
+        return None
+    run_ids = [str(value) for value in raw_run_ids if value not in (None, "")]
+    if not run_ids or len(run_ids) != len(set(run_ids)):
+        return None
 
-    owned = False
-    connection: sqlite3.Connection
-    if isinstance(catalogue, sqlite3.Connection):
-        connection = catalogue
-    else:
-        path = Path(catalogue)
-        if not path.is_file():
-            return {
-                "state": "unknown",
-                "source": "persisted_schema29_runs",
-                "run_ids": [],
-                "reason_codes": ["SOURCE_CATALOGUE_UNAVAILABLE"],
-            }
-        wal_path = Path(str(path) + "-wal")
-        if wal_path.exists() and wal_path.stat().st_size:
-            return {
-                "state": "unknown",
-                "source": "persisted_schema29_runs",
-                "run_ids": [],
-                "reason_codes": ["UNSTABLE_SOURCE_CATALOGUE_WAL"],
-            }
-        try:
-            connection = sqlite3.connect(path.resolve().as_uri() + "?mode=ro&immutable=1", uri=True, timeout=5.0)
-        except sqlite3.Error:
-            return {
-                "state": "unknown",
-                "source": "persisted_schema29_runs",
-                "run_ids": [],
-                "reason_codes": ["SOURCE_CATALOGUE_UNREADABLE"],
-            }
-        owned = True
-
-    try:
-        connection.row_factory = sqlite3.Row
-        connection.execute("PRAGMA query_only=ON")
-        tables = {
-            str(row[0])
-            for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
-        }
-        if "schema_migrations" not in tables or "runs" not in tables:
-            return {
-                "state": "unknown",
-                "source": "persisted_schema29_runs",
-                "run_ids": [],
-                "reason_codes": ["SOURCE_RUN_INVENTORY_UNAVAILABLE"],
-            }
-        row = connection.execute("SELECT MAX(version) FROM schema_migrations").fetchone()
-        schema_version = None if row is None or row[0] is None else int(row[0])
-        run_columns = {str(item[1]) for item in connection.execute("PRAGMA table_info(runs)").fetchall()}
-        if "run_id" not in run_columns:
-            return {
-                "state": "unknown",
-                "source": "persisted_schema29_runs",
-                "schema_version": schema_version,
-                "run_ids": [],
-                "reason_codes": ["SOURCE_RUN_ID_COLUMN_UNAVAILABLE"],
-            }
-        run_ids = tuple(
-            sorted(
-                {
-                    str(item[0])
-                    for item in connection.execute("SELECT run_id FROM runs WHERE run_id IS NOT NULL ORDER BY run_id").fetchall()
-                    if item[0] not in (None, "")
-                }
-            )
-        )
-        reasons = []
-        if schema_version != 29:
-            reasons.append("STALE_OR_UNSUPPORTED_SCHEMA")
-        if not run_ids:
-            reasons.append("EMPTY_SOURCE_RUN_INVENTORY")
-        return {
-            "state": "source_owned" if not reasons else "incomplete",
-            "source": "persisted_schema29_runs",
-            "schema_version": schema_version,
-            "run_ids": list(run_ids),
-            "reason_codes": reasons,
-        }
-    except (sqlite3.Error, TypeError, ValueError):
-        return {
-            "state": "unknown",
-            "source": "persisted_schema29_runs",
-            "run_ids": [],
-            "reason_codes": ["SOURCE_RUN_INVENTORY_UNREADABLE"],
-        }
-    finally:
-        if owned:
-            connection.close()
+    scope = inventory.get("scope")
+    provenance = inventory.get("provenance")
+    completeness = inventory.get("completeness")
+    if not isinstance(scope, Mapping) or not isinstance(provenance, Mapping) or not isinstance(completeness, Mapping):
+        return None
+    scope_id = _non_empty(scope.get("scope_id"))
+    scope_kind = _non_empty(scope.get("kind"))
+    if scope_id is None or scope_kind not in {"bounded", "project_wide"}:
+        return None
+    provenance_values = {
+        name: _non_empty(provenance.get(name))
+        for name in ("source_id", "source_version", "evidence_basis")
+    }
+    if any(value is None for value in provenance_values.values()):
+        return None
+    completeness_state = _non_empty(completeness.get("state"))
+    completeness_evidence = _non_empty(completeness.get("evidence"))
+    if completeness_state != "complete" or completeness_evidence is None:
+        return None
+    return {
+        "state": "source_owned",
+        "source": source,
+        "schema_version": inventory.get("schema_version"),
+        "run_ids": sorted(run_ids),
+        "scope": {"scope_id": scope_id, "kind": scope_kind},
+        "provenance": provenance_values,
+        "completeness": {"state": "complete", "evidence": completeness_evidence},
+        "reason_codes": sorted(str(value) for value in inventory.get("reason_codes", ())),
+    }
 
 
 def _population_diagnostic(
@@ -392,31 +334,23 @@ def _population_diagnostic(
     """Compare the source-owned run inventory with every persisted cost path."""
 
     observed_run_ids = sorted(str(value) for value in snapshot.run_ids_found)
-    if inventory is None:
+    trusted_inventory = _trusted_population_inventory(inventory)
+    if trusted_inventory is None:
         return {
             "state": "unknown",
-            "source": None,
+            "source": inventory.get("source") if isinstance(inventory, Mapping) else None,
             "expected_run_ids": None,
             "observed_run_ids": observed_run_ids,
             "missing_run_ids": [],
             "run_diagnostics": [],
-            "reason_codes": ["EXPECTED_RUN_INVENTORY_UNAVAILABLE"],
+            "reason_codes": ["MISSING_TRUSTED_RUN_INVENTORY"],
         }, []
 
-    raw_expected = inventory.get("run_ids")
-    expected_run_ids: list[str] | None = (
-        sorted({str(value) for value in raw_expected})
-        if inventory.get("state") != "unknown" and isinstance(raw_expected, Sequence) and not isinstance(raw_expected, (str, bytes, bytearray))
-        else None
-    )
-    reasons = [str(value) for value in inventory.get("reason_codes", ())]
+    expected_run_ids: list[str] = list(trusted_inventory["run_ids"])
+    reasons = [str(value) for value in trusted_inventory.get("reason_codes", ())]
     blockers: list[dict[str, Any]] = []
-    if inventory.get("state") == "unknown":
-        reasons.append("EXPECTED_RUN_INVENTORY_UNAVAILABLE")
-    if inventory.get("state") != "source_owned":
-        reasons.append("SOURCE_RUN_INVENTORY_NOT_COMPLETE")
-    if expected_run_ids == []:
-        reasons.append("EMPTY_SOURCE_RUN_INVENTORY")
+    if trusted_inventory.get("schema_version") not in (None, 29):
+        reasons.append("STALE_OR_UNSUPPORTED_SCHEMA")
 
     records = snapshot.records
     runs = tuple(records.get("runs", ()))
@@ -559,16 +493,15 @@ def _population_diagnostic(
         reasons.append("SOURCE_RUN_SCOPE_MISMATCH")
     reasons = sorted(set(reasons))
     for code in reasons:
-        if code in {"EXPECTED_RUN_INVENTORY_UNAVAILABLE", "SOURCE_RUN_INVENTORY_NOT_COMPLETE", "EMPTY_SOURCE_RUN_INVENTORY"}:
-            severity = "error"
-        else:
-            severity = "error"
-        blockers.append(_blocker(code, 1, severity=severity, identities=missing_run_ids if code == "MISSING_RUN_RECORD" else ()))
-    state = "complete" if inventory.get("state") == "source_owned" and not reasons else "incomplete" if inventory.get("state") != "unknown" else "unknown"
+        blockers.append(_blocker(code, 1, identities=missing_run_ids if code == "MISSING_RUN_RECORD" else ()))
+    state = "complete" if not reasons else "incomplete"
     return {
         "state": state,
-        "source": inventory.get("source"),
-        "schema_version": inventory.get("schema_version"),
+        "source": trusted_inventory.get("source"),
+        "schema_version": trusted_inventory.get("schema_version"),
+        "scope": trusted_inventory.get("scope"),
+        "provenance": trusted_inventory.get("provenance"),
+        "completeness": trusted_inventory.get("completeness"),
         "expected_run_ids": expected_run_ids,
         "observed_run_ids": observed_run_ids,
         "missing_run_ids": missing_run_ids,
@@ -656,11 +589,10 @@ def reconcile_project_cost_snapshot(
         found_run_ids=found_run_ids,
     )
     population, population_blockers = _population_diagnostic(snapshot, population_inventory)
-    # A source-owned schema29 run inventory is the completeness boundary for
-    # this diagnostic.  The older caller-supplied external boundary remains
-    # visible, but its absence must not make a complete persisted catalogue
-    # look like it has no population boundary at all.
-    if population_inventory is None or population_inventory.get("source") != "persisted_schema29_runs":
+    # Only an independently attested inventory can replace the legacy
+    # project-wide boundary for this diagnostic.  A local runs table or an
+    # arbitrary caller list is never promoted to population authority.
+    if _trusted_population_inventory(population_inventory) is None:
         blockers.extend(boundary_blockers)
     blockers.extend(population_blockers)
 
@@ -1214,17 +1146,25 @@ def reconcile_project_cost_snapshot(
     authority_reasons: list[str] = []
     if population["state"] != "complete":
         authority_reasons.append("PROJECT_WIDE_POPULATION_INCOMPLETE")
+    authority_reasons.extend(str(code) for code in population.get("reason_codes", ()))
+    if population.get("scope", {}).get("kind") != "project_wide":
+        authority_reasons.append("PROJECT_WIDE_SCOPE_NOT_ATTESTED")
     if schema_state != "supported":
         authority_reasons.append("STALE_OR_UNSUPPORTED_SCHEMA")
     if not charge_records or actual_unreconciled_ids or known_charge_state != "known":
         authority_reasons.append("ACTUAL_COST_ROWS_NOT_FULLY_RECONCILED")
+    unresolved_blocker_codes = sorted({str(item["code"]) for item in blockers})
+    if unresolved_blocker_codes:
+        authority_reasons.extend(["UNRESOLVED_ACCOUNTING_BLOCKERS", *unresolved_blocker_codes])
+    if unreconciled_records:
+        authority_reasons.append("UNRECONCILED_ACCOUNTING_RECORDS")
     authority_reasons = sorted(set(authority_reasons))
     project_wide_authority = {
         "status": "AUTHORITATIVE" if not authority_reasons else "NOT_AUTHORITATIVE",
         "authoritative_total": _decimal_text(known_actual_total) if not authority_reasons else None,
         "currency": "AUD" if not authority_reasons else None,
         "remaining_spend": None,
-        "basis": "complete source-owned schema29 run population and exact persisted runtime cost/receipt linkage" if not authority_reasons else "persisted source export is bounded or incomplete; no project-wide total is defensible",
+        "basis": "complete independently attested project-wide schema29 run population and exact persisted runtime cost/receipt linkage with no unresolved blockers" if not authority_reasons else "persisted source export is bounded, incompletely attested, or unresolved; no project-wide total is defensible",
         "reason_codes": authority_reasons,
     }
 
@@ -1312,11 +1252,10 @@ def project_phase5_project_cost_reconciliation(
 
     selected_run_ids = tuple(str(value) for value in run_ids)
     inventory = population_inventory
-    if project_wide and inventory is None:
-        inventory = _discover_persisted_run_inventory(catalogue)
-        discovered_run_ids = tuple(str(value) for value in inventory.get("run_ids", ()))
-        if discovered_run_ids:
-            selected_run_ids = discovered_run_ids
+    trusted_inventory = _trusted_population_inventory(inventory)
+    if project_wide and trusted_inventory is not None:
+        selected_run_ids = tuple(trusted_inventory["run_ids"])
+        inventory = trusted_inventory
     adapter = Phase5OperatorHealthCatalogueAdapter(
         catalogue,
         run_ids=selected_run_ids,

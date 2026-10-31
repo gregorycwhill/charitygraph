@@ -57,6 +57,18 @@ def _project(path: Path, run_ids=("run:one", "run:two"), **kwargs):
     return project_phase5_project_cost_reconciliation(path, run_ids=run_ids, as_of=AS_OF, reporting_window_start=START, reporting_window_end=AS_OF, source_id="source:test", **kwargs)
 
 
+def _trusted_inventory(run_ids=("run:one", "run:two"), *, kind="bounded", schema_version=29):
+    return {
+        "state": "source_owned",
+        "source": "source-owned-test-manifest",
+        "schema_version": schema_version,
+        "run_ids": list(run_ids),
+        "scope": {"scope_id": "test-scope", "kind": kind},
+        "provenance": {"source_id": "manifest:test", "source_version": "v1", "evidence_basis": "synthetic bounded manifest"},
+        "completeness": {"state": "complete", "evidence": "test-manifest-completeness-attestation"},
+    }
+
+
 def test_multi_run_known_charges_keep_exact_identity_and_decimal_total(tmp_path: Path):
     path = tmp_path / "multi.sqlite3"
     _create_catalogue(path)
@@ -86,10 +98,11 @@ def test_idempotent_duplicate_receipt_is_counted_once_and_conflict_is_blocked(tm
     connection.execute("INSERT INTO cost_entries VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", ("cost:conflict", "run:one", "taskrun:one", "reservation:one", "actual", "9.99", "USD", "9.99", "9.99", None, "AUD", "pricing:one", "fx:one", AS_OF))
     connection.commit()
     connection.close()
-    conflict_document = _project(conflict, run_ids=("run:one",)).document
+    conflict_document = _project(conflict, project_wide=True, population_inventory=_trusted_inventory(kind="project_wide")).document
     assert conflict_document["totals"]["actual_incurred_charges"]["amount"] is None
     codes = {item["code"] for item in conflict_document["blockers"]}
     assert "CONFLICTING_DUPLICATE_RECEIPT" in codes
+    assert conflict_document["totals"]["project_wide"]["authoritative_total"] is None
 
 
 def test_missing_pricing_fx_and_usage_are_not_zero(tmp_path: Path):
@@ -121,8 +134,8 @@ def test_stale_schema_is_unknown_and_empty_data_is_not_zero(tmp_path: Path):
     assert "MISSING_REQUESTED_RUN" in {item["code"] for item in empty_document["blockers"]}
 
     empty_project_document = _project(empty, run_ids=("run:missing",), project_wide=True).document
-    assert empty_project_document["coverage"]["project_wide_population"]["state"] == "incomplete"
-    assert "EMPTY_SOURCE_RUN_INVENTORY" in empty_project_document["coverage"]["project_wide_population"]["reason_codes"]
+    assert empty_project_document["coverage"]["project_wide_population"]["state"] == "unknown"
+    assert "MISSING_TRUSTED_RUN_INVENTORY" in empty_project_document["coverage"]["project_wide_population"]["reason_codes"]
     assert empty_project_document["totals"]["project_wide"]["authoritative_total"] is None
     assert empty_project_document["totals"]["project_wide"]["remaining_spend"] is None
 
@@ -351,26 +364,22 @@ def test_supported_partial_charge_is_not_presented_as_project_total(tmp_path: Pa
     assert document["totals"]["actual_incurred_charges"]["amount"] is None
 
 
-def test_project_wide_schema29_population_can_authorise_persisted_total(tmp_path: Path):
+def test_complete_bounded_population_keeps_project_total_non_authoritative(tmp_path: Path):
     path = tmp_path / "project-wide.sqlite3"
     _create_catalogue(path)
 
-    document = _project(path, project_wide=True).document
+    document = _project(path, project_wide=True, population_inventory=_trusted_inventory()).document
 
     population = document["coverage"]["project_wide_population"]
     assert population["state"] == "complete"
     assert population["expected_run_ids"] == ["run:one", "run:two"]
     assert population["observed_run_ids"] == ["run:one", "run:two"]
-    assert document["coverage"]["project_wide_completeness_proven"] is True
+    assert document["coverage"]["project_wide_completeness_proven"] is False
     assert document["totals"]["observed_actual_subtotal"]["amount"] == "3.3"
-    assert document["totals"]["project_wide"] == {
-        "status": "AUTHORITATIVE",
-        "authoritative_total": "3.3",
-        "currency": "AUD",
-        "remaining_spend": None,
-        "basis": "complete source-owned schema29 run population and exact persisted runtime cost/receipt linkage",
-        "reason_codes": [],
-    }
+    assert document["totals"]["project_wide"]["status"] == "NOT_AUTHORITATIVE"
+    assert document["totals"]["project_wide"]["authoritative_total"] is None
+    assert document["totals"]["project_wide"]["remaining_spend"] is None
+    assert "PROJECT_WIDE_SCOPE_NOT_ATTESTED" in document["totals"]["project_wide"]["reason_codes"]
 
 
 def test_population_missing_run_attempt_receipt_and_cost_is_explicit(tmp_path: Path):
@@ -383,7 +392,7 @@ def test_population_missing_run_attempt_receipt_and_cost_is_explicit(tmp_path: P
     connection.commit()
     connection.close()
 
-    document = _project(path, project_wide=True).document
+    document = _project(path, project_wide=True, population_inventory=_trusted_inventory()).document
     run_two = next(row for row in document["coverage"]["project_wide_population"]["run_diagnostics"] if row["run_id"] == "run:two")
     assert run_two["missingness"] == ["MISSING_COST_RECORD", "MISSING_PROVIDER_RECEIPT_RECORD", "MISSING_TASK_ATTEMPT_RECORD"]
     assert document["coverage"]["project_wide_population"]["state"] == "incomplete"
@@ -397,7 +406,7 @@ def test_stale_schema27_population_cannot_become_project_authority(tmp_path: Pat
     path = tmp_path / "stale-project-wide.sqlite3"
     _create_catalogue(path, schema_version=27)
 
-    document = _project(path, project_wide=True).document
+    document = _project(path, project_wide=True, population_inventory=_trusted_inventory(schema_version=27)).document
 
     population = document["coverage"]["project_wide_population"]
     assert population["state"] == "incomplete"
@@ -422,12 +431,7 @@ def test_declared_source_population_missing_run_is_not_silently_zero(tmp_path: P
 
     document = reconcile_project_cost_snapshot(
         snapshot,
-        population_inventory={
-            "state": "source_owned",
-            "source": "persisted_schema29_runs",
-            "schema_version": 29,
-            "run_ids": ["run:one", "run:two"],
-        },
+        population_inventory=_trusted_inventory(),
     ).document
 
     population = document["coverage"]["project_wide_population"]
@@ -436,3 +440,85 @@ def test_declared_source_population_missing_run_is_not_silently_zero(tmp_path: P
     assert document["totals"]["observed_actual_subtotal"]["amount"] == "1.1"
     assert document["totals"]["project_wide"]["status"] == "NOT_AUTHORITATIVE"
     assert document["totals"]["project_wide"]["authoritative_total"] is None
+
+
+def test_project_wide_does_not_infer_a_trusted_inventory_from_local_runs(tmp_path: Path):
+    path = tmp_path / "local-closed-world.sqlite3"
+    _create_catalogue(path)
+
+    document = _project(path, project_wide=True).document
+
+    population = document["coverage"]["project_wide_population"]
+    assert population["expected_run_ids"] is None
+    assert population["reason_codes"] == ["MISSING_TRUSTED_RUN_INVENTORY"]
+    assert document["totals"]["observed_actual_subtotal"]["amount"] == "3.3"
+    assert document["totals"]["project_wide"]["authoritative_total"] is None
+    assert "MISSING_TRUSTED_RUN_INVENTORY" in document["totals"]["project_wide"]["reason_codes"]
+
+
+def test_untrusted_caller_inventory_cannot_prove_global_population(tmp_path: Path):
+    path = tmp_path / "untrusted-inventory.sqlite3"
+    _create_catalogue(path)
+
+    document = _project(
+        path,
+        project_wide=True,
+        population_inventory={"state": "source_owned", "source": "caller-list", "run_ids": ["run:one", "run:two"]},
+    ).document
+
+    assert document["coverage"]["project_wide_population"]["state"] == "unknown"
+    assert document["totals"]["project_wide"]["authoritative_total"] is None
+    assert "MISSING_TRUSTED_RUN_INVENTORY" in document["totals"]["project_wide"]["reason_codes"]
+
+
+def test_intentionally_omitted_historical_run_is_not_hidden_by_local_equality(tmp_path: Path):
+    path = tmp_path / "omitted-history.sqlite3"
+    _create_catalogue(path)
+    connection = sqlite3.connect(path)
+    connection.execute("DELETE FROM runs WHERE run_id='run:two'")
+    connection.commit()
+    connection.close()
+
+    document = _project(path, run_ids=("run:one",), project_wide=True).document
+
+    assert document["coverage"]["project_wide_population"]["expected_run_ids"] is None
+    assert document["totals"]["observed_actual_subtotal"]["amount"] == "1.1"
+    assert document["totals"]["project_wide"]["authoritative_total"] is None
+
+
+def test_ambiguous_crossing_without_cost_vetoes_authority_even_when_population_is_complete(tmp_path: Path):
+    path = tmp_path / "ambiguous-missing-cost.sqlite3"
+    _create_catalogue(path)
+    connection = sqlite3.connect(path)
+    connection.execute("INSERT INTO physical_attempts VALUES (?,?,?,?,?,?)", ("physical:two-ambiguous", "run:two", "subject:two", "validated", START, AS_OF))
+    connection.execute("INSERT INTO delivery_jobs VALUES (?,?,?,?,?)", ("job:two-ambiguous", "run:two", "send_ambiguous", START, AS_OF))
+    connection.execute("INSERT INTO provider_request_items VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", ("request:two-ambiguous", "run:two", "task:two", "physical:two-ambiguous", "job:two-ambiguous", "provider:test", "model:test", "send_ambiguous", "provider-request:two-ambiguous", "receipt:two-ambiguous", START, AS_OF))
+    connection.execute("INSERT INTO provider_request_attempts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", ("delivery:two-ambiguous", "request:two-ambiguous", "physical:two-ambiguous", "job:two-ambiguous", "send_ambiguous", 1, None, "provider-request:two-ambiguous", "receipt:two-ambiguous", START, START, AS_OF, AS_OF))
+    connection.execute("INSERT INTO provider_receipts VALUES (?,?,?,?,?)", ("receipt:two-ambiguous", "physical:two-ambiguous", "provider-request:two-ambiguous", json.dumps({"input_tokens": 10, "output_tokens": 4}), AS_OF))
+    connection.commit()
+    connection.close()
+
+    document = _project(path, project_wide=True, population_inventory=_trusted_inventory(kind="project_wide")).document
+
+    assert document["coverage"]["project_wide_population"]["state"] == "complete"
+    assert document["totals"]["observed_actual_subtotal"]["amount"] == "3.3"
+    assert document["totals"]["project_wide"]["status"] == "NOT_AUTHORITATIVE"
+    assert document["totals"]["project_wide"]["authoritative_total"] is None
+    assert "AMBIGUOUS_PROVIDER_CROSSING" in document["totals"]["project_wide"]["reason_codes"]
+    assert document["unreconciled"]["count"] == 1
+
+
+def test_unknown_receipt_cost_in_mixed_run_keeps_known_subtotal_but_not_authority(tmp_path: Path):
+    path = tmp_path / "unknown-receipt-cost.sqlite3"
+    _create_catalogue(path)
+    connection = sqlite3.connect(path)
+    connection.execute("UPDATE cost_entries SET accounting_amount=NULL, aud_amount=NULL, provider_amount=NULL WHERE entry_key='cost:two'")
+    connection.commit()
+    connection.close()
+
+    document = _project(path, project_wide=True, population_inventory=_trusted_inventory(kind="project_wide")).document
+
+    assert document["totals"]["observed_actual_subtotal"]["amount"] == "1.1"
+    assert document["totals"]["observed_actual_subtotal"]["state"] == "partial"
+    assert document["totals"]["project_wide"]["authoritative_total"] is None
+    assert "ACTUAL_COST_ROWS_NOT_FULLY_RECONCILED" in document["totals"]["project_wide"]["reason_codes"]
