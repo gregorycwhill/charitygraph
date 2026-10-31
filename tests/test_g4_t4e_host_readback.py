@@ -11,14 +11,12 @@ import pytest
 
 from bridge.g4_t4e_host_readback import (
     EXPECTED_CANDIDATE_ALLOWLIST,
-    EXPECTED_HEAD,
     EXPECTED_BRANCH,
-    EXPECTED_FENCE_VERSION,
     EXPECTED_REPOSITORY,
     CandidateFilePin,
     ExpectedArtifact,
     HostReadbackConfig,
-    VERIFIED_NONACTIONABLE,
+    STRUCTURE_ONLY_UNAUTHENTICATED,
     verify_host_readback,
 )
 
@@ -37,7 +35,12 @@ def _write(root: Path, relative: str, raw: bytes) -> None:
     destination.write_bytes(raw)
 
 
-def _fixture(tmp_path: Path) -> tuple[HostReadbackConfig, dict[str, bytes]]:
+def _fixture(
+    tmp_path: Path,
+    *,
+    head: str = "9a0a7d60e920242e843f1d9f7be282a870022624",
+    fence_version: str = "v74",
+) -> tuple[HostReadbackConfig, dict[str, bytes]]:
     root = tmp_path / "private-bundle"
     root.mkdir(parents=True)
     workspace = r"C:\CharityGraph-runtime\clean-target-g4-t4e"
@@ -46,17 +49,18 @@ def _fixture(tmp_path: Path) -> tuple[HostReadbackConfig, dict[str, bytes]]:
     reconciliation_id = "result-t4e-reconciliation-20261031"
     fence = {
         "branch": EXPECTED_BRANCH,
-        "head": EXPECTED_HEAD,
+        "head": head,
         "schema": "charitygraph.g4-o1b-dormant-fence/v1",
         "state": "ACTIVE",
-        "version": EXPECTED_FENCE_VERSION,
+        "version": fence_version,
+        "repository": EXPECTED_REPOSITORY,
         "workspace_path": workspace,
     }
     instruction = {
         "authority": {"approved": True, "authority_envelope": "gate4-engineering", "source": "chatgpt"},
         "instruction_id": instruction_id,
         "schema": "charitygraph.autonomous-instruction/v1",
-        "target": {"branch": EXPECTED_BRANCH, "head": EXPECTED_HEAD, "repository": EXPECTED_REPOSITORY, "workspace": workspace},
+        "target": {"branch": EXPECTED_BRANCH, "head": head, "repository": EXPECTED_REPOSITORY, "workspace": workspace},
     }
     result = {
         "codex_process": {"timed_out": True},
@@ -68,7 +72,7 @@ def _fixture(tmp_path: Path) -> tuple[HostReadbackConfig, dict[str, bytes]]:
         "semantic_product_work": "NOT_PERFORMED",
         "source_acquisition": False,
         "source_sha256": "INSTRUCTION_HASH_PLACEHOLDER",
-        "target": {"branch": EXPECTED_BRANCH, "head": EXPECTED_HEAD, "repository": EXPECTED_REPOSITORY, "workspace": workspace},
+        "target": {"branch": EXPECTED_BRANCH, "head": head, "repository": EXPECTED_REPOSITORY, "workspace": workspace},
         "terminal": True,
     }
     instruction_raw = _json(instruction)
@@ -86,17 +90,24 @@ def _fixture(tmp_path: Path) -> tuple[HostReadbackConfig, dict[str, bytes]]:
     status = {
         "active_execution": None,
         "branch": EXPECTED_BRANCH,
-        "head": EXPECTED_HEAD,
+        "head": head,
         "last_result_identity": {"instruction_id": instruction_id},
+        "fence_version": fence_version,
+        "repository": EXPECTED_REPOSITORY,
         "schema": "charitygraph.g4-o1c-cutover-status/v1",
         "watcher_state": "READY",
         "workspace_path": workspace,
     }
     ledger = {
         "active_or_ambiguous_claims": [],
+        "branch": EXPECTED_BRANCH,
         "dispatch_clear": True,
+        "fence_version": fence_version,
+        "head": head,
         "instruction_counts": {"complete": 1, "failed": 0, "pending": 0, "claimed": 0, "running": 0, "reconciliation_required": 0},
+        "repository": EXPECTED_REPOSITORY,
         "schema": "charitygraph.g4-o1c-supervisory-ledger/v1",
+        "workspace": workspace,
     }
     focused = {"expected": 32, "identity": "focused-32-20261031", "passed": 32, "schema": "charitygraph.g4-t4e-test-attestation/v1", "status": "PASSED", "terminal": True}
     regression = {"expected": 50, "identity": "regression-50-20261031", "passed": 50, "schema": "charitygraph.g4-t4e-test-attestation/v1", "status": "PASSED", "terminal": True}
@@ -146,9 +157,9 @@ def _fixture(tmp_path: Path) -> tuple[HostReadbackConfig, dict[str, bytes]]:
         "source_result": source_id,
         "reconciliation_report": "report-reconciliation-20261031",
         "reconciliation_result": reconciliation_id,
-        "fence": "fence-v73-20261031",
-        "status": "status-v73-20261031",
-        "ledger": "ledger-v73-20261031",
+        "fence": f"fence-{fence_version}-20261031",
+        "status": f"status-{fence_version}-20261031",
+        "ledger": f"ledger-{fence_version}-20261031",
         "focused_attestation": "focused-32-20261031",
         "regression_attestation": "regression-50-20261031",
         "candidate_package": "package-t4e-20261031",
@@ -163,7 +174,15 @@ def _fixture(tmp_path: Path) -> tuple[HostReadbackConfig, dict[str, bytes]]:
         _write(root, paths[role], raw)
     for path, raw in candidate_files.items():
         _write(root, f"candidate-bytes/{path.replace('/', '__')}", raw)
-    config = HostReadbackConfig(root, workspace, _sha(payloads["fence"]), tuple(specs), pin_set_id="supervisor-fixed-t4e-v73")
+    config = HostReadbackConfig(
+        root,
+        workspace,
+        _sha(payloads["fence"]),
+        tuple(specs),
+        head=head,
+        fence_version=fence_version,
+        pin_set_id=f"caller-declared-t4e-{fence_version}",
+    )
     return config, payloads
 
 
@@ -172,8 +191,13 @@ def test_positive_readback_is_immutable_redacted_and_nonactionable(tmp_path):
     before = sorted((p.relative_to(config.artifact_root).as_posix(), p.read_bytes()) for p in config.artifact_root.rglob("*") if p.is_file())
     attestation = verify_host_readback(config)
     after = sorted((p.relative_to(config.artifact_root).as_posix(), p.read_bytes()) for p in config.artifact_root.rglob("*") if p.is_file())
-    assert attestation.status == VERIFIED_NONACTIONABLE
+    assert attestation.status == STRUCTURE_ONLY_UNAUTHENTICATED
     assert attestation.action == "NONE"
+    assert attestation.reasons == ("structure_only_unauthenticated",)
+    assert attestation.limitations["host_authentication_required"] is True
+    assert attestation.limitations["structural_declarations_only"] is True
+    assert attestation.limitations["adoption_grant"] is False
+    assert attestation.limitations["caller_inputs_authenticated"] is False
     assert attestation.limitations["trusted_recovery_pins_actionable"] is False
     assert attestation.limitations["recovery_host_readback_actionable"] is False
     serialised = json.dumps(attestation.as_dict(), sort_keys=True)
@@ -216,7 +240,7 @@ def test_path_traversal_and_symlink_are_blocked(tmp_path, monkeypatch):
     config, _ = _fixture(tmp_path)
     specs = list(config.expected_artifacts)
     specs[0] = ExpectedArtifact(specs[0].identity, "../outside.json", specs[0].sha256, specs[0].role, specs[0].kind)
-    altered = HostReadbackConfig(config.artifact_root, config.workspace, config.fence_sha256, tuple(specs), config.candidate_files, pin_set_id=config.pin_set_id)
+    altered = replace(config, expected_artifacts=tuple(specs))
     result = verify_host_readback(altered)
     assert result.status == "BLOCKED"
     assert "unsafe_artifact_path" in result.reasons
@@ -228,6 +252,7 @@ def test_path_traversal_and_symlink_are_blocked(tmp_path, monkeypatch):
         original_is_symlink = Path.is_symlink
         monkeypatch.setattr(Path, "is_symlink", lambda path: path == link or original_is_symlink(path))
     assert "symlink_artifact" in verify_host_readback(config).reasons
+    assert "artifact_root_not_absolute" in verify_host_readback(replace(config, artifact_root=Path("relative-root"))).reasons
 
 
 def test_stale_dynamic_context_and_inconsistent_ledger_are_blocked(tmp_path):
@@ -242,6 +267,57 @@ def test_stale_dynamic_context_and_inconsistent_ledger_are_blocked(tmp_path):
     result = verify_host_readback(altered)
     assert result.status == "BLOCKED"
     assert "branch_or_head_mismatch" in result.reasons
+
+
+@pytest.mark.parametrize("fence_version", ["v74", "v75", "v120"])
+def test_dynamic_active_context_versions_are_structural_only(tmp_path, fence_version):
+    config, _ = _fixture(tmp_path, fence_version=fence_version, head="b" * 40)
+    result = verify_host_readback(config)
+    assert result.status == STRUCTURE_ONLY_UNAUTHENTICATED
+    assert result.action == "NONE"
+    assert result.limitations["host_authentication_required"] is True
+    assert result.limitations["recovery_authority"] is False
+
+
+@pytest.mark.parametrize(
+    ("role", "field", "replacement", "reason"),
+    [
+        ("status", "head", "c" * 40, "branch_or_head_mismatch"),
+        ("ledger", "workspace", r"C:\\other-workspace", "workspace_mismatch"),
+        ("ledger", "fence_version", "v75", "fence_version_mismatch"),
+    ],
+)
+def test_raw_context_records_must_match_observed_context(tmp_path, role, field, replacement, reason):
+    config, _ = _fixture(tmp_path)
+    spec = next(item for item in config.expected_artifacts if item.role == role)
+    value = json.loads((config.artifact_root / spec.relative_path).read_bytes())
+    value[field] = replacement
+    raw = _json(value)
+    (config.artifact_root / spec.relative_path).write_bytes(raw)
+    specs = [replace(item, sha256=_sha(raw)) if item.role == role else item for item in config.expected_artifacts]
+    result = verify_host_readback(replace(config, expected_artifacts=tuple(specs)))
+    assert result.status == "BLOCKED"
+    assert reason in result.reasons
+
+
+def test_caller_pins_and_synthetic_independent_evidence_are_not_authenticated(tmp_path):
+    config, _ = _fixture(tmp_path)
+    result = verify_host_readback(replace(config, pin_set_id="fake-caller-pin", host_trust_root="fake-root"))
+    assert result.status == STRUCTURE_ONLY_UNAUTHENTICATED
+    assert result.limitations["pin_set_authenticated"] is False
+    assert result.limitations["independent_reconciliation_authenticated"] is False
+    assert result.limitations["test_attestations_authenticated"] is False
+    assert result.limitations["report_content_authenticated"] is False
+    assert result.limitations["host_trust_root_authenticated"] is False
+
+
+def test_missing_host_trust_root_cannot_promote_authority(tmp_path):
+    config, _ = _fixture(tmp_path)
+    result = verify_host_readback(config)
+    assert result.status == STRUCTURE_ONLY_UNAUTHENTICATED
+    assert result.limitations["host_trust_root_present"] is False
+    assert result.limitations["host_authentication_required"] is True
+    assert result.limitations["adoption_grant"] is False
 
 
 def test_noncanonical_json_is_blocked_even_when_its_declared_hash_is_updated(tmp_path):
@@ -264,6 +340,21 @@ def test_missing_independent_test_evidence_and_wrong_allowlist_fail_closed(tmp_p
     assert "independent_test_evidence_invalid" in result.reasons or "required_artifact_missing" in result.reasons
     wrong = replace(config, candidate_files=(CandidateFilePin(EXPECTED_CANDIDATE_ALLOWLIST[0][0], "0" * 64, "candidate:wrong"),) + config.candidate_files[1:])
     assert "candidate_allowlist_invalid" in verify_host_readback(wrong).reasons
+    fake_identity = replace(
+        config,
+        candidate_files=(
+            CandidateFilePin(config.candidate_files[0].path, config.candidate_files[0].sha256, "candidate:fake"),
+        ) + config.candidate_files[1:],
+    )
+    assert "candidate_identity_allowlist_invalid" in verify_host_readback(fake_identity).reasons
+
+
+def test_exact_candidate_hash_allowlist_remains_unchanged(tmp_path):
+    config, _ = _fixture(tmp_path)
+    assert tuple((item.path, item.sha256) for item in config.candidate_files) == EXPECTED_CANDIDATE_ALLOWLIST
+    result = verify_host_readback(config)
+    assert result.status == STRUCTURE_ONLY_UNAUTHENTICATED
+    assert all(item["trust_scope"] == STRUCTURE_ONLY_UNAUTHENTICATED for item in result.verified_artifacts)
 
 
 def test_duplicate_source_identity_and_timeout_semantics_are_rejected(tmp_path):
@@ -272,7 +363,7 @@ def test_duplicate_source_identity_and_timeout_semantics_are_rejected(tmp_path):
     source_index = next(i for i, spec in enumerate(specs) if spec.role == "source_result")
     instruction = specs[next(i for i, spec in enumerate(specs) if spec.role == "instruction")]
     specs[source_index] = ExpectedArtifact(instruction.identity, specs[source_index].relative_path, specs[source_index].sha256, "source_result")
-    altered = HostReadbackConfig(config.artifact_root, config.workspace, config.fence_sha256, tuple(specs), config.candidate_files, pin_set_id=config.pin_set_id)
+    altered = replace(config, expected_artifacts=tuple(specs))
     result = verify_host_readback(altered)
     assert result.status == "BLOCKED"
     assert "duplicate_artifact_identity" in result.reasons

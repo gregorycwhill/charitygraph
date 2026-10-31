@@ -21,10 +21,9 @@ from typing import Any, Iterable, Mapping
 SCHEMA = "charitygraph.g4-t4e-host-readback/v1"
 EXPECTED_REPOSITORY = "charitygraph"
 EXPECTED_BRANCH = "gate3-cg406-remediation"
-EXPECTED_HEAD = "354619c30b5fe85c2a4d513b111315c432524fc6"
-EXPECTED_FENCE_VERSION = "v73"
 POLICY_PROVENANCE_EPOCH = "g4-t4e-recovery-policy-v1"
-VERIFIED_NONACTIONABLE = "HOST_READBACK_STRUCTURALLY_VERIFIED_NONACTIONABLE"
+STRUCTURE_ONLY_UNAUTHENTICATED = "STRUCTURE_ONLY_UNAUTHENTICATED"
+STRUCTURE_ONLY_REASON = "structure_only_unauthenticated"
 
 EXPECTED_CANDIDATE_ALLOWLIST = (
     (
@@ -39,6 +38,7 @@ EXPECTED_CANDIDATE_ALLOWLIST = (
 EXPECTED_TEST_COUNTS = {"focused_attestation": 32, "regression_attestation": 50}
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _HEAD = re.compile(r"^[0-9a-f]{40}$")
+_FENCE_VERSION = re.compile(r"^v[0-9]+$")
 _JSON_ROLES = frozenset(
     {
         "instruction",
@@ -79,7 +79,11 @@ class CandidateFilePin:
 
 @dataclass(frozen=True)
 class HostReadbackConfig:
-    """Independently fixed host inputs for one confined private artifact root."""
+    """Host-observed inputs for one confined private artifact root.
+
+    These values are declarations supplied by the caller.  They are checked
+    for internal consistency only; no field is an authenticated trust root.
+    """
 
     artifact_root: Path
     workspace: str
@@ -91,10 +95,11 @@ class HostReadbackConfig:
     )
     repository: str = EXPECTED_REPOSITORY
     branch: str = EXPECTED_BRANCH
-    head: str = EXPECTED_HEAD
-    fence_version: str = EXPECTED_FENCE_VERSION
+    head: str = ""
+    fence_version: str = ""
     policy_provenance_epoch: str = POLICY_PROVENANCE_EPOCH
     pin_set_id: str = ""
+    host_trust_root: str | None = None
 
 
 @dataclass(frozen=True)
@@ -115,6 +120,9 @@ class HostReadbackAttestation:
             "schema": SCHEMA,
             "status": self.status,
             "action": self.action,
+            "trust_scope": STRUCTURE_ONLY_UNAUTHENTICATED,
+            "host_authentication_required": True,
+            "adoption_grant": False,
             "reasons": list(self.reasons),
             "target": dict(self.target),
             "verified_artifacts": [dict(item) for item in self.verified_artifacts],
@@ -185,6 +193,15 @@ def _exact_target(value: Any, config: HostReadbackConfig, *, require_repository:
         raise _ReadbackFailure("branch_or_head_mismatch")
 
 
+def _exact_active_context(value: Any, config: HostReadbackConfig, *, version_keys: tuple[str, ...]) -> None:
+    _exact_target(value, config)
+    if not isinstance(value, Mapping):
+        raise _ReadbackFailure("target_identity_inconsistent")
+    version = next((value[key] for key in version_keys if key in value), None)
+    if version != config.fence_version:
+        raise _ReadbackFailure("fence_version_mismatch")
+
+
 def _artifact_spec_checks(config: HostReadbackConfig) -> tuple[dict[str, ExpectedArtifact], list[str]]:
     reasons: list[str] = []
     by_role: dict[str, ExpectedArtifact] = {}
@@ -214,9 +231,9 @@ def _artifact_spec_checks(config: HostReadbackConfig) -> tuple[dict[str, Expecte
         reasons.append("repository_pin_invalid")
     if config.branch != EXPECTED_BRANCH:
         reasons.append("branch_pin_invalid")
-    if config.head != EXPECTED_HEAD or _HEAD.fullmatch(config.head or "") is None:
+    if _HEAD.fullmatch(config.head or "") is None:
         reasons.append("head_pin_invalid")
-    if config.fence_version != EXPECTED_FENCE_VERSION:
+    if _FENCE_VERSION.fullmatch(config.fence_version or "") is None:
         reasons.append("fence_version_invalid")
     if config.policy_provenance_epoch != POLICY_PROVENANCE_EPOCH:
         reasons.append("policy_provenance_invalid")
@@ -224,6 +241,9 @@ def _artifact_spec_checks(config: HostReadbackConfig) -> tuple[dict[str, Expecte
         reasons.append("independent_pin_set_missing")
     if tuple((item.path, item.sha256) for item in config.candidate_files) != EXPECTED_CANDIDATE_ALLOWLIST:
         reasons.append("candidate_allowlist_invalid")
+    expected_candidate_identities = tuple(f"candidate:{path}" for path, _ in EXPECTED_CANDIDATE_ALLOWLIST)
+    if tuple(item.artifact_identity for item in config.candidate_files) != expected_candidate_identities:
+        reasons.append("candidate_identity_allowlist_invalid")
     candidate_ids = {item.artifact_identity for item in config.candidate_files}
     if len(candidate_ids) != len(config.candidate_files) or len(config.candidate_files) != len(EXPECTED_CANDIDATE_ALLOWLIST):
         reasons.append("duplicate_candidate_identity")
@@ -364,10 +384,10 @@ def _check_active_context(loaded: Mapping[str, tuple[ExpectedArtifact, bytes]], 
             reasons.append("fence_not_active")
         if fence.get("version", fence.get("fence_version")) != config.fence_version:
             reasons.append("fence_version_mismatch")
-        _exact_target(fence, config, require_repository=False)
+        _exact_active_context(fence, config, version_keys=("version", "fence_version"))
         if status.get("schema") != "charitygraph.g4-o1c-cutover-status/v1":
             reasons.append("status_schema_invalid")
-        _exact_target(status, config, require_repository=False)
+        _exact_active_context(status, config, version_keys=("fence_version", "version"))
         if status.get("watcher_state") != "READY" or status.get("active_execution") is not None:
             reasons.append("status_active_or_not_ready")
         last_identity = status.get("last_result_identity")
@@ -379,6 +399,7 @@ def _check_active_context(loaded: Mapping[str, tuple[ExpectedArtifact, bytes]], 
             reasons.append("source_timeout_status_upgraded_or_wrong")
         if ledger.get("schema") != "charitygraph.g4-o1c-supervisory-ledger/v1":
             reasons.append("ledger_schema_invalid")
+        _exact_active_context(ledger, config, version_keys=("fence_version", "version"))
         if ledger.get("dispatch_clear") is not True or ledger.get("active_or_ambiguous_claims") != []:
             reasons.append("ledger_claim_or_dispatch_blocker")
         counts = ledger.get("instruction_counts")
@@ -469,7 +490,12 @@ def _check_candidate_package(loaded: Mapping[str, tuple[ExpectedArtifact, bytes]
 def _attestation(config: HostReadbackConfig, status: str, reasons: Iterable[str], loaded: Mapping[str, tuple[ExpectedArtifact, bytes]]) -> HostReadbackAttestation:
     unique_reasons = tuple(dict.fromkeys(reasons))
     verified = tuple(
-        {"identity": spec.identity, "role": spec.role, "sha256": spec.sha256}
+        {
+            "identity": spec.identity,
+            "role": spec.role,
+            "sha256": spec.sha256,
+            "trust_scope": STRUCTURE_ONLY_UNAUTHENTICATED,
+        }
         for spec, _ in sorted(loaded.values(), key=lambda item: (item[0].role, item[0].identity))
         if spec.role != "candidate_file" or spec.identity in {item.artifact_identity for item in config.candidate_files}
     )
@@ -478,7 +504,7 @@ def _attestation(config: HostReadbackConfig, status: str, reasons: Iterable[str]
     return HostReadbackAttestation(
         status=status,
         action="NONE",
-        reasons=unique_reasons or ("validation_failed",),
+        reasons=unique_reasons or (STRUCTURE_ONLY_REASON,),
         target=MappingProxyType({
             "repository": config.repository,
             "branch": config.branch,
@@ -489,27 +515,42 @@ def _attestation(config: HostReadbackConfig, status: str, reasons: Iterable[str]
         verified_artifacts=tuple(MappingProxyType(dict(item)) for item in verified),
         historical_timeout=MappingProxyType({
             "result_identity": source_identity,
-            "terminal": status == VERIFIED_NONACTIONABLE and not any(
+            "terminal": status == STRUCTURE_ONLY_UNAUTHENTICATED and not any(
                 reason.startswith("source_timeout") or reason == "source_timeout_status_upgraded_or_wrong"
                 for reason in unique_reasons
             ),
             "evidence_only": True,
+            "authenticated": False,
+            "trust_scope": STRUCTURE_ONLY_UNAUTHENTICATED,
         }),
         active_context=MappingProxyType({
-            "fence_verified": "fence_not_active" not in unique_reasons and "fence_version_mismatch" not in unique_reasons,
-            "status_verified": "status_active_or_not_ready" not in unique_reasons,
-            "ledger_verified": "ledger_claim_or_dispatch_blocker" not in unique_reasons,
+            "fence_structurally_consistent": "fence_not_active" not in unique_reasons and "fence_version_mismatch" not in unique_reasons,
+            "status_structurally_consistent": "status_active_or_not_ready" not in unique_reasons,
+            "ledger_structurally_consistent": "ledger_claim_or_dispatch_blocker" not in unique_reasons,
+            "trust_scope": STRUCTURE_ONLY_UNAUTHENTICATED,
         }),
         limitations=MappingProxyType({
             "dormant": True,
             "actionable": False,
+            "host_authentication_required": True,
+            "host_trust_root_present": bool(config.host_trust_root),
+            "host_trust_root_authenticated": False,
+            "adoption_grant": False,
+            "recovery_authority": False,
+            "caller_inputs_authenticated": False,
+            "pin_set_authenticated": False,
+            "independent_reconciliation_authenticated": False,
+            "test_attestations_authenticated": False,
+            "report_content_authenticated": False,
+            "structural_declarations_only": True,
+            "trust_scope": STRUCTURE_ONLY_UNAUTHENTICATED,
             "requires_separate_host_authentication_and_acceptance": True,
             "trusted_recovery_pins_actionable": False,
             "recovery_host_readback_actionable": False,
             "provider_calls": 0,
             "source_acquisition": False,
             "publication": False,
-        "git_writes": False,
+            "git_writes": False,
             "filesystem_writes": False,
             "raw_bytes_exposed": False,
             "private_paths_exposed": False,
@@ -546,21 +587,19 @@ def verify_host_readback(config: HostReadbackConfig) -> HostReadbackAttestation:
         reasons.extend(_check_candidate_package(loaded, config))
     if reasons:
         return _attestation(config, "BLOCKED", reasons, loaded)
-    return _attestation(config, VERIFIED_NONACTIONABLE, (), loaded)
+    return _attestation(config, STRUCTURE_ONLY_UNAUTHENTICATED, (), loaded)
 
 
 __all__ = [
     "CandidateFilePin",
     "EXPECTED_CANDIDATE_ALLOWLIST",
-    "EXPECTED_HEAD",
     "EXPECTED_REPOSITORY",
     "EXPECTED_BRANCH",
-    "EXPECTED_FENCE_VERSION",
     "ExpectedArtifact",
     "HostReadbackAttestation",
     "HostReadbackConfig",
     "POLICY_PROVENANCE_EPOCH",
     "SCHEMA",
-    "VERIFIED_NONACTIONABLE",
+    "STRUCTURE_ONLY_UNAUTHENTICATED",
     "verify_host_readback",
 ]
