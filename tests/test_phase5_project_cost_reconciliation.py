@@ -169,6 +169,64 @@ def test_replayed_attempt_is_marked_but_not_silently_merged(tmp_path: Path):
     assert document["charges"][0]["identity"]["delivery_attempt_id"] == "delivery:one"
 
 
+def test_receipt_physical_identity_mismatch_is_unknown_but_same_attempt_is_known(tmp_path: Path):
+    mismatch = tmp_path / "receipt-physical-mismatch.sqlite3"
+    _create_catalogue(mismatch)
+    connection = sqlite3.connect(mismatch)
+    connection.execute("INSERT INTO physical_attempts VALUES (?,?,?,?,?,?)", ("physical:one-other", "run:one", "subject:one", "validated", START, AS_OF))
+    connection.execute("UPDATE provider_receipts SET physical_attempt_id='physical:one-other' WHERE provider_receipt_id='receipt:one'")
+    connection.commit()
+    connection.close()
+
+    mismatched_document = _project(mismatch, run_ids=("run:one",)).document
+    assert mismatched_document["totals"]["actual_incurred_charges"]["state"] == "unknown"
+    assert mismatched_document["totals"]["actual_incurred_charges"]["amount"] is None
+    assert "CONTRADICTORY_RUNTIME_IDENTITIES" in {item["code"] for item in mismatched_document["blockers"]}
+    assert mismatched_document["charges"] == []
+
+    valid = tmp_path / "receipt-physical-valid.sqlite3"
+    _create_catalogue(valid)
+    valid_document = _project(valid, run_ids=("run:one",)).document
+    assert valid_document["totals"]["actual_incurred_charges"]["state"] == "known"
+    assert valid_document["totals"]["actual_incurred_charges"]["amount"] == "1.1"
+    assert {row["identity"]["provider_receipt_id"] for row in valid_document["charges"]} == {"receipt:one"}
+
+
+def test_task_attempt_provider_request_identity_mismatch_is_unknown(tmp_path: Path):
+    path = tmp_path / "task-attempt-provider-request-mismatch.sqlite3"
+    _create_catalogue(path)
+    connection = sqlite3.connect(path)
+    connection.execute("UPDATE task_attempts SET provider_request_id='provider-request:wrong' WHERE task_run_id='taskrun:one'")
+    connection.commit()
+    connection.close()
+
+    document = _project(path, run_ids=("run:one",)).document
+    assert document["totals"]["actual_incurred_charges"]["state"] == "unknown"
+    assert document["totals"]["actual_incurred_charges"]["amount"] is None
+    assert "CONTRADICTORY_RUNTIME_IDENTITIES" in {item["code"] for item in document["blockers"]}
+    assert document["charges"] == []
+
+
+def test_task_attempt_provider_request_exact_id_disambiguates_without_double_counting(tmp_path: Path):
+    path = tmp_path / "task-attempt-provider-request-exact-id.sqlite3"
+    _create_catalogue(path)
+    connection = sqlite3.connect(path)
+    connection.execute("INSERT INTO physical_attempts VALUES (?,?,?,?,?,?)", ("physical:one-retry", "run:one", "subject:one", "validated", START, AS_OF))
+    connection.execute("INSERT INTO delivery_jobs VALUES (?,?,?,?,?)", ("job:one-retry", "run:one", "completed", START, AS_OF))
+    connection.execute("INSERT INTO provider_request_items VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", ("request:one-retry", "run:one", "task:one", "physical:one-retry", "job:one-retry", "provider:test", "model:test", "completed", "provider-request:one-retry", "receipt:one-retry", START, AS_OF))
+    connection.execute("INSERT INTO provider_request_attempts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", ("delivery:one-retry", "request:one-retry", "physical:one-retry", "job:one-retry", "completed", 1, None, "provider-request:one-retry", "receipt:one-retry", START, START, AS_OF, AS_OF))
+    connection.execute("INSERT INTO provider_receipts VALUES (?,?,?,?,?)", ("receipt:one-retry", "physical:one-retry", "provider-request:one-retry", json.dumps({"input_tokens": 10, "output_tokens": 4}), AS_OF))
+    connection.execute("INSERT INTO cost_entries VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", ("cost:one-replay", "run:one", "taskrun:one", "reservation:one", "actual", "1.10", "USD", "1.10", "1.10", None, "AUD", "pricing:one", "fx:one", AS_OF))
+    connection.commit()
+    connection.close()
+
+    document = _project(path, run_ids=("run:one",)).document
+    assert document["totals"]["actual_incurred_charges"]["state"] == "known"
+    assert document["totals"]["actual_incurred_charges"]["amount"] == "1.1"
+    assert {row["identity"]["provider_receipt_id"] for row in document["charges"]} == {"receipt:one"}
+    assert "DUPLICATE_OR_REPLAYED_RECEIPT" in {item["code"] for item in document["blockers"]}
+
+
 def test_multiple_requests_without_source_identity_are_ambiguous_and_excluded(tmp_path: Path):
     path = tmp_path / "multiple-requests.sqlite3"
     _create_catalogue(path, with_rows=True)

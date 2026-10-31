@@ -497,8 +497,16 @@ def reconcile_project_cost_snapshot(
         elif len(receipt_candidates) > 1:
             unresolved("AMBIGUOUS_LINKAGE", "physical attempt has multiple provider receipts without a declared discriminator")
 
+        receipt_physical_id = _identifier(receipt or {}, "physical_attempt_id")
+        if receipt is not None:
+            if receipt_physical_id is None or physical_id is None:
+                unresolved("INCOMPLETE_RUNTIME_LINKAGE", "selected provider receipt has no unique physical-attempt identity")
+            elif receipt_physical_id != physical_id:
+                unresolved("CONTRADICTORY_RUNTIME_IDENTITIES", "selected provider receipt names a different physical attempt")
+
         provider_request_ids = {
             value for value in (
+                _identifier(task_attempt or {}, "provider_request_id"),
                 _identifier(request or {}, "provider_request_id"),
                 _identifier(attempt or {}, "provider_request_id"),
                 _identifier(physical_row or {}, "provider_request_id"),
