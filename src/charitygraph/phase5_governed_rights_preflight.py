@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from datetime import date
+from collections.abc import Mapping
 from typing import Any, Callable, Iterable, Literal
 
 from pydantic import Field, field_validator
@@ -34,6 +35,7 @@ from .runtime.rights_governance_record import (
     RightsGovernanceStore,
     RightsStorageError,
 )
+from .g4_provider_policy_registry import resolve_provider_policy_registry
 
 
 RightsPreflightState = Literal[
@@ -157,6 +159,54 @@ def _projection_matches(record: RightsGovernanceRecord, row: dict[str, Any]) -> 
     return all(row.get(key) == value for key, value in expected.items())
 
 
+def _validate_optional_provider_policy_authority(
+    reference: RightsPreflightReference,
+    record: RightsGovernanceRecord,
+    authority_check: Mapping[str, Any] | Any,
+    *,
+    as_of: date,
+) -> PreflightDiagnostic | None:
+    """Verify optional source-owned provider metadata without changing planning.
+
+    This seam is deliberately opt-in.  The normal provider-free path does not
+    require provider metadata and therefore retains its existing behaviour.
+    Even a verified result is only an authority diagnostic: the resolver never
+    creates a request ticket or claims real-send readiness.
+    """
+
+    if hasattr(authority_check, "model_dump"):
+        arguments = authority_check.model_dump(mode="python")
+    elif isinstance(authority_check, Mapping):
+        arguments = dict(authority_check)
+    else:
+        return _diagnostic(
+            reference,
+            "structurally_invalid",
+            "provider policy authority check is structurally invalid",
+        )
+    arguments["rights_authority"] = record
+    arguments.setdefault("as_of", as_of)
+    try:
+        resolution = resolve_provider_policy_registry(**arguments)
+    except (TypeError, ValueError) as exc:
+        return _diagnostic(
+            reference,
+            "structurally_invalid",
+            "provider policy authority check is structurally invalid",
+            str(exc),
+            subject_id=record.subject_id,
+        )
+    if not resolution.authority_verified:
+        return _diagnostic(
+            reference,
+            "blocked",
+            "source-owned provider policy authority is not independently verified",
+            *resolution.reasons,
+            subject_id=record.subject_id,
+        )
+    return None
+
+
 def _validate_authority(
     reference: RightsPreflightReference,
     *,
@@ -165,6 +215,7 @@ def _validate_authority(
     catalog: Any,
     as_of: date,
     retained_bytes: Callable[[str], bytes] | None,
+    provider_policy_authority: Mapping[str, Any] | Any | None,
 ) -> tuple[PreflightDiagnostic | None, tuple[RightsGovernanceRecord, GovernedReference] | None]:
     try:
         record = store.load_record(reference.rights_record_id)
@@ -194,6 +245,15 @@ def _validate_authority(
             reference, "blocked", "rights record is expired, revoked, superseded, or not current",
             record.content_hash, subject_id=record.subject_id,
         ), None
+    if provider_policy_authority is not None:
+        diagnostic = _validate_optional_provider_policy_authority(
+            reference,
+            record,
+            provider_policy_authority,
+            as_of=as_of,
+        )
+        if diagnostic is not None:
+            return diagnostic, None
     if record.rights_policy_id == INTERNAL_PRIVATE_USE_POLICY_ID:
         if reference.source_family not in INTERNAL_PRIVATE_USE_POLICY.source_families:
             return _diagnostic(
@@ -308,6 +368,7 @@ def preflight_governed_rights(
     retained_bytes: Callable[[str], bytes] | None = None,
     build_id: str = "phase5-governed-rights-preflight-v1",
     route_policy_version: str = "phase5-governed-rights-route-v1",
+    provider_policy_authority: Mapping[str, Any] | Any | None = None,
 ) -> GovernedRightsFactoryPreflight:
     """Validate private rights authority, then invoke clean Factory preflight."""
 
@@ -338,6 +399,7 @@ def preflight_governed_rights(
             catalog=catalog,
             as_of=as_of,
             retained_bytes=retained_bytes,
+            provider_policy_authority=provider_policy_authority,
         )
         if diagnostic is not None:
             diagnostics.append(diagnostic)
