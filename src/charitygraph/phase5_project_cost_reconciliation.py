@@ -127,6 +127,30 @@ def _row_map(rows: Sequence[Mapping[str, Any]], *names: str) -> tuple[dict[str, 
     return indexed, sorted(set(duplicate_ids))
 
 
+def _row_groups(rows: Sequence[Mapping[str, Any]], *names: str) -> dict[str, list[Mapping[str, Any]]]:
+    """Group safe exported rows without discarding source-native identities."""
+
+    grouped: dict[str, list[Mapping[str, Any]]] = {}
+    for row in rows:
+        identity = _identifier(row, *names)
+        if identity is not None:
+            grouped.setdefault(identity, []).append(row)
+    return grouped
+
+
+def _distinct_rows(rows: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
+    """Remove byte-identical replay rows while retaining conflicting rows."""
+
+    distinct: list[Mapping[str, Any]] = []
+    seen: set[bytes] = set()
+    for row in rows:
+        identity = _canonical_bytes(row)
+        if identity not in seen:
+            seen.add(identity)
+            distinct.append(row)
+    return distinct
+
+
 def _timestamp_is_valid(value: Any) -> bool:
     if not isinstance(value, str) or not value.strip():
         return False
@@ -286,17 +310,26 @@ def reconcile_project_cost_snapshot(
     physical_map, duplicate_physical = _row_map(physical, "physical_attempt_id")
     receipt_map, duplicate_receipts = _row_map(receipts, "provider_receipt_id", "receipt_id")
     reservation_map, duplicate_reservations = _row_map(reservations, "reservation_id")
-
-    request_by_task: dict[str, Mapping[str, Any]] = {}
+    task_attempt_groups = _row_groups(task_attempts, "task_run_id", "attempt_id")
+    request_groups = _row_groups(requests, "provider_request_item_id", "request_item_id", "request_id")
+    request_by_task: dict[str, list[Mapping[str, Any]]] = {}
     for request in requests:
         task_id = _identifier(request, "model_task_id", "task_id")
         if task_id:
-            request_by_task.setdefault(task_id, request)
-    attempt_by_request: dict[str, Mapping[str, Any]] = {}
+            request_by_task.setdefault(task_id, []).append(request)
+    attempt_groups = _row_groups(attempts, "delivery_attempt_id", "attempt_id")
+    attempts_by_request: dict[str, list[Mapping[str, Any]]] = {}
     for attempt in attempts:
         request_id = _identifier(attempt, "provider_request_item_id", "request_item_id")
         if request_id:
-            attempt_by_request.setdefault(request_id, attempt)
+            attempts_by_request.setdefault(request_id, []).append(attempt)
+    physical_groups = _row_groups(physical, "physical_attempt_id")
+    receipt_groups = _row_groups(receipts, "provider_receipt_id", "receipt_id")
+    receipts_by_physical: dict[str, list[Mapping[str, Any]]] = {}
+    for receipt in receipts:
+        physical_id = _identifier(receipt, "physical_attempt_id")
+        if physical_id:
+            receipts_by_physical.setdefault(physical_id, []).append(receipt)
 
     blockers: list[dict[str, Any]] = []
     for code, values in (
@@ -352,29 +385,128 @@ def reconcile_project_cost_snapshot(
     invalid_amount_ids: list[str] = []
     invalid_provider_amount_ids: list[str] = []
     accounting_mismatch_ids: list[str] = []
+    actual_unreconciled_ids: list[str] = []
+    ambiguous_linkage_ids: list[str] = []
+    incomplete_attempt_history_ids: list[str] = []
+    contradictory_identity_ids: list[str] = []
     estimate_total = Decimal(0)
-    reservation_total = Decimal(0)
+    reservation_gross_total = Decimal(0)
+    reservation_active_total = Decimal(0)
+    reservation_released_total = Decimal(0)
     reservation_unknown_ids: list[str] = []
+    reservation_conflict_ids: list[str] = []
+    reservation_release_unknown_ids: list[str] = []
+    reservation_release_records: list[dict[str, Any]] = []
 
     def linkage_for_cost(row: Mapping[str, Any]) -> dict[str, Any]:
         run_id = _identifier(row, "run_id")
         task_run_id = _identifier(row, "task_run_id")
-        task_attempt = task_attempt_map.get(task_run_id or "")
+        resolution_reasons: list[str] = []
+        resolution_codes: list[str] = []
+
+        def unresolved(code: str, reason: str) -> None:
+            if code not in resolution_codes:
+                resolution_codes.append(code)
+            if reason not in resolution_reasons:
+                resolution_reasons.append(reason)
+
+        task_attempt_candidates = _distinct_rows(task_attempt_groups.get(task_run_id or "", ()))
+        task_attempt = task_attempt_candidates[0] if len(task_attempt_candidates) == 1 else None
+        if not task_attempt_candidates:
+            unresolved("INCOMPLETE_RUNTIME_LINKAGE", "task attempt identity is absent")
+        elif len(task_attempt_candidates) > 1:
+            unresolved("AMBIGUOUS_LINKAGE", "task_run_id maps to multiple task-attempt rows")
         task_id = _identifier(task_attempt or {}, "model_task_id", "task_id")
         task = task_map.get(task_id or "")
-        request = request_by_task.get(task_id or "")
+        request_candidates = _distinct_rows(request_by_task.get(task_id or "", ()))
+        expected_request_id = _identifier(task_attempt or {}, "provider_request_id")
+        if len(request_candidates) > 1 and expected_request_id:
+            matched_requests = [
+                candidate for candidate in request_candidates
+                if _identifier(candidate, "provider_request_id") == expected_request_id
+                or any(
+                    _identifier(attempt_row, "provider_request_id") == expected_request_id
+                    for attempt_row in attempts_by_request.get(_identifier(candidate, "provider_request_item_id", "request_item_id", "request_id") or "", ())
+                )
+            ]
+            if len(matched_requests) == 1:
+                request_candidates = matched_requests
+            else:
+                unresolved("AMBIGUOUS_LINKAGE", "multiple request items remain plausible for the task attempt")
+        elif len(request_candidates) > 1:
+            unresolved("AMBIGUOUS_LINKAGE", "multiple request items exist for the task")
+        request = request_candidates[0] if len(request_candidates) == 1 else None
+        if request is None:
+            unresolved("INCOMPLETE_RUNTIME_LINKAGE", "no unique provider request item is linked to the task attempt")
         request_id = _identifier(request or {}, "provider_request_item_id", "request_item_id", "request_id")
-        attempt = attempt_by_request.get(request_id or "")
-        physical_id = _identifier(request or {}, "physical_attempt_id") or _identifier(attempt or {}, "physical_attempt_id")
-        physical_row = physical_map.get(physical_id or "")
-        receipt_id = _identifier(request or {}, "provider_receipt_id", "receipt_id")
-        receipt = receipt_map.get(receipt_id or "")
-        if receipt is None and physical_id:
-            for candidate in receipts:
-                if _identifier(candidate, "physical_attempt_id") == physical_id:
-                    receipt = candidate
-                    receipt_id = _identifier(candidate, "provider_receipt_id", "receipt_id")
-                    break
+        attempt_candidates = _distinct_rows(attempts_by_request.get(request_id or "", ()))
+        declared_receipt_id = _identifier(request or {}, "provider_receipt_id", "receipt_id")
+        if len(attempt_candidates) > 1:
+            expected_attempts = [
+                candidate for candidate in attempt_candidates
+                if (expected_request_id and _identifier(candidate, "provider_request_id") == expected_request_id)
+                or (declared_receipt_id and _identifier(candidate, "provider_receipt_id", "receipt_id") == declared_receipt_id)
+            ]
+            if len(expected_attempts) == 1:
+                attempt_candidates = expected_attempts
+            else:
+                unresolved("INCOMPLETE_ATTEMPT_HISTORY", "multiple delivery attempts have no unique source-native identity match")
+        attempt = attempt_candidates[0] if len(attempt_candidates) == 1 else None
+        if request is not None and not attempt_candidates:
+            unresolved("INCOMPLETE_ATTEMPT_HISTORY", "provider request item has no exported delivery attempt row")
+
+        request_physical_id = _identifier(request or {}, "physical_attempt_id")
+        attempt_physical_id = _identifier(attempt or {}, "physical_attempt_id")
+        physical_ids = {value for value in (request_physical_id, attempt_physical_id) if value}
+        if len(physical_ids) > 1:
+            unresolved("CONTRADICTORY_RUNTIME_IDENTITIES", "request and delivery attempt name different physical attempts")
+        physical_id = sorted(physical_ids)[0] if len(physical_ids) == 1 else None
+        physical_candidates = _distinct_rows(physical_groups.get(physical_id or "", ()))
+        if len(physical_candidates) > 1:
+            unresolved("AMBIGUOUS_LINKAGE", "physical attempt identity has multiple non-identical rows")
+        physical_row = physical_candidates[0] if len(physical_candidates) == 1 else None
+
+        declared_receipt_ids = {
+            value for value in (
+                _identifier(request or {}, "provider_receipt_id", "receipt_id"),
+                _identifier(attempt or {}, "provider_receipt_id", "receipt_id"),
+            ) if value
+        }
+        if len(declared_receipt_ids) > 1:
+            unresolved("CONTRADICTORY_RUNTIME_IDENTITIES", "request and delivery attempt name different provider receipts")
+        receipt_candidates = _distinct_rows(receipts_by_physical.get(physical_id or "", ()))
+        receipt: Mapping[str, Any] | None = None
+        receipt_id: str | None = None
+        if len(declared_receipt_ids) == 1:
+            receipt_id = next(iter(declared_receipt_ids))
+            matching = _distinct_rows(receipt_groups.get(receipt_id, ()))
+            if len(matching) == 1:
+                receipt = matching[0]
+            elif not matching:
+                unresolved("MISSING_PROVIDER_RECEIPT_IDENTITY", "declared provider receipt is not present in the safe export")
+            else:
+                unresolved("AMBIGUOUS_LINKAGE", "declared provider receipt identity has multiple non-identical rows")
+            physical_receipt_ids = {
+                value for value in (_identifier(candidate, "provider_receipt_id", "receipt_id") for candidate in receipt_candidates) if value
+            }
+            if physical_receipt_ids - {receipt_id}:
+                unresolved("CONTRADICTORY_RUNTIME_IDENTITIES", "physical attempt has a receipt identity different from the declared receipt")
+        elif len(receipt_candidates) == 1:
+            receipt = receipt_candidates[0]
+            receipt_id = _identifier(receipt, "provider_receipt_id", "receipt_id")
+        elif len(receipt_candidates) > 1:
+            unresolved("AMBIGUOUS_LINKAGE", "physical attempt has multiple provider receipts without a declared discriminator")
+
+        provider_request_ids = {
+            value for value in (
+                _identifier(request or {}, "provider_request_id"),
+                _identifier(attempt or {}, "provider_request_id"),
+                _identifier(physical_row or {}, "provider_request_id"),
+                _identifier(receipt or {}, "provider_request_id"),
+            ) if value
+        }
+        if len(provider_request_ids) > 1:
+            unresolved("CONTRADICTORY_RUNTIME_IDENTITIES", "request, physical attempt and receipt name different provider requests")
         reservation_id = _identifier(row, "reservation_id")
         reservation = reservation_map.get(reservation_id or "")
         cohort_id = _identifier(row, "cohort_id") or _identifier(reservation or {}, "cohort_id")
@@ -399,6 +531,8 @@ def reconcile_project_cost_snapshot(
             "receipt": receipt,
             "reservation": reservation,
             "task": task,
+            "resolution_reasons": sorted(resolution_reasons),
+            "resolution_codes": sorted(resolution_codes),
         }
 
     def public_linkage(linkage: Mapping[str, Any]) -> dict[str, Any]:
@@ -421,7 +555,14 @@ def reconcile_project_cost_snapshot(
         provenance = _safe_provenance(row, snapshot)
         if entry_type in _ACTUAL_TYPES:
             actual_count += 1
-            reasons: list[str] = []
+            reasons: list[str] = list(linkage["resolution_reasons"])
+            for code in linkage["resolution_codes"]:
+                if code == "AMBIGUOUS_LINKAGE":
+                    ambiguous_linkage_ids.append(entry_id)
+                elif code == "INCOMPLETE_ATTEMPT_HISTORY":
+                    incomplete_attempt_history_ids.append(entry_id)
+                elif code == "CONTRADICTORY_RUNTIME_IDENTITIES":
+                    contradictory_identity_ids.append(entry_id)
             if amount is None or currency not in _SUPPORTED_CURRENCIES:
                 invalid_amount_ids.append(entry_id)
                 reasons.append("MISSING_OR_INVALID_AUD_AMOUNT")
@@ -466,7 +607,7 @@ def reconcile_project_cost_snapshot(
                 prior_signature, prior_entry = actual_by_receipt[receipt_id]
                 if receipt_id in conflicting_receipt_ids:
                     reasons.append("CONFLICTING_DUPLICATE_RECEIPT")
-                elif prior_signature == signature:
+                elif prior_signature == signature and not reasons:
                     actual_duplicate_ids.append(receipt_id)
                     blockers.append(_blocker("DUPLICATE_OR_REPLAYED_RECEIPT", 1, severity="warning", identities=[receipt_id]))
                     continue
@@ -501,6 +642,7 @@ def reconcile_project_cost_snapshot(
                     "identity": public_linkage(linkage),
                 })
             else:
+                actual_unreconciled_ids.append(entry_id)
                 unreconciled_records.append({
                     "entry_key": entry_id,
                     "entry_type": entry_type,
@@ -518,7 +660,32 @@ def reconcile_project_cost_snapshot(
                 unknown_cost_ids.append(entry_id)
             continue
 
-        if entry_type in _RESERVATION_TYPES | _RELEASE_TYPES | _CREDIT_TYPES or entry_type in {"adjustment", "adjustment_debit"}:
+        if entry_type in _RELEASE_TYPES:
+            release_id = entry_id
+            release_amount = accounting_amount if accounting_amount is not None else (aud_amount if aud_amount is not None else _decimal(row.get("amount"), release_id))
+            release_currency = _non_empty(row.get("accounting_currency") or row.get("currency"))
+            release_reservation_id = _identifier(row, "reservation_id")
+            release_reasons: list[str] = []
+            if release_amount is None or release_currency != "AUD":
+                release_reasons.append("MISSING_OR_INVALID_RELEASE_AMOUNT")
+            if release_reservation_id is None:
+                release_reasons.append("MISSING_RELEASE_RESERVATION_ID")
+            elif release_reservation_id not in reservation_map:
+                release_reasons.append("UNKNOWN_RELEASE_RESERVATION_ID")
+            if accounting_amount is not None and aud_amount is not None and accounting_amount != aud_amount:
+                release_reasons.append("ACCOUNTING_AMOUNT_MISMATCH")
+            reservation_release_records.append({
+                "entry_key": release_id,
+                "reservation_id": release_reservation_id,
+                "amount": _decimal_text(release_amount) if not release_reasons else None,
+                "currency": release_currency if not release_reasons else None,
+                "state": "known" if not release_reasons else "unknown",
+                "reasons": sorted(set(release_reasons)),
+                "provenance": provenance,
+            })
+            continue
+
+        if entry_type in _RESERVATION_TYPES | _CREDIT_TYPES or entry_type in {"adjustment", "adjustment_debit"}:
             # These are retained as classified ledger rows, but never folded
             # into incurred provider charges.
             continue
@@ -527,25 +694,95 @@ def reconcile_project_cost_snapshot(
             unknown_cost_ids.append(entry_id)
             unreconciled_records.append({"entry_key": entry_id, "entry_type": entry_type, "reasons": ["UNKNOWN_COST_ENTRY_TYPE"], "provenance": provenance, "identity": public_linkage(linkage)})
 
-    for row in sorted(reservations, key=lambda item: str(_identifier(item, "reservation_id") or "")):
-        reservation_id = _identifier(row, "reservation_id") or f"missing-reservation:{len(reservation_records)}"
-        amount = _decimal(row.get("reserved_amount", row.get("reserved_aud", row.get("amount"))), reservation_id)
-        currency = _non_empty(row.get("accounting_currency") or row.get("currency"))
-        state = "known" if amount is not None and currency == "AUD" else "unknown"
-        if state == "known":
-            reservation_total += amount or Decimal(0)
-        else:
+    reservation_rows: list[Mapping[str, Any]] = []
+    for reservation_id, grouped in sorted(_row_groups(reservations, "reservation_id").items()):
+        distinct = _distinct_rows(grouped)
+        if len(distinct) > 1:
+            reservation_conflict_ids.append(reservation_id)
             reservation_unknown_ids.append(reservation_id)
+            continue
+        reservation_rows.extend(distinct)
+    for index, row in enumerate(reservations):
+        if _identifier(row, "reservation_id") is None:
+            missing_id = f"missing-reservation:{index}"
+            reservation_unknown_ids.append(missing_id)
+            reservation_records.append({
+                "reservation_id": missing_id,
+                "run_id": _identifier(row, "run_id"),
+                "cohort_id": _identifier(row, "cohort_id"),
+                "status": _status(row),
+                "amount": None,
+                "released_amount": None,
+                "net_amount": None,
+                "currency": None,
+                "state": "unknown",
+                "provenance": _safe_provenance(row, snapshot),
+            })
+
+    release_by_reservation: dict[str, Decimal] = {}
+    release_bad_ids: list[str] = []
+    for release in reservation_release_records:
+        reservation_id = release.get("reservation_id")
+        if release["state"] != "known" or not isinstance(reservation_id, str):
+            release_bad_ids.append(str(release["entry_key"]))
+            continue
+        release_by_reservation[reservation_id] = release_by_reservation.get(reservation_id, Decimal(0)) + Decimal(str(release["amount"]))
+        reservation_released_total += Decimal(str(release["amount"]))
+
+    for row in sorted(reservation_rows, key=lambda item: str(_identifier(item, "reservation_id") or "")):
+        reservation_id = _identifier(row, "reservation_id") or f"missing-reservation:{len(reservation_records)}"
+        amount_candidates = [
+            value for value in (
+                _decimal(row.get("reserved_amount"), reservation_id),
+                _decimal(row.get("reserved_aud"), reservation_id),
+                _decimal(row.get("amount"), reservation_id),
+            ) if value is not None
+        ]
+        distinct_amounts = sorted({_decimal_text(value) for value in amount_candidates})
+        amount = amount_candidates[0] if amount_candidates else None
+        currency_values = {
+            value for value in (
+                _non_empty(row.get("accounting_currency")),
+                _non_empty(row.get("currency")),
+            ) if value
+        }
+        currency = next(iter(currency_values), None)
+        reasons: list[str] = []
+        if len(distinct_amounts) > 1 or len(currency_values) > 1:
+            reasons.append("CONFLICTING_RESERVATION_AMOUNT_OR_CURRENCY")
+        if amount is None or currency != "AUD":
+            reasons.append("MISSING_OR_INVALID_RESERVATION_AMOUNT")
+        status = _status(row)
+        if status not in {"active", "partially_consumed", "consumed", "released", "expired"}:
+            reasons.append("UNKNOWN_RESERVATION_STATUS")
+        release_amount = release_by_reservation.get(reservation_id, Decimal(0))
+        if amount is not None and release_amount > amount:
+            reasons.append("RELEASE_EXCEEDS_RESERVATION")
+        if reasons:
+            reservation_unknown_ids.append(reservation_id)
+            reservation_conflict_ids.extend([reservation_id] if "CONFLICTING_RESERVATION_AMOUNT_OR_CURRENCY" in reasons else [])
+        elif amount is not None:
+            reservation_gross_total += amount
+            if status in {"active", "partially_consumed"}:
+                reservation_active_total += amount
         reservation_records.append({
             "reservation_id": reservation_id,
             "run_id": _identifier(row, "run_id"),
             "cohort_id": _identifier(row, "cohort_id"),
-            "status": _status(row),
-            "amount": _decimal_text(amount) if state == "known" else None,
-            "currency": currency if state == "known" else None,
-            "state": state,
+            "status": status,
+            "amount": _decimal_text(amount) if not reasons else None,
+            "released_amount": _decimal_text(release_amount) if not reasons else None,
+            "net_amount": _decimal_text(amount - release_amount) if not reasons and amount is not None else None,
+            "currency": currency if not reasons else None,
+            "state": "known" if not reasons else "unknown",
             "provenance": _safe_provenance(row, snapshot),
         })
+
+    known_reservation_ids = {row["reservation_id"] for row in reservation_records if row["state"] == "known"}
+    for reservation_id in sorted(set(release_by_reservation) - known_reservation_ids):
+        reservation_release_unknown_ids.append(reservation_id)
+    if release_bad_ids:
+        reservation_release_unknown_ids.extend(release_bad_ids)
 
     usage_receipts = sorted(receipt_map)
     for receipt_id in usage_receipts:
@@ -554,35 +791,38 @@ def reconcile_project_cost_snapshot(
             missing_usage_ids.append(receipt_id)
 
     # Provider crossings without an actual entry are still material unknowns.
-    for request_id, request in sorted(request_map.items()):
-        attempt = attempt_by_request.get(request_id)
-        physical_row = physical_map.get(_identifier(request, "physical_attempt_id") or "")
-        if _is_ambiguous_crossing(request, attempt, physical_row):
-            if request_id not in ambiguous_crossing_ids:
-                ambiguous_crossing_ids.append(request_id)
-            task = task_map.get(_identifier(request, "model_task_id", "task_id") or "") or {}
-            unreconciled_records.append({
-                "entry_key": None,
-                "entry_type": "provider_crossing",
-                "reasons": ["AMBIGUOUS_PROVIDER_CROSSING"],
-                "provenance": _safe_provenance(request, snapshot),
-                "identity": {
-                    "run_id": _identifier(request, "run_id"),
-                    "cohort_id": None,
-                    "task_run_id": None,
-                    "model_task_id": _identifier(request, "model_task_id", "task_id"),
-                    "provider_request_item_id": request_id,
-                    "provider_request_id": _identifier(request, "provider_request_id"),
-                    "provider_receipt_id": _identifier(request, "provider_receipt_id", "receipt_id"),
-                    "physical_attempt_id": _identifier(request, "physical_attempt_id"),
-                    "delivery_attempt_id": _identifier(attempt or {}, "delivery_attempt_id", "attempt_id"),
-                    "provider_id": _identifier(request, "provider_id"),
-                    "model_route": _identifier(request, "model_route"),
-                    "subject_id": _identifier(task, "subject_id"),
-                    "scope_id": _identifier(task, "scope_id"),
-                    "reservation_id": None,
-                },
-            })
+    for request_id, grouped_requests in sorted(request_groups.items()):
+        for request in sorted(_distinct_rows(grouped_requests), key=_canonical_bytes):
+            grouped_attempts = _distinct_rows(attempts_by_request.get(request_id, ()))
+            attempt = grouped_attempts[0] if len(grouped_attempts) == 1 else None
+            physical_candidates = _distinct_rows(physical_groups.get(_identifier(request, "physical_attempt_id") or "", ()))
+            physical_row = physical_candidates[0] if len(physical_candidates) == 1 else None
+            if _is_ambiguous_crossing(request, attempt, physical_row) or len(grouped_attempts) > 1:
+                if request_id not in ambiguous_crossing_ids:
+                    ambiguous_crossing_ids.append(request_id)
+                task = task_map.get(_identifier(request, "model_task_id", "task_id") or "") or {}
+                unreconciled_records.append({
+                    "entry_key": None,
+                    "entry_type": "provider_crossing",
+                    "reasons": ["AMBIGUOUS_PROVIDER_CROSSING"] if len(grouped_attempts) == 1 else ["INCOMPLETE_ATTEMPT_HISTORY"],
+                    "provenance": _safe_provenance(request, snapshot),
+                    "identity": {
+                        "run_id": _identifier(request, "run_id"),
+                        "cohort_id": None,
+                        "task_run_id": None,
+                        "model_task_id": _identifier(request, "model_task_id", "task_id"),
+                        "provider_request_item_id": request_id,
+                        "provider_request_id": _identifier(request, "provider_request_id"),
+                        "provider_receipt_id": _identifier(request, "provider_receipt_id", "receipt_id"),
+                        "physical_attempt_id": _identifier(request, "physical_attempt_id"),
+                        "delivery_attempt_id": _identifier(attempt or {}, "delivery_attempt_id", "attempt_id"),
+                        "provider_id": _identifier(request, "provider_id"),
+                        "model_route": _identifier(request, "model_route"),
+                        "subject_id": _identifier(task, "subject_id"),
+                        "scope_id": _identifier(task, "scope_id"),
+                        "reservation_id": None,
+                    },
+                })
 
     if missing_price_ids:
         blockers.append(_blocker("MISSING_PRICING_SNAPSHOT", len(missing_price_ids), identities=missing_price_ids))
@@ -602,10 +842,20 @@ def reconcile_project_cost_snapshot(
         blockers.append(_blocker("ACCOUNTING_AMOUNT_MISMATCH", len(accounting_mismatch_ids), identities=accounting_mismatch_ids))
     if ambiguous_crossing_ids:
         blockers.append(_blocker("AMBIGUOUS_PROVIDER_CROSSING", len(ambiguous_crossing_ids), identities=ambiguous_crossing_ids))
+    if ambiguous_linkage_ids:
+        blockers.append(_blocker("AMBIGUOUS_LINKAGE", len(ambiguous_linkage_ids), identities=ambiguous_linkage_ids))
+    if incomplete_attempt_history_ids:
+        blockers.append(_blocker("INCOMPLETE_ATTEMPT_HISTORY", len(incomplete_attempt_history_ids), identities=incomplete_attempt_history_ids))
+    if contradictory_identity_ids:
+        blockers.append(_blocker("CONTRADICTORY_RUNTIME_IDENTITIES", len(contradictory_identity_ids), identities=contradictory_identity_ids))
     if unknown_cost_ids:
         blockers.append(_blocker("UNKNOWN_OR_UNRECONCILED_COST", len(unknown_cost_ids), identities=unknown_cost_ids))
     if reservation_unknown_ids:
         blockers.append(_blocker("UNKNOWN_RESERVATION_AMOUNT", len(reservation_unknown_ids), identities=reservation_unknown_ids))
+    if reservation_conflict_ids:
+        blockers.append(_blocker("CONFLICTING_RESERVATION_IDENTITY_OR_AMOUNT", len(reservation_conflict_ids), identities=reservation_conflict_ids))
+    if reservation_release_unknown_ids:
+        blockers.append(_blocker("UNRECONCILED_RESERVATION_RELEASE", len(reservation_release_unknown_ids), identities=reservation_release_unknown_ids))
 
     # Keep one deterministic diagnostic per blocker code while retaining all
     # identifiers.  Duplicate receipt warnings are intentionally merged too.
@@ -622,7 +872,7 @@ def reconcile_project_cost_snapshot(
                 prior["detail"] = item["detail"]
     blockers = sorted(merged.values(), key=lambda item: (item["severity"], item["code"]))
 
-    known_charge_state = "known" if charge_records else "unknown"
+    known_charge_state = "known" if charge_records and not actual_unreconciled_ids else "unknown"
     if not cost_entries:
         known_charge_state = "missing"
     schema_state = schema.get("state")
@@ -630,8 +880,14 @@ def reconcile_project_cost_snapshot(
     if schema_state != "supported" or not found_run_ids:
         coverage_state = "unknown"
 
-    actual = _amount_record(known_charge_state, known_actual_total if charge_records else None, len(charge_records), "auditable actual charges deduplicated by provider receipt identity" if charge_records else "no auditable actual provider charge evidence")
-    reserved = _amount_record("known" if reservation_records and not reservation_unknown_ids else "unknown" if reservation_records else "missing", reservation_total if reservation_records and not reservation_unknown_ids else None, len(reservation_records), "persisted reservation rows; reservations are not incurred charges" if reservation_records else "no persisted reservations")
+    actual = _amount_record(known_charge_state, known_actual_total if charge_records and not actual_unreconciled_ids else None, len(charge_records), "auditable actual charges deduplicated by provider receipt identity" if charge_records and not actual_unreconciled_ids else "one or more actual charges are unsupported or unreconciled")
+    reservation_reconcilable = bool(reservation_records) and not reservation_unknown_ids and not reservation_release_unknown_ids and not reservation_conflict_ids
+    gross_record = _amount_record("known" if reservation_reconcilable else "unknown" if reservation_records else "missing", reservation_gross_total if reservation_reconcilable else None, len(reservation_records), "persisted reservation rows deduplicated by reservation identity" if reservation_reconcilable else "reservation amount or identity is unreconciled")
+    reserved_record = _amount_record("known" if reservation_reconcilable else "unknown" if reservation_records else "missing", reservation_active_total if reservation_reconcilable else None, len(reservation_records), "status-filtered active reservation rows; not a remaining-spend authority" if reservation_reconcilable else "persisted rows do not prove current reserved balance")
+    released_record = _amount_record("known" if reservation_reconcilable else "unknown" if reservation_records else "missing", reservation_released_total if reservation_reconcilable else None, len(reservation_release_records), "explicit persisted reservation-release entries" if reservation_reconcilable else "reservation releases are incomplete or conflicting")
+    net_record = _amount_record("known" if reservation_reconcilable else "unknown" if reservation_records else "missing", reservation_gross_total - reservation_released_total if reservation_reconcilable else None, len(reservation_records), "gross reservation less explicit releases; not incurred spend or remaining budget" if reservation_reconcilable else "net reservation exposure is not reconciled")
+    reserved = dict(gross_record)
+    reserved.update({"gross": gross_record, "reserved": reserved_record, "released": released_record, "net": net_record, "remaining_spend": _amount_record("unknown" if reservation_records else "missing", None, len(reservation_records), "migration-29 export has no remaining-spend authority")})
     estimates = _amount_record("estimate" if estimate_records else "missing", estimate_total if estimate_records else None, len(estimate_records), "explicit estimate/forecast rows only" if estimate_records else "no explicit estimate or forecast rows")
 
     document = {
@@ -675,6 +931,7 @@ def reconcile_project_cost_snapshot(
         },
         "charges": charge_records,
         "reservations": reservation_records,
+        "reservation_releases": sorted(reservation_release_records, key=lambda item: str(item["entry_key"])),
         "estimates": estimate_records,
         "unreconciled": {"count": len(unreconciled_records), "records": sorted(unreconciled_records, key=lambda item: (str(item.get("entry_key") or ""), _canonical_bytes(item["identity"])) )},
         "blockers": blockers,
@@ -682,7 +939,8 @@ def reconcile_project_cost_snapshot(
             "The runtime schema has no direct cost_entries.provider_receipt_id; receipt identity is joined mechanically through existing task/request/physical/receipt records.",
             "Provider-side exactly-once effects, invoice truth, pricing/FX authority validity and any unpersisted external charges are not observed.",
             "No project-wide completeness is asserted without an authenticated, complete boundary covering the selected runs.",
-            "Reservations and estimates are reported separately and are never treated as incurred expenditure.",
+            "Reservation gross, active-status reserved, explicit released and net exposure are reported separately only when persisted identities and amounts reconcile; remaining spend is always unknown from this export.",
+            "Multiple request items, delivery attempts, physical attempts or receipts are resolved only by exact source-native identifiers; otherwise charges are excluded from known actual totals.",
             "No raw provider payload, result body, prompt, credential or transport exception is retained.",
         ],
     }

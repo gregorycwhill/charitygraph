@@ -167,3 +167,119 @@ def test_replayed_attempt_is_marked_but_not_silently_merged(tmp_path: Path):
     document = _project(path, run_ids=("run:one",)).document
     assert document["charges"][0]["replayed_attempt"] is True
     assert document["charges"][0]["identity"]["delivery_attempt_id"] == "delivery:one"
+
+
+def test_multiple_requests_without_source_identity_are_ambiguous_and_excluded(tmp_path: Path):
+    path = tmp_path / "multiple-requests.sqlite3"
+    _create_catalogue(path, with_rows=True)
+    connection = sqlite3.connect(path)
+    connection.execute("UPDATE task_attempts SET provider_request_id=NULL WHERE task_run_id='taskrun:one'")
+    connection.execute("INSERT INTO physical_attempts VALUES (?,?,?,?,?,?)", ("physical:one-retry", "run:one", "subject:one", "validated", START, AS_OF))
+    connection.execute("INSERT INTO delivery_jobs VALUES (?,?,?,?,?)", ("job:one-retry", "run:one", "completed", START, AS_OF))
+    connection.execute("INSERT INTO provider_request_items VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", ("request:one-retry", "run:one", "task:one", "physical:one-retry", "job:one-retry", "provider:test", "model:test", "completed", "provider-request:one-retry", "receipt:one-retry", START, AS_OF))
+    connection.execute("INSERT INTO provider_request_attempts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", ("delivery:one-retry", "request:one-retry", "physical:one-retry", "job:one-retry", "completed", 1, None, "provider-request:one-retry", "receipt:one-retry", START, START, AS_OF, AS_OF))
+    connection.execute("INSERT INTO provider_receipts VALUES (?,?,?,?,?)", ("receipt:one-retry", "physical:one-retry", "provider-request:one-retry", json.dumps({"input_tokens": 10, "output_tokens": 4}), AS_OF))
+    connection.commit()
+    connection.close()
+    document = _project(path, run_ids=("run:one",)).document
+    assert document["totals"]["actual_incurred_charges"]["state"] == "unknown"
+    assert document["totals"]["actual_incurred_charges"]["amount"] is None
+    assert "AMBIGUOUS_LINKAGE" in {item["code"] for item in document["blockers"]}
+    assert document["charges"] == []
+
+
+def test_multiple_delivery_attempts_without_discriminator_fail_closed(tmp_path: Path):
+    path = tmp_path / "multiple-attempts.sqlite3"
+    _create_catalogue(path, with_rows=True)
+    connection = sqlite3.connect(path)
+    connection.execute("UPDATE task_attempts SET provider_request_id=NULL WHERE task_run_id='taskrun:one'")
+    connection.execute("UPDATE provider_request_items SET provider_receipt_id=NULL WHERE provider_request_item_id='request:one'")
+    connection.execute("UPDATE provider_request_attempts SET provider_request_id=NULL, provider_receipt_id=NULL WHERE delivery_attempt_id='delivery:one'")
+    connection.execute("INSERT INTO physical_attempts VALUES (?,?,?,?,?,?)", ("physical:one-retry", "run:one", "subject:one", "validated", START, AS_OF))
+    connection.execute("INSERT INTO provider_request_attempts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", ("delivery:one-retry", "request:one", "physical:one-retry", "job:one", "completed", 2, "delivery:one", "provider-request:one-retry", "receipt:one-retry", START, START, AS_OF, AS_OF))
+    connection.execute("INSERT INTO provider_receipts VALUES (?,?,?,?,?)", ("receipt:one-retry", "physical:one-retry", "provider-request:one-retry", json.dumps({"input_tokens": 10, "output_tokens": 4}), AS_OF))
+    connection.commit()
+    connection.close()
+    document = _project(path, run_ids=("run:one",)).document
+    assert document["totals"]["actual_incurred_charges"]["amount"] is None
+    assert "INCOMPLETE_ATTEMPT_HISTORY" in {item["code"] for item in document["blockers"]}
+    assert document["charges"] == []
+
+
+def test_contradictory_request_and_attempt_receipt_ids_are_not_selected(tmp_path: Path):
+    path = tmp_path / "contradictory-receipts.sqlite3"
+    _create_catalogue(path, with_rows=True)
+    connection = sqlite3.connect(path)
+    connection.execute("UPDATE provider_request_attempts SET provider_receipt_id='receipt:other' WHERE delivery_attempt_id='delivery:one'")
+    connection.execute("INSERT INTO provider_receipts VALUES (?,?,?,?,?)", ("receipt:other", "physical:one", "provider-request:one", json.dumps({"input_tokens": 10, "output_tokens": 4}), AS_OF))
+    connection.commit()
+    connection.close()
+    document = _project(path, run_ids=("run:one",)).document
+    assert document["totals"]["actual_incurred_charges"]["amount"] is None
+    assert "CONTRADICTORY_RUNTIME_IDENTITIES" in {item["code"] for item in document["blockers"]}
+    assert document["unreconciled"]["records"][0]["identity"]["provider_request_item_id"] == "request:one"
+
+
+def test_multiple_physical_receipts_without_declared_identity_are_ambiguous(tmp_path: Path):
+    path = tmp_path / "multiple-physical-receipts.sqlite3"
+    _create_catalogue(path, with_rows=True)
+    connection = sqlite3.connect(path)
+    connection.execute("UPDATE provider_request_items SET provider_receipt_id=NULL WHERE provider_request_item_id='request:one'")
+    connection.execute("UPDATE provider_request_attempts SET provider_receipt_id=NULL WHERE delivery_attempt_id='delivery:one'")
+    connection.execute("INSERT INTO provider_receipts VALUES (?,?,?,?,?)", ("receipt:other", "physical:one", "provider-request:one", json.dumps({"input_tokens": 10, "output_tokens": 4}), AS_OF))
+    connection.commit()
+    connection.close()
+    document = _project(path, run_ids=("run:one",)).document
+    assert document["totals"]["actual_incurred_charges"]["amount"] is None
+    assert "AMBIGUOUS_LINKAGE" in {item["code"] for item in document["blockers"]}
+
+
+def test_reservation_release_is_separate_from_actual_and_net_is_explicit(tmp_path: Path):
+    path = tmp_path / "reservation-release.sqlite3"
+    _create_catalogue(path, with_rows=True)
+    connection = sqlite3.connect(path)
+    connection.execute("INSERT INTO cost_entries VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", ("release:one", "run:one", None, "reservation:one", "reservation_release", None, None, "2.00", "2.00", None, "AUD", None, None, AS_OF))
+    connection.execute("UPDATE budget_reservations SET status='partially_consumed' WHERE reservation_id='reservation:one'")
+    connection.commit()
+    connection.close()
+    document = _project(path, run_ids=("run:one",)).document
+    reservations = document["totals"]["reservations"]
+    assert reservations["gross"]["amount"] == "5"
+    assert reservations["reserved"]["amount"] == "5"
+    assert reservations["released"]["amount"] == "2"
+    assert reservations["net"]["amount"] == "3"
+    assert reservations["remaining_spend"]["state"] == "unknown"
+    assert document["totals"]["actual_incurred_charges"]["amount"] == "1.1"
+
+
+def test_unknown_reservation_release_does_not_claim_net_or_remaining_spend(tmp_path: Path):
+    path = tmp_path / "unknown-reservation-release.sqlite3"
+    _create_catalogue(path, with_rows=True)
+    connection = sqlite3.connect(path)
+    connection.execute("INSERT INTO cost_entries VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", ("release:unknown", "run:one", None, "reservation:missing", "reservation_release", None, None, None, None, None, "AUD", None, None, AS_OF))
+    connection.commit()
+    connection.close()
+    document = _project(path, run_ids=("run:one",)).document
+    reservations = document["totals"]["reservations"]
+    assert reservations["state"] == "unknown"
+    assert reservations["net"]["amount"] is None
+    assert reservations["remaining_spend"]["state"] == "unknown"
+    assert "UNRECONCILED_RESERVATION_RELEASE" in {item["code"] for item in document["blockers"]}
+
+
+def test_supported_partial_charge_is_not_presented_as_project_total(tmp_path: Path):
+    path = tmp_path / "partial-actuals.sqlite3"
+    _create_catalogue(path, with_rows=True)
+    connection = sqlite3.connect(path)
+    connection.execute("UPDATE task_attempts SET provider_request_id=NULL WHERE task_run_id='taskrun:one'")
+    connection.execute("INSERT INTO physical_attempts VALUES (?,?,?,?,?,?)", ("physical:one-retry", "run:one", "subject:one", "validated", START, AS_OF))
+    connection.execute("INSERT INTO delivery_jobs VALUES (?,?,?,?,?)", ("job:one-retry", "run:one", "completed", START, AS_OF))
+    connection.execute("INSERT INTO provider_request_items VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", ("request:one-retry", "run:one", "task:one", "physical:one-retry", "job:one-retry", "provider:test", "model:test", "completed", "provider-request:one-retry", "receipt:one-retry", START, AS_OF))
+    connection.execute("INSERT INTO provider_request_attempts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", ("delivery:one-retry", "request:one-retry", "physical:one-retry", "job:one-retry", "completed", 1, None, "provider-request:one-retry", "receipt:one-retry", START, START, AS_OF, AS_OF))
+    connection.execute("INSERT INTO provider_receipts VALUES (?,?,?,?,?)", ("receipt:one-retry", "physical:one-retry", "provider-request:one-retry", json.dumps({"input_tokens": 10, "output_tokens": 4}), AS_OF))
+    connection.commit()
+    connection.close()
+    document = _project(path).document
+    assert {row["identity"]["provider_receipt_id"] for row in document["charges"]} == {"receipt:two"}
+    assert document["totals"]["actual_incurred_charges"]["state"] == "unknown"
+    assert document["totals"]["actual_incurred_charges"]["amount"] is None
