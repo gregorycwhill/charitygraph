@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import stat
 import subprocess
@@ -20,8 +21,6 @@ from typing import Any, Iterable
 from bridge.g4_doc_export_ingress import (
     DocExportError,
     FENCE_SCHEMA,
-    _has_reparse_attribute,
-    _read_regular_file_no_follow,
 )
 
 
@@ -36,6 +35,85 @@ _HEX_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 class CleanAdoptionError(ValueError):
     """A stale, ambiguous, unsafe, or otherwise unverifiable overlay."""
+
+
+def _has_reparse_attribute(value: os.stat_result) -> bool:
+    return bool(getattr(value, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400))
+
+
+def _reject_non_regular(path: Path, value: os.stat_result, *, label: str) -> None:
+    if path.is_symlink() or _has_reparse_attribute(value) or not stat.S_ISREG(value.st_mode):
+        raise DocExportError(f"{label} must be a non-link regular file")
+
+
+def _same_file_identity(left: os.stat_result, right: os.stat_result) -> bool:
+    return (left.st_dev, left.st_ino, left.st_mode) == (right.st_dev, right.st_ino, right.st_mode)
+
+
+def _open_no_follow(path: Path) -> int:
+    """Open a regular file without following a final link or reparse point."""
+    if os.name != "nt":
+        nofollow = getattr(os, "O_NOFOLLOW", None)
+        if nofollow is None:
+            raise OSError("this platform cannot open a file without following a link")
+        return os.open(path, os.O_RDONLY | nofollow)
+
+    # Windows has no portable O_NOFOLLOW.  OPEN_REPARSE_POINT makes a final
+    # reparse point open as the link itself, so the subsequent regular-file
+    # check fails closed instead of following a junction or symlink target.
+    import ctypes
+    import msvcrt
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.CreateFileW.argtypes = [
+        ctypes.c_wchar_p,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_void_p,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_void_p,
+    ]
+    kernel32.CreateFileW.restype = ctypes.c_void_p
+    handle = kernel32.CreateFileW(
+        str(path),
+        0x80000000,  # GENERIC_READ
+        0x00000001 | 0x00000002 | 0x00000004,  # share read/write/delete
+        None,
+        3,  # OPEN_EXISTING
+        0x00200000,  # FILE_FLAG_OPEN_REPARSE_POINT
+        None,
+    )
+    invalid = ctypes.c_void_p(-1).value
+    if handle in {None, invalid}:
+        error = ctypes.get_last_error()
+        raise OSError(error, f"CreateFileW failed for {path}")
+    try:
+        return msvcrt.open_osfhandle(handle, os.O_RDONLY | getattr(os, "O_BINARY", 0))
+    except BaseException:
+        kernel32.CloseHandle(handle)
+        raise
+
+
+def _read_regular_file_no_follow(path: Path) -> bytes:
+    """Read one stable regular-file identity through an opened descriptor."""
+    try:
+        before = path.lstat()
+        _reject_non_regular(path, before, label="overlay file")
+        fd = _open_no_follow(path)
+        with os.fdopen(fd, "rb", closefd=True) as stream:
+            opened = os.fstat(stream.fileno())
+            if not _same_file_identity(before, opened):
+                raise DocExportError("overlay file identity changed before read")
+            raw = stream.read()
+            after = os.fstat(stream.fileno())
+            if not _same_file_identity(opened, after):
+                raise DocExportError("overlay file identity changed during read")
+            return raw
+    except DocExportError:
+        raise
+    except OSError as exc:
+        raise CleanAdoptionError("overlay file could not be read without following a link") from exc
 
 
 @dataclass(frozen=True)

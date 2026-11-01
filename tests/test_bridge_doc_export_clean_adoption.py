@@ -1,7 +1,9 @@
 import hashlib
+import importlib
 import json
 import os
 import subprocess
+import sys
 from dataclasses import replace
 from pathlib import Path
 
@@ -116,6 +118,30 @@ def _immutable_state(path: Path) -> tuple[str, str, bytes, bytes]:
         b"".join((path / relative).read_bytes() for relative in ALLOWLIST),
         _run(path, "diff", "--cached", "--binary").encode("utf-8"),
     )
+
+
+def test_clean_head_import_and_attestation_do_not_require_ingress_private_helpers(tmp_path, monkeypatch):
+    import bridge.g4_doc_export_clean_adoption as adoption
+    import bridge.g4_doc_export_ingress as ingress
+
+    for name in ("_has_reparse_attribute", "_read_regular_file_no_follow"):
+        monkeypatch.delattr(ingress, name, raising=False)
+    probe_name = "bridge._clean_adoption_import_probe"
+    spec = importlib.util.spec_from_file_location(probe_name, adoption.__file__)
+    assert spec is not None and spec.loader is not None
+    probe = importlib.util.module_from_spec(spec)
+    sys.modules[probe_name] = probe
+    try:
+        spec.loader.exec_module(probe)
+
+        request, root, target = _fixture(tmp_path)
+        manifest = probe.prepare_clean_target_adoption(request)
+    finally:
+        sys.modules.pop(probe_name, None)
+
+    assert manifest["outcome"] == "PARTIAL"
+    assert manifest["adoption_status"] == "NOT_ADOPTED"
+    assert manifest["activation_status"] == "NOT_ACTIVATED"
 
 
 def test_successful_attestation_is_hashed_and_does_not_adopt_or_activate(tmp_path):
