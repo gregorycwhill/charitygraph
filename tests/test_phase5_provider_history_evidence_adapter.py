@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 
@@ -139,6 +140,91 @@ def test_identity_contradiction_fails_closed():
     result = _project(_raw(source_identity={"source_id": "source:other", "provider_id": "provider:other"}))
     assert result.status == STATUS_FAIL_CLOSED
     assert "EXPORT_SOURCE_IDENTITY_CONTRADICTION" in result.document["reason_codes"]
+
+
+def test_nested_source_identity_is_strictly_allowlisted_and_private_material_is_not_emitted():
+    private_values = (
+        "PRIVATE-CREDENTIAL-SENTINEL-01",
+        "PRIVATE-TOKEN-SENTINEL-02",
+        "PRIVATE-BILLING-SENTINEL-03",
+        "PRIVATE-SOURCE-CONTENTS-SENTINEL-04",
+    )
+    nested_identity = {
+        "source_id": IDENTITY["source_id"],
+        "provider_id": IDENTITY["provider_id"],
+        "account_id": IDENTITY["account_id"],
+        "identity_version": IDENTITY["identity_version"],
+        "credential": private_values[0],
+        "token": private_values[1],
+        "private_billing_notes": {"note": private_values[2]},
+        "source_metadata": {"raw": {"contents": private_values[3]}},
+        "provider": {"nested": private_values[0]},
+        "\u202eprivate\u2066\u200dbilling": {"\u2067": private_values[2]},
+    }
+    result = _project(_raw(source_identity=nested_identity))
+    safe_identity = result.document["export"]["source_identity"]
+    assert safe_identity == {
+        "source_id": IDENTITY["source_id"],
+        "provider_id": IDENTITY["provider_id"],
+        "account_id": IDENTITY["account_id"],
+        "identity_version": IDENTITY["identity_version"],
+    }
+    assert {"EXPORT_SOURCE_IDENTITY_UNKNOWN_FIELDS_OMITTED", "EXPORT_SOURCE_IDENTITY_MALFORMED_FIELDS_OMITTED"}.issubset(
+        result.document["reason_codes"]
+    )
+
+    report_path = Path(__file__).resolve().parents[1] / "reports" / "G4_PHASE5_PROVIDER_HISTORY_PRIVATE_MATERIAL_AND_RUN_ATTEMPT_REPAIR_20261101.md"
+    inspected_bytes = (
+        result.canonical_json,
+        json.dumps(result.document, ensure_ascii=False, sort_keys=True).encode("utf-8"),
+        json.dumps(result.document["observed"]["record_diagnostics"], ensure_ascii=False, sort_keys=True).encode("utf-8"),
+        report_path.read_bytes(),
+    )
+    for private_value in private_values:
+        if any(private_value.encode("utf-8") in value for value in inspected_bytes):
+            raise AssertionError("private source-identity material leaked from a bounded projection")
+
+
+@pytest.mark.parametrize(
+    "record",
+    [
+        {"run_id": "run:missing"},
+        {"run_id": "run:missing", "physical_attempt_id": None},
+        {"run_id": "run:missing", "physical_attempt_id": ""},
+        {"run_id": "run:missing", "physical_attempt_id": []},
+        {"run_id": "run:missing", "physical_attempt_id": {"nested": "not-an-attempt"}},
+    ],
+)
+def test_missing_run_physical_attempt_is_explicit_and_fail_closed(record):
+    result = _project(
+        _raw(
+            records=[record, {"run_id": "run:valid", "physical_attempt_id": "physical:valid"}],
+        )
+    )
+    assert result.status == STATUS_FAIL_CLOSED
+    assert result.document["observed"]["run_ids"] == ["run:missing", "run:valid"]
+    assert result.document["observed"]["physical_attempt_ids"] == ["physical:valid"]
+    assert result.document["observed"]["record_diagnostics"]["missing_physical_attempt_record_ids"] == ["run:missing"]
+    assert "MISSING_RUN_PHYSICAL_ATTEMPT_ID" in result.document["reason_codes"]
+    observed_missing = next(row for row in result.document["observed"]["records"] if row["run_id"] == "run:missing")
+    assert observed_missing["physical_attempt_id"] is None
+    assert result.document["authority"]["project_wide_authoritative"] is False
+    assert result.document["authority"]["authoritative_total"] is None
+    assert result.document["authority"]["remaining_spend"] is None
+
+
+def test_run_record_order_reversal_is_canonical_stable_with_missing_attempt():
+    records = [
+        {"run_id": "run:missing", "physical_attempt_id": None},
+        {"run_id": "run:valid", "physical_attempt_id": "physical:valid"},
+    ]
+    left = _project(_raw(records=records))
+    right = _project(_raw(records=list(reversed(records))))
+    repeat = _project(_raw(records=records))
+    assert left.document["source"]["raw_export_sha256"] != right.document["source"]["raw_export_sha256"]
+    assert left.canonical_json == repeat.canonical_json
+    assert left.document["observed"] == right.document["observed"]
+    assert left.document["reason_codes"] == right.document["reason_codes"]
 
 
 def test_acquisition_sha_mismatch_fails_closed():

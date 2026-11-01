@@ -41,6 +41,17 @@ NOT_AUTHORITATIVE = "NOT_AUTHORITATIVE"
 _RUN_INDEX_KINDS = frozenset({"run_index", "cumulative_run_index"})
 _RECEIPT_KINDS = frozenset({"billing_receipt", "billing_receipts", "receipt_export"})
 _SUPPORTED_KINDS = _RUN_INDEX_KINDS | _RECEIPT_KINDS
+_SOURCE_IDENTITY_ALIASES = {
+    "source_id": "source_id",
+    "identity_id": "source_id",
+    "provider_id": "provider_id",
+    "provider": "provider_id",
+    "account_id": "account_id",
+    "project_id": "account_id",
+    "identity_version": "identity_version",
+    "version": "identity_version",
+}
+_SOURCE_IDENTITY_FIELDS = ("source_id", "provider_id", "account_id", "identity_version")
 _FATAL_REASONS = frozenset(
     {
         "RAW_EXPORT_BYTES_MISSING",
@@ -58,6 +69,7 @@ _FATAL_REASONS = frozenset(
         "MALFORMED_ACQUISITION_METADATA",
         "SOURCE_BYTE_SHA256_MISMATCH",
         "EXPORT_SOURCE_IDENTITY_CONTRADICTION",
+        "MISSING_RUN_PHYSICAL_ATTEMPT_ID",
     }
 )
 
@@ -138,18 +150,37 @@ def _safe_text_fields(value: Mapping[str, Any], names: Sequence[str]) -> dict[st
     return {name: _text(value.get(name)) for name in names}
 
 
-def _safe_source_identity(value: Any, reasons: list[str]) -> dict[str, str | None]:
+def _safe_source_identity(
+    value: Any,
+    reasons: list[str],
+    *,
+    diagnostic_prefix: str = "SOURCE_IDENTITY",
+) -> dict[str, str | None]:
+    empty = {field: None for field in _SOURCE_IDENTITY_FIELDS}
     if not isinstance(value, Mapping):
-        reasons.append("MISSING_SOURCE_IDENTITY" if value is None else "MALFORMED_SOURCE_IDENTITY")
-        return {"source_id": None, "provider_id": None, "account_id": None, "identity_version": None}
-    result = {
-        "source_id": _text(value.get("source_id") or value.get("identity_id")),
-        "provider_id": _text(value.get("provider_id") or value.get("provider")),
-        "account_id": _text(value.get("account_id") or value.get("project_id")),
-        "identity_version": _text(value.get("identity_version") or value.get("version")),
-    }
+        reasons.append(f"MISSING_{diagnostic_prefix}" if value is None else f"MALFORMED_{diagnostic_prefix}")
+        return empty
+
+    if any(not isinstance(key, str) or key not in _SOURCE_IDENTITY_ALIASES for key in value):
+        reasons.append(f"{diagnostic_prefix}_UNKNOWN_FIELDS_OMITTED")
+
+    result: dict[str, str | None] = {}
+    malformed = False
+    for field in _SOURCE_IDENTITY_FIELDS:
+        candidates = [key for key, canonical in _SOURCE_IDENTITY_ALIASES.items() if canonical == field and key in value]
+        selected: str | None = None
+        for key in candidates:
+            candidate = value[key]
+            candidate_text = _text(candidate)
+            if candidate is not None and candidate_text is None:
+                malformed = True
+            if selected is None and candidate_text is not None:
+                selected = candidate_text
+        result[field] = selected
+    if malformed:
+        reasons.append(f"{diagnostic_prefix}_MALFORMED_FIELDS_OMITTED")
     if result["source_id"] is None or result["provider_id"] is None:
-        reasons.append("MALFORMED_SOURCE_IDENTITY")
+        reasons.append("MALFORMED_SOURCE_IDENTITY" if diagnostic_prefix == "SOURCE_IDENTITY" else f"MALFORMED_{diagnostic_prefix}")
     return result
 
 
@@ -265,6 +296,8 @@ def _normalise_record(
     if kind in _RUN_INDEX_KINDS:
         normalised["run_id"] = identifier
         normalised["physical_attempt_id"] = _text(record.get("physical_attempt_id"))
+        if normalised["physical_attempt_id"] is None:
+            reasons.append("MISSING_RUN_PHYSICAL_ATTEMPT_ID")
     else:
         normalised.update(
             {
@@ -323,10 +356,16 @@ def _record_diagnostics(records: Sequence[Mapping[str, Any]], kind: str, reasons
     conflicting_physical = sorted(identifier for identifier, run_ids in physical_to_runs.items() if len(run_ids) > 1)
     if conflicting_physical:
         reasons.append("CONFLICTING_PHYSICAL_ATTEMPT_IDENTITY")
+    missing_physical_attempt_record_ids = sorted(
+        str(record["record_id"])
+        for record in records
+        if kind in _RUN_INDEX_KINDS and _text(record.get("physical_attempt_id")) is None
+    )
     return {
         "duplicate_record_ids": sorted(duplicate_ids),
         "conflicting_record_ids": sorted(conflicting_ids),
         "conflicting_physical_attempt_ids": conflicting_physical,
+        "missing_physical_attempt_record_ids": missing_physical_attempt_record_ids,
         "record_count": len(records),
     }
 
@@ -401,7 +440,13 @@ def adapt_phase5_provider_history_evidence(
     window: dict[str, Any] = {"start": None, "end": None, "coverage_state": "unknown"}
     missingness = {"state": "unknown", "missing_ids": [], "reason": "export not parsed"}
     records: list[dict[str, Any]] = []
-    record_diagnostics: dict[str, Any] = {"duplicate_record_ids": [], "conflicting_record_ids": [], "conflicting_physical_attempt_ids": [], "record_count": 0}
+    record_diagnostics: dict[str, Any] = {
+        "duplicate_record_ids": [],
+        "conflicting_record_ids": [],
+        "conflicting_physical_attempt_ids": [],
+        "missing_physical_attempt_record_ids": [],
+        "record_count": 0,
+    }
     kind: str | None = None
     window_start: datetime | None = None
     window_end: datetime | None = None
@@ -424,13 +469,20 @@ def adapt_phase5_provider_history_evidence(
             reasons.append("UNSUPPORTED_PROVIDER_NATIVE_FORMAT")
         raw_identity = parsed.get("source_identity")
         if raw_identity is not None:
-            export["source_identity"] = raw_identity if isinstance(raw_identity, (str, int, bool)) else _canonical(raw_identity)
-            identity_values = raw_identity if isinstance(raw_identity, Mapping) else {"source_id": raw_identity}
-            if isinstance(identity_values, Mapping):
-                for key, expected in (("source_id", identity["source_id"]), ("provider_id", identity["provider_id"]), ("account_id", identity["account_id"])):
-                    actual = _text(identity_values.get(key) or identity_values.get("provider" if key == "provider_id" else key))
+            if isinstance(raw_identity, Mapping):
+                export["source_identity"] = _safe_source_identity(
+                    raw_identity,
+                    reasons,
+                    diagnostic_prefix="EXPORT_SOURCE_IDENTITY",
+                )
+                for key in ("source_id", "provider_id", "account_id"):
+                    actual = export["source_identity"][key]
+                    expected = identity[key]
                     if actual is not None and expected is not None and actual != expected:
                         reasons.append("EXPORT_SOURCE_IDENTITY_CONTRADICTION")
+            else:
+                export["source_identity"] = None
+                reasons.append("MALFORMED_EXPORT_SOURCE_IDENTITY")
         scope = _safe_scope(parsed.get("scope"), reasons, label="export")
         window, window_start, window_end = _safe_window(parsed.get("window"), reasons)
         missingness = _safe_missingness(parsed.get("missingness"), reasons)
