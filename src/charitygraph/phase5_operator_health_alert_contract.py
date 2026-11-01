@@ -217,7 +217,7 @@ def _normalise_input(export: Any) -> tuple[ObservationState, Mapping[str, Any] |
         health = _mapping(document.get("operator_health"))
         persisted = _mapping(document.get("persisted_representation"))
         if health is None:
-            return ObservationState.UNOBSERVED, None, persisted, "MISSING_OPERATOR_HEALTH", {}
+            return ObservationState.UNKNOWN, None, persisted, "MISSING_OPERATOR_HEALTH", {}
         integration = _mapping(document.get("catalogue_integration"))
         timestamp_provenance = _mapping(integration.get("timestamp_provenance")) if integration else None
         if timestamp_provenance:
@@ -236,7 +236,7 @@ def _normalise_input(export: Any) -> tuple[ObservationState, Mapping[str, Any] |
         return ObservationState.OBSERVED, document, persisted, "", {}
     if schema:
         return ObservationState.UNSUPPORTED, None, None, "UNSUPPORTED_RUNTIME_EXPORT_SCHEMA", {"input_schema": schema}
-    return ObservationState.UNOBSERVED, None, None, "MISSING_RUNTIME_EXPORT_SCHEMA", {}
+    return ObservationState.UNKNOWN, None, None, "MISSING_RUNTIME_EXPORT_SCHEMA", {}
 
 
 def _clock_provenance(document: Mapping[str, Any], persisted: Mapping[str, Any] | None) -> tuple[bool, str]:
@@ -397,7 +397,7 @@ def _health_alerts(health: Mapping[str, Any], records: Mapping[str, Any] | None,
     index = _index(records)
     flags = health.get("flags")
     if not isinstance(flags, Mapping):
-        diagnostics.append(_diagnostic("MISSING_OPERATOR_HEALTH_FLAGS", ObservationState.UNOBSERVED, policy, lineage, "Retain the existing operator-health flags in the runtime export before evaluating alerts."))
+        diagnostics.append(_diagnostic("MISSING_OPERATOR_HEALTH_FLAGS", ObservationState.UNKNOWN, policy, lineage, "Retain the existing operator-health flags in the runtime export before evaluating alerts."))
         return alerts, diagnostics
 
     seen: set[str] = set()
@@ -409,11 +409,11 @@ def _health_alerts(health: Mapping[str, Any], records: Mapping[str, Any] | None,
     for key in ("ambiguous", "failed", "retry", "stalled"):
         values = flags.get(key, ())
         if not isinstance(values, Sequence) or isinstance(values, (str, bytes, bytearray)):
-            diagnostics.append(_diagnostic(f"MALFORMED_{key.upper()}_FLAGS", ObservationState.UNOBSERVED, policy, lineage, "Repair the structured operator-health export before relying on this alert family."))
+            diagnostics.append(_diagnostic(f"MALFORMED_{key.upper()}_FLAGS", ObservationState.UNKNOWN, policy, lineage, "Repair the structured operator-health export before relying on this alert family."))
             continue
         for position, candidate in enumerate(values):
             if not isinstance(candidate, Mapping):
-                diagnostics.append(_diagnostic(f"MALFORMED_{key.upper()}_FLAG", ObservationState.UNOBSERVED, policy, lineage, "Retain structured flag identifiers in the runtime export."))
+                diagnostics.append(_diagnostic(f"MALFORMED_{key.upper()}_FLAG", ObservationState.UNKNOWN, policy, lineage, "Retain structured flag identifiers in the runtime export."))
                 continue
             group, row = _flag_row(candidate, index)
             identifier = _text(candidate.get("id"))

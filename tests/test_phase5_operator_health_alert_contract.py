@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 import json
 
+import pytest
+
 from charitygraph.phase5_operator_health_alert_contract import (
     SCHEMA,
     AlertDisposition,
@@ -144,3 +146,117 @@ def test_zero_or_unknown_denominator_is_not_a_zero_rate_and_unsupported_is_expli
     assert unsupported.document["alerts"] == []
     assert unsupported.document["diagnostics"][0]["observation_state"] == ObservationState.UNSUPPORTED.value
     assert "sentinel" not in json.dumps(unsupported.document)
+
+
+@pytest.mark.parametrize("malformed_health", [None, [], "malformed", 7])
+def test_missing_or_malformed_operator_health_fails_closed_without_attribute_error(malformed_health):
+    export = _export()
+    export["operator_health"] = malformed_health
+
+    result = project_phase5_operator_health_alerts(export)
+
+    assert result.document["evaluation_state"] == ObservationState.UNKNOWN.value
+    assert result.document["alerts"] == []
+    assert result.document["diagnostics"][0]["code"] == "MISSING_OPERATOR_HEALTH"
+    assert result.document["diagnostics"][0]["observation_state"] == ObservationState.UNKNOWN.value
+
+
+@pytest.mark.parametrize("malformed_flags", [None, [], "malformed", 7])
+def test_missing_or_malformed_flags_return_typed_diagnostic(malformed_flags):
+    export = _export()
+    export["operator_health"]["flags"] = malformed_flags
+
+    result = project_phase5_operator_health_alerts(export)
+
+    assert result.document["evaluation_state"] == ObservationState.OBSERVED.value
+    assert result.document["alerts"] == []
+    assert result.document["diagnostics"][0]["code"] == "MISSING_OPERATOR_HEALTH_FLAGS"
+    assert result.document["diagnostics"][0]["observation_state"] == ObservationState.UNKNOWN.value
+
+
+def test_missing_flags_field_returns_typed_diagnostic():
+    export = _export()
+    export["operator_health"].pop("flags")
+
+    result = project_phase5_operator_health_alerts(export)
+
+    assert result.document["diagnostics"][0]["code"] == "MISSING_OPERATOR_HEALTH_FLAGS"
+    assert result.document["diagnostics"][0]["observation_state"] == ObservationState.UNKNOWN.value
+
+
+@pytest.mark.parametrize("malformed_flag", [None, [], "malformed", 7])
+def test_malformed_flag_entry_returns_typed_diagnostic(malformed_flag):
+    export = _export(flags={"ambiguous": [malformed_flag], "failed": [], "retry": [], "recovery": [], "stalled": []})
+
+    result = project_phase5_operator_health_alerts(export)
+
+    assert result.document["alerts"] == []
+    assert result.document["diagnostics"][0]["code"] == "MALFORMED_AMBIGUOUS_FLAG"
+    assert result.document["diagnostics"][0]["observation_state"] == ObservationState.UNKNOWN.value
+
+
+def test_missing_schema_is_unknown_and_unsupported_runtime_version_is_unsupported():
+    missing = project_phase5_operator_health_alerts({"private": "sentinel"})
+    unsupported = project_phase5_operator_health_alerts({"schema": "charitygraph.phase5.operator-health-runtime-contract/v99"})
+
+    assert missing.document["evaluation_state"] == ObservationState.UNKNOWN.value
+    assert missing.document["diagnostics"][0]["code"] == "MISSING_RUNTIME_EXPORT_SCHEMA"
+    assert unsupported.document["evaluation_state"] == ObservationState.UNSUPPORTED.value
+    assert unsupported.document["diagnostics"][0]["code"] == "UNSUPPORTED_RUNTIME_EXPORT_SCHEMA"
+    assert "sentinel" not in json.dumps(missing.document)
+
+
+def test_missing_persisted_records_and_unknown_usage_cost_remain_fail_closed():
+    export = _export(usage_state="unknown", budget=False)
+    export.pop("persisted_representation")
+    export["operator_health"]["flags"] = {
+        "ambiguous": [{"id": "request:missing", "run_id": "run:missing"}],
+        "failed": [], "retry": [], "recovery": [], "stalled": [],
+    }
+
+    result = project_phase5_operator_health_alerts(export)
+    families = {alert["family"] for alert in result.document["alerts"]}
+
+    assert "provider_crossing_ambiguous" in families
+    assert "provider_usage_unverified" in families
+    assert "authoritative_budget_unverified" in families
+    assert all(alert["observation_state"] != ObservationState.OBSERVED.value for alert in result.document["alerts"] if alert["family"] in {"provider_usage_unverified", "authoritative_budget_unverified"})
+    assert '"input_tokens":0' not in result.canonical_json.decode()
+
+
+@pytest.mark.parametrize("timestamp_provenance", [None, {"state": "caller_created"}, {"state": "untrusted", "as_of": "not-a-timestamp"}])
+def test_missing_or_invalid_timestamp_with_untrusted_clock_stays_unverified(timestamp_provenance):
+    export = _export(flags={"ambiguous": [], "failed": [], "retry": [], "recovery": [], "stalled": [{"id": "request:1", "run_id": "run:1"}]})
+    export["operator_health"]["scope"]["as_of"] = None
+    if timestamp_provenance is None:
+        export["operator_health"].pop("timestamp_provenance", None)
+    else:
+        export["operator_health"]["timestamp_provenance"] = timestamp_provenance
+
+    result = project_phase5_operator_health_alerts(export, threshold_policy={"policy_id": "policy:test", "policy_version": "2", "thresholds": {"stale_after_seconds": 60}})
+    stale = next(alert for alert in result.document["alerts"] if alert["family"] == "host_or_run_staleness")
+
+    assert stale["observation_state"] == ObservationState.UNVERIFIED.value
+    assert stale["reason_code"] in {"CLOCK_PROVENANCE_UNSUPPORTED", "MISSING_STALENESS_THRESHOLD"}
+
+
+def test_mixed_subject_scope_alerts_keep_lineage_separate_and_private_fields_omitted():
+    export = _export(flags={
+        "ambiguous": [{"id": "request:1", "run_id": "run:1"}, {"id": "request:2", "run_id": "run:2"}],
+        "failed": [], "retry": [], "recovery": [], "stalled": [],
+    })
+    export["operator_health"]["scope"]["run_ids"] = ["run:1", "run:2"]
+    export["operator_health"]["per_run"].append({"run_id": "run:2", "subject_ids": ["subject:2"], "scope_ids": ["scope:2"]})
+    export["persisted_representation"]["records"]["requests"].append({
+        "provider_request_item_id": "request:2", "run_id": "run:2", "model_task_id": "task:2", "status": "send_ambiguous",
+    })
+    export["persisted_representation"]["records"]["tasks"].append({
+        "model_task_id": "task:2", "run_id": "run:2", "subject_id": "subject:2", "scope_id": "scope:2", "task_material": "PRIVATE",
+    })
+
+    result = project_phase5_operator_health_alerts(export)
+    alerts = [alert for alert in result.document["alerts"] if alert["family"] == "provider_crossing_ambiguous"]
+
+    assert {tuple(alert["subject_ids"]) for alert in alerts} == {("subject:1",), ("subject:2",)}
+    assert {tuple(alert["scope_ids"]) for alert in alerts} == {("scope:1",), ("scope:2",)}
+    assert "PRIVATE" not in result.canonical_json.decode()
