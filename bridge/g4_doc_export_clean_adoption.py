@@ -19,6 +19,7 @@ from typing import Any, Iterable
 
 from bridge.g4_doc_export_ingress import (
     DocExportError,
+    FENCE_SCHEMA,
     _has_reparse_attribute,
     _read_regular_file_no_follow,
 )
@@ -29,7 +30,6 @@ NOT_ADOPTED = "NOT_ADOPTED"
 NOT_ACTIVATED = "NOT_ACTIVATED"
 PARTIAL = "PARTIAL"
 EXPECTED_REPOSITORY = "charitygraph"
-FENCE_V97_SHA256 = "c30256e691dff8393f16bf302f3d7ed57d7630d5f08ab7bb505878402fd43e5e"
 _HEX_SHA1 = re.compile(r"^[0-9a-f]{40}$")
 _HEX_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -49,7 +49,12 @@ class OverlayIdentity:
 
 @dataclass(frozen=True)
 class CleanAdoptionRequest:
-    """All identities a trusted host must bind before a future adoption."""
+    """All identities a trusted host must bind before a future adoption.
+
+    The fence bytes and identity are supplied by the caller and checked as a
+    single exact value.  Matching a caller-supplied digest is an attestation
+    input, not proof that this read-only helper authenticated the host.
+    """
 
     repository: str
     root_workspace: str
@@ -57,6 +62,9 @@ class CleanAdoptionRequest:
     expected_branch: str
     expected_head: str
     fence_sha256: str
+    fence_id: str
+    fence_version: int
+    fence_bytes: bytes
     allowlist: tuple[str, ...]
     overlay_identities: tuple[OverlayIdentity, ...]
     root_dirty_baseline: tuple[tuple[str, str, str], ...]
@@ -111,15 +119,69 @@ def _validate_sha(value: Any, pattern: re.Pattern[str], *, field: str) -> str:
     return value
 
 
-def _validate_request(request: CleanAdoptionRequest) -> tuple[tuple[str, ...], tuple[OverlayIdentity, ...]]:
+def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise CleanAdoptionError(f"fence contains duplicate JSON key: {key}")
+        value[key] = item
+    return value
+
+
+def _reject_non_json_constant(value: str) -> None:
+    raise CleanAdoptionError(f"fence contains non-standard JSON constant: {value}")
+
+
+def _validate_fence(request: CleanAdoptionRequest) -> dict[str, Any]:
+    """Validate the exact caller-supplied fence, without authenticating origin."""
+    _validate_sha(request.fence_sha256, _HEX_SHA256, field="fence_sha256")
+    if not isinstance(request.fence_id, str) or not request.fence_id.strip():
+        raise CleanAdoptionError("fence_id must be a non-empty identity")
+    if isinstance(request.fence_version, bool) or not isinstance(request.fence_version, int) or request.fence_version < 1:
+        raise CleanAdoptionError("fence_version must be a positive integer")
+    if not isinstance(request.fence_bytes, bytes) or not request.fence_bytes:
+        raise CleanAdoptionError("trusted fence bytes are required")
+    actual_sha256 = hashlib.sha256(request.fence_bytes).hexdigest()
+    if actual_sha256 != request.fence_sha256:
+        raise CleanAdoptionError("fence SHA does not match the supplied fence bytes")
+    try:
+        fence = json.loads(
+            request.fence_bytes.decode("utf-8"),
+            object_pairs_hook=_reject_duplicate_keys,
+            parse_constant=_reject_non_json_constant,
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise CleanAdoptionError("fence bytes are not valid UTF-8 JSON") from exc
+    if not isinstance(fence, dict):
+        raise CleanAdoptionError("fence must be a JSON object")
+    try:
+        canonical = _canonical_bytes(fence)
+    except UnicodeEncodeError as exc:
+        raise CleanAdoptionError("fence contains non-UTF-8 JSON text") from exc
+    if canonical != request.fence_bytes:
+        raise CleanAdoptionError("fence bytes are not exact canonical UTF-8 JSON")
+    if fence.get("schema") != FENCE_SCHEMA or fence.get("state") != "ACTIVE":
+        raise CleanAdoptionError("fence schema or state is not active")
+    if fence.get("fence_id") != request.fence_id or fence.get("fence_version") != request.fence_version:
+        raise CleanAdoptionError("fence ID or version conflicts with the supplied identity")
+    if not isinstance(fence.get("workspace_path"), str) or not fence["workspace_path"]:
+        raise CleanAdoptionError("fence workspace identity is missing")
+    if not isinstance(fence.get("branch"), str) or not fence["branch"]:
+        raise CleanAdoptionError("fence branch identity is missing")
+    if not isinstance(fence.get("head"), str) or not _HEX_SHA1.fullmatch(fence["head"]):
+        raise CleanAdoptionError("fence HEAD identity is invalid")
+    return fence
+
+
+def _validate_request(
+    request: CleanAdoptionRequest,
+) -> tuple[tuple[str, ...], tuple[OverlayIdentity, ...], dict[str, Any]]:
     if request.repository != EXPECTED_REPOSITORY:
         raise CleanAdoptionError("repository identity is not charitygraph")
     if not request.expected_branch or request.expected_branch == "(HEAD)":
         raise CleanAdoptionError("an attached expected branch is required")
     _validate_sha(request.expected_head, _HEX_SHA1, field="expected_head")
-    _validate_sha(request.fence_sha256, _HEX_SHA256, field="fence_sha256")
-    if request.fence_sha256 != FENCE_V97_SHA256:
-        raise CleanAdoptionError("fence SHA is not the pinned v97 identity")
+    fence = _validate_fence(request)
     raw_allowlist = tuple(_validate_relative_path(item, field="allowlist") for item in request.allowlist)
     if not raw_allowlist or len(set(raw_allowlist)) != len(raw_allowlist):
         raise CleanAdoptionError("allowlist must be an exact set without duplicates")
@@ -149,7 +211,7 @@ def _validate_request(request: CleanAdoptionRequest) -> tuple[tuple[str, ...], t
     expected_baseline_sha = dirty_baseline_fingerprint(baseline)
     if request.root_dirty_baseline_sha256 != expected_baseline_sha:
         raise CleanAdoptionError("root dirty baseline fingerprint does not bind its entries")
-    return allowlist, tuple(sorted(identities, key=lambda item: item.path))
+    return allowlist, tuple(sorted(identities, key=lambda item: item.path)), fence
 
 
 def read_dirty_baseline(repository: str | Path) -> tuple[tuple[str, str, str], ...]:
@@ -281,7 +343,7 @@ def prepare_clean_target_adoption(request: CleanAdoptionRequest) -> dict[str, An
     supplied clean target currently contains exactly the requested overlay.
     Trusted-host identity and the subsequent commit remain unproven.
     """
-    allowlist, identities = _validate_request(request)
+    allowlist, identities, fence = _validate_request(request)
     root = _assert_regular_directory(Path(request.root_workspace), label="root workspace")
     target = _assert_regular_directory(Path(request.clean_target), label="clean target")
     if root == target:
@@ -290,6 +352,12 @@ def prepare_clean_target_adoption(request: CleanAdoptionRequest) -> dict[str, An
     root_branch, root_head, root_tree = _repository_identity(root, label="root workspace")
     if root_branch != request.expected_branch or root_head != request.expected_head:
         raise CleanAdoptionError("root branch or HEAD is stale/ref-moved")
+    if (
+        fence["workspace_path"] != str(root)
+        or fence["branch"] != root_branch
+        or fence["head"] != root_head
+    ):
+        raise CleanAdoptionError("fence identity does not match the current root snapshot")
     _check_baseline(root, request.root_dirty_baseline, request.root_dirty_baseline_sha256, label="root workspace")
 
     target_branch, target_head, target_tree = _repository_identity(target, label="clean target")
@@ -339,7 +407,11 @@ def prepare_clean_target_adoption(request: CleanAdoptionRequest) -> dict[str, An
             "tree": target_tree,
             "overlay_status": [[path, status, identity] for path, status, identity in target_baseline],
         },
-        "fence_v97_sha256": request.fence_sha256,
+        "fence": {
+            "fence_id": request.fence_id,
+            "fence_version": request.fence_version,
+            "sha256": request.fence_sha256,
+        },
         "allowlist": list(allowlist),
         "overlay_identities": observed_paths,
         "host_identity": {
@@ -356,7 +428,7 @@ def prepare_clean_target_adoption(request: CleanAdoptionRequest) -> dict[str, An
             "native_doc_export": "separate explicit host integration and end-to-end test remains required",
         },
         "next_trusted_host_steps": [
-            "Re-read this manifest and re-attest the same clean target at the exact pinned branch/HEAD, fence SHA, allowlist, root dirty baseline, and four blob pairs.",
+            "Re-read this manifest and re-attest the same clean target at the exact pinned branch/HEAD, fence identity/digest, allowlist, root dirty baseline, and four blob pairs.",
             "In the trusted host only, invoke the existing _bridge_owned_exact_path_commit with parent_head equal to the pinned HEAD and paths exactly equal to the four-path allowlist.",
             "Verify the result is one direct child on the pinned branch, with no unrelated staged paths or worktree changes; do not adopt the root checkout.",
             "Write a successor exact branch/HEAD/fence attestation and separately authorize the dormant native Doc export host integration and end-to-end pickup test.",
@@ -369,7 +441,6 @@ def prepare_clean_target_adoption(request: CleanAdoptionRequest) -> dict[str, An
 __all__ = [
     "CleanAdoptionError",
     "CleanAdoptionRequest",
-    "FENCE_V97_SHA256",
     "OverlayIdentity",
     "NOT_ACTIVATED",
     "NOT_ADOPTED",
