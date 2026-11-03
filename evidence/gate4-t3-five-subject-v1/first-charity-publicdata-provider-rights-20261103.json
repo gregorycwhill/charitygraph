@@ -1,0 +1,104 @@
+{
+  "acquisition": {
+    "method": "caller_supplied_publicdata_api_transport",
+    "raw_bytes": 4086,
+    "raw_sha256": "07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+    "receipt_id": "acq:ac1279c49bb36c9c31c3f2651ca9ad1369bb9fede9c6a32c58ac823bbc38cbae",
+    "received_at_utc": "2026-11-03T00:33:45Z",
+    "runtime_raw_path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-20261103\\raw-response.json",
+    "status": "available"
+  },
+  "created_on": "2026-11-03",
+  "decision_scope": "one exact retained acnc_register source and structured representation; private processing only",
+  "public_redistribution": {
+    "allowed": false,
+    "reason": "outside this private-processing binding task",
+    "status": "not_assessed"
+  },
+  "representation": {
+    "artifact_id": "artifact:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+    "bytes": 3214,
+    "materialisation": "canonical_json_v1",
+    "origin": "publicdata.au independent republication; not ACNC publisher original bytes",
+    "runtime_path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-20261103\\normalized-representation.json",
+    "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+    "sha256": "1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+    "source_artifact_id": "srcblob:07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+    "source_record_id": "srcrec:d2025968c8b6c873f3cc83441289e70fc94c98a891f5a9a1f95a56d89ac3188b",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  },
+  "rights_decision": {
+    "assessed_on": "2026-11-03",
+    "attribution": "Australian Charities and Not-for-profits Commission (ACNC); National Digital; publicdata.au; CC BY 3.0 AU",
+    "authority_kind": "governed_policy",
+    "axis": "private_provider_processing",
+    "circumvention_used": false,
+    "decision_basis": "CC BY 3.0 AU licensed publicdata.au API representation, exact local source/representation lineage, and current governed private-processing policy; no public redistribution or send authority",
+    "decision_id": "rights:private-provider:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+    "decision_version": "1",
+    "explicit_prohibition_found": false,
+    "lawful_public_access": true,
+    "licence_identifier": "CC-BY-3.0-AU",
+    "licence_or_terms_url": "https://creativecommons.org/licenses/by/3.0/au/",
+    "policy_id": "CG_PUBLIC_SOURCE_PRIVATE_PROVIDER_TRANSMISSION_V1",
+    "policy_version": "1.0.0",
+    "provider_call_authorized": false,
+    "provider_data_sharing_opt_in": false,
+    "provider_no_training_default": true,
+    "provider_policy_id": "OPENAI_API_BUSINESS_NO_TRAINING_DEFAULT_AS_OF_2026_09_13_V1",
+    "provider_policy_version": "1",
+    "public_redistribution_allowed": false,
+    "publisher": "Australian Charities and Not-for-profits Commission (ACNC)",
+    "representation_artifact_id": "artifact:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+    "representation_sha256": "1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+    "republisher": "National Digital / publicdata.au",
+    "review_deadline": "2027-11-03",
+    "rights_basis": "public_source_private_processing",
+    "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+    "source_artifact_id": "srcblob:07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+    "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+    "source_origin_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52000399744",
+    "source_record_id": "srcrec:d2025968c8b6c873f3cc83441289e70fc94c98a891f5a9a1f95a56d89ac3188b",
+    "status": "authorized",
+    "upstream_original_csv_verification": "mirror_claim_not_locally_verified"
+  },
+  "schema": "charitygraph.gate4.o1c.first-charity-publicdata-provider-rights/v1",
+  "send_boundary": {
+    "provider_call_authorized": false,
+    "publication_authorized": false,
+    "spend_aud": "0.00"
+  },
+  "source": {
+    "acquisition_receipt_id": "acq:ac1279c49bb36c9c31c3f2651ca9ad1369bb9fede9c6a32c58ac823bbc38cbae",
+    "artifact_id": "srcblob:07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+    "attribution": "Australian Charities and Not-for-profits Commission (ACNC); National Digital; publicdata.au; CC BY 3.0 AU",
+    "definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+    "evidence_locator_id": "locator:9afcd9e219d72d9512f5b56824afeee9f21c45ec0e0eac622e56fce73f57a94e",
+    "licence": {
+      "id": "CC-BY-3.0-AU",
+      "title": "CC BY 3.0 AU",
+      "url": "https://creativecommons.org/licenses/by/3.0/au/"
+    },
+    "origin_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52000399744",
+    "publisher": "Australian Charities and Not-for-profits Commission (ACNC)",
+    "record_id": "srcrec:d2025968c8b6c873f3cc83441289e70fc94c98a891f5a9a1f95a56d89ac3188b",
+    "republisher": "National Digital / publicdata.au",
+    "sha256": "07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+    "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+    "upstream_original_csv": {
+      "bytes": 15156962,
+      "sha256": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+      "verification_status": "mirror_claim_not_locally_verified"
+    }
+  },
+  "status": "AUTHORIZED_PRIVATE_PROVIDER_PROCESSING",
+  "target": {
+    "abn": "52000399744",
+    "name": "Guide Dogs NSW/ACT",
+    "ordinal": 1,
+    "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+    "source_family": "acnc_register",
+    "source_role": "register_identity",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  }
+}
