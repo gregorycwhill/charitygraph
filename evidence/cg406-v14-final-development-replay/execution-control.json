@@ -1,0 +1,22 @@
+{
+  "schema": "charitygraph.cg406-v14-final-replay-control/v1",
+  "status": "EXECUTED_AND_FROZEN",
+  "branch": "gate3-cg406-remediation",
+  "head": "6daf2a10d495a933cb56a49f2e87b974e664c879",
+  "contract_version": "1.4",
+  "schema_version": "1.4-provenance-claim-separation",
+  "candidate_packets": 12,
+  "provider_posts": 12,
+  "trusted_direct_authorization_for_exact_v14_run": "Greg direct message received in conversation on 2026-10-18: approved this paid execution test for development of this project, in the context of the exact v1.4 run scope recorded in execution-authorization-record.txt",
+  "platform_execution_accepted": true,
+  "prior_v13_execution_control_record": "../cg406-v13-development-replay/execution-control-investigation.json",
+  "provider_execution_attempted": true,
+  "provider_execution_status": "12 completed, zero retries, zero ambiguous crossings, maximum observed concurrency 1",
+  "terminal_ledger_created": true,
+  "final_semantic_adjudication_performed": false,
+  "cohort_status": "CG406_DEVELOPMENT_COHORT_CLOSED_FOR_TUNING",
+  "prepared_run_hash": "da77187aa3fff0d59ef8931958f68b9bea7e88a716d0657dfc4a7c30ce8b5925",
+  "result_manifest_sha256": "9f8ae0fe0ff7841b9c1095677b0e7a4326eda7eed4f3f44d152193cd79eed0dd",
+  "provider_calls_in_resume_verification": 0,
+  "blocker": null
+}

@@ -1,0 +1,71 @@
+{
+  "artifact_inventory_sha256": "fa527b53737853f499c790b6c406289cb28125d92407bd5a12c2804e3868a3c8",
+  "bound_question_manifest_content_sha256": "e34bf830170d055f1691743a4e60120a48a932e953d7bcdbf0caa832bbe25994",
+  "bound_user_parameter_slots": 28,
+  "domains": 18,
+  "exact_name_diagnostic_count": 1,
+  "instances_per_domain": 2,
+  "inventory_checks": [
+    {
+      "expected_bytes": 115952,
+      "expected_sha256": "ae8bcb1320c7523616d6181d72dcbb2195f8935815e9ecfc28dd0cb1614bf32a",
+      "file": "frozen-bound-question-instances.json",
+      "observed_bytes": 115952,
+      "observed_sha256": "ae8bcb1320c7523616d6181d72dcbb2195f8935815e9ecfc28dd0cb1614bf32a"
+    },
+    {
+      "expected_bytes": 11148,
+      "expected_sha256": "e4a181eadea002d12cb4f4e7616c464ce043522b8a5a9728351fdc57f7c10494",
+      "file": "deterministic-subject-selection-ledger.json",
+      "observed_bytes": 11148,
+      "observed_sha256": "e4a181eadea002d12cb4f4e7616c464ce043522b8a5a9728351fdc57f7c10494"
+    },
+    {
+      "expected_bytes": 12019,
+      "expected_sha256": "609169de1e1a1df78e0847d4c0bb23b0b9c9a35a2b67f1d9fad23abbdbfff015",
+      "file": "neutral-parameter-bindings.json",
+      "observed_bytes": 12019,
+      "observed_sha256": "609169de1e1a1df78e0847d4c0bb23b0b9c9a35a2b67f1d9fad23abbdbfff015"
+    },
+    {
+      "expected_bytes": 816,
+      "expected_sha256": "3015ea6a4ad94d8b9d9b38a788fe2e37a7bf200de34fe3d9a6847e94332f97c7",
+      "file": "exposure-exclusion-verification.json",
+      "observed_bytes": 816,
+      "observed_sha256": "3015ea6a4ad94d8b9d9b38a788fe2e37a7bf200de34fe3d9a6847e94332f97c7"
+    },
+    {
+      "expected_bytes": 14213,
+      "expected_sha256": "6f37c54360be0885d190f7e529bd4020eb0ee33e1d8afdaf74fd97485ac19e0a",
+      "file": "executable-question-manifest.json",
+      "observed_bytes": 14213,
+      "observed_sha256": "6f37c54360be0885d190f7e529bd4020eb0ee33e1d8afdaf74fd97485ac19e0a"
+    },
+    {
+      "expected_bytes": 4616,
+      "expected_sha256": "56ab64470589431b5d57fa2bb700a42e732390bff421ae65e60089950c0afd85",
+      "file": "contract-fit-gap-report.json",
+      "observed_bytes": 4616,
+      "observed_sha256": "56ab64470589431b5d57fa2bb700a42e732390bff421ae65e60089950c0afd85"
+    },
+    {
+      "expected_bytes": 1860,
+      "expected_sha256": "7a5651cc24e5e4b98b6722478b0289f50bf6ae0d731ccfa80334e03bef3fcaa5",
+      "file": "structural-validation-results.json",
+      "observed_bytes": 1860,
+      "observed_sha256": "7a5651cc24e5e4b98b6722478b0289f50bf6ae0d731ccfa80334e03bef3fcaa5"
+    },
+    {
+      "expected_bytes": 1219,
+      "expected_sha256": "f936ab2000e8820b5f539595fd17f10f2a7a582428b3f4c1615173afbe8dac9a",
+      "file": "benchmark-design-amendment-provenance.json",
+      "observed_bytes": 1219,
+      "observed_sha256": "f936ab2000e8820b5f539595fd17f10f2a7a582428b3f4c1615173afbe8dac9a"
+    }
+  ],
+  "question_count": 36,
+  "selection_ledger_sha256": "e4a181eadea002d12cb4f4e7616c464ce043522b8a5a9728351fdc57f7c10494",
+  "selection_rerun": false,
+  "status": "PASS",
+  "unique_governed_subjects": 36
+}

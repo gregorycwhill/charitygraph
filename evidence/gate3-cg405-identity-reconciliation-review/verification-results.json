@@ -1,0 +1,22 @@
+{
+  "abn_treated_as_external_join_key_only": true,
+  "all_exact_overlaps_acnc_bound": true,
+  "all_exact_overlaps_one_to_one": true,
+  "at_least_36_bounded_fresh_subjects": true,
+  "current_subject_ids_remain_opaque": true,
+  "eligible_subject_count": 46,
+  "exact_authority_identifier_overlap_count": 5,
+  "exact_legacy_acnc_source_blob_reuse_count": 4,
+  "governed_subject_identity_resolved_by_reconciliation_count": 0,
+  "model_response_accessed": false,
+  "name_only_identity_matches": 0,
+  "oracle_accessed": false,
+  "pre_existing_governed_current_bindings_count": 5,
+  "provider_calls": 0,
+  "release_status": "READY_FOR_INDEPENDENT_SUBJECT_SELECTION",
+  "selection_performed": false,
+  "source_acquisition": 0,
+  "successor_universe_created": true,
+  "unresolved_historical_exposure_count": 2,
+  "unresolved_historical_exposures_preserved": true
+}

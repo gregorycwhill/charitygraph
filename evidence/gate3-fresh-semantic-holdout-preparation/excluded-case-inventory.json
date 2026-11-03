@@ -1,0 +1,171 @@
+{
+  "cg405_exposed_subject_names": [
+    "Australian Communities Foundation Limited",
+    "Australian Conservation Foundation Incorporated",
+    "Australian Red Cross Society",
+    "Mission Australia",
+    "The Fred Hollows Foundation",
+    "The Smith Family",
+    "World Vision Australia"
+  ],
+  "cg406_exposed_subject_ids": [
+    "subject:00fd5d9d7b844d74ae64c4f47f7c4538",
+    "subject:04549d1f5c7f4f658e4e33c8eee4f0fe",
+    "subject:1f6be8711c364328b77cf6cb5d5d44ab",
+    "subject:43db3f46f7274c8382905701f287ec09",
+    "subject:54a09c18d354495eb2fde6a01480b86b",
+    "subject:6da4240b384242a78455a01fc28e0ed8",
+    "subject:771dbdb52fe54cb49ebcce20f72bd250",
+    "subject:78393016b9ad44dd832cfa913b7122ba",
+    "subject:93f185643c194b2da46032afc9521b30",
+    "subject:96135bad66c645ecb487fba1f059240c",
+    "subject:99d810fb8e6e4ac7adc2ee0dd3e7e095",
+    "subject:d0b269be3d5d4b6db24d6d203637dfa5"
+  ],
+  "excluded_candidate_count": 17,
+  "excluded_subjects_in_candidate_pool": [
+    {
+      "abn": "64002806233",
+      "display_name": "Amnesty International Australia",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:00fd5d9d7b844d74ae64c4f47f7c4538"
+    },
+    {
+      "abn": "74851544037",
+      "display_name": "The Royal Society for the Prevention of Cruelty to Animals (Queensland) Limited",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:04549d1f5c7f4f658e4e33c8eee4f0fe"
+    },
+    {
+      "abn": "14786237480",
+      "display_name": "The Trustee For Peter Maccallum Cancer Foundation",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:1f6be8711c364328b77cf6cb5d5d44ab"
+    },
+    {
+      "abn": "90970605069",
+      "display_name": "Caritas Australia Limited",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:43db3f46f7274c8382905701f287ec09"
+    },
+    {
+      "abn": "69084797965",
+      "display_name": "Royal Childrens Hospital Good Friday Appeal",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:54a09c18d354495eb2fde6a01480b86b"
+    },
+    {
+      "abn": "15000002522",
+      "display_name": "Mission Australia",
+      "reasons": [
+        "CG405_SEMANTIC_DEVELOPMENT_OR_DEBUG_CASE"
+      ],
+      "subject_id": "subject:67db77d503aa4689a78c685704cc8a96"
+    },
+    {
+      "abn": "61426486715",
+      "display_name": "Cancer Council Victoria",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:6da4240b384242a78455a01fc28e0ed8"
+    },
+    {
+      "abn": "37882817280",
+      "display_name": "University Of Western Australia",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:771dbdb52fe54cb49ebcce20f72bd250"
+    },
+    {
+      "abn": "36068572556",
+      "display_name": "Australian Wildlife Conservancy",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:78393016b9ad44dd832cfa913b7122ba"
+    },
+    {
+      "abn": "57057493017",
+      "display_name": "The Leukaemia Foundation Of Australia Limited",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:93f185643c194b2da46032afc9521b30"
+    },
+    {
+      "abn": "49004875807",
+      "display_name": "Plan International Australia",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:96135bad66c645ecb487fba1f059240c"
+    },
+    {
+      "abn": "84114483091",
+      "display_name": "The Church Of Jesus Christ Of Latter-day Saints Australia",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:99d810fb8e6e4ac7adc2ee0dd3e7e095"
+    },
+    {
+      "abn": "46070556642",
+      "display_name": "The Fred Hollows Foundation",
+      "reasons": [
+        "CG405_SEMANTIC_DEVELOPMENT_OR_DEBUG_CASE"
+      ],
+      "subject_id": "subject:ca20920c8c074a268f09b7a57866479a"
+    },
+    {
+      "abn": "28004778081",
+      "display_name": "World Vision Australia",
+      "reasons": [
+        "CG405_SEMANTIC_DEVELOPMENT_OR_DEBUG_CASE"
+      ],
+      "subject_id": "subject:cf042745edd84e58bce4e1c60704c472"
+    },
+    {
+      "abn": "22627812672",
+      "display_name": "THE TRUSTEE FOR The Benevolent Relief Fund",
+      "reasons": [
+        "CG406_FROZEN_DEVELOPMENT_INSTANCE_SUBJECT"
+      ],
+      "subject_id": "subject:d0b269be3d5d4b6db24d6d203637dfa5"
+    },
+    {
+      "abn": "50169561394",
+      "display_name": "Australian Red Cross Society",
+      "reasons": [
+        "CG405_SEMANTIC_DEVELOPMENT_OR_DEBUG_CASE"
+      ],
+      "subject_id": "subject:d10dfad31cb04c5fb27ada0a81f36b69"
+    },
+    {
+      "abn": "28000030179",
+      "display_name": "The Smith Family",
+      "reasons": [
+        "CG405_SEMANTIC_DEVELOPMENT_OR_DEBUG_CASE"
+      ],
+      "subject_id": "subject:f284a1e0e31a4e04b7d9f8ae8863ef10"
+    }
+  ],
+  "inputs": {
+    "cg405_benchmark_sha256": "7dfea7df5a5866eaf7705b65f2bf425027fb426e2083b8994a8fa55d66f28f3e",
+    "cg406_prepared_identity_sha256": "8131800965925b1d5ef3be409f579f67f396e9df2cc3c39638b4105023eac1b3"
+  },
+  "note": "The identity pool itself records semantic_tasks_created=0. Only historic semantic exposure ledgers are exclusion inputs; raw sources, model outputs, oracle answers, and diagnostics are not read.",
+  "purpose": "exclude all identifiable current Gate-3 semantic development/debug exposures before selection",
+  "schema": "charitygraph.gate3.fresh-holdout-excluded-inventory/v1"
+}

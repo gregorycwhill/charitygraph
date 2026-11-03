@@ -1,0 +1,17 @@
+{
+  "branch": "gate3-cg406-remediation",
+  "builder_commit": "6daf2a10d495a933cb56a49f2e87b974e664c879",
+  "candidate_count": 36,
+  "data_commit": "443d195abea91d7da111f5e573e90247ae823c36",
+  "fully_executable_count": 0,
+  "implementation_commit": "53d95134261acc84451c38cedc597f20f5876180",
+  "lossless_candidate_compiler_feasible": true,
+  "lossless_v1_4_executable_compiler_feasible": false,
+  "material_specification_choice_count": 36,
+  "next_step": "independent pre-evidence question-design review and freeze of complete specifications; then sealed-oracle revalidation/reconstruction",
+  "oracle_accessed": false,
+  "paid_acquisition": 0,
+  "provider_calls": 0,
+  "selection_manifest_sha256": "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9",
+  "status": "READY_FOR_EXECUTABLE_DEMAND_SPEC_REVIEW"
+}

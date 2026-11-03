@@ -1,0 +1,40 @@
+{
+  "artifacts": [
+    {
+      "bytes": 1054,
+      "path": "17-gap-root-cause-analysis.md",
+      "sha256": "4a4fb932572ce341d16b2d6cc3d4cc48bd2c76018a64fa2586045c513f3961f1"
+    },
+    {
+      "bytes": 1140,
+      "path": "architecture-compliance-verification.json",
+      "sha256": "6f0278f7221a817300570abafa6b398509599a8bd7fc100b51cdd8c1dcbaf515"
+    },
+    {
+      "bytes": 639,
+      "path": "fixture-isolation-verification.json",
+      "sha256": "06de089de0c4fc9da53078bcc596d3108cb75e6c15da681b55591fc78f5b0126"
+    },
+    {
+      "bytes": 257,
+      "path": "generic-discovery-contract-status.md",
+      "sha256": "0cf4927da18811a6fc1b83befef58b1f0120708a649edfc2df90d8e398b13608"
+    },
+    {
+      "bytes": 833,
+      "path": "handoff.json",
+      "sha256": "88531ba8f5dd8250e878bc112ea85475c442e0ae872de239c4478601d19117f8"
+    },
+    {
+      "bytes": 13755,
+      "path": "per-template-lowering-compatibility-report.json",
+      "sha256": "2298eda09ef9416a4ad1caab125abc9ee07c1f5be24c18616886967feae00281"
+    },
+    {
+      "bytes": 577,
+      "path": "provider-free-test-results.json",
+      "sha256": "9c075a8987c1f0262842957297d7e4bbaf4063316d56a8aba2bb38286b1cff20"
+    }
+  ],
+  "schema": "charitygraph.evidence-inventory/v1"
+}

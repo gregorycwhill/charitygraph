@@ -1,0 +1,29 @@
+{
+  "rows": [
+    {
+      "authority": "template permitted_states",
+      "category": "existing_value_omitted_during_handoff",
+      "field": "result states"
+    },
+    {
+      "authority": "v1.5 explicit marker",
+      "category": "intentionally_unspecified",
+      "field": "type/cardinality"
+    },
+    {
+      "authority": "v1.5 marker or approved slot",
+      "category": "intentionally_unspecified",
+      "field": "geography"
+    },
+    {
+      "authority": "none",
+      "category": "genuinely_absent_required_semantics",
+      "field": "v2 identity equivalence"
+    },
+    {
+      "authority": "none",
+      "category": "genuinely_absent_required_semantics",
+      "field": "D08B channel equivalence"
+    }
+  ]
+}

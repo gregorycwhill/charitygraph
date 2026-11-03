@@ -1,0 +1,43 @@
+{
+  "enumeration_states": [
+    "EXHAUSTIVE",
+    "PARTIAL",
+    "UNSPECIFIED"
+  ],
+  "identity": "opaque CharityGraph subject binding is supplied only at execution; ABN is an external authority-scoped join key, never the subject identity",
+  "input_output_separation": {
+    "answer_variables": "evidence-discovered values; they must never be promoted to inputs",
+    "user_inputs": "only frozen approved user-parameter slots"
+  },
+  "operation_families": [
+    "ACTIVITY_OUTPUT_DISCOVERY",
+    "ANALYTICAL_REPRODUCTION",
+    "AUTHORITY_RECORD_DISCOVERY",
+    "AUTHORITY_SCOPED_DESIGNATION",
+    "CAPACITY_DISCOVERY",
+    "COMMITMENT_IMPLEMENTATION_DISCOVERY",
+    "CONDITIONAL_EVALUATION_DISCOVERY",
+    "CONDITIONAL_SERVICE_DELIVERY_DISCOVERY",
+    "EVALUATION_DISCOVERY",
+    "FINANCIAL_COMPARISON",
+    "GIVING_OFFER_DISCOVERY",
+    "HISTORICAL_CHANGE_DISCOVERY",
+    "HISTORICAL_COMPARISON",
+    "PARTICIPATION_DISCOVERY",
+    "PURPOSE_BENEFICIARY_DISCOVERY",
+    "RELATIONSHIP_DISCOVERY",
+    "ROLE_CAPABILITY_DISCOVERY",
+    "SERVICE_ACCESS_DISCOVERY",
+    "SERVICE_DELIVERY_DISCOVERY",
+    "SUBJECT_SCOPE_DISCOVERY"
+  ],
+  "safe_result_rule": "absence of evidence is not a negative fact; exhaustive/negative conclusions require explicit exhaustive evidence",
+  "schema": "charitygraph.generic-discovery-demand-contract/v1.5",
+  "unspecified_semantics": {
+    "answer_variable_cardinality": "MISSING_FROM_FROZEN_SPECIFICATION",
+    "answer_variable_type": "MISSING_FROM_FROZEN_SPECIFICATION",
+    "behaviour": "no default cardinality, exhaustiveness, national coverage, unrestricted coverage, or geographic irrelevance",
+    "geographic_constraint": "UNSPECIFIED"
+  },
+  "version": "1.5"
+}

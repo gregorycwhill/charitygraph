@@ -1,0 +1,14 @@
+{
+  "blocker": "Missing authoritative concrete frozen demand signatures in the supplied 36-row manifest.  The existing v1.4 path cannot legally derive or substitute them.",
+  "branch": "gate3-cg406-remediation",
+  "builder_commit": "6daf2a10d495a933cb56a49f2e87b974e664c879",
+  "future_provider_spend_estimate": "not_calculable_without materialized packet bodies; no reservation was made",
+  "oracle_output_accessed": false,
+  "prepared_request_count": 0,
+  "prepared_run_sha256": null,
+  "private_material_exclusion": "No raw governed source body, PDF/page text, provider request body, provider response, runtime database, cache, credential, or oracle material is in this packet.",
+  "provider_calls": 0,
+  "provider_spend_aud": "0",
+  "provider_spend_usd": "0",
+  "status": "BLOCKED_FOR_FRESH_G3_PREPARATION"
+}

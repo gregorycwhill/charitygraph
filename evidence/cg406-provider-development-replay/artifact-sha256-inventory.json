@@ -1,0 +1,55 @@
+{
+  "artifacts": [
+    {
+      "file": "accounting-token-spend-ledger.md",
+      "sha256": "168f35142c95763a3576f2dd0b5b9e33380ac42807f1cdb2bd728edc7891c95a",
+      "size_bytes": 361
+    },
+    {
+      "file": "frozen-development-result-manifest.json",
+      "sha256": "0151e173c6225c7675d0e1a6768b257de14214b05cefe2fbc07cec6af60a6eb2",
+      "size_bytes": 1456
+    },
+    {
+      "file": "handoff.json",
+      "sha256": "232ae793f7472571523e50ca8c5328e141cd7e10cea8b0d6e4293e1e61973fef",
+      "size_bytes": 1317
+    },
+    {
+      "file": "per-row-old-new-mechanical-comparison.json",
+      "sha256": "f1a81045d509493e1ddc7084540cd12800e7cc954a3edc3799f6cdc61f446ab6",
+      "size_bytes": 66759
+    },
+    {
+      "file": "prepared-run-identity.json",
+      "sha256": "c0ce1746554940080672ba4b04f97b1b30b47bcdc638aa356eaafeb46d1d3e63",
+      "size_bytes": 6927
+    },
+    {
+      "file": "provider-visible-corpus-summary.md",
+      "sha256": "0b97ebb2fdbb4d9725173848e18dc7c4e2b2d26bd7147da8db9e607e9d34eb65",
+      "size_bytes": 507
+    },
+    {
+      "file": "summary.md",
+      "sha256": "b4b6ab8c9ad191a7c890d92ac77461b3c9219f79f788fc17f1b597a112ced438",
+      "size_bytes": 1277
+    },
+    {
+      "file": "terminal-result-ledger.json",
+      "sha256": "8ea527af3a7b966457902134284ec6fc3c2d466e1c6adfa867e0498fca214204",
+      "size_bytes": 137411
+    },
+    {
+      "file": "validation-results.json",
+      "sha256": "7921caa7d312f5a34eaea97946fdde5784dd9e4bfa5468675363c8fab886909f",
+      "size_bytes": 10259
+    },
+    {
+      "file": "validation-results.md",
+      "sha256": "9a4d5ac20d59d43d97ae31ab58573184919fa3afcd4d9fd2b31dba897899a82c",
+      "size_bytes": 373
+    }
+  ],
+  "schema": "charitygraph.cg406-provider-development-replay-inventory/v1"
+}

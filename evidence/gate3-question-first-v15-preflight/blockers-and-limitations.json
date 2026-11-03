@@ -1,0 +1,8 @@
+{
+  "oracle_access": 0,
+  "precise_blocker": "All bound instances omit the machine-readable v1.5 result-state/schema payload and explicit unspecified-field status needed by the frozen v1.5 compiler. The remaining prose cannot be parsed by Python under the semantic heuristic gate, and selected-case adaptation/defaulting would change the frozen evaluation baseline.",
+  "provider_calls": 0,
+  "required_product_decision": "Supply an immutable machine-readable v1.5 execution contract projection for the already frozen bound-question identities, or explicitly authorize a generic baseline change before any selected-case adaptation.",
+  "source_acquisition": 0,
+  "status": "BLOCKED_ON_G3_FRESH_PREFLIGHT"
+}

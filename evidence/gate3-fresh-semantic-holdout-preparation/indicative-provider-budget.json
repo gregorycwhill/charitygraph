@@ -1,0 +1,12 @@
+{
+  "actual_spend_aud": "0.00",
+  "basis": "three times the frozen CG406 v1.4 12-request hard-max envelope, only if a later independent authority adopts identical model, token cap, pricing/FX snapshot and packet limits",
+  "future_36_request_illustrative_hard_max_aud": "0.832935",
+  "future_36_request_illustrative_hard_max_usd": "0.547971",
+  "not_transferable": "CG406 execution authority, reservations and actuals are not authority for this fresh holdout.",
+  "provider_calls_this_tranche": 0,
+  "provider_reservations_this_tranche": 0,
+  "reestimate_required_before_execution": true,
+  "schema": "charitygraph.gate3.fresh-holdout-indicative-budget/v1",
+  "status": "INDICATIVE_ONLY_NOT_RESERVED_NOT_AUTHORIZED"
+}

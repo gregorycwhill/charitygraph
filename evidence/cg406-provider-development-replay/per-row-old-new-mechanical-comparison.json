@@ -1,0 +1,1502 @@
+{
+  "rows": [
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:70cffc51e51093961b61d1bb8c15649f305de00aa3c345e54c53e5b3c973fcaf": "wikipedia_wikimedia",
+          "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732": "acnc_ais_bundle",
+          "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a": "pfra",
+          "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de": "annual_report",
+          "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06": "acnc_register",
+          "srcrec:fcea88d98659e4ef5863b81535663a8a79a1c5c9d3d8200bd4f6287d1efe0e61": "ato_abr_dgr"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732": "acnc_ais_bundle",
+          "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06": "acnc_register"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "wikipedia_wikimedia",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "pfra",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:00fd5d9d7b844d74ae64c4f47f7c4538:SDC-0051",
+      "new": {
+        "evidence_ids": [
+          "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+          "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+          "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+          "srcrec:fcea88d98659e4ef5863b81535663a8a79a1c5c9d3d8200bd4f6287d1efe0e61",
+          "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a",
+          "srcrec:70cffc51e51093961b61d1bb8c15649f305de00aa3c345e54c53e5b3c973fcaf"
+        ],
+        "mechanical_validation": "invalid",
+        "outcome": "supported",
+        "outcome_category": "supported",
+        "packet_hash": "4b42de505883c51e719a126efb860c5c7fc2c2200f7bd731611abe1229c35842",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "proposition": "geography",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+            ],
+            "proposition": "missingness",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "proposition": "population",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+              "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de"
+            ],
+            "proposition": "service",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr",
+          "pfra",
+          "wikipedia_wikimedia"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+          "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+          "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+          "srcrec:fcea88d98659e4ef5863b81535663a8a79a1c5c9d3d8200bd4f6287d1efe0e61",
+          "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f6163aff2f2806732",
+          "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+        ],
+        "mechanical_validation": "invalid",
+        "outcome": "supported",
+        "packet_hash": "151331f861d44afde7b885fb774da0445501ed98331821e71bac756e2c2ede15",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008": "annual_report",
+          "srcrec:453f23fc19e634d1319088b6bf81a76249e8e17ca2a86432965fa64c9c859df3": "ato_abr_dgr",
+          "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef": "acnc_ais_bundle",
+          "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973": "acnc_register"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef": "acnc_ais_bundle",
+          "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973": "acnc_register"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:04549d1f5c7f4f658e4e33c8eee4f0fe:SDC-0026",
+      "new": {
+        "evidence_ids": [
+          "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+          "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+          "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+          "srcrec:453f23fc19e634d1319088b6bf81a76249e8e17ca2a86432965fa64c9c859df3"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "partial",
+        "packet_hash": "ba709f38c401c2bb4dd53e90dfdfbb52f190905ce88f8d96ae630b5246b7854a",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+              "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973"
+            ],
+            "proposition": "appeal proceeds",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+              "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef"
+            ],
+            "proposition": "donation revenue",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+              "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973"
+            ],
+            "proposition": "method",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+          "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+          "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+          "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "packet_hash": "32e40d3f2934324d8623a9bd6e260149990f5855482ab13d80e0a775bda6f267",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0": "acnc_register",
+          "srcrec:5eba81a0b2173c1e48dc1f6a0de2c434eb622ab50b225e2de3db0e0145be8111": "ato_abr_dgr",
+          "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a": "annual_report",
+          "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a": "pfra",
+          "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe": "acnc_ais_bundle"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0": "acnc_register",
+          "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe": "acnc_ais_bundle"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "pfra",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:1f6be8711c364328b77cf6cb5d5d44ab:SDC-0025",
+      "new": {
+        "evidence_ids": [
+          "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+          "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+          "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a",
+          "srcrec:5eba81a0b2173c1e48dc1f6a0de2c434eb622ab50b225e2de3db0e0145be8111",
+          "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+        ],
+        "mechanical_validation": "invalid",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "packet_hash": "b30cc7ce289bfc34f785a790dcac6f1c79229867db9f933d4c87683d9b178b4e",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+              "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+            ],
+            "proposition": "The subject provides a direct-service access pathway.",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0"
+            ],
+            "proposition": "The direct service is available as of the requested date.",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0"
+            ],
+            "proposition": "The direct service has eligibility criteria that are satisfied by the relevant service user.",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr",
+          "pfra"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+          "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+          "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+          "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "packet_hash": "29c45df87b86d9ee4ef78795489bd81abca443f571858565627ad418cdaa9ee9",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:55b97160c2e99f17159efc4add4739c88ebbf65b38c9a34b60c909fc93ee4742": "ato_abr_dgr",
+          "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981": "acnc_ais_bundle",
+          "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298": "acnc_register",
+          "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32": "annual_report"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981": "acnc_ais_bundle",
+          "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298": "acnc_register"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:43db3f46f7274c8382905701f287ec09:SDC-0038",
+      "new": {
+        "evidence_ids": [
+          "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981",
+          "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+          "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+          "srcrec:55b97160c2e99f17159efc4add4739c88ebbf65b38c9a34b60c909fc93ee4742"
+        ],
+        "mechanical_validation": "invalid",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "packet_hash": "87dc88711f6101fd937505967675355a50636053622d15f1a5fe3229b3e8c5d8",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298"
+            ],
+            "proposition": "The target subject held a governance role at the organisation.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "proposition": "The target subject's governance role had scope covering access decisions.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+          "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "packet_hash": "61f1cf441153f4fd28840944da3ea21770850e57abf6ab88ffacfda3b8b467e3",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b": "annual_report",
+          "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad": "ato_abr_dgr",
+          "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38": "acnc_register",
+          "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a": "acnc_ais_bundle"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38": "acnc_register",
+          "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a": "acnc_ais_bundle"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:54a09c18d354495eb2fde6a01480b86b:SDC-0037",
+      "new": {
+        "evidence_ids": [
+          "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+          "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+          "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+          "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+        ],
+        "mechanical_validation": "invalid",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "packet_hash": "a1270c562c228e428e5bacc68ffcf9bfa0b5ba68adf8f55189db85aec7e8dde2",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "proposition": "The authority-scoped identifier for the target entity is ABN 69084797965.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "proposition": "The identifier and authority-scoped identity record apply to the target entity during the requested effective period.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+          "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+          "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+          "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+          "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "supported",
+        "packet_hash": "17b5d6bd8336452bbba26e3b5e064425813996c0ee5c20f6501326ec8314f4ea",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:6324bbf9bde152c14cae6a5c2036ed652791b8601391627a5c9549597db13a07": "wikipedia_wikimedia",
+          "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5": "acnc_register",
+          "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a": "annual_report",
+          "srcrec:a7aa5f787dff9ec3f37f2f419df4ae37c517a1ba1130343390e3441d3aa557ed": "ato_abr_dgr",
+          "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c": "acnc_ais_bundle"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5": "acnc_register",
+          "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c": "acnc_ais_bundle"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "wikipedia_wikimedia",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:6da4240b384242a78455a01fc28e0ed8:SDC-0003",
+      "new": {
+        "evidence_ids": [
+          "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+          "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+          "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+          "srcrec:a7aa5f787dff9ec3f37f2f419df4ae37c517a1ba1130343390e3441d3aa557ed",
+          "srcrec:6324bbf9bde152c14cae6a5c2036ed652791b8601391627a5c9549597db13a07"
+        ],
+        "mechanical_validation": "invalid",
+        "outcome": "supported",
+        "outcome_category": "supported",
+        "packet_hash": "14aaab37d7be2dc78fb129ed854bdd6b4b0a7d17bbcdd5241895b44e7b8fc4fe",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c"
+            ],
+            "proposition": "Eligibility: Cancer Council Victoria is an eligible registered charity for the service cohort.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+            ],
+            "proposition": "Geography: The reported services have delivery locations in East Melbourne, Victoria, and are described as serving the general community in Australia.",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+            ],
+            "proposition": "Service: During the 2025 service period, Cancer Council Victoria provided cancer support, prevention, screening, immunisation, and research-related programs.",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr",
+          "wikipedia_wikimedia"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+          "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+          "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+          "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5"
+        ],
+        "mechanical_validation": "invalid",
+        "outcome": "supported",
+        "packet_hash": "5bbc41ab0fef2bf9cd4027e6c5698870c39f9f0a2c4243e79a0de290c260b898",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef": "acnc_register",
+          "srcrec:38b3942e4e7a329783e69298ca5e11331cee8946c1a28d56d60929a52b845276": "wikipedia_wikimedia",
+          "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3": "annual_report",
+          "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5": "acnc_ais_bundle",
+          "srcrec:c464bb740a08aa140938474f350feab35cadec760358e53fdbb76d81dcd85397": "ato_abr_dgr"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef": "acnc_register",
+          "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5": "acnc_ais_bundle"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "wikipedia_wikimedia",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:771dbdb52fe54cb49ebcce20f72bd250:SDC-0007",
+      "new": {
+        "evidence_ids": [
+          "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+          "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+          "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3",
+          "srcrec:c464bb740a08aa140938474f350feab35cadec760358e53fdbb76d81dcd85397",
+          "srcrec:38b3942e4e7a329783e69298ca5e11331cee8946c1a28d56d60929a52b845276"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "packet_hash": "758a567b442a6355c1dfae05905b9efa2b8bab8209af34179883148666c63509",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "proposition": "award",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "proposition": "commitment",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "proposition": "payment",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "proposition": "revenue",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr",
+          "wikipedia_wikimedia"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+          "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+          "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+          "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "packet_hash": "e0df21e554336068abbc3f995e0e11820a0b53feb331d03ed59ef75d5fe157dc",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918": "acnc_register",
+          "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40": "wikipedia_wikimedia",
+          "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2": "acnc_ais_bundle",
+          "srcrec:d84f59dafd80990cfe07a4a591a796df8ab24332d91888a6ad760d711c4c318c": "ato_abr_dgr"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918": "acnc_register",
+          "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2": "acnc_ais_bundle"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "wikipedia_wikimedia",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:78393016b9ad44dd832cfa913b7122ba:SDC-0005",
+      "new": {
+        "evidence_ids": [
+          "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+          "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+          "srcrec:d84f59dafd80990cfe07a4a591a796df8ab24332d91888a6ad760d711c4c318c",
+          "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "packet_hash": "f91c61e3872d7a9c6b46c4c37c2e4c5e3ec412b39d822561b05bc1b2cfb54a32",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+              "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918"
+            ],
+            "proposition": "eligibility",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+              "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918"
+            ],
+            "proposition": "opportunity",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+              "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918"
+            ],
+            "proposition": "time pattern",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "ato_abr_dgr",
+          "wikipedia_wikimedia"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+          "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+          "srcrec:d84f59dafd80990cfe07a4a591a796df8ab24332d91888a6ad760d711c4c318c",
+          "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+          "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "packet_hash": "752ef336935da6b893e278f1ac549284eef8f5517cd526f481376c9b3c89ddfa",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:52ff9879abf522362bd642d8e22f54a4e2b813f451dcd1723978b0f68a3d9e79": "ato_abr_dgr",
+          "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b": "acnc_register",
+          "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a": "annual_report",
+          "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a": "pfra",
+          "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab": "acnc_ais_bundle"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b": "acnc_register",
+          "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab": "acnc_ais_bundle"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "pfra",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:93f185643c194b2da46032afc9521b30:SDC-0052",
+      "new": {
+        "evidence_ids": [
+          "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+          "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+          "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+          "srcrec:52ff9879abf522362bd642d8e22f54a4e2b813f451dcd1723978b0f68a3d9e79",
+          "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "packet_hash": "488a8c1b58ebdc005327cb329d67bb550a4aa60aa52df4584e238d2a7e439e01",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "proposition": "design",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "proposition": "metric",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "proposition": "missingness",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "proposition": "population",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr",
+          "pfra"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+          "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+          "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+          "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "packet_hash": "24c813ec60314dc92911c43b95bb30ee08434121ddb015b226085e41583673b5",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40": "acnc_ais_bundle",
+          "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1": "ato_abr_dgr",
+          "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5": "annual_report",
+          "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828": "acnc_register"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40": "acnc_ais_bundle",
+          "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828": "acnc_register"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:96135bad66c645ecb487fba1f059240c:SDC-0028",
+      "new": {
+        "evidence_ids": [
+          "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+          "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+          "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+          "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+        ],
+        "mechanical_validation": "invalid",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "partial",
+        "packet_hash": "4cdb6ffad337165ba30079245c67a58ebf45a5b9eed07090336dfaf6006bfc09",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+            ],
+            "proposition": "identity: the resolved organisation is Plan International Australia, ABN 49004875807, matching the target subject.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40"
+            ],
+            "proposition": "classification: the organisation is registered as a charity and has Public Benevolent Institution classification in the supplied records.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828"
+            ],
+            "proposition": "purpose: the organisation advances children’s rights and equality for girls through development and humanitarian programs.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40"
+            ],
+            "proposition": "ethos: the organisation states commitments to justice, children’s rights, equality for girls, gender equality, accountability, and governance.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5"
+            ],
+            "proposition": "finance: FY2025 financial information reports total receipts of 73,538,000, total expenses of 73,440,000, net surplus of 98,000, and 57,060,000 in grants and donations outside Australia.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40"
+            ],
+            "proposition": "conduct: the organisation’s conduct satisfies the applicable rule-specific conduct criteria.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+          "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+          "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+          "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+          "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "packet_hash": "5fa81a2726d370ca558da4da345d8e7ce30336a2b571db44f2e818f1a75dc9c6",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97": "acnc_ais_bundle",
+          "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d": "annual_report",
+          "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e": "acnc_register",
+          "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d": "ato_abr_dgr"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97": "acnc_ais_bundle",
+          "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e": "acnc_register"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:99d810fb8e6e4ac7adc2ee0dd3e7e095:SDC-0019",
+      "new": {
+        "evidence_ids": [
+          "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+          "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+          "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+          "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+        ],
+        "mechanical_validation": "invalid",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "packet_hash": "592d4ea6c530bcc21dfc4773940e151661593950afed430114db036d102940b2",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+              "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+              "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+              "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+            ],
+            "proposition": "An allegation concerning the organisation and an event is present and traceable to an authoritative source.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+              "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+              "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+              "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+            ],
+            "proposition": "A correction to an allegation concerning the organisation and event is present and traceable.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+              "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+              "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+              "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+            ],
+            "proposition": "A formal finding concerning the organisation and event is present and attributable to an authority.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+          "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+          "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+          "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+          "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "packet_hash": "4f79902d4f4018c8149a78b7c8ee3b3c75d9151d23aafccb4e0680a6fece6b2d",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    },
+    {
+      "admission_context": {
+        "evidence_family_by_id": {
+          "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89": "acnc_ais_bundle",
+          "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767": "acnc_register",
+          "srcrec:9f966bfa7264b4648d0e92161f9e4e9b0dce2b687440f4a3e85f08f79032ea84": "ato_abr_dgr",
+          "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539": "annual_report"
+        },
+        "prior_evidence_family_by_id": {
+          "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89": "acnc_ais_bundle",
+          "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767": "acnc_register"
+        },
+        "source_family_assessments": [
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_register",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "not_required",
+            "source_family": "acnc_ais_bundle",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "ready",
+            "source_family": "ato_abr_dgr",
+            "subject_binding": "bound"
+          },
+          {
+            "acquisition": "available",
+            "disposition": "admitted",
+            "representation_readiness": "partial",
+            "source_family": "annual_report",
+            "subject_binding": "bound"
+          }
+        ]
+      },
+      "instance_id": "cg406:subject:d0b269be3d5d4b6db24d6d203637dfa5:SDC-0014",
+      "new": {
+        "evidence_ids": [
+          "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+          "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767",
+          "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+          "srcrec:9f966bfa7264b4648d0e92161f9e4e9b0dce2b687440f4a3e85f08f79032ea84"
+        ],
+        "mechanical_validation": "invalid",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "partial",
+        "packet_hash": "beb07e54b99b07eeb896bd4eb233e674a82972a81482228fff7c5256503a685e",
+        "proposition_scope_temporal_state": [
+          {
+            "evidence_ids": [
+              "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+              "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+            ],
+            "proposition": "Historical expenditure",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+            ],
+            "proposition": "Marginal allocation",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register",
+          "annual_report",
+          "ato_abr_dgr"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+          "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+        ]
+      },
+      "old": {
+        "evidence_ids": [
+          "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+          "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767"
+        ],
+        "mechanical_validation": "valid",
+        "outcome": "insufficient_evidence",
+        "packet_hash": "8da845174e7d6fc9504e684e603346b1ac16ac9f79dc482e006e21c28ac7030e",
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      }
+    }
+  ],
+  "schema": "charitygraph.cg406-development-comparison/v1"
+}

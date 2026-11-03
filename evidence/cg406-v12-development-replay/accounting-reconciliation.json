@@ -1,0 +1,26 @@
+{
+  "authorized_cumulative_hard_cap_aud": "0.50",
+  "available_authority_before_v1_2_aud": "0.379582",
+  "completed_responses": 12,
+  "cumulative_actual_aud": "0.299401",
+  "cumulative_actual_usd": "0.196968",
+  "cumulative_cap_respected": true,
+  "fx_aud_per_usd": "1.52",
+  "pricing_snapshot_sha256": "d570ce16a870381ba538b73cf9eee26475f005bed3fd91461f70c16ce90eb4f1",
+  "provider_posts": 12,
+  "resume_posts": 0,
+  "schema": "charitygraph.cg406-v12-accounting-reconciliation/v1",
+  "token_usage": {
+    "input_tokens": 385872,
+    "output_tokens": 17730,
+    "total_tokens": 403602
+  },
+  "transport_retries": 0,
+  "v1_1_actual_aud": "0.120418",
+  "v1_1_actual_plus_v1_2_max_aud": "0.398063",
+  "v1_1_actual_usd": "0.079219",
+  "v1_2_actual_aud": "0.178983",
+  "v1_2_actual_usd": "0.117749",
+  "v1_2_prepared_max_aud": "0.277645",
+  "v1_2_prepared_max_usd": "0.182657"
+}

@@ -1,0 +1,42 @@
+{
+  "aggregate_actual_aud": "0.210634",
+  "aggregate_actual_usd": "0.138571",
+  "mechanical_validation_counts": {
+    "invalid": 6,
+    "valid": 6
+  },
+  "outcome_counts": {
+    "insufficient_evidence": 11,
+    "supported": 1
+  },
+  "prepared_file_sha256": "c4afe5b8bfcf680ca6327f010c66934e36b6d927aed85b103fb45696b9df3a2f",
+  "prepared_run_hash": "ad811d779b2e014846437f8745074aaadb2abb1f7f9047140003cda7172fbc39",
+  "provider_posts": 12,
+  "response_sha256_by_request_item": {
+    "requestitem:11b7c844188e33223e6b9e87be997cbf3887e0039be9fddf29bb0900c814578b": "b73da84b173ae39d385ebfadee5db6dccacbd510e3fd3a27f2d8d09cc3d9381c",
+    "requestitem:12f92577b19cd3003a8406e81e71c402dca4ba08b4d0bd01ba971c2b1292a9ed": "7fe8cdd30f12c537b2ec2ae34769f67a50dbf296cbc71cfe521959be1ae0791a",
+    "requestitem:162b013159f4ebba1e4800b7e5e479b12509a4685ac90abacec94ce60b71d62d": "7f63a680f2a6deec3755c6a4dd605c5ad5b150d054a6b2038619aed9b630a2b7",
+    "requestitem:4a420d59f16f05a169727b795dd1646c59046c94ff705904f7bdbcc343fe1809": "cbc2f8d9f3ec66733c4b1aa32bfff8017b1d03ba0fbdc3e31dab015eaaf7f994",
+    "requestitem:694614a336f210b461fcee3981f412346afe28becfd83d74c0a75148ebc743f1": "ac72541f19530845ca71849b39bc6775ef8bf6ffec776b390490dd5aaf6ae940",
+    "requestitem:88ee95324a7c9bd8700e5f50f2aa861ad660098359fb052be9bf385148d4b122": "593bd2495dead37a9e64537827114133de6090f2f472c5e491f51f53ee3361c5",
+    "requestitem:9a2e025d35613602f807941e5eb28225612ba52d936513ee58d19db7e26b3bf4": "be816335168328449aebd37e59dd9ecf383dd9f212dca69a443707cc72e440bb",
+    "requestitem:b6144d2e0c5f60b617c724a43a73104a17d29ac9ab2c9de6acff2c78b3f23820": "ade64f319b8eabb861952b2ad89ace6d561383c1c3178c41eb134dda3f8cbc80",
+    "requestitem:bac8c76caa2465c11b5a5f1441915724554cf15fe5a01e2d356a57d472779043": "46193384907a6b1f46557fc05499224ee6c64556ef2f5e0b5aa09f389ec325bb",
+    "requestitem:bd0ddc378d6a879ef48d26b1db0bf3278cf02be92c1bf3c69267a9f1dd14ffb5": "4e83105e50fe5f7c07978704960fa2ee4ee321aabe4a1654126e68cbf0e86090",
+    "requestitem:c1bbbf68822c7c9facb339b8e3e464e4a8cc6947f54f8251ce876c1e1c68639c": "1241509cc303294c945f395aa1552e78c592763013f1e30780dc8482385d401c",
+    "requestitem:ed9fcc257e8704a17534d6a6185459ecdeaf6648dd51106f642699a69246327b": "0007cd4a00cf041fff20b97929ec2d50a5ea69c867f67c2580325403f87ffe5a"
+  },
+  "result_manifest_sha256": "04cf508dc11bea243212b14839befc26c085d55dbb8a3b78241f45afd0073ed1",
+  "schema": "charitygraph.cg406-v13-development-result-manifest/v1",
+  "sdc_0019_classification": "CANDIDATE_SOURCE_GAP",
+  "source_universe_changed": false,
+  "status": "FROZEN_FIRST_TERMINAL_RESULTS",
+  "terminal_result_ledger_sha256": "40fc16c0af979992ff7c2f10df1e238da645456fb26bd720d5fd98cf039c3cac",
+  "terminal_row_count": 12,
+  "token_usage": {
+    "input_tokens": 414319,
+    "output_tokens": 29155,
+    "total_tokens": 443474
+  },
+  "transport_retries": 0
+}

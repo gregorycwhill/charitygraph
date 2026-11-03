@@ -1,0 +1,62 @@
+{
+  "artifact_inventory_sha256": "e9e116cc9bda9061b2b7a794f426a14560f55f0bcad5a698b877ede5d2cefc3c",
+  "inventory_checks": [
+    {
+      "expected_bytes": 6691,
+      "expected_sha256": "a659c4cdb71b586d93df6d7ae4a1e7e4c34cc7e1b42b022b41792507e5b78e97",
+      "file": "approved-parameter-bindings.json",
+      "observed_bytes": 6691,
+      "observed_sha256": "a659c4cdb71b586d93df6d7ae4a1e7e4c34cc7e1b42b022b41792507e5b78e97"
+    },
+    {
+      "expected_bytes": 64204,
+      "expected_sha256": "d1ddf06b84e39558f9cc2a5d84cd08f0dc2c37659c577c425481531256f03406",
+      "file": "complete-template-semantic-contracts.json",
+      "observed_bytes": 64204,
+      "observed_sha256": "d1ddf06b84e39558f9cc2a5d84cd08f0dc2c37659c577c425481531256f03406"
+    },
+    {
+      "expected_bytes": 9040,
+      "expected_sha256": "dcfbeb224fc0a17934c431a9d622c1407115e3a526887c7e9170354ffd3c4040",
+      "file": "direct-fit-compatibility-contracts.json",
+      "observed_bytes": 9040,
+      "observed_sha256": "dcfbeb224fc0a17934c431a9d622c1407115e3a526887c7e9170354ffd3c4040"
+    },
+    {
+      "expected_bytes": 23101,
+      "expected_sha256": "e601abfcf84fb7beec1dc39f4573ba80b5cfdd69de7a6d6f9d781828cca0862a",
+      "file": "discovery-gap-contracts.json",
+      "observed_bytes": 23101,
+      "observed_sha256": "e601abfcf84fb7beec1dc39f4573ba80b5cfdd69de7a6d6f9d781828cca0862a"
+    },
+    {
+      "expected_bytes": 1501,
+      "expected_sha256": "2d121def31c6ac1d5327ef36e655cc9dc3692e28c02e6b2d75d383dc2d632fea",
+      "file": "source-provenance-manifest.json",
+      "observed_bytes": 1501,
+      "observed_sha256": "2d121def31c6ac1d5327ef36e655cc9dc3692e28c02e6b2d75d383dc2d632fea"
+    },
+    {
+      "expected_bytes": 1844,
+      "expected_sha256": "d41324c064c76b8bca16b98d913aabf7f4a5be5054eb733a0ee4662867634819",
+      "file": "structural-validation-results.json",
+      "observed_bytes": 1844,
+      "observed_sha256": "d41324c064c76b8bca16b98d913aabf7f4a5be5054eb733a0ee4662867634819"
+    },
+    {
+      "expected_bytes": 7497,
+      "expected_sha256": "bf671f8e0ba9ef8f050c2d01a77cd2f618fbc33a7e29bc6e96dabe486a403aa0",
+      "file": "template-version-lineage.json",
+      "observed_bytes": 7497,
+      "observed_sha256": "bf671f8e0ba9ef8f050c2d01a77cd2f618fbc33a7e29bc6e96dabe486a403aa0"
+    }
+  ],
+  "package_path": "C:\\CharityGraph-question-fixtures\\g3-question-first-v1\\output\\template-semantic-contract-v2",
+  "prohibited_field_matches": [],
+  "provider_or_oracle_output_present": false,
+  "selected_subject_identity_present": false,
+  "selected_subject_question_binding_present": false,
+  "source_availability_or_answerability_present": false,
+  "source_provenance_manifest_sha256": "2d121def31c6ac1d5327ef36e655cc9dc3692e28c02e6b2d75d383dc2d632fea",
+  "status": "PASS"
+}

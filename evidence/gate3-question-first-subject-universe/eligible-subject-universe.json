@@ -1,0 +1,516 @@
+{
+  "records": [
+    {
+      "abn": "23005326849",
+      "canonical_legal_entity_name": "CBM Australia Limited",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:0590ffdf38f44aaea65890cfb86908e2"
+    },
+    {
+      "abn": "57001594074",
+      "canonical_legal_entity_name": "World Wide Fund For Nature Australia",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:18640b243152446998c75e408731a7f5"
+    },
+    {
+      "abn": "59475464712",
+      "canonical_legal_entity_name": "Dangrove Trust",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:1c5e95a804d34836973d7fc4f5908f99"
+    },
+    {
+      "abn": "77131909405",
+      "canonical_legal_entity_name": "Clontarf Foundation",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:20f14556bd7c4ec58f7f8864e58f4fac"
+    },
+    {
+      "abn": "56749449191",
+      "canonical_legal_entity_name": "The Royal Society For The Prevention Of Cruelty To Animals (Victoria)",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:23673b7fc7d3441ba414ec70b083065b"
+    },
+    {
+      "abn": "77052040516",
+      "canonical_legal_entity_name": "Canteen - The Australian Organisation For Young People Living With Cancer",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:247540f488ea4aedb0c06fefd29fd15f"
+    },
+    {
+      "abn": "80931522157",
+      "canonical_legal_entity_name": "Starlight Children's Foundation Australia",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:2c80578372484daba13e3e13ecad66de"
+    },
+    {
+      "abn": "85109435618",
+      "canonical_legal_entity_name": "Adventist Development and Relief Agency Australia Ltd",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:2e3721cdb2fa4d918a30f3a660541574"
+    },
+    {
+      "abn": "82617023293",
+      "canonical_legal_entity_name": "The Chai Charitable Foundation Ltd",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:370fdefe07ea4136b3ace52e17c034c5"
+    },
+    {
+      "abn": "47613674461",
+      "canonical_legal_entity_name": "Noongar Boodja Trust",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:406aaa1376d246d8bf108123b0a8e0cd"
+    },
+    {
+      "abn": "85182077563",
+      "canonical_legal_entity_name": "The National Assistance Fund",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:454bd9d56c2b47eeba75a3b637ee3158"
+    },
+    {
+      "abn": "23056512958",
+      "canonical_legal_entity_name": "MAA INTERNATIONAL LTD.",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:456bbe0222a54c1587c6773993e4c3f9"
+    },
+    {
+      "abn": "60964279191",
+      "canonical_legal_entity_name": "L.D.S. Charitable Trust Fund",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:4b069ebde0c8427fb259ea94fa9eb645"
+    },
+    {
+      "abn": "52234063906",
+      "canonical_legal_entity_name": "Australian National University",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:5173c58506d24827a5d9a1f1816b0bc0"
+    },
+    {
+      "abn": "35092843322",
+      "canonical_legal_entity_name": "Australia For UNHCR",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:584ef6a96c8d4f62aa468fb5878be389"
+    },
+    {
+      "abn": "79002885761",
+      "canonical_legal_entity_name": "Childfund Australia",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:5b597b6089f44f9eb9e62ff55e9eac38"
+    },
+    {
+      "abn": "36093516495",
+      "canonical_legal_entity_name": "Tarrawarra Museum Of Art Limited",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:608c8c7327b54978850d82010fb2f4f8"
+    },
+    {
+      "abn": "12377614012",
+      "canonical_legal_entity_name": "Monash University",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:639aa65a03754c829d38e44685575c43"
+    },
+    {
+      "abn": "93741842528",
+      "canonical_legal_entity_name": "Church of Scientology Religious Education College Inc",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:667585c324ef4454bce609e78751c1b4"
+    },
+    {
+      "abn": "15000002522",
+      "canonical_legal_entity_name": "Mission Australia",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:67db77d503aa4689a78c685704cc8a96"
+    },
+    {
+      "abn": "27727720406",
+      "canonical_legal_entity_name": "CommBank Foundation",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:753ae52ef41a4c4593fac1764880f816"
+    },
+    {
+      "abn": "40656129127",
+      "canonical_legal_entity_name": "Oh-Rule Family Philanthropy Ltd",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:7670c49d54e3450e99c58d2dcfe1891c"
+    },
+    {
+      "abn": "18055208636",
+      "canonical_legal_entity_name": "Oxfam Australia",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:825257c1d6b84e32a73623a7b0436b5e"
+    },
+    {
+      "abn": "48894537905",
+      "canonical_legal_entity_name": "The Movember Group Pty Limited As Trustee For The Movember Foundation",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:86847fcd84264ba3924ef02c14c5b38e"
+    },
+    {
+      "abn": "55606221390",
+      "canonical_legal_entity_name": "Partners For Equity Limited",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:8e9da4b9a8594119831522db8dbc2ee7"
+    },
+    {
+      "abn": "21194706909",
+      "canonical_legal_entity_name": "The Trustee For The Council For Jewish Education In Schools",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:8f1c18794ff7494abbb500c53fba5f31"
+    },
+    {
+      "abn": "41072279559",
+      "canonical_legal_entity_name": "Children's Cancer Institute Australia",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:9b568d985aa443e0b81405d5cef90a60"
+    },
+    {
+      "abn": "56302713357",
+      "canonical_legal_entity_name": "The Trustee For Tour De Cure Trust",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:9e127aa1e31a483289b12a9835a753a1"
+    },
+    {
+      "abn": "74068758654",
+      "canonical_legal_entity_name": "Medecins Sans Frontieres Australia Limited",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:a342e964ae56414d94c6062125770d8a"
+    },
+    {
+      "abn": "12115954197",
+      "canonical_legal_entity_name": "Black Dog Institute",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:a5bad530b2734665ab3904b0adb78a76"
+    },
+    {
+      "abn": "86194891827",
+      "canonical_legal_entity_name": "Wedgetail Foundation",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:a7d11b8a804549dd851d769a96994a4d"
+    },
+    {
+      "abn": "83096708922",
+      "canonical_legal_entity_name": "Mater Misericordiae Limited",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:adbc3f5c724e4437a9d858961602d5dc"
+    },
+    {
+      "abn": "12102649968",
+      "canonical_legal_entity_name": "The Trustee For Community Enterprise Charitable Fund",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:b15b2b559fa445ddb97389398d7d7d90"
+    },
+    {
+      "abn": "79400419737",
+      "canonical_legal_entity_name": "Christian Outreach Centre",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:bc3b8fdf1283494684ec84746170b751"
+    },
+    {
+      "abn": "46029271914",
+      "canonical_legal_entity_name": "The Trustee For The Fox Family Foundation",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:c28026d67e9149848876680093bf161c"
+    },
+    {
+      "abn": "32565549842",
+      "canonical_legal_entity_name": "St George Community Housing Limited",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:c5418719398a412593d91e66bad184a8"
+    },
+    {
+      "abn": "87931078265",
+      "canonical_legal_entity_name": "Sadaqa Welfare Fund Incorporated",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:c5ebc84a09fb4213b12eb4d409e9b96f"
+    },
+    {
+      "abn": "65106950945",
+      "canonical_legal_entity_name": "PayPal Giving Fund Australia",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:c633d315f7a6414f8b0f403ba66d7f00"
+    },
+    {
+      "abn": "46070556642",
+      "canonical_legal_entity_name": "The Fred Hollows Foundation",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:ca20920c8c074a268f09b7a57866479a"
+    },
+    {
+      "abn": "35060581437",
+      "canonical_legal_entity_name": "Australian Committee For UNICEF Limited",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:cddfc000f1b94fdb8a21151c4ae0bc50"
+    },
+    {
+      "abn": "28004778081",
+      "canonical_legal_entity_name": "World Vision Australia",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:cf042745edd84e58bce4e1c60704c472"
+    },
+    {
+      "abn": "15211513464",
+      "canonical_legal_entity_name": "The University of Sydney",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d0b7bc63238a40239477de28ff240e7d"
+    },
+    {
+      "abn": "50169561394",
+      "canonical_legal_entity_name": "Australian Red Cross Society",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d10dfad31cb04c5fb27ada0a81f36b69"
+    },
+    {
+      "abn": "60610666325",
+      "canonical_legal_entity_name": "MATW INTERNATIONAL LTD",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d27d45108b84484b9a0bbe3bf2571e30"
+    },
+    {
+      "abn": "37144841707",
+      "canonical_legal_entity_name": "National Breast Cancer Foundation",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d3eac1935f814d28a9dce8889cd44ecc"
+    },
+    {
+      "abn": "61002643852",
+      "canonical_legal_entity_name": "Greenpeace Australia Pacific Limited",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d8dc4ab2cf9c4014b30aceddb1e0ef60"
+    },
+    {
+      "abn": "77054038872",
+      "canonical_legal_entity_name": "St. Vincent's Hospital Sydney Limited",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:e115d54dd8b64419882d37366d9ae98c"
+    },
+    {
+      "abn": "67001692566",
+      "canonical_legal_entity_name": "Compassion Australia",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:ec42bad6b21e45a2a620536a6d6b954a"
+    },
+    {
+      "abn": "75071207094",
+      "canonical_legal_entity_name": "United Israel Appeal Refugee Relief Fund Limited",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:f0151b898da54ae6ae1b537d270a9dd1"
+    },
+    {
+      "abn": "28000030179",
+      "canonical_legal_entity_name": "The Smith Family",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:f284a1e0e31a4e04b7d9f8ae8863ef10"
+    },
+    {
+      "abn": "75761829818",
+      "canonical_legal_entity_name": "The Trustee For The Royal Children's Hospital Foundation No. 2 Trust",
+      "exclusion_eligibility": "ELIGIBLE",
+      "exposure_origins": [],
+      "known_prior_semantic_exposure": false,
+      "mechanically_derived_reason": "no_recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:f38e79cb4f39443d8387d0ca13f53297"
+    }
+  ],
+  "schema": "charitygraph.gate3.question-first-eligible-subject-universe/v1",
+  "selection_performed": false
+}

@@ -1,0 +1,29 @@
+{
+  "domains": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18
+  ],
+  "expected_selection_manifest_sha256": "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9",
+  "oracle_output_accessed": false,
+  "provider_calls": 0,
+  "selected_instances": 36,
+  "selection_manifest_path": "C:\\CharityGraph-clean\\charitygraph\\evidence\\gate3-fresh-semantic-holdout-preparation\\frozen-selected-holdout-manifest.json",
+  "selection_manifest_sha256": "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9",
+  "two_per_domain": true
+}

@@ -1,0 +1,8 @@
+{
+  "blocker": "The authorised source-blind fixture package contains only four successor template semantics and an ID/hash index for all 36. It omits the per-template semantics and operation mapping needed to implement and verify the declared 17 discovery gaps without inventing meaning or inspecting sealed holdout material.",
+  "oracle_accessed": false,
+  "provider_calls": 0,
+  "required_authorised_remediation": "A source-blind, template-only semantic contract package for the 17 gaps: template ID, requested operation, typed answer variables, required user inputs, bounded constraints, result states, evidence obligations, and provenance/version identity. No subject binding, selected instance, source corpus, or expected answer is needed.",
+  "selection_performed": false,
+  "status": "BLOCKED_ON_GENERIC_DISCOVERY_CONTRACT"
+}

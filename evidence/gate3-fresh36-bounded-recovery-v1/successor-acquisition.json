@@ -1,0 +1,20 @@
+{
+  "authority_scoped_abn": "52404606134",
+  "byte_size": 16476,
+  "media_type": "text/html",
+  "predecessor_artifact_id": "srcblob:e0c0cb542b3e78708e6075a3ff7aae05d95a21daade808c270bbd0092fe0cb5c",
+  "predecessor_modified": false,
+  "provider_calls": 0,
+  "requested_locator": "https://abr.business.gov.au/ABN/View?id=52404606134",
+  "resolved_locator": "https://abr.business.gov.au/ABN/View?id=52404606134",
+  "response_status": 200,
+  "retrieved_at": "2026-10-19T13:10:09.491984+00:00",
+  "rights_assessed": false,
+  "schema": "charitygraph.g3fresh36-successor-acquisition/v1",
+  "source_family": "ato_abr_dgr",
+  "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d",
+  "successor_acquisition_receipt_id": "acq:9a755e709fa58a5d7aad878aa1800cece92a5a650f5594d54bde08e2299439b9",
+  "successor_artifact_id": "srcblob:049a8e777ed4d7cc4036c23c7ac5300f4ec849cc9acc1b271d2238f97b22e3e7",
+  "successor_sha256": "049a8e777ed4d7cc4036c23c7ac5300f4ec849cc9acc1b271d2238f97b22e3e7",
+  "successor_source_record_id": "srcrec:58b7d27bdf4d68b2c1ed9cbbe978b2e3a8d5cd06c9a37ba97fc784ded34c5d8c"
+}

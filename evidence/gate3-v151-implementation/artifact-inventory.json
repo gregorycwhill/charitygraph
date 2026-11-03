@@ -1,0 +1,35 @@
+{
+  "schema": "charitygraph.gate3-artifact-inventory/v1",
+  "scope": "Implementation and verification evidence; excludes this inventory file itself.",
+  "artifacts": [
+    {
+      "path": "src/charitygraph/generic_discovery_provider_v151.py",
+      "sha256": "daff11c10a289c13ec1b707902097e42fdadb88becdd570abba28748eb1cdda8"
+    },
+    {
+      "path": "src/charitygraph/source_rights.py",
+      "sha256": "13824bbe1bea1bb87d77636eca38a2794c294ad5b05d00d0b5ce0ea2ae5ccc98"
+    },
+    {
+      "path": "scripts/prepare_g3_fresh36_v151.py",
+      "sha256": "009c5b38377c93a35de49ee1eeec0b226bd997866802366d0f2b1ab7878675ce"
+    },
+    {
+      "path": "tests/test_generic_discovery_provider_v151.py",
+      "sha256": "9d58a97d0a45b0f968907a4b55671bba1024e4eb03096c8c730514f99afeb6bf"
+    },
+    {
+      "path": "implementation-summary.md",
+      "sha256": "c55a5816d7783f7ae11ae1554deb3c4d130dd60db5569cf9081747cb16b1d0da"
+    },
+    {
+      "path": "verification-results.json",
+      "sha256": "d0b18875025950e21f60b2307376c25b35e61812e763500d890f18a3219f9e91"
+    }
+  ],
+  "frozen_input_identities": {
+    "selected_subject_manifest_sha256": "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9",
+    "candidate_packet_manifest_sha256": "bc321f06a5873997562828fda0b689995a101ab56e9848b6e4dbbbfb4b4f60db",
+    "selected_to_packet_abn_overlap": 0
+  }
+}

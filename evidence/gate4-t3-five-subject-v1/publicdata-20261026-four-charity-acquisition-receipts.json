@@ -1,0 +1,804 @@
+{
+  "schema": "charitygraph.gate4.o1c.four-charity-publicdata-acquisition-retention/v1",
+  "created_on": "2026-11-03",
+  "transport": {
+    "path": "C:\\Users\\grego\\My Drive\\CharityGraph Agent Bridge\\artifacts\\cg-g4-source-transport-publicdata-acnc-register-20261026-remaining-four-20261103.json",
+    "sha256": "5cd5fc916d6356f147f7218cb9ade9c167bedff4a760a7d8fb08ddafcec92f73",
+    "schema": "charitygraph.g4-acnc-register-source-transport/v1",
+    "source_version": "2026-10-26",
+    "upstream_original_csv_sha256": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+    "upstream_original_csv_verification": "mirror_claim_not_locally_verified"
+  },
+  "selected_manifest": {
+    "path": "evidence\\gate4-t3-five-subject-v1\\selected-binding-manifest.json",
+    "sha256": "06d406393d5ee738e7bad2c8113a06302836e72d53bd06dd77a945bd4f7276d4",
+    "identity_sha256": "5c352f6a929508d9ecfe959cb4f8191cf776ef826b03be33f78d8c24bddbd14a"
+  },
+  "rows": [
+    {
+      "ordinal": 3,
+      "abn": "26164251245",
+      "name": "Human Appeal International Australia",
+      "subject_id": "subject:0889b4decb854e71ab4784479ca95c03",
+      "scope_id": "scope:be9c7fd3d0d859f542cafc07213313253f05e8824509b94b12e6ecc9ab640913",
+      "source_family": "acnc_register",
+      "source_role": "register_identity",
+      "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+      "source_record_id": "srcrec:2101fdc2ae157fdd540834ff2a3a02ad0d4051648fdf030bd5ff652249743c41",
+      "source_artifact_id": "srcblob:3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+      "source_sha256": "3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+      "source_bytes": 4173,
+      "raw_runtime_path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-remaining-four-20261103\\raw-response-26164251245.json",
+      "representation_artifact_id": "artifact:d002d17c132918078d63b5b1f9738fa2d87fcf3750f6e0947850158ea4a58719",
+      "representation_sha256": "d002d17c132918078d63b5b1f9738fa2d87fcf3750f6e0947850158ea4a58719",
+      "representation_bytes": 3305,
+      "representation_runtime_path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-remaining-four-20261103\\normalized-representation-26164251245.json",
+      "acquisition_receipt_id": "acq:227364846f464aed7969c20bc8cbd7d2c9c3812e4c1fe458e1e19388e70ad941",
+      "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.26164251245",
+      "acquired_at_utc": "2026-11-03T01:07:25Z",
+      "source_provenance": {
+        "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.26164251245",
+        "acquisition_receipt_id": "acq:227364846f464aed7969c20bc8cbd7d2c9c3812e4c1fe458e1e19388e70ad941",
+        "source_artifact_id": "srcblob:3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+        "source_sha256": "3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+        "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+        "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+        "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+        "transport_captured_at": "2026-11-03T01:07:25.597Z",
+        "observed_mirror_origin": "publicdata.au",
+        "source_version": "2026-10-26",
+        "response_fields": 69,
+        "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+        "rights": {
+          "id": "CC-BY-3.0-AU",
+          "title": "CC BY 3.0 AU",
+          "url": "https://creativecommons.org/licenses/by/3.0/au/"
+        },
+        "publisher_original_bytes": false,
+        "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+        "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+        "currentness": {
+          "source_version": "2026-10-26",
+          "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+          "captured_at": "2026-11-03T01:07:25.597Z",
+          "status": "versioned_source_currentness_observed"
+        }
+      },
+      "acquisition_receipt": {
+        "id": "acq:227364846f464aed7969c20bc8cbd7d2c9c3812e4c1fe458e1e19388e70ad941",
+        "acquisition_receipt_id": "acq:227364846f464aed7969c20bc8cbd7d2c9c3812e4c1fe458e1e19388e70ad941",
+        "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+        "artifact_id": "srcblob:3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+        "content_hash": "3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+        "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.26164251245",
+        "received_at_utc": "2026-11-03T01:07:25Z",
+        "outcome": "available",
+        "method": "caller_supplied_publicdata_batch_transport",
+        "source_provenance": {
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "source_record": {
+        "id": "srcrec:2101fdc2ae157fdd540834ff2a3a02ad0d4051648fdf030bd5ff652249743c41",
+        "source_record_id": "srcrec:2101fdc2ae157fdd540834ff2a3a02ad0d4051648fdf030bd5ff652249743c41",
+        "source_family": "acnc_register",
+        "source_role": "register_identity",
+        "about_subject_ids": [
+          "subject:0889b4decb854e71ab4784479ca95c03"
+        ],
+        "subject_id": "subject:0889b4decb854e71ab4784479ca95c03",
+        "payload_ref": "srcblob:3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+        "payload_hash": "3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+        "source_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.26164251245",
+        "evidence_scope": {
+          "scope_id": "scope:be9c7fd3d0d859f542cafc07213313253f05e8824509b94b12e6ecc9ab640913",
+          "scope_kind": "registered_entity",
+          "subject_id": "subject:0889b4decb854e71ab4784479ca95c03"
+        },
+        "acquired_at": "2026-11-03T01:07:25Z",
+        "provenance": {
+          "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.26164251245",
+          "acquisition_receipt_id": "acq:227364846f464aed7969c20bc8cbd7d2c9c3812e4c1fe458e1e19388e70ad941",
+          "source_artifact_id": "srcblob:3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+          "source_sha256": "3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "representation": {
+        "id": "artifact:d002d17c132918078d63b5b1f9738fa2d87fcf3750f6e0947850158ea4a58719",
+        "artifact_id": "artifact:d002d17c132918078d63b5b1f9738fa2d87fcf3750f6e0947850158ea4a58719",
+        "content_hash": "d002d17c132918078d63b5b1f9738fa2d87fcf3750f6e0947850158ea4a58719",
+        "source_artifact_id": "srcblob:3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+        "source_record_id": "srcrec:2101fdc2ae157fdd540834ff2a3a02ad0d4051648fdf030bd5ff652249743c41",
+        "subject_id": "subject:0889b4decb854e71ab4784479ca95c03",
+        "scope_id": "scope:be9c7fd3d0d859f542cafc07213313253f05e8824509b94b12e6ecc9ab640913",
+        "representation_class": "structured_factual",
+        "materialisation": "canonical_json_v1",
+        "evidence_locator_ids": [
+          "locator:6e45e331d8bda8cee7774e7a26842c6b7785a3d218306455b4a74e421dd95a30"
+        ],
+        "citation_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.26164251245",
+        "date_or_period": "2026-11-03",
+        "source_provenance": {
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "local_retention_decision": {
+        "id": "rights:local:d002d17c132918078d63b5b1f9738fa2d87fcf3750f6e0947850158ea4a58719",
+        "axis": "local_retention",
+        "decision_id": "rights:local:d002d17c132918078d63b5b1f9738fa2d87fcf3750f6e0947850158ea4a58719",
+        "source_artifact_id": "srcblob:3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357",
+        "source_record_id": "srcrec:2101fdc2ae157fdd540834ff2a3a02ad0d4051648fdf030bd5ff652249743c41",
+        "representation_artifact_id": "artifact:d002d17c132918078d63b5b1f9738fa2d87fcf3750f6e0947850158ea4a58719",
+        "representation_sha256": "d002d17c132918078d63b5b1f9738fa2d87fcf3750f6e0947850158ea4a58719",
+        "scope_id": "scope:be9c7fd3d0d859f542cafc07213313253f05e8824509b94b12e6ecc9ab640913",
+        "decision_version": "1",
+        "status": "authorized",
+        "assessed_on": "2026-11-03",
+        "review_deadline": "2027-11-03",
+        "lawful_public_access": true,
+        "circumvention_used": false,
+        "explicit_prohibition_found": false,
+        "authority_kind": "governed_policy",
+        "policy_id": "CG_BOUNDED_LOCAL_ANALYTICAL_RETENTION_V1",
+        "policy_version": "1.0.0"
+      },
+      "private_provider_processing_status": "authorized",
+      "public_redistribution_status": "not_assessed",
+      "metadata_only": true
+    },
+    {
+      "ordinal": 5,
+      "abn": "52404606134",
+      "name": "The Peter & Lyndy White Foundation",
+      "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d",
+      "scope_id": "scope:dd27dd2827c65677813405fdaac014be3d600fa0d9993ecf464b71b2a7dc6e81",
+      "source_family": "acnc_register",
+      "source_role": "register_identity",
+      "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+      "source_record_id": "srcrec:bf2c2fd63dd4e5c2053cb5bcc9012c92ae53718911c5453c74d99b0211a69b5a",
+      "source_artifact_id": "srcblob:7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+      "source_sha256": "7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+      "source_bytes": 4085,
+      "raw_runtime_path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-remaining-four-20261103\\raw-response-52404606134.json",
+      "representation_artifact_id": "artifact:24b0d8a311c90569ec1f51896950f172daab77fceefaebe8bb95785d9d6f1e26",
+      "representation_sha256": "24b0d8a311c90569ec1f51896950f172daab77fceefaebe8bb95785d9d6f1e26",
+      "representation_bytes": 3217,
+      "representation_runtime_path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-remaining-four-20261103\\normalized-representation-52404606134.json",
+      "acquisition_receipt_id": "acq:d671ff1525d06cb8e8d6057de4ffdc93d75286a1f4a592ff905cca800647f780",
+      "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52404606134",
+      "acquired_at_utc": "2026-11-03T01:07:25Z",
+      "source_provenance": {
+        "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52404606134",
+        "acquisition_receipt_id": "acq:d671ff1525d06cb8e8d6057de4ffdc93d75286a1f4a592ff905cca800647f780",
+        "source_artifact_id": "srcblob:7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+        "source_sha256": "7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+        "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+        "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+        "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+        "transport_captured_at": "2026-11-03T01:07:25.597Z",
+        "observed_mirror_origin": "publicdata.au",
+        "source_version": "2026-10-26",
+        "response_fields": 69,
+        "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+        "rights": {
+          "id": "CC-BY-3.0-AU",
+          "title": "CC BY 3.0 AU",
+          "url": "https://creativecommons.org/licenses/by/3.0/au/"
+        },
+        "publisher_original_bytes": false,
+        "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+        "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+        "currentness": {
+          "source_version": "2026-10-26",
+          "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+          "captured_at": "2026-11-03T01:07:25.597Z",
+          "status": "versioned_source_currentness_observed"
+        }
+      },
+      "acquisition_receipt": {
+        "id": "acq:d671ff1525d06cb8e8d6057de4ffdc93d75286a1f4a592ff905cca800647f780",
+        "acquisition_receipt_id": "acq:d671ff1525d06cb8e8d6057de4ffdc93d75286a1f4a592ff905cca800647f780",
+        "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+        "artifact_id": "srcblob:7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+        "content_hash": "7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+        "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52404606134",
+        "received_at_utc": "2026-11-03T01:07:25Z",
+        "outcome": "available",
+        "method": "caller_supplied_publicdata_batch_transport",
+        "source_provenance": {
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "source_record": {
+        "id": "srcrec:bf2c2fd63dd4e5c2053cb5bcc9012c92ae53718911c5453c74d99b0211a69b5a",
+        "source_record_id": "srcrec:bf2c2fd63dd4e5c2053cb5bcc9012c92ae53718911c5453c74d99b0211a69b5a",
+        "source_family": "acnc_register",
+        "source_role": "register_identity",
+        "about_subject_ids": [
+          "subject:16fba76fde2242d5870835b18b4e8b8d"
+        ],
+        "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d",
+        "payload_ref": "srcblob:7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+        "payload_hash": "7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+        "source_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52404606134",
+        "evidence_scope": {
+          "scope_id": "scope:dd27dd2827c65677813405fdaac014be3d600fa0d9993ecf464b71b2a7dc6e81",
+          "scope_kind": "registered_entity",
+          "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d"
+        },
+        "acquired_at": "2026-11-03T01:07:25Z",
+        "provenance": {
+          "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52404606134",
+          "acquisition_receipt_id": "acq:d671ff1525d06cb8e8d6057de4ffdc93d75286a1f4a592ff905cca800647f780",
+          "source_artifact_id": "srcblob:7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+          "source_sha256": "7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "representation": {
+        "id": "artifact:24b0d8a311c90569ec1f51896950f172daab77fceefaebe8bb95785d9d6f1e26",
+        "artifact_id": "artifact:24b0d8a311c90569ec1f51896950f172daab77fceefaebe8bb95785d9d6f1e26",
+        "content_hash": "24b0d8a311c90569ec1f51896950f172daab77fceefaebe8bb95785d9d6f1e26",
+        "source_artifact_id": "srcblob:7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+        "source_record_id": "srcrec:bf2c2fd63dd4e5c2053cb5bcc9012c92ae53718911c5453c74d99b0211a69b5a",
+        "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d",
+        "scope_id": "scope:dd27dd2827c65677813405fdaac014be3d600fa0d9993ecf464b71b2a7dc6e81",
+        "representation_class": "structured_factual",
+        "materialisation": "canonical_json_v1",
+        "evidence_locator_ids": [
+          "locator:2a49d72d12e5b07d9f24fc3ac886e660733fe9b117350c92e19c9a1db3fac660"
+        ],
+        "citation_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52404606134",
+        "date_or_period": "2026-11-03",
+        "source_provenance": {
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "local_retention_decision": {
+        "id": "rights:local:24b0d8a311c90569ec1f51896950f172daab77fceefaebe8bb95785d9d6f1e26",
+        "axis": "local_retention",
+        "decision_id": "rights:local:24b0d8a311c90569ec1f51896950f172daab77fceefaebe8bb95785d9d6f1e26",
+        "source_artifact_id": "srcblob:7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93",
+        "source_record_id": "srcrec:bf2c2fd63dd4e5c2053cb5bcc9012c92ae53718911c5453c74d99b0211a69b5a",
+        "representation_artifact_id": "artifact:24b0d8a311c90569ec1f51896950f172daab77fceefaebe8bb95785d9d6f1e26",
+        "representation_sha256": "24b0d8a311c90569ec1f51896950f172daab77fceefaebe8bb95785d9d6f1e26",
+        "scope_id": "scope:dd27dd2827c65677813405fdaac014be3d600fa0d9993ecf464b71b2a7dc6e81",
+        "decision_version": "1",
+        "status": "authorized",
+        "assessed_on": "2026-11-03",
+        "review_deadline": "2027-11-03",
+        "lawful_public_access": true,
+        "circumvention_used": false,
+        "explicit_prohibition_found": false,
+        "authority_kind": "governed_policy",
+        "policy_id": "CG_BOUNDED_LOCAL_ANALYTICAL_RETENTION_V1",
+        "policy_version": "1.0.0"
+      },
+      "private_provider_processing_status": "authorized",
+      "public_redistribution_status": "not_assessed",
+      "metadata_only": true
+    },
+    {
+      "ordinal": 7,
+      "abn": "33107782196",
+      "name": "Oz Harvest Limited",
+      "subject_id": "subject:1823309bdd06417c9928033603cb6e39",
+      "scope_id": "scope:95767a26704b78a0c75411dbb3322b5076ed5874fc56e335e5a9e20ea4ac0d4a",
+      "source_family": "acnc_register",
+      "source_role": "register_identity",
+      "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+      "source_record_id": "srcrec:08c9f40c9d631a05ca53785264e2bbd631d4d2d510fe8d49cb8af6720a4be3fe",
+      "source_artifact_id": "srcblob:d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+      "source_sha256": "d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+      "source_bytes": 4028,
+      "raw_runtime_path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-remaining-four-20261103\\raw-response-33107782196.json",
+      "representation_artifact_id": "artifact:cbbcc97b68ecfde91718363b74782f4e4809467596f7675e528ad38e607c508e",
+      "representation_sha256": "cbbcc97b68ecfde91718363b74782f4e4809467596f7675e528ad38e607c508e",
+      "representation_bytes": 3160,
+      "representation_runtime_path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-remaining-four-20261103\\normalized-representation-33107782196.json",
+      "acquisition_receipt_id": "acq:a3e828007d593f1c4e673e6bb6d054d25e4694535a16029dde7ca06d83d9ba5b",
+      "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.33107782196",
+      "acquired_at_utc": "2026-11-03T01:07:25Z",
+      "source_provenance": {
+        "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.33107782196",
+        "acquisition_receipt_id": "acq:a3e828007d593f1c4e673e6bb6d054d25e4694535a16029dde7ca06d83d9ba5b",
+        "source_artifact_id": "srcblob:d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+        "source_sha256": "d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+        "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+        "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+        "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+        "transport_captured_at": "2026-11-03T01:07:25.597Z",
+        "observed_mirror_origin": "publicdata.au",
+        "source_version": "2026-10-26",
+        "response_fields": 69,
+        "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+        "rights": {
+          "id": "CC-BY-3.0-AU",
+          "title": "CC BY 3.0 AU",
+          "url": "https://creativecommons.org/licenses/by/3.0/au/"
+        },
+        "publisher_original_bytes": false,
+        "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+        "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+        "currentness": {
+          "source_version": "2026-10-26",
+          "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+          "captured_at": "2026-11-03T01:07:25.597Z",
+          "status": "versioned_source_currentness_observed"
+        }
+      },
+      "acquisition_receipt": {
+        "id": "acq:a3e828007d593f1c4e673e6bb6d054d25e4694535a16029dde7ca06d83d9ba5b",
+        "acquisition_receipt_id": "acq:a3e828007d593f1c4e673e6bb6d054d25e4694535a16029dde7ca06d83d9ba5b",
+        "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+        "artifact_id": "srcblob:d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+        "content_hash": "d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+        "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.33107782196",
+        "received_at_utc": "2026-11-03T01:07:25Z",
+        "outcome": "available",
+        "method": "caller_supplied_publicdata_batch_transport",
+        "source_provenance": {
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "source_record": {
+        "id": "srcrec:08c9f40c9d631a05ca53785264e2bbd631d4d2d510fe8d49cb8af6720a4be3fe",
+        "source_record_id": "srcrec:08c9f40c9d631a05ca53785264e2bbd631d4d2d510fe8d49cb8af6720a4be3fe",
+        "source_family": "acnc_register",
+        "source_role": "register_identity",
+        "about_subject_ids": [
+          "subject:1823309bdd06417c9928033603cb6e39"
+        ],
+        "subject_id": "subject:1823309bdd06417c9928033603cb6e39",
+        "payload_ref": "srcblob:d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+        "payload_hash": "d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+        "source_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.33107782196",
+        "evidence_scope": {
+          "scope_id": "scope:95767a26704b78a0c75411dbb3322b5076ed5874fc56e335e5a9e20ea4ac0d4a",
+          "scope_kind": "registered_entity",
+          "subject_id": "subject:1823309bdd06417c9928033603cb6e39"
+        },
+        "acquired_at": "2026-11-03T01:07:25Z",
+        "provenance": {
+          "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.33107782196",
+          "acquisition_receipt_id": "acq:a3e828007d593f1c4e673e6bb6d054d25e4694535a16029dde7ca06d83d9ba5b",
+          "source_artifact_id": "srcblob:d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+          "source_sha256": "d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "representation": {
+        "id": "artifact:cbbcc97b68ecfde91718363b74782f4e4809467596f7675e528ad38e607c508e",
+        "artifact_id": "artifact:cbbcc97b68ecfde91718363b74782f4e4809467596f7675e528ad38e607c508e",
+        "content_hash": "cbbcc97b68ecfde91718363b74782f4e4809467596f7675e528ad38e607c508e",
+        "source_artifact_id": "srcblob:d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+        "source_record_id": "srcrec:08c9f40c9d631a05ca53785264e2bbd631d4d2d510fe8d49cb8af6720a4be3fe",
+        "subject_id": "subject:1823309bdd06417c9928033603cb6e39",
+        "scope_id": "scope:95767a26704b78a0c75411dbb3322b5076ed5874fc56e335e5a9e20ea4ac0d4a",
+        "representation_class": "structured_factual",
+        "materialisation": "canonical_json_v1",
+        "evidence_locator_ids": [
+          "locator:1c13b27da8fd68e981f9b6d225efcd9355e05b08128dcae5f939552464bd2fb5"
+        ],
+        "citation_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.33107782196",
+        "date_or_period": "2026-11-03",
+        "source_provenance": {
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "local_retention_decision": {
+        "id": "rights:local:cbbcc97b68ecfde91718363b74782f4e4809467596f7675e528ad38e607c508e",
+        "axis": "local_retention",
+        "decision_id": "rights:local:cbbcc97b68ecfde91718363b74782f4e4809467596f7675e528ad38e607c508e",
+        "source_artifact_id": "srcblob:d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425",
+        "source_record_id": "srcrec:08c9f40c9d631a05ca53785264e2bbd631d4d2d510fe8d49cb8af6720a4be3fe",
+        "representation_artifact_id": "artifact:cbbcc97b68ecfde91718363b74782f4e4809467596f7675e528ad38e607c508e",
+        "representation_sha256": "cbbcc97b68ecfde91718363b74782f4e4809467596f7675e528ad38e607c508e",
+        "scope_id": "scope:95767a26704b78a0c75411dbb3322b5076ed5874fc56e335e5a9e20ea4ac0d4a",
+        "decision_version": "1",
+        "status": "authorized",
+        "assessed_on": "2026-11-03",
+        "review_deadline": "2027-11-03",
+        "lawful_public_access": true,
+        "circumvention_used": false,
+        "explicit_prohibition_found": false,
+        "authority_kind": "governed_policy",
+        "policy_id": "CG_BOUNDED_LOCAL_ANALYTICAL_RETENTION_V1",
+        "policy_version": "1.0.0"
+      },
+      "private_provider_processing_status": "authorized",
+      "public_redistribution_status": "not_assessed",
+      "metadata_only": true
+    },
+    {
+      "ordinal": 9,
+      "abn": "82147006639",
+      "name": "Islamic Relief Australia",
+      "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b",
+      "scope_id": "scope:e71cd138c69b1727c7a7b5d909a66cb9bf9a3af87d1658bb97cd987333d46aa1",
+      "source_family": "acnc_register",
+      "source_role": "register_identity",
+      "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+      "source_record_id": "srcrec:feac36eb887919f0944002c4e2bb9344db0863f872f3a7a00e79d8947c5538af",
+      "source_artifact_id": "srcblob:48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+      "source_sha256": "48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+      "source_bytes": 4219,
+      "raw_runtime_path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-remaining-four-20261103\\raw-response-82147006639.json",
+      "representation_artifact_id": "artifact:75cdf6b33e0be8a1e46e5390af8f1a65284f68189f2ae2507cc975754460b1d2",
+      "representation_sha256": "75cdf6b33e0be8a1e46e5390af8f1a65284f68189f2ae2507cc975754460b1d2",
+      "representation_bytes": 3351,
+      "representation_runtime_path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-remaining-four-20261103\\normalized-representation-82147006639.json",
+      "acquisition_receipt_id": "acq:77d78fc9ed51d244a5abce3a7815130801eb5e760fed3423e65fa8aa0089839a",
+      "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.82147006639",
+      "acquired_at_utc": "2026-11-03T01:07:25Z",
+      "source_provenance": {
+        "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.82147006639",
+        "acquisition_receipt_id": "acq:77d78fc9ed51d244a5abce3a7815130801eb5e760fed3423e65fa8aa0089839a",
+        "source_artifact_id": "srcblob:48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+        "source_sha256": "48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+        "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+        "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+        "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+        "transport_captured_at": "2026-11-03T01:07:25.597Z",
+        "observed_mirror_origin": "publicdata.au",
+        "source_version": "2026-10-26",
+        "response_fields": 69,
+        "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+        "rights": {
+          "id": "CC-BY-3.0-AU",
+          "title": "CC BY 3.0 AU",
+          "url": "https://creativecommons.org/licenses/by/3.0/au/"
+        },
+        "publisher_original_bytes": false,
+        "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+        "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+        "currentness": {
+          "source_version": "2026-10-26",
+          "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+          "captured_at": "2026-11-03T01:07:25.597Z",
+          "status": "versioned_source_currentness_observed"
+        }
+      },
+      "acquisition_receipt": {
+        "id": "acq:77d78fc9ed51d244a5abce3a7815130801eb5e760fed3423e65fa8aa0089839a",
+        "acquisition_receipt_id": "acq:77d78fc9ed51d244a5abce3a7815130801eb5e760fed3423e65fa8aa0089839a",
+        "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+        "artifact_id": "srcblob:48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+        "content_hash": "48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+        "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.82147006639",
+        "received_at_utc": "2026-11-03T01:07:25Z",
+        "outcome": "available",
+        "method": "caller_supplied_publicdata_batch_transport",
+        "source_provenance": {
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "source_record": {
+        "id": "srcrec:feac36eb887919f0944002c4e2bb9344db0863f872f3a7a00e79d8947c5538af",
+        "source_record_id": "srcrec:feac36eb887919f0944002c4e2bb9344db0863f872f3a7a00e79d8947c5538af",
+        "source_family": "acnc_register",
+        "source_role": "register_identity",
+        "about_subject_ids": [
+          "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+        ],
+        "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b",
+        "payload_ref": "srcblob:48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+        "payload_hash": "48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+        "source_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.82147006639",
+        "evidence_scope": {
+          "scope_id": "scope:e71cd138c69b1727c7a7b5d909a66cb9bf9a3af87d1658bb97cd987333d46aa1",
+          "scope_kind": "registered_entity",
+          "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+        },
+        "acquired_at": "2026-11-03T01:07:25Z",
+        "provenance": {
+          "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.82147006639",
+          "acquisition_receipt_id": "acq:77d78fc9ed51d244a5abce3a7815130801eb5e760fed3423e65fa8aa0089839a",
+          "source_artifact_id": "srcblob:48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+          "source_sha256": "48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "representation": {
+        "id": "artifact:75cdf6b33e0be8a1e46e5390af8f1a65284f68189f2ae2507cc975754460b1d2",
+        "artifact_id": "artifact:75cdf6b33e0be8a1e46e5390af8f1a65284f68189f2ae2507cc975754460b1d2",
+        "content_hash": "75cdf6b33e0be8a1e46e5390af8f1a65284f68189f2ae2507cc975754460b1d2",
+        "source_artifact_id": "srcblob:48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+        "source_record_id": "srcrec:feac36eb887919f0944002c4e2bb9344db0863f872f3a7a00e79d8947c5538af",
+        "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b",
+        "scope_id": "scope:e71cd138c69b1727c7a7b5d909a66cb9bf9a3af87d1658bb97cd987333d46aa1",
+        "representation_class": "structured_factual",
+        "materialisation": "canonical_json_v1",
+        "evidence_locator_ids": [
+          "locator:376b805dfa151d82d4f1407cf5c0bd573820bf47645036b3b53c2ffa6f073e44"
+        ],
+        "citation_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.82147006639",
+        "date_or_period": "2026-11-03",
+        "source_provenance": {
+          "transport_schema": "charitygraph.g4-acnc-register-source-transport/v1",
+          "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+          "transport_capture_method": "publicdata.au third-party independent API versioned representation",
+          "transport_captured_at": "2026-11-03T01:07:25.597Z",
+          "observed_mirror_origin": "publicdata.au",
+          "source_version": "2026-10-26",
+          "response_fields": 69,
+          "attribution": "CC-BY-3.0-AU with Australian Charities and Not-for-profits Commission and National Digital/publicdata.au attribution; private provider processing assessed separately by target adapter",
+          "rights": {
+            "id": "CC-BY-3.0-AU",
+            "title": "CC BY 3.0 AU",
+            "url": "https://creativecommons.org/licenses/by/3.0/au/"
+          },
+          "publisher_original_bytes": false,
+          "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+          "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+          "currentness": {
+            "source_version": "2026-10-26",
+            "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+            "captured_at": "2026-11-03T01:07:25.597Z",
+            "status": "versioned_source_currentness_observed"
+          }
+        }
+      },
+      "local_retention_decision": {
+        "id": "rights:local:75cdf6b33e0be8a1e46e5390af8f1a65284f68189f2ae2507cc975754460b1d2",
+        "axis": "local_retention",
+        "decision_id": "rights:local:75cdf6b33e0be8a1e46e5390af8f1a65284f68189f2ae2507cc975754460b1d2",
+        "source_artifact_id": "srcblob:48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8",
+        "source_record_id": "srcrec:feac36eb887919f0944002c4e2bb9344db0863f872f3a7a00e79d8947c5538af",
+        "representation_artifact_id": "artifact:75cdf6b33e0be8a1e46e5390af8f1a65284f68189f2ae2507cc975754460b1d2",
+        "representation_sha256": "75cdf6b33e0be8a1e46e5390af8f1a65284f68189f2ae2507cc975754460b1d2",
+        "scope_id": "scope:e71cd138c69b1727c7a7b5d909a66cb9bf9a3af87d1658bb97cd987333d46aa1",
+        "decision_version": "1",
+        "status": "authorized",
+        "assessed_on": "2026-11-03",
+        "review_deadline": "2027-11-03",
+        "lawful_public_access": true,
+        "circumvention_used": false,
+        "explicit_prohibition_found": false,
+        "authority_kind": "governed_policy",
+        "policy_id": "CG_BOUNDED_LOCAL_ANALYTICAL_RETENTION_V1",
+        "policy_version": "1.0.0"
+      },
+      "private_provider_processing_status": "authorized",
+      "public_redistribution_status": "not_assessed",
+      "metadata_only": true
+    }
+  ],
+  "private_material_exclusion": {
+    "raw_source_committed": false,
+    "normalized_representation_committed": false,
+    "runtime_root": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-remaining-four-20261103"
+  }
+}

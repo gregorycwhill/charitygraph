@@ -1,0 +1,33 @@
+{
+  "content_artifact_inventory_sha256": "b8e77358b4101c8046af62a488684dd6cc64c807e1a93a78ddcb9ad5687aff93",
+  "domain_distribution": {
+    "1": 2,
+    "10": 2,
+    "11": 2,
+    "12": 2,
+    "13": 2,
+    "14": 2,
+    "15": 2,
+    "16": 2,
+    "17": 2,
+    "18": 2,
+    "2": 2,
+    "3": 2,
+    "4": 2,
+    "5": 2,
+    "6": 2,
+    "7": 2,
+    "8": 2,
+    "9": 2
+  },
+  "freshness": "No selected subject overlaps the supplied CG405 or CG406 semantic exposure ledgers.",
+  "next_step": "Independent reviewer constructs and seals the oracle under sealed-oracle-construction-instructions.md; Builder must not inspect its contents.",
+  "provider_calls": 0,
+  "provider_reservations": 0,
+  "schema": "charitygraph.gate3.fresh-holdout-handoff/v1",
+  "selected_instance_count": 36,
+  "selection_algorithm_sha256": "5f955dc3bbcb9f6fa4de87a04a3e52692f622442e91a983792cc0902440e0807",
+  "selection_manifest_sha256": "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9",
+  "source_acquisition": 0,
+  "status": "READY_FOR_FRESH_G3_ORACLE_CONSTRUCTION"
+}

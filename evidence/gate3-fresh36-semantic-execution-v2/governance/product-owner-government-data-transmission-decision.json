@@ -1,0 +1,30 @@
+{
+  "decision_id": "G3-PO-GOVERNMENT-DATA-PRIVATE-ANALYTICS-2026-10-20",
+  "decision_status": "BINDING_PRODUCT_OWNER_POLICY_DECISION",
+  "decision_maker": "Greg (Product Owner)",
+  "decision_date": "2026-10-20",
+  "experiment": "Gate 3 fresh-36 semantic experiment",
+  "scope": {
+    "permitted_processing": "Transmission of government-published data to the semantic provider for CharityGraph private analytical processing.",
+    "included_authorities": ["ACNC", "ATO", "ABR"],
+    "included_content": "Government-published structured factual records, including charity-submitted factual fields in ACNC returns.",
+    "public_redistribution": false,
+    "third_party_work_restriction": "Does not override explicit legal restrictions on separately identifiable third-party works; exclude those components.",
+    "source_policy": "Use the existing approved Source Universe v1 only and existing acquisition lineage and source representations. No new acquisition is authorised by this decision."
+  },
+  "application_controls": [
+    "Bind each provider-rights decision to the actual source artifact and record, acquisition receipt or lineage, exact transmitted representation hash, and applicable provider-processing policy.",
+    "Do not fabricate licences, acquisition lineage, rights decisions, signatures, or approvals.",
+    "Retain transmission permission separately from local retention and public redistribution permission.",
+    "Exclude separately identifiable restricted third-party works from any government-published record representation."
+  ],
+  "source_of_authority": "User instruction in the active Gate 3 task on 2026-10-20; this record preserves that instruction without enlarging its scope.",
+  "provider_calls_authorized_by_this_record": false,
+  "spend_authorization": {
+    "usd_ceiling": "2.00",
+    "physical_request_ceiling": 36,
+    "retries": 0,
+    "spend_to_date_usd_at_decision_recording": "0.00",
+    "execution_still_requires": "An exact frozen request plan and authorization through the established trusted local provider gate."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "cg405_reconciliation_crosswalk_sha256": "f3e83f84156ee69e71506b75365e0de11c40182b4cccdec7f317dfb57c87ad88",
+  "current_governed_identity_input_sha256": "b58e7bd66a1ca33e7ec8165766a8532a631cd1b15a49397c6bff164b2caee44a",
+  "eligibility_scope": "registered_charity_legal_entity",
+  "eligible_subject_count": 46,
+  "excluded_subject_count": 54,
+  "freshness_standard": "BOUNDED_FRESHNESS_VERIFIED",
+  "model_response_accessed": false,
+  "oracle_accessed": false,
+  "predecessor_subject_universe_manifest_sha256": "81cc539a2b6df84600401fcc64afad63352b2a905c27332c2aa8e94f5f6432a5",
+  "provider_calls": 0,
+  "release_status": "READY_FOR_INDEPENDENT_SUBJECT_SELECTION",
+  "schema": "charitygraph.gate3.question-first-subject-universe-successor-manifest/v2",
+  "selection_performed": false,
+  "source_acquisition": 0,
+  "successor_eligible_subject_universe_sha256": "ed433054d820373b17640add4ffcf09787879faf4ef8e47895db9264e49c02f4",
+  "unresolved_historical_exposure_count": 2
+}

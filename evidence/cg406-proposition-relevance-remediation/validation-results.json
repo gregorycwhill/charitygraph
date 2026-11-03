@@ -1,0 +1,27 @@
+{
+  "schema": "charitygraph.cg406-proposition-relevance-validation/v1",
+  "proposition_identity": {
+    "stable_assignment": "proposition:<sha256 of exact frozen proposition UTF-8>",
+    "schema_binds_exact_packet_identity_set": true,
+    "exactly_once_coverage": true,
+    "per_proposition_packet_evidence_ids": true,
+    "generic_noncanonical_patterns_rejected": 7
+  },
+  "support_contract": {
+    "partial_support_representable": true,
+    "positive_requires_every_material_proposition_supported": true,
+    "unresolved_scope_blocks_positive": true,
+    "weak_service_scope_basis_blocks_supported": true
+  },
+  "identity_binding": {
+    "governed_active_abn_in_packet_context": true,
+    "external_source_opaque_subject_id_required": false,
+    "good_friday_appeal_regression_exercised": true
+  },
+  "evidence_reference_validation": {
+    "packet_local_ids_only": true,
+    "nested_proposition_evidence_ids_checked": true,
+    "out_of_packet_ids_fail_closed": true
+  },
+  "provider_calls": 0
+}

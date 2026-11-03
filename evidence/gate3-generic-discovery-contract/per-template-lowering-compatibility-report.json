@@ -1,0 +1,226 @@
+{
+  "entries": [
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D01A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D01B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D02A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D02B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D03A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D03B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D04A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D04B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D05A@v1"
+    },
+    {
+      "lowering_status": "SEMANTICS_PRESENT_BUT_NO_LOSSLESS_V1_5_LOWERING_IMPLEMENTED",
+      "reason": "A successor natural-language template is present, but no governing per-template v1.5 operation mapping or full 17-gap classification is supplied.",
+      "semantic_contract_present_in_authorised_package": true,
+      "template_id": "QFT-D05B@v2"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D06A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D06B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D07A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D07B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D08A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D08B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D09A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D09B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D10A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D10B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D11A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D11B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D12A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D12B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D13A@v1"
+    },
+    {
+      "lowering_status": "SEMANTICS_PRESENT_BUT_NO_LOSSLESS_V1_5_LOWERING_IMPLEMENTED",
+      "reason": "A successor natural-language template is present, but no governing per-template v1.5 operation mapping or full 17-gap classification is supplied.",
+      "semantic_contract_present_in_authorised_package": true,
+      "template_id": "QFT-D13B@v2"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D14A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D14B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D15A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D15B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D16A@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D16B@v1"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D17A@v1"
+    },
+    {
+      "lowering_status": "SEMANTICS_PRESENT_BUT_NO_LOSSLESS_V1_5_LOWERING_IMPLEMENTED",
+      "reason": "A successor natural-language template is present, but no governing per-template v1.5 operation mapping or full 17-gap classification is supplied.",
+      "semantic_contract_present_in_authorised_package": true,
+      "template_id": "QFT-D17B@v2"
+    },
+    {
+      "lowering_status": "UNASSESSED_SEMANTICS_NOT_SUPPLIED",
+      "reason": "The authorised final manifest contains an identity/hash only; it does not contain a request operation, answer-variable contract, scope, temporal obligation, or evidence obligation.",
+      "semantic_contract_present_in_authorised_package": false,
+      "template_id": "QFT-D18A@v1"
+    },
+    {
+      "lowering_status": "SEMANTICS_PRESENT_BUT_NO_LOSSLESS_V1_5_LOWERING_IMPLEMENTED",
+      "reason": "A successor natural-language template is present, but no governing per-template v1.5 operation mapping or full 17-gap classification is supplied.",
+      "semantic_contract_present_in_authorised_package": true,
+      "template_id": "QFT-D18B@v2"
+    }
+  ],
+  "individually_classifiable_from_authorised_input_count": 4,
+  "product_decision_direct_v1_4_count": 19,
+  "product_decision_discovery_gap_count": 17,
+  "schema": "charitygraph.gate3.generic-discovery-template-compatibility/v1",
+  "status": "BLOCKED_INSUFFICIENT_TEMPLATE_SEMANTICS",
+  "template_count": 36
+}

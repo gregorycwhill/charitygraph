@@ -1,0 +1,1925 @@
+{
+  "oracle_consulted": false,
+  "result_manifest_sha256": "04cf508dc11bea243212b14839befc26c085d55dbb8a3b78241f45afd0073ed1",
+  "rows": [
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+            "note": "The 2025 report describes human-rights campaigning, research and advocacy, but does not establish the requested service-cohort coverage, screening operation, or service period.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "note": "Program metadata lists beneficiaries, countries and a broad program location, but does not by itself establish direct service-delivery coverage or an eligible service cohort.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+            "note": "The annual information statement records program, beneficiary and location metadata, but not the requested record-to-coverage or service-to-population relations.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:d3a01dc634c2fd81466d75e1d6e04d9d2d6e0c6763b92a458135fbc4d91ca915",
+            "note": "The website describes advocacy and campaign activities and references individuals at risk, but does not establish a service-delivery cohort or exclusions.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The packet contains program metadata and advocacy descriptions, but does not directly establish a service cohort with exclusions, the required service-to-geography and service-to-population relations, a filtering operation, or a defined service period."
+      },
+      "demand_id": "SDC-0051",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "qualification": "Program beneficiary and location metadata are present, but a directly evidenced service cohort is not.",
+          "requirement_id": "requirement:fab0d5b47a937567c6ffbb298283c8424ccbf42c0a4bda2e4f422aa99f905f0c",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "qualification": "The records contain program metadata but do not establish a record-to-service-coverage join.",
+          "requirement_id": "requirement:40145e3de996be597c92aa104c180286c97f7be79e72f37eab3d15a0c6ab7562",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "qualification": "Program countries and a broad program location are listed, but service-delivery geography is not established.",
+          "requirement_id": "requirement:1ed6404cff792acaf6032989740d70b8157e87e09fafd67947f62453f4fc78b9",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "qualification": "Beneficiary categories are listed, but an eligible service population and direct service-to-population relation are not established.",
+          "requirement_id": "requirement:d681a1d88a4f348bbfc33754d1e14984c754527170011be3a119f36387531c8e",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de"
+          ],
+          "qualification": "The 2025 financial report states that the financial report was audited and describes audit responsibilities and procedures.",
+          "requirement_id": "requirement:d7e22c52a293ae6fd10e451f9a1b3d5225cd6fe7ef50fbc8ed7b572d9655a7a7",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "qualification": "The packet lists categories and false organisation-level beneficiary flags, but does not evidence a service-cohort filtering operation.",
+          "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "qualification": "The packet does not support treating an excluded organisation-level category as proof that the corresponding service or beneficiaries are unreal.",
+          "requirement_id": "requirement:b7b93afb768a4715c2a2d6fba5cc21859b3979698f467e42eda37100bce5edae",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "qualification": "The evidence is service- or program-related metadata, but it is insufficient to establish direct service-scoped coverage.",
+          "requirement_id": "requirement:5577d2b2522d05afbd6947bfa1fb947392c5458f550789775f9b1d18472ba842",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "qualification": "A program and beneficiary metadata are supplied, but a selectable cohort with explicit exclusions is not established.",
+          "requirement_id": "requirement:de24728335e085e8e470cc67970e1ceb93d7847aca0ff948f796f32e39aac57c",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "qualification": "The records refer to 2025 activities and a 2026 website capture, but do not define the requested service period for the cohort.",
+          "requirement_id": "requirement:ddb433563175e18e77ceefa55266cb9f632966970eaf19d0809c313fbb59ef21",
+          "support_state": "unresolved"
+        }
+      ],
+      "instance_id": "cg406:subject:00fd5d9d7b844d74ae64c4f47f7c4538:SDC-0051",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "organisation": "Amnesty International Australia",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "proposition_id": "proposition:bf8e5ca0b2d5abd3393eb6d13e8bdfc8934628e0110dfb67071d2fb819928f0c",
+          "qualification": "Geographic metadata is present, but direct service-delivery geography is not established.",
+          "scope_basis": "program_location",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "proposition_id": "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+          "qualification": "Organisation-level false beneficiary flags coexist with program beneficiary metadata; this does not establish service-cohort missingness or exclusions.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+          ],
+          "proposition_id": "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1",
+          "qualification": "Program beneficiary categories are listed, but an eligible service population is not established.",
+          "scope_basis": "beneficiary_category",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+            "srcrec:d3a01dc634c2fd81466d75e1d6e04d9d2d6e0c6763b92a458135fbc4d91ca915"
+          ],
+          "proposition_id": "proposition:9df6b026a8c6c26e3c3acd2370a16e93fffdc0015ff5bd879218788025db0280",
+          "qualification": "The evidence establishes advocacy, campaigning and research activities, not a defined direct service cohort or service-delivery operation.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website",
+        "pfra",
+        "wikipedia_wikimedia"
+      ],
+      "rejected_evidence_ids": [
+        "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a",
+        "srcrec:70cffc51e51093961b61d1bb8c15649f305de00aa3c345e54c53e5b3c973fcaf"
+      ],
+      "selected_evidence_ids": [
+        "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+        "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+        "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+        "srcrec:d3a01dc634c2fd81466d75e1d6e04d9d2d6e0c6763b92a458135fbc4d91ca915"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+            "note": "The audited FY2025 financial report identifies the reporting entity and period, and separately reports fundraising income, bequest and donation income, and revenue from sale of tickets.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+            "note": "The charity record reports FY2025 donation and bequest income and identifies RSPCA Lottery as a program, but does not provide a method-specific reconciliation to appeal proceeds.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The evidence establishes the reporting entity, FY2025 reporting period, donation revenue, fundraising income, and lottery-related revenue, but does not establish an appeal-versus-reporting-entity relation, a method-specific reconciliation, or a screening determination. Donation revenue cannot be treated as method-specific appeal proceeds."
+      },
+      "demand_id": "SDC-0026",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+            "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+          ],
+          "qualification": "The supplied records identify the reporting entity and its ABN, but do not identify an appeal as a separate subject.",
+          "requirement_id": "requirement:5cb7d40bc6c38268217b2727ef404127a188efc3fa3def925c845b260fb1d908",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+          ],
+          "qualification": "Fundraising income, bequest and donation income, and ticket-sale accounting are reported, but no appeal-to-financial-line relationship is evidenced.",
+          "requirement_id": "requirement:0faf1609d5e4ceade72d560f4fe5d596e54500315f5acc41019124fcea959a45",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No evidence describes or applies a screening operation.",
+          "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+          ],
+          "qualification": "The financial report presents separate revenue categories; it does not establish that total donation revenue equals method-specific proceeds.",
+          "requirement_id": "requirement:873c4d1b47f09add2b4fb1f66a2a5deeab6d42678cf26258b79cdc02057c2ef7",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+          ],
+          "qualification": "The report provides category-level revenue figures but no method-specific reconciliation.",
+          "requirement_id": "requirement:ee5dda614177687c9069474541314f0ccbcbdf5cf9e7db03b77a86ba995135ad",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "The records do not evidence an accounting-boundary test as an expressed intent or procedure.",
+          "requirement_id": "requirement:f9a9f731716eb4392ae5d3e523295855aa3ab27a87e52628b19c7ec8f11595a0",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+            "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973"
+          ],
+          "qualification": "The audited financial report and charity record both identify the 2025 reporting period, including the year ended 30 June 2025.",
+          "requirement_id": "requirement:379da3d9f5939189fc60d6079f80e1536d3f14b36d1909afbd2662d4cd5b3335",
+          "support_state": "supported"
+        }
+      ],
+      "instance_id": "cg406:subject:04549d1f5c7f4f658e4e33c8eee4f0fe:SDC-0026",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "organisation": "The Royal Society for the Prevention of Cruelty to Animals (Queensland) Limited",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+            "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+          ],
+          "proposition_id": "proposition:2577714beb422c0b2c30dba90823159c140ee7207e889dbb99c348b0ebfaeeae",
+          "qualification": "Fundraising and ticket-sale revenue are evidenced, but appeal proceeds specifically are not separately identified.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "unresolved",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+            "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+          ],
+          "proposition_id": "proposition:35fbf9b2455acb3dcd434aa0409ce9a170e475cd4f0a587a74bc59a09992728f",
+          "qualification": "Donation and bequest revenue is directly reported for FY2025.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:5b7e6bf2dc4a32a6aa4770cd5639c2c7af890fc86c273b5c8567fe5382086bf3",
+          "qualification": "No specific fundraising method is reconciled to the reported donation revenue.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "not_established",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website"
+      ],
+      "rejected_evidence_ids": [
+        "srcrec:06db7a4ab2a2277c6a8634c9fb6a9d89c6709ceb2c8017eecadfccc370f09fd2"
+      ],
+      "selected_evidence_ids": [
+        "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+        "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "note": "Charity and program metadata identify cancer-related programs, beneficiaries, and Victoria locations, but do not establish direct-service availability or a current as-of status.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+            "note": "Annual information statement describes fundraising and support for cancer research and care and lists programs, but does not provide time-bound direct-service availability evidence.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a",
+            "note": "Audited 2025 financial report describes funding and distributions to Peter MacCallum Cancer Centre; it does not establish current service access or availability for an eligible cohort.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The packet evidences fundraising, program metadata, beneficiary categories, and support for cancer care, but does not directly evidence a service-to-availability observation, time-bound current availability, direct-service access, or an as-of date."
+      },
+      "demand_id": "SDC-0025",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe"
+          ],
+          "qualification": "The evidence identifies programs and beneficiaries but not service availability.",
+          "requirement_id": "requirement:6ed998a6095046a7be9d3243216b42301d718ffbdf3336cfc9bb641fa38de812",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No direct service-to-availability observation is supplied.",
+          "requirement_id": "requirement:91286d1e2f22f370b16216d55698fbc85a0b2811bc105fca07dfa971c0a32948",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0"
+          ],
+          "qualification": "The packet supports identification and review of the subject and its listed programs, but does not complete a service-availability lookup.",
+          "requirement_id": "requirement:2180d3f724251bd6c6e2d47121dc7ca33acf568b298ef4cc83a1bed42e8aa4ab",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe"
+          ],
+          "qualification": "No service page or equivalent current-availability evidence is supplied, and no such inference is made.",
+          "requirement_id": "requirement:30881fd65c7d51b376b3e72c72b5bda2a9078a2382845c62bcd7d91538f93fd0",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+            "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+          ],
+          "qualification": "The records are dated, including the 2025 reporting period, but do not provide time-bound service availability evidence.",
+          "requirement_id": "requirement:c0a4c97521c148cdc2ca48ec8ec7966f23b1554bf3452f700c42b35ee3b6fbbf",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe"
+          ],
+          "qualification": "The evidence concerns fundraising and support for cancer research and care, not direct-service access.",
+          "requirement_id": "requirement:9a897a532bab64b079eae89f5fdc001b9fab0b685cad6c36cd68fea2f663045c",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No requested as-of date is established for service availability.",
+          "requirement_id": "requirement:1afd8babc60b6b56828a5e25ed6d5a55611413ecef286674a1cf43f228b15a77",
+          "support_state": "not_established"
+        }
+      ],
+      "instance_id": "cg406:subject:1f6be8711c364328b77cf6cb5d5d44ab:SDC-0025",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "organisation": "The Trustee For Peter Maccallum Cancer Foundation",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe"
+          ],
+          "proposition_id": "proposition:a0561fd649cdb6baa784055f051bad796ea0afef17fca38219549deeba4e8c1a",
+          "qualification": "Programs and cancer-care support are described, but direct service access is not established.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe"
+          ],
+          "proposition_id": "proposition:f95dac581e9b439c58abf51a6c8c091f8e0aac8c0fb06f0cbca10fc8ac361330",
+          "qualification": "Listed programs and organisational activity do not establish current service availability.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0"
+          ],
+          "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+          "qualification": "Beneficiary categories include people with chronic illness, but no service eligibility or access criteria are supplied.",
+          "scope_basis": "beneficiary_category",
+          "scope_status": "bounded_scope",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "pfra"
+      ],
+      "rejected_evidence_ids": [],
+      "selected_evidence_ids": [
+        "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+        "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+        "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+            "note": "The 2025 annual report provides dated governance roles and appointment information, but does not establish that the target subject itself held a governance role or made access decisions.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+            "note": "The charity record lists responsible persons and roles, but does not establish the requested target-subject governance relation or operational responsibility.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The packet contains dated governance information for Caritas Australia and named individuals, but it does not establish the exact target-subject role relation, a complete tenure interval, or governance involvement in access decisions. Office holding must not be treated as proof of operational responsibility."
+      },
+      "demand_id": "SDC-0038",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+            "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298"
+          ],
+          "qualification": "Named governance officers and roles are evidenced, but the exact demanded governance-role referent is not established for the target subject.",
+          "requirement_id": "requirement:9727740f789caee970f9c53588a6a76488d9c1424309b6cfc9ce9d3f9ce39a11",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+            "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298"
+          ],
+          "qualification": "The records identify governance officials in relation to Caritas Australia Limited, but do not establish the exact requested role-to-organisation relation for the target subject.",
+          "requirement_id": "requirement:8caf15a6d8b0b9fbf9165d1d9c3cef125bed0e782c5f663c03d297381732db10",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+          ],
+          "qualification": "Appointment dates and the 30 June 2025 reporting period are provided, but a complete role-to-period tenure interval is not established for the demanded referent.",
+          "requirement_id": "requirement:f7f8adab5161ca66425a8b2d489d2837e3d92dd3f4ef845f913173af993dcec9",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+          ],
+          "qualification": "The annual report supplies governance appointments and reporting-period information that can be compared, but no specific comparison result is stated.",
+          "requirement_id": "requirement:3dc718a9edd39cc43871502489f05ef8dd1fdcc5c597bcce7b1f01c635bef9f8",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+          ],
+          "qualification": "The records provide governance-role and appointment information that can be looked up, but the requested target-subject referent remains unresolved.",
+          "requirement_id": "requirement:2180d3f724251bd6c6e2d47121dc7ca33acf568b298ef4cc83a1bed42e8aa4ab",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+          ],
+          "qualification": "The evidence does not establish operational responsibility from office holding; the prohibited inference is not made.",
+          "requirement_id": "requirement:2568996f80ff9a7e9c4a75a25969cb649ff29802c8130187ab07a60c023c67e3",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+            "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298"
+          ],
+          "qualification": "The annual report and charity record provide dated governance evidence.",
+          "requirement_id": "requirement:41c8e36aa8ddeaf1017640b63c5dc86a93efefd1fabb703b4239d3063c59c119",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+            "srcrec:313440e8f1f2838859fcd688d06f432485f0904ba0f2b06a669669c15a2104c3"
+          ],
+          "qualification": "The evidence describes governance and organisational activities, but does not establish governance inspection specifically for access decisions.",
+          "requirement_id": "requirement:418d29949c94dc5217dda858ae3d88a84e8c6d7d285255fa837d5389d3854753",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+          ],
+          "qualification": "Some appointment dates and one resignation date are provided, but the complete tenure interval for the demanded governance role is not established.",
+          "requirement_id": "requirement:885d97809786062922815076fad4dec920db4a53a04c2d09a9174e1b7fe48f29",
+          "support_state": "unresolved"
+        }
+      ],
+      "instance_id": "cg406:subject:43db3f46f7274c8382905701f287ec09:SDC-0038",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "organisation": "Caritas Australia Limited",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+          ],
+          "proposition_id": "proposition:4b168d88dc872a7753c2bc35b36a2d4249487af55baf78f247f38cae2fe962da",
+          "qualification": "Governance roles are listed for named individuals, but the exact demanded role proposition for the target subject is not established.",
+          "scope_basis": "not_applicable",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981",
+            "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+            "srcrec:313440e8f1f2838859fcd688d06f432485f0904ba0f2b06a669669c15a2104c3"
+          ],
+          "proposition_id": "proposition:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+          "qualification": "Organisational activities, programs, locations, and governance information are present, but the demanded scope relation and operational responsibility are not established.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website"
+      ],
+      "rejected_evidence_ids": [],
+      "selected_evidence_ids": [
+        "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+        "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "note": "The charity record contains ABN 69084797965 and identifies the entity as Royal Childrens Hospital Good Friday Appeal.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+            "note": "The authority-scoped ABR record reports the same ABN and entity name, with ABN status active from 01 Nov 1999.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The supplied records directly support the authority-scoped ABN identity and record-to-identifier join. However, the governed binding has no valid_from or valid_to values, so the required effective period is not fully established."
+      },
+      "demand_id": "SDC-0037",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+          ],
+          "qualification": null,
+          "requirement_id": "requirement:7ce1b593aca3cda79455a8961fc080c1d50ad6f7bfcd7efade3f61d75b990e92",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+          ],
+          "qualification": null,
+          "requirement_id": "requirement:b24ea0203289656dd9baff1c317523bf4954e2dcbce09554a69a9e1aa9b5812e",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b"
+          ],
+          "qualification": "The report states that the financial report was audited by Ernst & Young in accordance with Australian Auditing Standards.",
+          "requirement_id": "requirement:d7e22c52a293ae6fd10e451f9a1b3d5225cd6fe7ef50fbc8ed7b572d9655a7a7",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+          ],
+          "qualification": null,
+          "requirement_id": "requirement:2180d3f724251bd6c6e2d47121dc7ca33acf568b298ef4cc83a1bed42e8aa4ab",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "The assessment does not infer same-entity status from name matching alone; the conclusion relies on the authority-scoped ABN binding and matching ABN values.",
+          "requirement_id": "requirement:334d0e55100bcc60c3a03c8915a00c9fd3fc54b11cdd04a327292f4134531f08",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+          ],
+          "qualification": null,
+          "requirement_id": "requirement:d95ec19e4dd04bcd2e4165edcfee4a9460c3a4e7d4bf86dd992bcff5ee29f143",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+          ],
+          "qualification": null,
+          "requirement_id": "requirement:69eb46dba25077b1be940b372e9123bb504ecc83348036e1f57c7ca28af317a7",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+          ],
+          "qualification": "The ABR record states active from 01 Nov 1999, but the governed identifier binding does not specify valid_from or valid_to dates.",
+          "requirement_id": "requirement:1ab225b92a7f1b2a53575a631fdf3ee1e506d74159ad5d6a6d21af4efbe78b6b",
+          "support_state": "unresolved"
+        }
+      ],
+      "instance_id": "cg406:subject:54a09c18d354495eb2fde6a01480b86b:SDC-0037",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValidationError: 1 validation error for EvidenceSelectionOutput\ndemand_requirement_support.4\n  Value error, supported frozen demand requirements require evidence IDs [type=value_error, input_value={'evidence_ids': [], 'qua...ort_state': 'supported'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "organisation": "Royal Childrens Hospital Good Friday Appeal",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+          ],
+          "proposition_id": "proposition:285437db8c5e1541aa49708b4abd51642a065b66e4bac0901e75b44ce2d0cebe",
+          "qualification": null,
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+          ],
+          "proposition_id": "proposition:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+          "qualification": "The identifier is evidenced within the Australian Business Register context; the binding's effective date interval remains unspecified.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website"
+      ],
+      "rejected_evidence_ids": [],
+      "selected_evidence_ids": [
+        "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+        "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+        "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+            "note": "The 2025 directors' report and financial statement notes directly describe prevention, screening, support, research and Victorian service activities during the 2025 service period.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "note": "The organisation's service pages state that cancer information and support is available to all Victorians affected by cancer and describe prevention, detection, support and research services.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+            "note": "The charity record identifies Victoria as the operating state and supplies program beneficiary and program metadata.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "supported",
+        "rationale": "The packet directly evidences cancer-related services, Victorian service geography, and relevant beneficiary populations, including the 2025 service period. The assessment uses service-scoped evidence and does not equate the headquarters address with delivery geography."
+      },
+      "demand_id": "SDC-0003",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5"
+          ],
+          "qualification": null,
+          "requirement_id": "requirement:3af2097a570c1a60279d0caa51a92a9619c40cc33d594627b39376071eb04cf0",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "qualification": "Service geography is evidenced as Victoria, including services directed to Victorians; listed program addresses are not treated as the full delivery geography.",
+          "requirement_id": "requirement:c49da8007d94eab3d5d1a0848d767de5663dd8cb5e3aaa86440975f968db1c98",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5"
+          ],
+          "qualification": "The evidenced cohort is people affected by cancer in Victoria, with broader program metadata referring to the general community in Australia.",
+          "requirement_id": "requirement:d681a1d88a4f348bbfc33754d1e14984c754527170011be3a119f36387531c8e",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "qualification": "The supplied service and program records support filtering to services operating in the evidenced Victorian geography and population scope.",
+          "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "qualification": "The assessment does not infer delivery geography from the East Melbourne headquarters or listed program address alone.",
+          "requirement_id": "requirement:2e96e59ea937a7e339db612bd032aad4f38db53d7de1e0d8eb4432fb662aa76e",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "qualification": "Evidence is tied to described services, program activities and service beneficiaries rather than only organisational metadata.",
+          "requirement_id": "requirement:5577d2b2522d05afbd6947bfa1fb947392c5458f550789775f9b1d18472ba842",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "qualification": "The directly evidenced service and population links support construction of an evidenced service cohort.",
+          "requirement_id": "requirement:36b0f742218221474a9d17b73d9f1e89f73a32441b1004e87df7efb3cda2834d",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "qualification": "The financial statements and directors' report explicitly cover the year ended 31 December 2025 and describe activities during that year.",
+          "requirement_id": "requirement:ddb433563175e18e77ceefa55266cb9f632966970eaf19d0809c313fbb59ef21",
+          "support_state": "supported"
+        }
+      ],
+      "instance_id": "cg406:subject:6da4240b384242a78455a01fc28e0ed8:SDC-0003",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValidationError: 2 validation errors for EvidenceSelectionOutput\nproposition_support.0\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nproposition_support.1\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "organisation": "Cancer Council Victoria",
+      "outcome": "supported",
+      "outcome_category": "supported",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+          "qualification": "Eligibility is evidenced for people affected by cancer and, for broader programs, the general community.",
+          "scope_basis": "beneficiary_category",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "proposition_id": "proposition:bf8e5ca0b2d5abd3393eb6d13e8bdfc8934628e0110dfb67071d2fb819928f0c",
+          "qualification": "The service geography is bounded to Victoria; the evidence does not establish that every program serves all of Victoria.",
+          "scope_basis": "operational_geography",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "proposition_id": "proposition:9df6b026a8c6c26e3c3acd2370a16e93fffdc0015ff5bd879218788025db0280",
+          "qualification": "Cancer prevention, detection, support and research services are directly described for the 2025 period.",
+          "scope_basis": "direct_service_coverage",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website",
+        "wikipedia_wikimedia"
+      ],
+      "rejected_evidence_ids": [
+        "srcrec:6324bbf9bde152c14cae6a5c2036ed652791b8601391627a5c9549597db13a07",
+        "srcrec:a7aa5f787dff9ec3f37f2f419df4ae37c517a1ba1130343390e3441d3aa557ed"
+      ],
+      "selected_evidence_ids": [
+        "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+        "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+        "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3",
+            "note": "The workbook reports 2025 revenue categories and totals, but does not identify awards, commitments, payments, funders, or program-level financial flows.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "note": "The 2025 annual information statement reports organizational income and expenses and a Higher Education program, without flow-specific joins.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+            "note": "The charity record identifies the entity, program metadata, and 2025 financial-report submission, but does not provide the demanded flow relationships.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The packet establishes organizational 2025 revenue and financial totals, but does not establish award, commitment, or payment propositions, flow-to-financial-line or flow-to-program joins, funder-to-flow relations, or traceable program-specific resource dependencies."
+      },
+      "demand_id": "SDC-0007",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "qualification": "The packet identifies a Higher Education program and organizational financial statements, but not a joined program-and-financial-flow scope.",
+          "requirement_id": "requirement:63a2523e0671a4dde67ad859e14912296d6f66270c2107b6372e20d178fc0ec7",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "qualification": "Financial line categories are reported, but no flow is identified or linked to a line.",
+          "requirement_id": "requirement:7d80e6078155a526d21f4cb9e5e0d74f18d63467ae587130363ff6da441c0683",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "qualification": "A Higher Education program and financial totals appear separately, without a flow-to-program join.",
+          "requirement_id": "requirement:f80f10b89c1a4224aea8d436b753330edb9086e58c82f6a019d82c79c8a0810e",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No funder-to-flow relationship is supplied.",
+          "requirement_id": "requirement:bdac6ea8a1e6f9ec57d41df2dad7288ddd26bf4fae4c3c7039cb9b6f3d5b6e0d",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "qualification": "The workbook permits comparison of reported financial totals and selected workforce figures, but not comparison of identified flows.",
+          "requirement_id": "requirement:3dc718a9edd39cc43871502489f05ef8dd1fdcc5c597bcce7b1f01c635bef9f8",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "qualification": "Organizational income and expense categories are reported, but resource dependencies cannot be traced to a specified flow or program.",
+          "requirement_id": "requirement:5f8a47e9c7fe8f206674d8839656d7327d15d7b3b3d4f5433ceb1092b0f13e52",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "qualification": "The records do not equate awards with payments or revenue; however, no award-specific evidence is supplied to establish the prohibition in relation to a flow.",
+          "requirement_id": "requirement:339d465fca9891103a115dbcce202ee91a6a6422dd71faa01341bf26ebebaeb9",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "qualification": "The records report financial categories and a related-party transaction category, but do not establish whether any payment proves a durable relationship.",
+          "requirement_id": "requirement:a5eec5e200ad6b33b5447c36ca1d6803d2bbe77403dc629e26b2d2519eed87d9",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3",
+            "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5"
+          ],
+          "qualification": "The workbook and annual statement are financial records, but no flow-specific authoritative evidence is supplied.",
+          "requirement_id": "requirement:7f9a45d3756d103b1ff805db4155b14e89df1dbcb488827561a277cfca61b7d5",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "qualification": "The records provide organizational financial totals but not traceable program-specific resource dependencies.",
+          "requirement_id": "requirement:df3a1b9d10106d2738ea97f990a42eb1ddb8edf1f1a1960eddbc4a716c913706",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "qualification": "The financial reporting period is identified as 2025, but no transaction-specific period is supplied.",
+          "requirement_id": "requirement:08cce90e4228072a0efcdfbfb3a19ea881f83929d469b5d4f11b429eb4a8ff5c",
+          "support_state": "unresolved"
+        }
+      ],
+      "instance_id": "cg406:subject:771dbdb52fe54cb49ebcce20f72bd250:SDC-0007",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValidationError: 1 validation error for EvidenceSelectionOutput\nproposition_support.3\n  Value error, supported demand propositions require resolved scope and time [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "organisation": "University Of Western Australia",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:b4009662c0116dac4f17a86354dcefcb35d80de2af59988f520fe072b4b13e2a",
+          "qualification": "No award-specific evidence is supplied.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:6a19f0fb4be54511524bcd5b0c98b38da1ee049a39735c39311e10336024436f",
+          "qualification": "No commitment-specific evidence is supplied.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:040ffd5925d40e11c67b7238a7fc9957850b8b9a46e9729fab88c24d6a98aff2",
+          "qualification": "No payment-specific evidence is supplied.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "proposition_id": "proposition:371f7e4223809d8bce3d52f6a5358e47c4b57aa00cbe0a4d8b47d74f010dffa6",
+          "qualification": "2025 organizational revenue is directly reported, including total revenue and revenue from government, goods and services, investments, and other revenues; no program-specific or flow-specific allocation is established.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website",
+        "wikipedia_wikimedia"
+      ],
+      "rejected_evidence_ids": [],
+      "selected_evidence_ids": [
+        "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+        "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+        "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+            "note": "The source lists participation routes including volunteering and fundraising, but does not state an effective period or detailed eligibility/filter criteria.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+            "note": "Program and organisational metadata describes conservation activities but does not establish an advertised opportunity or its temporal validity.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The packet supports the existence of participation routes related generally to the organisation's conservation work, but does not establish a complete opportunity-to-service filter, eligibility criteria, or advertised effective period."
+      },
+      "demand_id": "SDC-0005",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+          ],
+          "qualification": null,
+          "requirement_id": "requirement:191a1c546da0485ed9e5d898af1b1ffeb418aabd4eb46ae8bf689d3d18e06a15",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No explicit opportunity-to-service linkage is stated; the participation routes and conservation activities are presented separately.",
+          "requirement_id": "requirement:cf04bb838f0c9b844423fe3e93026b8b603ef69d3c6e632226bf39e0fb34c78f",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No explicit filtering rule or eligibility screen is supplied.",
+          "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+          ],
+          "qualification": "The evidence identifies participation routes but does not establish enduring participation.",
+          "requirement_id": "requirement:4316c8f907ac4732f1174b92f7e17035bdf9a2785d766c21e40dfba0ea517a4f",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+          ],
+          "qualification": null,
+          "requirement_id": "requirement:bd739bfa87a3a3b34349f15e515b6b3894389120dd6f68d9c8e658f77605d8d3",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+          ],
+          "qualification": null,
+          "requirement_id": "requirement:7d930f775194cffea0e229640e27a7fdd8d987808c70b60074e21eb81ea49145",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No advertised effective start, end, or validity period is supplied for the participation routes.",
+          "requirement_id": "requirement:95de788b4433cf6ac38459d0bddd11b56671d790f2a313a839c7ca57ef7c9370",
+          "support_state": "unresolved"
+        }
+      ],
+      "instance_id": "cg406:subject:78393016b9ad44dd832cfa913b7122ba:SDC-0005",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValidationError: 1 validation error for EvidenceSelectionOutput\nproposition_support.1\n  Value error, supported demand propositions require resolved scope and time [type=value_error, input_value={'evidence_ids': ['srcrec...l_status': 'unresolved'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "organisation": "Australian Wildlife Conservancy",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+          "qualification": "No eligibility criteria or filter for participation is stated.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+          ],
+          "proposition_id": "proposition:04b447783afe5bfd4b48e8db067137319526a98e029c37b2559154ceccc1067e",
+          "qualification": "The source advertises volunteering and fundraising routes, but does not directly establish their linkage to a specified service.",
+          "scope_basis": "operational_geography",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:6eff887609b9e27b1dde5012c9e309c8287fcabfefb2e39f476a9fa1cde8bef6",
+          "qualification": "No time pattern or advertised effective period for the opportunity is stated.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "ato_abr_dgr",
+        "official_website",
+        "wikipedia_wikimedia"
+      ],
+      "rejected_evidence_ids": [],
+      "selected_evidence_ids": [
+        "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+            "note": "FY25 report provides a service-instance and people-served metric, but does not provide the requested study design, study population linkage, or missingness evidence.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+            "note": "Program metadata identifies services, beneficiaries, and Australia program locations, but does not establish a study design or study-scoped population.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+            "note": "Charity and program records provide beneficiary categories and program metadata, but not a study-to-population relation or evidence-gap assessment.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The packet supports an FY25 operational metric of 39,800 service instances delivered to 6,881 people, and identifies programs and beneficiary categories. It does not establish a study design, a study-scoped population, missingness, or a decision-specific evidence gap for the requested intervention-to-study and study-to-population relations."
+      },
+      "demand_id": "SDC-0052",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "qualification": "The evidence identifies the organisation and its operational activities, but does not establish an evaluation decision as a decision object.",
+          "requirement_id": "requirement:249cdf6433cc87084d4f8e62d0183337899947c3f094fa259d4858693bb8a92f",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "qualification": "The report supplies operational facts and metrics, but does not establish a complete claim-to-evidence mapping for the requested evaluation propositions.",
+          "requirement_id": "requirement:5cb3f24c04adea949c9e5d37dbdeb4392a99bae518ad3bc8c1519d8889ba37a7",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "qualification": "The packet documents services and research activity but does not establish an intervention-to-study relation or a study design.",
+          "requirement_id": "requirement:d27008f0b8edb3219afc275efcde4d4bd7dfe212c45395042824addbe597bca9",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "qualification": "Beneficiary categories and the number of people served are reported, but no study-to-population relation is established.",
+          "requirement_id": "requirement:36197c22dd394a18f2331f60b6c70854f0fa5bee52fb00fadbc1d6021141f0b5",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "qualification": "The report explains operational activities and performance measures, but not the requested evaluation evidence gap.",
+          "requirement_id": "requirement:afb2215dd2a1d13ae42f0bfd5a50239618170c785fa0de8754ffba9310b73eb3",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "qualification": "No exception-finding analysis or defined exception criterion is supplied.",
+          "requirement_id": "requirement:b5295617285b027c88dc44bdadbf658d3852ea35d0fd31bab55add8747d0d574",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+            "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b"
+          ],
+          "qualification": "Program beneficiary categories and metadata are present, but no general or decision-specific screening rule is evidenced.",
+          "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "The packet does not establish failure from an absent design; the absence remains an evidence limitation.",
+          "requirement_id": "requirement:b31cfcb3d8ee7969f9a5a76d90a50ca497cfaaf84705837df647ac27ad33dcf0",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "qualification": "Operational metric evidence is supplied, but no study-scoped gap evidence is supplied.",
+          "requirement_id": "requirement:3be8d96cb5e29ee176e400796a30b61487c8a11062754d7c95156c04acb54e49",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "qualification": "The evidence supports identifying limitations in the supplied decision evidence, but no explicit decision context is provided.",
+          "requirement_id": "requirement:8dffcba45fda3a82e8074c1130c69d40bdf5c70fadebde3e9f035696eb7d8bbc",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "qualification": "The report covers the year ended 30 June 2025, but the required decision evidence period is not specified or established.",
+          "requirement_id": "requirement:8e893c0cc4e038c0c56fc5940a33c9cb37f8a5931e308d3a3ba4116fb6a8d1ea",
+          "support_state": "unresolved"
+        }
+      ],
+      "instance_id": "cg406:subject:93f185643c194b2da46032afc9521b30:SDC-0052",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValidationError: 1 validation error for EvidenceSelectionOutput\ndemand_requirement_support.7\n  Value error, supported frozen demand requirements require evidence IDs [type=value_error, input_value={'evidence_ids': [], 'qua...ort_state': 'supported'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "organisation": "The Leukaemia Foundation Of Australia Limited",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "proposition_id": "proposition:a77de8a6daa1129516b14c8ca1e233a51a8414b202eac7c8acfbb9b485046ad4",
+          "qualification": "Research and operational activities are described, but no evaluation or study design is evidenced.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "proposition_id": "proposition:b8b4e9cea77ef29a5e958f13addd4855c35d2f04a060c3a869f8c955fd4c9a34",
+          "qualification": "The FY25 report states that 39,800 service instances were delivered to 6,881 people.",
+          "scope_basis": "direct_service_coverage",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+          "qualification": "No missingness measure, denominator, or completeness assessment is reported.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "proposition_id": "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1",
+          "qualification": "The packet identifies beneficiary categories and people served, but does not establish a study population or its linkage to an intervention study.",
+          "scope_basis": "beneficiary_category",
+          "scope_status": "bounded_scope",
+          "support_state": "unresolved",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website",
+        "pfra"
+      ],
+      "rejected_evidence_ids": [],
+      "selected_evidence_ids": [
+        "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+        "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+        "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "note": "Identifies Plan International Australia and its registered charity status.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "note": "Provides the 2025 annual report, governance, purpose and financial information.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1",
+            "note": "Provides ABN and entity-status facts.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876",
+            "note": "Describes the organisation's public-facing purpose, programs and values.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The supplied evidence establishes the organisation and supports the six broad propositions, but it does not establish a rule-specific filter or screening rule, a complete rule-to-proposition evidence join, or a rule-defined time obligation. Therefore a qualified selection decision cannot be positively resolved."
+      },
+      "demand_id": "SDC-0028",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+          ],
+          "qualification": null,
+          "requirement_id": "requirement:278858254f9391dbefb62a6f90bb2955662fc280f86a2554dd977e9df265ae51",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No supplied evidence specifies a rule-to-proposition evidence mapping.",
+          "requirement_id": "requirement:9fb279bc68dd9713d490294bbf4cf37c317753536fe26f9951f1cbf8fba89342",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "The evidence does not establish that the requested operation has been performed.",
+          "requirement_id": "requirement:afb2215dd2a1d13ae42f0bfd5a50239618170c785fa0de8754ffba9310b73eb3",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No selection filter or filter criteria are supplied or evidenced.",
+          "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No screening rule or screening result is supplied or evidenced.",
+          "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No missingness-as-failure criterion is evidenced; missingness must not be treated as failure by inference.",
+          "requirement_id": "requirement:260c2a47efe7b83f2059d4e56942e5449c4de58e455140250b2f822b49e6ce94",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No universal-values scoring rule is supplied or evidenced.",
+          "requirement_id": "requirement:95085128f91b07cb2137f45b3426d95fc3a288ec319e4d19044edcffefb78bf4",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+          ],
+          "qualification": "Evidence is organisation- and program-specific, but no explicit demanded rule or coverage test is supplied.",
+          "requirement_id": "requirement:c04348ae3a775669c8d24c2b33e5dab700b29cdfe52e63a4e8405cfd4c19c8f1",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "The evidence does not establish a qualified selection decision under a stated rule.",
+          "requirement_id": "requirement:0e374ac0c68142d3d864b92daa168fc324ac967393872881b38653bafbd32745",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "The evidence contains reporting periods but no rule-defined time obligation for the selection decision.",
+          "requirement_id": "requirement:5b57f2a82e79dea7eaaf8f60e3b87141458dabf2cd7fb54c5d01c7bb8ac8398d",
+          "support_state": "unresolved"
+        }
+      ],
+      "instance_id": "cg406:subject:96135bad66c645ecb487fba1f059240c:SDC-0028",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValidationError: 3 validation errors for EvidenceSelectionOutput\nproposition_support.2\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nproposition_support.3\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nproposition_support.4\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "organisation": "Plan International Australia",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+          ],
+          "proposition_id": "proposition:9f0c8aa526579f4dbde02f70f4cdf635a22df7d844ce012de5791febea95e732",
+          "qualification": null,
+          "scope_basis": "eligibility_criteria",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+          ],
+          "proposition_id": "proposition:85ca6d6d291c070dbcb28efa667bbed81c9c789b5bb515725a7bad753f6171ba",
+          "qualification": null,
+          "scope_basis": "direct_service_coverage",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+          ],
+          "proposition_id": "proposition:95175e23c3cbf2c28d29a4c95a25eb4946485930c168a8a216eb37a59a2c5636",
+          "qualification": null,
+          "scope_basis": "program_metadata",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40"
+          ],
+          "proposition_id": "proposition:eab762a03fd979a04cc4706e6536d382bc89d2d1356afcd054a16b2235ecd471",
+          "qualification": null,
+          "scope_basis": "program_metadata",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+          ],
+          "proposition_id": "proposition:689f6a627384c7dcb2dcc1487e540223e77bdf9dcd0d8be8a326eda65b0ce9a4",
+          "qualification": null,
+          "scope_basis": "charity_address",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+          ],
+          "proposition_id": "proposition:81b06df4303e6581efecfa2830bf76c30a9d32a3e4892eac2fe43b7487d3ae2f",
+          "qualification": null,
+          "scope_basis": "direct_service_coverage",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website"
+      ],
+      "rejected_evidence_ids": [],
+      "selected_evidence_ids": [
+        "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+        "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+        "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+        "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1",
+        "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+            "note": "Annual information statement identifies the organisation, its activities, programme information, and 2025 reporting data.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "note": "Charity record identifies the organisation, ABN, registration status, reporting history, and enforcement-outcome field.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+            "note": "2025 financial statements identify the organisation and contain audited financial, governance, and contingent-liability information, including potential claims and National Redress Scheme claims.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d",
+            "note": "Structured source facts corroborate the organisation name, ABN status, entity type, and charity registration context.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The packet establishes the organisation and authoritative registration/reporting context, but does not supply an allegation, a correction linked to an assertion, a qualifying event linked to an authority, or a formal finding. The financial statements disclose potential claims and litigation estimates, but do not establish a formal finding or convert an allegation into one."
+      },
+      "demand_id": "SDC-0019",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+            "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+            "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+          ],
+          "qualification": "The organisation is identified, but no event is supplied.",
+          "requirement_id": "requirement:2ec0931d13e80d0ec8373881e5608478f7102d99c0f4b6f458774f2cccc8a974",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+          ],
+          "qualification": "No correction-to-assertion relation is evidenced.",
+          "requirement_id": "requirement:042c0bd75f6675385c94551e8204ea6563055c491a7fb24a8e38a288da099c07",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+            "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e"
+          ],
+          "qualification": "Authorities and reporting records are identified, but no event-to-authority relation is evidenced.",
+          "requirement_id": "requirement:044bb1615707032caa9c0ddad3a7e7704e73bd39ff8c5ec562125e9156cc67ba",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+            "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+            "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+          ],
+          "qualification": "The packet provides records for review, but no screening rule or completed screening decision is supplied.",
+          "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+            "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+            "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+          ],
+          "qualification": "Evidence provenance and source records are available, but no trace of the demanded event-to-authority assertion is established.",
+          "requirement_id": "requirement:5f8a47e9c7fe8f206674d8839656d7327d15d7b3b3d4f5433ceb1092b0f13e52",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+          ],
+          "qualification": "The financial statements distinguish potential claims and litigation estimates from established findings; no allegation-to-finding equivalence is supported.",
+          "requirement_id": "requirement:e8ada1d3079ae7e7535119c05af484508306c3400edfd75136cad8d97f644ee6",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+          ],
+          "qualification": "The packet reports registration and disclosed records, but silence or an empty enforcement field does not establish a clean record.",
+          "requirement_id": "requirement:ab1eaa3f468919d9a9b45730878e4be8e6ca3a2570c81164fc0e34bfdeeec16e",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d",
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+          ],
+          "qualification": "Registration, ABN, reporting, and audited financial-statement context are directly evidenced.",
+          "requirement_id": "requirement:d2d8cdad65ab3ad9e02f32938a06bb2ff050c4fe6886d092040290a87082e90a",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+          ],
+          "qualification": "Adverse-context material is present as disclosed potential claims, litigation, and National Redress Scheme claim estimates, but no formal finding is established.",
+          "requirement_id": "requirement:56f9b1cc655539d2afe0bff164d22e4e0a52afad4465d04073dd239b0c52ee3e",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+          ],
+          "qualification": "The records contain reporting and document dates, but no single demanded as-of date is specified or established for the requested assessment.",
+          "requirement_id": "requirement:1afd8babc60b6b56828a5e25ed6d5a55611413ecef286674a1cf43f228b15a77",
+          "support_state": "unresolved"
+        }
+      ],
+      "instance_id": "cg406:subject:99d810fb8e6e4ac7adc2ee0dd3e7e095:SDC-0019",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "organisation": "The Church Of Jesus Christ Of Latter-day Saints Australia",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+          ],
+          "proposition_id": "proposition:afdc03d0f0e179a18dd70267c2dee72c729462ad0f5cbdcb829a5985962a454f",
+          "qualification": "No allegation is identified in the supplied evidence.",
+          "scope_basis": "not_applicable",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+          ],
+          "proposition_id": "proposition:34627e3242f2ca21f540951cb5376600aebba58675654dd5f61e860c6948bffa",
+          "qualification": "No correction linked to an assertion is identified in the supplied evidence.",
+          "scope_basis": "not_applicable",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+          ],
+          "proposition_id": "proposition:9c82e7e051c62eeb2eeded62e654dbb85172e40fbf30fbb5c7d429899af62fde",
+          "qualification": "The financial statements disclose potential claims and litigation estimates, not a formal finding.",
+          "scope_basis": "not_applicable",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr"
+      ],
+      "rejected_evidence_ids": [],
+      "selected_evidence_ids": [
+        "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+        "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+        "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+        "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+      ]
+    },
+    {
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+            "note": "The 2024 financial statements report historical charity contributions and state that the Fund's objectives included maintaining grant making, but do not record a specific future marginal allocation decision.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+            "note": "The annual information statement reports 2024 grant donations in Australia of 37,094,958 and describes grant-making operations, without evidencing a proposed marginal destination.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767",
+            "note": "The charity record identifies the entity and ABN and reports grant-making activity, but contains no explicit future allocation decision.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The packet directly supports historical expenditure and identifies the entity, but does not establish a historical line-to-proposed allocation relation or an explicit future marginal allocation decision. Historical expenditure cannot by itself establish the future marginal destination."
+      },
+      "demand_id": "SDC-0014",
+      "demand_requirement_support": [
+        {
+          "evidence_ids": [
+            "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+            "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767"
+          ],
+          "qualification": "The evidence identifies the Benevolent Relief Fund and its ABN, but the trustees' declaration states that the Fund is not a reporting entity.",
+          "requirement_id": "requirement:2a500c36be063e87810ca13980fcfaa0d7a5fb77485c566da55c704addfc6dc0",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+          ],
+          "qualification": "Historical charity contributions and grant-making objectives are reported, but no proposed allocation is linked to a historical expenditure line.",
+          "requirement_id": "requirement:28d40443dc15f459e6c683343f1f606772360cb0ba07857229d3220c8fbafb18",
+          "support_state": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "The packet contains expenditure and grant-making disclosures, but no explicit screening rule or screening result for the allocation claim.",
+          "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+          ],
+          "qualification": "The evidence reports historical expenditure, but does not support inferring its marginal destination.",
+          "requirement_id": "requirement:e7ada51991777d415e260a7ef1b44ea6be9d82f38c76d72e5049c4fd0849b1c1",
+          "support_state": "supported"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "No explicit future allocation decision is stated in the supplied evidence.",
+          "requirement_id": "requirement:1711cd4aace9a2e36f2d847e4d81b9ce6340afba381b5b7071c9dadf03e8a922",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [],
+          "qualification": "The supplied records do not state the intent to test a tempting allocation claim.",
+          "requirement_id": "requirement:ef3b08303d73d043b7e90e02541af0931fd84c812cf7d87079607f6cbfebc090",
+          "support_state": "not_established"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+          ],
+          "qualification": "The financial statements clearly report the year ended 30 June 2024 and historical expenditure; a specific future allocation is not evidenced.",
+          "requirement_id": "requirement:48e3b10c9a6dde9f6e248f0a03780c9c222f38280b99d7eabb26d5d45dc89e41",
+          "support_state": "unresolved"
+        }
+      ],
+      "instance_id": "cg406:subject:d0b269be3d5d4b6db24d6d203637dfa5:SDC-0014",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "organisation": "THE TRUSTEE FOR The Benevolent Relief Fund",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+            "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89"
+          ],
+          "proposition_id": "proposition:4e0205561de7604cb4749026edd80b70045c8fb695f05163c700c0984b87c3c7",
+          "qualification": "The 2024 financial statements report charity contributions of 37,094,958 and the annual information statement reports the same grant-donation expenditure.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:2786c16be339546231abadaed862064497d09c1ca2183bf6c2c6115a85373870",
+          "qualification": "No evidence identifies a marginal allocation or an explicit future decision about where an additional allocation would go.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        }
+      ],
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr"
+      ],
+      "rejected_evidence_ids": [],
+      "selected_evidence_ids": [
+        "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+        "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767",
+        "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+      ]
+    }
+  ],
+  "semantic_score": "not assigned; reserved for Sol",
+  "status": "READY_FOR_SOL_CG406_V13_ADJUDICATION"
+}

@@ -1,0 +1,16 @@
+{
+  "note": "Repository regression-test invocation is recorded separately after this deterministic packet build.",
+  "schema": "charitygraph.gate3.fresh-holdout-provider-free-tests/v1",
+  "status": "PASS",
+  "structural_checks": {
+    "all_subjects_unique": true,
+    "catalogue_demand_signature_per_instance": true,
+    "cg405_overlap_empty": true,
+    "cg406_overlap_empty": true,
+    "each_stratum_has_two": true,
+    "provider_calls_zero": true,
+    "selected_count_is_36": true,
+    "selection_precedes_evidence_evaluation": true,
+    "source_acquisition_zero": true
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "charitygraph.cg406-v14-resume-verification/v1",
+  "prepared_run_hash": "da77187aa3fff0d59ef8931958f68b9bea7e88a716d0657dfc4a7c30ce8b5925",
+  "terminal_result_manifest_sha256": "9f8ae0fe0ff7841b9c1095677b0e7a4326eda7eed4f3f44d152193cd79eed0dd",
+  "requests_replayed_terminal": 12,
+  "provider_posts_on_resume": 0,
+  "standard_result_files_before": 12,
+  "standard_result_files_after": 12,
+  "additional_response_files": 0,
+  "maximum_observed_concurrency": 0,
+  "ambiguous_crossings": 0,
+  "automatic_or_semantic_retries": 0
+}

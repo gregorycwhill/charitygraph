@@ -1,0 +1,15 @@
+{
+  "non_semantic_mechanics_only": true,
+  "oracle_content_consulted": false,
+  "schema": "charitygraph.g3fresh36.deterministic-instantiation-procedure/v1",
+  "source_availability_consulted": false,
+  "steps": [
+    "Verify frozen selection SHA-256 and exact catalogue signature hash.",
+    "Copy exact catalogue fields and governed subject identity into a candidate specification.",
+    "Mark only an identically named required parameter 'subject' as resolved from frozen subject identity.",
+    "Carry catalogue scope, temporal, evidence, and missingness constraints without promoting them to concrete values.",
+    "List every remaining required parameter and required concrete proposition/referent/join/operation/time as unresolved.",
+    "Compute candidate identity from the complete candidate bytes.",
+    "Reject v1.4 request lowering unless all material fields are independently bound and a new frozen specification identity is issued."
+  ]
+}

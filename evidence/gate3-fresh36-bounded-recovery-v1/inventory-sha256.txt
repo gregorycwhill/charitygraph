@@ -1,0 +1,1 @@
+5527d35c247e910a3ffc43c5eb3e0178972ea2097a2b6f4b7c409be4d14279c2  artifact-inventory.json

@@ -1,0 +1,7 @@
+{
+  "conflicted_items": "PASS",
+  "empty_or_partial_to_negative_guard": "PASS_REJECTED",
+  "many_partial_items": "PASS",
+  "one_evidenced_item": "PASS",
+  "zero_evidence_missing": "PASS"
+}

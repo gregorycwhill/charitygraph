@@ -1,0 +1,2121 @@
+[
+  {
+    "abn": "52000399744",
+    "instance_id": "g3fresh-v1:subject:02649cdcb42049bb8dedd30f2333e150:SDC-C11:domain-11",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  },
+  {
+    "abn": "52000399744",
+    "instance_id": "g3fresh-v1:subject:02649cdcb42049bb8dedd30f2333e150:SDC-C11:domain-11",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  },
+  {
+    "abn": "52000399744",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:02649cdcb42049bb8dedd30f2333e150:SDC-C11:domain-11",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  },
+  {
+    "abn": "52000399744",
+    "instance_id": "g3fresh-v1:subject:02649cdcb42049bb8dedd30f2333e150:SDC-C11:domain-11",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  },
+  {
+    "abn": "52000399744",
+    "instance_id": "g3fresh-v1:subject:02649cdcb42049bb8dedd30f2333e150:SDC-C11:domain-11",
+    "origin": "none",
+    "source_family": "annual_report",
+    "state": "unavailable",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  },
+  {
+    "abn": "52000399744",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:02649cdcb42049bb8dedd30f2333e150:SDC-C11:domain-11",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  },
+  {
+    "abn": "52000399744",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:02649cdcb42049bb8dedd30f2333e150:SDC-C11:domain-11",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  },
+  {
+    "abn": "26164251245",
+    "instance_id": "g3fresh-v1:subject:0889b4decb854e71ab4784479ca95c03:SDC-C11:domain-10",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:0889b4decb854e71ab4784479ca95c03"
+  },
+  {
+    "abn": "26164251245",
+    "instance_id": "g3fresh-v1:subject:0889b4decb854e71ab4784479ca95c03:SDC-C11:domain-10",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:0889b4decb854e71ab4784479ca95c03"
+  },
+  {
+    "abn": "26164251245",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:0889b4decb854e71ab4784479ca95c03:SDC-C11:domain-10",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:0889b4decb854e71ab4784479ca95c03"
+  },
+  {
+    "abn": "26164251245",
+    "instance_id": "g3fresh-v1:subject:0889b4decb854e71ab4784479ca95c03:SDC-C11:domain-10",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:0889b4decb854e71ab4784479ca95c03"
+  },
+  {
+    "abn": "26164251245",
+    "instance_id": "g3fresh-v1:subject:0889b4decb854e71ab4784479ca95c03:SDC-C11:domain-10",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:0889b4decb854e71ab4784479ca95c03"
+  },
+  {
+    "abn": "26164251245",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:0889b4decb854e71ab4784479ca95c03:SDC-C11:domain-10",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:0889b4decb854e71ab4784479ca95c03"
+  },
+  {
+    "abn": "26164251245",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:0889b4decb854e71ab4784479ca95c03:SDC-C11:domain-10",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:0889b4decb854e71ab4784479ca95c03"
+  },
+  {
+    "abn": "52404606134",
+    "instance_id": "g3fresh-v1:subject:16fba76fde2242d5870835b18b4e8b8d:SDC-C03:domain-5",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d"
+  },
+  {
+    "abn": "52404606134",
+    "instance_id": "g3fresh-v1:subject:16fba76fde2242d5870835b18b4e8b8d:SDC-C03:domain-5",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d"
+  },
+  {
+    "abn": "52404606134",
+    "instance_id": "g3fresh-v1:subject:16fba76fde2242d5870835b18b4e8b8d:SDC-C03:domain-5",
+    "origin": "reused_existing",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d"
+  },
+  {
+    "abn": "52404606134",
+    "instance_id": "g3fresh-v1:subject:16fba76fde2242d5870835b18b4e8b8d:SDC-C03:domain-5",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d"
+  },
+  {
+    "abn": "52404606134",
+    "instance_id": "g3fresh-v1:subject:16fba76fde2242d5870835b18b4e8b8d:SDC-C03:domain-5",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d"
+  },
+  {
+    "abn": "52404606134",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:16fba76fde2242d5870835b18b4e8b8d:SDC-C03:domain-5",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d"
+  },
+  {
+    "abn": "52404606134",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:16fba76fde2242d5870835b18b4e8b8d:SDC-C03:domain-5",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d"
+  },
+  {
+    "abn": "33107782196",
+    "instance_id": "g3fresh-v1:subject:1823309bdd06417c9928033603cb6e39:SDC-C11:domain-9",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:1823309bdd06417c9928033603cb6e39"
+  },
+  {
+    "abn": "33107782196",
+    "instance_id": "g3fresh-v1:subject:1823309bdd06417c9928033603cb6e39:SDC-C11:domain-9",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:1823309bdd06417c9928033603cb6e39"
+  },
+  {
+    "abn": "33107782196",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:1823309bdd06417c9928033603cb6e39:SDC-C11:domain-9",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:1823309bdd06417c9928033603cb6e39"
+  },
+  {
+    "abn": "33107782196",
+    "instance_id": "g3fresh-v1:subject:1823309bdd06417c9928033603cb6e39:SDC-C11:domain-9",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:1823309bdd06417c9928033603cb6e39"
+  },
+  {
+    "abn": "33107782196",
+    "instance_id": "g3fresh-v1:subject:1823309bdd06417c9928033603cb6e39:SDC-C11:domain-9",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:1823309bdd06417c9928033603cb6e39"
+  },
+  {
+    "abn": "33107782196",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:1823309bdd06417c9928033603cb6e39:SDC-C11:domain-9",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:1823309bdd06417c9928033603cb6e39"
+  },
+  {
+    "abn": "33107782196",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:1823309bdd06417c9928033603cb6e39:SDC-C11:domain-9",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:1823309bdd06417c9928033603cb6e39"
+  },
+  {
+    "abn": "82147006639",
+    "instance_id": "g3fresh-v1:subject:1a9ec5de3fc043ff9226fb95a6cae31b:SDC-C08:domain-8",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+  },
+  {
+    "abn": "82147006639",
+    "instance_id": "g3fresh-v1:subject:1a9ec5de3fc043ff9226fb95a6cae31b:SDC-C08:domain-8",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+  },
+  {
+    "abn": "82147006639",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:1a9ec5de3fc043ff9226fb95a6cae31b:SDC-C08:domain-8",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+  },
+  {
+    "abn": "82147006639",
+    "instance_id": "g3fresh-v1:subject:1a9ec5de3fc043ff9226fb95a6cae31b:SDC-C08:domain-8",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+  },
+  {
+    "abn": "82147006639",
+    "instance_id": "g3fresh-v1:subject:1a9ec5de3fc043ff9226fb95a6cae31b:SDC-C08:domain-8",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+  },
+  {
+    "abn": "82147006639",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:1a9ec5de3fc043ff9226fb95a6cae31b:SDC-C08:domain-8",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+  },
+  {
+    "abn": "82147006639",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:1a9ec5de3fc043ff9226fb95a6cae31b:SDC-C08:domain-8",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+  },
+  {
+    "abn": "21006566972",
+    "instance_id": "g3fresh-v1:subject:238c896dfb534031be3483925fabf5c6:SDC-C11:domain-11",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:238c896dfb534031be3483925fabf5c6"
+  },
+  {
+    "abn": "21006566972",
+    "instance_id": "g3fresh-v1:subject:238c896dfb534031be3483925fabf5c6:SDC-C11:domain-11",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:238c896dfb534031be3483925fabf5c6"
+  },
+  {
+    "abn": "21006566972",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:238c896dfb534031be3483925fabf5c6:SDC-C11:domain-11",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:238c896dfb534031be3483925fabf5c6"
+  },
+  {
+    "abn": "21006566972",
+    "instance_id": "g3fresh-v1:subject:238c896dfb534031be3483925fabf5c6:SDC-C11:domain-11",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:238c896dfb534031be3483925fabf5c6"
+  },
+  {
+    "abn": "21006566972",
+    "instance_id": "g3fresh-v1:subject:238c896dfb534031be3483925fabf5c6:SDC-C11:domain-11",
+    "origin": "none",
+    "source_family": "annual_report",
+    "state": "unavailable",
+    "subject_id": "subject:238c896dfb534031be3483925fabf5c6"
+  },
+  {
+    "abn": "21006566972",
+    "binding": "bound",
+    "instance_id": "g3fresh-v1:subject:238c896dfb534031be3483925fabf5c6:SDC-C11:domain-11",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:238c896dfb534031be3483925fabf5c6"
+  },
+  {
+    "abn": "21006566972",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:238c896dfb534031be3483925fabf5c6:SDC-C11:domain-11",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:238c896dfb534031be3483925fabf5c6"
+  },
+  {
+    "abn": "65069482829",
+    "instance_id": "g3fresh-v1:subject:273e6f2b2bf449af9e821d27f0aa98a2:SDC-C15:domain-18",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:273e6f2b2bf449af9e821d27f0aa98a2"
+  },
+  {
+    "abn": "65069482829",
+    "instance_id": "g3fresh-v1:subject:273e6f2b2bf449af9e821d27f0aa98a2:SDC-C15:domain-18",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:273e6f2b2bf449af9e821d27f0aa98a2"
+  },
+  {
+    "abn": "65069482829",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:273e6f2b2bf449af9e821d27f0aa98a2:SDC-C15:domain-18",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:273e6f2b2bf449af9e821d27f0aa98a2"
+  },
+  {
+    "abn": "65069482829",
+    "instance_id": "g3fresh-v1:subject:273e6f2b2bf449af9e821d27f0aa98a2:SDC-C15:domain-18",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:273e6f2b2bf449af9e821d27f0aa98a2"
+  },
+  {
+    "abn": "65069482829",
+    "instance_id": "g3fresh-v1:subject:273e6f2b2bf449af9e821d27f0aa98a2:SDC-C15:domain-18",
+    "origin": "none",
+    "source_family": "annual_report",
+    "state": "unavailable",
+    "subject_id": "subject:273e6f2b2bf449af9e821d27f0aa98a2"
+  },
+  {
+    "abn": "65069482829",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:273e6f2b2bf449af9e821d27f0aa98a2:SDC-C15:domain-18",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:273e6f2b2bf449af9e821d27f0aa98a2"
+  },
+  {
+    "abn": "65069482829",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:273e6f2b2bf449af9e821d27f0aa98a2:SDC-C15:domain-18",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:273e6f2b2bf449af9e821d27f0aa98a2"
+  },
+  {
+    "abn": "54610124322",
+    "instance_id": "g3fresh-v1:subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa:SDC-C12:domain-15",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa"
+  },
+  {
+    "abn": "54610124322",
+    "instance_id": "g3fresh-v1:subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa:SDC-C12:domain-15",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa"
+  },
+  {
+    "abn": "54610124322",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa:SDC-C12:domain-15",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa"
+  },
+  {
+    "abn": "54610124322",
+    "instance_id": "g3fresh-v1:subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa:SDC-C12:domain-15",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "blocked",
+    "subject_id": "subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa"
+  },
+  {
+    "abn": "54610124322",
+    "instance_id": "g3fresh-v1:subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa:SDC-C12:domain-15",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa"
+  },
+  {
+    "abn": "54610124322",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa:SDC-C12:domain-15",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa"
+  },
+  {
+    "abn": "54610124322",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa:SDC-C12:domain-15",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa"
+  },
+  {
+    "abn": "38981887768",
+    "instance_id": "g3fresh-v1:subject:38be43a6a7824ca48d764c6aa837089b:SDC-C14:domain-17",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:38be43a6a7824ca48d764c6aa837089b"
+  },
+  {
+    "abn": "38981887768",
+    "instance_id": "g3fresh-v1:subject:38be43a6a7824ca48d764c6aa837089b:SDC-C14:domain-17",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:38be43a6a7824ca48d764c6aa837089b"
+  },
+  {
+    "abn": "38981887768",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:38be43a6a7824ca48d764c6aa837089b:SDC-C14:domain-17",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:38be43a6a7824ca48d764c6aa837089b"
+  },
+  {
+    "abn": "38981887768",
+    "instance_id": "g3fresh-v1:subject:38be43a6a7824ca48d764c6aa837089b:SDC-C14:domain-17",
+    "origin": "reused_existing",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:38be43a6a7824ca48d764c6aa837089b"
+  },
+  {
+    "abn": "38981887768",
+    "instance_id": "g3fresh-v1:subject:38be43a6a7824ca48d764c6aa837089b:SDC-C14:domain-17",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:38be43a6a7824ca48d764c6aa837089b"
+  },
+  {
+    "abn": "38981887768",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:38be43a6a7824ca48d764c6aa837089b:SDC-C14:domain-17",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:38be43a6a7824ca48d764c6aa837089b"
+  },
+  {
+    "abn": "38981887768",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:38be43a6a7824ca48d764c6aa837089b:SDC-C14:domain-17",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:38be43a6a7824ca48d764c6aa837089b"
+  },
+  {
+    "abn": "90952801237",
+    "instance_id": "g3fresh-v1:subject:3db262372d0c441892e590da23b19620:SDC-C10:domain-12",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:3db262372d0c441892e590da23b19620"
+  },
+  {
+    "abn": "90952801237",
+    "instance_id": "g3fresh-v1:subject:3db262372d0c441892e590da23b19620:SDC-C10:domain-12",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:3db262372d0c441892e590da23b19620"
+  },
+  {
+    "abn": "90952801237",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:3db262372d0c441892e590da23b19620:SDC-C10:domain-12",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:3db262372d0c441892e590da23b19620"
+  },
+  {
+    "abn": "90952801237",
+    "instance_id": "g3fresh-v1:subject:3db262372d0c441892e590da23b19620:SDC-C10:domain-12",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:3db262372d0c441892e590da23b19620"
+  },
+  {
+    "abn": "90952801237",
+    "instance_id": "g3fresh-v1:subject:3db262372d0c441892e590da23b19620:SDC-C10:domain-12",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:3db262372d0c441892e590da23b19620"
+  },
+  {
+    "abn": "90952801237",
+    "binding": "bound",
+    "instance_id": "g3fresh-v1:subject:3db262372d0c441892e590da23b19620:SDC-C10:domain-12",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:3db262372d0c441892e590da23b19620"
+  },
+  {
+    "abn": "90952801237",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:3db262372d0c441892e590da23b19620:SDC-C10:domain-12",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:3db262372d0c441892e590da23b19620"
+  },
+  {
+    "abn": "78053639115",
+    "instance_id": "g3fresh-v1:subject:404ef21919344b8b85003c1495a946d2:SDC-C10:domain-12",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:404ef21919344b8b85003c1495a946d2"
+  },
+  {
+    "abn": "78053639115",
+    "instance_id": "g3fresh-v1:subject:404ef21919344b8b85003c1495a946d2:SDC-C10:domain-12",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:404ef21919344b8b85003c1495a946d2"
+  },
+  {
+    "abn": "78053639115",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:404ef21919344b8b85003c1495a946d2:SDC-C10:domain-12",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:404ef21919344b8b85003c1495a946d2"
+  },
+  {
+    "abn": "78053639115",
+    "instance_id": "g3fresh-v1:subject:404ef21919344b8b85003c1495a946d2:SDC-C10:domain-12",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:404ef21919344b8b85003c1495a946d2"
+  },
+  {
+    "abn": "78053639115",
+    "instance_id": "g3fresh-v1:subject:404ef21919344b8b85003c1495a946d2:SDC-C10:domain-12",
+    "origin": "none",
+    "source_family": "annual_report",
+    "state": "unavailable",
+    "subject_id": "subject:404ef21919344b8b85003c1495a946d2"
+  },
+  {
+    "abn": "78053639115",
+    "binding": "bound",
+    "instance_id": "g3fresh-v1:subject:404ef21919344b8b85003c1495a946d2:SDC-C10:domain-12",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:404ef21919344b8b85003c1495a946d2"
+  },
+  {
+    "abn": "78053639115",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:404ef21919344b8b85003c1495a946d2:SDC-C10:domain-12",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:404ef21919344b8b85003c1495a946d2"
+  },
+  {
+    "abn": "87000001641",
+    "instance_id": "g3fresh-v1:subject:420e65d3e33d4127a1b61bd0567705b6:SDC-C05:domain-7",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:420e65d3e33d4127a1b61bd0567705b6"
+  },
+  {
+    "abn": "87000001641",
+    "instance_id": "g3fresh-v1:subject:420e65d3e33d4127a1b61bd0567705b6:SDC-C05:domain-7",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:420e65d3e33d4127a1b61bd0567705b6"
+  },
+  {
+    "abn": "87000001641",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:420e65d3e33d4127a1b61bd0567705b6:SDC-C05:domain-7",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:420e65d3e33d4127a1b61bd0567705b6"
+  },
+  {
+    "abn": "87000001641",
+    "instance_id": "g3fresh-v1:subject:420e65d3e33d4127a1b61bd0567705b6:SDC-C05:domain-7",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:420e65d3e33d4127a1b61bd0567705b6"
+  },
+  {
+    "abn": "87000001641",
+    "instance_id": "g3fresh-v1:subject:420e65d3e33d4127a1b61bd0567705b6:SDC-C05:domain-7",
+    "origin": "none",
+    "source_family": "annual_report",
+    "state": "unavailable",
+    "subject_id": "subject:420e65d3e33d4127a1b61bd0567705b6"
+  },
+  {
+    "abn": "87000001641",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:420e65d3e33d4127a1b61bd0567705b6:SDC-C05:domain-7",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:420e65d3e33d4127a1b61bd0567705b6"
+  },
+  {
+    "abn": "87000001641",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:420e65d3e33d4127a1b61bd0567705b6:SDC-C05:domain-7",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:420e65d3e33d4127a1b61bd0567705b6"
+  },
+  {
+    "abn": "94178965125",
+    "instance_id": "g3fresh-v1:subject:4709afffeced4a0a9534d4a4c0701f4c:SDC-C08:domain-6",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:4709afffeced4a0a9534d4a4c0701f4c"
+  },
+  {
+    "abn": "94178965125",
+    "instance_id": "g3fresh-v1:subject:4709afffeced4a0a9534d4a4c0701f4c:SDC-C08:domain-6",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:4709afffeced4a0a9534d4a4c0701f4c"
+  },
+  {
+    "abn": "94178965125",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:4709afffeced4a0a9534d4a4c0701f4c:SDC-C08:domain-6",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:4709afffeced4a0a9534d4a4c0701f4c"
+  },
+  {
+    "abn": "94178965125",
+    "instance_id": "g3fresh-v1:subject:4709afffeced4a0a9534d4a4c0701f4c:SDC-C08:domain-6",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:4709afffeced4a0a9534d4a4c0701f4c"
+  },
+  {
+    "abn": "94178965125",
+    "instance_id": "g3fresh-v1:subject:4709afffeced4a0a9534d4a4c0701f4c:SDC-C08:domain-6",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:4709afffeced4a0a9534d4a4c0701f4c"
+  },
+  {
+    "abn": "94178965125",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:4709afffeced4a0a9534d4a4c0701f4c:SDC-C08:domain-6",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:4709afffeced4a0a9534d4a4c0701f4c"
+  },
+  {
+    "abn": "94178965125",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:4709afffeced4a0a9534d4a4c0701f4c:SDC-C08:domain-6",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:4709afffeced4a0a9534d4a4c0701f4c"
+  },
+  {
+    "abn": "22617686905",
+    "instance_id": "g3fresh-v1:subject:48d316c9a283464cabef8394ae3f9811:SDC-C11:domain-9",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:48d316c9a283464cabef8394ae3f9811"
+  },
+  {
+    "abn": "22617686905",
+    "instance_id": "g3fresh-v1:subject:48d316c9a283464cabef8394ae3f9811:SDC-C11:domain-9",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:48d316c9a283464cabef8394ae3f9811"
+  },
+  {
+    "abn": "22617686905",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:48d316c9a283464cabef8394ae3f9811:SDC-C11:domain-9",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:48d316c9a283464cabef8394ae3f9811"
+  },
+  {
+    "abn": "22617686905",
+    "instance_id": "g3fresh-v1:subject:48d316c9a283464cabef8394ae3f9811:SDC-C11:domain-9",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:48d316c9a283464cabef8394ae3f9811"
+  },
+  {
+    "abn": "22617686905",
+    "instance_id": "g3fresh-v1:subject:48d316c9a283464cabef8394ae3f9811:SDC-C11:domain-9",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:48d316c9a283464cabef8394ae3f9811"
+  },
+  {
+    "abn": "22617686905",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:48d316c9a283464cabef8394ae3f9811:SDC-C11:domain-9",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:48d316c9a283464cabef8394ae3f9811"
+  },
+  {
+    "abn": "22617686905",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:48d316c9a283464cabef8394ae3f9811:SDC-C11:domain-9",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:48d316c9a283464cabef8394ae3f9811"
+  },
+  {
+    "abn": "65159324697",
+    "instance_id": "g3fresh-v1:subject:4b704545bc574fe5b2ad66528f3e41a2:SDC-C15:domain-18",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:4b704545bc574fe5b2ad66528f3e41a2"
+  },
+  {
+    "abn": "65159324697",
+    "instance_id": "g3fresh-v1:subject:4b704545bc574fe5b2ad66528f3e41a2:SDC-C15:domain-18",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:4b704545bc574fe5b2ad66528f3e41a2"
+  },
+  {
+    "abn": "65159324697",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:4b704545bc574fe5b2ad66528f3e41a2:SDC-C15:domain-18",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:4b704545bc574fe5b2ad66528f3e41a2"
+  },
+  {
+    "abn": "65159324697",
+    "instance_id": "g3fresh-v1:subject:4b704545bc574fe5b2ad66528f3e41a2:SDC-C15:domain-18",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:4b704545bc574fe5b2ad66528f3e41a2"
+  },
+  {
+    "abn": "65159324697",
+    "instance_id": "g3fresh-v1:subject:4b704545bc574fe5b2ad66528f3e41a2:SDC-C15:domain-18",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:4b704545bc574fe5b2ad66528f3e41a2"
+  },
+  {
+    "abn": "65159324697",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:4b704545bc574fe5b2ad66528f3e41a2:SDC-C15:domain-18",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:4b704545bc574fe5b2ad66528f3e41a2"
+  },
+  {
+    "abn": "65159324697",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:4b704545bc574fe5b2ad66528f3e41a2:SDC-C15:domain-18",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:4b704545bc574fe5b2ad66528f3e41a2"
+  },
+  {
+    "abn": "27076461360",
+    "instance_id": "g3fresh-v1:subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2:SDC-C10:domain-14",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2"
+  },
+  {
+    "abn": "27076461360",
+    "instance_id": "g3fresh-v1:subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2:SDC-C10:domain-14",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2"
+  },
+  {
+    "abn": "27076461360",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2:SDC-C10:domain-14",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2"
+  },
+  {
+    "abn": "27076461360",
+    "instance_id": "g3fresh-v1:subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2:SDC-C10:domain-14",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2"
+  },
+  {
+    "abn": "27076461360",
+    "instance_id": "g3fresh-v1:subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2:SDC-C10:domain-14",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2"
+  },
+  {
+    "abn": "27076461360",
+    "binding": "bound",
+    "instance_id": "g3fresh-v1:subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2:SDC-C10:domain-14",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2"
+  },
+  {
+    "abn": "27076461360",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2:SDC-C10:domain-14",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2"
+  },
+  {
+    "abn": "41069508398",
+    "instance_id": "g3fresh-v1:subject:5c664c0c90444ac6a3c3c8830e7760db:SDC-C08:domain-8",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:5c664c0c90444ac6a3c3c8830e7760db"
+  },
+  {
+    "abn": "41069508398",
+    "instance_id": "g3fresh-v1:subject:5c664c0c90444ac6a3c3c8830e7760db:SDC-C08:domain-8",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:5c664c0c90444ac6a3c3c8830e7760db"
+  },
+  {
+    "abn": "41069508398",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:5c664c0c90444ac6a3c3c8830e7760db:SDC-C08:domain-8",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:5c664c0c90444ac6a3c3c8830e7760db"
+  },
+  {
+    "abn": "41069508398",
+    "instance_id": "g3fresh-v1:subject:5c664c0c90444ac6a3c3c8830e7760db:SDC-C08:domain-8",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:5c664c0c90444ac6a3c3c8830e7760db"
+  },
+  {
+    "abn": "41069508398",
+    "instance_id": "g3fresh-v1:subject:5c664c0c90444ac6a3c3c8830e7760db:SDC-C08:domain-8",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:5c664c0c90444ac6a3c3c8830e7760db"
+  },
+  {
+    "abn": "41069508398",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:5c664c0c90444ac6a3c3c8830e7760db:SDC-C08:domain-8",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:5c664c0c90444ac6a3c3c8830e7760db"
+  },
+  {
+    "abn": "41069508398",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:5c664c0c90444ac6a3c3c8830e7760db:SDC-C08:domain-8",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:5c664c0c90444ac6a3c3c8830e7760db"
+  },
+  {
+    "abn": "57102400993",
+    "instance_id": "g3fresh-v1:subject:617528dfa51a4c548e2e744c6f828e65:SDC-C05:domain-7",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:617528dfa51a4c548e2e744c6f828e65"
+  },
+  {
+    "abn": "57102400993",
+    "instance_id": "g3fresh-v1:subject:617528dfa51a4c548e2e744c6f828e65:SDC-C05:domain-7",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:617528dfa51a4c548e2e744c6f828e65"
+  },
+  {
+    "abn": "57102400993",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:617528dfa51a4c548e2e744c6f828e65:SDC-C05:domain-7",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:617528dfa51a4c548e2e744c6f828e65"
+  },
+  {
+    "abn": "57102400993",
+    "instance_id": "g3fresh-v1:subject:617528dfa51a4c548e2e744c6f828e65:SDC-C05:domain-7",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "blocked",
+    "subject_id": "subject:617528dfa51a4c548e2e744c6f828e65"
+  },
+  {
+    "abn": "57102400993",
+    "instance_id": "g3fresh-v1:subject:617528dfa51a4c548e2e744c6f828e65:SDC-C05:domain-7",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:617528dfa51a4c548e2e744c6f828e65"
+  },
+  {
+    "abn": "57102400993",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:617528dfa51a4c548e2e744c6f828e65:SDC-C05:domain-7",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:617528dfa51a4c548e2e744c6f828e65"
+  },
+  {
+    "abn": "57102400993",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:617528dfa51a4c548e2e744c6f828e65:SDC-C05:domain-7",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:617528dfa51a4c548e2e744c6f828e65"
+  },
+  {
+    "abn": "39097054918",
+    "instance_id": "g3fresh-v1:subject:653b6ad45f784ac0be5dc126a4c37f90:SDC-C16:domain-4",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:653b6ad45f784ac0be5dc126a4c37f90"
+  },
+  {
+    "abn": "39097054918",
+    "instance_id": "g3fresh-v1:subject:653b6ad45f784ac0be5dc126a4c37f90:SDC-C16:domain-4",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:653b6ad45f784ac0be5dc126a4c37f90"
+  },
+  {
+    "abn": "39097054918",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:653b6ad45f784ac0be5dc126a4c37f90:SDC-C16:domain-4",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:653b6ad45f784ac0be5dc126a4c37f90"
+  },
+  {
+    "abn": "39097054918",
+    "instance_id": "g3fresh-v1:subject:653b6ad45f784ac0be5dc126a4c37f90:SDC-C16:domain-4",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:653b6ad45f784ac0be5dc126a4c37f90"
+  },
+  {
+    "abn": "39097054918",
+    "instance_id": "g3fresh-v1:subject:653b6ad45f784ac0be5dc126a4c37f90:SDC-C16:domain-4",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:653b6ad45f784ac0be5dc126a4c37f90"
+  },
+  {
+    "abn": "39097054918",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:653b6ad45f784ac0be5dc126a4c37f90:SDC-C16:domain-4",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:653b6ad45f784ac0be5dc126a4c37f90"
+  },
+  {
+    "abn": "39097054918",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:653b6ad45f784ac0be5dc126a4c37f90:SDC-C16:domain-4",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:653b6ad45f784ac0be5dc126a4c37f90"
+  },
+  {
+    "abn": "37646526132",
+    "instance_id": "g3fresh-v1:subject:6683c56dfd67439f9944e6004f4c5695:SDC-C14:domain-17",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:6683c56dfd67439f9944e6004f4c5695"
+  },
+  {
+    "abn": "37646526132",
+    "instance_id": "g3fresh-v1:subject:6683c56dfd67439f9944e6004f4c5695:SDC-C14:domain-17",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:6683c56dfd67439f9944e6004f4c5695"
+  },
+  {
+    "abn": "37646526132",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:6683c56dfd67439f9944e6004f4c5695:SDC-C14:domain-17",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:6683c56dfd67439f9944e6004f4c5695"
+  },
+  {
+    "abn": "37646526132",
+    "instance_id": "g3fresh-v1:subject:6683c56dfd67439f9944e6004f4c5695:SDC-C14:domain-17",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:6683c56dfd67439f9944e6004f4c5695"
+  },
+  {
+    "abn": "37646526132",
+    "instance_id": "g3fresh-v1:subject:6683c56dfd67439f9944e6004f4c5695:SDC-C14:domain-17",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:6683c56dfd67439f9944e6004f4c5695"
+  },
+  {
+    "abn": "37646526132",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:6683c56dfd67439f9944e6004f4c5695:SDC-C14:domain-17",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:6683c56dfd67439f9944e6004f4c5695"
+  },
+  {
+    "abn": "37646526132",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:6683c56dfd67439f9944e6004f4c5695:SDC-C14:domain-17",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:6683c56dfd67439f9944e6004f4c5695"
+  },
+  {
+    "abn": "23082732027",
+    "instance_id": "g3fresh-v1:subject:8e167e33641c490a87a88403898f3ffd:SDC-C19:domain-3",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:8e167e33641c490a87a88403898f3ffd"
+  },
+  {
+    "abn": "23082732027",
+    "instance_id": "g3fresh-v1:subject:8e167e33641c490a87a88403898f3ffd:SDC-C19:domain-3",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:8e167e33641c490a87a88403898f3ffd"
+  },
+  {
+    "abn": "23082732027",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:8e167e33641c490a87a88403898f3ffd:SDC-C19:domain-3",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:8e167e33641c490a87a88403898f3ffd"
+  },
+  {
+    "abn": "23082732027",
+    "instance_id": "g3fresh-v1:subject:8e167e33641c490a87a88403898f3ffd:SDC-C19:domain-3",
+    "origin": "reused_existing",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:8e167e33641c490a87a88403898f3ffd"
+  },
+  {
+    "abn": "23082732027",
+    "instance_id": "g3fresh-v1:subject:8e167e33641c490a87a88403898f3ffd:SDC-C19:domain-3",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:8e167e33641c490a87a88403898f3ffd"
+  },
+  {
+    "abn": "23082732027",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:8e167e33641c490a87a88403898f3ffd:SDC-C19:domain-3",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:8e167e33641c490a87a88403898f3ffd"
+  },
+  {
+    "abn": "23082732027",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:8e167e33641c490a87a88403898f3ffd:SDC-C19:domain-3",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:8e167e33641c490a87a88403898f3ffd"
+  },
+  {
+    "abn": "71004196230",
+    "instance_id": "g3fresh-v1:subject:8f50707ffe0b473bb618e9fe0a45106a:SDC-C01:domain-1",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:8f50707ffe0b473bb618e9fe0a45106a"
+  },
+  {
+    "abn": "71004196230",
+    "instance_id": "g3fresh-v1:subject:8f50707ffe0b473bb618e9fe0a45106a:SDC-C01:domain-1",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:8f50707ffe0b473bb618e9fe0a45106a"
+  },
+  {
+    "abn": "71004196230",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:8f50707ffe0b473bb618e9fe0a45106a:SDC-C01:domain-1",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:8f50707ffe0b473bb618e9fe0a45106a"
+  },
+  {
+    "abn": "71004196230",
+    "instance_id": "g3fresh-v1:subject:8f50707ffe0b473bb618e9fe0a45106a:SDC-C01:domain-1",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:8f50707ffe0b473bb618e9fe0a45106a"
+  },
+  {
+    "abn": "71004196230",
+    "instance_id": "g3fresh-v1:subject:8f50707ffe0b473bb618e9fe0a45106a:SDC-C01:domain-1",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:8f50707ffe0b473bb618e9fe0a45106a"
+  },
+  {
+    "abn": "71004196230",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:8f50707ffe0b473bb618e9fe0a45106a:SDC-C01:domain-1",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:8f50707ffe0b473bb618e9fe0a45106a"
+  },
+  {
+    "abn": "71004196230",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:8f50707ffe0b473bb618e9fe0a45106a:SDC-C01:domain-1",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:8f50707ffe0b473bb618e9fe0a45106a"
+  },
+  {
+    "abn": "53406142168",
+    "instance_id": "g3fresh-v1:subject:a7f2063199ab4206bc218bd4d873a1b4:SDC-C20:domain-13",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:a7f2063199ab4206bc218bd4d873a1b4"
+  },
+  {
+    "abn": "53406142168",
+    "instance_id": "g3fresh-v1:subject:a7f2063199ab4206bc218bd4d873a1b4:SDC-C20:domain-13",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:a7f2063199ab4206bc218bd4d873a1b4"
+  },
+  {
+    "abn": "53406142168",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:a7f2063199ab4206bc218bd4d873a1b4:SDC-C20:domain-13",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:a7f2063199ab4206bc218bd4d873a1b4"
+  },
+  {
+    "abn": "53406142168",
+    "instance_id": "g3fresh-v1:subject:a7f2063199ab4206bc218bd4d873a1b4:SDC-C20:domain-13",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:a7f2063199ab4206bc218bd4d873a1b4"
+  },
+  {
+    "abn": "53406142168",
+    "instance_id": "g3fresh-v1:subject:a7f2063199ab4206bc218bd4d873a1b4:SDC-C20:domain-13",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:a7f2063199ab4206bc218bd4d873a1b4"
+  },
+  {
+    "abn": "53406142168",
+    "instance_id": "g3fresh-v1:subject:a7f2063199ab4206bc218bd4d873a1b4:SDC-C20:domain-13",
+    "origin": "none",
+    "source_family": "wikipedia_wikimedia",
+    "state": "failed",
+    "subject_id": "subject:a7f2063199ab4206bc218bd4d873a1b4"
+  },
+  {
+    "abn": "53406142168",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:a7f2063199ab4206bc218bd4d873a1b4:SDC-C20:domain-13",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:a7f2063199ab4206bc218bd4d873a1b4"
+  },
+  {
+    "abn": "16641057338",
+    "instance_id": "g3fresh-v1:subject:aafdb7638e2f455a88fc60cd49fc47d5:SDC-C16:domain-4",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:aafdb7638e2f455a88fc60cd49fc47d5"
+  },
+  {
+    "abn": "16641057338",
+    "instance_id": "g3fresh-v1:subject:aafdb7638e2f455a88fc60cd49fc47d5:SDC-C16:domain-4",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:aafdb7638e2f455a88fc60cd49fc47d5"
+  },
+  {
+    "abn": "16641057338",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:aafdb7638e2f455a88fc60cd49fc47d5:SDC-C16:domain-4",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:aafdb7638e2f455a88fc60cd49fc47d5"
+  },
+  {
+    "abn": "16641057338",
+    "instance_id": "g3fresh-v1:subject:aafdb7638e2f455a88fc60cd49fc47d5:SDC-C16:domain-4",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:aafdb7638e2f455a88fc60cd49fc47d5"
+  },
+  {
+    "abn": "16641057338",
+    "instance_id": "g3fresh-v1:subject:aafdb7638e2f455a88fc60cd49fc47d5:SDC-C16:domain-4",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:aafdb7638e2f455a88fc60cd49fc47d5"
+  },
+  {
+    "abn": "16641057338",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:aafdb7638e2f455a88fc60cd49fc47d5:SDC-C16:domain-4",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:aafdb7638e2f455a88fc60cd49fc47d5"
+  },
+  {
+    "abn": "16641057338",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:aafdb7638e2f455a88fc60cd49fc47d5:SDC-C16:domain-4",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:aafdb7638e2f455a88fc60cd49fc47d5"
+  },
+  {
+    "abn": "71595544058",
+    "instance_id": "g3fresh-v1:subject:b09e07959e924badbfed30df307d3fc2:SDC-C10:domain-14",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:b09e07959e924badbfed30df307d3fc2"
+  },
+  {
+    "abn": "71595544058",
+    "instance_id": "g3fresh-v1:subject:b09e07959e924badbfed30df307d3fc2:SDC-C10:domain-14",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:b09e07959e924badbfed30df307d3fc2"
+  },
+  {
+    "abn": "71595544058",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:b09e07959e924badbfed30df307d3fc2:SDC-C10:domain-14",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:b09e07959e924badbfed30df307d3fc2"
+  },
+  {
+    "abn": "71595544058",
+    "instance_id": "g3fresh-v1:subject:b09e07959e924badbfed30df307d3fc2:SDC-C10:domain-14",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:b09e07959e924badbfed30df307d3fc2"
+  },
+  {
+    "abn": "71595544058",
+    "instance_id": "g3fresh-v1:subject:b09e07959e924badbfed30df307d3fc2:SDC-C10:domain-14",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:b09e07959e924badbfed30df307d3fc2"
+  },
+  {
+    "abn": "71595544058",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:b09e07959e924badbfed30df307d3fc2:SDC-C10:domain-14",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:b09e07959e924badbfed30df307d3fc2"
+  },
+  {
+    "abn": "71595544058",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:b09e07959e924badbfed30df307d3fc2:SDC-C10:domain-14",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:b09e07959e924badbfed30df307d3fc2"
+  },
+  {
+    "abn": "15190821561",
+    "instance_id": "g3fresh-v1:subject:bd56b98c417c40f2beb20c5bccffed23:SDC-C03:domain-2",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:bd56b98c417c40f2beb20c5bccffed23"
+  },
+  {
+    "abn": "15190821561",
+    "instance_id": "g3fresh-v1:subject:bd56b98c417c40f2beb20c5bccffed23:SDC-C03:domain-2",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:bd56b98c417c40f2beb20c5bccffed23"
+  },
+  {
+    "abn": "15190821561",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:bd56b98c417c40f2beb20c5bccffed23:SDC-C03:domain-2",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:bd56b98c417c40f2beb20c5bccffed23"
+  },
+  {
+    "abn": "15190821561",
+    "instance_id": "g3fresh-v1:subject:bd56b98c417c40f2beb20c5bccffed23:SDC-C03:domain-2",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:bd56b98c417c40f2beb20c5bccffed23"
+  },
+  {
+    "abn": "15190821561",
+    "instance_id": "g3fresh-v1:subject:bd56b98c417c40f2beb20c5bccffed23:SDC-C03:domain-2",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:bd56b98c417c40f2beb20c5bccffed23"
+  },
+  {
+    "abn": "15190821561",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:bd56b98c417c40f2beb20c5bccffed23:SDC-C03:domain-2",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:bd56b98c417c40f2beb20c5bccffed23"
+  },
+  {
+    "abn": "15190821561",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:bd56b98c417c40f2beb20c5bccffed23:SDC-C03:domain-2",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:bd56b98c417c40f2beb20c5bccffed23"
+  },
+  {
+    "abn": "59135483055",
+    "instance_id": "g3fresh-v1:subject:c33428aa23d34d618eccbd3c59068e84:SDC-C03:domain-5",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:c33428aa23d34d618eccbd3c59068e84"
+  },
+  {
+    "abn": "59135483055",
+    "instance_id": "g3fresh-v1:subject:c33428aa23d34d618eccbd3c59068e84:SDC-C03:domain-5",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:c33428aa23d34d618eccbd3c59068e84"
+  },
+  {
+    "abn": "59135483055",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:c33428aa23d34d618eccbd3c59068e84:SDC-C03:domain-5",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:c33428aa23d34d618eccbd3c59068e84"
+  },
+  {
+    "abn": "59135483055",
+    "instance_id": "g3fresh-v1:subject:c33428aa23d34d618eccbd3c59068e84:SDC-C03:domain-5",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "blocked",
+    "subject_id": "subject:c33428aa23d34d618eccbd3c59068e84"
+  },
+  {
+    "abn": "59135483055",
+    "instance_id": "g3fresh-v1:subject:c33428aa23d34d618eccbd3c59068e84:SDC-C03:domain-5",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:c33428aa23d34d618eccbd3c59068e84"
+  },
+  {
+    "abn": "59135483055",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:c33428aa23d34d618eccbd3c59068e84:SDC-C03:domain-5",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:c33428aa23d34d618eccbd3c59068e84"
+  },
+  {
+    "abn": "59135483055",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:c33428aa23d34d618eccbd3c59068e84:SDC-C03:domain-5",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:c33428aa23d34d618eccbd3c59068e84"
+  },
+  {
+    "abn": "96723184640",
+    "instance_id": "g3fresh-v1:subject:c88b94d76f6b4857ac278acf15f17519:SDC-C08:domain-6",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:c88b94d76f6b4857ac278acf15f17519"
+  },
+  {
+    "abn": "96723184640",
+    "instance_id": "g3fresh-v1:subject:c88b94d76f6b4857ac278acf15f17519:SDC-C08:domain-6",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:c88b94d76f6b4857ac278acf15f17519"
+  },
+  {
+    "abn": "96723184640",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:c88b94d76f6b4857ac278acf15f17519:SDC-C08:domain-6",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:c88b94d76f6b4857ac278acf15f17519"
+  },
+  {
+    "abn": "96723184640",
+    "instance_id": "g3fresh-v1:subject:c88b94d76f6b4857ac278acf15f17519:SDC-C08:domain-6",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:c88b94d76f6b4857ac278acf15f17519"
+  },
+  {
+    "abn": "96723184640",
+    "instance_id": "g3fresh-v1:subject:c88b94d76f6b4857ac278acf15f17519:SDC-C08:domain-6",
+    "origin": "none",
+    "source_family": "annual_report",
+    "state": "unavailable",
+    "subject_id": "subject:c88b94d76f6b4857ac278acf15f17519"
+  },
+  {
+    "abn": "96723184640",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:c88b94d76f6b4857ac278acf15f17519:SDC-C08:domain-6",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:c88b94d76f6b4857ac278acf15f17519"
+  },
+  {
+    "abn": "96723184640",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:c88b94d76f6b4857ac278acf15f17519:SDC-C08:domain-6",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:c88b94d76f6b4857ac278acf15f17519"
+  },
+  {
+    "abn": "30157737329",
+    "instance_id": "g3fresh-v1:subject:c8974e93d66844d99882b2851259114d:SDC-C03:domain-2",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:c8974e93d66844d99882b2851259114d"
+  },
+  {
+    "abn": "30157737329",
+    "instance_id": "g3fresh-v1:subject:c8974e93d66844d99882b2851259114d:SDC-C03:domain-2",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:c8974e93d66844d99882b2851259114d"
+  },
+  {
+    "abn": "30157737329",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:c8974e93d66844d99882b2851259114d:SDC-C03:domain-2",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:c8974e93d66844d99882b2851259114d"
+  },
+  {
+    "abn": "30157737329",
+    "instance_id": "g3fresh-v1:subject:c8974e93d66844d99882b2851259114d:SDC-C03:domain-2",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:c8974e93d66844d99882b2851259114d"
+  },
+  {
+    "abn": "30157737329",
+    "instance_id": "g3fresh-v1:subject:c8974e93d66844d99882b2851259114d:SDC-C03:domain-2",
+    "origin": "none",
+    "source_family": "annual_report",
+    "state": "unavailable",
+    "subject_id": "subject:c8974e93d66844d99882b2851259114d"
+  },
+  {
+    "abn": "30157737329",
+    "instance_id": "g3fresh-v1:subject:c8974e93d66844d99882b2851259114d:SDC-C03:domain-2",
+    "origin": "none",
+    "source_family": "wikipedia_wikimedia",
+    "state": "failed",
+    "subject_id": "subject:c8974e93d66844d99882b2851259114d"
+  },
+  {
+    "abn": "30157737329",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:c8974e93d66844d99882b2851259114d:SDC-C03:domain-2",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:c8974e93d66844d99882b2851259114d"
+  },
+  {
+    "abn": "70388962804",
+    "instance_id": "g3fresh-v1:subject:d38d7981a6064ea5b93a756b35f4b4cd:SDC-C13:domain-16",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:d38d7981a6064ea5b93a756b35f4b4cd"
+  },
+  {
+    "abn": "70388962804",
+    "instance_id": "g3fresh-v1:subject:d38d7981a6064ea5b93a756b35f4b4cd:SDC-C13:domain-16",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:d38d7981a6064ea5b93a756b35f4b4cd"
+  },
+  {
+    "abn": "70388962804",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:d38d7981a6064ea5b93a756b35f4b4cd:SDC-C13:domain-16",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:d38d7981a6064ea5b93a756b35f4b4cd"
+  },
+  {
+    "abn": "70388962804",
+    "instance_id": "g3fresh-v1:subject:d38d7981a6064ea5b93a756b35f4b4cd:SDC-C13:domain-16",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:d38d7981a6064ea5b93a756b35f4b4cd"
+  },
+  {
+    "abn": "70388962804",
+    "instance_id": "g3fresh-v1:subject:d38d7981a6064ea5b93a756b35f4b4cd:SDC-C13:domain-16",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:d38d7981a6064ea5b93a756b35f4b4cd"
+  },
+  {
+    "abn": "70388962804",
+    "instance_id": "g3fresh-v1:subject:d38d7981a6064ea5b93a756b35f4b4cd:SDC-C13:domain-16",
+    "origin": "none",
+    "source_family": "wikipedia_wikimedia",
+    "state": "failed",
+    "subject_id": "subject:d38d7981a6064ea5b93a756b35f4b4cd"
+  },
+  {
+    "abn": "70388962804",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:d38d7981a6064ea5b93a756b35f4b4cd:SDC-C13:domain-16",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:d38d7981a6064ea5b93a756b35f4b4cd"
+  },
+  {
+    "abn": "56190972059",
+    "instance_id": "g3fresh-v1:subject:d4e9beaf947041f493a411dc121e94a9:SDC-C13:domain-16",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:d4e9beaf947041f493a411dc121e94a9"
+  },
+  {
+    "abn": "56190972059",
+    "instance_id": "g3fresh-v1:subject:d4e9beaf947041f493a411dc121e94a9:SDC-C13:domain-16",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:d4e9beaf947041f493a411dc121e94a9"
+  },
+  {
+    "abn": "56190972059",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:d4e9beaf947041f493a411dc121e94a9:SDC-C13:domain-16",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:d4e9beaf947041f493a411dc121e94a9"
+  },
+  {
+    "abn": "56190972059",
+    "instance_id": "g3fresh-v1:subject:d4e9beaf947041f493a411dc121e94a9:SDC-C13:domain-16",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:d4e9beaf947041f493a411dc121e94a9"
+  },
+  {
+    "abn": "56190972059",
+    "instance_id": "g3fresh-v1:subject:d4e9beaf947041f493a411dc121e94a9:SDC-C13:domain-16",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:d4e9beaf947041f493a411dc121e94a9"
+  },
+  {
+    "abn": "56190972059",
+    "instance_id": "g3fresh-v1:subject:d4e9beaf947041f493a411dc121e94a9:SDC-C13:domain-16",
+    "origin": "none",
+    "source_family": "wikipedia_wikimedia",
+    "state": "failed",
+    "subject_id": "subject:d4e9beaf947041f493a411dc121e94a9"
+  },
+  {
+    "abn": "56190972059",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:d4e9beaf947041f493a411dc121e94a9:SDC-C13:domain-16",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:d4e9beaf947041f493a411dc121e94a9"
+  },
+  {
+    "abn": "12004251423",
+    "instance_id": "g3fresh-v1:subject:d5096a9d6a5f4a6aa90c0e11856b4d6b:SDC-C11:domain-10",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:d5096a9d6a5f4a6aa90c0e11856b4d6b"
+  },
+  {
+    "abn": "12004251423",
+    "instance_id": "g3fresh-v1:subject:d5096a9d6a5f4a6aa90c0e11856b4d6b:SDC-C11:domain-10",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:d5096a9d6a5f4a6aa90c0e11856b4d6b"
+  },
+  {
+    "abn": "12004251423",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:d5096a9d6a5f4a6aa90c0e11856b4d6b:SDC-C11:domain-10",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:d5096a9d6a5f4a6aa90c0e11856b4d6b"
+  },
+  {
+    "abn": "12004251423",
+    "instance_id": "g3fresh-v1:subject:d5096a9d6a5f4a6aa90c0e11856b4d6b:SDC-C11:domain-10",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:d5096a9d6a5f4a6aa90c0e11856b4d6b"
+  },
+  {
+    "abn": "12004251423",
+    "instance_id": "g3fresh-v1:subject:d5096a9d6a5f4a6aa90c0e11856b4d6b:SDC-C11:domain-10",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:d5096a9d6a5f4a6aa90c0e11856b4d6b"
+  },
+  {
+    "abn": "12004251423",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:d5096a9d6a5f4a6aa90c0e11856b4d6b:SDC-C11:domain-10",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:d5096a9d6a5f4a6aa90c0e11856b4d6b"
+  },
+  {
+    "abn": "12004251423",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:d5096a9d6a5f4a6aa90c0e11856b4d6b:SDC-C11:domain-10",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:d5096a9d6a5f4a6aa90c0e11856b4d6b"
+  },
+  {
+    "abn": "15652292423",
+    "instance_id": "g3fresh-v1:subject:d524da9cfe8742509f62bd9c2d3124b8:SDC-C01:domain-1",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:d524da9cfe8742509f62bd9c2d3124b8"
+  },
+  {
+    "abn": "15652292423",
+    "instance_id": "g3fresh-v1:subject:d524da9cfe8742509f62bd9c2d3124b8:SDC-C01:domain-1",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:d524da9cfe8742509f62bd9c2d3124b8"
+  },
+  {
+    "abn": "15652292423",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:d524da9cfe8742509f62bd9c2d3124b8:SDC-C01:domain-1",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:d524da9cfe8742509f62bd9c2d3124b8"
+  },
+  {
+    "abn": "15652292423",
+    "instance_id": "g3fresh-v1:subject:d524da9cfe8742509f62bd9c2d3124b8:SDC-C01:domain-1",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:d524da9cfe8742509f62bd9c2d3124b8"
+  },
+  {
+    "abn": "15652292423",
+    "instance_id": "g3fresh-v1:subject:d524da9cfe8742509f62bd9c2d3124b8:SDC-C01:domain-1",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:d524da9cfe8742509f62bd9c2d3124b8"
+  },
+  {
+    "abn": "15652292423",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:d524da9cfe8742509f62bd9c2d3124b8:SDC-C01:domain-1",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:d524da9cfe8742509f62bd9c2d3124b8"
+  },
+  {
+    "abn": "15652292423",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:d524da9cfe8742509f62bd9c2d3124b8:SDC-C01:domain-1",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:d524da9cfe8742509f62bd9c2d3124b8"
+  },
+  {
+    "abn": "47002684737",
+    "instance_id": "g3fresh-v1:subject:eb8bfa0058a64e24880c2e8ef403c709:SDC-C20:domain-13",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:eb8bfa0058a64e24880c2e8ef403c709"
+  },
+  {
+    "abn": "47002684737",
+    "instance_id": "g3fresh-v1:subject:eb8bfa0058a64e24880c2e8ef403c709:SDC-C20:domain-13",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:eb8bfa0058a64e24880c2e8ef403c709"
+  },
+  {
+    "abn": "47002684737",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:eb8bfa0058a64e24880c2e8ef403c709:SDC-C20:domain-13",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:eb8bfa0058a64e24880c2e8ef403c709"
+  },
+  {
+    "abn": "47002684737",
+    "instance_id": "g3fresh-v1:subject:eb8bfa0058a64e24880c2e8ef403c709:SDC-C20:domain-13",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:eb8bfa0058a64e24880c2e8ef403c709"
+  },
+  {
+    "abn": "47002684737",
+    "instance_id": "g3fresh-v1:subject:eb8bfa0058a64e24880c2e8ef403c709:SDC-C20:domain-13",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:eb8bfa0058a64e24880c2e8ef403c709"
+  },
+  {
+    "abn": "47002684737",
+    "binding": "bound",
+    "instance_id": "g3fresh-v1:subject:eb8bfa0058a64e24880c2e8ef403c709:SDC-C20:domain-13",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:eb8bfa0058a64e24880c2e8ef403c709"
+  },
+  {
+    "abn": "47002684737",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:eb8bfa0058a64e24880c2e8ef403c709:SDC-C20:domain-13",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:eb8bfa0058a64e24880c2e8ef403c709"
+  },
+  {
+    "abn": "80009663478",
+    "instance_id": "g3fresh-v1:subject:ee7cec12f0bc4684ac4d39d7db0b1f41:SDC-C19:domain-3",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:ee7cec12f0bc4684ac4d39d7db0b1f41"
+  },
+  {
+    "abn": "80009663478",
+    "instance_id": "g3fresh-v1:subject:ee7cec12f0bc4684ac4d39d7db0b1f41:SDC-C19:domain-3",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:ee7cec12f0bc4684ac4d39d7db0b1f41"
+  },
+  {
+    "abn": "80009663478",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:ee7cec12f0bc4684ac4d39d7db0b1f41:SDC-C19:domain-3",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:ee7cec12f0bc4684ac4d39d7db0b1f41"
+  },
+  {
+    "abn": "80009663478",
+    "instance_id": "g3fresh-v1:subject:ee7cec12f0bc4684ac4d39d7db0b1f41:SDC-C19:domain-3",
+    "origin": "newly_acquired",
+    "source_family": "official_website",
+    "state": "acquired_available",
+    "subject_id": "subject:ee7cec12f0bc4684ac4d39d7db0b1f41"
+  },
+  {
+    "abn": "80009663478",
+    "instance_id": "g3fresh-v1:subject:ee7cec12f0bc4684ac4d39d7db0b1f41:SDC-C19:domain-3",
+    "origin": "newly_acquired",
+    "source_family": "annual_report",
+    "state": "acquired_available",
+    "subject_id": "subject:ee7cec12f0bc4684ac4d39d7db0b1f41"
+  },
+  {
+    "abn": "80009663478",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:ee7cec12f0bc4684ac4d39d7db0b1f41:SDC-C19:domain-3",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:ee7cec12f0bc4684ac4d39d7db0b1f41"
+  },
+  {
+    "abn": "80009663478",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:ee7cec12f0bc4684ac4d39d7db0b1f41:SDC-C19:domain-3",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:ee7cec12f0bc4684ac4d39d7db0b1f41"
+  },
+  {
+    "abn": "51116463846",
+    "instance_id": "g3fresh-v1:subject:f01bc09f18df418ea31607b0ff4c38b0:SDC-C12:domain-15",
+    "origin": "reused_existing",
+    "source_family": "acnc_register",
+    "state": "acquired_available",
+    "subject_id": "subject:f01bc09f18df418ea31607b0ff4c38b0"
+  },
+  {
+    "abn": "51116463846",
+    "instance_id": "g3fresh-v1:subject:f01bc09f18df418ea31607b0ff4c38b0:SDC-C12:domain-15",
+    "origin": "reused_existing",
+    "source_family": "acnc_ais_bundle",
+    "state": "acquired_available",
+    "subject_id": "subject:f01bc09f18df418ea31607b0ff4c38b0"
+  },
+  {
+    "abn": "51116463846",
+    "dgr_interpretation": "deferred_source_native_only",
+    "instance_id": "g3fresh-v1:subject:f01bc09f18df418ea31607b0ff4c38b0:SDC-C12:domain-15",
+    "origin": "newly_acquired",
+    "source_family": "ato_abr_dgr",
+    "state": "acquired_available",
+    "subject_id": "subject:f01bc09f18df418ea31607b0ff4c38b0"
+  },
+  {
+    "abn": "51116463846",
+    "instance_id": "g3fresh-v1:subject:f01bc09f18df418ea31607b0ff4c38b0:SDC-C12:domain-15",
+    "origin": "none",
+    "source_family": "official_website",
+    "state": "attempted_unavailable",
+    "subject_id": "subject:f01bc09f18df418ea31607b0ff4c38b0"
+  },
+  {
+    "abn": "51116463846",
+    "instance_id": "g3fresh-v1:subject:f01bc09f18df418ea31607b0ff4c38b0:SDC-C12:domain-15",
+    "origin": "none",
+    "source_family": "annual_report",
+    "state": "unavailable",
+    "subject_id": "subject:f01bc09f18df418ea31607b0ff4c38b0"
+  },
+  {
+    "abn": "51116463846",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:f01bc09f18df418ea31607b0ff4c38b0:SDC-C12:domain-15",
+    "origin": "newly_acquired",
+    "source_family": "wikipedia_wikimedia",
+    "state": "acquired_available",
+    "subject_id": "subject:f01bc09f18df418ea31607b0ff4c38b0"
+  },
+  {
+    "abn": "51116463846",
+    "binding": "no_bound_record",
+    "instance_id": "g3fresh-v1:subject:f01bc09f18df418ea31607b0ff4c38b0:SDC-C12:domain-15",
+    "origin": "newly_acquired",
+    "source_family": "pfra",
+    "state": "acquired_available",
+    "subject_id": "subject:f01bc09f18df418ea31607b0ff4c38b0"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "schema": "charitygraph.cg406-v13-resume-verification/v1",
+  "execution_prepared_run_hash": "ad811d779b2e014846437f8745074aaadb2abb1f7f9047140003cda7172fbc39",
+  "terminal_rows_replayed": 12,
+  "provider_posts": 0,
+  "transport_retries": 0,
+  "max_observed_concurrency": 0,
+  "ambiguous_crossings": 0,
+  "unattempted": 0,
+  "result_manifest_file_sha256_before_and_after": "a75e0eaabdfc472755082615ad73b1b108544ae58e0793d4fd7a64b375850505",
+  "terminal_result_ledger_sha256_before_and_after": "40fc16c0af979992ff7c2f10df1e238da645456fb26bd720d5fd98cf039c3cac",
+  "conclusion": "The coordinator replayed existing durable terminal receipts only. No provider request was sent and no first response was changed."
+}

@@ -1,0 +1,13 @@
+{
+  "pre_rights_mechanically_admitted_records": 161,
+  "preserved_states": [
+    "acquisition",
+    "representation",
+    "subject_binding",
+    "provider_transmission_rights_pending"
+  ],
+  "schema": "charitygraph.g3fresh36.evidence-corpus-continuity/v1",
+  "source_content_consulted_by_specification_compiler": false,
+  "source_universe_v1_changed": false,
+  "statement": "The candidate-demand compiler accepts only frozen selection and catalogue data. It does not use evidence corpus contents or availability to choose specification parameters."
+}

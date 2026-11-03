@@ -1,0 +1,51 @@
+{
+  "demand_pool": {
+    "catalogue_field": "north_star_domains",
+    "catalogue_sha256": "c5b25dc03395faaeb3c813daf0bd4df62b208e814d7a81b5317ee32fd2be3762",
+    "ranking": "for each stratum d, ascending SHA-256(seed | 'demand' | d | demand_id); select first eligible definition containing d",
+    "terminology_audit": "The canonical catalogue does not expose a primary_domain field. This packet predeclares strata 1 through 18 over north_star_domains; it does not invent a new catalogue classification."
+  },
+  "pairing": "ranked selected subjects in order; positions 1-2 -> domain 1, 3-4 -> domain 2, …, 35-36 -> domain 18",
+  "prohibited_inputs": [
+    "source body or representation text",
+    "provider response",
+    "oracle content",
+    "expected answer",
+    "CG406 result classification",
+    "semantic development diagnostic"
+  ],
+  "redistribution_if_short": "If fewer than two instances can be formed for a stratum, fill in ascending domain number using an unfilled catalogue-covered stratum with available eligible subjects; record the shortage. If total <24, stop without freezing a runnable holdout.",
+  "schema": "charitygraph.gate3.fresh-holdout-selection-algorithm/v1",
+  "seed": "CG-G3-FRESH-INDEPENDENT-SEMANTIC-HOLDOUT-2026-10-18-V1",
+  "subject_pool": {
+    "eligibility": "unique governed ACNC identity binding; excluded from all supplied current Gate-3 semantic exposure ledgers",
+    "identity_map_sha256": "b58e7bd66a1ca33e7ec8165766a8532a631cd1b15a49397c6bff164b2caee44a",
+    "input_subject_count": 100,
+    "ranking": "ascending SHA-256(seed | 'subject' | subject_id); select first 36"
+  },
+  "target": {
+    "domain_strata": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ],
+    "instances": 36,
+    "instances_per_domain": 2,
+    "minimum_acceptable_instances": 24
+  }
+}

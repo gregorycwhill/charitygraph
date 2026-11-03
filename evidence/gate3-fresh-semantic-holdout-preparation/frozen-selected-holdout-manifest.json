@@ -1,0 +1,2708 @@
+{
+  "baseline_sha256": "0d772eea76449b08cae3e2ca2b82f2cbe594670dc0b6c49d9fda361f39811594",
+  "domain_distribution": {
+    "1": 2,
+    "10": 2,
+    "11": 2,
+    "12": 2,
+    "13": 2,
+    "14": 2,
+    "15": 2,
+    "16": 2,
+    "17": 2,
+    "18": 2,
+    "2": 2,
+    "3": 2,
+    "4": 2,
+    "5": 2,
+    "6": 2,
+    "7": 2,
+    "8": 2,
+    "9": 2
+  },
+  "instances": [
+    {
+      "demand_definition_id": "SDC-C01",
+      "domain_stratum": 1,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:d524da9cfe8742509f62bd9c2d3124b8:SDC-C01:domain-1",
+      "selection_ordinal": 1,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "legal entity",
+          "program",
+          "service",
+          "appeal",
+          "source record"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "a subject candidate and reporting scope are specified"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Subject and scope stack",
+          "INTEGRATED_PRODUCT_AND_DATA_MODEL.md"
+        ],
+        "evidence_role_expectations": [
+          "identity authority",
+          "registry or first-party scope statement"
+        ],
+        "family": "identity",
+        "id": "SDC-C01",
+        "missingness_cautions": "No record is not proof that the subject or identity is absent.",
+        "optional_parameters": [
+          "jurisdiction",
+          "as_of_date"
+        ],
+        "positive_proposition": "Which subject and reporting scope does this record evidence?",
+        "required_parameters": [
+          "subject",
+          "scope"
+        ],
+        "scope_semantics": "Entity, group, program or record scope must be explicit.",
+        "semantic_definition": "Resolve the legal or operating subject and reporting scope used by a proposition.",
+        "semantic_signature_sha256": "719cf7c699d0c6ce7652c7e7044422e67eb767a37273b8086181c65286977f6f",
+        "short_name": "identity_and_scope",
+        "temporal_semantics": "Identity and scope are valid at a stated time."
+      },
+      "semantic_signature_sha256": "719cf7c699d0c6ce7652c7e7044422e67eb767a37273b8086181c65286977f6f",
+      "subject": {
+        "abn": "15652292423",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "THE NORTH FOUNDATION (HEALTH PROMOTION CHARITY) LIMITED",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:fbea1fab64e07af88c66ada2b5c5789275b518e006353bb4248d1842c73d53ca",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:d524da9cfe8742509f62bd9c2d3124b8"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C01",
+      "domain_stratum": 1,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:8f50707ffe0b473bb618e9fe0a45106a:SDC-C01:domain-1",
+      "selection_ordinal": 2,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "legal entity",
+          "program",
+          "service",
+          "appeal",
+          "source record"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "a subject candidate and reporting scope are specified"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Subject and scope stack",
+          "INTEGRATED_PRODUCT_AND_DATA_MODEL.md"
+        ],
+        "evidence_role_expectations": [
+          "identity authority",
+          "registry or first-party scope statement"
+        ],
+        "family": "identity",
+        "id": "SDC-C01",
+        "missingness_cautions": "No record is not proof that the subject or identity is absent.",
+        "optional_parameters": [
+          "jurisdiction",
+          "as_of_date"
+        ],
+        "positive_proposition": "Which subject and reporting scope does this record evidence?",
+        "required_parameters": [
+          "subject",
+          "scope"
+        ],
+        "scope_semantics": "Entity, group, program or record scope must be explicit.",
+        "semantic_definition": "Resolve the legal or operating subject and reporting scope used by a proposition.",
+        "semantic_signature_sha256": "719cf7c699d0c6ce7652c7e7044422e67eb767a37273b8086181c65286977f6f",
+        "short_name": "identity_and_scope",
+        "temporal_semantics": "Identity and scope are valid at a stated time."
+      },
+      "semantic_signature_sha256": "719cf7c699d0c6ce7652c7e7044422e67eb767a37273b8086181c65286977f6f",
+      "subject": {
+        "abn": "71004196230",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Royal Flying Doctor Service Of Australia (Victorian Section)",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:d8f9b3a6795ccabff0eb373cf8ea32202364711acd22ca3570eb7c1e681e1f15",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:8f50707ffe0b473bb618e9fe0a45106a"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C03",
+      "domain_stratum": 2,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:bd56b98c417c40f2beb20c5bccffed23:SDC-C03:domain-2",
+      "selection_ordinal": 3,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "program",
+          "service"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "purpose proposition is requested",
+          "subject statement is in scope"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Purpose / cause",
+          "DOMAIN_PROFILE_INDEX.md#Purpose, causes, beneficiaries and public goals"
+        ],
+        "evidence_role_expectations": [
+          "first-party purpose statement",
+          "governed classification or registry"
+        ],
+        "family": "purpose",
+        "id": "SDC-C03",
+        "missingness_cautions": "No stated purpose does not establish no purpose.",
+        "optional_parameters": [
+          "scheme",
+          "date",
+          "geography"
+        ],
+        "positive_proposition": "What purpose or cause concerning the beneficiary is evidenced for the subject?",
+        "required_parameters": [
+          "cause_or_goal",
+          "beneficiary"
+        ],
+        "scope_semantics": "Purpose is not delivery or outcome unless separately evidenced.",
+        "semantic_definition": "Test an evidenced purpose, cause or beneficiary proposition for a subject.",
+        "semantic_signature_sha256": "c090134871a81d93f964465546b98e30b2b6dd99785be9f419ffa720e2a015dc",
+        "short_name": "purpose_cause_beneficiary",
+        "temporal_semantics": "Use the statement's valid or publication period."
+      },
+      "semantic_signature_sha256": "c090134871a81d93f964465546b98e30b2b6dd99785be9f419ffa720e2a015dc",
+      "subject": {
+        "abn": "15190821561",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Cancer Council Of Western Australia (Inc)",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:6c96b3b160f1b39f0953284ff2f58e8ce2e3a96d107ba4bab80a53ed80bb0ecb",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:bd56b98c417c40f2beb20c5bccffed23"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C03",
+      "domain_stratum": 2,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:c8974e93d66844d99882b2851259114d:SDC-C03:domain-2",
+      "selection_ordinal": 4,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "program",
+          "service"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "purpose proposition is requested",
+          "subject statement is in scope"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Purpose / cause",
+          "DOMAIN_PROFILE_INDEX.md#Purpose, causes, beneficiaries and public goals"
+        ],
+        "evidence_role_expectations": [
+          "first-party purpose statement",
+          "governed classification or registry"
+        ],
+        "family": "purpose",
+        "id": "SDC-C03",
+        "missingness_cautions": "No stated purpose does not establish no purpose.",
+        "optional_parameters": [
+          "scheme",
+          "date",
+          "geography"
+        ],
+        "positive_proposition": "What purpose or cause concerning the beneficiary is evidenced for the subject?",
+        "required_parameters": [
+          "cause_or_goal",
+          "beneficiary"
+        ],
+        "scope_semantics": "Purpose is not delivery or outcome unless separately evidenced.",
+        "semantic_definition": "Test an evidenced purpose, cause or beneficiary proposition for a subject.",
+        "semantic_signature_sha256": "c090134871a81d93f964465546b98e30b2b6dd99785be9f419ffa720e2a015dc",
+        "short_name": "purpose_cause_beneficiary",
+        "temporal_semantics": "Use the statement's valid or publication period."
+      },
+      "semantic_signature_sha256": "c090134871a81d93f964465546b98e30b2b6dd99785be9f419ffa720e2a015dc",
+      "subject": {
+        "abn": "30157737329",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Latter-day Saint Charities Australia",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:f71b53434459c633a5f7b92d99dd8b3009227922f7bf7ff43bc0975ab843bef4",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:c8974e93d66844d99882b2851259114d"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C19",
+      "domain_stratum": 3,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:ee7cec12f0bc4684ac4d39d7db0b1f41:SDC-C19:domain-3",
+      "selection_ordinal": 5,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "service",
+          "organisation",
+          "proposition",
+          "evidence set"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "BOUNDED_PARTIAL",
+          "TESTED_MISSINGNESS",
+          "STALE",
+          "UNRESOLVED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "a proposition, scope and as-of date are declared for a coverage or freshness question"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Coverage and semantic resolution",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "coverage report",
+          "source freshness and test record"
+        ],
+        "family": "coverage",
+        "id": "SDC-C19",
+        "missingness_cautions": "Missingness, absence, stale evidence and unresolved conflict are different states.",
+        "optional_parameters": [
+          "geography",
+          "period",
+          "source_role"
+        ],
+        "positive_proposition": "What does the tested evidence cover, and what remains missing or stale?",
+        "required_parameters": [
+          "proposition",
+          "scope",
+          "as_of_date"
+        ],
+        "scope_semantics": "Coverage is measured against a declared universe and proposition.",
+        "semantic_definition": "Explain what the evidence set covers, what is missing, what was tested and how fresh it is for a proposition.",
+        "semantic_signature_sha256": "004eb3f135e5e5ccbc90a75633a00e73d6a5b7c2340133c961ced18ca5707229",
+        "short_name": "coverage_missingness_and_freshness",
+        "temporal_semantics": "Freshness is evaluated against the requested as-of date."
+      },
+      "semantic_signature_sha256": "004eb3f135e5e5ccbc90a75633a00e73d6a5b7c2340133c961ced18ca5707229",
+      "subject": {
+        "abn": "80009663478",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Royal Flying Doctor Service Of Australia (Queensland Section)",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:4727200f7a0f29fa2dbccc47b5b636df307d8cd527851b7774d4f594e4826b27",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:ee7cec12f0bc4684ac4d39d7db0b1f41"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C19",
+      "domain_stratum": 3,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:8e167e33641c490a87a88403898f3ffd:SDC-C19:domain-3",
+      "selection_ordinal": 6,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "service",
+          "organisation",
+          "proposition",
+          "evidence set"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "BOUNDED_PARTIAL",
+          "TESTED_MISSINGNESS",
+          "STALE",
+          "UNRESOLVED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "a proposition, scope and as-of date are declared for a coverage or freshness question"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Coverage and semantic resolution",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "coverage report",
+          "source freshness and test record"
+        ],
+        "family": "coverage",
+        "id": "SDC-C19",
+        "missingness_cautions": "Missingness, absence, stale evidence and unresolved conflict are different states.",
+        "optional_parameters": [
+          "geography",
+          "period",
+          "source_role"
+        ],
+        "positive_proposition": "What does the tested evidence cover, and what remains missing or stale?",
+        "required_parameters": [
+          "proposition",
+          "scope",
+          "as_of_date"
+        ],
+        "scope_semantics": "Coverage is measured against a declared universe and proposition.",
+        "semantic_definition": "Explain what the evidence set covers, what is missing, what was tested and how fresh it is for a proposition.",
+        "semantic_signature_sha256": "004eb3f135e5e5ccbc90a75633a00e73d6a5b7c2340133c961ced18ca5707229",
+        "short_name": "coverage_missingness_and_freshness",
+        "temporal_semantics": "Freshness is evaluated against the requested as-of date."
+      },
+      "semantic_signature_sha256": "004eb3f135e5e5ccbc90a75633a00e73d6a5b7c2340133c961ced18ca5707229",
+      "subject": {
+        "abn": "23082732027",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "St Catherine's Aged Care Services",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:5a99fd08900b06a9699ad1aabf3e969820d95996fdfdddbc7b3a7ba225638794",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:8e167e33641c490a87a88403898f3ffd"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C16",
+      "domain_stratum": 4,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:aafdb7638e2f455a88fc60cd49fc47d5:SDC-C16:domain-4",
+      "selection_ordinal": 7,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "program",
+          "intervention",
+          "appeal",
+          "metric"
+        ],
+        "answer_states": [
+          "SUPPORTED_ACTIVITY",
+          "PARTIAL",
+          "MISSING",
+          "NOT_OUTCOME_EVIDENCE",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "activity measure is defined"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Activities / SDGs",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Evaluation / outcomes"
+        ],
+        "evidence_role_expectations": [
+          "activity record",
+          "metric definition and attribution"
+        ],
+        "family": "activity",
+        "id": "SDC-C16",
+        "missingness_cautions": "No observed output is not proof of no activity.",
+        "optional_parameters": [
+          "population",
+          "geography",
+          "mandate"
+        ],
+        "positive_proposition": "What activity or output is evidenced, and what stronger claim does it not establish?",
+        "required_parameters": [
+          "activity_or_metric",
+          "period"
+        ],
+        "scope_semantics": "Output scope is separate from organisation-wide or outcome scope.",
+        "semantic_definition": "Describe attributed activity or output and refuse unsupported conversion into outcome or causal-effect claims.",
+        "semantic_signature_sha256": "8974089246853301292c087b038085bafa07745eea19463f24b5340f877d3e89",
+        "short_name": "activity_and_output",
+        "temporal_semantics": "Activity period and measurement window are explicit."
+      },
+      "semantic_signature_sha256": "8974089246853301292c087b038085bafa07745eea19463f24b5340f877d3e89",
+      "subject": {
+        "abn": "16641057338",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "CANVA FOUNDATION LIMITED",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:fbc38abea076a2999e74383f1cb9c2684422533a99f54ba55a9b5fa1b972de6e",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:aafdb7638e2f455a88fc60cd49fc47d5"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C16",
+      "domain_stratum": 4,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:653b6ad45f784ac0be5dc126a4c37f90:SDC-C16:domain-4",
+      "selection_ordinal": 8,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "program",
+          "intervention",
+          "appeal",
+          "metric"
+        ],
+        "answer_states": [
+          "SUPPORTED_ACTIVITY",
+          "PARTIAL",
+          "MISSING",
+          "NOT_OUTCOME_EVIDENCE",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "activity measure is defined"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Activities / SDGs",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Evaluation / outcomes"
+        ],
+        "evidence_role_expectations": [
+          "activity record",
+          "metric definition and attribution"
+        ],
+        "family": "activity",
+        "id": "SDC-C16",
+        "missingness_cautions": "No observed output is not proof of no activity.",
+        "optional_parameters": [
+          "population",
+          "geography",
+          "mandate"
+        ],
+        "positive_proposition": "What activity or output is evidenced, and what stronger claim does it not establish?",
+        "required_parameters": [
+          "activity_or_metric",
+          "period"
+        ],
+        "scope_semantics": "Output scope is separate from organisation-wide or outcome scope.",
+        "semantic_definition": "Describe attributed activity or output and refuse unsupported conversion into outcome or causal-effect claims.",
+        "semantic_signature_sha256": "8974089246853301292c087b038085bafa07745eea19463f24b5340f877d3e89",
+        "short_name": "activity_and_output",
+        "temporal_semantics": "Activity period and measurement window are explicit."
+      },
+      "semantic_signature_sha256": "8974089246853301292c087b038085bafa07745eea19463f24b5340f877d3e89",
+      "subject": {
+        "abn": "39097054918",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "CONGREGATIONAL CHRISTIAN CHURCH SAMOA MELBOURNE PARISH INC",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:da52f36bc284e6e07941c74c826d4b2aa9602a4ba155b4725ce8eda32c800e44",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:653b6ad45f784ac0be5dc126a4c37f90"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C03",
+      "domain_stratum": 5,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:c33428aa23d34d618eccbd3c59068e84:SDC-C03:domain-5",
+      "selection_ordinal": 9,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "program",
+          "service"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "purpose proposition is requested",
+          "subject statement is in scope"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Purpose / cause",
+          "DOMAIN_PROFILE_INDEX.md#Purpose, causes, beneficiaries and public goals"
+        ],
+        "evidence_role_expectations": [
+          "first-party purpose statement",
+          "governed classification or registry"
+        ],
+        "family": "purpose",
+        "id": "SDC-C03",
+        "missingness_cautions": "No stated purpose does not establish no purpose.",
+        "optional_parameters": [
+          "scheme",
+          "date",
+          "geography"
+        ],
+        "positive_proposition": "What purpose or cause concerning the beneficiary is evidenced for the subject?",
+        "required_parameters": [
+          "cause_or_goal",
+          "beneficiary"
+        ],
+        "scope_semantics": "Purpose is not delivery or outcome unless separately evidenced.",
+        "semantic_definition": "Test an evidenced purpose, cause or beneficiary proposition for a subject.",
+        "semantic_signature_sha256": "c090134871a81d93f964465546b98e30b2b6dd99785be9f419ffa720e2a015dc",
+        "short_name": "purpose_cause_beneficiary",
+        "temporal_semantics": "Use the statement's valid or publication period."
+      },
+      "semantic_signature_sha256": "c090134871a81d93f964465546b98e30b2b6dd99785be9f419ffa720e2a015dc",
+      "subject": {
+        "abn": "59135483055",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Epworth Medical Foundation Limited",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:16ee4da747388a0b3f8fc0a52d05535b9a5fd9c877a0c0c6fa9548f627a59d56",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:c33428aa23d34d618eccbd3c59068e84"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C03",
+      "domain_stratum": 5,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:16fba76fde2242d5870835b18b4e8b8d:SDC-C03:domain-5",
+      "selection_ordinal": 10,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "program",
+          "service"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "purpose proposition is requested",
+          "subject statement is in scope"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Purpose / cause",
+          "DOMAIN_PROFILE_INDEX.md#Purpose, causes, beneficiaries and public goals"
+        ],
+        "evidence_role_expectations": [
+          "first-party purpose statement",
+          "governed classification or registry"
+        ],
+        "family": "purpose",
+        "id": "SDC-C03",
+        "missingness_cautions": "No stated purpose does not establish no purpose.",
+        "optional_parameters": [
+          "scheme",
+          "date",
+          "geography"
+        ],
+        "positive_proposition": "What purpose or cause concerning the beneficiary is evidenced for the subject?",
+        "required_parameters": [
+          "cause_or_goal",
+          "beneficiary"
+        ],
+        "scope_semantics": "Purpose is not delivery or outcome unless separately evidenced.",
+        "semantic_definition": "Test an evidenced purpose, cause or beneficiary proposition for a subject.",
+        "semantic_signature_sha256": "c090134871a81d93f964465546b98e30b2b6dd99785be9f419ffa720e2a015dc",
+        "short_name": "purpose_cause_beneficiary",
+        "temporal_semantics": "Use the statement's valid or publication period."
+      },
+      "semantic_signature_sha256": "c090134871a81d93f964465546b98e30b2b6dd99785be9f419ffa720e2a015dc",
+      "subject": {
+        "abn": "52404606134",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "The Peter & Lyndy White Foundation",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:dd826f8e5c71272ae92d47d1c29064f58c4774be0e7feffc2c86c75fc5b08710",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C08",
+      "domain_stratum": 6,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:c88b94d76f6b4857ac278acf15f17519:SDC-C08:domain-6",
+      "selection_ordinal": 11,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "appeal",
+          "giving offer",
+          "organisation"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "NOT_APPLICABLE",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "a fundraising appeal, offer or activity proposition is requested for a specified subject and period"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Fundraising",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "appeal or donation route",
+          "attributed fundraising report"
+        ],
+        "family": "fundraising",
+        "id": "SDC-C08",
+        "missingness_cautions": "Aggregate donation revenue does not establish appeal-specific proceeds.",
+        "optional_parameters": [
+          "channel",
+          "beneficiary_scope",
+          "metric"
+        ],
+        "positive_proposition": "What fundraising activity or current giving route is evidenced for the appeal or offer?",
+        "required_parameters": [
+          "appeal_or_offer",
+          "period"
+        ],
+        "scope_semantics": "Appeal, offer, channel and beneficiary scopes are separate.",
+        "semantic_definition": "Describe a fundraising appeal or actionable giving offer and its attributed activity without converting total revenue into method-specific proceeds.",
+        "semantic_signature_sha256": "1fd1299c87d33cd4272846687365a824d777d68d14288d3b8b277bb4e8690760",
+        "short_name": "fundraising_offer_and_activity",
+        "temporal_semantics": "Activity and offer availability are period-bound."
+      },
+      "semantic_signature_sha256": "1fd1299c87d33cd4272846687365a824d777d68d14288d3b8b277bb4e8690760",
+      "subject": {
+        "abn": "96723184640",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Mater Foundation Ltd as trustee for the Mater Foundation",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:f1902671e5ad54df5760febbf47918fd0509f799ac65aae860cfcf653aabcefc",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:c88b94d76f6b4857ac278acf15f17519"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C08",
+      "domain_stratum": 6,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:4709afffeced4a0a9534d4a4c0701f4c:SDC-C08:domain-6",
+      "selection_ordinal": 12,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "appeal",
+          "giving offer",
+          "organisation"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "NOT_APPLICABLE",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "a fundraising appeal, offer or activity proposition is requested for a specified subject and period"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Fundraising",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "appeal or donation route",
+          "attributed fundraising report"
+        ],
+        "family": "fundraising",
+        "id": "SDC-C08",
+        "missingness_cautions": "Aggregate donation revenue does not establish appeal-specific proceeds.",
+        "optional_parameters": [
+          "channel",
+          "beneficiary_scope",
+          "metric"
+        ],
+        "positive_proposition": "What fundraising activity or current giving route is evidenced for the appeal or offer?",
+        "required_parameters": [
+          "appeal_or_offer",
+          "period"
+        ],
+        "scope_semantics": "Appeal, offer, channel and beneficiary scopes are separate.",
+        "semantic_definition": "Describe a fundraising appeal or actionable giving offer and its attributed activity without converting total revenue into method-specific proceeds.",
+        "semantic_signature_sha256": "1fd1299c87d33cd4272846687365a824d777d68d14288d3b8b277bb4e8690760",
+        "short_name": "fundraising_offer_and_activity",
+        "temporal_semantics": "Activity and offer availability are period-bound."
+      },
+      "semantic_signature_sha256": "1fd1299c87d33cd4272846687365a824d777d68d14288d3b8b277bb4e8690760",
+      "subject": {
+        "abn": "94178965125",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "The Monash University Foundation",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:e79055c39e9cb97a965218708ad573fba8e7d23b70cf7ece9b09eb7c1c224fee",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:4709afffeced4a0a9534d4a4c0701f4c"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C05",
+      "domain_stratum": 7,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:617528dfa51a4c548e2e744c6f828e65:SDC-C05:domain-7",
+      "selection_ordinal": 13,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "service",
+          "program",
+          "referral route"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "TESTED_MISSINGNESS",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "service and population are specified",
+          "availability period is stated"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Direct service / capacity",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "current service availability",
+          "eligibility or referral authority"
+        ],
+        "family": "access",
+        "id": "SDC-C05",
+        "missingness_cautions": "Tested missingness is not absence or rejection.",
+        "optional_parameters": [
+          "eligibility_rule",
+          "date",
+          "referral_route"
+        ],
+        "positive_proposition": "Is the service evidenced as currently accessible to the population in the geography?",
+        "required_parameters": [
+          "service",
+          "population",
+          "geography"
+        ],
+        "scope_semantics": "Access requires an evidenced route and applicable population, not merely service existence.",
+        "semantic_definition": "Assess whether a population can access a service, including eligibility, route and current availability.",
+        "semantic_signature_sha256": "72293e37a955dc4cee9f8cb2736a78fd331ee34f4124e71d67bd7a76b464c009",
+        "short_name": "access_eligibility_and_referral",
+        "temporal_semantics": "Current availability is as-of and freshness-sensitive."
+      },
+      "semantic_signature_sha256": "72293e37a955dc4cee9f8cb2736a78fd331ee34f4124e71d67bd7a76b464c009",
+      "subject": {
+        "abn": "57102400993",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Global Development Group",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:ca3e58f9aa187fa428ddfdba4b7d9cb1af96a1687a28207bab11a7ffeee21906",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:617528dfa51a4c548e2e744c6f828e65"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C05",
+      "domain_stratum": 7,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:420e65d3e33d4127a1b61bd0567705b6:SDC-C05:domain-7",
+      "selection_ordinal": 14,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "service",
+          "program",
+          "referral route"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "TESTED_MISSINGNESS",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "service and population are specified",
+          "availability period is stated"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Direct service / capacity",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "current service availability",
+          "eligibility or referral authority"
+        ],
+        "family": "access",
+        "id": "SDC-C05",
+        "missingness_cautions": "Tested missingness is not absence or rejection.",
+        "optional_parameters": [
+          "eligibility_rule",
+          "date",
+          "referral_route"
+        ],
+        "positive_proposition": "Is the service evidenced as currently accessible to the population in the geography?",
+        "required_parameters": [
+          "service",
+          "population",
+          "geography"
+        ],
+        "scope_semantics": "Access requires an evidenced route and applicable population, not merely service existence.",
+        "semantic_definition": "Assess whether a population can access a service, including eligibility, route and current availability.",
+        "semantic_signature_sha256": "72293e37a955dc4cee9f8cb2736a78fd331ee34f4124e71d67bd7a76b464c009",
+        "short_name": "access_eligibility_and_referral",
+        "temporal_semantics": "Current availability is as-of and freshness-sensitive."
+      },
+      "semantic_signature_sha256": "72293e37a955dc4cee9f8cb2736a78fd331ee34f4124e71d67bd7a76b464c009",
+      "subject": {
+        "abn": "87000001641",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "The Royal Society For The Prevention Of Cruelty To Animals; New South Wales",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:64bddafbbc46f13fc120c54fea305b9cb1d61a4c937eb9a4b6d3bd24d5dbc648",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:420e65d3e33d4127a1b61bd0567705b6"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C08",
+      "domain_stratum": 8,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:5c664c0c90444ac6a3c3c8830e7760db:SDC-C08:domain-8",
+      "selection_ordinal": 15,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "appeal",
+          "giving offer",
+          "organisation"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "NOT_APPLICABLE",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "a fundraising appeal, offer or activity proposition is requested for a specified subject and period"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Fundraising",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "appeal or donation route",
+          "attributed fundraising report"
+        ],
+        "family": "fundraising",
+        "id": "SDC-C08",
+        "missingness_cautions": "Aggregate donation revenue does not establish appeal-specific proceeds.",
+        "optional_parameters": [
+          "channel",
+          "beneficiary_scope",
+          "metric"
+        ],
+        "positive_proposition": "What fundraising activity or current giving route is evidenced for the appeal or offer?",
+        "required_parameters": [
+          "appeal_or_offer",
+          "period"
+        ],
+        "scope_semantics": "Appeal, offer, channel and beneficiary scopes are separate.",
+        "semantic_definition": "Describe a fundraising appeal or actionable giving offer and its attributed activity without converting total revenue into method-specific proceeds.",
+        "semantic_signature_sha256": "1fd1299c87d33cd4272846687365a824d777d68d14288d3b8b277bb4e8690760",
+        "short_name": "fundraising_offer_and_activity",
+        "temporal_semantics": "Activity and offer availability are period-bound."
+      },
+      "semantic_signature_sha256": "1fd1299c87d33cd4272846687365a824d777d68d14288d3b8b277bb4e8690760",
+      "subject": {
+        "abn": "41069508398",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "THE PERPETUAL FOUNDATION",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:d6b5ab86f7403d88f68d1503762dc24586254d9761e7b5033eb68b27574b9018",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:5c664c0c90444ac6a3c3c8830e7760db"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C08",
+      "domain_stratum": 8,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:1a9ec5de3fc043ff9226fb95a6cae31b:SDC-C08:domain-8",
+      "selection_ordinal": 16,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "appeal",
+          "giving offer",
+          "organisation"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "NOT_APPLICABLE",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "a fundraising appeal, offer or activity proposition is requested for a specified subject and period"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Fundraising",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "appeal or donation route",
+          "attributed fundraising report"
+        ],
+        "family": "fundraising",
+        "id": "SDC-C08",
+        "missingness_cautions": "Aggregate donation revenue does not establish appeal-specific proceeds.",
+        "optional_parameters": [
+          "channel",
+          "beneficiary_scope",
+          "metric"
+        ],
+        "positive_proposition": "What fundraising activity or current giving route is evidenced for the appeal or offer?",
+        "required_parameters": [
+          "appeal_or_offer",
+          "period"
+        ],
+        "scope_semantics": "Appeal, offer, channel and beneficiary scopes are separate.",
+        "semantic_definition": "Describe a fundraising appeal or actionable giving offer and its attributed activity without converting total revenue into method-specific proceeds.",
+        "semantic_signature_sha256": "1fd1299c87d33cd4272846687365a824d777d68d14288d3b8b277bb4e8690760",
+        "short_name": "fundraising_offer_and_activity",
+        "temporal_semantics": "Activity and offer availability are period-bound."
+      },
+      "semantic_signature_sha256": "1fd1299c87d33cd4272846687365a824d777d68d14288d3b8b277bb4e8690760",
+      "subject": {
+        "abn": "82147006639",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Islamic Relief Australia",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:f8739f16a718695d9c162a6494f910a8113a44d1eb4d0618220ad610fc7d14cb",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C11",
+      "domain_stratum": 9,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:48d316c9a283464cabef8394ae3f9811:SDC-C11:domain-9",
+      "selection_ordinal": 17,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "governing body",
+          "role holder"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "role or capability proposition is defined"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Governance / leadership",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Scale / capability"
+        ],
+        "evidence_role_expectations": [
+          "governance filing",
+          "first-party role or capability statement"
+        ],
+        "family": "governance",
+        "id": "SDC-C11",
+        "missingness_cautions": "No named role does not prove no governance.",
+        "optional_parameters": [
+          "role",
+          "metric",
+          "scope"
+        ],
+        "positive_proposition": "Who held the relevant role or what capability is evidenced for the subject during the period?",
+        "required_parameters": [
+          "subject",
+          "period"
+        ],
+        "scope_semantics": "Role holder, governing body and organisation scopes are not interchangeable.",
+        "semantic_definition": "Return evidenced leadership roles, governance arrangements and organisational capability within stated scope and time.",
+        "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+        "short_name": "governance_leadership_and_capability",
+        "temporal_semantics": "Appointments and capability claims are effective-dated."
+      },
+      "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+      "subject": {
+        "abn": "22617686905",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "The Ramsay Centre for Western Civilisation",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:18f923b8c75bb4a07bb8ca67c59ae9eba6bf20888a8474be08a0fb23604dffc9",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:48d316c9a283464cabef8394ae3f9811"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C11",
+      "domain_stratum": 9,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:1823309bdd06417c9928033603cb6e39:SDC-C11:domain-9",
+      "selection_ordinal": 18,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "governing body",
+          "role holder"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "role or capability proposition is defined"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Governance / leadership",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Scale / capability"
+        ],
+        "evidence_role_expectations": [
+          "governance filing",
+          "first-party role or capability statement"
+        ],
+        "family": "governance",
+        "id": "SDC-C11",
+        "missingness_cautions": "No named role does not prove no governance.",
+        "optional_parameters": [
+          "role",
+          "metric",
+          "scope"
+        ],
+        "positive_proposition": "Who held the relevant role or what capability is evidenced for the subject during the period?",
+        "required_parameters": [
+          "subject",
+          "period"
+        ],
+        "scope_semantics": "Role holder, governing body and organisation scopes are not interchangeable.",
+        "semantic_definition": "Return evidenced leadership roles, governance arrangements and organisational capability within stated scope and time.",
+        "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+        "short_name": "governance_leadership_and_capability",
+        "temporal_semantics": "Appointments and capability claims are effective-dated."
+      },
+      "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+      "subject": {
+        "abn": "33107782196",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Oz Harvest Limited",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:83b3441d94a5e71d2af022c792ec6e84bfed939455e90f0fe1a804c9b0e5eda3",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:1823309bdd06417c9928033603cb6e39"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C11",
+      "domain_stratum": 10,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:d5096a9d6a5f4a6aa90c0e11856b4d6b:SDC-C11:domain-10",
+      "selection_ordinal": 19,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "governing body",
+          "role holder"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "role or capability proposition is defined"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Governance / leadership",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Scale / capability"
+        ],
+        "evidence_role_expectations": [
+          "governance filing",
+          "first-party role or capability statement"
+        ],
+        "family": "governance",
+        "id": "SDC-C11",
+        "missingness_cautions": "No named role does not prove no governance.",
+        "optional_parameters": [
+          "role",
+          "metric",
+          "scope"
+        ],
+        "positive_proposition": "Who held the relevant role or what capability is evidenced for the subject during the period?",
+        "required_parameters": [
+          "subject",
+          "period"
+        ],
+        "scope_semantics": "Role holder, governing body and organisation scopes are not interchangeable.",
+        "semantic_definition": "Return evidenced leadership roles, governance arrangements and organisational capability within stated scope and time.",
+        "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+        "short_name": "governance_leadership_and_capability",
+        "temporal_semantics": "Appointments and capability claims are effective-dated."
+      },
+      "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+      "subject": {
+        "abn": "12004251423",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "The Walter And Eliza Hall Institute Of Medical Research",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:91f58f397791ffeeb3cc6010254bfe513d5db26c98e59ce29e4b5ba534e9ef26",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:d5096a9d6a5f4a6aa90c0e11856b4d6b"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C11",
+      "domain_stratum": 10,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:0889b4decb854e71ab4784479ca95c03:SDC-C11:domain-10",
+      "selection_ordinal": 20,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "governing body",
+          "role holder"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "role or capability proposition is defined"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Governance / leadership",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Scale / capability"
+        ],
+        "evidence_role_expectations": [
+          "governance filing",
+          "first-party role or capability statement"
+        ],
+        "family": "governance",
+        "id": "SDC-C11",
+        "missingness_cautions": "No named role does not prove no governance.",
+        "optional_parameters": [
+          "role",
+          "metric",
+          "scope"
+        ],
+        "positive_proposition": "Who held the relevant role or what capability is evidenced for the subject during the period?",
+        "required_parameters": [
+          "subject",
+          "period"
+        ],
+        "scope_semantics": "Role holder, governing body and organisation scopes are not interchangeable.",
+        "semantic_definition": "Return evidenced leadership roles, governance arrangements and organisational capability within stated scope and time.",
+        "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+        "short_name": "governance_leadership_and_capability",
+        "temporal_semantics": "Appointments and capability claims are effective-dated."
+      },
+      "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+      "subject": {
+        "abn": "26164251245",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Human Appeal International Australia",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:4c6ae86f3ba9665e5153314bd0f4db1c2e4c09101554465574667fef0ea9dd61",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:0889b4decb854e71ab4784479ca95c03"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C11",
+      "domain_stratum": 11,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:02649cdcb42049bb8dedd30f2333e150:SDC-C11:domain-11",
+      "selection_ordinal": 21,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "governing body",
+          "role holder"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "role or capability proposition is defined"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Governance / leadership",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Scale / capability"
+        ],
+        "evidence_role_expectations": [
+          "governance filing",
+          "first-party role or capability statement"
+        ],
+        "family": "governance",
+        "id": "SDC-C11",
+        "missingness_cautions": "No named role does not prove no governance.",
+        "optional_parameters": [
+          "role",
+          "metric",
+          "scope"
+        ],
+        "positive_proposition": "Who held the relevant role or what capability is evidenced for the subject during the period?",
+        "required_parameters": [
+          "subject",
+          "period"
+        ],
+        "scope_semantics": "Role holder, governing body and organisation scopes are not interchangeable.",
+        "semantic_definition": "Return evidenced leadership roles, governance arrangements and organisational capability within stated scope and time.",
+        "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+        "short_name": "governance_leadership_and_capability",
+        "temporal_semantics": "Appointments and capability claims are effective-dated."
+      },
+      "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+      "subject": {
+        "abn": "52000399744",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Guide Dogs NSW/ACT",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:30941baa8feebaf3c3e7dbd26507e82a70719065e548c69b890b2605a56c79e9",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C11",
+      "domain_stratum": 11,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:238c896dfb534031be3483925fabf5c6:SDC-C11:domain-11",
+      "selection_ordinal": 22,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "governing body",
+          "role holder"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "role or capability proposition is defined"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Governance / leadership",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Scale / capability"
+        ],
+        "evidence_role_expectations": [
+          "governance filing",
+          "first-party role or capability statement"
+        ],
+        "family": "governance",
+        "id": "SDC-C11",
+        "missingness_cautions": "No named role does not prove no governance.",
+        "optional_parameters": [
+          "role",
+          "metric",
+          "scope"
+        ],
+        "positive_proposition": "Who held the relevant role or what capability is evidenced for the subject during the period?",
+        "required_parameters": [
+          "subject",
+          "period"
+        ],
+        "scope_semantics": "Role holder, governing body and organisation scopes are not interchangeable.",
+        "semantic_definition": "Return evidenced leadership roles, governance arrangements and organisational capability within stated scope and time.",
+        "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+        "short_name": "governance_leadership_and_capability",
+        "temporal_semantics": "Appointments and capability claims are effective-dated."
+      },
+      "semantic_signature_sha256": "909c2bdcb9794b41444407c0ef8cde6ecee22b40342b619c0e0dbefd56e618be",
+      "subject": {
+        "abn": "21006566972",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Murdoch Children's Research Institute",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:57948466216773b19ce3473dd60641f2398c1879931492b268876acecbc5eab6",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:238c896dfb534031be3483925fabf5c6"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C10",
+      "domain_stratum": 12,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:3db262372d0c441892e590da23b19620:SDC-C10:domain-12",
+      "selection_ordinal": 23,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "funder",
+          "service",
+          "program"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "relationship proposition is requested",
+          "counterparty is identified"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Relationships",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Funding / dependencies"
+        ],
+        "evidence_role_expectations": [
+          "agreement or award",
+          "financial or delivery dependency evidence"
+        ],
+        "family": "relationship",
+        "id": "SDC-C10",
+        "missingness_cautions": "No disclosed dependency does not prove independence.",
+        "optional_parameters": [
+          "funder",
+          "service",
+          "population",
+          "metric"
+        ],
+        "positive_proposition": "What relationship or dependency is evidenced for the service or organisation in the period?",
+        "required_parameters": [
+          "relationship_type",
+          "period"
+        ],
+        "scope_semantics": "Relationship direction, role and subject scope are explicit.",
+        "semantic_definition": "Map evidenced funder, partner and delivery dependencies, distinguishing commitment, receipt and recognised revenue.",
+        "semantic_signature_sha256": "98d2eac8252cb06db0783da14228d8e7890676f50a76de5be6c0807fa23a417c",
+        "short_name": "funding_dependency_and_relationship",
+        "temporal_semantics": "Dependency is evaluated for a stated period and change window."
+      },
+      "semantic_signature_sha256": "98d2eac8252cb06db0783da14228d8e7890676f50a76de5be6c0807fa23a417c",
+      "subject": {
+        "abn": "90952801237",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Macquarie University",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:0aafb0f15c10a18319a0fa0a3bc910ac55369ab5ddb10a1978a15530b7c1eb80",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:3db262372d0c441892e590da23b19620"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C10",
+      "domain_stratum": 12,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:404ef21919344b8b85003c1495a946d2:SDC-C10:domain-12",
+      "selection_ordinal": 24,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "funder",
+          "service",
+          "program"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "relationship proposition is requested",
+          "counterparty is identified"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Relationships",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Funding / dependencies"
+        ],
+        "evidence_role_expectations": [
+          "agreement or award",
+          "financial or delivery dependency evidence"
+        ],
+        "family": "relationship",
+        "id": "SDC-C10",
+        "missingness_cautions": "No disclosed dependency does not prove independence.",
+        "optional_parameters": [
+          "funder",
+          "service",
+          "population",
+          "metric"
+        ],
+        "positive_proposition": "What relationship or dependency is evidenced for the service or organisation in the period?",
+        "required_parameters": [
+          "relationship_type",
+          "period"
+        ],
+        "scope_semantics": "Relationship direction, role and subject scope are explicit.",
+        "semantic_definition": "Map evidenced funder, partner and delivery dependencies, distinguishing commitment, receipt and recognised revenue.",
+        "semantic_signature_sha256": "98d2eac8252cb06db0783da14228d8e7890676f50a76de5be6c0807fa23a417c",
+        "short_name": "funding_dependency_and_relationship",
+        "temporal_semantics": "Dependency is evaluated for a stated period and change window."
+      },
+      "semantic_signature_sha256": "98d2eac8252cb06db0783da14228d8e7890676f50a76de5be6c0807fa23a417c",
+      "subject": {
+        "abn": "78053639115",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Bush Heritage Australia",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:d3b6b8b1e05ce7769e19c213b98f87bee239169c41fbe4f78d852f9cd609241b",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:404ef21919344b8b85003c1495a946d2"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C20",
+      "domain_stratum": 13,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:a7f2063199ab4206bc218bd4d873a1b4:SDC-C20:domain-13",
+      "selection_ordinal": 25,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "metric",
+          "organisation",
+          "projection",
+          "aggregate"
+        ],
+        "answer_states": [
+          "REPRODUCIBLE",
+          "PARTIAL",
+          "NOT_COMPARABLE",
+          "MISSING",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "an aggregate or projection is requested for a specified metric, scope and period"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Finances",
+          "INTEGRATED_PRODUCT_AND_DATA_MODEL.md"
+        ],
+        "evidence_role_expectations": [
+          "source records",
+          "calculation or release lineage"
+        ],
+        "family": "aggregation",
+        "id": "SDC-C20",
+        "missingness_cautions": "An unreported input is not zero; an incompatible input is not missing.",
+        "optional_parameters": [
+          "filter",
+          "denominator",
+          "release",
+          "projection_date"
+        ],
+        "positive_proposition": "Can the aggregate or projection be reproduced, and what compatibility limits apply?",
+        "required_parameters": [
+          "metric",
+          "scope",
+          "period"
+        ],
+        "scope_semantics": "Inputs must share compatible subject and reporting scopes.",
+        "semantic_definition": "Reproduce an aggregate or projection with source, filter, denominator, release and compatibility lineage.",
+        "semantic_signature_sha256": "4f033a663b05edb2feedae3c9c41979327226fcbf3744ef4bedc7b948d769df3",
+        "short_name": "aggregation_and_projection",
+        "temporal_semantics": "Retain measurement, release and projection dates."
+      },
+      "semantic_signature_sha256": "4f033a663b05edb2feedae3c9c41979327226fcbf3744ef4bedc7b948d769df3",
+      "subject": {
+        "abn": "53406142168",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Puutu Kunti Kurrama and Pinikura People Charitable Trust",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:985d4a3d93c249cc1cdda5d5c1ad13e7f2ab41e4423676495c6237354e9a892e",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:a7f2063199ab4206bc218bd4d873a1b4"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C20",
+      "domain_stratum": 13,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:eb8bfa0058a64e24880c2e8ef403c709:SDC-C20:domain-13",
+      "selection_ordinal": 26,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "metric",
+          "organisation",
+          "projection",
+          "aggregate"
+        ],
+        "answer_states": [
+          "REPRODUCIBLE",
+          "PARTIAL",
+          "NOT_COMPARABLE",
+          "MISSING",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "an aggregate or projection is requested for a specified metric, scope and period"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Finances",
+          "INTEGRATED_PRODUCT_AND_DATA_MODEL.md"
+        ],
+        "evidence_role_expectations": [
+          "source records",
+          "calculation or release lineage"
+        ],
+        "family": "aggregation",
+        "id": "SDC-C20",
+        "missingness_cautions": "An unreported input is not zero; an incompatible input is not missing.",
+        "optional_parameters": [
+          "filter",
+          "denominator",
+          "release",
+          "projection_date"
+        ],
+        "positive_proposition": "Can the aggregate or projection be reproduced, and what compatibility limits apply?",
+        "required_parameters": [
+          "metric",
+          "scope",
+          "period"
+        ],
+        "scope_semantics": "Inputs must share compatible subject and reporting scopes.",
+        "semantic_definition": "Reproduce an aggregate or projection with source, filter, denominator, release and compatibility lineage.",
+        "semantic_signature_sha256": "4f033a663b05edb2feedae3c9c41979327226fcbf3744ef4bedc7b948d769df3",
+        "short_name": "aggregation_and_projection",
+        "temporal_semantics": "Retain measurement, release and projection dates."
+      },
+      "semantic_signature_sha256": "4f033a663b05edb2feedae3c9c41979327226fcbf3744ef4bedc7b948d769df3",
+      "subject": {
+        "abn": "47002684737",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Children's Medical Research Institute",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:703b0e37fbed98493cb443d870ca398db161d7228dc9dbdb8f8c1cc4747841c3",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:eb8bfa0058a64e24880c2e8ef403c709"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C10",
+      "domain_stratum": 14,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:b09e07959e924badbfed30df307d3fc2:SDC-C10:domain-14",
+      "selection_ordinal": 27,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "funder",
+          "service",
+          "program"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "relationship proposition is requested",
+          "counterparty is identified"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Relationships",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Funding / dependencies"
+        ],
+        "evidence_role_expectations": [
+          "agreement or award",
+          "financial or delivery dependency evidence"
+        ],
+        "family": "relationship",
+        "id": "SDC-C10",
+        "missingness_cautions": "No disclosed dependency does not prove independence.",
+        "optional_parameters": [
+          "funder",
+          "service",
+          "population",
+          "metric"
+        ],
+        "positive_proposition": "What relationship or dependency is evidenced for the service or organisation in the period?",
+        "required_parameters": [
+          "relationship_type",
+          "period"
+        ],
+        "scope_semantics": "Relationship direction, role and subject scope are explicit.",
+        "semantic_definition": "Map evidenced funder, partner and delivery dependencies, distinguishing commitment, receipt and recognised revenue.",
+        "semantic_signature_sha256": "98d2eac8252cb06db0783da14228d8e7890676f50a76de5be6c0807fa23a417c",
+        "short_name": "funding_dependency_and_relationship",
+        "temporal_semantics": "Dependency is evaluated for a stated period and change window."
+      },
+      "semantic_signature_sha256": "98d2eac8252cb06db0783da14228d8e7890676f50a76de5be6c0807fa23a417c",
+      "subject": {
+        "abn": "71595544058",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Victory Life Community Services Inc",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:6a637e7c831df23b2636adb97667152609e1325905099c9923bbcf1b19bd90fe",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:b09e07959e924badbfed30df307d3fc2"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C10",
+      "domain_stratum": 14,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2:SDC-C10:domain-14",
+      "selection_ordinal": 28,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "funder",
+          "service",
+          "program"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "relationship proposition is requested",
+          "counterparty is identified"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Relationships",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Funding / dependencies"
+        ],
+        "evidence_role_expectations": [
+          "agreement or award",
+          "financial or delivery dependency evidence"
+        ],
+        "family": "relationship",
+        "id": "SDC-C10",
+        "missingness_cautions": "No disclosed dependency does not prove independence.",
+        "optional_parameters": [
+          "funder",
+          "service",
+          "population",
+          "metric"
+        ],
+        "positive_proposition": "What relationship or dependency is evidenced for the service or organisation in the period?",
+        "required_parameters": [
+          "relationship_type",
+          "period"
+        ],
+        "scope_semantics": "Relationship direction, role and subject scope are explicit.",
+        "semantic_definition": "Map evidenced funder, partner and delivery dependencies, distinguishing commitment, receipt and recognised revenue.",
+        "semantic_signature_sha256": "98d2eac8252cb06db0783da14228d8e7890676f50a76de5be6c0807fa23a417c",
+        "short_name": "funding_dependency_and_relationship",
+        "temporal_semantics": "Dependency is evaluated for a stated period and change window."
+      },
+      "semantic_signature_sha256": "98d2eac8252cb06db0783da14228d8e7890676f50a76de5be6c0807fa23a417c",
+      "subject": {
+        "abn": "27076461360",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Australian Cancer Research Foundation",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:d2ae415e067dfea42b420afdcb15de54f1cb4e5066a735759bdfd8fab87a8898",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C12",
+      "domain_stratum": 15,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa:SDC-C12:domain-15",
+      "selection_ordinal": 29,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "program",
+          "intervention"
+        ],
+        "answer_states": [
+          "SUPPORTED_COMMITMENT",
+          "IMPLEMENTATION_PARTIAL",
+          "MISSING",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "mandate or value is defined"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Ethos / values",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "governed commitment statement",
+          "implementation evidence"
+        ],
+        "family": "ethos",
+        "id": "SDC-C12",
+        "missingness_cautions": "A stated commitment is not evidence of implementation or impact.",
+        "optional_parameters": [
+          "scheme",
+          "evidence_scope"
+        ],
+        "positive_proposition": "What implementation evidence supports the subject's stated commitment during the period?",
+        "required_parameters": [
+          "mandate_or_value",
+          "period"
+        ],
+        "scope_semantics": "A commitment is scoped to the statement and subject that made it.",
+        "semantic_definition": "Test a stated values, ethos or mandate commitment without treating it as proof of conduct or outcome.",
+        "semantic_signature_sha256": "7ea076672d8eba217ae68cc445646a8799d594e2bc0a266baed4ebf02c710a51",
+        "short_name": "ethos_values_and_commitment",
+        "temporal_semantics": "Use statement effective period."
+      },
+      "semantic_signature_sha256": "7ea076672d8eba217ae68cc445646a8799d594e2bc0a266baed4ebf02c710a51",
+      "subject": {
+        "abn": "54610124322",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Dominican Education Australia Ltd",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:fc63bc6dd942252afb3115c32887c163c22429c633829a6e3d8bccbe49b8d46a",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C12",
+      "domain_stratum": 15,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:f01bc09f18df418ea31607b0ff4c38b0:SDC-C12:domain-15",
+      "selection_ordinal": 30,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "program",
+          "intervention"
+        ],
+        "answer_states": [
+          "SUPPORTED_COMMITMENT",
+          "IMPLEMENTATION_PARTIAL",
+          "MISSING",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "mandate or value is defined"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Ethos / values",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "governed commitment statement",
+          "implementation evidence"
+        ],
+        "family": "ethos",
+        "id": "SDC-C12",
+        "missingness_cautions": "A stated commitment is not evidence of implementation or impact.",
+        "optional_parameters": [
+          "scheme",
+          "evidence_scope"
+        ],
+        "positive_proposition": "What implementation evidence supports the subject's stated commitment during the period?",
+        "required_parameters": [
+          "mandate_or_value",
+          "period"
+        ],
+        "scope_semantics": "A commitment is scoped to the statement and subject that made it.",
+        "semantic_definition": "Test a stated values, ethos or mandate commitment without treating it as proof of conduct or outcome.",
+        "semantic_signature_sha256": "7ea076672d8eba217ae68cc445646a8799d594e2bc0a266baed4ebf02c710a51",
+        "short_name": "ethos_values_and_commitment",
+        "temporal_semantics": "Use statement effective period."
+      },
+      "semantic_signature_sha256": "7ea076672d8eba217ae68cc445646a8799d594e2bc0a266baed4ebf02c710a51",
+      "subject": {
+        "abn": "51116463846",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "The Cancer Council NSW",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:e7278ed71fa8bb23b6b46aa21a8afd7a2904b46c900ae8ab1e5796ed35039cd1",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:f01bc09f18df418ea31607b0ff4c38b0"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C13",
+      "domain_stratum": 16,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:d38d7981a6064ea5b93a756b35f4b4cd:SDC-C13:domain-16",
+      "selection_ordinal": 31,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "program",
+          "proposition"
+        ],
+        "answer_states": [
+          "SUPPORTED_FINDING",
+          "ALLEGED",
+          "CORRECTED",
+          "SUPERSEDED",
+          "MISSING",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "conduct or compliance rule is specified",
+          "authority is known"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Conduct / adverse",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Evidence / coverage / freshness / corrections"
+        ],
+        "evidence_role_expectations": [
+          "regulator or court record",
+          "correction or dispute record"
+        ],
+        "family": "conduct",
+        "id": "SDC-C13",
+        "missingness_cautions": "No adverse record is not proof of compliant conduct.",
+        "optional_parameters": [
+          "date",
+          "jurisdiction",
+          "metric"
+        ],
+        "positive_proposition": "What authoritative conduct or correction record is relevant, and what remains unresolved?",
+        "required_parameters": [
+          "subject",
+          "rule_or_mandate"
+        ],
+        "scope_semantics": "Only the authority and jurisdiction stated by the record apply.",
+        "semantic_definition": "Return authority-scoped conduct, restriction, allegation, correction and supersession states, separating findings from claims.",
+        "semantic_signature_sha256": "55df879731b9c72b8ebdbb22750865023e52ef1ba5774277cd17845d164caa00",
+        "short_name": "conduct_compliance_and_correction",
+        "temporal_semantics": "Use event, effective, publication and correction times distinctly."
+      },
+      "semantic_signature_sha256": "55df879731b9c72b8ebdbb22750865023e52ef1ba5774277cd17845d164caa00",
+      "subject": {
+        "abn": "70388962804",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "The Trustee For Lifehouse Australia Trust",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:50236d97070e9d1ece8a049633700896af3fbde4799976184e120c7be0f4daa6",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:d38d7981a6064ea5b93a756b35f4b4cd"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C13",
+      "domain_stratum": 16,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:d4e9beaf947041f493a411dc121e94a9:SDC-C13:domain-16",
+      "selection_ordinal": 32,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "program",
+          "proposition"
+        ],
+        "answer_states": [
+          "SUPPORTED_FINDING",
+          "ALLEGED",
+          "CORRECTED",
+          "SUPERSEDED",
+          "MISSING",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "conduct or compliance rule is specified",
+          "authority is known"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Conduct / adverse",
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Evidence / coverage / freshness / corrections"
+        ],
+        "evidence_role_expectations": [
+          "regulator or court record",
+          "correction or dispute record"
+        ],
+        "family": "conduct",
+        "id": "SDC-C13",
+        "missingness_cautions": "No adverse record is not proof of compliant conduct.",
+        "optional_parameters": [
+          "date",
+          "jurisdiction",
+          "metric"
+        ],
+        "positive_proposition": "What authoritative conduct or correction record is relevant, and what remains unresolved?",
+        "required_parameters": [
+          "subject",
+          "rule_or_mandate"
+        ],
+        "scope_semantics": "Only the authority and jurisdiction stated by the record apply.",
+        "semantic_definition": "Return authority-scoped conduct, restriction, allegation, correction and supersession states, separating findings from claims.",
+        "semantic_signature_sha256": "55df879731b9c72b8ebdbb22750865023e52ef1ba5774277cd17845d164caa00",
+        "short_name": "conduct_compliance_and_correction",
+        "temporal_semantics": "Use event, effective, publication and correction times distinctly."
+      },
+      "semantic_signature_sha256": "55df879731b9c72b8ebdbb22750865023e52ef1ba5774277cd17845d164caa00",
+      "subject": {
+        "abn": "56190972059",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "Climate and Environment Foundation",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:e0809de4d0349ab2ebf9a64b3a056b09e8e356257824fc7b07c4e714c68a785f",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:d4e9beaf947041f493a411dc121e94a9"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C14",
+      "domain_stratum": 17,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:6683c56dfd67439f9944e6004f4c5695:SDC-C14:domain-17",
+      "selection_ordinal": 33,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "program",
+          "metric",
+          "event"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "dated history or change is requested for a subject, metric or event with a specified period"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Notable history",
+          "INTEGRATED_PRODUCT_AND_DATA_MODEL.md"
+        ],
+        "evidence_role_expectations": [
+          "dated primary record",
+          "succession or correction record"
+        ],
+        "family": "history",
+        "id": "SDC-C14",
+        "missingness_cautions": "A gap in history is not proof no event occurred.",
+        "optional_parameters": [
+          "mandate",
+          "successor_scope",
+          "cause"
+        ],
+        "positive_proposition": "What dated change or history is evidenced, and what scope does it cover?",
+        "required_parameters": [
+          "subject",
+          "metric_or_event",
+          "period"
+        ],
+        "scope_semantics": "Historical predecessor and successor scopes must not be silently merged.",
+        "semantic_definition": "Return dated historical events or metric changes with succession and scope preserved.",
+        "semantic_signature_sha256": "5853156d91f8c46cdd999959af14e1f0589e556a73ad83a56fca4602ad9f3eda",
+        "short_name": "history_and_change",
+        "temporal_semantics": "Event time, valid time and publication time are distinct."
+      },
+      "semantic_signature_sha256": "5853156d91f8c46cdd999959af14e1f0589e556a73ad83a56fca4602ad9f3eda",
+      "subject": {
+        "abn": "37646526132",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "SUNRISE FOUNDATION LIMITED",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:44519cc93f491c83933c630ef35578f57dc9bb2c58ee4eb63e10e7ab1540b10b",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:6683c56dfd67439f9944e6004f4c5695"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C14",
+      "domain_stratum": 17,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:38be43a6a7824ca48d764c6aa837089b:SDC-C14:domain-17",
+      "selection_ordinal": 34,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "organisation",
+          "program",
+          "metric",
+          "event"
+        ],
+        "answer_states": [
+          "SUPPORTED",
+          "PARTIAL",
+          "MISSING",
+          "CONFLICTED",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "dated history or change is requested for a subject, metric or event with a specified period"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Notable history",
+          "INTEGRATED_PRODUCT_AND_DATA_MODEL.md"
+        ],
+        "evidence_role_expectations": [
+          "dated primary record",
+          "succession or correction record"
+        ],
+        "family": "history",
+        "id": "SDC-C14",
+        "missingness_cautions": "A gap in history is not proof no event occurred.",
+        "optional_parameters": [
+          "mandate",
+          "successor_scope",
+          "cause"
+        ],
+        "positive_proposition": "What dated change or history is evidenced, and what scope does it cover?",
+        "required_parameters": [
+          "subject",
+          "metric_or_event",
+          "period"
+        ],
+        "scope_semantics": "Historical predecessor and successor scopes must not be silently merged.",
+        "semantic_definition": "Return dated historical events or metric changes with succession and scope preserved.",
+        "semantic_signature_sha256": "5853156d91f8c46cdd999959af14e1f0589e556a73ad83a56fca4602ad9f3eda",
+        "short_name": "history_and_change",
+        "temporal_semantics": "Event time, valid time and publication time are distinct."
+      },
+      "semantic_signature_sha256": "5853156d91f8c46cdd999959af14e1f0589e556a73ad83a56fca4602ad9f3eda",
+      "subject": {
+        "abn": "38981887768",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "THE TRUSTEE FOR AUSTRALIAN PHILANTHROPIC SERVICES FOUNDATION",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:00d1112a2bc46254b0899717df91abc158ad089c95d81c8bbbb3dc30fb0da34a",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:38be43a6a7824ca48d764c6aa837089b"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C15",
+      "domain_stratum": 18,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:273e6f2b2bf449af9e821d27f0aa98a2:SDC-C15:domain-18",
+      "selection_ordinal": 35,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "intervention",
+          "evaluation",
+          "population"
+        ],
+        "answer_states": [
+          "SUPPORTED_BOUNDED",
+          "PARTIAL",
+          "MISSING",
+          "NOT_CAUSAL",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "intervention and outcome proposition are specified"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Evaluation / outcomes",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "evaluation report",
+          "study design and comparator"
+        ],
+        "family": "evaluation",
+        "id": "SDC-C15",
+        "missingness_cautions": "Missing design elements block a bounded decision; they do not prove no effect.",
+        "optional_parameters": [
+          "metric",
+          "comparator",
+          "design"
+        ],
+        "positive_proposition": "What bounded evaluation evidence addresses the intervention for the population?",
+        "required_parameters": [
+          "intervention",
+          "population",
+          "period"
+        ],
+        "scope_semantics": "Evaluation scope and population must match the proposition.",
+        "semantic_definition": "Compare evaluation evidence for an intervention and population, preserving design, comparator, outcome and limitations.",
+        "semantic_signature_sha256": "ca35e6876ababe976370d6612216f1c885e75a104cc12538a0d437fc1e95b447",
+        "short_name": "evaluation_and_outcome_evidence",
+        "temporal_semantics": "Evaluation period and publication time are retained."
+      },
+      "semantic_signature_sha256": "ca35e6876ababe976370d6612216f1c885e75a104cc12538a0d437fc1e95b447",
+      "subject": {
+        "abn": "65069482829",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "The Trustee For Channel 7 Telethon Trust",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:7cf4d5b354fe6b947044c5e845f8ebe0a550b8848084065b3b9276814eff5218",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:273e6f2b2bf449af9e821d27f0aa98a2"
+      }
+    },
+    {
+      "demand_definition_id": "SDC-C15",
+      "domain_stratum": 18,
+      "evidence_acquisition_pathway": {
+        "entrypoint": "governed ACNC identity binding and ABN",
+        "future_source_universe_v1_only": [
+          "acnc_register",
+          "acnc_ais_bundle",
+          "ato_abr_dgr",
+          "official_website",
+          "annual_report",
+          "wikipedia_wikimedia",
+          "pfra"
+        ],
+        "official_website_rule": "later use requires the governed ACNC Website locator and the bounded locator-derived repair rule",
+        "preparation_state": "NOT_EVALUATED_NO_ACQUISITION_IN_THIS_TRANCHE"
+      },
+      "instance_id": "g3fresh-v1:subject:4b704545bc574fe5b2ad66528f3e41a2:SDC-C15:domain-18",
+      "selection_ordinal": 36,
+      "semantic_signature": {
+        "allowed_subject_types": [
+          "intervention",
+          "evaluation",
+          "population"
+        ],
+        "answer_states": [
+          "SUPPORTED_BOUNDED",
+          "PARTIAL",
+          "MISSING",
+          "NOT_CAUSAL",
+          "ABSTAIN"
+        ],
+        "applicability_preconditions": [
+          "intervention and outcome proposition are specified"
+        ],
+        "current_canonical_provenance": [
+          "NORTH_STAR_TARGET_CARD_V0_3.md#Evaluation / outcomes",
+          "SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md"
+        ],
+        "evidence_role_expectations": [
+          "evaluation report",
+          "study design and comparator"
+        ],
+        "family": "evaluation",
+        "id": "SDC-C15",
+        "missingness_cautions": "Missing design elements block a bounded decision; they do not prove no effect.",
+        "optional_parameters": [
+          "metric",
+          "comparator",
+          "design"
+        ],
+        "positive_proposition": "What bounded evaluation evidence addresses the intervention for the population?",
+        "required_parameters": [
+          "intervention",
+          "population",
+          "period"
+        ],
+        "scope_semantics": "Evaluation scope and population must match the proposition.",
+        "semantic_definition": "Compare evaluation evidence for an intervention and population, preserving design, comparator, outcome and limitations.",
+        "semantic_signature_sha256": "ca35e6876ababe976370d6612216f1c885e75a104cc12538a0d437fc1e95b447",
+        "short_name": "evaluation_and_outcome_evidence",
+        "temporal_semantics": "Evaluation period and publication time are retained."
+      },
+      "semantic_signature_sha256": "ca35e6876ababe976370d6612216f1c885e75a104cc12538a0d437fc1e95b447",
+      "subject": {
+        "abn": "65159324697",
+        "bootstrap_state": "created_from_reused_acnc_source",
+        "display_name": "The Sunrise Project Australia Limited",
+        "identity_authority_artifact_sha256": "01ceee0645b9f1111a555c65e026c12b04811a682e2cb1fa10edb7d510a7d5c8",
+        "identity_authority_source_record_id": "srcrec:fb037b4397644be02242fe7525f1873af84f771e9b3263724a38b9c91f66fd83",
+        "identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+        "subject_id": "subject:4b704545bc574fe5b2ad66528f3e41a2"
+      }
+    }
+  ],
+  "schema": "charitygraph.gate3.fresh-semantic-holdout-manifest/v1",
+  "seed": "CG-G3-FRESH-INDEPENDENT-SEMANTIC-HOLDOUT-2026-10-18-V1",
+  "selected_instance_count": 36,
+  "selection_algorithm_sha256": "5f955dc3bbcb9f6fa4de87a04a3e52692f622442e91a983792cc0902440e0807",
+  "selection_prohibitions": [
+    "source body or representation text",
+    "provider response",
+    "oracle content",
+    "expected answer",
+    "CG406 result classification",
+    "semantic development diagnostic"
+  ],
+  "selection_state": "FROZEN_BEFORE_EVIDENCE_EVALUATION_AND_ORACLE_CONSTRUCTION"
+}

@@ -1,0 +1,43 @@
+{
+  "aggregate_actual_aud": "0.120418",
+  "aggregate_actual_usd": "0.079219",
+  "aggregate_hard_max_aud": "0.277645",
+  "aggregate_hard_max_usd": "0.182657",
+  "campaign": "CG406-development-regression",
+  "contract_versions": [
+    "1.1"
+  ],
+  "execution_prepared_run_hash": "321391ea1693843fe0bc0d4588637f59543c3f59956503e7296dd28576042ca8",
+  "execution_project": "proj_vnAuU8uxocL0Rosg3SulgmRI",
+  "mechanical_validation_counts": {
+    "invalid": 8,
+    "valid": 4
+  },
+  "outcome_counts": {
+    "insufficient": 7,
+    "partial": 3,
+    "supported": 2
+  },
+  "prepared_run_hash": "ec24b6c584d5c05983cc83477423df802feb818d23d6037f0f9c565959f877d2",
+  "provider_calls": 12,
+  "provider_posts_attempted": 12,
+  "provider_responses_completed": 12,
+  "request_count": 12,
+  "result_manifest_sha256": "12ee7636294b1ed72ad13d54f11c905494e0defc0a3081c3de23dbb5ca1a0364",
+  "resume_provider_posts": 0,
+  "schema": "charitygraph.cg406-development-result-manifest/v1",
+  "schema_versions": [
+    "1.1-demand-scope"
+  ],
+  "sdc_0019_classification": "CANDIDATE_SOURCE_GAP",
+  "source_universe_changed": false,
+  "status": "FROZEN_FIRST_TERMINAL_RESULTS",
+  "terminal_result_ledger_sha256": "8ea527af3a7b966457902134284ec6fc3c2d466e1c6adfa867e0498fca214204",
+  "terminal_row_count": 12,
+  "token_usage": {
+    "input_tokens": 241805,
+    "output_tokens": 15635,
+    "total_tokens": 257440
+  },
+  "transport_retries": 0
+}

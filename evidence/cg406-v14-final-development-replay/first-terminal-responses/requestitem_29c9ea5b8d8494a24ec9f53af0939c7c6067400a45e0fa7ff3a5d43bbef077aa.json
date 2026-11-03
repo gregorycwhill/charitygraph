@@ -1,0 +1,474 @@
+{
+  "id": "resp_0393a1777cf1f781016ad472a778a887d0921fe0b1fd71b82c",
+  "object": "response",
+  "created_at": 1792307879,
+  "status": "completed",
+  "access_programs": null,
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1792307893,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 8000,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-luna",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0393a1777cf1f781016ad472a84d0c87d0a60d5c92c9b38e49",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABq1HK1sgUa26_bhq3CziUb-OfeHwbH3AuMEa9KS-vlCUWslp3IylgwXwlsMAbdGRo0HIzozKQ-YD25qJjfwprgIHjhhtvXKpN-L-5gwM4UL9xkAiIhYEkXn4mgcD9Rh4g9m4-I5J_AHZdQZE3aFnP6LR-DjykKnvIvazYqeXxZt6gIpnhOEl54PeThfZ8xprrgBgLbz0wNFh4tEoa3sBbZ1hwRmksrwFfdoZ07mYmf9m3Pl0GF8cH8zBTWuRzbcRrCf5_YU6wL4SwVVYh8XF3htKBLHTv4OkfQ_iOKKDGdduLriiESWjK9Z7PyWOoqYp7K-LJNFXL3iM_CM_dgQRAnX-io7_VRP5nvx8E7Bx34WxZL01vNp9bFzL7wBNv_4dX0g7XtfAewwgOkxOns01yHwVVJPdXMvpbO6fQeUbz-r0AKclHdoqJG1diU3QhD2TLb3iMdpw2ps2fegO2ozulytNts6TiMH4SjeAIOMUa0Q6LsZ9WhOdK1YYAL86uITdG7xnnDTOFU0T5WizJXB805_OEyU56Bmibtu7-cyYnekKpSYqYLI6aBRQGLEY1hQMvW4bjMUxNq6khyaLlLGg8HnJeCKDKJwM6ECso-6VJ7ENg9RWVCL9r3Uz7l1xGg_F53HhooZRl7VyZF-UmZTDROhDmrM6okdGkVe5DOTEVIrIvosXNc6MpuKCv-pRK_f6hdASxRWQUbiIhsHP4Uh_E5N99D2cc-G1XlRz5cplDGww3hqw5r3sW35rIAz5no3SJi4yC8PZiOg5oLaweMzJK0TmiJUhoZUczqFZ9yGrMUbpYXrEIlvwJCZ3fTj8H9iosH7vflwIWRuH7JyCm7XeRB_5nWDsprPd3_v_dkyGlQ1Th8hsH4mhMW1esNqUPkCVR8tasMkaQytNJ9RzVybZVQIXX7AK0s2ZweE8543H6K1UtpAQMZ0ybtCXgKpLsWLwylZrC_OpnDcdpsfUKGtW9SjvSk6Na-hL0aisqoS9wZnQZ_7vBiKpiPs_No7sMr6hdXOc82__aup7-dZkuVLSS5u_gfDtn-SI18hBAhI1_YTrSYNcIq7SD8xqCVtKjYC4XoNUir1lu5vqXzdIgMNtdhtqjLhHQg2ze_8MUxAICb89qCW5psxPrvjWw-hYnGglZcIJWfXFhFkDrVlPc49fG2glfeSexw1QU9zhkFuGx3AyCFUe1pSqbL7d4NRl11GqhXnoZfM8jCj-6VOX74Cpn3C4JyGSNT1A6jesnsIhxo5HACVl-OZ8vaWiC7IewYvBxiXM99GjBVV5li8Cf48M4SXVq0hFOp0jCopUmgvIQxbTO-uCXeaklSBCR_gd-oEUe6kMQ1QL3Cl-PyUazF09-VluFAgT3KAYbU3SOI5tAL2EIDI_39lES3z6WgDEnoQfoE2P_Iwtq2Mjl8g2DKFG6TL4Qyf_9JNI7rYs0Uc_5V2PNdJLyoqN3kMmuaV02a9sQgCiQ360uT0iib6qcamC_kvzdIyaAWAsCzxM4zfVpeh5hA4z9rlkdp5MgEfehqfoAD_QCurgj7QBuSiXoVYGn1Xcs4GlqedE22EKh2Qvb42QLUYQblnUoRhYptArJubgAQ04ytb-JIGk4hgXXaBa7ny-LxEVYcDZlCV3OG68lyx0SSIzbWQKWQ92ODmzJnUK5Ac2sH5jBD4CK_exadkjy3LrQHQjIW_iiKLmayh6Waf1qcT6DcyrqUjGzemKE93ejzwLUOqFe4abDHZB45i_gbDJRdpdURtrUO8zWfA4u6R1-_D9kPNd--87VsTtn-lz_Br4vxbnq1xMciR0VzStZeEOkG7ogIkOUTkiA8XYyKgNZehOe6OsLuRPm7-DOmPD4GWMLYWD3LRVAtTbohBKRkG5s3wE5JRosfWseNeth5sO1rU0Z6AQH8HtoFu1BMyeVol2QCYQGqOFNwm9cb4NqfONByeRwLUbY5nziUPrLZW6s3mRRzpc2goTuhIpNtO39lEFwGEok1yTmPjf-aGvGBOcZxlvyIY6WILNdSIh90QJw2qx4yVBJM6-Fz8Rm03OmdZsY60afOppzoFlRRp3HW9bYZs0ylWndsCXxm2ulyZ8AxvBy_prASugOLcNTE848MfNpKSUQn57hSl1M6-2pNNmmONqzTquSNun4WJPXhoHQXnw1QpxqvDOx_YCsDkaJjV82tXOQx7KC4R_3XXVIg1oWLozo0w3MWpyzh-kCLcRaNCUn94Ux0MbmuzTZCYMCNKNwZMirh9N2gTHGMZcupN_OGi3OEaAHlnMUbgROo_LxrPPhpop29IrzXyIqhbFZfB8xx2GDIOBiU6h75iReNve2CZuPnuuIvBDKzTPM-sgPnGaGa1WOWohtphaUDxx8Yb895w5yVU2vVN7HGWonbhtcqPHEBVsCeuvIlenZZdshN8DjjUt2FvzYTe__T1-tuQvU1NRaHEq7OJQ34VKgHgNWDpWomypZqsEAqMyrEhiV_otHst0HZFapZ9cSmDx60SfhJVZSs_5bSbMN2-lMk4vhHqkVOuvDxCswbZPQhwgZW2kyfv_oCKzfYBcT5VVpF7boJHld-KEht019eYu8_1Lgv65RvX3ykvZdui4COSLLF-NVJKTrIGCAnoDpmQDWTZlXBbQQ_7osEezr8N5H2yRV6CFHNSPd2MvQp2GcS07jiDX6HYsomIBP9tNsb0uGWKubzUHKmMxo_GiV1xdLvSOj6HWAJjnD-yscRtfMunRXdetqlD3Zk-JNYbAK2XC42cK77rSE_5Vh_JsJpb9EI31Po1N6HK4jT2RzJWcAdfK53I45eOxZpdrzfjhNna4agZVdynLxjFYmGdOvZF1qTh0GDsCXMdqLaIy1jPa9rDWflyP43fpwmNEDlTuvg9C000kw9kIuq-Jalbp8ScAKlJ-o7vJDXBTwC82CibCg_Kn_-zBoso9cg61aYHyOJ_RJvarU5S6CEPhaj0IpFqg--7OPRHlo0JYXo-BSpctAUzZPAeCvPYmbTZ41X0DLM9-XYRnKlRQ1yaFG72F7nf8GC3QiHIQLBgF5NqcPFz1tFM-9zgIOB-Ev4a-PvXMwe-XKVxv9d-p5guHsPC_jVJRYuPU6VDAwaAhrVvVylR781Fo8G2rmlpZvOWdNyncGtwMEmUkGeige-xg8fGwceUZJ5nLRDOeJ1O-xhPmW53EIrGvv5QJq3TUq1mb7VHCVQrBXwiuPmgPT3gsSROHPU8F5qIoYjWHnwiKv22gWwRxJjX4ZWDsrUPvW9xPCMU6EAAXOBK4wiRWb92aS8E4QmgalyhtELUbLAJChiV33jfaMklJtLmF4LXRFVUVMaQ8FbYZWZ_kUPr0gSRxOEHnQ6dy8zBnov3dRnP--ABfo-zXIDr02Vm4lYTroBQRJeNa7ovsgTT29CBkvT6CfyIU_yK3EAet4KEEd_gLhIG2nsbNzGozVh752uw1SSWtXBQmpdp2lQtaRhIHNccVVl4UqzwxtgtiyeHSasI6wu8ef03kwpav2HHE9B6zSGvUSyad5SKch69TzO-hZlD73LUy6wUGpfvsqoD7DN4kVzJ2Uo4r8b_DZ2IJ6eOtsWAVgS2B_6btN0H-pH5Ej5Ybe7txgYhgwa10aYFe-UHlZcvIRAiUeGsuB6e-UdL08VlcYJJdi_nCH1kq8sodfsrQUmwfA_JYOxaHShaVg_AJ1tbyofaxbPOgD__dVODlvT_ix8-yTyDnpa7V-kgcB0_bgg8UD275DPutCRrmfBIgLImmAmXBGF4T3hkAnJLf08L9A7Hj5xnVAiYFRWzee8elTPmDxsRaMPsr8Tzh2aA0IJ5X-SR15putTE2z0Y0zxv7DwUzOwlZtaab-0-wiRiN5lpmZMvfok4Dr21WUi-umhkyzVHs3EpZERW2JXWYh1SYp316Fgwkd4zYyTnwFRO4dlVPp_ml7oLZ5EkfcujI_0enjNXY4lTpTCAPaNOioC8Y2RT6XOxL-m154415D_0U3DSdvywI2kk528hanz97hEYbcwyBMZF6Y3HPuqTAcqjLCwIS9nByAXNEB7AG5y84vJmJ-QFBEdjJjbVq76WUUX1I-flkGvTSJZrQIQ1J3S04VGYufdznHpFyNZSKFMnxAw6C0JG6-NCzXz2szeUl5peSKlKP4FKDD9C8lsSH2pkGP4QW8VZ_GHOrzfUh0XvxA-Hvrn362_IfWhQadxvJZmXXNYHaMxlCaiKwH3A6tC6rDkJUtGkjvzYp-EZDv7cYSTDGxSfPpSKxH3K9H0VJ-Nk5boZICsvMcafxPlyyIVq32NBd_OJQ8ExxN0-tfoqhOTu-NWwzrkQbEVAm3lMHpgKO7kVzEps11mPmlc6YSOfL5hUSBrUfTFBrpGMIYoW6dWUD00NhbkTEEa8vAxA-SfVkGqjmCn1MIl7cpQNr2Kap5JFIKgoPzXCjKY3yZBz0R4ZtxKGP3VsmTWwVE1sJCgFIetYVm6W1By5TpGljQFgw2WjRh-ouHoLw4-AE8uhggZ3sHUL67REDsPtLzt9ovZSydQ_KyFOB31Ni5Bv5cCi3ftLyWHi2Yo7NqOsRXtIi8C2D-8vmYIR8sQ_ImUGDnAwh5aT_HysCsFt0keKyyie7xGF5E1zECx4MBRYvVEUON4h9nN1o6UE7EhaZGe2Nyh03Q0Pkkd_E1tHe_i2A0dnsP8A6utbn8amEJGaG5g_BfFyiCOTb9THrbU_DaHfDb7TtdkP9J2CTlL8XpeCew5dY3_DyIuVBDrta5m7rkjFh8yHBDgiCTK1MUWva8y5o9bIVtM_td0YZR3XcWDVElhiKsUoRxM2fgJ3QksWQnL3uvjLBLaSwSFmgNCiGBdO5mgUPASWGNdpmaL_VOoKhtIddOWV9M26JtQKXDYPNNd7N-0JBHS_tYUWFulmB9fHnlIwa7KcGyEZPedDZ1rqWg32LvmJfWSxlCaOusxt7aLsS0bm1RgJLkTRzzb-ryyKX_pPM1OIq9CnFvAGbZMj1JGh2AiMJjS0W7Qc1Xsp0WSNgPyAnCf67N53PSXKZGvGC22tBLFhmbCLntQlLgAN2hjH5HLgrBlGmfKvdgI7iQYDHOxG8cB99p9XIb5tDAKAZKw41MAoHmLG1YJ8ZRONYeNnTG6S7u9U4SuiWuk62s_8JR4OYdnudpHp-6LvgFoK7hMfHwvS8ZFX2XU1t9si1vVuYtG9V6v9FY8U5tRkys5uwpIWrmWAebVGSfvfXNfPzUNSpbIxJZQ63IuovUSAPQIsUBjrCzJZBQ78kifuUrE8i42LnENlL2C8yvqYJv8R3XfDF1y1cdJn3hERh0B6PtigNzhLZoGXQg18TlRl9hAl7z_mo_rbhfTUwncbKbK8EHhLnA8kE_U7CzwUjVCNo1TnqcH7dPsI-C3Tpg9bYIi5LPq9Kn3yO_yBfAahpV3OdeJWVD2OQMgzsk1AtsTDzUOqVYpqsDGxkrH9qX-33j-qW1v4xgluD9WniRqFZG6cv9XS5DKXB41ZX26Ua44psE--G9rT1E1flL2oRjwf2kLsDM21fK_JzmDUSDTwo4w4bO0Gko9unAbWGyK5xKmB2hEifPRBuEZIYMbeYKrJpxgZ1xBpZmtYYukbwDZufxhbrU96CsjcY9ID8hhjLWRAmEIk6YgkK_8d-EJilOi6ol9oXtAbZVhkVdtsokITK84ZppsejShHZ7wgTudz6Y4-UECAealJMKFdyhir2KEWhSPXRvRCW2tgtHJRvrtEi548wQPscfoBWANZJpCetZEBIO19U_o7WrBNr1tpFqA_kbAQvDEuSJIQpfVEeZPLutiUEewVgwf1AmJNvARu0WGY7dXLh0e7Ux5DblpQDor_be9UMjei9f133MUNnVnpFREfbMHI82_W0nMBS8aKaovVfPh5Go1ml3OUa9IGXCxL3KZqHLQYql3WNiLq3PqIfAUwcDrWz7bX6aqrVk_OHKA81qBcv9AjzF-N0B2KPCUsu6vc4w-sHaKodpIVA3kYnIDca8VPoA1xsI08MppUbXb6dyc06P949kO5OokfjaJdOfxGv0pKXr71QQJ3yNfVLD0wdHK6NXx0Qhn5XxFp_S-UYhx5woujN2eHeS9kdnLz1L4LXLKRB-WstEY9i_2dj7lO0olI7HKVa-qGiYpaEAI=",
+      "summary": []
+    },
+    {
+      "id": "msg_0393a1777cf1f781016ad472ab6bfc87d0a9d8f65411569705",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"conclusion\":{\"confidence\":\"high\",\"evidence\":[{\"additional_meanings\":[],\"evidence_id\":\"srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a\",\"note\":\"FY25 annual report provides a reporting period and service-instance and people figures, but does not establish the requested study design, study population, or missingness assessment.\",\"role\":\"supporting\"},{\"additional_meanings\":[],\"evidence_id\":\"srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab\",\"note\":\"Regulator material describes programs and beneficiaries but does not provide a study design, study-scoped gap analysis, or evaluation decision.\",\"role\":\"context\"}],\"outcome\":\"insufficient_evidence\",\"rationale\":\"The packet contains organizational, program, and FY25 operational and financial reporting, including a service metric, but does not establish an intervention-to-study relation, study-to-population relation, evaluation decision, study design, missingness, or a decision-specific evidence period.\"},\"demand_requirement_support\":[{\"evidence_ids\":[],\"qualification\":\"No evaluation decision is identified in the supplied evidence.\",\"requirement_id\":\"requirement:249cdf6433cc87084d4f8e62d0183337899947c3f094fa259d4858693bb8a92f\",\"support_state\":\"not_established\"},{\"evidence_ids\":[],\"qualification\":\"The supplied evidence does not establish a decision-specific claim-to-evidence mapping.\",\"requirement_id\":\"requirement:5cb3f24c04adea949c9e5d37dbdeb4392a99bae518ad3bc8c1519d8889ba37a7\",\"support_state\":\"not_established\"},{\"evidence_ids\":[],\"qualification\":\"The evidence describes services and research activity but does not link an intervention to a study.\",\"requirement_id\":\"requirement:d27008f0b8edb3219afc275efcde4d4bd7dfe212c45395042824addbe597bca9\",\"support_state\":\"not_established\"},{\"evidence_ids\":[],\"qualification\":\"Reported beneficiaries and service recipients are not a defined study population.\",\"requirement_id\":\"requirement:36197c22dd394a18f2331f60b6c70854f0fa5bee52fb00fadbc1d6021141f0b5\",\"support_state\":\"not_established\"},{\"evidence_ids\":[\"srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a\"],\"qualification\":\"The FY25 report supports describing available operational evidence and its limitations.\",\"requirement_id\":\"requirement:afb2215dd2a1d13ae42f0bfd5a50239618170c785fa0de8754ffba9310b73eb3\",\"support_state\":\"supported\"},{\"evidence_ids\":[],\"qualification\":\"No exception rule or decision-screening exception is supplied.\",\"requirement_id\":\"requirement:b5295617285b027c88dc44bdadbf658d3852ea35d0fd31bab55add8747d0d574\",\"support_state\":\"not_established\"},{\"evidence_ids\":[],\"qualification\":\"No screening rule for an evaluation decision is supplied.\",\"requirement_id\":\"requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9\",\"support_state\":\"not_established\"},{\"evidence_ids\":[],\"qualification\":\"No conclusion is drawn that missing design proves failure; the supplied evidence is insufficient to assess design.\",\"requirement_id\":\"requirement:b31cfcb3d8ee7969f9a5a76d90a50ca497cfaaf84705837df647ac27ad33dcf0\",\"support_state\":\"guarded\"},{\"evidence_ids\":[],\"qualification\":\"The packet does not provide study-scoped evidence for a gap assessment.\",\"requirement_id\":\"requirement:3be8d96cb5e29ee176e400796a30b61487c8a11062754d7c95156c04acb54e49\",\"support_state\":\"not_established\"},{\"evidence_ids\":[\"srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a\"],\"qualification\":\"The material can identify limitations in the supplied evidence, but no particular evaluation decision is identified.\",\"requirement_id\":\"requirement:8dffcba45fda3a82e8074c1130c69d40bdf5c70fadebde3e9f035696eb7d8bbc\",\"support_state\":\"guarded\"},{\"evidence_ids\":[\"srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a\"],\"qualification\":\"The FY25 reporting period is stated as the year ended 30 June 2025, but the required decision evidence period is not specified.\",\"requirement_id\":\"requirement:8e893c0cc4e038c0c56fc5940a33c9cb37f8a5931e308d3a3ba4116fb6a8d1ea\",\"support_state\":\"unresolved\"}],\"proposition_support\":[{\"evidence_ids\":[],\"proposition_id\":\"proposition:a77de8a6daa1129516b14c8ca1e233a51a8414b202eac7c8acfbb9b485046ad4\",\"qualification\":\"No evaluation or study design is supplied.\",\"scope_basis\":\"unresolved\",\"scope_status\":\"unresolved\",\"support_state\":\"not_established\",\"temporal_status\":\"unresolved\"},{\"evidence_ids\":[\"srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a\"],\"proposition_id\":\"proposition:b8b4e9cea77ef29a5e958f13addd4855c35d2f04a060c3a869f8c955fd4c9a34\",\"qualification\":\"The FY25 report states 39,800 service instances delivered to 6,881 people, but does not establish a study metric or measurement design.\",\"scope_basis\":\"direct_service_coverage\",\"scope_status\":\"bounded_scope\",\"support_state\":\"supported\",\"temporal_status\":\"satisfied\"},{\"evidence_ids\":[],\"proposition_id\":\"proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f\",\"qualification\":\"No missingness, completeness, attrition, or denominator analysis is supplied.\",\"scope_basis\":\"unresolved\",\"scope_status\":\"unresolved\",\"support_state\":\"not_established\",\"temporal_status\":\"unresolved\"},{\"evidence_ids\":[],\"proposition_id\":\"proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1\",\"qualification\":\"The evidence reports service recipients and program beneficiary categories, not a defined study population.\",\"scope_basis\":\"unresolved\",\"scope_status\":\"unresolved\",\"support_state\":\"not_established\",\"temporal_status\":\"unresolved\"}],\"rejected_evidence_ids\":[],\"selected_evidence_ids\":[\"srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a\",\"srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab\"]}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "low",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": false,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "evidence_selection_v1_4",
+      "schema": {
+        "$defs": {
+          "DemandRequirementSupport": {
+            "additionalProperties": false,
+            "description": "An assessment of one exact, packet-supplied demand requirement.\n\nRequirement identities are assigned from frozen structured demand bytes.\nThey are not model-generated labels and are deliberately separate from\nproposition labels, so an assessor cannot silently replace a demanded\nreferent, relation, evidence standard, time obligation, or prohibited\ninference with a neighbouring claim.",
+            "properties": {
+              "evidence_ids": {
+                "items": {
+                  "enum": [
+                    "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+                    "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+                    "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+                    "srcrec:52ff9879abf522362bd642d8e22f54a4e2b813f451dcd1723978b0f68a3d9e79",
+                    "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+                    "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+                  ],
+                  "type": "string"
+                },
+                "title": "Evidence Ids",
+                "type": "array"
+              },
+              "qualification": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Qualification"
+              },
+              "requirement_id": {
+                "enum": [
+                  "requirement:249cdf6433cc87084d4f8e62d0183337899947c3f094fa259d4858693bb8a92f",
+                  "requirement:5cb3f24c04adea949c9e5d37dbdeb4392a99bae518ad3bc8c1519d8889ba37a7",
+                  "requirement:d27008f0b8edb3219afc275efcde4d4bd7dfe212c45395042824addbe597bca9",
+                  "requirement:36197c22dd394a18f2331f60b6c70854f0fa5bee52fb00fadbc1d6021141f0b5",
+                  "requirement:afb2215dd2a1d13ae42f0bfd5a50239618170c785fa0de8754ffba9310b73eb3",
+                  "requirement:b5295617285b027c88dc44bdadbf658d3852ea35d0fd31bab55add8747d0d574",
+                  "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+                  "requirement:b31cfcb3d8ee7969f9a5a76d90a50ca497cfaaf84705837df647ac27ad33dcf0",
+                  "requirement:3be8d96cb5e29ee176e400796a30b61487c8a11062754d7c95156c04acb54e49",
+                  "requirement:8dffcba45fda3a82e8074c1130c69d40bdf5c70fadebde3e9f035696eb7d8bbc",
+                  "requirement:8e893c0cc4e038c0c56fc5940a33c9cb37f8a5931e308d3a3ba4116fb6a8d1ea"
+                ],
+                "type": "string"
+              },
+              "support_state": {
+                "enum": [
+                  "supported",
+                  "guarded",
+                  "unresolved",
+                  "not_established"
+                ],
+                "title": "Support State",
+                "type": "string"
+              }
+            },
+            "required": [
+              "requirement_id",
+              "support_state",
+              "evidence_ids",
+              "qualification"
+            ],
+            "title": "DemandRequirementSupport",
+            "type": "object"
+          },
+          "EvidenceMeaning": {
+            "additionalProperties": false,
+            "properties": {
+              "note": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Note"
+              },
+              "role": {
+                "enum": [
+                  "supporting",
+                  "competing",
+                  "context"
+                ],
+                "title": "Role",
+                "type": "string"
+              }
+            },
+            "required": [
+              "role",
+              "note"
+            ],
+            "title": "EvidenceMeaning",
+            "type": "object"
+          },
+          "EvidencePropositionSupport": {
+            "additionalProperties": false,
+            "description": "Mechanical account of a model's cited proposition assertion.\n\n``scope_basis`` records the model's reading of the cited material.  It is\nnot a machine-proof of semantic entailment: source family/role and the\nsource-native locator are supplied separately in the execution packet,\nwhile semantic entailment remains available for adjudication.  The\nvalidator therefore checks citations, exact frozen identity, scope/time\ncompleteness, and conclusion admissibility without pretending that a\ncategorical model label can interpret source prose.",
+            "properties": {
+              "evidence_ids": {
+                "items": {
+                  "enum": [
+                    "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+                    "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+                    "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+                    "srcrec:52ff9879abf522362bd642d8e22f54a4e2b813f451dcd1723978b0f68a3d9e79",
+                    "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+                    "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+                  ],
+                  "type": "string"
+                },
+                "title": "Evidence Ids",
+                "type": "array"
+              },
+              "proposition_id": {
+                "enum": [
+                  "proposition:a77de8a6daa1129516b14c8ca1e233a51a8414b202eac7c8acfbb9b485046ad4",
+                  "proposition:b8b4e9cea77ef29a5e958f13addd4855c35d2f04a060c3a869f8c955fd4c9a34",
+                  "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+                  "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1"
+                ],
+                "type": "string"
+              },
+              "qualification": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Qualification"
+              },
+              "scope_basis": {
+                "enum": [
+                  "not_applicable",
+                  "direct_service_coverage",
+                  "eligibility_criteria",
+                  "program_metadata",
+                  "beneficiary_category",
+                  "charity_address",
+                  "program_location",
+                  "operational_geography",
+                  "unresolved"
+                ],
+                "title": "Scope Basis",
+                "type": "string"
+              },
+              "scope_status": {
+                "enum": [
+                  "subject",
+                  "bounded_scope",
+                  "unresolved"
+                ],
+                "title": "Scope Status",
+                "type": "string"
+              },
+              "support_state": {
+                "enum": [
+                  "supported",
+                  "unresolved",
+                  "not_established"
+                ],
+                "title": "Support State",
+                "type": "string"
+              },
+              "temporal_status": {
+                "enum": [
+                  "satisfied",
+                  "unresolved"
+                ],
+                "title": "Temporal Status",
+                "type": "string"
+              }
+            },
+            "required": [
+              "proposition_id",
+              "support_state",
+              "evidence_ids",
+              "scope_status",
+              "temporal_status",
+              "scope_basis",
+              "qualification"
+            ],
+            "title": "EvidencePropositionSupport",
+            "type": "object"
+          },
+          "SemanticConclusion": {
+            "additionalProperties": false,
+            "properties": {
+              "confidence": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "low",
+                      "medium",
+                      "high"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Confidence"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/SemanticEvidence"
+                },
+                "title": "Evidence",
+                "type": "array"
+              },
+              "outcome": {
+                "enum": [
+                  "resolved",
+                  "supported",
+                  "insufficient_evidence",
+                  "ambiguous",
+                  "not_applicable"
+                ],
+                "title": "Outcome",
+                "type": "string"
+              },
+              "rationale": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Rationale"
+              }
+            },
+            "required": [
+              "outcome",
+              "evidence",
+              "rationale",
+              "confidence"
+            ],
+            "title": "SemanticConclusion",
+            "type": "object"
+          },
+          "SemanticEvidence": {
+            "additionalProperties": false,
+            "properties": {
+              "additional_meanings": {
+                "items": {
+                  "$ref": "#/$defs/EvidenceMeaning"
+                },
+                "title": "Additional Meanings",
+                "type": "array"
+              },
+              "evidence_id": {
+                "enum": [
+                  "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+                  "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+                  "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+                  "srcrec:52ff9879abf522362bd642d8e22f54a4e2b813f451dcd1723978b0f68a3d9e79",
+                  "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+                  "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+                ],
+                "type": "string"
+              },
+              "note": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Note"
+              },
+              "role": {
+                "enum": [
+                  "supporting",
+                  "competing",
+                  "context"
+                ],
+                "title": "Role",
+                "type": "string"
+              }
+            },
+            "required": [
+              "evidence_id",
+              "role",
+              "note",
+              "additional_meanings"
+            ],
+            "title": "SemanticEvidence",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "conclusion": {
+            "$ref": "#/$defs/SemanticConclusion"
+          },
+          "demand_requirement_support": {
+            "items": {
+              "$ref": "#/$defs/DemandRequirementSupport"
+            },
+            "title": "Demand Requirement Support",
+            "type": "array"
+          },
+          "proposition_support": {
+            "items": {
+              "$ref": "#/$defs/EvidencePropositionSupport"
+            },
+            "title": "Proposition Support",
+            "type": "array"
+          },
+          "rejected_evidence_ids": {
+            "items": {
+              "enum": [
+                "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+                "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+                "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+                "srcrec:52ff9879abf522362bd642d8e22f54a4e2b813f451dcd1723978b0f68a3d9e79",
+                "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+                "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+              ],
+              "type": "string"
+            },
+            "title": "Rejected Evidence Ids",
+            "type": "array"
+          },
+          "selected_evidence_ids": {
+            "items": {
+              "enum": [
+                "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+                "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+                "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+                "srcrec:52ff9879abf522362bd642d8e22f54a4e2b813f451dcd1723978b0f68a3d9e79",
+                "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+                "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+              ],
+              "type": "string"
+            },
+            "title": "Selected Evidence Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "selected_evidence_ids",
+          "rejected_evidence_ids",
+          "demand_requirement_support",
+          "proposition_support",
+          "conclusion"
+        ],
+        "title": "EvidenceSelectionOutput",
+        "type": "object"
+      },
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 43111,
+    "input_tokens_details": {
+      "cache_write_tokens": 43108,
+      "cached_tokens": 0
+    },
+    "output_tokens": 2072,
+    "output_tokens_details": {
+      "reasoning_tokens": 328
+    },
+    "total_tokens": 45183
+  },
+  "user": null,
+  "metadata": {
+    "claim_family_id": "evidence-selection-v1",
+    "delivery_job_id": "deliveryjob:414b1cd6b1f3254071e751e28860d7564eb685db52184938ba43af7eed990346",
+    "logical_task_id": "modeltask:29cd43c91c767578fafd73fb55463e12ba01c952401ec53034b31c4f4b5f7661",
+    "provider_request_item_id": "requestitem:29c9ea5b8d8494a24ec9f53af0939c7c6067400a45e0fa7ff3a5d43bbef077aa",
+    "semantic_contract_hash": "4bfdfdf7d64c8a9d104981555e53d60f0b1b9bc6f4a0b13eaffd8676a8761566",
+    "semantic_contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1"
+  }
+}

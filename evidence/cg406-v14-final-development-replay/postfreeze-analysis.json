@@ -1,0 +1,23 @@
+{
+  "schema": "charitygraph.cg406-v14-postfreeze-analysis/v1",
+  "result_manifest_sha256": "9f8ae0fe0ff7841b9c1095677b0e7a4326eda7eed4f3f44d152193cd79eed0dd",
+  "analysis_occurs_after_frozen_result_manifest": true,
+  "v13_raw_outcome_counts": {"insufficient_evidence": 11, "supported": 1},
+  "v14_raw_outcome_counts": {"insufficient_evidence": 11, "supported": 1},
+  "v13_mechanical_validation_counts": {"valid": 6, "invalid": 6},
+  "v14_mechanical_validation_counts": {"valid": 6, "invalid": 6},
+  "raw_outcome_changes": 0,
+  "mechanical_validity_flips": 6,
+  "moved_invalid_to_valid": ["Cancer Council Victoria", "University Of Western Australia", "Plan International Australia"],
+  "moved_valid_to_invalid": ["Amnesty International Australia", "Caritas Australia Limited", "The Church Of Jesus Christ Of Latter-day Saints Australia"],
+  "v14_invalid_failure_patterns": {
+    "guarded_on_non_inference_ineligible_requirement_rows": 4,
+    "strong_proposition_with_unresolved_scope_or_time_rows": 2
+  },
+  "contract_admissible_positive_count": 1,
+  "semantic_adjudication_performed": false,
+  "sdc_0019_classification": "CANDIDATE_SOURCE_GAP",
+  "source_universe_v1_changed": false,
+  "result_manifest_edited_after_freeze": false,
+  "manifest_raw_outcome_and_validation_metrics_are_supplemented_here": true
+}

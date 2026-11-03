@@ -1,0 +1,14 @@
+{
+  "schema": "charitygraph.cg406-v14-final-replay-tests/v1",
+  "focused_command": "python -m pytest -q -p no:cacheprovider tests/test_frozen_experiment.py tests/test_frozen_experiment_cli.py tests/test_phase5_standard_transport.py tests/test_standard_delivery_job.py tests/test_phase5_execution_packet.py",
+  "focused_passed": 47,
+  "focused_failed": 0,
+  "focused_runs": 2,
+  "fixture_diagnostic_command": "python -m pytest -q -p no:cacheprovider tests/test_s0_authorisation.py tests/test_s0_identity_lineage.py",
+  "fixture_diagnostic_passed": 0,
+  "fixture_diagnostic_failed": 15,
+  "fixture_path": "C:\\CharityGraph-clean\\.s0-policy-data",
+  "fixture_directory_present": false,
+  "diagnosis": "All 15 failures require absent S0 policy bundle / authority fixtures under .s0-policy-data. The S0 test and source paths were unchanged by the current HEAD remediation commit. They are unrelated to CG406 preparation, transport, validation, and evidence-governance paths. No validation was weakened.",
+  "provider_calls_during_tests": 0
+}

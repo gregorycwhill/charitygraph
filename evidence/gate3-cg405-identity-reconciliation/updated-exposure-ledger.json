@@ -1,0 +1,87 @@
+{
+  "new_cg405_exclusion_count": 5,
+  "predecessor_subject_universe_manifest_sha256": "81cc539a2b6df84600401fcc64afad63352b2a905c27332c2aa8e94f5f6432a5",
+  "prior_resolved_exclusion_count": 49,
+  "reconciled_exclusion_count": 54,
+  "reconciled_non_excluded_candidate_count": 46,
+  "release_status": "BLOCKED_ON_HISTORICAL_IDENTITY_LINEAGE",
+  "resolved_cg405_subject_exposures": [
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "46070556642"
+      },
+      "campaign": "CG405",
+      "exposure_type": "subject",
+      "legacy_subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
+      "origin": "cg405_acnc_exact_abn_crosswalk",
+      "subject_id": "subject:ca20920c8c074a268f09b7a57866479a"
+    },
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "15000002522"
+      },
+      "campaign": "CG405",
+      "exposure_type": "subject",
+      "legacy_subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
+      "origin": "cg405_acnc_exact_abn_crosswalk",
+      "subject_id": "subject:67db77d503aa4689a78c685704cc8a96"
+    },
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "50169561394"
+      },
+      "campaign": "CG405",
+      "exposure_type": "subject",
+      "legacy_subject_id": "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
+      "origin": "cg405_acnc_exact_abn_crosswalk",
+      "subject_id": "subject:d10dfad31cb04c5fb27ada0a81f36b69"
+    },
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "28004778081"
+      },
+      "campaign": "CG405",
+      "exposure_type": "subject",
+      "legacy_subject_id": "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
+      "origin": "cg405_acnc_exact_abn_crosswalk",
+      "subject_id": "subject:cf042745edd84e58bce4e1c60704c472"
+    },
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "28000030179"
+      },
+      "campaign": "CG405",
+      "exposure_type": "subject",
+      "legacy_subject_id": "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c",
+      "origin": "cg405_acnc_exact_abn_crosswalk",
+      "subject_id": "subject:f284a1e0e31a4e04b7d9f8ae8863ef10"
+    }
+  ],
+  "schema": "charitygraph.gate3.question-first-exposure-ledger-reconciliation/v1",
+  "selection_performed": false,
+  "unknown_cg405_exposures": [
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "20077830347"
+      },
+      "legacy_subject_id": "subject:11723c321bfbb575c2a13e93c18a310b52d760e305b44c2db9bdf9e62b1a0bc8",
+      "reason": "no current governed ABN match and no documented authority-identifier migration/crosswalk was located in the permitted historical identity inputs",
+      "state": "UNKNOWN_EXPOSURE"
+    },
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "22007498482"
+      },
+      "legacy_subject_id": "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
+      "reason": "no current governed ABN match and no documented authority-identifier migration/crosswalk was located in the permitted historical identity inputs",
+      "state": "UNKNOWN_EXPOSURE"
+    }
+  ]
+}

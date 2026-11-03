@@ -1,0 +1,1852 @@
+{
+  "comparison_basis": "mechanical only; no oracle or semantic adjudication",
+  "contract_schema_versions": {
+    "v1_1": {
+      "contract_versions": [
+        "1.1"
+      ],
+      "schema_versions": [
+        "1.1-demand-scope"
+      ]
+    },
+    "v1_2": {
+      "contract_versions": [
+        "1.2"
+      ],
+      "schema_versions": [
+        "1.2-packet-proposition-identity"
+      ]
+    }
+  },
+  "provider_visible_family_totals": {
+    "v1_1": {
+      "acnc_ais_bundle": 12,
+      "acnc_register": 12,
+      "annual_report": 11,
+      "ato_abr_dgr": 12,
+      "pfra": 3,
+      "wikipedia_wikimedia": 4
+    },
+    "v1_2": {
+      "acnc_ais_bundle": 12,
+      "acnc_register": 12,
+      "annual_report": 11,
+      "ato_abr_dgr": 12,
+      "official_website": 9,
+      "pfra": 3,
+      "wikipedia_wikimedia": 4
+    }
+  },
+  "rows": [
+    {
+      "demand_id": "SDC-0051",
+      "instance_id": "cg406:subject:00fd5d9d7b844d74ae64c4f47f7c4538:SDC-0051",
+      "mechanical_change": {
+        "derived_category_changed": true,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": true,
+        "validation_changed": true
+      },
+      "organisation": "Amnesty International Australia",
+      "v1_1": {
+        "mechanical_validation": "invalid",
+        "mechanical_validation_error": "ValueError: positive evidence-selection conclusion has unresolved material proposition scope",
+        "outcome": "supported",
+        "outcome_category": "supported",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "proposition": "geography",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732"
+            ],
+            "proposition": "missingness",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "proposition": "population",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+              "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de"
+            ],
+            "proposition": "service",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "64002806233",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+              "srcrec:fcea88d98659e4ef5863b81535663a8a79a1c5c9d3d8200bd4f6287d1efe0e61"
+            ],
+            "frozen_demand_proposition": "geography",
+            "proposition_id": "proposition:bf8e5ca0b2d5abd3393eb6d13e8bdfc8934628e0110dfb67071d2fb819928f0c",
+            "qualification": "Program countries, a program location description, and the charity address are present, but service-delivery coverage for the requested geography is not established.",
+            "scope_basis": "operational_geography",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "frozen_demand_proposition": "missingness",
+            "proposition_id": "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+            "qualification": "The records contain null and unpopulated fields, but the proposition text and required missingness test are not supplied in the frozen demand.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "frozen_demand_proposition": "population",
+            "proposition_id": "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1",
+            "qualification": "Beneficiary categories are program metadata and do not by themselves establish an eligible service cohort for the requested population.",
+            "scope_basis": "beneficiary_category",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+              "srcrec:d3a01dc634c2fd81466d75e1d6e04d9d2d6e0c6763b92a458135fbc4d91ca915"
+            ],
+            "frozen_demand_proposition": "service",
+            "proposition_id": "proposition:9df6b026a8c6c26e3c3acd2370a16e93fffdc0015ff5bd879218788025db0280",
+            "qualification": "The evidence describes advocacy, campaigning, and human-rights activities, but does not establish direct service delivery satisfying the requested service proposition.",
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1,
+          "official_website": 1,
+          "pfra": 1,
+          "wikipedia_wikimedia": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:bf8e5ca0b2d5abd3393eb6d13e8bdfc8934628e0110dfb67071d2fb819928f0c",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "proposition_id": "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "proposition_id": "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "proposition_id": "proposition:9df6b026a8c6c26e3c3acd2370a16e93fffdc0015ff5bd879218788025db0280",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0026",
+      "instance_id": "cg406:subject:04549d1f5c7f4f658e4e33c8eee4f0fe:SDC-0026",
+      "mechanical_change": {
+        "derived_category_changed": true,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": true,
+        "validation_changed": false
+      },
+      "organisation": "The Royal Society for the Prevention of Cruelty to Animals (Queensland) Limited",
+      "v1_1": {
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "insufficient_evidence",
+        "outcome_category": "partial",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+              "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973"
+            ],
+            "proposition": "appeal proceeds",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+              "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef"
+            ],
+            "proposition": "donation revenue",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+              "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973"
+            ],
+            "proposition": "method",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "74851544037",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "ambiguous",
+        "outcome_category": "ambiguous",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+              "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973"
+            ],
+            "frozen_demand_proposition": "appeal proceeds",
+            "proposition_id": "proposition:2577714beb422c0b2c30dba90823159c140ee7207e889dbb99c348b0ebfaeeae",
+            "qualification": "Fundraising income and a lottery program are reported, but the evidence does not specifically identify or quantify appeal proceeds as a distinct category.",
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "not_established",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+            ],
+            "frozen_demand_proposition": "donation revenue",
+            "proposition_id": "proposition:35fbf9b2455acb3dcd434aa0409ce9a170e475cd4f0a587a74bc59a09992728f",
+            "qualification": "Donation and bequest revenue is reported for the 2024-25 financial year, including audited bequest and donation income of 30,239,976.",
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+            ],
+            "frozen_demand_proposition": "method",
+            "proposition_id": "proposition:5b7e6bf2dc4a32a6aa4770cd5639c2c7af890fc86c273b5c8567fe5382086bf3",
+            "qualification": "The audited financial statements state that donations and bequests are recognised as revenue when received.",
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1,
+          "official_website": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:2577714beb422c0b2c30dba90823159c140ee7207e889dbb99c348b0ebfaeeae",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "not_established",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:35fbf9b2455acb3dcd434aa0409ce9a170e475cd4f0a587a74bc59a09992728f",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:5b7e6bf2dc4a32a6aa4770cd5639c2c7af890fc86c273b5c8567fe5382086bf3",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0025",
+      "instance_id": "cg406:subject:1f6be8711c364328b77cf6cb5d5d44ab:SDC-0025",
+      "mechanical_change": {
+        "derived_category_changed": false,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": false,
+        "validation_changed": true
+      },
+      "organisation": "The Trustee For Peter Maccallum Cancer Foundation",
+      "v1_1": {
+        "mechanical_validation": "invalid",
+        "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+              "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+            ],
+            "proposition": "The subject provides a direct-service access pathway.",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0"
+            ],
+            "proposition": "The direct service is available as of the requested date.",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0"
+            ],
+            "proposition": "The direct service has eligibility criteria that are satisfied by the relevant service user.",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "14786237480",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+              "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+            ],
+            "frozen_demand_proposition": "access",
+            "proposition_id": "proposition:a0561fd649cdb6baa784055f051bad796ea0afef17fca38219549deeba4e8c1a",
+            "qualification": "The evidence indicates cancer-related activity but does not establish direct service access for the target subject.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+              "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+            ],
+            "frozen_demand_proposition": "availability",
+            "proposition_id": "proposition:f95dac581e9b439c58abf51a6c8c091f8e0aac8c0fb06f0cbca10fc8ac361330",
+            "qualification": "The evidence describes ongoing funding and programs, but does not establish service availability to the target subject.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+              "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+            ],
+            "frozen_demand_proposition": "eligibility",
+            "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+            "qualification": "Beneficiary descriptions include people with chronic illness, but no eligibility criteria for the target subject are supplied.",
+            "scope_basis": "eligibility_criteria",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1,
+          "pfra": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:a0561fd649cdb6baa784055f051bad796ea0afef17fca38219549deeba4e8c1a",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:f95dac581e9b439c58abf51a6c8c091f8e0aac8c0fb06f0cbca10fc8ac361330",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0038",
+      "instance_id": "cg406:subject:43db3f46f7274c8382905701f287ec09:SDC-0038",
+      "mechanical_change": {
+        "derived_category_changed": true,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": true,
+        "validation_changed": true
+      },
+      "organisation": "Caritas Australia Limited",
+      "v1_1": {
+        "mechanical_validation": "invalid",
+        "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298"
+            ],
+            "proposition": "The target subject held a governance role at the organisation.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "proposition": "The target subject's governance role had scope covering access decisions.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "90970605069",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "ambiguous",
+        "outcome_category": "ambiguous",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+              "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+            ],
+            "frozen_demand_proposition": "role",
+            "proposition_id": "proposition:4b168d88dc872a7753c2bc35b36a2d4249487af55baf78f247f38cae2fe962da",
+            "qualification": null,
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:313440e8f1f2838859fcd688d06f432485f0904ba0f2b06a669669c15a2104c3",
+              "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981"
+            ],
+            "frozen_demand_proposition": "scope",
+            "proposition_id": "proposition:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+            "qualification": "The evidence describes broad operational geography and program metadata but does not clearly establish the proposition's precise service-delivery coverage or eligible service cohort.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1,
+          "official_website": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:4b168d88dc872a7753c2bc35b36a2d4249487af55baf78f247f38cae2fe962da",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0037",
+      "instance_id": "cg406:subject:54a09c18d354495eb2fde6a01480b86b:SDC-0037",
+      "mechanical_change": {
+        "derived_category_changed": true,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": false,
+        "validation_changed": true
+      },
+      "organisation": "Royal Childrens Hospital Good Friday Appeal",
+      "v1_1": {
+        "mechanical_validation": "invalid",
+        "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "proposition": "The authority-scoped identifier for the target entity is ABN 69084797965.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "proposition": "The identifier and authority-scoped identity record apply to the target entity during the requested effective period.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "69084797965",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "insufficient_evidence",
+        "outcome_category": "partial",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+              "srcrec:2343139d31f81cae1f1d2fd1e30885427e8512dc5c1faf3396315822ac5d6461"
+            ],
+            "frozen_demand_proposition": "identifier",
+            "proposition_id": "proposition:285437db8c5e1541aa49708b4abd51642a065b66e4bac0901e75b44ce2d0cebe",
+            "qualification": null,
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+              "srcrec:2343139d31f81cae1f1d2fd1e30885427e8512dc5c1faf3396315822ac5d6461"
+            ],
+            "frozen_demand_proposition": "scope",
+            "proposition_id": "proposition:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+            "qualification": "The evidence establishes fundraising and reported distributions associated with Victoria, but does not by itself establish the requested service-delivery coverage or eligible service cohort.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1,
+          "official_website": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:285437db8c5e1541aa49708b4abd51642a065b66e4bac0901e75b44ce2d0cebe",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0003",
+      "instance_id": "cg406:subject:6da4240b384242a78455a01fc28e0ed8:SDC-0003",
+      "mechanical_change": {
+        "derived_category_changed": false,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": false,
+        "validation_changed": true
+      },
+      "organisation": "Cancer Council Victoria",
+      "v1_1": {
+        "mechanical_validation": "invalid",
+        "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+        "outcome": "supported",
+        "outcome_category": "supported",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c"
+            ],
+            "proposition": "Eligibility: Cancer Council Victoria is an eligible registered charity for the service cohort.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+            ],
+            "proposition": "Geography: The reported services have delivery locations in East Melbourne, Victoria, and are described as serving the general community in Australia.",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+            ],
+            "proposition": "Service: During the 2025 service period, Cancer Council Victoria provided cancer support, prevention, screening, immunisation, and research-related programs.",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "61426486715",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "supported",
+        "outcome_category": "supported",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+            ],
+            "frozen_demand_proposition": "eligibility",
+            "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+            "qualification": "Services are expressly described as available to Victorians affected by cancer and to their families and carers.",
+            "scope_basis": "eligibility_criteria",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5"
+            ],
+            "frozen_demand_proposition": "geography",
+            "proposition_id": "proposition:bf8e5ca0b2d5abd3393eb6d13e8bdfc8934628e0110dfb67071d2fb819928f0c",
+            "qualification": "The evidence specifies Victoria and Victorians as the operating and service geography.",
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+            ],
+            "frozen_demand_proposition": "service",
+            "proposition_id": "proposition:9df6b026a8c6c26e3c3acd2370a16e93fffdc0015ff5bd879218788025db0280",
+            "qualification": "The evidence describes cancer support, prevention, screening, early detection, immunisation, and research services.",
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1,
+          "official_website": 1,
+          "wikipedia_wikimedia": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+            "qualified": null,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:bf8e5ca0b2d5abd3393eb6d13e8bdfc8934628e0110dfb67071d2fb819928f0c",
+            "qualified": null,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:9df6b026a8c6c26e3c3acd2370a16e93fffdc0015ff5bd879218788025db0280",
+            "qualified": null,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0007",
+      "instance_id": "cg406:subject:771dbdb52fe54cb49ebcce20f72bd250:SDC-0007",
+      "mechanical_change": {
+        "derived_category_changed": true,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": false,
+        "validation_changed": false
+      },
+      "organisation": "University Of Western Australia",
+      "v1_1": {
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "proposition": "award",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "proposition": "commitment",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "proposition": "payment",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "proposition": "revenue",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "37882817280",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "insufficient_evidence",
+        "outcome_category": "partial",
+        "proposition_support": [
+          {
+            "evidence_ids": [],
+            "frozen_demand_proposition": "award",
+            "proposition_id": "proposition:b4009662c0116dac4f17a86354dcefcb35d80de2af59988f520fe072b4b13e2a",
+            "qualification": "No supplied evidence establishes an award made to the target subject as an entity.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "frozen_demand_proposition": "commitment",
+            "proposition_id": "proposition:6a19f0fb4be54511524bcd5b0c98b38da1ee049a39735c39311e10336024436f",
+            "qualification": "No supplied evidence establishes a commitment by the target subject.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "frozen_demand_proposition": "payment",
+            "proposition_id": "proposition:040ffd5925d40e11c67b7238a7fc9957850b8b9a46e9729fab88c24d6a98aff2",
+            "qualification": "Reported expenses and grants or donations made do not by themselves establish a payment event or the proposition's required payment scope.",
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "frozen_demand_proposition": "revenue",
+            "proposition_id": "proposition:371f7e4223809d8bce3d52f6a5358e47c4b57aa00cbe0a4d8b47d74f010dffa6",
+            "qualification": "2025 records report total revenue of 1,419,294,000 for the identified subject.",
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1,
+          "official_website": 1,
+          "wikipedia_wikimedia": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:b4009662c0116dac4f17a86354dcefcb35d80de2af59988f520fe072b4b13e2a",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "proposition_id": "proposition:6a19f0fb4be54511524bcd5b0c98b38da1ee049a39735c39311e10336024436f",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "proposition_id": "proposition:040ffd5925d40e11c67b7238a7fc9957850b8b9a46e9729fab88c24d6a98aff2",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:371f7e4223809d8bce3d52f6a5358e47c4b57aa00cbe0a4d8b47d74f010dffa6",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0005",
+      "instance_id": "cg406:subject:78393016b9ad44dd832cfa913b7122ba:SDC-0005",
+      "mechanical_change": {
+        "derived_category_changed": false,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": false,
+        "validation_changed": false
+      },
+      "organisation": "Australian Wildlife Conservancy",
+      "v1_1": {
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+              "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918"
+            ],
+            "proposition": "eligibility",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+              "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918"
+            ],
+            "proposition": "opportunity",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+              "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918"
+            ],
+            "proposition": "time pattern",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "36068572556",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+              "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+            ],
+            "frozen_demand_proposition": "eligibility",
+            "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+            "qualification": "The evidence provides beneficiary and program metadata but does not establish the specific eligibility criteria or eligible service cohort.",
+            "scope_basis": "eligibility_criteria",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+              "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+            ],
+            "frozen_demand_proposition": "opportunity",
+            "proposition_id": "proposition:04b447783afe5bfd4b48e8db067137319526a98e029c37b2559154ceccc1067e",
+            "qualification": "Australian program locations and operational descriptions do not by themselves establish service-delivery opportunity for the requested subject and scope.",
+            "scope_basis": "operational_geography",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+              "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+              "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40"
+            ],
+            "frozen_demand_proposition": "time pattern",
+            "proposition_id": "proposition:6eff887609b9e27b1dde5012c9e309c8287fcabfefb2e39f476a9fa1cde8bef6",
+            "qualification": "The records contain reporting and website timestamps, but do not establish the requested recurring or otherwise specified time pattern.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "ato_abr_dgr": 1,
+          "official_website": 1,
+          "wikipedia_wikimedia": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "proposition_id": "proposition:04b447783afe5bfd4b48e8db067137319526a98e029c37b2559154ceccc1067e",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          },
+          {
+            "proposition_id": "proposition:6eff887609b9e27b1dde5012c9e309c8287fcabfefb2e39f476a9fa1cde8bef6",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0052",
+      "instance_id": "cg406:subject:93f185643c194b2da46032afc9521b30:SDC-0052",
+      "mechanical_change": {
+        "derived_category_changed": true,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": false,
+        "validation_changed": true
+      },
+      "organisation": "The Leukaemia Foundation Of Australia Limited",
+      "v1_1": {
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "proposition": "design",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "proposition": "metric",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "proposition": "missingness",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "proposition": "population",
+            "qualified": true,
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "57057493017",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "invalid",
+        "mechanical_validation_error": "ValidationError: 1 validation error for EvidenceSelectionOutput\nproposition_support.0\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "partial",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+              "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+              "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab"
+            ],
+            "frozen_demand_proposition": "design",
+            "proposition_id": "proposition:a77de8a6daa1129516b14c8ca1e233a51a8414b202eac7c8acfbb9b485046ad4",
+            "qualification": "Program design is evidenced through described support, accommodation, counselling, advisory, research, advocacy and related services; this does not independently establish service coverage beyond the described programs.",
+            "scope_basis": "program_metadata",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "frozen_demand_proposition": "metric",
+            "proposition_id": "proposition:b8b4e9cea77ef29a5e958f13addd4855c35d2f04a060c3a869f8c955fd4c9a34",
+            "qualification": "The FY2025 report states that 39,800 service instances were delivered to 6,881 people during the year ended 30 June 2025.",
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [],
+            "frozen_demand_proposition": "missingness",
+            "proposition_id": "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+            "qualification": "The supplied evidence does not establish the requested missingness proposition.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+              "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09"
+            ],
+            "frozen_demand_proposition": "population",
+            "proposition_id": "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1",
+            "qualification": "The evidence identifies people affected by blood cancers, patients, carers and families as supported populations and reports service delivery to people in FY2025; it does not establish a broader or more specific eligible cohort than described.",
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1,
+          "official_website": 1,
+          "pfra": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:a77de8a6daa1129516b14c8ca1e233a51a8414b202eac7c8acfbb9b485046ad4",
+            "qualified": null,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:b8b4e9cea77ef29a5e958f13addd4855c35d2f04a060c3a869f8c955fd4c9a34",
+            "qualified": null,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "proposition_id": "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1",
+            "qualified": null,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0028",
+      "instance_id": "cg406:subject:96135bad66c645ecb487fba1f059240c:SDC-0028",
+      "mechanical_change": {
+        "derived_category_changed": true,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": true,
+        "validation_changed": false
+      },
+      "organisation": "Plan International Australia",
+      "v1_1": {
+        "mechanical_validation": "invalid",
+        "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "partial",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+            ],
+            "proposition": "identity: the resolved organisation is Plan International Australia, ABN 49004875807, matching the target subject.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40"
+            ],
+            "proposition": "classification: the organisation is registered as a charity and has Public Benevolent Institution classification in the supplied records.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828"
+            ],
+            "proposition": "purpose: the organisation advances children’s rights and equality for girls through development and humanitarian programs.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40"
+            ],
+            "proposition": "ethos: the organisation states commitments to justice, children’s rights, equality for girls, gender equality, accountability, and governance.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5"
+            ],
+            "proposition": "finance: FY2025 financial information reports total receipts of 73,538,000, total expenses of 73,440,000, net surplus of 98,000, and 57,060,000 in grants and donations outside Australia.",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40"
+            ],
+            "proposition": "conduct: the organisation’s conduct satisfies the applicable rule-specific conduct criteria.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "49004875807",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "invalid",
+        "mechanical_validation_error": "ValidationError: 3 validation errors for EvidenceSelectionOutput\nproposition_support.0\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nproposition_support.1\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nproposition_support.5\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+        "outcome": "supported",
+        "outcome_category": "supported",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+            ],
+            "frozen_demand_proposition": "classification",
+            "proposition_id": "proposition:9f0c8aa526579f4dbde02f70f4cdf635a22df7d844ce012de5791febea95e732",
+            "qualification": null,
+            "scope_basis": "program_metadata",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+            ],
+            "frozen_demand_proposition": "conduct",
+            "proposition_id": "proposition:85ca6d6d291c070dbcb28efa667bbed81c9c789b5bb515725a7bad753f6171ba",
+            "qualification": null,
+            "scope_basis": "operational_geography",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+            ],
+            "frozen_demand_proposition": "ethos",
+            "proposition_id": "proposition:95175e23c3cbf2c28d29a4c95a25eb4946485930c168a8a216eb37a59a2c5636",
+            "qualification": null,
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5"
+            ],
+            "frozen_demand_proposition": "finance",
+            "proposition_id": "proposition:eab762a03fd979a04cc4706e6536d382bc89d2d1356afcd054a16b2235ecd471",
+            "qualification": null,
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+            ],
+            "frozen_demand_proposition": "identity",
+            "proposition_id": "proposition:689f6a627384c7dcb2dcc1487e540223e77bdf9dcd0d8be8a326eda65b0ce9a4",
+            "qualification": null,
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+            ],
+            "frozen_demand_proposition": "purpose",
+            "proposition_id": "proposition:81b06df4303e6581efecfa2830bf76c30a9d32a3e4892eac2fe43b7487d3ae2f",
+            "qualification": null,
+            "scope_basis": "program_metadata",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1,
+          "official_website": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:9f0c8aa526579f4dbde02f70f4cdf635a22df7d844ce012de5791febea95e732",
+            "qualified": null,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:85ca6d6d291c070dbcb28efa667bbed81c9c789b5bb515725a7bad753f6171ba",
+            "qualified": null,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:95175e23c3cbf2c28d29a4c95a25eb4946485930c168a8a216eb37a59a2c5636",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:eab762a03fd979a04cc4706e6536d382bc89d2d1356afcd054a16b2235ecd471",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:689f6a627384c7dcb2dcc1487e540223e77bdf9dcd0d8be8a326eda65b0ce9a4",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:81b06df4303e6581efecfa2830bf76c30a9d32a3e4892eac2fe43b7487d3ae2f",
+            "qualified": null,
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0019",
+      "instance_id": "cg406:subject:99d810fb8e6e4ac7adc2ee0dd3e7e095:SDC-0019",
+      "mechanical_change": {
+        "derived_category_changed": false,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": false,
+        "validation_changed": true
+      },
+      "organisation": "The Church Of Jesus Christ Of Latter-day Saints Australia",
+      "v1_1": {
+        "mechanical_validation": "invalid",
+        "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+              "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+              "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+              "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+            ],
+            "proposition": "An allegation concerning the organisation and an event is present and traceable to an authoritative source.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+              "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+              "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+              "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+            ],
+            "proposition": "A correction to an allegation concerning the organisation and event is present and traceable.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+              "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+              "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+              "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+            ],
+            "proposition": "A formal finding concerning the organisation and event is present and attributable to an authority.",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "84114483091",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "insufficient_evidence",
+        "outcome_category": "insufficient",
+        "proposition_support": [
+          {
+            "evidence_ids": [],
+            "frozen_demand_proposition": "allegation",
+            "proposition_id": "proposition:afdc03d0f0e179a18dd70267c2dee72c729462ad0f5cbdcb829a5985962a454f",
+            "qualification": "The supplied evidence does not establish the allegation, its subject, scope, or applicable time.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "frozen_demand_proposition": "correction",
+            "proposition_id": "proposition:34627e3242f2ca21f540951cb5376600aebba58675654dd5f61e860c6948bffa",
+            "qualification": "The supplied evidence does not establish the correction, its subject, scope, or applicable time.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "frozen_demand_proposition": "formal finding",
+            "proposition_id": "proposition:9c82e7e051c62eeb2eeded62e654dbb85172e40fbf30fbb5c7d429899af62fde",
+            "qualification": "The supplied evidence does not establish a formal finding, its subject, scope, or applicable time.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:afdc03d0f0e179a18dd70267c2dee72c729462ad0f5cbdcb829a5985962a454f",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "proposition_id": "proposition:34627e3242f2ca21f540951cb5376600aebba58675654dd5f61e860c6948bffa",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "proposition_id": "proposition:9c82e7e051c62eeb2eeded62e654dbb85172e40fbf30fbb5c7d429899af62fde",
+            "qualified": null,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ]
+      }
+    },
+    {
+      "demand_id": "SDC-0014",
+      "instance_id": "cg406:subject:d0b269be3d5d4b6db24d6d203637dfa5:SDC-0014",
+      "mechanical_change": {
+        "derived_category_changed": true,
+        "evidence_family_distribution_changed": true,
+        "raw_outcome_changed": true,
+        "validation_changed": true
+      },
+      "organisation": "THE TRUSTEE FOR The Benevolent Relief Fund",
+      "v1_1": {
+        "mechanical_validation": "invalid",
+        "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+        "outcome": "insufficient_evidence",
+        "outcome_category": "partial",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+              "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+            ],
+            "proposition": "Historical expenditure",
+            "qualified": true,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+            ],
+            "proposition": "Marginal allocation",
+            "qualified": true,
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "provider_visible_families": [
+          "acnc_ais_bundle",
+          "acnc_register"
+        ]
+      },
+      "v1_2": {
+        "governed_identity": {
+          "abn_literal_present_in_model_request": true,
+          "active_governed_binding_available": true,
+          "authority_schemes": [
+            "ABN"
+          ],
+          "frozen_abn": "22627812672",
+          "separate_binding_object_present_in_request": false
+        },
+        "mechanical_validation": "valid",
+        "mechanical_validation_error": null,
+        "outcome": "supported",
+        "outcome_category": "supported",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+              "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89"
+            ],
+            "frozen_demand_proposition": "historical expenditure",
+            "proposition_id": "proposition:4e0205561de7604cb4749026edd80b70045c8fb695f05163c700c0984b87c3c7",
+            "qualification": "For the financial year ended 30 June 2024, reported charity contributions/grant donations were $37,094,958.",
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+              "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89"
+            ],
+            "frozen_demand_proposition": "marginal allocation",
+            "proposition_id": "proposition:2786c16be339546231abadaed862064497d09c1ca2183bf6c2c6115a85373870",
+            "qualification": "For the financial year ended 30 June 2024, $37,094,958 of $37,907,630 total expenses was reported as charity contributions/grant donations, with $812,672 reported as other expenses.",
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "provider_visible_families": {
+          "acnc_ais_bundle": 1,
+          "acnc_register": 1,
+          "annual_report": 1,
+          "ato_abr_dgr": 1
+        },
+        "scope_temporal_states": [
+          {
+            "proposition_id": "proposition:4e0205561de7604cb4749026edd80b70045c8fb695f05163c700c0984b87c3c7",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "proposition_id": "proposition:2786c16be339546231abadaed862064497d09c1ca2183bf6c2c6115a85373870",
+            "qualified": null,
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ]
+      }
+    }
+  ],
+  "schema": "charitygraph.cg406-v1_1-v1_2-mechanical-comparison/v1",
+  "v1_1_result_manifest_sha256": "12ee7636294b1ed72ad13d54f11c905494e0defc0a3081c3de23dbb5ca1a0364",
+  "v1_2_result_manifest_sha256": "f7e27abca01ac8266d6b2e5f81e12802ccc4fbe47c9e27e7206aa25c35c23a43"
+}

@@ -1,0 +1,195 @@
+{
+  "rows": [
+    {
+      "bound_question_identity": "QINST-196090FF8869151F1EED64B4BC5E14025FD9611138529D5356F656DFD7DDD14F",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-8B597D9165DA46559773AEFCD7DC17916284F03793DB75181EB0AED81A09E5DC",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-28E352AD8417ED6DF7C202C4B9DB9ACC4EAF2F157EA4008CC121C29F77204F66",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-507488260D2D0AD1F7244EBE71B856F458FD80E0025D21BBFDE3EC1B93F79C5B",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-2673D1B5BD1C7A5A3B4FE3F74EDD3570B0D1C8E49CA16BDF324F12FBD9A4FF38",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-D6A8B69A3C406CF10D5DD999D319A7A85A0D64D75961D20D3973039120913E99",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-41C3B1FA3F2B7FD458D85C2DDEDC3CA7ADA0A9E8FE26ABC67358816645002883",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-61DCEF60A2BE0F0AB796CAA1DF78FB8A9885F40C08BCABCCE57E24093B8C5CFA",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-6157BACBE92E3253D8589AF3D83ABE989F6192969B49678E75F0AAE5D7765499",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-AD65E09A82255BF7C1B99C4A213F178906FA87F8F7FDDA61ED9E088340AC4B67",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-9947767CE28D735A0A70C3190949E0EDC0554DEBF01E0E6D4F1E592ED4F4160F",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-3BC7A0C593AD620CC1D8A706440D3EAC569BCA341B19C236543BE37DB20AA8F4",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-4A2E61714693F6E44560EDC2927E4140B8245FA5603C1D756EB5D1C4F6529942",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-0E92264E05D24DA3F7EE51531B8D9E7C20F1BFF94295E9DC96DA3192CF59D06B",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-8966C693585A6D81887C0BE808DE1B3E867C1D4B5CDD484735F9132C46750171",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-A2B6B490074E7B2B91471C7F88A665EBFC2A1F43AC193269CACB52C001842B76",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-A2C7850818A88E5CB15C607CED5FFFFFC816682AB1484543E9F84A235E173347",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-1A9C5EA158BACC93103D14FD7378829730772D96BF110F0672687E62A96A779C",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-92359E00B8309B0B495AC9C42FF55EF43E179BBC85111FEDB296877A05C69A2E",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-189D7F9D27F599416ECDC4CB936DCCD8ECD62ECD4FEBC11C3D1C0B1DC0DA826A",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-EDE77024A9A5E4AA2C5B55804F78054F1F57F5B244B3B39E42A98BB5AE3C6F17",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-F159D6E4A8147CA26AF04F36A08B87ED4E1D985330B0FB4E65438000A875250D",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-956DE910BFC2D4EBF71C26F2F7C00BE3E18A690B20BC4ACC1E618F039F2DE2D6",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-D37237F853DF93C12F0038DB4C5BA047BD5CDD44C062529F4F41B1C32DF5C4C0",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-F53C68F0BA438C1045A9FD1D81A9C5C13F1CC393E8DA0C8BBDB9AE1E4E5B919D",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-77DC1396AFEC85783F12FDE3B80A0EAE37A89ED911171E46C34BC1F9D6EFC325",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-B332DA1375EFE1E06ADF8386D6CD519B903D4E32E5273F40A58C1F1E0517B592",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-76E9FB2C0CD47F8239C7B4F6037BD17629017A50ED28475E5E69581072076691",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-C5189D2643DA2675FACC557EC816D8DE85A60C132054E3E945C5DCC5E8C67995",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-B726D2AC7284440B51354CB475154F12499F34B62CD843DE5B4A70F1A639B0F2",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-0BFF069B08EC931035CF936EB38E7F9C999A0B5C95A3C30AC0E39483B73435EE",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-4FE6B995DDD025115AACA9B6E9A21D855CE6920245C73B5AFE8FCA2A1A5DD3F0",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-9C1D6D9486A3DF6325BA5B558F3FDEA8CEB92564057726A1C589580592EA1657",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-7D9628272BA2C9DD3AD0986521729E4AD74BF3F716B768ABF8369E30B04D7C8F",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-462FEF28B2C586BF416D1CA8E7DCCBDE7C1B32FE132D196076C857D4A06328D8",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    },
+    {
+      "bound_question_identity": "QINST-0A16761F848839EABAEEF1F2DA6876E202C58A8C7CE0DB04C4A1323B2D850F88",
+      "reason": "frozen_v1_5_lowering_blocked_before_packet_or_evidence_preparation",
+      "status": "NOT_ATTEMPTED"
+    }
+  ],
+  "source_acquisitions": 0,
+  "source_family_expansion": false,
+  "source_universe_v1": [
+    "acnc_register",
+    "acnc_ais_bundle",
+    "ato_abr_dgr",
+    "official_website",
+    "annual_report",
+    "wikipedia_wikimedia",
+    "pfra"
+  ]
+}

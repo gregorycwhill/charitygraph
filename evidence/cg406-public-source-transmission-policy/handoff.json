@@ -1,0 +1,16 @@
+{
+  "schema": "charitygraph.cg406-public-source-transmission-policy-handoff/v1",
+  "provider_calls": 0,
+  "source_universe_changed": false,
+  "sdc_0019_classification": "CANDIDATE_SOURCE_GAP",
+  "classification": {"catalog_mechanical_gap": 30, "rights_already_determined_allow": 30, "true_policy_gap": 0, "rights_driven_representation_must_be_narrowed": 0},
+  "provider_visible_rows": 54,
+  "provider_visible_families": {"acnc_register": 12, "acnc_ais_bundle": 12, "ato_abr_dgr": 12, "annual_report": 11, "wikipedia_wikimedia": 4, "pfra": 3},
+  "payload_types": {"source_native_structured_factual": 19, "economic_bounded_pdf_excerpt": 10, "complete_workbook_transport_rendering": 1},
+  "prepared_request_count": 12,
+  "prepared_run_hash": "ec24b6c584d5c05983cc83477423df802feb818d23d6037f0f9c565959f877d2",
+  "contract_version": "1.1",
+  "schema_version": "1.1-demand-scope",
+  "maximum_spend": {"usd": "0.182657", "aud": "0.277645"},
+  "status": "READY_FOR_CG406_PROVIDER_REPLAY"
+}

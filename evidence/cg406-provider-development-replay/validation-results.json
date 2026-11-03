@@ -1,0 +1,171 @@
+{
+  "mechanical_validation_counts": {
+    "invalid": 8,
+    "valid": 4
+  },
+  "rows": [
+    {
+      "evidence_ids": [
+        "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+        "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+        "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+        "srcrec:fcea88d98659e4ef5863b81535663a8a79a1c5c9d3d8200bd4f6287d1efe0e61",
+        "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a",
+        "srcrec:70cffc51e51093961b61d1bb8c15649f305de00aa3c345e54c53e5b3c973fcaf"
+      ],
+      "instance_id": "cg406:subject:00fd5d9d7b844d74ae64c4f47f7c4538:SDC-0051",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValueError: positive evidence-selection conclusion has unresolved material proposition scope",
+      "packet_hash": "4b42de505883c51e719a126efb860c5c7fc2c2200f7bd731611abe1229c35842",
+      "response_sha256": "98829947a13e0772e3a93c3ea42af57afeae5cfb2f6cc3e70f55efba03d77de8"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+        "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+        "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+        "srcrec:453f23fc19e634d1319088b6bf81a76249e8e17ca2a86432965fa64c9c859df3"
+      ],
+      "instance_id": "cg406:subject:04549d1f5c7f4f658e4e33c8eee4f0fe:SDC-0026",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "packet_hash": "ba709f38c401c2bb4dd53e90dfdfbb52f190905ce88f8d96ae630b5246b7854a",
+      "response_sha256": "f92481c47b8a6c3f31950e8d59e89d2569ec80d6cfd99b47695ceae9f8bbd251"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+        "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+        "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a",
+        "srcrec:5eba81a0b2173c1e48dc1f6a0de2c434eb622ab50b225e2de3db0e0145be8111",
+        "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+      ],
+      "instance_id": "cg406:subject:1f6be8711c364328b77cf6cb5d5d44ab:SDC-0025",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+      "packet_hash": "b30cc7ce289bfc34f785a790dcac6f1c79229867db9f933d4c87683d9b178b4e",
+      "response_sha256": "c08b493ab4ad4de3ced03cfb2925671067ac2e394a8c5e091e698124698e8038"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981",
+        "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+        "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+        "srcrec:55b97160c2e99f17159efc4add4739c88ebbf65b38c9a34b60c909fc93ee4742"
+      ],
+      "instance_id": "cg406:subject:43db3f46f7274c8382905701f287ec09:SDC-0038",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+      "packet_hash": "87dc88711f6101fd937505967675355a50636053622d15f1a5fe3229b3e8c5d8",
+      "response_sha256": "f056a2392f45dfe35396ac673c3dc50b2077a620cc83ed5bea27dc35f41bf222"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+        "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+        "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+        "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+      ],
+      "instance_id": "cg406:subject:54a09c18d354495eb2fde6a01480b86b:SDC-0037",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+      "packet_hash": "a1270c562c228e428e5bacc68ffcf9bfa0b5ba68adf8f55189db85aec7e8dde2",
+      "response_sha256": "2a1357c2ce3a72a62cd1297502271081628ce0e67a9715bd1541954a8d526b5b"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+        "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+        "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+        "srcrec:a7aa5f787dff9ec3f37f2f419df4ae37c517a1ba1130343390e3441d3aa557ed",
+        "srcrec:6324bbf9bde152c14cae6a5c2036ed652791b8601391627a5c9549597db13a07"
+      ],
+      "instance_id": "cg406:subject:6da4240b384242a78455a01fc28e0ed8:SDC-0003",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+      "packet_hash": "14aaab37d7be2dc78fb129ed854bdd6b4b0a7d17bbcdd5241895b44e7b8fc4fe",
+      "response_sha256": "4413578f94e54a475d585a9ee106a4a3b7fa24b43880cd401d4bd4dd7852f9e3"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+        "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+        "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3",
+        "srcrec:c464bb740a08aa140938474f350feab35cadec760358e53fdbb76d81dcd85397",
+        "srcrec:38b3942e4e7a329783e69298ca5e11331cee8946c1a28d56d60929a52b845276"
+      ],
+      "instance_id": "cg406:subject:771dbdb52fe54cb49ebcce20f72bd250:SDC-0007",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "packet_hash": "758a567b442a6355c1dfae05905b9efa2b8bab8209af34179883148666c63509",
+      "response_sha256": "a72313a70f97ea66f692758bed5d4f6f4a417c682dd6fb142cd1be28c1993d56"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+        "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+        "srcrec:d84f59dafd80990cfe07a4a591a796df8ab24332d91888a6ad760d711c4c318c",
+        "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40"
+      ],
+      "instance_id": "cg406:subject:78393016b9ad44dd832cfa913b7122ba:SDC-0005",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "packet_hash": "f91c61e3872d7a9c6b46c4c37c2e4c5e3ec412b39d822561b05bc1b2cfb54a32",
+      "response_sha256": "91558a094a1ad61949f3cbbf0a777c55489b468d3d358272cb2c7ed7b6af96f8"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+        "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+        "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+        "srcrec:52ff9879abf522362bd642d8e22f54a4e2b813f451dcd1723978b0f68a3d9e79",
+        "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+      ],
+      "instance_id": "cg406:subject:93f185643c194b2da46032afc9521b30:SDC-0052",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "packet_hash": "488a8c1b58ebdc005327cb329d67bb550a4aa60aa52df4584e238d2a7e439e01",
+      "response_sha256": "53f6c5e0f69370e59ae38c70bc13509aaa28f3c038dd0a1131b703a0d8d71e12"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+        "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+        "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+        "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+      ],
+      "instance_id": "cg406:subject:96135bad66c645ecb487fba1f059240c:SDC-0028",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+      "packet_hash": "4cdb6ffad337165ba30079245c67a58ebf45a5b9eed07090336dfaf6006bfc09",
+      "response_sha256": "5112c8222d46cdd375fdb67371c41978bd0918444cc41167f6747c910dba8434"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+        "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+        "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+        "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+      ],
+      "instance_id": "cg406:subject:99d810fb8e6e4ac7adc2ee0dd3e7e095:SDC-0019",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+      "packet_hash": "592d4ea6c530bcc21dfc4773940e151661593950afed430114db036d102940b2",
+      "response_sha256": "7b2084646df164647e6245da975e773286bc172a55ae5a1ca3c844a48261d486"
+    },
+    {
+      "evidence_ids": [
+        "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+        "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767",
+        "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+        "srcrec:9f966bfa7264b4648d0e92161f9e4e9b0dce2b687440f4a3e85f08f79032ea84"
+      ],
+      "instance_id": "cg406:subject:d0b269be3d5d4b6db24d6d203637dfa5:SDC-0014",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValueError: evidence-selection output must account for every frozen demand proposition exactly once",
+      "packet_hash": "beb07e54b99b07eeb896bd4eb233e674a82972a81482228fff7c5256503a685e",
+      "response_sha256": "122f35eb3cecb9396436959925e53cb041dd4e2fc92d6e154e4b33a8401ba927"
+    }
+  ],
+  "schema": "charitygraph.cg406-development-validation/v1"
+}

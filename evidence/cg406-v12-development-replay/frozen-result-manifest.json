@@ -1,0 +1,58 @@
+{
+  "aggregate_actual_aud": "0.178983",
+  "aggregate_actual_usd": "0.117749",
+  "aggregate_hard_max_aud": "0.277645",
+  "aggregate_hard_max_usd": "0.182657",
+  "campaign": "CG406-development-regression",
+  "contract_versions": [
+    "1.2"
+  ],
+  "execution_prepared_run_hash": "ab5b5cf62b7475237544e1ccc26047b3c134e5893dc448800c5a7f3b5247d61c",
+  "execution_provider_project": "proj_vnAuU8uxocL0Rosg3SulgmRI",
+  "mechanical_validation_counts": {
+    "invalid": 2,
+    "valid": 10
+  },
+  "outcome_counts": {
+    "ambiguous": 2,
+    "insufficient_evidence": 7,
+    "supported": 3
+  },
+  "prepared_run_hash": "a4a86dba629e4d91c5477809230cf9f73c1ebfee277b61775e398faf2a7eb6a7",
+  "prepared_run_input_hash": "8306e499851baf2a0c3532384cca9dcbcfa5569f36b371d79f66e6b0ec8ee936",
+  "provider_calls": 12,
+  "provider_posts_attempted": 12,
+  "provider_responses_completed": 12,
+  "request_count": 12,
+  "response_sha256_by_request_item": {
+    "requestitem:1db389eb09e5993158f20155c0e0257399147410e308c158b96115339ca53fe6": "2a8f1a1fc87b55e9be5bf0c49770fcf071acd495b3a512760b21d0b86750210e",
+    "requestitem:212d2b2d27e68f23aa606f49753190d1304d8d8f20b60bb850acdd98b1cc7ef8": "b8c54993cf7838c1054918de7285e88d78c31b2c1037fdff2a3951172c2012de",
+    "requestitem:3360b854f4b1da6f8be2e4684b63f92056037f08e39ad2ca477a756985162096": "0ddc34b43f9dcdea765eed00339561beecffb872fb31c8e43bf4ee8641c0bdf8",
+    "requestitem:3ac96ddc8795bfad546fdd5eaf50448b404ec9497659127934de57ed1a80c9b5": "0885501b16c823fd7a81dac1dbd3552a3e825a89c88af580f1d31268907961bc",
+    "requestitem:3af29341f9a1352fc8946896f08ec7179edeb8684d037982c4dd21403cbba17f": "5e726b8a0bd1eddca85a30fcba04b50d213e748c54ac60f7b02a42c9e464bd6b",
+    "requestitem:3f46aa61a9223e044b930c5e01c5166e2c1dfef41861395f6d969dbc1cc4f225": "98c7ce143df5ce259cc92e984ffd48d0f048112743a0098941df72d50f736b11",
+    "requestitem:56711c206ac615d2f8960ec458ce7992ebe07fea4c6fe081319b7e7012fe9d23": "f09c98c30f5264f98fa122d4dad10a90ed6c9fc3d20ca4e56ffab5f532b06f20",
+    "requestitem:6b420b2b06376d5afb45250fe228e9dcc649ff9d6a5600c4a9e6dd21d5ed3583": "81d09af77e446f17328bcfb128ab938857a3921aacbc4e39a8f8512b8d2d3d98",
+    "requestitem:744e9862590e2661eb6b43e7deb9fb482f2708e80157934afe9fe2d3a70396f3": "61338018af48cc0c15846ca4bbf17ce5496a0b44edcfcc30df496d8df2f239a5",
+    "requestitem:ae08ec143624800e484e9fa68033044436f3a9c0c2869bd1f63cee4e34fd61fe": "a9645eefbc61f72c0b227e91417806bf1864b55d3ef96fa6433678b5e59d22c7",
+    "requestitem:b965eb1538c7f5c6d613883e8097cc904017d817179fa387f8d68c7e54ae34e2": "f70e4a0391759aaab51a2f10af0a4a7693f1b92695073f88483684480f19277b",
+    "requestitem:cb45bc28c6cad53bb3823aee0bba796f08cf12b70f337eec79f18076d45731f6": "6662645d8e630cdae816fc6b83eb547eb466eaf93ce830e0f5740167a4faebad"
+  },
+  "result_manifest_sha256": "f7e27abca01ac8266d6b2e5f81e12802ccc4fbe47c9e27e7206aa25c35c23a43",
+  "run_id": "run:cf5d70ee3d9b1dd65f2ad8da25f9f55a65452403ec479028b87a527baa32d10f",
+  "schema": "charitygraph.cg406-development-result-manifest/v2",
+  "schema_versions": [
+    "1.2-packet-proposition-identity"
+  ],
+  "sdc_0019_classification": "CANDIDATE_SOURCE_GAP",
+  "source_universe_changed": false,
+  "status": "FROZEN_FIRST_TERMINAL_RESULTS",
+  "terminal_result_ledger_sha256": "73dbf6163556c898964ad002f430046d9b25cac56e1de62f7c123aee0b321cc2",
+  "terminal_row_count": 12,
+  "token_usage": {
+    "input_tokens": 385872,
+    "output_tokens": 17730,
+    "total_tokens": 403602
+  },
+  "transport_retries": 0
+}

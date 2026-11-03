@@ -1,0 +1,9 @@
+{
+  "abn_literal_leakage_scan": "PASS",
+  "backwards_compatibility": "PASS_BY_NON_MUTATION: no v1.4 code or frozen artefact changed",
+  "fixture_inventory_sha256_validation": "PASS",
+  "fixture_manifest_sha256_validation": "PASS",
+  "per_template_lossless_lowering": "NOT_RUN: required semantics for 32 final template identities and the 17 gap mapping are not in the authorised input",
+  "subject_identifier_leakage_scan": "PASS",
+  "synthetic_discovery_execution": "NOT_RUN: would require choosing an operation/result contract absent from the authorised template semantics"
+}

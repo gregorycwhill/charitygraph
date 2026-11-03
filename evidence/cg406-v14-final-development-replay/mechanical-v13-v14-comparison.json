@@ -1,0 +1,3253 @@
+{
+  "comparison_basis": "frozen v1.3 terminal outputs and mechanical validation versus frozen v1.4 terminal outputs and real contract validation; no semantic agreement scoring",
+  "frozen_result_manifest_sha256": "9f8ae0fe0ff7841b9c1095677b0e7a4326eda7eed4f3f44d152193cd79eed0dd",
+  "oracle_consulted": false,
+  "process_integrity_note": "A v1.3 result-manifest excerpt and first ledger lines were inspected before the v1.4 manifest was frozen while checking the established artifact shape. No v1.4 responses had yet been observed, and the independent oracle was never opened. This sequencing deviation is disclosed for Sol; the v1.4 first-terminal response set itself was frozen before any further prior-result comparison.",
+  "provider_family_coverage": {
+    "acnc_ais_bundle": {
+      "packet_evidence_records": 12,
+      "requests_with_family": 12
+    },
+    "acnc_register": {
+      "packet_evidence_records": 12,
+      "requests_with_family": 12
+    },
+    "annual_report": {
+      "packet_evidence_records": 11,
+      "requests_with_family": 11
+    },
+    "ato_abr_dgr": {
+      "packet_evidence_records": 12,
+      "requests_with_family": 12
+    },
+    "official_website": {
+      "packet_evidence_records": 9,
+      "requests_with_family": 9
+    },
+    "pfra": {
+      "packet_evidence_records": 3,
+      "requests_with_family": 3
+    },
+    "wikipedia_wikimedia": {
+      "packet_evidence_records": 4,
+      "requests_with_family": 4
+    }
+  },
+  "rows": [
+    {
+      "demand": {
+        "evidence": "service-scoped evidence",
+        "forbidden": [
+          "excluded means not real"
+        ],
+        "intent": "select a service cohort with exclusions",
+        "joins": [
+          "record-to-coverage",
+          "service-to-geography",
+          "service-to-population"
+        ],
+        "operations": [
+          "audit",
+          "filter"
+        ],
+        "propositions": [
+          "geography",
+          "missingness",
+          "population",
+          "service"
+        ],
+        "subjects": [
+          "service cohort"
+        ],
+        "temporal": "service period"
+      },
+      "demand_id": "SDC-0051",
+      "instance_id": "cg406:subject:00fd5d9d7b844d74ae64c4f47f7c4538:SDC-0051",
+      "organisation": "Amnesty International Australia",
+      "subject_id": "subject:00fd5d9d7b844d74ae64c4f47f7c4538",
+      "v13": {
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [
+          "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a",
+          "srcrec:70cffc51e51093961b61d1bb8c15649f305de00aa3c345e54c53e5b3c973fcaf"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+          "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+          "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+          "srcrec:d3a01dc634c2fd81466d75e1d6e04d9d2d6e0c6763b92a458135fbc4d91ca915"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/579807c4-686b-f111-a826-6045bdc47a8f",
+            "source_payload_sha256": "5174493d865656ce5f55e3ee07918414022e89bc123065ea100a2acc3294533d",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/b8c86311-2caf-e811-a962-000d3ad24a0d",
+            "source_payload_sha256": "ea3d111a9572500d4586f01b5f3ef253fee2a6c12a4be04f4596f391ff252807",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/b8c86311-2caf-e811-a962-000d3ad24a0d-08eb34df-cdd1-4ee2-965c-e21afd26d204-Financial%20Report-b745bec0-686b-f111-a826-6045bde523ce-2025-Amnesty-International-Australia-Annual-Financial-Report.pdf",
+            "source_payload_sha256": "497273b1007beb0a64d8970dee77a3353f40fb4ce5bd00a4596a80fbdcdde8d7",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          }
+        ],
+        "conclusion_qualification": "The packet supports a service record with associated geography and population fields, but it does not establish a completed audit/filter operation, an exclusion rule or selected cohort with exclusions, or a proposition about missingness. The service-period evidence is bounded to the 2025 statement/program context rather than an enduring period.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": "ValueError: only frozen non-inference requirements may be marked guarded",
+        "mechanical_status": "invalid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/579807c4-686b-f111-a826-6045bdc47a8f",
+            "source_payload_sha256": "5174493d865656ce5f55e3ee07918414022e89bc123065ea100a2acc3294533d",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/b8c86311-2caf-e811-a962-000d3ad24a0d",
+            "source_payload_sha256": "ea3d111a9572500d4586f01b5f3ef253fee2a6c12a4be04f4596f391ff252807",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/b8c86311-2caf-e811-a962-000d3ad24a0d-08eb34df-cdd1-4ee2-965c-e21afd26d204-Financial%20Report-b745bec0-686b-f111-a826-6045bde523ce-2025-Amnesty-International-Australia-Annual-Financial-Report.pdf",
+            "source_payload_sha256": "497273b1007beb0a64d8970dee77a3353f40fb4ce5bd00a4596a80fbdcdde8d7",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:fcea88d98659e4ef5863b81535663a8a79a1c5c9d3d8200bd4f6287d1efe0e61",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=64002806233",
+            "source_payload_sha256": "08c43b6c5478d20c138f1d728d2459e1fa0949f2d0024ad6ceb6d32ca22d2158",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:d3a01dc634c2fd81466d75e1d6e04d9d2d6e0c6763b92a458135fbc4d91ca915",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.amnesty.org.au/",
+            "source_payload_sha256": "f0b7099c079bd2ee90f6ea0bbd359bc9a61705ed1bc54186ece50649f6b36f64",
+            "source_role": "official_homepage",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a",
+            "source_family": "pfra",
+            "source_native_locator": "https://pfra.org.au/membership/charity-members/",
+            "source_payload_sha256": "c61f47c0ca068967fc5b9575a7178c310191f5630d6c9b636872bacbd5be32b5",
+            "source_role": "registry_membership",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:70cffc51e51093961b61d1bb8c15649f305de00aa3c345e54c53e5b3c973fcaf",
+            "source_family": "wikipedia_wikimedia",
+            "source_native_locator": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Amnesty+International+Australia&format=json&srlimit=10",
+            "source_payload_sha256": "8caf2a7a734ea62d55bc391b13a64e1d75427a240e76ceace684862b2424168d",
+            "source_role": "wikipedia_search_context",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "8998aae48649ea21640e7c54621403a03138149b7d4d700bbe0ebb8a0e5853be",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "proposition_id": "proposition:bf8e5ca0b2d5abd3393eb6d13e8bdfc8934628e0110dfb67071d2fb819928f0c",
+            "qualification": "Program countries and a program location are recorded; this is program geography, not merely the organisation's address.",
+            "scope_basis": "program_location",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+            "qualification": "The packet does not provide a direct source statement establishing a missingness proposition.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "proposition_id": "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1",
+            "qualification": "The program explicitly lists beneficiary categories.",
+            "scope_basis": "beneficiary_category",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "proposition_id": "proposition:9df6b026a8c6c26e3c3acd2370a16e93fffdc0015ff5bd879218788025db0280",
+            "qualification": "The Individuals at Risk program is directly identified and classified as Human rights.",
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "rejected_evidence_lineage": [],
+        "request_body_sha256": "461f929965ad1cf3725138384374c39e3aa2a50fc6679b682ada6eee3105864f",
+        "requirement_support": [
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "qualification": null,
+            "requirement_id": "requirement:fab0d5b47a937567c6ffbb298283c8424ccbf42c0a4bda2e4f422aa99f905f0c",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "qualification": "The records join the service/program record to its coverage fields.",
+            "requirement_id": "requirement:40145e3de996be597c92aa104c180286c97f7be79e72f37eab3d15a0c6ab7562",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "qualification": "The Individuals at Risk program has country and location fields.",
+            "requirement_id": "requirement:1ed6404cff792acaf6032989740d70b8157e87e09fafd67947f62453f4fc78b9",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "qualification": "The program records list associated beneficiary categories.",
+            "requirement_id": "requirement:d681a1d88a4f348bbfc33754d1e14984c754527170011be3a119f36387531c8e",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No packet evidence establishes that an audit was performed for this task.",
+            "requirement_id": "requirement:d7e22c52a293ae6fd10e451f9a1b3d5225cd6fe7ef50fbc8ed7b572d9655a7a7",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No packet evidence establishes a completed filter operation or its rule.",
+            "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "Acknowledged as a non-inference constraint; exclusion or missingness must not be treated as proof that a service is not real.",
+            "requirement_id": "requirement:b7b93afb768a4715c2a2d6fba5cc21859b3979698f467e42eda37100bce5edae",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+            ],
+            "qualification": "The cited evidence is explicitly service/program scoped.",
+            "requirement_id": "requirement:5577d2b2522d05afbd6947bfa1fb947392c5458f550789775f9b1d18472ba842",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The packet does not establish selection of a service cohort with exclusions.",
+            "requirement_id": "requirement:de24728335e085e8e470cc67970e1ceb93d7847aca0ff948f796f32e39aac57c",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+              "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de"
+            ],
+            "qualification": "Program and activity context is bounded to the 2025 statement/report context; no enduring service period is established.",
+            "requirement_id": "requirement:ddb433563175e18e77ceefa55266cb9f632966970eaf19d0809c313fbb59ef21",
+            "support_state": "guarded"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+          "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+          "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/579807c4-686b-f111-a826-6045bdc47a8f",
+            "source_payload_sha256": "5174493d865656ce5f55e3ee07918414022e89bc123065ea100a2acc3294533d",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/b8c86311-2caf-e811-a962-000d3ad24a0d",
+            "source_payload_sha256": "ea3d111a9572500d4586f01b5f3ef253fee2a6c12a4be04f4596f391ff252807",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/b8c86311-2caf-e811-a962-000d3ad24a0d-08eb34df-cdd1-4ee2-965c-e21afd26d204-Financial%20Report-b745bec0-686b-f111-a826-6045bde523ce-2025-Amnesty-International-Australia-Annual-Financial-Report.pdf",
+            "source_payload_sha256": "497273b1007beb0a64d8970dee77a3353f40fb4ce5bd00a4596a80fbdcdde8d7",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "method-specific reconciliation",
+        "forbidden": [
+          "total donation revenue equals method-specific proceeds"
+        ],
+        "intent": "test fundraising accounting boundary",
+        "joins": [
+          "appeal-to-financial line"
+        ],
+        "operations": [
+          "screen"
+        ],
+        "propositions": [
+          "appeal proceeds",
+          "donation revenue",
+          "method"
+        ],
+        "subjects": [
+          "appeal versus reporting entity"
+        ],
+        "temporal": "reporting period"
+      },
+      "demand_id": "SDC-0026",
+      "instance_id": "cg406:subject:04549d1f5c7f4f658e4e33c8eee4f0fe:SDC-0026",
+      "organisation": "The Royal Society for the Prevention of Cruelty to Animals (Queensland) Limited",
+      "subject_id": "subject:04549d1f5c7f4f658e4e33c8eee4f0fe",
+      "v13": {
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [
+          "srcrec:06db7a4ab2a2277c6a8634c9fb6a9d89c6709ceb2c8017eecadfccc370f09fd2"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+          "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/069e8f9b-38af-e811-a960-000d3ad24282-a3e31571-73ea-4371-aae6-b37f90653787-Financial%20Report-9827fe5f-5c41-f111-88b5-7ced8d33fe37-Royal_Society_for_Prevention_of_Cruelty_to_Animals_(Queensland)_Limited_-_FY25_Signed_financial_statements.pdf",
+            "source_payload_sha256": "ce1b39cc56863274f46d1c6feaea8b140db71b063337f8ccf15c45e693170387",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/58a84066-5c41-f111-88b5-7ced8d33fe37",
+            "source_payload_sha256": "20b0e53a2335189598a9b79dcfaeb821a3012688e24508f28c06f37e06fbe0a5",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          }
+        ],
+        "conclusion_qualification": "The supplied evidence establishes donation-related revenue and the 2024-25 reporting period, but it does not establish the appeal subject, an appeal-to-financial-line relationship, appeal proceeds, a method-specific reconciliation, or a screening determination.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/58a84066-5c41-f111-88b5-7ced8d33fe37",
+            "source_payload_sha256": "20b0e53a2335189598a9b79dcfaeb821a3012688e24508f28c06f37e06fbe0a5",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/069e8f9b-38af-e811-a960-000d3ad24282",
+            "source_payload_sha256": "817ef4b4c601e04503403025f17d00f7274633288ad4d17cf2fc30214b667227",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/069e8f9b-38af-e811-a960-000d3ad24282-a3e31571-73ea-4371-aae6-b37f90653787-Financial%20Report-9827fe5f-5c41-f111-88b5-7ced8d33fe37-Royal_Society_for_Prevention_of_Cruelty_to_Animals_(Queensland)_Limited_-_FY25_Signed_financial_statements.pdf",
+            "source_payload_sha256": "ce1b39cc56863274f46d1c6feaea8b140db71b063337f8ccf15c45e693170387",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:453f23fc19e634d1319088b6bf81a76249e8e17ca2a86432965fa64c9c859df3",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=74851544037",
+            "source_payload_sha256": "7ab609766ec3d339b43a8f1ab7ac6f05e2c62987038296f8d8522e61feb2c9f6",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:06db7a4ab2a2277c6a8634c9fb6a9d89c6709ceb2c8017eecadfccc370f09fd2",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.rspcaqld.org.au",
+            "source_payload_sha256": "181e9f8f926d14272edec881ad366945cf6b69a2b76b82febcf2e04c967059c7",
+            "source_role": "official_homepage",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "9bb60289b11ca8b32d8dfc6e4949acd08bfc8b92deb7c8a67a1bea993575b5eb",
+        "proposition_support": [
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:2577714beb422c0b2c30dba90823159c140ee7207e889dbb99c348b0ebfaeeae",
+            "qualification": "No supplied source identifies or quantifies appeal proceeds.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+              "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef"
+            ],
+            "proposition_id": "proposition:35fbf9b2455acb3dcd434aa0409ce9a170e475cd4f0a587a74bc59a09992728f",
+            "qualification": "The sources report donation-related revenue, including bequest and donation income, for the 2024-25 reporting period.",
+            "scope_basis": "unresolved",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+            ],
+            "proposition_id": "proposition:5b7e6bf2dc4a32a6aa4770cd5639c2c7af890fc86c273b5c8567fe5382086bf3",
+            "qualification": "The financial report distinguishes fundraising income from bequest and donation income, but does not identify the method for any appeal proceeds or reconcile methods to donation revenue.",
+            "scope_basis": "unresolved",
+            "scope_status": "bounded_scope",
+            "support_state": "unresolved",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [
+          "srcrec:453f23fc19e634d1319088b6bf81a76249e8e17ca2a86432965fa64c9c859df3",
+          "srcrec:06db7a4ab2a2277c6a8634c9fb6a9d89c6709ceb2c8017eecadfccc370f09fd2"
+        ],
+        "rejected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:453f23fc19e634d1319088b6bf81a76249e8e17ca2a86432965fa64c9c859df3",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=74851544037",
+            "source_payload_sha256": "7ab609766ec3d339b43a8f1ab7ac6f05e2c62987038296f8d8522e61feb2c9f6",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:06db7a4ab2a2277c6a8634c9fb6a9d89c6709ceb2c8017eecadfccc370f09fd2",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.rspcaqld.org.au",
+            "source_payload_sha256": "181e9f8f926d14272edec881ad366945cf6b69a2b76b82febcf2e04c967059c7",
+            "source_role": "official_homepage",
+            "source_version": null
+          }
+        ],
+        "request_body_sha256": "75dc2bb22159e96724ae0d21d4481503e5ebddcf8bc53bf96c648cc6316f9285",
+        "requirement_support": [
+          {
+            "evidence_ids": [],
+            "qualification": "The reporting entity is identified, but no appeal is identified in the supplied evidence.",
+            "requirement_id": "requirement:5cb7d40bc6c38268217b2727ef404127a188efc3fa3def925c845b260fb1d908",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No source statement links an appeal to a specific financial statement line.",
+            "requirement_id": "requirement:0faf1609d5e4ceade72d560f4fe5d596e54500315f5acc41019124fcea959a45",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The evidence does not establish that a screening operation was performed or specify a screening rule.",
+            "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+            ],
+            "qualification": "The financial report presents separate revenue categories, but total donation revenue is not treated as equivalent to method-specific proceeds.",
+            "requirement_id": "requirement:873c4d1b47f09add2b4fb1f66a2a5deeab6d42678cf26258b79cdc02057c2ef7",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+            ],
+            "qualification": "Revenue categories and accounting policies are supplied, but no method-specific reconciliation for appeal proceeds is provided.",
+            "requirement_id": "requirement:ee5dda614177687c9069474541314f0ccbcbdf5cf9e7db03b77a86ba995135ad",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The supplied records do not establish the requester’s intent beyond the frozen demand wording.",
+            "requirement_id": "requirement:f9a9f731716eb4392ae5d3e523295855aa3ab27a87e52628b19c7ec8f11595a0",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+            ],
+            "qualification": "The financial report is for the year ended 30 June 2025.",
+            "requirement_id": "requirement:379da3d9f5939189fc60d6079f80e1536d3f14b36d1909afbd2662d4cd5b3335",
+            "support_state": "supported"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+          "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/58a84066-5c41-f111-88b5-7ced8d33fe37",
+            "source_payload_sha256": "20b0e53a2335189598a9b79dcfaeb821a3012688e24508f28c06f37e06fbe0a5",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/069e8f9b-38af-e811-a960-000d3ad24282-a3e31571-73ea-4371-aae6-b37f90653787-Financial%20Report-9827fe5f-5c41-f111-88b5-7ced8d33fe37-Royal_Society_for_Prevention_of_Cruelty_to_Animals_(Queensland)_Limited_-_FY25_Signed_financial_statements.pdf",
+            "source_payload_sha256": "ce1b39cc56863274f46d1c6feaea8b140db71b063337f8ccf15c45e693170387",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "time-bound availability evidence",
+        "forbidden": [
+          "service page proves current availability"
+        ],
+        "intent": "inspect direct-service access",
+        "joins": [
+          "service-to-availability observation"
+        ],
+        "operations": [
+          "lookup"
+        ],
+        "propositions": [
+          "access",
+          "availability",
+          "eligibility"
+        ],
+        "subjects": [
+          "service availability"
+        ],
+        "temporal": "as-of date"
+      },
+      "demand_id": "SDC-0025",
+      "instance_id": "cg406:subject:1f6be8711c364328b77cf6cb5d5d44ab:SDC-0025",
+      "organisation": "The Trustee For Peter Maccallum Cancer Foundation",
+      "subject_id": "subject:1f6be8711c364328b77cf6cb5d5d44ab",
+      "v13": {
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "selected_evidence_ids": [
+          "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+          "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+          "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/2bb90c75-a8fc-f011-8406-7c1e522ad040",
+            "source_payload_sha256": "4747f2dccde6c9fd29ebbb42864dec8fce8f48f63b0d579e6625f377896c29cf",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/574b2f44-38af-e811-a963-000d3ad244fd",
+            "source_payload_sha256": "a9d3e778f8868e88c5c54639eda458120b368e49bb4b6a3ae09e565413dcc792",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/574b2f44-38af-e811-a963-000d3ad244fd-53b620a7-c397-4d78-b4ef-01fe5f893576-Financial%20Report-0b14b54d-a8fc-f011-8406-002248111f49-Peter_Mac_Cancer_Foundation_-_Financial_Statements_30_June_2025_Binder.pdf",
+            "source_payload_sha256": "96e5abcfb419e915e91ac743a3a189517496fbe2b5b506673e6cf9d3e9f07f48",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          }
+        ],
+        "conclusion_qualification": "The packet contains organisational, program, beneficiary, and historical financial material, but no time-bound evidence establishing that a direct service is available to users as of a specified date. A service or program description cannot by itself prove current availability.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/2bb90c75-a8fc-f011-8406-7c1e522ad040",
+            "source_payload_sha256": "4747f2dccde6c9fd29ebbb42864dec8fce8f48f63b0d579e6625f377896c29cf",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/574b2f44-38af-e811-a963-000d3ad244fd",
+            "source_payload_sha256": "a9d3e778f8868e88c5c54639eda458120b368e49bb4b6a3ae09e565413dcc792",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/574b2f44-38af-e811-a963-000d3ad244fd-53b620a7-c397-4d78-b4ef-01fe5f893576-Financial%20Report-0b14b54d-a8fc-f011-8406-002248111f49-Peter_Mac_Cancer_Foundation_-_Financial_Statements_30_June_2025_Binder.pdf",
+            "source_payload_sha256": "96e5abcfb419e915e91ac743a3a189517496fbe2b5b506673e6cf9d3e9f07f48",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:5eba81a0b2173c1e48dc1f6a0de2c434eb622ab50b225e2de3db0e0145be8111",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=14786237480",
+            "source_payload_sha256": "6baa9ee19f7647cc0dd750e52ddab74fd00e59a440d641911e3e8e181d81b975",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a",
+            "source_family": "pfra",
+            "source_native_locator": "https://pfra.org.au/membership/charity-members/",
+            "source_payload_sha256": "c61f47c0ca068967fc5b9575a7178c310191f5630d6c9b636872bacbd5be32b5",
+            "source_role": "registry_membership",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "11656a66578e6ba4c1156f0328a92f7df31a1e3f15a74a82ea5a51befb2bce08",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+              "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+            ],
+            "proposition_id": "proposition:a0561fd649cdb6baa784055f051bad796ea0afef17fca38219549deeba4e8c1a",
+            "qualification": "The records refer to cancer research and care and related programs, but do not establish direct-service access.",
+            "scope_basis": "program_metadata",
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+              "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+            ],
+            "proposition_id": "proposition:f95dac581e9b439c58abf51a6c8c091f8e0aac8c0fb06f0cbca10fc8ac361330",
+            "qualification": "The records describe activities and programs, but do not provide current, time-bound availability evidence.",
+            "scope_basis": "program_metadata",
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+              "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0"
+            ],
+            "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+            "qualification": "Beneficiary categories are listed for programs, but no service eligibility rules or direct-service access criteria are supplied.",
+            "scope_basis": "beneficiary_category",
+            "scope_status": "bounded_scope",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [
+          "srcrec:5eba81a0b2173c1e48dc1f6a0de2c434eb622ab50b225e2de3db0e0145be8111",
+          "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+        ],
+        "rejected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:5eba81a0b2173c1e48dc1f6a0de2c434eb622ab50b225e2de3db0e0145be8111",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=14786237480",
+            "source_payload_sha256": "6baa9ee19f7647cc0dd750e52ddab74fd00e59a440d641911e3e8e181d81b975",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a",
+            "source_family": "pfra",
+            "source_native_locator": "https://pfra.org.au/membership/charity-members/",
+            "source_payload_sha256": "c61f47c0ca068967fc5b9575a7178c310191f5630d6c9b636872bacbd5be32b5",
+            "source_role": "registry_membership",
+            "source_version": null
+          }
+        ],
+        "request_body_sha256": "ee2ec9440e549acbe8ea16f8f60645faf9e702beb3e0157571ff4f1440373f2e",
+        "requirement_support": [
+          {
+            "evidence_ids": [],
+            "qualification": "The subject of the lookup is service availability, but the supplied evidence does not establish a current available service.",
+            "requirement_id": "requirement:6ed998a6095046a7be9d3243216b42301d718ffbdf3336cfc9bb641fa38de812",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No supplied source records a service-to-availability observation.",
+            "requirement_id": "requirement:91286d1e2f22f370b16216d55698fbc85a0b2811bc105fca07dfa971c0a32948",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The packet specifies a lookup operation, but the evidence does not yield the requested availability result.",
+            "requirement_id": "requirement:2180d3f724251bd6c6e2d47121dc7ca33acf568b298ef4cc83a1bed42e8aa4ab",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "Acknowledged: a service page or service description must not be treated as proof of current availability; the supplied evidence does not make that prohibited inference.",
+            "requirement_id": "requirement:30881fd65c7d51b376b3e72c72b5bda2a9078a2382845c62bcd7d91538f93fd0",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No supplied evidence provides time-bound availability.",
+            "requirement_id": "requirement:c0a4c97521c148cdc2ca48ec8ec7966f23b1554bf3452f700c42b35ee3b6fbbf",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The evidence describes fundraising and support for cancer research and care, not direct-service access for the requested inspection.",
+            "requirement_id": "requirement:9a897a532bab64b079eae89f5fdc001b9fab0b685cad6c36cd68fea2f663045c",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No as-of date is supplied with an availability observation.",
+            "requirement_id": "requirement:1afd8babc60b6b56828a5e25ed6d5a55611413ecef286674a1cf43f228b15a77",
+            "support_state": "unresolved"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+          "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+          "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/2bb90c75-a8fc-f011-8406-7c1e522ad040",
+            "source_payload_sha256": "4747f2dccde6c9fd29ebbb42864dec8fce8f48f63b0d579e6625f377896c29cf",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/574b2f44-38af-e811-a963-000d3ad244fd",
+            "source_payload_sha256": "a9d3e778f8868e88c5c54639eda458120b368e49bb4b6a3ae09e565413dcc792",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/574b2f44-38af-e811-a963-000d3ad244fd-53b620a7-c397-4d78-b4ef-01fe5f893576-Financial%20Report-0b14b54d-a8fc-f011-8406-002248111f49-Peter_Mac_Cancer_Foundation_-_Financial_Statements_30_June_2025_Binder.pdf",
+            "source_payload_sha256": "96e5abcfb419e915e91ac743a3a189517496fbe2b5b506673e6cf9d3e9f07f48",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "dated governance evidence",
+        "forbidden": [
+          "office holding proves operational responsibility"
+        ],
+        "intent": "inspect governance for access decisions",
+        "joins": [
+          "role-to-organisation",
+          "role-to-period"
+        ],
+        "operations": [
+          "compare",
+          "lookup"
+        ],
+        "propositions": [
+          "role",
+          "scope"
+        ],
+        "subjects": [
+          "governance role"
+        ],
+        "temporal": "tenure interval"
+      },
+      "demand_id": "SDC-0038",
+      "instance_id": "cg406:subject:43db3f46f7274c8382905701f287ec09:SDC-0038",
+      "organisation": "Caritas Australia Limited",
+      "subject_id": "subject:43db3f46f7274c8382905701f287ec09",
+      "v13": {
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "selected_evidence_ids": [
+          "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+          "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/81065b6a-38af-e811-a963-000d3ad24077-98b84ae1-5103-4b0e-b205-c73392e3eede-Financial%20Report-78ce52f1-39f0-f011-8406-7c1e522aa7ef-Caritas_Australia_Limited_-_Annual_Report-30062025.pdf",
+            "source_payload_sha256": "b4fbafa127a017735777cfaad98b7bef47c8ca47444a0570ae991c82281088f7",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/81065b6a-38af-e811-a963-000d3ad24077",
+            "source_payload_sha256": "177b70477fb751dcd61e9001d2475c9db330c23484764284efdbab17dad245ea",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          }
+        ],
+        "conclusion_qualification": "The supplied evidence establishes dated governance records for Caritas Australia Limited, but it does not bind the opaque target subject to a particular named governance official or establish all requested role-to-organisation, role-to-period, comparison, lookup, and tenure obligations.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": "ValueError: only frozen non-inference requirements may be marked guarded",
+        "mechanical_status": "invalid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/341818f7-39f0-f011-8406-7ced8db173e1",
+            "source_payload_sha256": "4ebba26aab0634be8d875a780dece4d5b46e73debc70dbe37473066656011aec",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/81065b6a-38af-e811-a963-000d3ad24077",
+            "source_payload_sha256": "177b70477fb751dcd61e9001d2475c9db330c23484764284efdbab17dad245ea",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/81065b6a-38af-e811-a963-000d3ad24077-98b84ae1-5103-4b0e-b205-c73392e3eede-Financial%20Report-78ce52f1-39f0-f011-8406-7c1e522aa7ef-Caritas_Australia_Limited_-_Annual_Report-30062025.pdf",
+            "source_payload_sha256": "b4fbafa127a017735777cfaad98b7bef47c8ca47444a0570ae991c82281088f7",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:55b97160c2e99f17159efc4add4739c88ebbf65b38c9a34b60c909fc93ee4742",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=90970605069",
+            "source_payload_sha256": "6b37005468ac73c36551b042c770c1461f76af0738437755bb46d714110acfa0",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:313440e8f1f2838859fcd688d06f432485f0904ba0f2b06a669669c15a2104c3",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.caritas.org.au",
+            "source_payload_sha256": "6a6bd93bacccf9abe5ed608011103d07c553c5dd97562d97fa9b45ff9937a161",
+            "source_role": "official_homepage",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "60722992532e0d1b7eba610b36448be2f12bf5617e5a10b131bc5738a2115707",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+              "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298"
+            ],
+            "proposition_id": "proposition:4b168d88dc872a7753c2bc35b36a2d4249487af55baf78f247f38cae2fe962da",
+            "qualification": "Named governance roles are directly stated for Caritas Australia Limited, but the target subject is not identified as any named official.",
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+              "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298"
+            ],
+            "proposition_id": "proposition:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+            "qualification": "The evidence is organisation-level and includes dated governance information, but the target subject's specific organisational and temporal scope is unresolved.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "unresolved",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [
+          "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981",
+          "srcrec:55b97160c2e99f17159efc4add4739c88ebbf65b38c9a34b60c909fc93ee4742",
+          "srcrec:313440e8f1f2838859fcd688d06f432485f0904ba0f2b06a669669c15a2104c3"
+        ],
+        "rejected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/341818f7-39f0-f011-8406-7ced8db173e1",
+            "source_payload_sha256": "4ebba26aab0634be8d875a780dece4d5b46e73debc70dbe37473066656011aec",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:55b97160c2e99f17159efc4add4739c88ebbf65b38c9a34b60c909fc93ee4742",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=90970605069",
+            "source_payload_sha256": "6b37005468ac73c36551b042c770c1461f76af0738437755bb46d714110acfa0",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:313440e8f1f2838859fcd688d06f432485f0904ba0f2b06a669669c15a2104c3",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.caritas.org.au",
+            "source_payload_sha256": "6a6bd93bacccf9abe5ed608011103d07c553c5dd97562d97fa9b45ff9937a161",
+            "source_role": "official_homepage",
+            "source_version": null
+          }
+        ],
+        "request_body_sha256": "5b9e36e725694742bcc559e76c7c2a6cd64af4ffd2cfe425759e90bda296c35a",
+        "requirement_support": [
+          {
+            "evidence_ids": [
+              "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+              "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+            ],
+            "qualification": "Governance roles and appointment dates are documented for named responsible persons, but the target subject is not bound to one of those persons.",
+            "requirement_id": "requirement:9727740f789caee970f9c53588a6a76488d9c1424309b6cfc9ce9d3f9ce39a11",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+              "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+            ],
+            "qualification": "The named governance officials are associated with Caritas Australia Limited, but target-subject identity binding to an official is not established.",
+            "requirement_id": "requirement:8caf15a6d8b0b9fbf9165d1d9c3cef125bed0e782c5f663c03d297381732db10",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+            ],
+            "qualification": "Appointment dates and one resignation date are supplied for named officials, but no complete target-subject role-to-period binding is supplied.",
+            "requirement_id": "requirement:f7f8adab5161ca66425a8b2d489d2837e3d92dd3f4ef845f913173af993dcec9",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The packet supplies dated records but no explicit comparison result or comparison counterpart for the target subject.",
+            "requirement_id": "requirement:3dc718a9edd39cc43871502489f05ef8dd1fdcc5c597bcce7b1f01c635bef9f8",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+              "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+            ],
+            "qualification": "The records permit inspection of named responsible persons and governance officials, but do not resolve lookup of the target subject's specific role.",
+            "requirement_id": "requirement:2180d3f724251bd6c6e2d47121dc7ca33acf568b298ef4cc83a1bed42e8aa4ab",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The supplied evidence does not establish operational responsibility from office holding.",
+            "requirement_id": "requirement:2568996f80ff9a7e9c4a75a25969cb649ff29802c8130187ab07a60c023c67e3",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+            ],
+            "qualification": "The annual report is dated 30 June 2025 and gives governance appointment and resignation information for named officials.",
+            "requirement_id": "requirement:41c8e36aa8ddeaf1017640b63c5dc86a93efefd1fabb703b4239d3063c59c119",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The evidence supports inspection of governance records, but does not establish that a particular governance role is used for access decisions.",
+            "requirement_id": "requirement:418d29949c94dc5217dda858ae3d88a84e8c6d7d285255fa837d5389d3854753",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+            ],
+            "qualification": "Some tenure endpoints are documented, including appointments from 17 March 2020, 1 July 2020, 8 November 2022, 1 July 2023, 7 November 2023, 31 May 2025, and resignation on 11 April 2025; the target subject's interval is unresolved.",
+            "requirement_id": "requirement:885d97809786062922815076fad4dec920db4a53a04c2d09a9174e1b7fe48f29",
+            "support_state": "guarded"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+          "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/81065b6a-38af-e811-a963-000d3ad24077",
+            "source_payload_sha256": "177b70477fb751dcd61e9001d2475c9db330c23484764284efdbab17dad245ea",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/81065b6a-38af-e811-a963-000d3ad24077-98b84ae1-5103-4b0e-b205-c73392e3eede-Financial%20Report-78ce52f1-39f0-f011-8406-7c1e522aa7ef-Caritas_Australia_Limited_-_Annual_Report-30062025.pdf",
+            "source_payload_sha256": "b4fbafa127a017735777cfaad98b7bef47c8ca47444a0570ae991c82281088f7",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "authority-scoped identity",
+        "forbidden": [
+          "name match proves same entity"
+        ],
+        "intent": "resolve reporting identity",
+        "joins": [
+          "record-to-identifier"
+        ],
+        "operations": [
+          "audit",
+          "lookup"
+        ],
+        "propositions": [
+          "identifier",
+          "scope"
+        ],
+        "subjects": [
+          "entity identity"
+        ],
+        "temporal": "effective period"
+      },
+      "demand_id": "SDC-0037",
+      "instance_id": "cg406:subject:54a09c18d354495eb2fde6a01480b86b:SDC-0037",
+      "organisation": "Royal Childrens Hospital Good Friday Appeal",
+      "subject_id": "subject:54a09c18d354495eb2fde6a01480b86b",
+      "v13": {
+        "exact_failure": "ValidationError: 1 validation error for EvidenceSelectionOutput\ndemand_requirement_support.4\n  Value error, supported frozen demand requirements require evidence IDs [type=value_error, input_value={'evidence_ids': [], 'qua...ort_state': 'supported'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+        "mechanical_status": "invalid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "selected_evidence_ids": [
+          "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+          "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+          "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/0ff5e226-38af-e811-a95e-000d3ad24c60",
+            "source_payload_sha256": "af2047fe0121a84bdb3087c382d979d257b3d174c01826ba350366710edc673c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=69084797965",
+            "source_payload_sha256": "58cedec57815bb1ea985e8c31320d747c779a30f9a325ae1789e8847b830290b",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/0ff5e226-38af-e811-a95e-000d3ad24c60-6f0efcbe-c9a5-4ca2-915f-966510b17774-Financial%20Report-48a62dab-15da-f011-8544-6045bde73a73-FY25_GFA__Annual_Report_with_Directors_Declaration8Dec25_-_Full_FS_signed.pdf",
+            "source_payload_sha256": "a5e7024955ac60237a84674b63b32fd68873d1e7a23aacb85df71f89134e28dc",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          }
+        ],
+        "conclusion_qualification": "The supplied regulator and ABR records support the entity-to-ABN identity and lookup/audit task. However, the governed identifier binding has no valid_from or valid_to values, so the requested effective period is not fully established despite the ABR record stating that the ABN was active from 01 Nov 1999.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": "ValidationError: 1 validation error for EvidenceSelectionOutput\nproposition_support.1\n  Value error, supported demand propositions require resolved scope and time [type=value_error, input_value={'evidence_ids': ['srcrec...l_status': 'unresolved'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+        "mechanical_status": "invalid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/2e9036b4-15da-f011-8544-6045bde4e64f",
+            "source_payload_sha256": "a6bc475f34139c6f2a8c9fc88cf3d4d1c54d4abb74c9f10e865490b56bcb5c2e",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/0ff5e226-38af-e811-a95e-000d3ad24c60",
+            "source_payload_sha256": "af2047fe0121a84bdb3087c382d979d257b3d174c01826ba350366710edc673c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/0ff5e226-38af-e811-a95e-000d3ad24c60-6f0efcbe-c9a5-4ca2-915f-966510b17774-Financial%20Report-48a62dab-15da-f011-8544-6045bde73a73-FY25_GFA__Annual_Report_with_Directors_Declaration8Dec25_-_Full_FS_signed.pdf",
+            "source_payload_sha256": "a5e7024955ac60237a84674b63b32fd68873d1e7a23aacb85df71f89134e28dc",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=69084797965",
+            "source_payload_sha256": "58cedec57815bb1ea985e8c31320d747c779a30f9a325ae1789e8847b830290b",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:2343139d31f81cae1f1d2fd1e30885427e8512dc5c1faf3396315822ac5d6461",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.goodfridayappeal.com.au",
+            "source_payload_sha256": "d24fde75671842c31c14b8f345c5d86d0bfccc5aa724e42cfbe180f78888d449",
+            "source_role": "official_homepage",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "98c4640be50e0a6a10269ebf9852f05a8e21b64cbc07b9b55045c309e8d4b156",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+              "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b"
+            ],
+            "proposition_id": "proposition:285437db8c5e1541aa49708b4abd51642a065b66e4bac0901e75b44ce2d0cebe",
+            "qualification": null,
+            "scope_basis": "eligibility_criteria",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "proposition_id": "proposition:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+            "qualification": "The cited records establish an authority-scoped entity record and ABN association, but the binding's effective period is not fully established.",
+            "scope_basis": "eligibility_criteria",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "rejected_evidence_lineage": [],
+        "request_body_sha256": "68cf3ae6580c8fa07d5f5f82998be0e3492ea2f7f64e4f39a9f825b5efea71f7",
+        "requirement_support": [
+          {
+            "evidence_ids": [
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "qualification": null,
+            "requirement_id": "requirement:7ce1b593aca3cda79455a8961fc080c1d50ad6f7bfcd7efade3f61d75b990e92",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "qualification": null,
+            "requirement_id": "requirement:b24ea0203289656dd9baff1c317523bf4954e2dcbce09554a69a9e1aa9b5812e",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "qualification": null,
+            "requirement_id": "requirement:d7e22c52a293ae6fd10e451f9a1b3d5225cd6fe7ef50fbc8ed7b572d9655a7a7",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "qualification": null,
+            "requirement_id": "requirement:2180d3f724251bd6c6e2d47121dc7ca33acf568b298ef4cc83a1bed42e8aa4ab",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "qualification": "The records support the identity, but name matching alone is not treated as proof of same-entity status.",
+            "requirement_id": "requirement:334d0e55100bcc60c3a03c8915a00c9fd3fc54b11cdd04a327292f4134531f08",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "qualification": null,
+            "requirement_id": "requirement:d95ec19e4dd04bcd2e4165edcfee4a9460c3a4e7d4bf86dd992bcff5ee29f143",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "qualification": null,
+            "requirement_id": "requirement:69eb46dba25077b1be940b372e9123bb504ecc83348036e1f57c7ca28af317a7",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad"
+            ],
+            "qualification": "The ABR record states active from 01 Nov 1999, but the governed binding itself has no valid_from or valid_to.",
+            "requirement_id": "requirement:1ab225b92a7f1b2a53575a631fdf3ee1e506d74159ad5d6a6d21af4efbe78b6b",
+            "support_state": "unresolved"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+          "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+          "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/0ff5e226-38af-e811-a95e-000d3ad24c60",
+            "source_payload_sha256": "af2047fe0121a84bdb3087c382d979d257b3d174c01826ba350366710edc673c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=69084797965",
+            "source_payload_sha256": "58cedec57815bb1ea985e8c31320d747c779a30f9a325ae1789e8847b830290b",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/0ff5e226-38af-e811-a95e-000d3ad24c60-6f0efcbe-c9a5-4ca2-915f-966510b17774-Financial%20Report-48a62dab-15da-f011-8544-6045bde73a73-FY25_GFA__Annual_Report_with_Directors_Declaration8Dec25_-_Full_FS_signed.pdf",
+            "source_payload_sha256": "a5e7024955ac60237a84674b63b32fd68873d1e7a23aacb85df71f89134e28dc",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "service-scoped evidence",
+        "forbidden": [
+          "headquarters equals delivery geography"
+        ],
+        "intent": "construct an evidenced service cohort",
+        "joins": [
+          "service-to-delivery geography",
+          "service-to-population"
+        ],
+        "operations": [
+          "filter"
+        ],
+        "propositions": [
+          "eligibility",
+          "geography",
+          "service"
+        ],
+        "subjects": [
+          "service and delivery geography"
+        ],
+        "temporal": "service period"
+      },
+      "demand_id": "SDC-0003",
+      "instance_id": "cg406:subject:6da4240b384242a78455a01fc28e0ed8:SDC-0003",
+      "organisation": "Cancer Council Victoria",
+      "subject_id": "subject:6da4240b384242a78455a01fc28e0ed8",
+      "v13": {
+        "exact_failure": "ValidationError: 2 validation errors for EvidenceSelectionOutput\nproposition_support.0\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nproposition_support.1\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+        "mechanical_status": "invalid",
+        "raw_outcome": "supported",
+        "rejected_evidence_ids": [
+          "srcrec:6324bbf9bde152c14cae6a5c2036ed652791b8601391627a5c9549597db13a07",
+          "srcrec:a7aa5f787dff9ec3f37f2f419df4ae37c517a1ba1130343390e3441d3aa557ed"
+        ],
+        "selected_evidence_ids": [
+          "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+          "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+          "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.cancervic.org.au",
+            "source_payload_sha256": "21976bdcdd50fcf7161154fba138c04618d4c401a1dc981f54d7db2127f7eb38",
+            "source_role": "official_homepage",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/28e4b3da-38af-e811-a962-000d3ad24a0d-f96feb51-f4e3-4d40-8201-25939cbd6fd6-Financial%20Report-9b3692a4-666f-f111-ab0d-6045bde5be38-CCV_Financial_Statements_31_December_2025_-_Signed.pdf",
+            "source_payload_sha256": "74a09e4ef9065d49347ade34c59eb75d800d9306e68c6399f43ed7705f4becf6",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/28e4b3da-38af-e811-a962-000d3ad24a0d",
+            "source_payload_sha256": "feed69fec97f1fb545c95da3b3aedd05cf45ce9e14be74f30ab9f123b79f692c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          }
+        ],
+        "conclusion_qualification": "The packet provides service-specific descriptions, beneficiary information, delivery locations, Victoria operating geography, and a 2025 service period. The headquarters-versus-delivery-geography non-inference is acknowledged separately and is not used as evidence of equivalence.",
+        "derived_category": "contract_admissible_positive",
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/6c4b79b6-666f-f111-ab0d-6045bde5be38",
+            "source_payload_sha256": "34fb80ff052c8d3e8b66827aaa3763bd97c0cfdacba4665b17f4a14becfb2deb",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/28e4b3da-38af-e811-a962-000d3ad24a0d",
+            "source_payload_sha256": "feed69fec97f1fb545c95da3b3aedd05cf45ce9e14be74f30ab9f123b79f692c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/28e4b3da-38af-e811-a962-000d3ad24a0d-f96feb51-f4e3-4d40-8201-25939cbd6fd6-Financial%20Report-9b3692a4-666f-f111-ab0d-6045bde5be38-CCV_Financial_Statements_31_December_2025_-_Signed.pdf",
+            "source_payload_sha256": "74a09e4ef9065d49347ade34c59eb75d800d9306e68c6399f43ed7705f4becf6",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:a7aa5f787dff9ec3f37f2f419df4ae37c517a1ba1130343390e3441d3aa557ed",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=61426486715",
+            "source_payload_sha256": "cc4c946d4a613e184dfd25fe3449dc32c5addebc9c12bae0d3b777926e14895e",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.cancervic.org.au",
+            "source_payload_sha256": "21976bdcdd50fcf7161154fba138c04618d4c401a1dc981f54d7db2127f7eb38",
+            "source_role": "official_homepage",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:6324bbf9bde152c14cae6a5c2036ed652791b8601391627a5c9549597db13a07",
+            "source_family": "wikipedia_wikimedia",
+            "source_native_locator": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Cancer+Council+Victoria&format=json&srlimit=10",
+            "source_payload_sha256": "aa6ad5fc2f56c5c7eff656c9dfa278ec14c85097f2399ee9f96ec62ceb8e8c70",
+            "source_role": "wikipedia_search_context",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "b670087436403998807f8d5f09c8ef274b0ba360573c18f998411b5bde00db78",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+            ],
+            "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+            "qualification": "The regulator and annual report evidence describes the organisation's cancer-related purposes and continuing activities.",
+            "scope_basis": "eligibility_criteria",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800"
+            ],
+            "proposition_id": "proposition:bf8e5ca0b2d5abd3393eb6d13e8bdfc8934628e0110dfb67071d2fb819928f0c",
+            "qualification": "The register records Victoria as the operating state and program locations in East Melbourne; the official website describes services for Victorians.",
+            "scope_basis": "operational_geography",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800"
+            ],
+            "proposition_id": "proposition:9df6b026a8c6c26e3c3acd2370a16e93fffdc0015ff5bd879218788025db0280",
+            "qualification": "The sources expressly describe support, prevention, screening, research, and related cancer services, with program beneficiaries and locations.",
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "raw_outcome": "supported",
+        "rejected_evidence_ids": [
+          "srcrec:6324bbf9bde152c14cae6a5c2036ed652791b8601391627a5c9549597db13a07"
+        ],
+        "rejected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:6324bbf9bde152c14cae6a5c2036ed652791b8601391627a5c9549597db13a07",
+            "source_family": "wikipedia_wikimedia",
+            "source_native_locator": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Cancer+Council+Victoria&format=json&srlimit=10",
+            "source_payload_sha256": "aa6ad5fc2f56c5c7eff656c9dfa278ec14c85097f2399ee9f96ec62ceb8e8c70",
+            "source_role": "wikipedia_search_context",
+            "source_version": null
+          }
+        ],
+        "request_body_sha256": "6d70831dd7c2bf8a756c8a8b6fd645cabf2d684d56835cbac5c4a3a1ac3414ce",
+        "requirement_support": [
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800"
+            ],
+            "qualification": "The packet identifies the service subject through service descriptions, beneficiaries, and program records.",
+            "requirement_id": "requirement:3af2097a570c1a60279d0caa51a92a9619c40cc33d594627b39376071eb04cf0",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800"
+            ],
+            "qualification": "Operating geography is Victoria, and the official service statement refers to all Victorians; program records locate delivery in East Melbourne.",
+            "requirement_id": "requirement:c49da8007d94eab3d5d1a0848d767de5663dd8cb5e3aaa86440975f968db1c98",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800"
+            ],
+            "qualification": "Program beneficiaries are recorded as the general community in Australia, while the official website specifically describes support for Victorians affected by cancer.",
+            "requirement_id": "requirement:d681a1d88a4f348bbfc33754d1e14984c754527170011be3a119f36387531c8e",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800"
+            ],
+            "qualification": "The service records support filtering to service-related programs and Victoria-linked delivery geography.",
+            "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+            ],
+            "qualification": "The evidence supplies a separate program location and service geography; it does not establish that headquarters equals delivery geography.",
+            "requirement_id": "requirement:2e96e59ea937a7e339db612bd032aad4f38db53d7de1e0d8eb4432fb662aa76e",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800"
+            ],
+            "qualification": "Cited records contain service descriptions, program locations, beneficiary categories, and Victoria-specific service text.",
+            "requirement_id": "requirement:5577d2b2522d05afbd6947bfa1fb947392c5458f550789775f9b1d18472ba842",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+              "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800"
+            ],
+            "qualification": "The evidence supports constructing a cohort from the subject's cancer support, prevention, screening, research, and related programs.",
+            "requirement_id": "requirement:36b0f742218221474a9d17b73d9f1e89f73a32441b1004e87df7efb3cda2834d",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+              "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5"
+            ],
+            "qualification": "The annual report covers the year ended 31 December 2025, and the register's program and operating records are part of the captured 2025 material.",
+            "requirement_id": "requirement:ddb433563175e18e77ceefa55266cb9f632966970eaf19d0809c313fbb59ef21",
+            "support_state": "supported"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+          "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+          "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/28e4b3da-38af-e811-a962-000d3ad24a0d",
+            "source_payload_sha256": "feed69fec97f1fb545c95da3b3aedd05cf45ce9e14be74f30ab9f123b79f692c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/28e4b3da-38af-e811-a962-000d3ad24a0d-f96feb51-f4e3-4d40-8201-25939cbd6fd6-Financial%20Report-9b3692a4-666f-f111-ab0d-6045bde5be38-CCV_Financial_Statements_31_December_2025_-_Signed.pdf",
+            "source_payload_sha256": "74a09e4ef9065d49347ade34c59eb75d800d9306e68c6399f43ed7705f4becf6",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.cancervic.org.au",
+            "source_payload_sha256": "21976bdcdd50fcf7161154fba138c04618d4c401a1dc981f54d7db2127f7eb38",
+            "source_role": "official_homepage",
+            "source_version": null
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "flow-specific authoritative evidence",
+        "forbidden": [
+          "award equals payment or revenue",
+          "payment proves durable relationship"
+        ],
+        "intent": "trace resource dependencies",
+        "joins": [
+          "flow-to-financial line",
+          "flow-to-program",
+          "funder-to-flow"
+        ],
+        "operations": [
+          "compare",
+          "trace"
+        ],
+        "propositions": [
+          "award",
+          "commitment",
+          "payment",
+          "revenue"
+        ],
+        "subjects": [
+          "program and financial-flow scope"
+        ],
+        "temporal": "transaction/reporting period"
+      },
+      "demand_id": "SDC-0007",
+      "instance_id": "cg406:subject:771dbdb52fe54cb49ebcce20f72bd250:SDC-0007",
+      "organisation": "University Of Western Australia",
+      "subject_id": "subject:771dbdb52fe54cb49ebcce20f72bd250",
+      "v13": {
+        "exact_failure": "ValidationError: 1 validation error for EvidenceSelectionOutput\nproposition_support.3\n  Value error, supported demand propositions require resolved scope and time [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+        "mechanical_status": "invalid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "selected_evidence_ids": [
+          "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+          "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+          "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/1aa684ba-2c71-f111-ab0d-6045bdc47a8f",
+            "source_payload_sha256": "6b32ee8edd26195bf7b1e09f3a52f2a86afb07144cc8efa1f6b3464e019ab7a4",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/663043db-39af-e811-a962-000d3ad24a0d-6acd76c0-7b59-476c-82da-abf12bf75c9e-Financial%20Report-708e8eaa-2c71-f111-ab0d-002248954ea6-UWA_ACNC_Annual_Information_2025.xlsx",
+            "source_payload_sha256": "1d0440ba29cf02aac066a736895e2633883d21bf51ee46be00bd997bf8aba498",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/663043db-39af-e811-a962-000d3ad24a0d",
+            "source_payload_sha256": "0eb2bc113f632a3741873e633c61bdf783b071eb15fe776af4e2d925a1791e7c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          }
+        ],
+        "conclusion_qualification": "The packet contains organisation-level program and financial-reporting information, including 2025 revenue, but no flow-specific award, commitment, payment, funder, program, or financial-line joins sufficient to trace resource dependencies.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/1aa684ba-2c71-f111-ab0d-6045bdc47a8f",
+            "source_payload_sha256": "6b32ee8edd26195bf7b1e09f3a52f2a86afb07144cc8efa1f6b3464e019ab7a4",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/663043db-39af-e811-a962-000d3ad24a0d",
+            "source_payload_sha256": "0eb2bc113f632a3741873e633c61bdf783b071eb15fe776af4e2d925a1791e7c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/663043db-39af-e811-a962-000d3ad24a0d-6acd76c0-7b59-476c-82da-abf12bf75c9e-Financial%20Report-708e8eaa-2c71-f111-ab0d-002248954ea6-UWA_ACNC_Annual_Information_2025.xlsx",
+            "source_payload_sha256": "1d0440ba29cf02aac066a736895e2633883d21bf51ee46be00bd997bf8aba498",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:c464bb740a08aa140938474f350feab35cadec760358e53fdbb76d81dcd85397",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=37882817280",
+            "source_payload_sha256": "327152e8213080007e5a2df92768472d2e60ce914fd882160ee9e59e59c8c721",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:7701b9f7bf31a810917da3b07ecf2e4f626486d9b0904102d67b0653e1fe5a4d",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.uwa.edu.au/home",
+            "source_payload_sha256": "a53e2aa74d69f5e89a674f89ae75121706d7bd2a9b57847c5556e69e08abe972",
+            "source_role": "official_homepage",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:38b3942e4e7a329783e69298ca5e11331cee8946c1a28d56d60929a52b845276",
+            "source_family": "wikipedia_wikimedia",
+            "source_native_locator": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=University+Of+Western+Australia&format=json&srlimit=10",
+            "source_payload_sha256": "a9e0167897bea04ca9e3f1a728ba31db6afda39c6f46b10816a1f79800a408b0",
+            "source_role": "wikipedia_search_context",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "95b9352990571417402a880b3f930b9453012516841e97271925c4c85b91f923",
+        "proposition_support": [
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:b4009662c0116dac4f17a86354dcefcb35d80de2af59988f520fe072b4b13e2a",
+            "qualification": "No award is identified in the supplied evidence.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:6a19f0fb4be54511524bcd5b0c98b38da1ee049a39735c39311e10336024436f",
+            "qualification": "No commitment is identified in the supplied evidence.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:040ffd5925d40e11c67b7238a7fc9957850b8b9a46e9729fab88c24d6a98aff2",
+            "qualification": "No payment is identified in the supplied evidence.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "proposition_id": "proposition:371f7e4223809d8bce3d52f6a5358e47c4b57aa00cbe0a4d8b47d74f010dffa6",
+            "qualification": "The 2025 regulator material and workbook report organisation-level revenue, including total revenue and revenue categories, for 2025.",
+            "scope_basis": "unresolved",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [
+          "srcrec:7701b9f7bf31a810917da3b07ecf2e4f626486d9b0904102d67b0653e1fe5a4d",
+          "srcrec:38b3942e4e7a329783e69298ca5e11331cee8946c1a28d56d60929a52b845276"
+        ],
+        "rejected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:7701b9f7bf31a810917da3b07ecf2e4f626486d9b0904102d67b0653e1fe5a4d",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.uwa.edu.au/home",
+            "source_payload_sha256": "a53e2aa74d69f5e89a674f89ae75121706d7bd2a9b57847c5556e69e08abe972",
+            "source_role": "official_homepage",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:38b3942e4e7a329783e69298ca5e11331cee8946c1a28d56d60929a52b845276",
+            "source_family": "wikipedia_wikimedia",
+            "source_native_locator": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=University+Of+Western+Australia&format=json&srlimit=10",
+            "source_payload_sha256": "a9e0167897bea04ca9e3f1a728ba31db6afda39c6f46b10816a1f79800a408b0",
+            "source_role": "wikipedia_search_context",
+            "source_version": null
+          }
+        ],
+        "request_body_sha256": "f6b1cfce54de1c2b7128b1c55b1f88ed35ab4b0054b230271a0d3c12f8b12b07",
+        "requirement_support": [
+          {
+            "evidence_ids": [
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5"
+            ],
+            "qualification": "The organisation and Higher Education program are identified, and organisation-level financial reporting is present, but the requested program-and-financial-flow scope is not joined.",
+            "requirement_id": "requirement:63a2523e0671a4dde67ad859e14912296d6f66270c2107b6372e20d178fc0ec7",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5"
+            ],
+            "qualification": "Financial lines are reported, but no specified flow is joined to a particular line.",
+            "requirement_id": "requirement:7d80e6078155a526d21f4cb9e5e0d74f18d63467ae587130363ff6da441c0683",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5"
+            ],
+            "qualification": "A Higher Education program and organisation-level financial data are present, but no flow-to-program relation is stated.",
+            "requirement_id": "requirement:f80f10b89c1a4224aea8d436b753330edb9086e58c82f6a019d82c79c8a0810e",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No funder-to-flow relationship is supplied.",
+            "requirement_id": "requirement:bdac6ea8a1e6f9ec57d41df2dad7288ddd26bf4fae4c3c7039cb9b6f3d5b6e0d",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5"
+            ],
+            "qualification": "The records provide financial totals but no defined flow comparison.",
+            "requirement_id": "requirement:3dc718a9edd39cc43871502489f05ef8dd1fdcc5c597bcce7b1f01c635bef9f8",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "qualification": "The records show aggregate financial reporting but do not trace a specified resource flow or dependencies.",
+            "requirement_id": "requirement:5f8a47e9c7fe8f206674d8839656d7327d15d7b3b3d4f5433ceb1092b0f13e52",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No award and payment equivalence is asserted; the qualification is a non-inference acknowledgement only.",
+            "requirement_id": "requirement:339d465fca9891103a115dbcce202ee91a6a6422dd71faa01341bf26ebebaeb9",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No payment and durable-relationship equivalence is asserted; the qualification is a non-inference acknowledgement only.",
+            "requirement_id": "requirement:a5eec5e200ad6b33b5447c36ca1d6803d2bbe77403dc629e26b2d2519eed87d9",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The supplied financial records are authoritative organisation-level reports, but no flow-specific authoritative evidence is supplied.",
+            "requirement_id": "requirement:7f9a45d3756d103b1ff805db4155b14e89df1dbcb488827561a277cfca61b7d5",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The requested dependency-tracing intent cannot be completed without flow-specific joins.",
+            "requirement_id": "requirement:df3a1b9d10106d2738ea97f990a42eb1ddb8edf1f1a1960eddbc4a716c913706",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+              "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+            ],
+            "qualification": "The supplied regulator and workbook records identify reporting for 2025, including 2025 financial lines and report dates.",
+            "requirement_id": "requirement:08cce90e4228072a0efcdfbfb3a19ea881f83929d469b5d4f11b429eb4a8ff5c",
+            "support_state": "supported"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+          "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+          "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/663043db-39af-e811-a962-000d3ad24a0d",
+            "source_payload_sha256": "0eb2bc113f632a3741873e633c61bdf783b071eb15fe776af4e2d925a1791e7c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/1aa684ba-2c71-f111-ab0d-6045bdc47a8f",
+            "source_payload_sha256": "6b32ee8edd26195bf7b1e09f3a52f2a86afb07144cc8efa1f6b3464e019ab7a4",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/663043db-39af-e811-a962-000d3ad24a0d-6acd76c0-7b59-476c-82da-abf12bf75c9e-Financial%20Report-708e8eaa-2c71-f111-ab0d-002248954ea6-UWA_ACNC_Annual_Information_2025.xlsx",
+            "source_payload_sha256": "1d0440ba29cf02aac066a736895e2633883d21bf51ee46be00bd997bf8aba498",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "opportunity evidence",
+        "forbidden": [
+          "advertisement proves enduring participation"
+        ],
+        "intent": "inspect participation routes",
+        "joins": [
+          "opportunity-to-service"
+        ],
+        "operations": [
+          "filter"
+        ],
+        "propositions": [
+          "eligibility",
+          "opportunity",
+          "time pattern"
+        ],
+        "subjects": [
+          "advertised opportunity"
+        ],
+        "temporal": "advertised effective period"
+      },
+      "demand_id": "SDC-0005",
+      "instance_id": "cg406:subject:78393016b9ad44dd832cfa913b7122ba:SDC-0005",
+      "organisation": "Australian Wildlife Conservancy",
+      "subject_id": "subject:78393016b9ad44dd832cfa913b7122ba",
+      "v13": {
+        "exact_failure": "ValidationError: 1 validation error for EvidenceSelectionOutput\nproposition_support.1\n  Value error, supported demand propositions require resolved scope and time [type=value_error, input_value={'evidence_ids': ['srcrec...l_status': 'unresolved'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+        "mechanical_status": "invalid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "selected_evidence_ids": [
+          "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.australianwildlife.org/",
+            "source_payload_sha256": "233816beec115ddf9b1ddfe50aaa4aa70f0e917515d04a52fe7d14a9d9f784d2",
+            "source_role": "official_homepage",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/c86d378f-276e-f011-b4cc-6045bde6a4d3",
+            "source_payload_sha256": "db6d106202744f15f5d6cc2ac6e32cbd70924e1ed3e3eaf91ad575b34591b79a",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          }
+        ],
+        "conclusion_qualification": "The supplied evidence identifies participation routes and related conservation programs, but does not establish the requested opportunity-to-service filtered relation or an advertised effective period. It also does not establish eligibility criteria.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": "ValidationError: 1 validation error for EvidenceSelectionOutput\nproposition_support.1\n  Value error, supported demand propositions require resolved scope and time [type=value_error, input_value={'evidence_ids': ['srcrec...l_status': 'unresolved'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+        "mechanical_status": "invalid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/c86d378f-276e-f011-b4cc-6045bde6a4d3",
+            "source_payload_sha256": "db6d106202744f15f5d6cc2ac6e32cbd70924e1ed3e3eaf91ad575b34591b79a",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/c9ef0f2a-39af-e811-a963-000d3ad244fd",
+            "source_payload_sha256": "6a3c164640e5956497b01bb054bc9320047ea232bae9c46d4e5e17f3cf2380cf",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:d84f59dafd80990cfe07a4a591a796df8ab24332d91888a6ad760d711c4c318c",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=36068572556",
+            "source_payload_sha256": "2424bb1344c455516b9232b0e1c4197ce07d778c9091b4caabc320185ee14ee7",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.australianwildlife.org/",
+            "source_payload_sha256": "233816beec115ddf9b1ddfe50aaa4aa70f0e917515d04a52fe7d14a9d9f784d2",
+            "source_role": "official_homepage",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40",
+            "source_family": "wikipedia_wikimedia",
+            "source_native_locator": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Australian+Wildlife+Conservancy&format=json&srlimit=10",
+            "source_payload_sha256": "80e9ba9fbd17225cd83d57dde33f244197ade06eda26f643d5b4991bd4b06009",
+            "source_role": "wikipedia_search_context",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "333fea60de461cbf723e01463a0a41a0d6f6b0e41c59a519c82f1f220a3cd504",
+        "proposition_support": [
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+            "qualification": "No eligibility criteria or eligibility determination is stated in the supplied evidence.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+            ],
+            "proposition_id": "proposition:04b447783afe5bfd4b48e8db067137319526a98e029c37b2559154ceccc1067e",
+            "qualification": "The official homepage explicitly lists Volunteer, Fundraise for us, workplace giving, and other support routes. The specific requested opportunity-to-service relation is not established.",
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:6eff887609b9e27b1dde5012c9e309c8287fcabfefb2e39f476a9fa1cde8bef6",
+            "qualification": "No effective period or time pattern for the advertised opportunity is supplied.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [
+          "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40"
+        ],
+        "rejected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40",
+            "source_family": "wikipedia_wikimedia",
+            "source_native_locator": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Australian+Wildlife+Conservancy&format=json&srlimit=10",
+            "source_payload_sha256": "80e9ba9fbd17225cd83d57dde33f244197ade06eda26f643d5b4991bd4b06009",
+            "source_role": "wikipedia_search_context",
+            "source_version": null
+          }
+        ],
+        "request_body_sha256": "d90132a19126edd7cde7907b01ca8cdcf59c0bd71b3dfb9c2901d75708e2780c",
+        "requirement_support": [
+          {
+            "evidence_ids": [
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+            ],
+            "qualification": "The official homepage lists participation/support routes, including volunteering, but the precise advertised opportunity referent is not fully specified.",
+            "requirement_id": "requirement:191a1c546da0485ed9e5d898af1b1ffeb418aabd4eb46ae8bf689d3d18e06a15",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2"
+            ],
+            "qualification": "Participation routes and conservation programs are separately evidenced, but the opportunity-to-service join is not explicitly stated.",
+            "requirement_id": "requirement:cf04bb838f0c9b844423fe3e93026b8b603ef69d3c6e632226bf39e0fb34c78f",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+              "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2"
+            ],
+            "qualification": "The evidence supplies routes and program descriptions but no explicit filtering rule or demonstrated filtered result.",
+            "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+            ],
+            "qualification": "The homepage lists participation routes, but this assessment does not infer enduring participation from that advertisement.",
+            "requirement_id": "requirement:4316c8f907ac4732f1174b92f7e17035bdf9a2785d766c21e40dfba0ea517a4f",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+            ],
+            "qualification": "The official homepage provides direct opportunity-related text through its listed support and participation routes.",
+            "requirement_id": "requirement:bd739bfa87a3a3b34349f15e515b6b3894389120dd6f68d9c8e658f77605d8d3",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+            ],
+            "qualification": "The listed routes, including volunteering and fundraising, are relevant to inspecting participation routes.",
+            "requirement_id": "requirement:7d930f775194cffea0e229640e27a7fdd8d987808c70b60074e21eb81ea49145",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+            ],
+            "qualification": "The homepage is captured with current-page content but supplies no explicit effective start or end period for the listed opportunities.",
+            "requirement_id": "requirement:95de788b4433cf6ac38459d0bddd11b56671d790f2a313a839c7ca57ef7c9370",
+            "support_state": "not_established"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+          "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.australianwildlife.org/",
+            "source_payload_sha256": "233816beec115ddf9b1ddfe50aaa4aa70f0e917515d04a52fe7d14a9d9f784d2",
+            "source_role": "official_homepage",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/c86d378f-276e-f011-b4cc-6045bde6a4d3",
+            "source_payload_sha256": "db6d106202744f15f5d6cc2ac6e32cbd70924e1ed3e3eaf91ad575b34591b79a",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "study-scoped gap evidence",
+        "forbidden": [
+          "missing design proves failure"
+        ],
+        "intent": "identify evidence gaps in a decision",
+        "joins": [
+          "claim-to-evidence",
+          "intervention-to-study",
+          "study-to-population"
+        ],
+        "operations": [
+          "explain",
+          "find_exception",
+          "screen"
+        ],
+        "propositions": [
+          "design",
+          "metric",
+          "missingness",
+          "population"
+        ],
+        "subjects": [
+          "evaluation decision"
+        ],
+        "temporal": "decision evidence period"
+      },
+      "demand_id": "SDC-0052",
+      "instance_id": "cg406:subject:93f185643c194b2da46032afc9521b30:SDC-0052",
+      "organisation": "The Leukaemia Foundation Of Australia Limited",
+      "subject_id": "subject:93f185643c194b2da46032afc9521b30",
+      "v13": {
+        "exact_failure": "ValidationError: 1 validation error for EvidenceSelectionOutput\ndemand_requirement_support.7\n  Value error, supported frozen demand requirements require evidence IDs [type=value_error, input_value={'evidence_ids': [], 'qua...ort_state': 'supported'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+        "mechanical_status": "invalid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "selected_evidence_ids": [
+          "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+          "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+          "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/52cae909-39af-e811-a963-000d3ad24077-39064b33-3443-4565-bc9e-436f4cde0b35-Financial%20Report-bef0161c-4ace-f011-bbd3-6045bde67d52-FY25_LFA_Audited_Accounts_-_executed.pdf",
+            "source_payload_sha256": "5e51703003ed000775c41b90e4fed3177cae1118c7a1dd8ad1e0fe010683fdef",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/f419ff2d-4ace-f011-bbd3-6045bde61dfb",
+            "source_payload_sha256": "6f5433292d31ede2d8b0bbe5a024d3143a12cca600f340e653a01b85526282cf",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          }
+        ],
+        "conclusion_qualification": "The packet contains organizational, program, and FY25 operational and financial reporting, including a service metric, but does not establish an intervention-to-study relation, study-to-population relation, evaluation decision, study design, missingness, or a decision-specific evidence period.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": "ValueError: only frozen non-inference requirements may be marked guarded",
+        "mechanical_status": "invalid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/f419ff2d-4ace-f011-bbd3-6045bde61dfb",
+            "source_payload_sha256": "6f5433292d31ede2d8b0bbe5a024d3143a12cca600f340e653a01b85526282cf",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/52cae909-39af-e811-a963-000d3ad24077",
+            "source_payload_sha256": "ee23b5082300deacd1cb08e0b2ca33161fb78a50e4fa6e9c0b617f9205db0ef7",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/52cae909-39af-e811-a963-000d3ad24077-39064b33-3443-4565-bc9e-436f4cde0b35-Financial%20Report-bef0161c-4ace-f011-bbd3-6045bde67d52-FY25_LFA_Audited_Accounts_-_executed.pdf",
+            "source_payload_sha256": "5e51703003ed000775c41b90e4fed3177cae1118c7a1dd8ad1e0fe010683fdef",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:52ff9879abf522362bd642d8e22f54a4e2b813f451dcd1723978b0f68a3d9e79",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=57057493017",
+            "source_payload_sha256": "48595880b1934e02c82bc1fb580a9a50a048b277d5d1859fdd846e43d0cf7764",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.leukaemia.org.au/",
+            "source_payload_sha256": "f91f1e8874ed0ca662f72eafe257dad09b673fa278f62fa4876eb5d8cf419ba6",
+            "source_role": "official_homepage",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a",
+            "source_family": "pfra",
+            "source_native_locator": "https://pfra.org.au/membership/charity-members/",
+            "source_payload_sha256": "c61f47c0ca068967fc5b9575a7178c310191f5630d6c9b636872bacbd5be32b5",
+            "source_role": "registry_membership",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "23bc62579b78890b1c7d035cc16b5809793ea10d1ca5cebfd6c17cefe0709ec8",
+        "proposition_support": [
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:a77de8a6daa1129516b14c8ca1e233a51a8414b202eac7c8acfbb9b485046ad4",
+            "qualification": "No evaluation or study design is supplied.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "proposition_id": "proposition:b8b4e9cea77ef29a5e958f13addd4855c35d2f04a060c3a869f8c955fd4c9a34",
+            "qualification": "The FY25 report states 39,800 service instances delivered to 6,881 people, but does not establish a study metric or measurement design.",
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+            "qualification": "No missingness, completeness, attrition, or denominator analysis is supplied.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1",
+            "qualification": "The evidence reports service recipients and program beneficiary categories, not a defined study population.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "rejected_evidence_lineage": [],
+        "request_body_sha256": "212adbd33dae79309eb5e980fb899fba003447624bc160c29cdca1a84240cd9c",
+        "requirement_support": [
+          {
+            "evidence_ids": [],
+            "qualification": "No evaluation decision is identified in the supplied evidence.",
+            "requirement_id": "requirement:249cdf6433cc87084d4f8e62d0183337899947c3f094fa259d4858693bb8a92f",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The supplied evidence does not establish a decision-specific claim-to-evidence mapping.",
+            "requirement_id": "requirement:5cb3f24c04adea949c9e5d37dbdeb4392a99bae518ad3bc8c1519d8889ba37a7",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The evidence describes services and research activity but does not link an intervention to a study.",
+            "requirement_id": "requirement:d27008f0b8edb3219afc275efcde4d4bd7dfe212c45395042824addbe597bca9",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "Reported beneficiaries and service recipients are not a defined study population.",
+            "requirement_id": "requirement:36197c22dd394a18f2331f60b6c70854f0fa5bee52fb00fadbc1d6021141f0b5",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "qualification": "The FY25 report supports describing available operational evidence and its limitations.",
+            "requirement_id": "requirement:afb2215dd2a1d13ae42f0bfd5a50239618170c785fa0de8754ffba9310b73eb3",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No exception rule or decision-screening exception is supplied.",
+            "requirement_id": "requirement:b5295617285b027c88dc44bdadbf658d3852ea35d0fd31bab55add8747d0d574",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No screening rule for an evaluation decision is supplied.",
+            "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No conclusion is drawn that missing design proves failure; the supplied evidence is insufficient to assess design.",
+            "requirement_id": "requirement:b31cfcb3d8ee7969f9a5a76d90a50ca497cfaaf84705837df647ac27ad33dcf0",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The packet does not provide study-scoped evidence for a gap assessment.",
+            "requirement_id": "requirement:3be8d96cb5e29ee176e400796a30b61487c8a11062754d7c95156c04acb54e49",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "qualification": "The material can identify limitations in the supplied evidence, but no particular evaluation decision is identified.",
+            "requirement_id": "requirement:8dffcba45fda3a82e8074c1130c69d40bdf5c70fadebde3e9f035696eb7d8bbc",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+            ],
+            "qualification": "The FY25 reporting period is stated as the year ended 30 June 2025, but the required decision evidence period is not specified.",
+            "requirement_id": "requirement:8e893c0cc4e038c0c56fc5940a33c9cb37f8a5931e308d3a3ba4116fb6a8d1ea",
+            "support_state": "unresolved"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+          "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/52cae909-39af-e811-a963-000d3ad24077-39064b33-3443-4565-bc9e-436f4cde0b35-Financial%20Report-bef0161c-4ace-f011-bbd3-6045bde67d52-FY25_LFA_Audited_Accounts_-_executed.pdf",
+            "source_payload_sha256": "5e51703003ed000775c41b90e4fed3177cae1118c7a1dd8ad1e0fe010683fdef",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/f419ff2d-4ace-f011-bbd3-6045bde61dfb",
+            "source_payload_sha256": "6f5433292d31ede2d8b0bbe5a024d3143a12cca600f340e653a01b85526282cf",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "rule-specific evidence/coverage",
+        "forbidden": [
+          "missingness is a failed criterion",
+          "universal values score"
+        ],
+        "intent": "make a qualified selection decision",
+        "joins": [
+          "rule-to-proposition evidence"
+        ],
+        "operations": [
+          "explain",
+          "filter",
+          "screen"
+        ],
+        "propositions": [
+          "classification",
+          "conduct",
+          "ethos",
+          "finance",
+          "identity",
+          "purpose"
+        ],
+        "subjects": [
+          "resolved organisation"
+        ],
+        "temporal": "rule-defined time"
+      },
+      "demand_id": "SDC-0028",
+      "instance_id": "cg406:subject:96135bad66c645ecb487fba1f059240c:SDC-0028",
+      "organisation": "Plan International Australia",
+      "subject_id": "subject:96135bad66c645ecb487fba1f059240c",
+      "v13": {
+        "exact_failure": "ValidationError: 3 validation errors for EvidenceSelectionOutput\nproposition_support.2\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nproposition_support.3\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nproposition_support.4\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+        "mechanical_status": "invalid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "selected_evidence_ids": [
+          "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+          "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+          "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+          "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1",
+          "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/0669e6e2-2daf-e811-a95e-000d3ad24c60",
+            "source_payload_sha256": "7265e1ebd3fe18c346306bf4939661c5e8a8a35ec187fbf1f4ff0b4a9b124ea1",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/0669e6e2-2daf-e811-a95e-000d3ad24c60-fe8c8746-c0fe-4d5e-8762-185e44108ea9-Financial%20Report-9f95a96e-53fb-f011-8406-6045bdc47a8f-08._Financial_Statements_2025.pdf",
+            "source_payload_sha256": "d8c6b577b98d01a874ff9491969e26f6b9bcbb0cde55b152f5fc6d1bf87f4022",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.plan.org.au",
+            "source_payload_sha256": "75753f92f52175a1a91b886b14298f63df77f28521d47eec97d3b3e803db40be",
+            "source_role": "official_homepage",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=49004875807",
+            "source_payload_sha256": "abb3254364b8deb53c1bc59ea8ab8f31dcc05bfe3d1c953d88b4cf7584e2b110",
+            "source_role": "abr_entity",
+            "source_version": null
+          }
+        ],
+        "conclusion_qualification": "The supplied evidence supports organisational propositions, but no rule-specific screening criteria or rule-defined temporal obligation is supplied, so a qualified selection decision cannot be established.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/0a26a480-53fb-f011-8406-6045bdc47a8f",
+            "source_payload_sha256": "d51c655f85783b0baea783afa19096700a80efb8dcf594784ebd8c2f6f64e76a",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/0669e6e2-2daf-e811-a95e-000d3ad24c60",
+            "source_payload_sha256": "7265e1ebd3fe18c346306bf4939661c5e8a8a35ec187fbf1f4ff0b4a9b124ea1",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/0669e6e2-2daf-e811-a95e-000d3ad24c60-fe8c8746-c0fe-4d5e-8762-185e44108ea9-Financial%20Report-9f95a96e-53fb-f011-8406-6045bdc47a8f-08._Financial_Statements_2025.pdf",
+            "source_payload_sha256": "d8c6b577b98d01a874ff9491969e26f6b9bcbb0cde55b152f5fc6d1bf87f4022",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=49004875807",
+            "source_payload_sha256": "abb3254364b8deb53c1bc59ea8ab8f31dcc05bfe3d1c953d88b4cf7584e2b110",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.plan.org.au",
+            "source_payload_sha256": "75753f92f52175a1a91b886b14298f63df77f28521d47eec97d3b3e803db40be",
+            "source_role": "official_homepage",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "996b3de7fa7c61e7ebcc4232cbbf1d7f083182638fe35b4d4f896172a8b80a6d",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+            ],
+            "proposition_id": "proposition:9f0c8aa526579f4dbde02f70f4cdf635a22df7d844ce012de5791febea95e732",
+            "qualification": null,
+            "scope_basis": "program_metadata",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5"
+            ],
+            "proposition_id": "proposition:85ca6d6d291c070dbcb28efa667bbed81c9c789b5bb515725a7bad753f6171ba",
+            "qualification": null,
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+            ],
+            "proposition_id": "proposition:95175e23c3cbf2c28d29a4c95a25eb4946485930c168a8a216eb37a59a2c5636",
+            "qualification": null,
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5"
+            ],
+            "proposition_id": "proposition:eab762a03fd979a04cc4706e6536d382bc89d2d1356afcd054a16b2235ecd471",
+            "qualification": null,
+            "scope_basis": "program_metadata",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+            ],
+            "proposition_id": "proposition:689f6a627384c7dcb2dcc1487e540223e77bdf9dcd0d8be8a326eda65b0ce9a4",
+            "qualification": null,
+            "scope_basis": "eligibility_criteria",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+            ],
+            "proposition_id": "proposition:81b06df4303e6581efecfa2830bf76c30a9d32a3e4892eac2fe43b7487d3ae2f",
+            "qualification": null,
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "rejected_evidence_lineage": [],
+        "request_body_sha256": "c23bba35cbddddca81d65723b0f430c77d70b305f284aad1eecf9889932a60e7",
+        "requirement_support": [
+          {
+            "evidence_ids": [
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+            ],
+            "qualification": null,
+            "requirement_id": "requirement:278858254f9391dbefb62a6f90bb2955662fc280f86a2554dd977e9df265ae51",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+            ],
+            "qualification": "The records contain evidence for propositions, but no external rule text is supplied to establish the required rule-to-proposition join.",
+            "requirement_id": "requirement:9fb279bc68dd9713d490294bbf4cf37c317753536fe26f9951f1cbf8fba89342",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No supplied rule specifies an explanation operation.",
+            "requirement_id": "requirement:afb2215dd2a1d13ae42f0bfd5a50239618170c785fa0de8754ffba9310b73eb3",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No supplied rule specifies a filtering operation.",
+            "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No supplied rule specifies screening criteria.",
+            "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+            "support_state": "not_established"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "Acknowledged as a non-inference constraint; no evidence is required or treated as proof.",
+            "requirement_id": "requirement:260c2a47efe7b83f2059d4e56942e5449c4de58e455140250b2f822b49e6ce94",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "Acknowledged as a non-inference constraint; no evidence is required or treated as proof.",
+            "requirement_id": "requirement:95085128f91b07cb2137f45b3426d95fc3a288ec319e4d19044edcffefb78bf4",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+            ],
+            "qualification": "Evidence coverage exists for organisational propositions, but coverage against a specific screening rule is not established.",
+            "requirement_id": "requirement:c04348ae3a775669c8d24c2b33e5dab700b29cdfe52e63a4e8405cfd4c19c8f1",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+              "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+            ],
+            "qualification": "The evidence permits a qualified description of the organisation, but not a rule-based selection decision.",
+            "requirement_id": "requirement:0e374ac0c68142d3d864b92daa168fc324ac967393872881b38653bafbd32745",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+              "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5"
+            ],
+            "qualification": "The records contain reporting periods, including the year ended 30 June 2025, but no rule-defined time obligation is supplied.",
+            "requirement_id": "requirement:5b57f2a82e79dea7eaaf8f60e3b87141458dabf2cd7fb54c5d01c7bb8ac8398d",
+            "support_state": "unresolved"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+          "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+          "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+          "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1",
+          "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/0a26a480-53fb-f011-8406-6045bdc47a8f",
+            "source_payload_sha256": "d51c655f85783b0baea783afa19096700a80efb8dcf594784ebd8c2f6f64e76a",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/0669e6e2-2daf-e811-a95e-000d3ad24c60",
+            "source_payload_sha256": "7265e1ebd3fe18c346306bf4939661c5e8a8a35ec187fbf1f4ff0b4a9b124ea1",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/0669e6e2-2daf-e811-a95e-000d3ad24c60-fe8c8746-c0fe-4d5e-8762-185e44108ea9-Financial%20Report-9f95a96e-53fb-f011-8406-6045bdc47a8f-08._Financial_Statements_2025.pdf",
+            "source_payload_sha256": "d8c6b577b98d01a874ff9491969e26f6b9bcbb0cde55b152f5fc6d1bf87f4022",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=49004875807",
+            "source_payload_sha256": "abb3254364b8deb53c1bc59ea8ab8f31dcc05bfe3d1c953d88b4cf7584e2b110",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876",
+            "source_family": "official_website",
+            "source_native_locator": "https://www.plan.org.au",
+            "source_payload_sha256": "75753f92f52175a1a91b886b14298f63df77f28521d47eec97d3b3e803db40be",
+            "source_role": "official_homepage",
+            "source_version": null
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "authoritative status/context",
+        "forbidden": [
+          "allegation equals finding",
+          "source silence proves clean record"
+        ],
+        "intent": "review adverse-context evidence",
+        "joins": [
+          "correction-to-assertion",
+          "event-to-authority"
+        ],
+        "operations": [
+          "screen",
+          "trace"
+        ],
+        "propositions": [
+          "allegation",
+          "correction",
+          "formal finding"
+        ],
+        "subjects": [
+          "organisation and event"
+        ],
+        "temporal": "as-of date"
+      },
+      "demand_id": "SDC-0019",
+      "instance_id": "cg406:subject:99d810fb8e6e4ac7adc2ee0dd3e7e095:SDC-0019",
+      "organisation": "The Church Of Jesus Christ Of Latter-day Saints Australia",
+      "subject_id": "subject:99d810fb8e6e4ac7adc2ee0dd3e7e095",
+      "v13": {
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "selected_evidence_ids": [
+          "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+          "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+          "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+          "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/df8937d2-38af-e811-a95e-000d3ad24c60",
+            "source_payload_sha256": "3a68da2d4984e87cc8b1f3ccae993814b39fd4edd817fb955859effacff290c9",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=84114483091",
+            "source_payload_sha256": "6ff110674acbd88dd1098d75968356308a9d9299be1d91295b1ac7d7106b012a",
+            "source_role": "abr_entity",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/df8937d2-38af-e811-a95e-000d3ad24c60-6e78cb95-b1e1-4d74-af4c-8e565ddf48d9-Financial%20Report-ae54f79c-746b-f111-a826-6045bdc47a8f-LDSA_2025_Financial_Statements_-_signed.pdf",
+            "source_payload_sha256": "5d11d0f67429a8e3e2f9463d827a136a0135071fa319ad560a7635e2506c9a97",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          }
+        ],
+        "conclusion_qualification": "The supplied material establishes organisational identity, authority/status context, and a disclosed contingent-liability context, but does not establish an allegation-to-correction event chain, a correction, or a formal finding as of a specified date.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": "ValueError: only frozen non-inference requirements may be marked guarded",
+        "mechanical_status": "invalid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/aab5fac1-746b-f111-ab0c-002248954ea6",
+            "source_payload_sha256": "9e60fa079a4ee434252d459211b9bc40aad33017bf411bd0972e6a608b21dd0d",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/df8937d2-38af-e811-a95e-000d3ad24c60",
+            "source_payload_sha256": "3a68da2d4984e87cc8b1f3ccae993814b39fd4edd817fb955859effacff290c9",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/df8937d2-38af-e811-a95e-000d3ad24c60-6e78cb95-b1e1-4d74-af4c-8e565ddf48d9-Financial%20Report-ae54f79c-746b-f111-a826-6045bdc47a8f-LDSA_2025_Financial_Statements_-_signed.pdf",
+            "source_payload_sha256": "5d11d0f67429a8e3e2f9463d827a136a0135071fa319ad560a7635e2506c9a97",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=84114483091",
+            "source_payload_sha256": "6ff110674acbd88dd1098d75968356308a9d9299be1d91295b1ac7d7106b012a",
+            "source_role": "abr_entity",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "ca4b9b7df598119cfb56292e010631ecff6fc4c5bc9acdb79b1e4d8fadf7bc4d",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+            ],
+            "proposition_id": "proposition:afdc03d0f0e179a18dd70267c2dee72c729462ad0f5cbdcb829a5985962a454f",
+            "qualification": "The report refers to potential claims, litigation, and pending claims, but does not identify a substantiated allegation as a finding.",
+            "scope_basis": "direct_service_coverage",
+            "scope_status": "bounded_scope",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:34627e3242f2ca21f540951cb5376600aebba58675654dd5f61e860c6948bffa",
+            "qualification": "No correction is stated in the supplied evidence.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:9c82e7e051c62eeb2eeded62e654dbb85172e40fbf30fbb5c7d429899af62fde",
+            "qualification": "No formal finding is stated in the supplied evidence.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "rejected_evidence_lineage": [],
+        "request_body_sha256": "06cb3d119ab7b5599307df9f72980d70d71fbe32482702d87fb533fd9031fa68",
+        "requirement_support": [
+          {
+            "evidence_ids": [
+              "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+              "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+            ],
+            "qualification": null,
+            "requirement_id": "requirement:2ec0931d13e80d0ec8373881e5608478f7102d99c0f4b6f458774f2cccc8a974",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No correction-to-assertion relationship is established in the supplied evidence.",
+            "requirement_id": "requirement:042c0bd75f6675385c94551e8204ea6563055c491a7fb24a8e38a288da099c07",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No event-to-authority relationship is established in the supplied evidence.",
+            "requirement_id": "requirement:044bb1615707032caa9c0ddad3a7e7704e73bd39ff8c5ec562125e9156cc67ba",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The supplied records do not evidence a screening operation or screening rule.",
+            "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+              "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+            ],
+            "qualification": "The records provide provenance and authority/status context, but do not trace an adverse event through a correction and authority finding.",
+            "requirement_id": "requirement:5f8a47e9c7fe8f206674d8839656d7327d15d7b3b3d4f5433ceb1092b0f13e52",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+            ],
+            "qualification": "The report describes potential claims, litigation, and pending National Redress Scheme claims; this acknowledgement does not treat an allegation or potential liability as a finding.",
+            "requirement_id": "requirement:e8ada1d3079ae7e7535119c05af484508306c3400edfd75136cad8d97f644ee6",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+              "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+            ],
+            "qualification": "The absence of an identified adverse enforcement outcome or other record is not treated as proof of a clean record.",
+            "requirement_id": "requirement:ab1eaa3f468919d9a9b45730878e4be8e6ca3a2570c81164fc0e34bfdeeec16e",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+              "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+            ],
+            "qualification": "The ACNC register and ABR record provide authoritative status and identity context.",
+            "requirement_id": "requirement:d2d8cdad65ab3ad9e02f32938a06bb2ff050c4fe6886d092040290a87082e90a",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d"
+            ],
+            "qualification": "The disclosed contingent-liability context can be reviewed, but the evidence does not establish an adverse finding.",
+            "requirement_id": "requirement:56f9b1cc655539d2afe0bff164d22e4e0a52afad4465d04073dd239b0c52ee3e",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No specific as-of date obligation is established by the supplied evidence.",
+            "requirement_id": "requirement:1afd8babc60b6b56828a5e25ed6d5a55611413ecef286674a1cf43f228b15a77",
+            "support_state": "unresolved"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+          "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+          "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/df8937d2-38af-e811-a95e-000d3ad24c60",
+            "source_payload_sha256": "3a68da2d4984e87cc8b1f3ccae993814b39fd4edd817fb955859effacff290c9",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/df8937d2-38af-e811-a95e-000d3ad24c60-6e78cb95-b1e1-4d74-af4c-8e565ddf48d9-Financial%20Report-ae54f79c-746b-f111-a826-6045bdc47a8f-LDSA_2025_Financial_Statements_-_signed.pdf",
+            "source_payload_sha256": "5d11d0f67429a8e3e2f9463d827a136a0135071fa319ad560a7635e2506c9a97",
+            "source_role": "annual_report",
+            "source_version": "2025"
+          },
+          {
+            "evidence_id": "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=84114483091",
+            "source_payload_sha256": "6ff110674acbd88dd1098d75968356308a9d9299be1d91295b1ac7d7106b012a",
+            "source_role": "abr_entity",
+            "source_version": null
+          }
+        ]
+      }
+    },
+    {
+      "demand": {
+        "evidence": "explicit future allocation decision required",
+        "forbidden": [
+          "historical expenditure proves marginal destination"
+        ],
+        "intent": "test a tempting allocation claim",
+        "joins": [
+          "historical line-to-proposed allocation"
+        ],
+        "operations": [
+          "screen"
+        ],
+        "propositions": [
+          "historical expenditure",
+          "marginal allocation"
+        ],
+        "subjects": [
+          "reporting entity"
+        ],
+        "temporal": "historical versus future"
+      },
+      "demand_id": "SDC-0014",
+      "instance_id": "cg406:subject:d0b269be3d5d4b6db24d6d203637dfa5:SDC-0014",
+      "organisation": "THE TRUSTEE FOR The Benevolent Relief Fund",
+      "subject_id": "subject:d0b269be3d5d4b6db24d6d203637dfa5",
+      "v13": {
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "selected_evidence_ids": [
+          "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+          "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767",
+          "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+        ]
+      },
+      "v14": {
+        "conclusion_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f29e1137-3aaf-e811-a963-000d3ad24077-fac417b4-afa5-4a89-9bfd-ec4a85368122-Financial%20Report-317ac6e0-7e3a-f011-b4cb-002248112833-20240630_The_Benevolent_Relief_Fund_Annaual_Accounts.pdf",
+            "source_payload_sha256": "f23ff2390e901f67522f6fbec9219c7e5dbaaad382e463f57912f3645ae80933",
+            "source_role": "annual_report",
+            "source_version": "2024"
+          },
+          {
+            "evidence_id": "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/e52746f5-7e3a-f011-b4cb-7ced8d325225",
+            "source_payload_sha256": "ac88e7a5337ae498fefb046d68fb0f31614fc790cb83c6c6718cadaa214364f2",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          }
+        ],
+        "conclusion_qualification": "The packet supports historical expenditure by the identified reporting entity, but contains no explicit future allocation decision or evidence linking historical expenditure to a proposed marginal destination. Historical expenditure therefore cannot establish the requested marginal allocation claim.",
+        "derived_category": "partial_or_insufficient_no_semantic_adjudication",
+        "exact_failure": null,
+        "mechanical_status": "valid",
+        "packet_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/e52746f5-7e3a-f011-b4cb-7ced8d325225",
+            "source_payload_sha256": "ac88e7a5337ae498fefb046d68fb0f31614fc790cb83c6c6718cadaa214364f2",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/f29e1137-3aaf-e811-a963-000d3ad24077",
+            "source_payload_sha256": "ba8f785f16a512737d10cbab28fed6d47ed0183f30140cd53f191d41865bee6c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f29e1137-3aaf-e811-a963-000d3ad24077-fac417b4-afa5-4a89-9bfd-ec4a85368122-Financial%20Report-317ac6e0-7e3a-f011-b4cb-002248112833-20240630_The_Benevolent_Relief_Fund_Annaual_Accounts.pdf",
+            "source_payload_sha256": "f23ff2390e901f67522f6fbec9219c7e5dbaaad382e463f57912f3645ae80933",
+            "source_role": "annual_report",
+            "source_version": "2024"
+          },
+          {
+            "evidence_id": "srcrec:9f966bfa7264b4648d0e92161f9e4e9b0dce2b687440f4a3e85f08f79032ea84",
+            "source_family": "ato_abr_dgr",
+            "source_native_locator": "https://abr.business.gov.au/ABN/View?abn=22627812672",
+            "source_payload_sha256": "9bc4b6de1a0164b593dc93b48ee1e4ef5864b1af54b7db9c4d24e0a53be7d27c",
+            "source_role": "abr_entity",
+            "source_version": null
+          }
+        ],
+        "packet_hash": "849e76169514375f7868d9b70add6476dfcc43d0c6d7da4c332df1fbe206fe9c",
+        "proposition_support": [
+          {
+            "evidence_ids": [
+              "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+              "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+            ],
+            "proposition_id": "proposition:4e0205561de7604cb4749026edd80b70045c8fb695f05163c700c0984b87c3c7",
+            "qualification": "Historical expenditure of $37,094,958 in grant donations or charity contributions is reported for the year ended 30 June 2024.",
+            "scope_basis": "not_applicable",
+            "scope_status": "subject",
+            "support_state": "supported",
+            "temporal_status": "satisfied"
+          },
+          {
+            "evidence_ids": [],
+            "proposition_id": "proposition:2786c16be339546231abadaed862064497d09c1ca2183bf6c2c6115a85373870",
+            "qualification": "No source states a marginal allocation or future destination decision.",
+            "scope_basis": "unresolved",
+            "scope_status": "unresolved",
+            "support_state": "not_established",
+            "temporal_status": "unresolved"
+          }
+        ],
+        "raw_outcome": "insufficient_evidence",
+        "rejected_evidence_ids": [],
+        "rejected_evidence_lineage": [],
+        "request_body_sha256": "6b04b9a8dd7ad780af9cde842ad841c6975119a32ca29ba4b9d5301e79f22b37",
+        "requirement_support": [
+          {
+            "evidence_ids": [
+              "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767",
+              "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+            ],
+            "qualification": null,
+            "requirement_id": "requirement:2a500c36be063e87810ca13980fcfaa0d7a5fb77485c566da55c704addfc6dc0",
+            "support_state": "supported"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+              "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89"
+            ],
+            "qualification": "Historical expenditure is documented, but no proposed allocation or line-to-proposed-allocation relation is stated.",
+            "requirement_id": "requirement:28d40443dc15f459e6c683343f1f606772360cb0ba07857229d3220c8fbafb18",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The supplied records do not state a screening operation or screening rule for a proposed allocation.",
+            "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "Historical expenditure must not be inferred to prove marginal destination.",
+            "requirement_id": "requirement:e7ada51991777d415e260a7ef1b44ea6be9d82f38c76d72e5049c4fd0849b1c1",
+            "support_state": "guarded"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "No explicit future allocation decision appears in the supplied evidence.",
+            "requirement_id": "requirement:1711cd4aace9a2e36f2d847e4d81b9ce6340afba381b5b7071c9dadf03e8a922",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [],
+            "qualification": "The supplied evidence does not establish an organizational intent beyond the requested assessment task.",
+            "requirement_id": "requirement:ef3b08303d73d043b7e90e02541af0931fd84c812cf7d87079607f6cbfebc090",
+            "support_state": "unresolved"
+          },
+          {
+            "evidence_ids": [
+              "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+              "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+            ],
+            "qualification": "The evidence establishes a historical period ending 30 June 2024; it does not establish a future allocation.",
+            "requirement_id": "requirement:48e3b10c9a6dde9f6e248f0a03780c9c222f38280b99d7eabb26d5d45dc89e41",
+            "support_state": "supported"
+          }
+        ],
+        "selected_evidence_ids": [
+          "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+          "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767",
+          "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539"
+        ],
+        "selected_evidence_lineage": [
+          {
+            "evidence_id": "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+            "source_family": "acnc_ais_bundle",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/e52746f5-7e3a-f011-b4cb-7ced8d325225",
+            "source_payload_sha256": "ac88e7a5337ae498fefb046d68fb0f31614fc790cb83c6c6718cadaa214364f2",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767",
+            "source_family": "acnc_register",
+            "source_native_locator": "https://www.acnc.gov.au/api/dynamics/entity/f29e1137-3aaf-e811-a963-000d3ad24077",
+            "source_payload_sha256": "ba8f785f16a512737d10cbab28fed6d47ed0183f30140cd53f191d41865bee6c",
+            "source_role": "historical_frozen_regulator_material",
+            "source_version": null
+          },
+          {
+            "evidence_id": "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+            "source_family": "annual_report",
+            "source_native_locator": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f29e1137-3aaf-e811-a963-000d3ad24077-fac417b4-afa5-4a89-9bfd-ec4a85368122-Financial%20Report-317ac6e0-7e3a-f011-b4cb-002248112833-20240630_The_Benevolent_Relief_Fund_Annaual_Accounts.pdf",
+            "source_payload_sha256": "f23ff2390e901f67522f6fbec9219c7e5dbaaad382e463f57912f3645ae80933",
+            "source_role": "annual_report",
+            "source_version": "2024"
+          }
+        ]
+      }
+    }
+  ],
+  "schema": "charitygraph.cg406-v14-mechanical-comparison/v1",
+  "spend": {
+    "cumulative_actual_aud": "0.724373",
+    "cumulative_hard_ceiling_aud": "1.00",
+    "prior_reconciled_actual_aud": "0.510035",
+    "v14_actual_aud": "0.214338",
+    "v14_actual_usd": "0.141008",
+    "v14_hard_max_aud": "0.277645"
+  },
+  "v13_mechanical_validation_counts": {
+    "invalid": 6,
+    "valid": 6
+  },
+  "v13_raw_outcome_counts": {
+    "insufficient_evidence": 11,
+    "supported": 1
+  },
+  "v13_to_v14_improvement_regression_notes": [
+    "v1.4 changes remain mechanical-contract and evidence-provenance changes; this file does not score semantic agreement.",
+    "Compare raw outcomes independently from derived contract-admissible categories.",
+    "The single v1.4 raw supported outcome is not a Sol semantic adjudication.",
+    "SDC-0019 remains CANDIDATE_SOURCE_GAP; Source Universe v1 is unchanged."
+  ],
+  "v14_mechanical_validation_counts": {
+    "invalid": 6,
+    "valid": 6
+  },
+  "v14_raw_outcome_counts": {
+    "insufficient_evidence": 11,
+    "supported": 1
+  }
+}

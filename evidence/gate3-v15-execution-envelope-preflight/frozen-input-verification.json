@@ -1,0 +1,8 @@
+{
+  "contract_inventory_sha256": "e9e116cc9bda9061b2b7a794f426a14560f55f0bcad5a698b877ede5d2cefc3c",
+  "contract_manifest_sha256": "2d121def31c6ac1d5327ef36e655cc9dc3692e28c02e6b2d75d383dc2d632fea",
+  "sample_inventory_sha256": "fa527b53737853f499c790b6c406289cb28125d92407bd5a12c2804e3868a3c8",
+  "sample_manifest_content_sha256": "e34bf830170d055f1691743a4e60120a48a932e953d7bcdbf0caa832bbe25994",
+  "selection_ledger_sha256": "e4a181eadea002d12cb4f4e7616c464ce043522b8a5a9728351fdc57f7c10494",
+  "status": "PASS"
+}

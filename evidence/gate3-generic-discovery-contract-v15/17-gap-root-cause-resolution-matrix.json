@@ -1,0 +1,261 @@
+{
+  "all_resolved_by_generic_v1_5_representation": true,
+  "entries": [
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "SUBJECT_SCOPE_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "CONFLICTED",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Current contract requires scope as an input even though this template asks the engine to resolve scope.",
+      "template_id": "QFT-D01A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "PURPOSE_BENEFICIARY_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "CONFLICTED",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Cause and beneficiary are discoverable answer variables here, but the current contract treats them as required inputs.",
+      "template_id": "QFT-D02A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "SERVICE_DELIVERY_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "NOT_APPLICABLE",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Service, population, and geography are a discovery result, while v1.4 requires them before lowering.",
+      "template_id": "QFT-D03A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "SERVICE_ACCESS_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "TESTED_MISSINGNESS",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "The specific service is an answer variable in this access-routing question, not a missing user choice.",
+      "template_id": "QFT-D03B"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "ACTIVITY_OUTPUT_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED_ACTIVITY",
+        "PARTIAL",
+        "MISSING",
+        "NOT_OUTCOME_EVIDENCE",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "The activity/metric is discoverable, but v1.4 requires it as an input.",
+      "template_id": "QFT-D04A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "PURPOSE_BENEFICIARY_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "CONFLICTED",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Beneficiary and goal are answer variables in a purpose-discovery question.",
+      "template_id": "QFT-D05A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "CONDITIONAL_SERVICE_DELIVERY_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "NOT_APPLICABLE",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Population and geography are discovery outputs, although v1.4 lists them as required inputs.",
+      "template_id": "QFT-D05B"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "GIVING_OFFER_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "NOT_APPLICABLE",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "The giving offer is what the question seeks to discover, not a user-selected parameter.",
+      "template_id": "QFT-D06B"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "CAPACITY_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "CONFLICTED",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "The capacity metric is a requested result-list variable, but v1.4 requires a metric input.",
+      "template_id": "QFT-D07A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "SERVICE_ACCESS_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "TESTED_MISSINGNESS",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Service identity is discoverable in this access question, not an omitted material user input.",
+      "template_id": "QFT-D07B"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "GIVING_OFFER_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "NOT_APPLICABLE",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Offer identity is a discoverable answer variable.",
+      "template_id": "QFT-D08A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "ROLE_CAPABILITY_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "CONFLICTED",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "The template requests a roster; v1.4 has no collection operation and assumes a relevant role is preselected.",
+      "template_id": "QFT-D09A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "ROLE_CAPABILITY_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "CONFLICTED",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Capability propositions are answer variables in this portfolio question, but v1.4 expects one to be supplied.",
+      "template_id": "QFT-D11B"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "RELATIONSHIP_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "CONFLICTED",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Counterparties are the result set; v1.4 requires a counterparty for the relationship proposition.",
+      "template_id": "QFT-D12A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "RELATIONSHIP_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "CONFLICTED",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Partner identity and role are answer variables in the requested roster.",
+      "template_id": "QFT-D14A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "HISTORICAL_CHANGE_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED",
+        "PARTIAL",
+        "MISSING",
+        "CONFLICTED",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "The event list is the answer; v1.4 requires a metric_or_event input.",
+      "template_id": "QFT-D17A"
+    },
+    {
+      "answer_variables_remain_evidence_discovered": true,
+      "disposition": "RESOLVED_BY_V1_5_DISCOVERY_LOWERING",
+      "operation_family": "EVALUATION_DISCOVERY",
+      "permitted_states": [
+        "SUPPORTED_BOUNDED",
+        "PARTIAL",
+        "MISSING",
+        "NOT_CAUSAL",
+        "ABSTAIN"
+      ],
+      "required_generic_representation": "Collection/discovery binding that preserves the answer variable as an output and retains scope/time constraints.",
+      "root_cause": "Intervention and population are discoverable study attributes, but v1.4 requires them as inputs.",
+      "template_id": "QFT-D18A"
+    }
+  ],
+  "gap_count": 17
+}

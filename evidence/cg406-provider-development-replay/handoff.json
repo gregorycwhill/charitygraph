@@ -1,0 +1,40 @@
+{
+  "actual_spend_aud": "0.120418",
+  "actual_spend_usd": "0.079219",
+  "branch": "gate3-cg406-remediation",
+  "commit": "4938343b1e2f30e7a174bcb45f6d290b4d16c641",
+  "execution_prepared_run_hash": "321391ea1693843fe0bc0d4588637f59543c3f59956503e7296dd28576042ca8",
+  "mechanical_validation_counts": {
+    "invalid": 8,
+    "valid": 4
+  },
+  "outcome_counts": {
+    "insufficient": 7,
+    "partial": 3,
+    "supported": 2
+  },
+  "prepared_run_hash": "ec24b6c584d5c05983cc83477423df802feb818d23d6037f0f9c565959f877d2",
+  "provider_posts_attempted": 12,
+  "provider_responses_completed": 12,
+  "provider_visible_families": {
+    "acnc_ais_bundle": 12,
+    "acnc_register": 12,
+    "annual_report": 11,
+    "ato_abr_dgr": 12,
+    "pfra": 3,
+    "wikipedia_wikimedia": 4
+  },
+  "provider_visible_rows": 54,
+  "result_manifest_sha256": "12ee7636294b1ed72ad13d54f11c905494e0defc0a3081c3de23dbb5ca1a0364",
+  "resume_provider_posts": 0,
+  "schema": "charitygraph.cg406-provider-development-replay-handoff/v1",
+  "sdc_0019_classification": "CANDIDATE_SOURCE_GAP",
+  "status": "READY_FOR_SOL_CG406_DEVELOPMENT_ADJUDICATION",
+  "terminal_row_count": 12,
+  "token_usage": {
+    "input_tokens": 241805,
+    "output_tokens": 15635,
+    "total_tokens": 257440
+  },
+  "transport_retries": 0
+}

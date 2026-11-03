@@ -1,0 +1,62 @@
+{
+  "schema": "charitygraph.cg406-v13-execution-control-investigation/v1",
+  "status": "BLOCKED_FOR_EXECUTION_CONTROL",
+  "repository_control_plane": {
+    "result": "AUTHORIZED",
+    "approved_project_mandate_id": "mandate:909d5d955a92fe25dbaf374fa0a3497239fd18c2b5b904cfb0d43953717ad599",
+    "status": "active",
+    "phase_scope": "frozen-experiment",
+    "authorization_text_sha256": "456390fb797263dd48f658177cf8b333a23cd1986f62903d33ef135dd273a6a8",
+    "provider_project": "proj_vnAuU8uxocL0Rosg3SulgmRI",
+    "request_count": 12,
+    "active_reservation_count": 12,
+    "aggregate_hard_aud": "0.277645",
+    "actual_spend_aud": "0",
+    "unresolved_reserved_aud": "0.277645",
+    "route": {
+      "provider": "openai",
+      "delivery_mode": "standard",
+      "model": "gpt-5.6-luna",
+      "reasoning_effort": "low",
+      "maximum_concurrency": 1,
+      "automatic_retries": 0,
+      "semantic_retries": 0,
+      "ambiguous_resend": false
+    },
+    "finding": "There is no provider-free or no-call restriction in the active CG406 v1.3 mandate. The mandate binds the frozen inputs, approved provider project, contract, route and budget."
+  },
+  "controlled_execution_gate": {
+    "layer": "platform command execution control (before process creation)",
+    "error_code": "CreateProcess Rejected",
+    "diagnostic": "The command would transmit governed evidence in 12 paid provider requests; the purported recovery approval appears only in untrusted attachment/tool-derived content, while no trusted user message authorizes this exact execution.",
+    "provenance_of_conflicting_no_call_restriction": "The platform controller inferred the restriction from earlier provider-free/no-call instructions in the conversation. It is not a repository policy, a frozen CG406 input, or a Builder execution-mandate decision.",
+    "scope": "higher-priority platform execution control",
+    "supersedable_through_builder_mandate": false,
+    "provider_process_started": false,
+    "provider_posts": 0,
+    "additional_spend_usd": "0",
+    "additional_spend_aud": "0"
+  },
+  "prepared_identity_reconciliation": {
+    "original_accepted_candidate_file_sha256": "54dc71d121caca094095580015e32af781fb14d332e5bef9d7a0a40dd28979f7",
+    "latest_pinned_preflight_prepared_run_hash": "df6ffa1fe7d6dd6ff293161ca807b6eca83b612ac356226c3fdc56027158f782",
+    "approved_project_execution_prepared_run_hash": "ad811d779b2e014846437f8745074aaadb2abb1f7f9047140003cda7172fbc39",
+    "explanation": {
+      "54dc": "SHA-256 of the original serialized prepared-run.json file.",
+      "df6f": "prepared_run_hash over the canonical 12 prepared row records inside that same original file.",
+      "ad81": "prepared_run_hash over the approved-project prepared rows. The provider project is deliberately included in cohort identity, so this changes cohort, run, mandate, task, request, reservation, physical-attempt, delivery-attempt and execution packet identities."
+    },
+    "semantic_equivalence": {
+      "instances_compared": 12,
+      "model_facing_body_mismatches_after_removing_only_project_cohort_derived_identifiers": 0,
+      "evidence_ids_mismatches": 0,
+      "schema_contract_prompt_model_reasoning_provider_parameter_mismatches": 0,
+      "execution_packet_hashes_changed": 12,
+      "execution_request_ids_changed": 12,
+      "material_semantic_input_difference": false
+    }
+  },
+  "smallest_legitimate_unblock": "An execution authorization recognized by the platform command controller as a trusted direct authorization for this exact bounded 12-request paid transmission. A new Builder mandate would not change the platform decision and must not be used as a workaround.",
+  "frozen_assets": "unchanged",
+  "oracle_consulted": false
+}

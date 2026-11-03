@@ -1,0 +1,11 @@
+{
+  "uploaded_artifacts": [
+    {"name": "summary.md", "sha256": "85f6feeb683153cb80e3bc2ed8fd5db1c4cab992b9028c94f1c5f4790e660b49"},
+    {"name": "handoff.json", "sha256": "3ddb7017afe263facbb464db7954dc0d1063e098f83aa77706500ba75cdcf4a0"},
+    {"name": "product-owner-decision.md", "sha256": "79f1eb986182f605290ffa8a441841892e15e1011f237a5fbe36f62e008260f8"},
+    {"name": "prepared-request-identity.md", "sha256": "87245e74b6e367c91616b67c858a955333f7eed76813244a72d74edd4a6cd6b1"},
+    {"name": "test-results.md", "sha256": "eb4d6689ea982c84c97fa7fd2684a03c6cb1dba68ca6c1737e07a7421135eadd"},
+    {"name": "row-classification.json", "sha256": "15f5a116ccbc88a98c88432ce1507877b7fb16e627049c479dce70cb2af150a2"}
+  ],
+  "private_raw_sources_uploaded": false
+}

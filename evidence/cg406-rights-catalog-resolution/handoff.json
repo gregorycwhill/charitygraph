@@ -1,0 +1,29 @@
+{
+  "schema": "charitygraph.cg406-rights-catalog-resolution-handoff/v1",
+  "campaign": "CG406",
+  "branch": "gate3-cg406-remediation",
+  "commit": "50648cf94a230d929a2f4843f15d5c3ed5741387",
+  "provider_calls": 0,
+  "source_universe_changed": false,
+  "sdc_0019_classification": "CANDIDATE_SOURCE_GAP",
+  "classification_counts": {
+    "catalog_mechanical_gap": 30,
+    "rights_already_determined_allow": 0,
+    "rights_already_determined_deny": 0,
+    "representation_must_be_narrowed": 29,
+    "true_policy_gap": 1
+  },
+  "provider_visible_rows": 53,
+  "provider_visible_families": {
+    "acnc_register": 12,
+    "acnc_ais_bundle": 12,
+    "ato_abr_dgr": 12,
+    "annual_report": 10,
+    "wikipedia_wikimedia": 4,
+    "pfra": 3
+  },
+  "prepared_request_count": 12,
+  "prepared_run_hash": "ebb5a5776a1ca7c8cc56ea250effab6b37fb03e2343f78e426d9cbbf9b4a0f8f",
+  "maximum_spend": {"usd": "0.182657", "aud": "0.277645"},
+  "status": "PRODUCT_DECISION_REQUIRED"
+}

@@ -1,0 +1,259 @@
+{
+  "blocked": 5,
+  "losslessly_enveloped": 31,
+  "mechanically_executable": 31,
+  "rows": [
+    {
+      "bound_question_identity": "QINST-196090FF8869151F1EED64B4BC5E14025FD9611138529D5356F656DFD7DDD14F",
+      "envelope_identity": "envelope:07f920f434c7a6c251355148b46f98061532a9a3f28f2dfb93c3b2a496c3422e",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D01A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-8B597D9165DA46559773AEFCD7DC17916284F03793DB75181EB0AED81A09E5DC",
+      "envelope_identity": "envelope:bfef0ef0e6987979f65d88e93f48a12ec98327bfc485e76f23afa147180668b9",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D01B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-28E352AD8417ED6DF7C202C4B9DB9ACC4EAF2F157EA4008CC121C29F77204F66",
+      "envelope_identity": "envelope:f0fffb876eca0d86c7c9b0fb0b5518494ccf3abc2567b2802b288bcb0fc8b2c6",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D02A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-507488260D2D0AD1F7244EBE71B856F458FD80E0025D21BBFDE3EC1B93F79C5B",
+      "envelope_identity": "envelope:0468cf574f22e4f78280aeaa87634e7bdbcdfbb102661a456646b3e8c01a19a7",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D02B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-2673D1B5BD1C7A5A3B4FE3F74EDD3570B0D1C8E49CA16BDF324F12FBD9A4FF38",
+      "envelope_identity": "envelope:a56dbbe554b2b601290768ac8803cd148e59e026abb1a67598bac23e4a9918a9",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D03A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-D6A8B69A3C406CF10D5DD999D319A7A85A0D64D75961D20D3973039120913E99",
+      "envelope_identity": "envelope:15961d4cad8138b5d635c508ae9a3a2767fb0b020ca919dc42e89c731b45e85c",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D03B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-41C3B1FA3F2B7FD458D85C2DDEDC3CA7ADA0A9E8FE26ABC67358816645002883",
+      "envelope_identity": "envelope:d1ca053e1509fc46641057f9eb14f87703f73b4aeac108f8f0cee9c0844a15f5",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D04A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-61DCEF60A2BE0F0AB796CAA1DF78FB8A9885F40C08BCABCCE57E24093B8C5CFA",
+      "envelope_identity": "envelope:1c28a52a058733740052b2665495ec2ef53d26fbab6994d388f512c1f15089d7",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D04B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-6157BACBE92E3253D8589AF3D83ABE989F6192969B49678E75F0AAE5D7765499",
+      "envelope_identity": "envelope:4780b18675bede7536e000cbe1c134b4d102bd9f5e517c6e67c7842d491a2921",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D05A@v1"
+    },
+    {
+      "blocker": "'QFT-D05B@v2'",
+      "bound_question_identity": "QINST-AD65E09A82255BF7C1B99C4A213F178906FA87F8F7FDDA61ED9E088340AC4B67",
+      "mechanically_executable": false,
+      "status": "BLOCKED_ON_REQUIRED_SEMANTICS",
+      "template_identity": "QFT-D05B@v2"
+    },
+    {
+      "bound_question_identity": "QINST-9947767CE28D735A0A70C3190949E0EDC0554DEBF01E0E6D4F1E592ED4F4160F",
+      "envelope_identity": "envelope:ce4151da28865089b25d285b3f8423f7e6f9852d0438b500f9f7bcd7575b03bb",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D06A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-3BC7A0C593AD620CC1D8A706440D3EAC569BCA341B19C236543BE37DB20AA8F4",
+      "envelope_identity": "envelope:d764c052a9fd6efeeca800eb22d573e422b75272748cc69b4070b03e33950f2d",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D06B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-4A2E61714693F6E44560EDC2927E4140B8245FA5603C1D756EB5D1C4F6529942",
+      "envelope_identity": "envelope:9a934a2b2934bac1e91e391e431b65c181ee797eea0bdd1a6848abba83be23e8",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D07A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-0E92264E05D24DA3F7EE51531B8D9E7C20F1BFF94295E9DC96DA3192CF59D06B",
+      "envelope_identity": "envelope:ab35af16cb7a6904434efacfb2809874006e43252a2a7b5c8135fedf80e8847a",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D07B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-8966C693585A6D81887C0BE808DE1B3E867C1D4B5CDD484735F9132C46750171",
+      "envelope_identity": "envelope:60b63295c49f2beae9f7c733132d22641a7678240e21a21c617056a76183b918",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D08A@v1"
+    },
+    {
+      "blocker": "bound user parameters do not exactly match the frozen template contract",
+      "bound_question_identity": "QINST-A2B6B490074E7B2B91471C7F88A665EBFC2A1F43AC193269CACB52C001842B76",
+      "mechanically_executable": false,
+      "status": "BLOCKED_ON_REQUIRED_SEMANTICS",
+      "template_identity": "QFT-D08B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-A2C7850818A88E5CB15C607CED5FFFFFC816682AB1484543E9F84A235E173347",
+      "envelope_identity": "envelope:c03175815ee884e2fca001e5eca732c3e947c28df25db03b2ca9bd84bb012f3b",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D09A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-1A9C5EA158BACC93103D14FD7378829730772D96BF110F0672687E62A96A779C",
+      "envelope_identity": "envelope:a69739e62c0192b6cb02780354fb6af6ccfe7ffc77df077445275dbcc9cb7c90",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D09B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-92359E00B8309B0B495AC9C42FF55EF43E179BBC85111FEDB296877A05C69A2E",
+      "envelope_identity": "envelope:35c2d5bd593333059e7bcba074d660e92fed24352757474419373beca1136743",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D10A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-189D7F9D27F599416ECDC4CB936DCCD8ECD62ECD4FEBC11C3D1C0B1DC0DA826A",
+      "envelope_identity": "envelope:404c0ef41b4c01533598fe2cefa0af02e603d36ab63287dcf1a1cad61f3d5b8c",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D10B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-EDE77024A9A5E4AA2C5B55804F78054F1F57F5B244B3B39E42A98BB5AE3C6F17",
+      "envelope_identity": "envelope:ae6959177b5f6a639e12a1ec05af9ba01cf176a82e43dfc55a2e07dabbfbe702",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D11A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-F159D6E4A8147CA26AF04F36A08B87ED4E1D985330B0FB4E65438000A875250D",
+      "envelope_identity": "envelope:f1a43ce239b43dbae6a86e670a677d442092ddb9b6bf3f6717f30c624a033edb",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D11B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-956DE910BFC2D4EBF71C26F2F7C00BE3E18A690B20BC4ACC1E618F039F2DE2D6",
+      "envelope_identity": "envelope:9e9f68d6daed1840ccd72c2574077812769000408b19f57842613fae1a616515",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D12A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-D37237F853DF93C12F0038DB4C5BA047BD5CDD44C062529F4F41B1C32DF5C4C0",
+      "envelope_identity": "envelope:025d1169ebd135561bf2f55a233c3ea835a02d59ee3c7a4ea66fa4282a199d60",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D12B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-F53C68F0BA438C1045A9FD1D81A9C5C13F1CC393E8DA0C8BBDB9AE1E4E5B919D",
+      "envelope_identity": "envelope:2c2ca531d3d2790cb460d4af585b3235bb9ba61b2016d66c7d9e342b7d27a463",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D13A@v1"
+    },
+    {
+      "blocker": "'QFT-D13B@v2'",
+      "bound_question_identity": "QINST-77DC1396AFEC85783F12FDE3B80A0EAE37A89ED911171E46C34BC1F9D6EFC325",
+      "mechanically_executable": false,
+      "status": "BLOCKED_ON_REQUIRED_SEMANTICS",
+      "template_identity": "QFT-D13B@v2"
+    },
+    {
+      "bound_question_identity": "QINST-B332DA1375EFE1E06ADF8386D6CD519B903D4E32E5273F40A58C1F1E0517B592",
+      "envelope_identity": "envelope:266b4a89c9bb21584d0b8b836ffff91de80a7885d77ec997cda3b58a057a5f01",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D14A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-76E9FB2C0CD47F8239C7B4F6037BD17629017A50ED28475E5E69581072076691",
+      "envelope_identity": "envelope:a5c0ed7c0dd24654d2554487ad0f34077e96cdd21fc93acd1504fab27ac7c245",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D14B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-C5189D2643DA2675FACC557EC816D8DE85A60C132054E3E945C5DCC5E8C67995",
+      "envelope_identity": "envelope:f024a1d4133d402e1085846d1bfcd672c4ee915153a701b3ca286b66c972b4e3",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D15A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-B726D2AC7284440B51354CB475154F12499F34B62CD843DE5B4A70F1A639B0F2",
+      "envelope_identity": "envelope:aea75ce5f03bd102b1d3276462e88cc5eeeaac608fe26275314d739879fbe740",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D15B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-0BFF069B08EC931035CF936EB38E7F9C999A0B5C95A3C30AC0E39483B73435EE",
+      "envelope_identity": "envelope:b6b43a9e350e1bd17e1d47fb45e3afd27b2f5affb3f79ebea673a9686f24b223",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D16A@v1"
+    },
+    {
+      "bound_question_identity": "QINST-4FE6B995DDD025115AACA9B6E9A21D855CE6920245C73B5AFE8FCA2A1A5DD3F0",
+      "envelope_identity": "envelope:babe65423a8f5ca1ab39081c0885a5117c6915ec1d15a0867f857bf7543bf7c1",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D16B@v1"
+    },
+    {
+      "bound_question_identity": "QINST-9C1D6D9486A3DF6325BA5B558F3FDEA8CEB92564057726A1C589580592EA1657",
+      "envelope_identity": "envelope:269d5fd8c166e3e056607ee9b5104c790a1a33a24a06eb90b39df322196e9f90",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D17A@v1"
+    },
+    {
+      "blocker": "'QFT-D17B@v2'",
+      "bound_question_identity": "QINST-7D9628272BA2C9DD3AD0986521729E4AD74BF3F716B768ABF8369E30B04D7C8F",
+      "mechanically_executable": false,
+      "status": "BLOCKED_ON_REQUIRED_SEMANTICS",
+      "template_identity": "QFT-D17B@v2"
+    },
+    {
+      "bound_question_identity": "QINST-462FEF28B2C586BF416D1CA8E7DCCBDE7C1B32FE132D196076C857D4A06328D8",
+      "envelope_identity": "envelope:47cf2f609a3b455229df5ba89d356d1da1424be29360130c2adabb03fbcc1d61",
+      "mechanically_executable": true,
+      "status": "LOSSLESSLY_ENVELOPED",
+      "template_identity": "QFT-D18A@v1"
+    },
+    {
+      "blocker": "'QFT-D18B@v2'",
+      "bound_question_identity": "QINST-0A16761F848839EABAEEF1F2DA6876E202C58A8C7CE0DB04C4A1323B2D850F88",
+      "mechanically_executable": false,
+      "status": "BLOCKED_ON_REQUIRED_SEMANTICS",
+      "template_identity": "QFT-D18B@v2"
+    }
+  ]
+}

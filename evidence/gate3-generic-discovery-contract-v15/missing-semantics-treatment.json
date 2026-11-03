@@ -1,0 +1,12 @@
+{
+  "answer_variable_type_and_cardinality": {
+    "affected_template_count": 36,
+    "status": "MISSING_FROM_FROZEN_SPECIFICATION",
+    "treatment": "retained as explicit missingness; no scalar/list/exhaustive default is created"
+  },
+  "execution_boundary": "the contract is mechanically executable but does not assert evidence acquisition, provider performance, or answer correctness",
+  "geographic_constraints": {
+    "treatment": "only a structurally declared geography user slot is treated as user-supplied; all other geographic constraints remain UNSPECIFIED while supplied scope text is retained",
+    "unspecified_template_count": 34
+  }
+}

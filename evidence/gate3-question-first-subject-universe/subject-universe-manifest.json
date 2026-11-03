@@ -1,0 +1,27 @@
+{
+  "builder_baseline_commit": "53d95134261acc84451c38cedc597f20f5876180",
+  "canonical_identity_input_sha256": "b58e7bd66a1ca33e7ec8165766a8532a631cd1b15a49397c6bff164b2caee44a",
+  "eligible_subject_count": 51,
+  "eligible_subject_universe_sha256": "a4eaf487f40f6999c2599db7dc0749711091d563437e47c4ad0a44749898ac1f",
+  "excluded_subject_count": 49,
+  "full_universe_sha256": "6900774086762237395b0e84555d6ceb87699a6df3f6069a10deb7a522b42f3c",
+  "identifier_only_exposure_inputs": {
+    "C:\\CharityGraph-clean\\charitygraph\\evidence\\cg406-provider-development-replay\\prepared-run-identity.json": "c0ce1746554940080672ba4b04f97b1b30b47bcdc638aa356eaafeb46d1d3e63",
+    "C:\\CharityGraph-clean\\charitygraph\\evidence\\cg406-v12-development-replay\\prepared-run-identity.json": "49f3710171050adf28ff7383e8126f0559b161f29bcba149d566afe47c0febc9",
+    "C:\\CharityGraph-clean\\charitygraph\\evidence\\cg406-v14-final-development-replay\\prepared-run-identity.json": "8131800965925b1d5ef3be409f579f67f396e9df2cc3c39638b4105023eac1b3",
+    "C:\\CharityGraph-clean\\charitygraph\\evidence\\gate3-fresh-semantic-holdout-preparation\\frozen-selected-holdout-manifest.json": "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9",
+    "C:\\CharityGraph-runtime\\artifacts\\cg405-source-universe-sufficiency\\benchmark-manifest.json": "7dfea7df5a5866eaf7705b65f2bf425027fb426e2083b8994a8fa55d66f28f3e",
+    "C:\\CharityGraph-runtime\\cg406-fresh-governed-quality-holdout-a1\\frozen-subject-manifest.json": "bc0c63a6938cb23772213d3025bc70b363ddae8af6ae67e1e1b9a4d419eb66c8",
+    "C:\\CharityGraph-runtime\\phase5-top100-subject-bootstrap-v1\\identity-map.json": "b58e7bd66a1ca33e7ec8165766a8532a631cd1b15a49397c6bff164b2caee44a"
+  },
+  "model_response_accessed": false,
+  "oracle_accessed": false,
+  "provider_calls": 0,
+  "question_template_manifest_sha256": "1fbc93aafb671df7d1ea62de246f6e174b9064d6371a91580ec9f96f6b40cb27",
+  "release_status": "BLOCKED_FOR_SUBJECT_UNIVERSE",
+  "schema": "charitygraph.gate3.question-first-subject-universe-manifest/v1",
+  "selection_performed": false,
+  "source_acquisition": 0,
+  "total_available_subjects": 100,
+  "unresolved_exposure_binding_count": 7
+}

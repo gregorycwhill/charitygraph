@@ -1,0 +1,9 @@
+{
+  "frozen_input_integrity": "PASS",
+  "identity_uniqueness": "PASS",
+  "oracle_access": 0,
+  "provider_requests": 0,
+  "source_acquisition": 0,
+  "status": "PASS_BLOCKER_CONFIRMED",
+  "v1_5_lowering": "FAIL_CLOSED"
+}

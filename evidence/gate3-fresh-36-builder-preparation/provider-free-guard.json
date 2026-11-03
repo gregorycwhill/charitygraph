@@ -1,0 +1,13 @@
+{
+  "attempted_provider_calls": [],
+  "forbidden_paths": [
+    "responses",
+    "embeddings",
+    "vision",
+    "model_ranking",
+    "model_identity_resolution"
+  ],
+  "guard_status": "verified_provider_free",
+  "provider_calls": 0,
+  "provider_cost_usd": "0"
+}

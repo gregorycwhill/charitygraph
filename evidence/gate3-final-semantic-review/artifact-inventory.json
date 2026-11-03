@@ -1,0 +1,95 @@
+{
+  "inventory_version": "1",
+  "purpose": "Reproducible inventory for the independent Gate 3 final semantic review. This inventory excludes itself from the generated-artifact hash list.",
+  "generated_review_artifacts": [
+    {
+      "path": "case-assessments.json",
+      "sha256": "63f2eed81d5ab0dd7317840408a5d32ce10d7b70a1fa81b35e0653d9fd076eca"
+    },
+    {
+      "path": "identity-verification.json",
+      "sha256": "8144456f0df3eb379e31266e65c6cebdbac412c68185fde3985510d0cf8dc5dd"
+    },
+    {
+      "path": "scoring-methodology.md",
+      "sha256": "c03eb920328ad3f34d1e75b06926d5a04cb2044bb95c4e323a141ca5ac06ac14"
+    },
+    {
+      "path": "summary.md",
+      "sha256": "c82386d024878ae81f2d1be26eb55f7ef3b23c8ff100ca4ed3b2af5bd3b671d3"
+    }
+  ],
+  "frozen_execution_inputs": [
+    {
+      "path": "C:\\CharityGraph-runtime\\g3fresh36-semantic-execution-v1.5.1-authoritative-bound-sample-20261020-v4\\execution-results-v1\\execution-result.json",
+      "sha256": "be632cdcc89e214a733d465d69001b3a9a43544c675e7ba2ccda27e0c94c7f7e"
+    },
+    {
+      "path": "C:\\CharityGraph-runtime\\g3fresh36-semantic-execution-v1.5.1-authoritative-bound-sample-20261020-v4\\execution-plan.json (plan identity)",
+      "sha256": "31834cc1e133d6c4c80c80ae787e3cab00a5819d15c84c26353618c801095efc",
+      "file_sha256": "742205d810253e1115fedcdced2ec8be114f7c1dd5caf45452d0493d03a877ea"
+    },
+    {
+      "path": "C:\\CharityGraph-runtime\\g3fresh36-semantic-execution-v1.5.1-authoritative-bound-sample-20261020-v4\\execution-instance-manifest.json",
+      "sha256": "cf266056ed37f4e2c0839fcb33f2e685e719b6c23ab2596ffc6fb9df9251e4cc"
+    },
+    {
+      "path": "C:\\CharityGraph-runtime\\g3fresh36-semantic-execution-v1.5.1-authoritative-bound-sample-20261020-v4\\prepared-requests.json",
+      "sha256": "34961396a758af4f2a6ecf1c954f3dc32ffd7b9ab0cc14c2cf13aff5fac3121e"
+    },
+    {
+      "path": "C:\\CharityGraph-runtime\\g3fresh36-semantic-execution-v1.5.1-authoritative-bound-sample-20261020-v4\\execution-results-v1\\attempt-ledger.json",
+      "sha256": "ef309500ac15f093421d1ff4c7c9e5ec85ad183a4cb5d847dfd7b7b3ac37a2a3"
+    },
+    {
+      "path": "C:\\CharityGraph-runtime\\g3fresh36-semantic-execution-v1.5.1-authoritative-bound-sample-20261020-v4\\execution-results-v1\\artifact-inventory.json",
+      "sha256": "e8accdc8d6dc5db13caa828addc77a92697e9cef0eb226d122a1f6fa01de4d8d"
+    }
+  ],
+  "frozen_oracle_inputs": [
+    {
+      "path": "C:\\CharityGraph-blind-reference\\g3-question-first-v2\\output\\independent-oracle-v2-remediated\\independent-oracle-v2-manifest.json",
+      "sha256": "7e7d2f105534864a56285fbd9ea333fdd7faac5d7023a0f1be8f02426e259816"
+    },
+    {
+      "path": "C:\\CharityGraph-blind-reference\\g3-question-first-v2\\output\\independent-oracle-v2-remediated\\artifact-sha256-inventory.json",
+      "sha256": "2c379d67fab78409b005f308473d63522a76d52c60da762afc2cc44b8efc7880"
+    },
+    {
+      "path": "C:\\CharityGraph-blind-reference\\g3-question-first-v2\\output\\independent-oracle-v2-remediated\\corrected-independent-reference-assessments.json",
+      "sha256": "c920695b1e9209ff3f7457ca2e937f16d332c8ac940bd7ec4e6301bcd128e349"
+    },
+    {
+      "path": "C:\\CharityGraph-blind-reference\\g3-question-first-v2\\output\\independent-oracle-v2-remediated\\proposition-to-source-evidence-ledger.json",
+      "sha256": "84e94ec30993de776b0b94ae6cb67afa60af3b157b8b525b35589752a3a7da1e"
+    },
+    {
+      "path": "C:\\CharityGraph-blind-reference\\g3-question-first-v2\\output\\independent-oracle-v2-remediated\\source-provenance-retention-ledger.json",
+      "sha256": "51f88ac55de34c5de3b097ff918ace06d5fda6ab5a25ec4e4ab96b2393e832a3"
+    },
+    {
+      "path": "C:\\CharityGraph-blind-reference\\g3-question-first-v2\\output\\independent-oracle-v2-remediated\\research-attempt-acquisition-ledger.json",
+      "sha256": "6cac22c69eaebfb30a7d0152870dc39d7a533d6a5bebb383a19884086cdf945a"
+    },
+    {
+      "path": "C:\\CharityGraph-blind-reference\\g3-question-first-v2\\output\\independent-oracle-v2-remediated\\certification-report.json",
+      "sha256": "17e986af24e7d3b7cd6755c84e047723bda406eeb135230f65d4914ca7f89cd6"
+    },
+    {
+      "path": "C:\\CharityGraph-blind-reference\\g3-question-first-v2\\output\\independent-oracle-v2-remediated\\36-case-remediation-matrix.json",
+      "sha256": "fc8d5e16a84dbc1d0c35449bb82ae0fe57b742fc5ae1296f640b9f1c4391399e"
+    }
+  ],
+  "frozen_sample_identity": {
+    "content_identity_sha256": "e34bf830170d055f1691743a4e60120a48a932e953d7bcdbf0caa832bbe25994",
+    "bound_sample_path": "C:\\CharityGraph-question-design\\g3-fresh-36\\output\\question-first-v2-bound-sample\\frozen-bound-question-instances.json",
+    "bound_sample_file_sha256": "ae8bcb1320c7523616d6181d72dcbb2195f8935815e9ecfc28dd0cb1614bf32a",
+    "original_selection_ledger_path": "C:\\CharityGraph-question-design\\g3-fresh-36\\output\\question-first-v2-bound-sample\\deterministic-subject-selection-ledger.json",
+    "original_selection_ledger_sha256": "e4a181eadea002d12cb4f4e7616c464ce043522b8a5a9728351fdc57f7c10494"
+  },
+  "verification_notes": [
+    "The 36 execution questions were joined to oracle cases by exact frozen question ID and verified subject, wording, parameters, and oracle intake identity; no positional mapping was used.",
+    "All 36 execution response attempts and the 10 declared oracle inventory artifacts were hash-verified; all 19 retained oracle successor source bodies were also verified against the oracle provenance ledger.",
+    "The oracle package has an unexplained aggregate status-count anomaly: summary counts report 16 SUPPORTED, 13 PARTIAL, 22 NOT_ESTABLISHED (51 total), while the 36 case records contain 1 SUPPORTED, 13 PARTIAL, 22 NOT_ESTABLISHED (36 total). Case scoring used the exact 36 case records; the discrepancy remains disclosed, not reconciled by inference."
+  ]
+}

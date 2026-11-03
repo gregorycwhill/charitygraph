@@ -1,0 +1,74 @@
+{
+  "artifacts": {
+    "baseline.json": {
+      "bytes": 2190,
+      "sha256": "0d772eea76449b08cae3e2ca2b82f2cbe594670dc0b6c49d9fda361f39811594"
+    },
+    "build_holdout_packet.py": {
+      "bytes": 29576,
+      "sha256": "c10610fa052e11b2bd0c9871cb173ea5f84df9fd896a0c3a45501130a5004f79"
+    },
+    "content-artifact-inventory.json": {
+      "bytes": 2457,
+      "sha256": "17e458b985ef417c474fb77c5a3b9fd16e52284cfbf935e19d8581e825e2e780"
+    },
+    "demand-definition-vocabulary.json": {
+      "bytes": 21293,
+      "sha256": "8855818ff1e897a49315f0b1a763a3adaa4153033300eab664b23211b5097eb4"
+    },
+    "domain-distribution.json": {
+      "bytes": 402,
+      "sha256": "53e7af931499ba508c126fe9a023129993aea3a5d9ba271b281c4ed6f9f82a91"
+    },
+    "eligibility-audit.json": {
+      "bytes": 1191,
+      "sha256": "8d3f575ac344830cd2386898c5ebd8bd2f5302cdb56bd241fa0c8752db218500"
+    },
+    "excluded-case-inventory.json": {
+      "bytes": 5759,
+      "sha256": "a91bcee12ae032e0f6f150314e92f411448f62e01d63ea06a2f9e71e4115bb21"
+    },
+    "frozen-selected-holdout-manifest.json": {
+      "bytes": 114422,
+      "sha256": "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9"
+    },
+    "independence-and-blindness-audit.json": {
+      "bytes": 1036,
+      "sha256": "19ba9c939c0d764ab9bca44d8cba001937763ebb5d4446b730c209f4e7847173"
+    },
+    "indicative-provider-budget.json": {
+      "bytes": 718,
+      "sha256": "8c52a96cc851df4267b39b4549473c20f54754e61b73b91c345a79649a362489"
+    },
+    "later-execution-and-blindness-protocol.md": {
+      "bytes": 1269,
+      "sha256": "39aa9128218e493612f022a9815d1aea7a002d05e737ddf6de41eeb8fc19e08f"
+    },
+    "packet-structural-test-results.json": {
+      "bytes": 578,
+      "sha256": "e2c78e1c348e05b7722e2cd1bdeb550790e2ccd6fcb1ffb1ab7e683b50f4ad24"
+    },
+    "preregistered-scoring-rubric.md": {
+      "bytes": 2951,
+      "sha256": "fe2d7e03d90aad6ff806863a851b09aefd0eb0e4e28db6da9db18bece0b32937"
+    },
+    "repository-test-results.json": {
+      "bytes": 498,
+      "sha256": "124c5563dc72564ae50c87c9d0ca78e3f923bbf6faca253ae4db5460061a7414"
+    },
+    "sealed-oracle-construction-instructions.md": {
+      "bytes": 2072,
+      "sha256": "0453dc93f3f71a711d88b8163c1965197d39c7cd76f914f5b93ba513de55ecaf"
+    },
+    "selection-algorithm.json": {
+      "bytes": 1934,
+      "sha256": "5f955dc3bbcb9f6fa4de87a04a3e52692f622442e91a983792cc0902440e0807"
+    },
+    "summary.md": {
+      "bytes": 1700,
+      "sha256": "6ac8cb3af16f797e9ae48b482a6568cee1e0c7f2f81b499d1472dfc0b56b794c"
+    }
+  },
+  "inventory_scope": "content artifacts plus generator before handoff; excludes inventory metadata itself",
+  "schema": "charitygraph.gate3.fresh-holdout-content-artifact-inventory/v1"
+}

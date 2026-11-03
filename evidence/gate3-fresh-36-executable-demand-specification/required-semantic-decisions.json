@@ -1,0 +1,281 @@
+{
+  "candidates_requiring_material_specification_choices": 36,
+  "catalogue_meaning_changed_by_compiler": 0,
+  "decision_rule": "A Product Owner or independently designated question designer must bind each material parameter before the specification can be frozen. A value absent from selection/catalogue cannot be supplied by Builder.",
+  "fully_executable_candidates": 0,
+  "missing_parameter_categories_by_domain": [
+    {
+      "domain_stratum": 1,
+      "instances": 2,
+      "missing_required_parameters": {
+        "scope": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 2,
+      "instances": 2,
+      "missing_required_parameters": {
+        "beneficiary": 2,
+        "cause_or_goal": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 3,
+      "instances": 2,
+      "missing_required_parameters": {
+        "as_of_date": 2,
+        "proposition": 2,
+        "scope": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 4,
+      "instances": 2,
+      "missing_required_parameters": {
+        "activity_or_metric": 2,
+        "period": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 5,
+      "instances": 2,
+      "missing_required_parameters": {
+        "beneficiary": 2,
+        "cause_or_goal": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 6,
+      "instances": 2,
+      "missing_required_parameters": {
+        "appeal_or_offer": 2,
+        "period": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 7,
+      "instances": 2,
+      "missing_required_parameters": {
+        "geography": 2,
+        "population": 2,
+        "service": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 8,
+      "instances": 2,
+      "missing_required_parameters": {
+        "appeal_or_offer": 2,
+        "period": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 9,
+      "instances": 2,
+      "missing_required_parameters": {
+        "period": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 10,
+      "instances": 2,
+      "missing_required_parameters": {
+        "period": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 11,
+      "instances": 2,
+      "missing_required_parameters": {
+        "period": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 12,
+      "instances": 2,
+      "missing_required_parameters": {
+        "period": 2,
+        "relationship_type": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 13,
+      "instances": 2,
+      "missing_required_parameters": {
+        "metric": 2,
+        "period": 2,
+        "scope": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 14,
+      "instances": 2,
+      "missing_required_parameters": {
+        "period": 2,
+        "relationship_type": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 15,
+      "instances": 2,
+      "missing_required_parameters": {
+        "mandate_or_value": 2,
+        "period": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 16,
+      "instances": 2,
+      "missing_required_parameters": {
+        "rule_or_mandate": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 17,
+      "instances": 2,
+      "missing_required_parameters": {
+        "metric_or_event": 2,
+        "period": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    },
+    {
+      "domain_stratum": 18,
+      "instances": 2,
+      "missing_required_parameters": {
+        "intervention": 2,
+        "period": 2,
+        "population": 2
+      },
+      "required_choice_categories": {
+        "concrete_proposition": 2,
+        "exact_referent_and_scope": 2,
+        "relationship_or_operation": 2,
+        "semantic_joins": 2,
+        "temporal_anchor": 2
+      }
+    }
+  ],
+  "schema": "charitygraph.g3fresh36.required-semantic-decisions/v1",
+  "semantic_equivalence_states": {
+    "CATALOGUE_MEANING_PRESERVED_BUT_INSTANCE_QUESTION_UNSPECIFIED": 36
+  }
+}

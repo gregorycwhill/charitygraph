@@ -1,0 +1,10 @@
+{
+  "additional_spend_aud": "0",
+  "additional_spend_usd": "0",
+  "frozen_result_manifest_sha256": "f7e27abca01ac8266d6b2e5f81e12802ccc4fbe47c9e27e7206aa25c35c23a43",
+  "frozen_terminal_ledger_sha256": "73dbf6163556c898964ad002f430046d9b25cac56e1de62f7c123aee0b321cc2",
+  "identical_frozen_result_identities_preserved": true,
+  "provider_posts": 0,
+  "replayed_terminal_rows": 12,
+  "schema": "charitygraph.cg406-v12-resume-verification/v1"
+}

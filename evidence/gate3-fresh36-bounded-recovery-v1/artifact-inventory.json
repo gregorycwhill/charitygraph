@@ -1,0 +1,25 @@
+{
+  "artifacts": [
+    {
+      "bytes": 3380,
+      "path": "recovery-status.json",
+      "sha256": "828478f3dc2f78a008c91c0ce0a3135968fe07973551305c8fb5ac75ed1088df"
+    },
+    {
+      "bytes": 355405,
+      "path": "source-lineage-recovery.json",
+      "sha256": "7f3664ac1bfa5d1312aff5e8b8eee62ffdf048d18f00d4f6dc61ec69439743b2"
+    },
+    {
+      "bytes": 1106,
+      "path": "successor-acquisition.json",
+      "sha256": "a459f2750d2b7619470b65d8afbd92f900669f62d3994a0726c63b3391cf9169"
+    },
+    {
+      "bytes": 1188,
+      "path": "summary.md",
+      "sha256": "98505d2636a4723fea1500c522c9315c71f82fc8208f66a93c17b503505cbd23"
+    }
+  ],
+  "schema": "charitygraph.g3-fresh36-bounded-recovery-inventory/v1"
+}

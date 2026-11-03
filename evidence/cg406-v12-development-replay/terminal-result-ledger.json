@@ -1,0 +1,1687 @@
+{
+  "campaign": "CG406-development-regression",
+  "execution_prepared_run_hash": "ab5b5cf62b7475237544e1ccc26047b3c134e5893dc448800c5a7f3b5247d61c",
+  "execution_provider_project": "proj_vnAuU8uxocL0Rosg3SulgmRI",
+  "prepared_run_hash": "ab5b5cf62b7475237544e1ccc26047b3c134e5893dc448800c5a7f3b5247d61c",
+  "rows": [
+    {
+      "actual_aud": "0.016868",
+      "actual_usd": "0.011097",
+      "conclusion": {
+        "confidence": "medium",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+            "note": "Program, beneficiary, location, and reporting fields are supplied, but several fields are null or false and the program metadata does not by itself establish service-delivery coverage.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "note": "Charity and program records include beneficiary categories, countries, and a program location, but do not establish an eligible service cohort or direct service coverage for the requested subject.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+            "note": "The 2025 report describes human-rights campaigning and advocacy activities, including work in Australia and internationally, but does not establish the specific requested service proposition or its scope.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:fcea88d98659e4ef5863b81535663a8a79a1c5c9d3d8200bd4f6287d1efe0e61",
+            "note": "The supplied address identifies NSW 2008 as the main business location; an address does not establish service-delivery geography.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:d3a01dc634c2fd81466d75e1d6e04d9d2d6e0c6763b92a458135fbc4d91ca915",
+            "note": "Website text describes human-rights campaigning and actions in Australia and internationally, but does not establish the requested direct service coverage or eligible cohort.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The packet contains program metadata, beneficiary categories, locations, advocacy descriptions, and address information, but these do not establish the requested service-delivery coverage, eligible service cohort, or bounded geography. Explicitly missing fields are present, but the requested missingness proposition cannot be resolved without its full proposition text and temporal requirement."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0051",
+      "instance_id": "cg406:subject:00fd5d9d7b844d74ae64c4f47f7c4538:SDC-0051",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "model": "gpt-5.6-luna",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "packet_hash": "e22fc191d94932b37770c4b4d669a173ec4ea32e6392226ac654d1c2173ba2d9",
+      "physical_attempt_id": "physical:797dd5f4f9ebb3eac2ceb4ee5c392835cf96e3d15297a907453249734665ac41",
+      "prepared_request_body_sha256": "df019ad9b758e70614f5f761cbe0c369ac7024a47b984c6416c13da8fac3d60f",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+            "srcrec:fcea88d98659e4ef5863b81535663a8a79a1c5c9d3d8200bd4f6287d1efe0e61"
+          ],
+          "proposition_id": "proposition:bf8e5ca0b2d5abd3393eb6d13e8bdfc8934628e0110dfb67071d2fb819928f0c",
+          "qualification": "Program countries, a program location description, and the charity address are present, but service-delivery coverage for the requested geography is not established.",
+          "scope_basis": "operational_geography",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+          ],
+          "proposition_id": "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+          "qualification": "The records contain null and unpopulated fields, but the proposition text and required missingness test are not supplied in the frozen demand.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+            "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06"
+          ],
+          "proposition_id": "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1",
+          "qualification": "Beneficiary categories are program metadata and do not by themselves establish an eligible service cohort for the requested population.",
+          "scope_basis": "beneficiary_category",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+            "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+            "srcrec:d3a01dc634c2fd81466d75e1d6e04d9d2d6e0c6763b92a458135fbc4d91ca915"
+          ],
+          "proposition_id": "proposition:9df6b026a8c6c26e3c3acd2370a16e93fffdc0015ff5bd879218788025db0280",
+          "qualification": "The evidence describes advocacy, campaigning, and human-rights activities, but does not establish direct service delivery satisfying the requested service proposition.",
+          "scope_basis": "direct_service_coverage",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:4b528494f558d13efc831f7dda0c3cc7feb64a3c470c9682cdc7b672dba29db4",
+      "provider_request_id": "req_a74cbd844cb94a5b9cccb416db52b71b",
+      "provider_request_item_id": "requestitem:ae08ec143624800e484e9fa68033044436f3a9c0c2869bd1f63cee4e34fd61fe",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website",
+        "pfra",
+        "wikipedia_wikimedia"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+        "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+        "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+        "srcrec:fcea88d98659e4ef5863b81535663a8a79a1c5c9d3d8200bd4f6287d1efe0e61",
+        "srcrec:d3a01dc634c2fd81466d75e1d6e04d9d2d6e0c6763b92a458135fbc4d91ca915",
+        "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a",
+        "srcrec:70cffc51e51093961b61d1bb8c15649f305de00aa3c345e54c53e5b3c973fcaf"
+      ],
+      "raw_response_sha256": "a9645eefbc61f72c0b227e91417806bf1864b55d3ef96fa6433678b5e59d22c7",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [],
+      "schema_hash": "e5bc48583ab32e6817153578054d71e8ac28cdefce9fba024117afb77cf798ae",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:9ed8f0c4967b77cc4f29c082a3650f51e1fc418c0a4117f61663aff2f2806732",
+        "srcrec:f26ba76205c0be45b5e381f7fc3a7df8a2b3ff20490b5d8dca29310a26f07e06",
+        "srcrec:e203e8360cd04c896961bfa38935bc0005d9e4b2d1e14211ffcf3ae6d66d77de",
+        "srcrec:fcea88d98659e4ef5863b81535663a8a79a1c5c9d3d8200bd4f6287d1efe0e61",
+        "srcrec:d3a01dc634c2fd81466d75e1d6e04d9d2d6e0c6763b92a458135fbc4d91ca915"
+      ],
+      "subject_id": "subject:00fd5d9d7b844d74ae64c4f47f7c4538",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 35337,
+        "input_tokens_details": {
+          "cache_write_tokens": 35334,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1885,
+        "output_tokens_details": {
+          "reasoning_tokens": 220
+        },
+        "total_tokens": 37222
+      }
+    },
+    {
+      "actual_aud": "0.016778",
+      "actual_usd": "0.011038",
+      "conclusion": {
+        "confidence": "medium",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+            "note": "Reports donations and bequests of 36,972,449 for the 2024-25 reporting year and describes the organisation's work as funded by donations.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+            "note": "Audited financial statements report bequest and donation income of 30,239,976 and fundraising income of 6,732,473 for the year ended 30 June 2025; they also state that donations and bequests are recognised as revenue when received.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+            "note": "Annual charity data reports donations and bequests and lists RSPCA Lottery as a program, but does not specifically identify appeal proceeds.",
+            "role": "context"
+          }
+        ],
+        "outcome": "ambiguous",
+        "rationale": "Donation revenue and the stated recognition method are supported for the 2024-25 reporting period. The supplied evidence reports fundraising and lottery-related information but does not specifically establish appeal proceeds as a distinct revenue category."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0026",
+      "instance_id": "cg406:subject:04549d1f5c7f4f658e4e33c8eee4f0fe:SDC-0026",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "model": "gpt-5.6-luna",
+      "outcome": "ambiguous",
+      "outcome_category": "ambiguous",
+      "packet_hash": "9d5628a51517138f6e5ec74a91c9dc7f5cab3a0b9ef2fd2255320b334db4ad7b",
+      "physical_attempt_id": "physical:cf45211b793d56c0172d3760cdda77cbdb086f475f3df2422d58a4ec8167e061",
+      "prepared_request_body_sha256": "27498cd70f239143f19eecdfb7aba7b136dc11472922479fb9611c106611ede5",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+            "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973"
+          ],
+          "proposition_id": "proposition:2577714beb422c0b2c30dba90823159c140ee7207e889dbb99c348b0ebfaeeae",
+          "qualification": "Fundraising income and a lottery program are reported, but the evidence does not specifically identify or quantify appeal proceeds as a distinct category.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "not_established",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+            "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+          ],
+          "proposition_id": "proposition:35fbf9b2455acb3dcd434aa0409ce9a170e475cd4f0a587a74bc59a09992728f",
+          "qualification": "Donation and bequest revenue is reported for the 2024-25 financial year, including audited bequest and donation income of 30,239,976.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+          ],
+          "proposition_id": "proposition:5b7e6bf2dc4a32a6aa4770cd5639c2c7af890fc86c273b5c8567fe5382086bf3",
+          "qualification": "The audited financial statements state that donations and bequests are recognised as revenue when received.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:3bafb7bcb88bf4a6b982ffeed836bca45ddaeb27bdbc815569fd981b6bc549bc",
+      "provider_request_id": "req_02685653dd264671b3c361d4ad648a23",
+      "provider_request_item_id": "requestitem:1db389eb09e5993158f20155c0e0257399147410e308c158b96115339ca53fe6",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+        "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+        "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008",
+        "srcrec:453f23fc19e634d1319088b6bf81a76249e8e17ca2a86432965fa64c9c859df3",
+        "srcrec:06db7a4ab2a2277c6a8634c9fb6a9d89c6709ceb2c8017eecadfccc370f09fd2"
+      ],
+      "raw_response_sha256": "2a8f1a1fc87b55e9be5bf0c49770fcf071acd495b3a512760b21d0b86750210e",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [
+        "srcrec:453f23fc19e634d1319088b6bf81a76249e8e17ca2a86432965fa64c9c859df3",
+        "srcrec:06db7a4ab2a2277c6a8634c9fb6a9d89c6709ceb2c8017eecadfccc370f09fd2"
+      ],
+      "schema_hash": "58fc2657f7701f2b7c8f409c12d0b0fd9467aeaffe44f7435d3500893c85e543",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:d2a51e74b3baceb4a58c5a6233c6d6a7479411f63f5ba97de422c2bcf6f35cef",
+        "srcrec:f750871d296946790a9098af7f8e1dc31ee8e4b2931023cc7890a99351086973",
+        "srcrec:410170b6d8232469bfc0d4d4940ebea48f91cecc7beee0e438661915610be008"
+      ],
+      "subject_id": "subject:04549d1f5c7f4f658e4e33c8eee4f0fe",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 37158,
+        "input_tokens_details": {
+          "cache_write_tokens": 37155,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1457,
+        "output_tokens_details": {
+          "reasoning_tokens": 359
+        },
+        "total_tokens": 38615
+      }
+    },
+    {
+      "actual_aud": "0.018088",
+      "actual_usd": "0.011900",
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+            "note": "Reports cancer-related programs, beneficiaries, and Victoria program locations, but does not by itself establish service-delivery access, availability, or eligibility.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "note": "Charity metadata describes cancer-related activities and beneficiaries, but does not establish the requested service-delivery propositions.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a",
+            "note": "The 2025 report describes fundraising and funding of cancer programs, equipment, education, research, and services, but does not establish direct access, availability, or eligibility criteria for the target subject.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The supplied evidence establishes cancer-related charitable activities and funding, but does not sufficiently establish service-delivery coverage, availability to the relevant subject, or eligibility criteria. Program metadata, beneficiary categories, and program locations are insufficient for those propositions."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0025",
+      "instance_id": "cg406:subject:1f6be8711c364328b77cf6cb5d5d44ab:SDC-0025",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "model": "gpt-5.6-luna",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "packet_hash": "dee3982ac6f6ab32f0722ba8377e728e658f9bdbeeb390d99fdb410849a027f5",
+      "physical_attempt_id": "physical:dd0a31e7310793e6669b3d0c5aabbf4419cb801466d1e34e3f7010b572d9d0aa",
+      "prepared_request_body_sha256": "d1d5ea5b81a5ba4663afabf29aa33b5685f7831951c540b3aed37f444c4964f2",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+            "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+          ],
+          "proposition_id": "proposition:a0561fd649cdb6baa784055f051bad796ea0afef17fca38219549deeba4e8c1a",
+          "qualification": "The evidence indicates cancer-related activity but does not establish direct service access for the target subject.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+            "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+          ],
+          "proposition_id": "proposition:f95dac581e9b439c58abf51a6c8c091f8e0aac8c0fb06f0cbca10fc8ac361330",
+          "qualification": "The evidence describes ongoing funding and programs, but does not establish service availability to the target subject.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+            "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+            "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+          ],
+          "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+          "qualification": "Beneficiary descriptions include people with chronic illness, but no eligibility criteria for the target subject are supplied.",
+          "scope_basis": "eligibility_criteria",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:ec4734e66b8455b96b39f4893fe8050baf659656dc25e5629987dc76195575e8",
+      "provider_request_id": "req_ab1189695f6c4c178a0ea092d5d122b8",
+      "provider_request_item_id": "requestitem:212d2b2d27e68f23aa606f49753190d1304d8d8f20b60bb850acdd98b1cc7ef8",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "pfra"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+        "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+        "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a",
+        "srcrec:5eba81a0b2173c1e48dc1f6a0de2c434eb622ab50b225e2de3db0e0145be8111",
+        "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+      ],
+      "raw_response_sha256": "b8c54993cf7838c1054918de7285e88d78c31b2c1037fdff2a3951172c2012de",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [
+        "srcrec:5eba81a0b2173c1e48dc1f6a0de2c434eb622ab50b225e2de3db0e0145be8111",
+        "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+      ],
+      "schema_hash": "d5f5b819d2d01aabed8683a96fa6479988c017c8c3c94c4e2488d787af71af4b",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:cb8fd56aef1d362b8e20f12cba2ed06a992e905dfe13039fa074b6c636247fbe",
+        "srcrec:573e6620242a4c7b907c3c3501e26932f5f15748e93c4caa1e50d213b231c2c0",
+        "srcrec:954d4c413d1699db996d8e413800ea048695f1a811c0cb6a09472f8d4e07c17a"
+      ],
+      "subject_id": "subject:1f6be8711c364328b77cf6cb5d5d44ab",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 40330,
+        "input_tokens_details": {
+          "cache_write_tokens": 40327,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1514,
+        "output_tokens_details": {
+          "reasoning_tokens": 243
+        },
+        "total_tokens": 41844
+      }
+    },
+    {
+      "actual_aud": "0.017303",
+      "actual_usd": "0.011383",
+      "conclusion": {
+        "confidence": "medium",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+            "note": "Identifies the entity as a registered charity and records its international development programs and beneficiaries.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+            "note": "The 2025 audited report describes international humanitarian relief and development activity and records international and domestic program expenditure for the year ended 30 June 2025.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:313440e8f1f2838859fcd688d06f432485f0904ba0f2b06a669669c15a2104c3",
+            "note": "Describes the organisation's work with communities across Africa, Asia, Australia and the Pacific and identifies countries and program impacts, but does not by itself establish every requested service-delivery or eligibility boundary.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981",
+            "note": "Provides 2025 program metadata, beneficiary categories, program countries and program locations; these fields do not independently establish service-delivery coverage.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:55b97160c2e99f17159efc4add4739c88ebbf65b38c9a34b60c909fc93ee4742",
+            "note": "Confirms the entity identity, active status and Australian main business location.",
+            "role": "context"
+          }
+        ],
+        "outcome": "ambiguous",
+        "rationale": "The supplied evidence establishes the organisation's charitable and international aid/development role during the relevant 2025 reporting period. The requested scope proposition remains unresolved because the packet does not clearly establish the exact service-delivery coverage or eligible cohort required by that proposition."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0038",
+      "instance_id": "cg406:subject:43db3f46f7274c8382905701f287ec09:SDC-0038",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "model": "gpt-5.6-luna",
+      "outcome": "ambiguous",
+      "outcome_category": "ambiguous",
+      "packet_hash": "0fbd1cd7a0804f6917b078b61951014dd7d5f286e30b4c407b39d5185967c155",
+      "physical_attempt_id": "physical:4b064553b892e73ca8dc78996905bd66ee8ffaf8bbe3062bdfab8c967af37d4c",
+      "prepared_request_body_sha256": "d3675b9ce6805186b43043f45338af660bcc66590799856a7e9b38b8b38b72bb",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+            "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32"
+          ],
+          "proposition_id": "proposition:4b168d88dc872a7753c2bc35b36a2d4249487af55baf78f247f38cae2fe962da",
+          "qualification": null,
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:313440e8f1f2838859fcd688d06f432485f0904ba0f2b06a669669c15a2104c3",
+            "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981"
+          ],
+          "proposition_id": "proposition:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+          "qualification": "The evidence describes broad operational geography and program metadata but does not clearly establish the proposition's precise service-delivery coverage or eligible service cohort.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:6e8ab10f609fae994f512fe8badd3e5c76bb528424da14d712ae856019f5ba3c",
+      "provider_request_id": "req_0a635fb8fa3d4ba69cca028e43d7b155",
+      "provider_request_item_id": "requestitem:6b420b2b06376d5afb45250fe228e9dcc649ff9d6a5600c4a9e6dd21d5ed3583",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981",
+        "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+        "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+        "srcrec:55b97160c2e99f17159efc4add4739c88ebbf65b38c9a34b60c909fc93ee4742",
+        "srcrec:313440e8f1f2838859fcd688d06f432485f0904ba0f2b06a669669c15a2104c3"
+      ],
+      "raw_response_sha256": "81d09af77e446f17328bcfb128ab938857a3921aacbc4e39a8f8512b8d2d3d98",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [],
+      "schema_hash": "097df0fc8819ea4455e4ad048220cd48c0c7ae38cdc4ca258be1ec29b3c74d45",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:a55c4f584d0df7b56e6bbb0836535a932715ccc7d22cf1b92efadab56aa87298",
+        "srcrec:d8fb209670cfca62611a7804c58e10d05c8f2e1e39d5d5b369c61620a39c5f32",
+        "srcrec:313440e8f1f2838859fcd688d06f432485f0904ba0f2b06a669669c15a2104c3",
+        "srcrec:8402ab03e14574721af54f9a87830db4094ffe0ff3a72622b18c082d5b560981",
+        "srcrec:55b97160c2e99f17159efc4add4739c88ebbf65b38c9a34b60c909fc93ee4742"
+      ],
+      "subject_id": "subject:43db3f46f7274c8382905701f287ec09",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 39263,
+        "input_tokens_details": {
+          "cache_write_tokens": 39260,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1306,
+        "output_tokens_details": {
+          "reasoning_tokens": 229
+        },
+        "total_tokens": 40569
+      }
+    },
+    {
+      "actual_aud": "0.013080",
+      "actual_usd": "0.008605",
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+            "note": "The supplied ABN record identifies the entity as ROYAL CHILDRENS HOSPITAL GOOD FRIDAY APPEAL and reports ABN status as active.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "note": "The charity record reports the entity name, ABN, Australia as its country, and Victoria as its operating state; it also lists a program location in Victoria.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+            "note": "The 2025 directors' report identifies the legal entity and ABN, describes fundraising for The Royal Children's Hospital, and reports distribution to 41 regional paediatric health services in Victoria.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:2343139d31f81cae1f1d2fd1e30885427e8512dc5c1faf3396315822ac5d6461",
+            "note": "The supplied website text identifies the Good Friday Appeal and ABN 69 084 797 965 and describes support for The Royal Children's Hospital in Melbourne and regional Victoria.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The identifier proposition is established by multiple supplied records. The scope evidence describes fundraising, program metadata, locations, and distributions, but does not unambiguously establish the requested service-delivery scope or eligible service cohort for the scope proposition."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0037",
+      "instance_id": "cg406:subject:54a09c18d354495eb2fde6a01480b86b:SDC-0037",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "model": "gpt-5.6-luna",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "partial",
+      "packet_hash": "9ca423fb8890fd9b112e5cd728872d7bed36b50dcf45fc6c4d1865903051087d",
+      "physical_attempt_id": "physical:f26e7860b252a164c4492ae5372b52ebb34b2afc91de86a408bff8082f19a15e",
+      "prepared_request_body_sha256": "971d8e75500ecb32730345dfb0676cf2b29c4510170c825cfa1a906bc1270b1d",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+            "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+            "srcrec:2343139d31f81cae1f1d2fd1e30885427e8512dc5c1faf3396315822ac5d6461"
+          ],
+          "proposition_id": "proposition:285437db8c5e1541aa49708b4abd51642a065b66e4bac0901e75b44ce2d0cebe",
+          "qualification": null,
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+            "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+            "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+            "srcrec:2343139d31f81cae1f1d2fd1e30885427e8512dc5c1faf3396315822ac5d6461"
+          ],
+          "proposition_id": "proposition:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+          "qualification": "The evidence establishes fundraising and reported distributions associated with Victoria, but does not by itself establish the requested service-delivery coverage or eligible service cohort.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:650343961a93a7d591d0a9a992606d1dca26d5f2a4ee3bcb927f0755848a8aa0",
+      "provider_request_id": "req_8f7eb069b9484d4d86847029b57d2082",
+      "provider_request_item_id": "requestitem:cb45bc28c6cad53bb3823aee0bba796f08cf12b70f337eec79f18076d45731f6",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+        "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+        "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+        "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+        "srcrec:2343139d31f81cae1f1d2fd1e30885427e8512dc5c1faf3396315822ac5d6461"
+      ],
+      "raw_response_sha256": "6662645d8e630cdae816fc6b83eb547eb466eaf93ce830e0f5740167a4faebad",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [],
+      "schema_hash": "ede45c2a7512021d0fe289a2cb3324f3bef3c0c2995f5e713132baae0ded5f12",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:de421c81648c098eb90c6222f2bce769492f37a3c4a84f44f32d1431c67c391a",
+        "srcrec:b64cd6146580a511cdbd2fdb92ffb9b5d23bd4a18bb03d730e4a09b4a4295e38",
+        "srcrec:94f9c56c95c4623831b922112ed1c68f61af13758e3c07d607abb8b57210520b",
+        "srcrec:b356232fb3e123783fc8b76feba6c81bcd1075f59e90d7bb01630bc21833c3ad",
+        "srcrec:2343139d31f81cae1f1d2fd1e30885427e8512dc5c1faf3396315822ac5d6461"
+      ],
+      "subject_id": "subject:54a09c18d354495eb2fde6a01480b86b",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 27474,
+        "input_tokens_details": {
+          "cache_write_tokens": 27471,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1447,
+        "output_tokens_details": {
+          "reasoning_tokens": 243
+        },
+        "total_tokens": 28921
+      }
+    },
+    {
+      "actual_aud": "0.016269",
+      "actual_usd": "0.010703",
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+            "note": "The 2025 directors' report and financial statements describe cancer prevention, detection, support, and research activities, including support for people with cancer, families, and carers in Victoria.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "note": "The organisation's service text states that cancer information and support is available for all Victorians affected by cancer and identifies prevention, detection, support, and research services.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+            "note": "The charity record identifies Victoria as the operating state and lists cancer support, prevention, screening, and related programs.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "supported",
+        "rationale": "The supplied evidence directly describes cancer-related services, identifies people affected by cancer as service users, and specifies Victoria as the relevant operating and service geography, with current 2025 reporting evidence."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0003",
+      "instance_id": "cg406:subject:6da4240b384242a78455a01fc28e0ed8:SDC-0003",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "model": "gpt-5.6-luna",
+      "outcome": "supported",
+      "outcome_category": "supported",
+      "packet_hash": "2c01d021e832942f733b9211793e9a73a289baff41bba151776e98f4d4ce533d",
+      "physical_attempt_id": "physical:89aa08b979ecdb3f375209f30dfaa8b010d8d806bc0721735697520b94fb625d",
+      "prepared_request_body_sha256": "050d0522c911bd44b0445ca22c8959f1054fb2bf8d8dfe2a6437f91f52e89486",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+          "qualification": "Services are expressly described as available to Victorians affected by cancer and to their families and carers.",
+          "scope_basis": "eligibility_criteria",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5"
+          ],
+          "proposition_id": "proposition:bf8e5ca0b2d5abd3393eb6d13e8bdfc8934628e0110dfb67071d2fb819928f0c",
+          "qualification": "The evidence specifies Victoria and Victorians as the operating and service geography.",
+          "scope_basis": "direct_service_coverage",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+            "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a"
+          ],
+          "proposition_id": "proposition:9df6b026a8c6c26e3c3acd2370a16e93fffdc0015ff5bd879218788025db0280",
+          "qualification": "The evidence describes cancer support, prevention, screening, early detection, immunisation, and research services.",
+          "scope_basis": "direct_service_coverage",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:2f366f10a45fd3f642e1ba07cb5e46e1517f742ee76128cc02e2cba9c930a3d3",
+      "provider_request_id": "req_68689116e5b54ef997354ce567d8a72d",
+      "provider_request_item_id": "requestitem:744e9862590e2661eb6b43e7deb9fb482f2708e80157934afe9fe2d3a70396f3",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website",
+        "wikipedia_wikimedia"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+        "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+        "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+        "srcrec:a7aa5f787dff9ec3f37f2f419df4ae37c517a1ba1130343390e3441d3aa557ed",
+        "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800",
+        "srcrec:6324bbf9bde152c14cae6a5c2036ed652791b8601391627a5c9549597db13a07"
+      ],
+      "raw_response_sha256": "61338018af48cc0c15846ca4bbf17ce5496a0b44edcfcc30df496d8df2f239a5",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [
+        "srcrec:cd9e4335e4264fbd9e7d84bb0141545709220bde9ac4d27337140a645a670c3c",
+        "srcrec:a7aa5f787dff9ec3f37f2f419df4ae37c517a1ba1130343390e3441d3aa557ed",
+        "srcrec:6324bbf9bde152c14cae6a5c2036ed652791b8601391627a5c9549597db13a07"
+      ],
+      "schema_hash": "eeb56f19795c0df4fab39b84dcf1c8eade0210e528565b057b46728efeba3ae4",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:7455a5b3c5821ff15a17f8dc6cc5ef807054062fd397856d2c2608898a648ce5",
+        "srcrec:827449099295a742ebf41e5f65d6eaf475808269daf7ef608fc1ac0346afdf0a",
+        "srcrec:12ec018c0e42d72a2027dce1c25d2d3ce6cb4c1ec3e1e76300ad00d737dab800"
+      ],
+      "subject_id": "subject:6da4240b384242a78455a01fc28e0ed8",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 36426,
+        "input_tokens_details": {
+          "cache_write_tokens": 36423,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1330,
+        "output_tokens_details": {
+          "reasoning_tokens": 180
+        },
+        "total_tokens": 37756
+      }
+    },
+    {
+      "actual_aud": "0.011045",
+      "actual_usd": "0.007266",
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "note": "2025 annual information statement contains financial figures, including revenue, expenses, grants and donations.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3",
+            "note": "2025 financial report workbook directly identifies total revenues and expenses.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [
+              {
+                "note": "The website mentions a grant awarded to scientists at UWA, but this does not establish an award to the target subject as an entity.",
+                "role": "competing"
+              }
+            ],
+            "evidence_id": "srcrec:7701b9f7bf31a810917da3b07ecf2e4f626486d9b0904102d67b0653e1fe5a4d",
+            "note": "Contains contextual website statements, including an award and a grant, without sufficient subject-specific financial claim detail.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+            "note": "Charity record includes 2025 financial and program metadata.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:c464bb740a08aa140938474f350feab35cadec760358e53fdbb76d81dcd85397",
+            "note": "Establishes entity identity and active status only.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:38b3942e4e7a329783e69298ca5e11331cee8946c1a28d56d60929a52b845276",
+            "note": "Provides name-matching context only.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The supplied evidence establishes 2025 revenue for the subject, but does not establish the award, commitment, or payment propositions with the required subject, scope, and time."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0007",
+      "instance_id": "cg406:subject:771dbdb52fe54cb49ebcce20f72bd250:SDC-0007",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "model": "gpt-5.6-luna",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "partial",
+      "packet_hash": "8f648615b765ddf80ff8f8e3d954529b5ac6e410822196ca9b14db32d313b2d9",
+      "physical_attempt_id": "physical:6eab961434a92f8ed40b3240b9474e9d09aae0949636c628107883108656cc01",
+      "prepared_request_body_sha256": "71c2869de55e60f0117732dc0b3021da0db04523360fbdc65afeb2ae46452d06",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:b4009662c0116dac4f17a86354dcefcb35d80de2af59988f520fe072b4b13e2a",
+          "qualification": "No supplied evidence establishes an award made to the target subject as an entity.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:6a19f0fb4be54511524bcd5b0c98b38da1ee049a39735c39311e10336024436f",
+          "qualification": "No supplied evidence establishes a commitment by the target subject.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:040ffd5925d40e11c67b7238a7fc9957850b8b9a46e9729fab88c24d6a98aff2",
+          "qualification": "Reported expenses and grants or donations made do not by themselves establish a payment event or the proposition's required payment scope.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "unresolved",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+            "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+            "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3"
+          ],
+          "proposition_id": "proposition:371f7e4223809d8bce3d52f6a5358e47c4b57aa00cbe0a4d8b47d74f010dffa6",
+          "qualification": "2025 records report total revenue of 1,419,294,000 for the identified subject.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:fd0937b98dd717e54b7fd681b4c7a249cb0f6639164453363c4baa80b683ae94",
+      "provider_request_id": "req_b73fe3c4b8a74f5b8e3a205ee9e4970c",
+      "provider_request_item_id": "requestitem:3ac96ddc8795bfad546fdd5eaf50448b404ec9497659127934de57ed1a80c9b5",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website",
+        "wikipedia_wikimedia"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+        "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+        "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3",
+        "srcrec:c464bb740a08aa140938474f350feab35cadec760358e53fdbb76d81dcd85397",
+        "srcrec:7701b9f7bf31a810917da3b07ecf2e4f626486d9b0904102d67b0653e1fe5a4d",
+        "srcrec:38b3942e4e7a329783e69298ca5e11331cee8946c1a28d56d60929a52b845276"
+      ],
+      "raw_response_sha256": "0885501b16c823fd7a81dac1dbd3552a3e825a89c88af580f1d31268907961bc",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [
+        "srcrec:c464bb740a08aa140938474f350feab35cadec760358e53fdbb76d81dcd85397",
+        "srcrec:38b3942e4e7a329783e69298ca5e11331cee8946c1a28d56d60929a52b845276"
+      ],
+      "schema_hash": "efd08669bea6b1f6ff45180e88a8af07816398cbcc9ac14ae4b158322202ed04",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:c4441f842436e45d13e6a45a6306314abb1d69320a7c9096dc3464e1be49b8b5",
+        "srcrec:28d323a0500621adfeed747bdc9315e06018ad8a7b677a9fd31d7bf196db2fef",
+        "srcrec:5b359a72a9e9578bd6203a871e0474d4adf138bf81d71525f0647698ba25fca3",
+        "srcrec:7701b9f7bf31a810917da3b07ecf2e4f626486d9b0904102d67b0653e1fe5a4d"
+      ],
+      "subject_id": "subject:771dbdb52fe54cb49ebcce20f72bd250",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 21530,
+        "input_tokens_details": {
+          "cache_write_tokens": 21527,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1569,
+        "output_tokens_details": {
+          "reasoning_tokens": 268
+        },
+        "total_tokens": 23099
+      }
+    },
+    {
+      "actual_aud": "0.012008",
+      "actual_usd": "0.007900",
+      "conclusion": {
+        "confidence": "medium",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+            "note": "Program metadata identifies Australian conservation programs and some beneficiary categories, but does not by itself establish the requested eligible service cohort or service-delivery coverage.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+            "note": "Charity and program records provide beneficiary and Australia location metadata, but do not establish the specific requested eligibility, opportunity, or time pattern.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:d84f59dafd80990cfe07a4a591a796df8ab24332d91888a6ad760d711c4c318c",
+            "note": "Confirms entity identity and an Australian main business location; an address does not establish service-delivery coverage.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+            "note": "Describes conservation activities and Australian sites, but does not establish the requested eligible service cohort or time pattern.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40",
+            "note": "Provides an entity-name match and general organizational description only; it does not establish the requested propositions.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The supplied evidence identifies the charity and describes Australian conservation programs, but the frozen proposition texts are not substantively evidenced enough to establish the requested eligibility, opportunity, and time-pattern claims, including the required subject, scope, and temporal conditions."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0005",
+      "instance_id": "cg406:subject:78393016b9ad44dd832cfa913b7122ba:SDC-0005",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "model": "gpt-5.6-luna",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "packet_hash": "16b95e8ba02ab52e0ae4c55d6383bef0c2b1ee1f25f9ef2e69dc56ec737d972c",
+      "physical_attempt_id": "physical:c1bf8f6386aa12b04f507a5e1640cce2e3c8eedefb9566f7e1ffa107bd7b2de3",
+      "prepared_request_body_sha256": "148e29d19e6c5d480b2936d1611c43fc2dca219fb9f33b732990da8f6ea98f74",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+            "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+            "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+          ],
+          "proposition_id": "proposition:533cbfe95669c4380a5e671d25fd9ae9699eda36f6c29c3d3be349cb2f3b778e",
+          "qualification": "The evidence provides beneficiary and program metadata but does not establish the specific eligibility criteria or eligible service cohort.",
+          "scope_basis": "eligibility_criteria",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+            "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+            "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa"
+          ],
+          "proposition_id": "proposition:04b447783afe5bfd4b48e8db067137319526a98e029c37b2559154ceccc1067e",
+          "qualification": "Australian program locations and operational descriptions do not by themselves establish service-delivery opportunity for the requested subject and scope.",
+          "scope_basis": "operational_geography",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+            "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+            "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+            "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40"
+          ],
+          "proposition_id": "proposition:6eff887609b9e27b1dde5012c9e309c8287fcabfefb2e39f476a9fa1cde8bef6",
+          "qualification": "The records contain reporting and website timestamps, but do not establish the requested recurring or otherwise specified time pattern.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "unresolved",
+          "temporal_status": "unresolved"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:8fe43e7dea5d1869cb728ba2258291b4120da73ab8ff58bc9ace6474116ee724",
+      "provider_request_id": "req_5791fb6be04e483c981ca27d43bdc819",
+      "provider_request_item_id": "requestitem:56711c206ac615d2f8960ec458ce7992ebe07fea4c6fe081319b7e7012fe9d23",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "ato_abr_dgr",
+        "official_website",
+        "wikipedia_wikimedia"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+        "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+        "srcrec:d84f59dafd80990cfe07a4a591a796df8ab24332d91888a6ad760d711c4c318c",
+        "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+        "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40"
+      ],
+      "raw_response_sha256": "f09c98c30f5264f98fa122d4dad10a90ed6c9fc3d20ca4e56ffab5f532b06f20",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [],
+      "schema_hash": "de01aa810123bf50d4843436a28e73e97bb95856b2c405c24a73502edacd62e9",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:ac73e24cb901ae625aaa48c4e92bcd37cb112acaa3ba19b807feb039ad76a0e2",
+        "srcrec:4cf2719927afab9f7c22f2a0b5e18919616f06259fedbc5df9e7753bf7349918",
+        "srcrec:d84f59dafd80990cfe07a4a591a796df8ab24332d91888a6ad760d711c4c318c",
+        "srcrec:ced5cc8a79973a0953c6c41bd8f88acf0d764c99a12c9bf4d2c2b961eb1348aa",
+        "srcrec:9c6b24682377725b9b359ebcc354a8a66847a43296223eb96ee519bf7fc1cb40"
+      ],
+      "subject_id": "subject:78393016b9ad44dd832cfa913b7122ba",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 23850,
+        "input_tokens_details": {
+          "cache_write_tokens": 23847,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1614,
+        "output_tokens_details": {
+          "reasoning_tokens": 194
+        },
+        "total_tokens": 25464
+      }
+    },
+    {
+      "actual_aud": "0.017596",
+      "actual_usd": "0.011576",
+      "conclusion": {
+        "confidence": "medium",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+            "note": "The FY2025 annual report describes activities, performance measures, service delivery and beneficiary groups.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+            "note": "The organisation's website describes support services and people affected by blood cancer as intended users.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+            "note": "Structured program metadata lists the organisation's programs, program locations and beneficiary categories.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "Evidence supports the organisation's program design, reported FY2025 service metrics, and service population in bounded terms. No supplied evidence establishes a specific missingness proposition, and program metadata or beneficiary categories alone cannot establish broader service-delivery coverage."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0052",
+      "instance_id": "cg406:subject:93f185643c194b2da46032afc9521b30:SDC-0052",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValidationError: 1 validation error for EvidenceSelectionOutput\nproposition_support.0\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "model": "gpt-5.6-luna",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "partial",
+      "packet_hash": "74ac758e282f14fd9f8c198b5711170a2997faa4a1ff46bb2af842401231928f",
+      "physical_attempt_id": "physical:562e5e8f065321b9da56f435f859b3d0b87e643ae8010a162078b3f0aaa7555c",
+      "prepared_request_body_sha256": "0982e4f8d1670f06e43337f2e7e38ca3d0bd5e4951d585f86349a42e94d23d2d",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+            "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+            "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab"
+          ],
+          "proposition_id": "proposition:a77de8a6daa1129516b14c8ca1e233a51a8414b202eac7c8acfbb9b485046ad4",
+          "qualification": "Program design is evidenced through described support, accommodation, counselling, advisory, research, advocacy and related services; this does not independently establish service coverage beyond the described programs.",
+          "scope_basis": "program_metadata",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a"
+          ],
+          "proposition_id": "proposition:b8b4e9cea77ef29a5e958f13addd4855c35d2f04a060c3a869f8c955fd4c9a34",
+          "qualification": "The FY2025 report states that 39,800 service instances were delivered to 6,881 people during the year ended 30 June 2025.",
+          "scope_basis": "direct_service_coverage",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:0cfa4a919f597ac052833847f221ae7ef6680644cf11b1496673ecca1d610e0f",
+          "qualification": "The supplied evidence does not establish the requested missingness proposition.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+            "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09"
+          ],
+          "proposition_id": "proposition:4f9edc4d3ed0a0e5741a1f55b9a8f68efff6089dcc3009512eabd709c0d40bf1",
+          "qualification": "The evidence identifies people affected by blood cancers, patients, carers and families as supported populations and reports service delivery to people in FY2025; it does not establish a broader or more specific eligible cohort than described.",
+          "scope_basis": "direct_service_coverage",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:3d6e1f9aa0859322e0d9f3266510c32e91031965cc2b75c5b0b2a393699053a9",
+      "provider_request_id": "req_721d3bccda7341a7be48b9e946b516c8",
+      "provider_request_item_id": "requestitem:3360b854f4b1da6f8be2e4684b63f92056037f08e39ad2ca477a756985162096",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website",
+        "pfra"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab",
+        "srcrec:65ad6e5b4200540afb19edc120d5ed3a8dcdb2a46f4a4cc2f8ae0d60df45727b",
+        "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+        "srcrec:52ff9879abf522362bd642d8e22f54a4e2b813f451dcd1723978b0f68a3d9e79",
+        "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+        "srcrec:bdc138e6de67b47b5342c0e9b3d025c626132c98d5ff81f9ad889b8b42e5817a"
+      ],
+      "raw_response_sha256": "0ddc34b43f9dcdea765eed00339561beecffb872fb31c8e43bf4ee8641c0bdf8",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [],
+      "schema_hash": "45de87bc5f5c12f6511709c2ab63fc0c98cab8a2f6140b3a6a95d91f753e870a",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:863b51f86c910ac382b1da05a60c70d61168fed2a2d3ccd198420e2e6df9c47a",
+        "srcrec:25246834b21052feb5ea7ff7b90d153df4ab523ebe30e4e82e86a5cdd8119c09",
+        "srcrec:f45e6d4d180d3ee4d3919c2232da7ea730eb4f4295ae141c61588660b35d20ab"
+      ],
+      "subject_id": "subject:93f185643c194b2da46032afc9521b30",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 38609,
+        "input_tokens_details": {
+          "cache_write_tokens": 38606,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1603,
+        "output_tokens_details": {
+          "reasoning_tokens": 460
+        },
+        "total_tokens": 40212
+      }
+    },
+    {
+      "actual_aud": "0.019751",
+      "actual_usd": "0.012994",
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+            "note": "Current annual information statement and program, beneficiary, financial, and purpose data.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "note": "Current charity record including registered status, identity, programs, beneficiaries, and activities.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "note": "Audited annual report for the year ended 30 June 2025, including activities, objectives, governance, purpose, and financial statements.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1",
+            "note": "Structured identity and registration facts for Plan International Australia.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876",
+            "note": "Organisational website text describing mission, work, values, programs, and public identity.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "supported",
+        "rationale": "The supplied evidence consistently identifies the subject, describes its charitable classification, activities, ethos and purpose, and provides audited financial information for the relevant reporting period."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0028",
+      "instance_id": "cg406:subject:96135bad66c645ecb487fba1f059240c:SDC-0028",
+      "mechanical_validation": "invalid",
+      "mechanical_validation_error": "ValidationError: 3 validation errors for EvidenceSelectionOutput\nproposition_support.0\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nproposition_support.1\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nproposition_support.5\n  Value error, reported program, beneficiary, address, or geography metadata cannot alone establish supported service scope [type=value_error, input_value={'evidence_ids': ['srcrec...al_status': 'satisfied'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "model": "gpt-5.6-luna",
+      "outcome": "supported",
+      "outcome_category": "supported",
+      "packet_hash": "6a07a1901df20a69b7e90500de9567c1d44d8a7b1a15da89135a9966c371cc89",
+      "physical_attempt_id": "physical:3b1cdb7dcf3c5b82746b2caca5645e7165a85027c3be0ebe59f6c677938dbc8e",
+      "prepared_request_body_sha256": "0b5939a3086b923b1dc70638db6a77f3b24150d0f82a2496d68d1c0e0c0b6fb8",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+            "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+          ],
+          "proposition_id": "proposition:9f0c8aa526579f4dbde02f70f4cdf635a22df7d844ce012de5791febea95e732",
+          "qualification": null,
+          "scope_basis": "program_metadata",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+            "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+          ],
+          "proposition_id": "proposition:85ca6d6d291c070dbcb28efa667bbed81c9c789b5bb515725a7bad753f6171ba",
+          "qualification": null,
+          "scope_basis": "operational_geography",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+          ],
+          "proposition_id": "proposition:95175e23c3cbf2c28d29a4c95a25eb4946485930c168a8a216eb37a59a2c5636",
+          "qualification": null,
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+            "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5"
+          ],
+          "proposition_id": "proposition:eab762a03fd979a04cc4706e6536d382bc89d2d1356afcd054a16b2235ecd471",
+          "qualification": null,
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+            "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1"
+          ],
+          "proposition_id": "proposition:689f6a627384c7dcb2dcc1487e540223e77bdf9dcd0d8be8a326eda65b0ce9a4",
+          "qualification": null,
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+            "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+            "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+            "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+          ],
+          "proposition_id": "proposition:81b06df4303e6581efecfa2830bf76c30a9d32a3e4892eac2fe43b7487d3ae2f",
+          "qualification": null,
+          "scope_basis": "program_metadata",
+          "scope_status": "bounded_scope",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:39219ee4d253e4b87a9332abbb55a297866ebf3481335613ce08d7db0875f90f",
+      "provider_request_id": "req_299a10501b5940ec96dbb7957b1df2ff",
+      "provider_request_item_id": "requestitem:b965eb1538c7f5c6d613883e8097cc904017d817179fa387f8d68c7e54ae34e2",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr",
+        "official_website"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+        "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+        "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+        "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1",
+        "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+      ],
+      "raw_response_sha256": "f70e4a0391759aaab51a2f10af0a4a7693f1b92695073f88483684480f19277b",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [],
+      "schema_hash": "81826909e141589e0b48824fafb94fe5e4951867e670df8c36fa0bca05dc46f4",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:322eada86ef3bbe823ba9e96a301b761b72006671369de7e477b5e08827efc40",
+        "srcrec:b1f43e35ff0a2370a4a57c63b11db20592a436c47d3945d437a5527d612e5828",
+        "srcrec:af51a2ab8880ada1d150c8741f80731fb9c6fdf4f050a86c50c623b1b38b4ab5",
+        "srcrec:41a479c398ec97ddf7b37626763323c961ebb00accf896b8755bb67b92591dd1",
+        "srcrec:66f9664342d7e5c5a8c9fde25098c4a4cb394d85c22ad34d7935808d2b5c6876"
+      ],
+      "subject_id": "subject:96135bad66c645ecb487fba1f059240c",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 41808,
+        "input_tokens_details": {
+          "cache_write_tokens": 41805,
+          "cached_tokens": 0
+        },
+        "output_tokens": 2118,
+        "output_tokens_details": {
+          "reasoning_tokens": 225
+        },
+        "total_tokens": 43926
+      }
+    },
+    {
+      "actual_aud": "0.011235",
+      "actual_usd": "0.007391",
+      "conclusion": {
+        "confidence": "low",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+            "note": "Contains charity and program metadata, stated activities, beneficiary categories, and Australia program location, but does not establish the supplied proposition identities.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+            "note": "Contains charity registration, historical records, program metadata, and stated activities, but does not establish the supplied proposition identities.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+            "note": "Contains 2025 financial statements and descriptions of principal activities, but does not establish the supplied proposition identities.",
+            "role": "context"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d",
+            "note": "Contains source-native entity facts and a reference to family services, but does not establish the supplied proposition identities.",
+            "role": "context"
+          }
+        ],
+        "outcome": "insufficient_evidence",
+        "rationale": "The packet does not provide the proposition text or evidence sufficient to establish the subject, scope, and temporal requirements for any of the three frozen proposition identities. Program metadata, beneficiary categories, address, and operational or program geography do not by themselves establish service-delivery coverage or an eligible service cohort."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0019",
+      "instance_id": "cg406:subject:99d810fb8e6e4ac7adc2ee0dd3e7e095:SDC-0019",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "model": "gpt-5.6-luna",
+      "outcome": "insufficient_evidence",
+      "outcome_category": "insufficient",
+      "packet_hash": "0e0d6098f492002cecd58a0e74d3b3ada7ed3e99eeafe72e5a5d9209dcc3b79c",
+      "physical_attempt_id": "physical:fa4c790c7ffd43db204e8225b0d4c023a72e24f9c4b4d6043e744e4e05c28f21",
+      "prepared_request_body_sha256": "1a564cbeeaea126b27af180a7d8c45937db8e4ff1c79d064b42582b19835ea43",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:afdc03d0f0e179a18dd70267c2dee72c729462ad0f5cbdcb829a5985962a454f",
+          "qualification": "The supplied evidence does not establish the allegation, its subject, scope, or applicable time.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:34627e3242f2ca21f540951cb5376600aebba58675654dd5f61e860c6948bffa",
+          "qualification": "The supplied evidence does not establish the correction, its subject, scope, or applicable time.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        },
+        {
+          "evidence_ids": [],
+          "proposition_id": "proposition:9c82e7e051c62eeb2eeded62e654dbb85172e40fbf30fbb5c7d429899af62fde",
+          "qualification": "The supplied evidence does not establish a formal finding, its subject, scope, or applicable time.",
+          "scope_basis": "unresolved",
+          "scope_status": "unresolved",
+          "support_state": "not_established",
+          "temporal_status": "unresolved"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:4c4686a2edd5703ec20f07f17a9adf4b079a77e4ac0bc97da82dcf28c493fbaa",
+      "provider_request_id": "req_fb5035f60f2d48829e3d38b74b5a57d9",
+      "provider_request_item_id": "requestitem:3af29341f9a1352fc8946896f08ec7179edeb8684d037982c4dd21403cbba17f",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+        "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+        "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+        "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+      ],
+      "raw_response_sha256": "5e726b8a0bd1eddca85a30fcba04b50d213e748c54ac60f7b02a42c9e464bd6b",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [],
+      "schema_hash": "fc1b76440a6296d5124f27dfff6b84957df313fdc52c14bb9bf90b1037a4068a",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:40cc7b5632108cdd2adab0dcbcf9916b1a7e959c5d2431e0534781e6c2ce2a97",
+        "srcrec:b5adebba27e1578a92bb6d501ede4bb3abc9bdcfa642bff24ba90df63855629e",
+        "srcrec:41c522e8002d03176dd951202eddadfa8653ce359707da8e588d53505d052c4d",
+        "srcrec:bc71629ccf9c2daafd198cd26e34f46e516f0f3cacb5472ab9b995faede9557d"
+      ],
+      "subject_id": "subject:99d810fb8e6e4ac7adc2ee0dd3e7e095",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 24661,
+        "input_tokens_details": {
+          "cache_write_tokens": 24658,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1021,
+        "output_tokens_details": {
+          "reasoning_tokens": 143
+        },
+        "total_tokens": 25682
+      }
+    },
+    {
+      "actual_aud": "0.008962",
+      "actual_usd": "0.005896",
+      "conclusion": {
+        "confidence": "high",
+        "evidence": [
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+            "note": "Audited 2024 financial statements report charity contributions of $37,094,958 for the year ended 30 June 2024 and describe grant-making objectives and activities.",
+            "role": "supporting"
+          },
+          {
+            "additional_meanings": [],
+            "evidence_id": "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+            "note": "Annual information statement reports $37,094,958 in grant donations in Australia and total expenses of $37,907,630 for 2024.",
+            "role": "supporting"
+          }
+        ],
+        "outcome": "supported",
+        "rationale": "The supplied 2024 financial evidence establishes historical grant expenditure and the allocation of total expenses between grant donations and other expenses for the relevant reporting period."
+      },
+      "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+      "contract_version": "1.2",
+      "delivery_mode": "standard",
+      "demand_id": "SDC-0014",
+      "instance_id": "cg406:subject:d0b269be3d5d4b6db24d6d203637dfa5:SDC-0014",
+      "mechanical_validation": "valid",
+      "mechanical_validation_error": null,
+      "model": "gpt-5.6-luna",
+      "outcome": "supported",
+      "outcome_category": "supported",
+      "packet_hash": "49977fe865e195ec8b86a58c0c46e7ac532639c50e4c8e16b1e2a00a93fc5f6a",
+      "physical_attempt_id": "physical:9e8fdb8fbaef5013dcb393d9a10a41e6b03473756f01f1d097eb904ba26ed960",
+      "prepared_request_body_sha256": "43c2267cec63343e196b5f083686e7cc01137145e7622ff21d7dd5836e042103",
+      "prompt_sha256": "7b1e2eb9738dfce0ba83b78baacd8323607e4e624f9fa82f18f33085e773c40d",
+      "proposition_support": [
+        {
+          "evidence_ids": [
+            "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+            "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89"
+          ],
+          "proposition_id": "proposition:4e0205561de7604cb4749026edd80b70045c8fb695f05163c700c0984b87c3c7",
+          "qualification": "For the financial year ended 30 June 2024, reported charity contributions/grant donations were $37,094,958.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        },
+        {
+          "evidence_ids": [
+            "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+            "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89"
+          ],
+          "proposition_id": "proposition:2786c16be339546231abadaed862064497d09c1ca2183bf6c2c6115a85373870",
+          "qualification": "For the financial year ended 30 June 2024, $37,094,958 of $37,907,630 total expenses was reported as charity contributions/grant donations, with $812,672 reported as other expenses.",
+          "scope_basis": "not_applicable",
+          "scope_status": "subject",
+          "support_state": "supported",
+          "temporal_status": "satisfied"
+        }
+      ],
+      "provider_model": "gpt-5.6-luna",
+      "provider_receipt_id": "standard-receipt:ae6b88fffca0795f8c73299e720db3ff096a021703061238edc513ddcc8ddaf4",
+      "provider_request_id": "req_e2e06f46d0d8471b8e48ead0d61b2bdc",
+      "provider_request_item_id": "requestitem:3f46aa61a9223e044b930c5e01c5166e2c1dfef41861395f6d969dbc1cc4f225",
+      "provider_response_status": "completed",
+      "provider_service_tier": null,
+      "provider_visible_evidence_families": [
+        "acnc_ais_bundle",
+        "acnc_register",
+        "annual_report",
+        "ato_abr_dgr"
+      ],
+      "provider_visible_evidence_ids": [
+        "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89",
+        "srcrec:7ed8312eab3d9a1898ec888f5ed438640ac96d4a2ab70cf6c428186b73ad2767",
+        "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+        "srcrec:9f966bfa7264b4648d0e92161f9e4e9b0dce2b687440f4a3e85f08f79032ea84"
+      ],
+      "raw_response_sha256": "98c7ce143df5ce259cc92e984ffd48d0f048112743a0098941df72d50f736b11",
+      "reasoning_effort": "low",
+      "rejected_evidence_ids": [],
+      "schema_hash": "6b11c8503fa62e0ed2acd744583bd891893dc7121fd9d649c498aaa4eaeb2619",
+      "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.2",
+      "schema_version": "1.2-packet-proposition-identity",
+      "selected_evidence_ids": [
+        "srcrec:e610878f20813bd28d5cd51aa710ea3714f47ef76861995ce365691c0590e539",
+        "srcrec:6369715195526995d1a16dadecf7993b82d2832228ee87a93c77a0887a17fe89"
+      ],
+      "subject_id": "subject:d0b269be3d5d4b6db24d6d203637dfa5",
+      "terminal_status": "completed",
+      "transport_attempts": 1,
+      "transport_status": "COMPLETED",
+      "usage": {
+        "input_tokens": 19426,
+        "input_tokens_details": {
+          "cache_write_tokens": 19423,
+          "cached_tokens": 0
+        },
+        "output_tokens": 866,
+        "output_tokens_details": {
+          "reasoning_tokens": 175
+        },
+        "total_tokens": 20292
+      }
+    }
+  ],
+  "run_id": "run:cf5d70ee3d9b1dd65f2ad8da25f9f55a65452403ec479028b87a527baa32d10f",
+  "schema": "charitygraph.cg406-development-terminal-result-ledger/v2"
+}

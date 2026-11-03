@@ -1,0 +1,6 @@
+{
+  "budget_transferred_from_cg406": false,
+  "provider_calls": 0,
+  "reason": "no deterministic provider-ready packet or response schema can be constructed without parsing prose or inventing missing semantics",
+  "status": "NOT_CALCULABLE"
+}

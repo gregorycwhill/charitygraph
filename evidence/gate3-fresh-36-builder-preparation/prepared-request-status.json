@@ -1,0 +1,153 @@
+{
+  "instances": [
+    {
+      "instance_id": "g3fresh-v1:subject:02649cdcb42049bb8dedd30f2333e150:SDC-C11:domain-11",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:0889b4decb854e71ab4784479ca95c03:SDC-C11:domain-10",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:16fba76fde2242d5870835b18b4e8b8d:SDC-C03:domain-5",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:1823309bdd06417c9928033603cb6e39:SDC-C11:domain-9",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:1a9ec5de3fc043ff9226fb95a6cae31b:SDC-C08:domain-8",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:238c896dfb534031be3483925fabf5c6:SDC-C11:domain-11",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:273e6f2b2bf449af9e821d27f0aa98a2:SDC-C15:domain-18",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa:SDC-C12:domain-15",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:38be43a6a7824ca48d764c6aa837089b:SDC-C14:domain-17",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:3db262372d0c441892e590da23b19620:SDC-C10:domain-12",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:404ef21919344b8b85003c1495a946d2:SDC-C10:domain-12",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:420e65d3e33d4127a1b61bd0567705b6:SDC-C05:domain-7",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:4709afffeced4a0a9534d4a4c0701f4c:SDC-C08:domain-6",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:48d316c9a283464cabef8394ae3f9811:SDC-C11:domain-9",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:4b704545bc574fe5b2ad66528f3e41a2:SDC-C15:domain-18",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2:SDC-C10:domain-14",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:5c664c0c90444ac6a3c3c8830e7760db:SDC-C08:domain-8",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:617528dfa51a4c548e2e744c6f828e65:SDC-C05:domain-7",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:653b6ad45f784ac0be5dc126a4c37f90:SDC-C16:domain-4",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:6683c56dfd67439f9944e6004f4c5695:SDC-C14:domain-17",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:8e167e33641c490a87a88403898f3ffd:SDC-C19:domain-3",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:8f50707ffe0b473bb618e9fe0a45106a:SDC-C01:domain-1",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:a7f2063199ab4206bc218bd4d873a1b4:SDC-C20:domain-13",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:aafdb7638e2f455a88fc60cd49fc47d5:SDC-C16:domain-4",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:b09e07959e924badbfed30df307d3fc2:SDC-C10:domain-14",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:bd56b98c417c40f2beb20c5bccffed23:SDC-C03:domain-2",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:c33428aa23d34d618eccbd3c59068e84:SDC-C03:domain-5",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:c88b94d76f6b4857ac278acf15f17519:SDC-C08:domain-6",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:c8974e93d66844d99882b2851259114d:SDC-C03:domain-2",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:d38d7981a6064ea5b93a756b35f4b4cd:SDC-C13:domain-16",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:d4e9beaf947041f493a411dc121e94a9:SDC-C13:domain-16",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:d5096a9d6a5f4a6aa90c0e11856b4d6b:SDC-C11:domain-10",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:d524da9cfe8742509f62bd9c2d3124b8:SDC-C01:domain-1",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:eb8bfa0058a64e24880c2e8ef403c709:SDC-C20:domain-13",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:ee7cec12f0bc4684ac4d39d7db0b1f41:SDC-C19:domain-3",
+      "status": "blocked_before_packet_materialization"
+    },
+    {
+      "instance_id": "g3fresh-v1:subject:f01bc09f18df418ea31607b0ff4c38b0:SDC-C12:domain-15",
+      "status": "blocked_before_packet_materialization"
+    }
+  ],
+  "prepared_request_count": 0,
+  "prepared_run_sha256": null,
+  "reason": "concrete frozen demand contract unavailable",
+  "schema": "charitygraph.g3fresh36.prepared-request-status/v1",
+  "status": "not_materialized"
+}

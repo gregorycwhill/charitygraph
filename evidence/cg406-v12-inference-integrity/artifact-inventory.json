@@ -1,0 +1,11 @@
+{
+  "artifacts": {
+    "forensic-diagnosis.json": "81a8b5558e5b2f963da77cd9ca7732d7a8956f32318057d5a9dd2ecfd244154f",
+    "handoff.json": "0fc1a3bb568db53014d2d924548513b42066c1897f6308950610fe35b319cf49",
+    "preparation-summary.json": "d2f64f1e23efbd634246b7230c31f57e042c51b229a6930eba37788323fe8c7b",
+    "source-relevance-matrix.json": "92a6498f76b479f6678afaf88ee68904e4744fa03551ff4850b3471a9f12c28b",
+    "summary.md": "8a42a71f1e2154f8357c5e545ab78cbbc1438f6e5dbdeddc0cc91d0e25ab37be",
+    "test-results.json": "51067dd12f3325695271f867493f67346da633e97acab5ca99433338879b5e74",
+    "typed-demand-contract.json": "a39fedfc16f22eb04bf03070d10ee3546810883ca09967cdfcdf91e1b862273e"
+  }
+}

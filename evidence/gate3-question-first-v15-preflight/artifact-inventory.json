@@ -1,0 +1,55 @@
+{
+  "artifacts": [
+    {
+      "bytes": 707,
+      "path": "blockers-and-limitations.json",
+      "sha256": "9ff5b170e44e9ddb8852e0888ac51f95182ea8390c33007d7195725a56f33826"
+    },
+    {
+      "bytes": 243,
+      "path": "execution-cost-forecast.json",
+      "sha256": "ed92ad688c0d0efb6c76356d7fe8b7bf79bd49996ee6e6de0a64d6faa30871a8"
+    },
+    {
+      "bytes": 96,
+      "path": "frozen-execution-packet-manifest.json",
+      "sha256": "22647ba7248f83749a4930cb849072f15cc1bb79f0a521417c42500e671ed483"
+    },
+    {
+      "bytes": 3062,
+      "path": "frozen-sample-verification.json",
+      "sha256": "1e1890ce7d90ab232a85bc4f7a82769c3d8c9a0f84bd71804e236f63024c6813"
+    },
+    {
+      "bytes": 188,
+      "path": "no-oracle-no-provider-attestation.json",
+      "sha256": "34e1ee55b4ed946d8f41886f218f8c3ca5abe839f044c306f22650ae31ea7542"
+    },
+    {
+      "bytes": 22895,
+      "path": "per-case-lowering-results.json",
+      "sha256": "0df08a8b5ea08148d0c4f0d0f89faa384e0a780ca52c1c2270d2b5f2b902c8ef"
+    },
+    {
+      "bytes": 219,
+      "path": "preflight-test-results.json",
+      "sha256": "0f1833203b6c278cfdcdf383ff31ba43b8f41d4402308fbf070527c9d14be495"
+    },
+    {
+      "bytes": 141,
+      "path": "provider-visible-evidence-manifest.json",
+      "sha256": "38bbe188f307a6c6f7ddf44e3b8e113722cd4f8f84bddb81fb2b3bf88f2227b0"
+    },
+    {
+      "bytes": 113,
+      "path": "retained-evidence-body-inventory.json",
+      "sha256": "57acb4164d9b00e971948e55b6d8533925c3f3eebfb9362931540b485622234f"
+    },
+    {
+      "bytes": 8828,
+      "path": "source-acquisition-and-admission-ledger.json",
+      "sha256": "6f0ecda5cd13fc869457675275b7d000b8e907b48b23d2492f4ed44d311a7856"
+    }
+  ],
+  "schema": "charitygraph.evidence-inventory/v1"
+}

@@ -1,0 +1,1049 @@
+{
+  "records": [
+    {
+      "abn": "64002806233",
+      "canonical_legal_entity_name": "Amnesty International Australia",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:00fd5d9d7b844d74ae64c4f47f7c4538"
+    },
+    {
+      "abn": "52000399744",
+      "canonical_legal_entity_name": "Guide Dogs NSW/ACT",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+    },
+    {
+      "abn": "74851544037",
+      "canonical_legal_entity_name": "The Royal Society for the Prevention of Cruelty to Animals (Queensland) Limited",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:04549d1f5c7f4f658e4e33c8eee4f0fe"
+    },
+    {
+      "abn": "26164251245",
+      "canonical_legal_entity_name": "Human Appeal International Australia",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:0889b4decb854e71ab4784479ca95c03"
+    },
+    {
+      "abn": "52404606134",
+      "canonical_legal_entity_name": "The Peter & Lyndy White Foundation",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:16fba76fde2242d5870835b18b4e8b8d"
+    },
+    {
+      "abn": "33107782196",
+      "canonical_legal_entity_name": "Oz Harvest Limited",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:1823309bdd06417c9928033603cb6e39"
+    },
+    {
+      "abn": "82147006639",
+      "canonical_legal_entity_name": "Islamic Relief Australia",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:1a9ec5de3fc043ff9226fb95a6cae31b"
+    },
+    {
+      "abn": "14786237480",
+      "canonical_legal_entity_name": "The Trustee For Peter Maccallum Cancer Foundation",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:1f6be8711c364328b77cf6cb5d5d44ab"
+    },
+    {
+      "abn": "21006566972",
+      "canonical_legal_entity_name": "Murdoch Children's Research Institute",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:238c896dfb534031be3483925fabf5c6"
+    },
+    {
+      "abn": "65069482829",
+      "canonical_legal_entity_name": "The Trustee For Channel 7 Telethon Trust",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:273e6f2b2bf449af9e821d27f0aa98a2"
+    },
+    {
+      "abn": "54610124322",
+      "canonical_legal_entity_name": "Dominican Education Australia Ltd",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa"
+    },
+    {
+      "abn": "38981887768",
+      "canonical_legal_entity_name": "THE TRUSTEE FOR AUSTRALIAN PHILANTHROPIC SERVICES FOUNDATION",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:38be43a6a7824ca48d764c6aa837089b"
+    },
+    {
+      "abn": "90952801237",
+      "canonical_legal_entity_name": "Macquarie University",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:3db262372d0c441892e590da23b19620"
+    },
+    {
+      "abn": "78053639115",
+      "canonical_legal_entity_name": "Bush Heritage Australia",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:404ef21919344b8b85003c1495a946d2"
+    },
+    {
+      "abn": "87000001641",
+      "canonical_legal_entity_name": "The Royal Society For The Prevention Of Cruelty To Animals; New South Wales",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:420e65d3e33d4127a1b61bd0567705b6"
+    },
+    {
+      "abn": "90970605069",
+      "canonical_legal_entity_name": "Caritas Australia Limited",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:43db3f46f7274c8382905701f287ec09"
+    },
+    {
+      "abn": "94178965125",
+      "canonical_legal_entity_name": "The Monash University Foundation",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:4709afffeced4a0a9534d4a4c0701f4c"
+    },
+    {
+      "abn": "22617686905",
+      "canonical_legal_entity_name": "The Ramsay Centre for Western Civilisation",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:48d316c9a283464cabef8394ae3f9811"
+    },
+    {
+      "abn": "65159324697",
+      "canonical_legal_entity_name": "The Sunrise Project Australia Limited",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:4b704545bc574fe5b2ad66528f3e41a2"
+    },
+    {
+      "abn": "69084797965",
+      "canonical_legal_entity_name": "Royal Childrens Hospital Good Friday Appeal",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:54a09c18d354495eb2fde6a01480b86b"
+    },
+    {
+      "abn": "27076461360",
+      "canonical_legal_entity_name": "Australian Cancer Research Foundation",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2"
+    },
+    {
+      "abn": "41069508398",
+      "canonical_legal_entity_name": "THE PERPETUAL FOUNDATION",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:5c664c0c90444ac6a3c3c8830e7760db"
+    },
+    {
+      "abn": "57102400993",
+      "canonical_legal_entity_name": "Global Development Group",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:617528dfa51a4c548e2e744c6f828e65"
+    },
+    {
+      "abn": "48321126727",
+      "canonical_legal_entity_name": "Cancer Council Queensland",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "HISTORICAL_SEMANTIC_ATTEMPT",
+          "exposure_type": "subject",
+          "origin": "identity_map.historical_semantic_attempt"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:638f9d56a6e34625841feb204ec245eb"
+    },
+    {
+      "abn": "39097054918",
+      "canonical_legal_entity_name": "CONGREGATIONAL CHRISTIAN CHURCH SAMOA MELBOURNE PARISH INC",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:653b6ad45f784ac0be5dc126a4c37f90"
+    },
+    {
+      "abn": "37646526132",
+      "canonical_legal_entity_name": "SUNRISE FOUNDATION LIMITED",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:6683c56dfd67439f9944e6004f4c5695"
+    },
+    {
+      "abn": "15000002522",
+      "canonical_legal_entity_name": "Mission Australia",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG405",
+          "exposure_type": "subject",
+          "origin": "cg405_acnc_exact_abn_exposure_exclusion"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_CG405_exact_authority_identifier_overlap_within_registered_charity_legal_entity_scope",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:67db77d503aa4689a78c685704cc8a96"
+    },
+    {
+      "abn": "61426486715",
+      "canonical_legal_entity_name": "Cancer Council Victoria",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:6da4240b384242a78455a01fc28e0ed8"
+    },
+    {
+      "abn": "37882817280",
+      "canonical_legal_entity_name": "University Of Western Australia",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:771dbdb52fe54cb49ebcce20f72bd250"
+    },
+    {
+      "abn": "36068572556",
+      "canonical_legal_entity_name": "Australian Wildlife Conservancy",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:78393016b9ad44dd832cfa913b7122ba"
+    },
+    {
+      "abn": "23082732027",
+      "canonical_legal_entity_name": "St Catherine's Aged Care Services",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:8e167e33641c490a87a88403898f3ffd"
+    },
+    {
+      "abn": "71004196230",
+      "canonical_legal_entity_name": "Royal Flying Doctor Service Of Australia (Victorian Section)",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:8f50707ffe0b473bb618e9fe0a45106a"
+    },
+    {
+      "abn": "57057493017",
+      "canonical_legal_entity_name": "The Leukaemia Foundation Of Australia Limited",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:93f185643c194b2da46032afc9521b30"
+    },
+    {
+      "abn": "49004875807",
+      "canonical_legal_entity_name": "Plan International Australia",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:96135bad66c645ecb487fba1f059240c"
+    },
+    {
+      "abn": "84114483091",
+      "canonical_legal_entity_name": "The Church Of Jesus Christ Of Latter-day Saints Australia",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:99d810fb8e6e4ac7adc2ee0dd3e7e095"
+    },
+    {
+      "abn": "53406142168",
+      "canonical_legal_entity_name": "Puutu Kunti Kurrama and Pinikura People Charitable Trust",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:a7f2063199ab4206bc218bd4d873a1b4"
+    },
+    {
+      "abn": "16641057338",
+      "canonical_legal_entity_name": "CANVA FOUNDATION LIMITED",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:aafdb7638e2f455a88fc60cd49fc47d5"
+    },
+    {
+      "abn": "71595544058",
+      "canonical_legal_entity_name": "Victory Life Community Services Inc",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:b09e07959e924badbfed30df307d3fc2"
+    },
+    {
+      "abn": "15190821561",
+      "canonical_legal_entity_name": "Cancer Council Of Western Australia (Inc)",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:bd56b98c417c40f2beb20c5bccffed23"
+    },
+    {
+      "abn": "59135483055",
+      "canonical_legal_entity_name": "Epworth Medical Foundation Limited",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:c33428aa23d34d618eccbd3c59068e84"
+    },
+    {
+      "abn": "96723184640",
+      "canonical_legal_entity_name": "Mater Foundation Ltd as trustee for the Mater Foundation",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:c88b94d76f6b4857ac278acf15f17519"
+    },
+    {
+      "abn": "30157737329",
+      "canonical_legal_entity_name": "Latter-day Saint Charities Australia",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:c8974e93d66844d99882b2851259114d"
+    },
+    {
+      "abn": "46070556642",
+      "canonical_legal_entity_name": "The Fred Hollows Foundation",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG405",
+          "exposure_type": "subject",
+          "origin": "cg405_acnc_exact_abn_exposure_exclusion"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_CG405_exact_authority_identifier_overlap_within_registered_charity_legal_entity_scope",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:ca20920c8c074a268f09b7a57866479a"
+    },
+    {
+      "abn": "28004778081",
+      "canonical_legal_entity_name": "World Vision Australia",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG405",
+          "exposure_type": "subject",
+          "origin": "cg405_acnc_exact_abn_exposure_exclusion"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_CG405_exact_authority_identifier_overlap_within_registered_charity_legal_entity_scope",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:cf042745edd84e58bce4e1c60704c472"
+    },
+    {
+      "abn": "22627812672",
+      "canonical_legal_entity_name": "THE TRUSTEE FOR The Benevolent Relief Fund",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG406",
+          "exposure_type": "subject",
+          "origin": "cg406_frozen_subject_identifier_manifest"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-provider-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v12-development-replay"
+        },
+        {
+          "campaign": "CG406",
+          "exposure_type": "exact_instance",
+          "origin": "prepared-run-identity.json:cg406-v14-final-development-replay"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d0b269be3d5d4b6db24d6d203637dfa5"
+    },
+    {
+      "abn": "50169561394",
+      "canonical_legal_entity_name": "Australian Red Cross Society",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG405",
+          "exposure_type": "subject",
+          "origin": "cg405_acnc_exact_abn_exposure_exclusion"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_CG405_exact_authority_identifier_overlap_within_registered_charity_legal_entity_scope",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d10dfad31cb04c5fb27ada0a81f36b69"
+    },
+    {
+      "abn": "70388962804",
+      "canonical_legal_entity_name": "The Trustee For Lifehouse Australia Trust",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d38d7981a6064ea5b93a756b35f4b4cd"
+    },
+    {
+      "abn": "56190972059",
+      "canonical_legal_entity_name": "Climate and Environment Foundation",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d4e9beaf947041f493a411dc121e94a9"
+    },
+    {
+      "abn": "12004251423",
+      "canonical_legal_entity_name": "The Walter And Eliza Hall Institute Of Medical Research",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d5096a9d6a5f4a6aa90c0e11856b4d6b"
+    },
+    {
+      "abn": "15652292423",
+      "canonical_legal_entity_name": "THE NORTH FOUNDATION (HEALTH PROMOTION CHARITY) LIMITED",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:d524da9cfe8742509f62bd9c2d3124b8"
+    },
+    {
+      "abn": "47002684737",
+      "canonical_legal_entity_name": "Children's Medical Research Institute",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:eb8bfa0058a64e24880c2e8ef403c709"
+    },
+    {
+      "abn": "80009663478",
+      "canonical_legal_entity_name": "Royal Flying Doctor Service Of Australia (Queensland Section)",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:ee7cec12f0bc4684ac4d39d7db0b1f41"
+    },
+    {
+      "abn": "51116463846",
+      "canonical_legal_entity_name": "The Cancer Council NSW",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "G3_FRESH36_RETIRED",
+          "exposure_type": "exact_instance",
+          "origin": "retired_fresh36_frozen_selection"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_subject_or_instance_exposure",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:f01bc09f18df418ea31607b0ff4c38b0"
+    },
+    {
+      "abn": "28000030179",
+      "canonical_legal_entity_name": "The Smith Family",
+      "exclusion_eligibility": "EXCLUDED",
+      "exposure_origins": [
+        {
+          "campaign": "CG405",
+          "exposure_type": "subject",
+          "origin": "cg405_acnc_exact_abn_exposure_exclusion"
+        }
+      ],
+      "known_prior_semantic_exposure": true,
+      "mechanically_derived_reason": "recorded_CG405_exact_authority_identifier_overlap_within_registered_charity_legal_entity_scope",
+      "registration_status": "governed_acnc_identity_bound",
+      "subject_id": "subject:f284a1e0e31a4e04b7d9f8ae8863ef10"
+    }
+  ],
+  "schema": "charitygraph.gate3.question-first-subject-universe/v2.excluded"
+}

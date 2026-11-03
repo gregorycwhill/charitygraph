@@ -1,0 +1,6 @@
+{
+  "direct_fit_count": 19,
+  "result": "PRESERVED_BY_SEPARATE_VERSIONED_PATH",
+  "rule": "DIRECT_FIT contracts retain their approved v1.4 compatibility disposition; v1.5 does not overwrite historic v1.4 artefacts.",
+  "v1_4_files_modified": false
+}

@@ -1,0 +1,25 @@
+{
+  "artifacts": [
+    {
+      "bytes": 8947,
+      "path": "cg405-identity-crosswalk.json",
+      "sha256": "f3e83f84156ee69e71506b75365e0de11c40182b4cccdec7f317dfb57c87ad88"
+    },
+    {
+      "bytes": 1709,
+      "path": "historical-identity-lineage-analysis.md",
+      "sha256": "65db0753c6b2029b2cac1c3a214138e1da34fe10854b89a319a011dc1098d826"
+    },
+    {
+      "bytes": 3293,
+      "path": "updated-exposure-ledger.json",
+      "sha256": "d305e485fbb2370ed1eebd7a9699feebeedee1917296e4f3d86a78c57feffd0e"
+    },
+    {
+      "bytes": 2055,
+      "path": "verification-results.json",
+      "sha256": "a8fa8782db1a97488e766255cf7132c1114d29a45f6116bcc35a120e92442bf8"
+    }
+  ],
+  "schema": "charitygraph.evidence-inventory/v1"
+}

@@ -1,0 +1,265 @@
+{
+  "existing_oracle_accessed": false,
+  "minimum_after_freeze_procedure": [
+    "Freeze each independently designed complete specification under a new specification identity.",
+    "Give the sealed-oracle reviewer the new specifications, but not Builder responses or outcomes.",
+    "Independently revalidate every affected oracle row against the frozen exact proposition, scope, time, relation, and qualification requirements.",
+    "Reuse no old oracle identity automatically; reconstruct a row where revalidation finds a material question difference.",
+    "Seal a new oracle compatibility/reconstruction manifest before any later Builder execution."
+  ],
+  "per_instance": [
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:02649cdcb42049bb8dedd30f2333e150:SDC-C11:domain-11",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:f3ac2e7f9db5592de33be68274a952eea10067820ddd3ce132baa90c259d9ed9",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:0889b4decb854e71ab4784479ca95c03:SDC-C11:domain-10",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:e392a4d07734b24fec6940e7c154f1bf7065ed87d96954cdad6bb7ec826619bb",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:16fba76fde2242d5870835b18b4e8b8d:SDC-C03:domain-5",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:99afa2a59cdbfb0894020bfadac7e54ab8087c61bb73fccfc0122cde5af68be8",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:1823309bdd06417c9928033603cb6e39:SDC-C11:domain-9",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:774d56d49a1ea9220a81829d728a8b20ee7dcad52be073eec2c944782b8e3351",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:1a9ec5de3fc043ff9226fb95a6cae31b:SDC-C08:domain-8",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:47130e82515defd4d395ce4629dafc36672320b754e22a61adcc27fc2a8f0904",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:238c896dfb534031be3483925fabf5c6:SDC-C11:domain-11",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:12e740c746e66adff4ed16b70f4b199e6db0ad7fd440417068f9841a07b89b17",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:273e6f2b2bf449af9e821d27f0aa98a2:SDC-C15:domain-18",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:6edd9fd8392be02788033be34c456f1550b89dc6a9ff325a997c4d7f06ab7986",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:2c0d1d0b4b8d4a65ae90c98cc55eaffa:SDC-C12:domain-15",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:03eb3d0403835467f1e4b705c3ce8dbf0f447c42d6f7cfede198ba1c7e493ea8",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:38be43a6a7824ca48d764c6aa837089b:SDC-C14:domain-17",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:169d5b15c66a6e1290ab12fcce35a670b8b914519ec2d899d1c3371a8937de24",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:3db262372d0c441892e590da23b19620:SDC-C10:domain-12",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:07d77b68e1f44da7b9f43cc4c1aceb2219a6cde4370fc0da40056dae5345bde3",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:404ef21919344b8b85003c1495a946d2:SDC-C10:domain-12",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:5b8003ea3316206c42ddad552e0423d5740690847996c33436d4f30b2bdae66e",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:420e65d3e33d4127a1b61bd0567705b6:SDC-C05:domain-7",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:b215fb9330d3bd59ac6991c3e0e4d72f16d877b1f96326364d9f18c63f69ceee",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:4709afffeced4a0a9534d4a4c0701f4c:SDC-C08:domain-6",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:2b8ec53995676d27d75cbdafac0e561ab0239274204481b8f8b7d36abf9b5cbe",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:48d316c9a283464cabef8394ae3f9811:SDC-C11:domain-9",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:7ef1e0a69dcdc0dbc195681bd7963e313970ab925161d5e8a72fc5313c5e76fb",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:4b704545bc574fe5b2ad66528f3e41a2:SDC-C15:domain-18",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:811f2d3d733a80512dd75472799e3d8bfe977d67e4d38c8bc7f887a23ef7655c",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:5820c4c9ebc94b8bbb79c1e40a2f6cd2:SDC-C10:domain-14",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:b700ed91aafc85a2b85a10db35e3fb72fd374f0e9bf54b8371f8937940b8e2a2",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:5c664c0c90444ac6a3c3c8830e7760db:SDC-C08:domain-8",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:00f3ddfbdacdaf8bee3376db5e43ae070c132d3d2cc9f9700bda96c6eed27b9d",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:617528dfa51a4c548e2e744c6f828e65:SDC-C05:domain-7",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:8ce18c197a2f78bcf6c661024cebb021998cd013049b66e631a24e0cfb53e420",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:653b6ad45f784ac0be5dc126a4c37f90:SDC-C16:domain-4",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:92b95b39cf6f5a3da6c802a147106e841270eefe2c8af77386d9d0664f7dcead",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:6683c56dfd67439f9944e6004f4c5695:SDC-C14:domain-17",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:d77c6c163a6458628f3eaf8dc847e23805f80aba8c55828d1e1a0a34cf390361",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:8e167e33641c490a87a88403898f3ffd:SDC-C19:domain-3",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:074479f1c9e862230b48c102188e08a317602ab71e49516b3710e37f60134edd",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:8f50707ffe0b473bb618e9fe0a45106a:SDC-C01:domain-1",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:ea5c69d4e747114a3d594620b469fec30b3fd3402a4b79c7b5ea6e7425f845b5",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:a7f2063199ab4206bc218bd4d873a1b4:SDC-C20:domain-13",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:59ba0408b629a72b280520a236e1421c9e5f7f120772808a672b489bb623208b",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:aafdb7638e2f455a88fc60cd49fc47d5:SDC-C16:domain-4",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:552ee5addb7eb2b8dd1888665eea753a4ef7289b6c09943aa2b43711def82b52",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:b09e07959e924badbfed30df307d3fc2:SDC-C10:domain-14",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:fe931c2016f1870ce92f558575bff948b9de3669c6874b3e69b81125ecf2e41d",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:bd56b98c417c40f2beb20c5bccffed23:SDC-C03:domain-2",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:7a1d72927971119275823ab55af7500ecb50d91fed64b9e174576ab0cb120c5c",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:c33428aa23d34d618eccbd3c59068e84:SDC-C03:domain-5",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:95efdb091584cfdadd42be86a3db8e3d6965e96f9fd6ce833497f434620b746e",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:c88b94d76f6b4857ac278acf15f17519:SDC-C08:domain-6",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:9e10bc0b2d2987793b73303535f831bc5904002e52516bd76ce1ddb4a9dd2824",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:c8974e93d66844d99882b2851259114d:SDC-C03:domain-2",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:937790ac4a60afc0c9c2a54a447b973a5d4a833a73015010b4bc0c8fcfbc0b0b",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:d38d7981a6064ea5b93a756b35f4b4cd:SDC-C13:domain-16",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:099fcf8637a2ceb60711a8d4981680b3ff2dc69a6d90ea3ff99661b18b18e4bd",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:d4e9beaf947041f493a411dc121e94a9:SDC-C13:domain-16",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:8b8626752e2fa20086721aacbbedf36d8aaa429ebd9f638c5516b4ecf71b1bbb",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:d5096a9d6a5f4a6aa90c0e11856b4d6b:SDC-C11:domain-10",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:1efd39654384dc3f73c9b1e0193c5d3ba10835369f08c7d95d1bb32c150cc653",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:d524da9cfe8742509f62bd9c2d3124b8:SDC-C01:domain-1",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:2db3a36087bd17bea5eb19bcd8a34cb4905ab0b0d11a98d84b521a02287562db",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:eb8bfa0058a64e24880c2e8ef403c709:SDC-C20:domain-13",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:e0f19514a06df6cfbb346d7fd09c0b26f248cdff0469229fd13b7a7555851c09",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:ee7cec12f0bc4684ac4d39d7db0b1f41:SDC-C19:domain-3",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:5ccbd7ae15a45babb14f696a7a96f6c676b391804aa7750f5b2fdebb9fd10fc8",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    },
+    {
+      "existing_oracle_automatically_reusable": false,
+      "instance_id": "g3fresh-v1:subject:f01bc09f18df418ea31607b0ff4c38b0:SDC-C12:domain-15",
+      "reason": "candidate identity is not a substitute for an independently frozen question and oracle alignment review",
+      "specification_id": "demand-spec:124ffba0633d45dc216b42d92d95f0cf7c5464a7ae702341a667e4e7f3e2b117",
+      "status": "ORACLE_CANNOT_BE_APPLIED_UNTIL_INSTANCE_QUESTION_IS_FROZEN"
+    }
+  ],
+  "schema": "charitygraph.g3fresh36.oracle-compatibility-analysis/v1"
+}

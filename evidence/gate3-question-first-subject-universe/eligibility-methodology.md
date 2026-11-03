@@ -1,0 +1,5 @@
+# Question-first eligible-subject universe methodology
+
+The universe starts with the canonical governed 100-subject identity map. Each record contains only durable subject identity, ABN, canonical entity name, a governed registration-binding state, and mechanically derived exposure/exclusion fields. No source availability, source coverage, program/service data, answerability, semantic result, score, relevance assessment, oracle fact, or model response is read or emitted.
+
+Recorded subject and exact-instance exposure identifiers from CG405, CG406, the retired fresh-36 sample, and the historical semantic-attempt marker are resolved only against the governed identity map. Resolved subjects are excluded. Catalogue-template exposure is recorded but does not itself exclude any subject. An old exposure identifier that has no governed crosswalk is retained as an unresolved binding; it is never resolved from a name and blocks release for selection. The eligible records are sorted by stable subject ID. This process performs no subject selection and does not bind a question.

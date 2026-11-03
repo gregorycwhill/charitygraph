@@ -1,0 +1,202 @@
+{
+  "frozen_result_manifest_embedded_sha256": "9f8ae0fe0ff7841b9c1095677b0e7a4326eda7eed4f3f44d152193cd79eed0dd",
+  "hash_algorithm": "SHA-256",
+  "inventory_self_hash_excluded": true,
+  "local_artifact_count_excluding_inventory": 31,
+  "local_artifacts": [
+    {
+      "path": "accounting-reconciliation.json",
+      "sha256": "59040a26fddd628f46e941a10519e7c1136e80d9d1f01643fa574d8fd752eb36"
+    },
+    {
+      "path": "build_inventory.py",
+      "sha256": "519c4449f4db441b0c47409dd7c7526381651e9a42c914f632faae53cd110106"
+    },
+    {
+      "path": "compile_v14_handoff.py",
+      "sha256": "1a33eae8a8a6184a25c9d82a2848a6955c6ad2e0236bd00980c9bc783586c02a"
+    },
+    {
+      "path": "execution-authorization-record.txt",
+      "sha256": "b8a89d6e75ff77a70a8ec982897d8614c2a4a8d7a4d99fcff2d9631829f7451b"
+    },
+    {
+      "path": "execution-control.json",
+      "sha256": "7ff0d6b97ea8e03cd23f9ce699ee512deb32c2164aa1f40d3282776cef4f75fb"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_05548f0ccf7149e6de515c588d0e0fc9660b8e3a29c84818a5c6c15f4895a678.json",
+      "sha256": "1067c8424a0ef0a0cac83313c0ccbeb3c71af7a79a9caf7811a3a336bc5442cf"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_0c8670382dd4e601bfae3df3499433ae572c1bd9e691b92b24a7262715df5574.json",
+      "sha256": "2354b5fafa4852c298c2ec1ddb444eaaa0a11f151d85bec755039e55d66dbd0d"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_2351ed3c9bcbfb14e0c71dcf29d09f035fcbffc1b4fa3728119ea64a5ad4a9de.json",
+      "sha256": "f9fd83b36ff7f96ef02ed8268816a9be43bb14f500d16e2150e896d7f1fa63b7"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_29c9ea5b8d8494a24ec9f53af0939c7c6067400a45e0fa7ff3a5d43bbef077aa.json",
+      "sha256": "7cd05b3031cd69cbce465ceef105de046f7e8ef7e7c3bfb9030f12730ad7db2d"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_35e5b2fc771d8b1c99ae2f6a44a82687079c409bee7fc745dd47b250854cb1de.json",
+      "sha256": "1095474e23660b5cb4f4e5375ee052f48379f1dcabd0b398a0a588afd0bfd072"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_60b971d6426bc384dc834b0e195e74c612a92eca5da94917f41c27504f288f30.json",
+      "sha256": "4b2d86788618af95a30885900781960457eb296c8f5dad212a8bb83485f764d9"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_622dd70fc49e331b0f4d3bfa118473dce96b5d0452cd318b447d5ad02f25e207.json",
+      "sha256": "424a0e05e2aeac459cf54606ec10ef5abd48a9d51fb802db5263bf878c580073"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_681c2dac224e4f58586ecb4b766346ef426a3da5edbfb93acd88958aadd62f67.json",
+      "sha256": "ca0814ac97932229745487904e423e12ce4d20969738dca74c060546f53b0ddb"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_8111f774ba82ba935ec0b95d25e6ebaa4a678e58e2642168fb74b63713a5571b.json",
+      "sha256": "2111c8b6873b37150400ce0ef957035638e5641ea91d38fae25088ce1fc90873"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_ab0adb34716c60bb9423e44b8b3191ab0cf9675536a9554fe0a38e957d828e57.json",
+      "sha256": "ac74c582e981a4b46ab38b89ad6dc8637ef5310c8712c6e7d977ce4b9325a851"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_e8c236a6e42905ecc32f0787a809319b425df2d970d0bac785954f8cd9504c47.json",
+      "sha256": "64109752b031cc8b15323ed7cc1d6e193c9c9f696c7ec39a4713550d7180869d"
+    },
+    {
+      "path": "first-terminal-responses/requestitem_ee6509de8f51dd822038923084dbff8efd896bd8537c21afd7926e70eff2e549.json",
+      "sha256": "c794fd4d9852925b2ccdb91c623305e971779fc5ba64536ab67ecf26f7f72f5c"
+    },
+    {
+      "path": "freeze_v14_terminal_results.py",
+      "sha256": "accc2552578650d0d05be9c473e069cab88e1f3f74b1911ec32f7a45cf1d0b8e"
+    },
+    {
+      "path": "frozen-result-manifest.json",
+      "sha256": "d578510a774c18903350724597618ad0d7326eea81213c278e088c29499bf3d6"
+    },
+    {
+      "path": "mechanical-v13-v14-comparison.json",
+      "sha256": "d7c0663158554de9534a54b557b4cc0bb7e7fcf1f6568c9ec113f1847df24a3d"
+    },
+    {
+      "path": "postfreeze-analysis.json",
+      "sha256": "254fdb2d2f940482343bb9b4f87863bd68bb13853c074632116ce5a2d6a8c354"
+    },
+    {
+      "path": "prepared-run-identity.json",
+      "sha256": "8131800965925b1d5ef3be409f579f67f396e9df2cc3c39638b4105023eac1b3"
+    },
+    {
+      "path": "resume-verification.json",
+      "sha256": "c40a08484b6b70bb38a1c7e8bcc5d47d9bc392e3528ad96fce3f958de71410d8"
+    },
+    {
+      "path": "sol-handoff.json",
+      "sha256": "12022d5695cc01e422cf8b188c4b39fe3f7e9fcd6cb9a899f9555766929bdb4e"
+    },
+    {
+      "path": "summary.md",
+      "sha256": "cd01f556fc7a87c8af724f8cfea9486e36fb4397cb7e7e7af0e3a9b238af8c65"
+    },
+    {
+      "path": "targeted-diagnostics.md",
+      "sha256": "5b56764313ea8cfbdae203926242250f8c844ff1a4bbaf086dbf1396d1a8bffb"
+    },
+    {
+      "path": "terminal-result-ledger.json",
+      "sha256": "587fe13feda16ca8704357775540cdce5a32fbd0060c51a408527f548d343999"
+    },
+    {
+      "path": "test-results.json",
+      "sha256": "dc02cfd867205d791e164fe03b8b51f54732334fdac2a7c9f6c5480dad6ac9e1"
+    },
+    {
+      "path": "validate_v14_terminal_results.py",
+      "sha256": "16649a483241ebaea9bdb1928632f020c85c1b066de990863848a2e5e7d293a2"
+    },
+    {
+      "path": "validation-results.json",
+      "sha256": "f42b8c53dd80b1a4fde4b7f88550a1274a5118f25ebed0c44b43efa487aa40aa"
+    },
+    {
+      "path": "verify_v14_packet.py",
+      "sha256": "68658f677bb82e5dd0ba8b8102e0f3289eb63669afe6879ba891d3164d364898"
+    }
+  ],
+  "referenced_frozen_inputs_and_comparison_sources": [
+    {
+      "copied_into_packet": false,
+      "name": "prepared-run.json",
+      "path": "C:\\CharityGraph-runtime\\cg406-v14-final-development-replay-run01\\prepared-run.json",
+      "sha256": "4433399a2d827777c26b59fb309d6972ab5a74df9509d38bf7ab95dbc49d686a"
+    },
+    {
+      "copied_into_packet": false,
+      "name": "frozen-pricing-snapshot.json",
+      "path": "C:\\CharityGraph-runtime\\cg406-v14-final-development-replay-run01\\frozen-pricing-snapshot.json",
+      "sha256": "d570ce16a870381ba538b73cf9eee26475f005bed3fd91461f70c16ce90eb4f1"
+    },
+    {
+      "copied_into_packet": false,
+      "name": "frozen-subject-manifest.json",
+      "path": "C:\\CharityGraph-runtime\\cg406-fresh-governed-quality-holdout-a1\\frozen-subject-manifest.json",
+      "sha256": "bc0c63a6938cb23772213d3025bc70b363ddae8af6ae67e1e1b9a4d419eb66c8"
+    },
+    {
+      "copied_into_packet": false,
+      "name": "frozen-demand-instance-manifest.json",
+      "path": "C:\\CharityGraph-runtime\\cg406-fresh-governed-quality-holdout-a1\\frozen-demand-instance-manifest.json",
+      "sha256": "8aefa2a46838da065d93923004153abb905f1cabc087394aa58fa41f890b60fb"
+    },
+    {
+      "copied_into_packet": false,
+      "name": "governed-provider-corpus.json",
+      "path": "C:\\CharityGraph-runtime\\cg406-v13-inference-integrity-a3\\governed-provider-corpus.json",
+      "sha256": "6bd0b2736028942f4a48f99188d5f242e12187bd850c4195bc93b77a6f0bca7e"
+    },
+    {
+      "copied_into_packet": false,
+      "name": "artifact-rights-decisions.json",
+      "path": "C:\\CharityGraph-runtime\\cg406-v13-inference-integrity-a3\\artifact-rights-decisions.json",
+      "sha256": "278f4b0efd4bd7211af4b2a669985a6f1dc4353b32f208b4640872192cbec308"
+    },
+    {
+      "copied_into_packet": false,
+      "name": "v13-frozen-result-manifest.json",
+      "path": "C:\\CharityGraph-runtime\\cg406-v13-inference-integrity-a3\\v13-frozen-result-manifest.json",
+      "sha256": "a75e0eaabdfc472755082615ad73b1b108544ae58e0793d4fd7a64b375850505"
+    },
+    {
+      "copied_into_packet": false,
+      "name": "v13-terminal-result-ledger.json",
+      "path": "C:\\CharityGraph-runtime\\cg406-v13-inference-integrity-a3\\v13-terminal-result-ledger.json",
+      "sha256": "40fc16c0af979992ff7c2f10df1e238da645456fb26bd720d5fd98cf039c3cac"
+    },
+    {
+      "copied_into_packet": false,
+      "name": "v13-validation-results.json",
+      "path": "C:\\CharityGraph-clean\\charitygraph\\evidence\\cg406-v13-development-replay\\validation-results.json",
+      "sha256": "d61de171f92e51fcc7742ead36be2efe0cd41c0b6b984ccb549f1c53ad9140d2"
+    },
+    {
+      "copied_into_packet": false,
+      "name": "oracle-independent-reference-ledger.json (hash-only after v1.4 freeze)",
+      "path": "C:\\CharityGraph-blind-reference\\cg406\\oracle-output\\independent-reference-ledger.json",
+      "sha256": "1af26276c216fd2af7dbaa7517e372efb08e991c947a612f6866db381c77f752"
+    },
+    {
+      "copied_into_packet": false,
+      "name": "oracle-manifest.json (hash-only after v1.4 freeze)",
+      "path": "C:\\CharityGraph-blind-reference\\cg406\\oracle-output\\oracle-manifest.json",
+      "sha256": "549bf31a2d3edd1f6798a4661295c916c2169781b4e7f2ec87756380c0b2890a"
+    }
+  ],
+  "schema": "charitygraph.cg406-v14-final-evidence-inventory/v1",
+  "scope_note": "Raw request bodies and governed source bodies are not copied into the evidence packet. The twelve unchanged first terminal provider responses are included. Oracle content was not semantically inspected; its two listed files were read only for SHA-256 after the v1.4 result manifest was frozen."
+}

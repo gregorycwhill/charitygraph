@@ -1,0 +1,265 @@
+{
+  "ais_target": {
+    "ordinal": 2,
+    "reporting_year": 2025,
+    "source_family": "acnc_ais_bundle",
+    "status": "MISSING",
+    "substitution": "2024 not substituted"
+  },
+  "aud_spend": "0.00",
+  "binding_result": {
+    "input_manifest_sha256": "3c89eec74bd397cdce6cd644e522fdf68fedf30921b9a259cb8f8ede55c11591",
+    "rows": [
+      {
+        "acquisition_receipt_id": "acq:ac1279c49bb36c9c31c3f2651ca9ad1369bb9fede9c6a32c58ac823bbc38cbae",
+        "acquisition_status": "available",
+        "citation_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52000399744",
+        "date_or_period": "2026-11-03",
+        "decision_or_evidence_deficit": [
+          "private_provider_processing_rights_decision_not_observed"
+        ],
+        "observation_kind": "observation",
+        "ordinal": 1,
+        "original_evidence_scope": {
+          "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+          "scope_kind": "registered_entity",
+          "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+        },
+        "representation_artifact_id": "artifact:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+        "representation_sha256": "1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+        "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+        "source_artifact_id": "srcblob:07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+        "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+        "source_family": "acnc_register",
+        "source_record_id": "srcrec:d2025968c8b6c873f3cc83441289e70fc94c98a891f5a9a1f95a56d89ac3188b",
+        "source_role": "register_identity",
+        "source_sha256": "07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+        "status": "MISSING",
+        "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+      }
+    ],
+    "schema": "charitygraph.gate4.t3.acnc-source-evidence-binding/v1",
+    "source_universe_version": "v1"
+  },
+  "binding_runtime_test": {
+    "bound_count": 0,
+    "executed": true,
+    "factory_reference_created": false,
+    "interface": "existing T3 source-evidence binder via bind_retained_acnc_source_evidence",
+    "reasons": [
+      "private_provider_processing_rights_decision_not_observed"
+    ],
+    "status": "MISSING"
+  },
+  "normalized_representation": {
+    "artifact_id": "artifact:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+    "byte_size": 3214,
+    "path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-20261103\\normalized-representation.json",
+    "representation_origin": "third_party_api_representation_not_acnc_publisher_bytes",
+    "sha256": "1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82"
+  },
+  "provider_calls": 0,
+  "publications": 0,
+  "raw_response": {
+    "byte_size": 4086,
+    "materialized_exact_http_body_utf8": true,
+    "path": "C:\\CharityGraph-runtime\\g4-o1c-publicdata-acnc-register-20261103\\raw-response.json",
+    "sha256": "07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc"
+  },
+  "retention": {
+    "acquired_at_utc": "2026-11-03T00:33:45Z",
+    "acquisition_receipt": {
+      "acquisition_receipt_id": "acq:ac1279c49bb36c9c31c3f2651ca9ad1369bb9fede9c6a32c58ac823bbc38cbae",
+      "artifact_id": "srcblob:07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+      "content_hash": "07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+      "id": "acq:ac1279c49bb36c9c31c3f2651ca9ad1369bb9fede9c6a32c58ac823bbc38cbae",
+      "method": "caller_supplied_publicdata_api_transport",
+      "outcome": "available",
+      "received_at_utc": "2026-11-03T00:33:45Z",
+      "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+      "source_provenance": {
+        "currentness": {
+          "captured_at": "2026-11-03T00:33:45.171Z",
+          "source_version": "2026-10-26",
+          "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+          "status": "versioned_source_currentness_observed"
+        },
+        "publisher_original_bytes": false,
+        "rights": {
+          "id": "CC-BY-3.0-AU",
+          "title": "CC BY 3.0 AU",
+          "url": "https://creativecommons.org/licenses/by/3.0/au/"
+        },
+        "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+        "transport_capture_method": "curl stdout on ChatGPT execution environment; no local raw bulk CSV download",
+        "transport_captured_at": "2026-11-03T00:33:45.171Z",
+        "transport_schema": "charitygraph.private-source-transport/v1",
+        "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+        "upstream_original_csv_verification": "mirror_claim_not_locally_verified"
+      },
+      "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52000399744"
+    },
+    "acquisition_receipt_id": "acq:ac1279c49bb36c9c31c3f2651ca9ad1369bb9fede9c6a32c58ac823bbc38cbae",
+    "evidence_locator_id": "locator:9afcd9e219d72d9512f5b56824afeee9f21c45ec0e0eac622e56fce73f57a94e",
+    "local_retention_decision": {
+      "assessed_on": "2026-11-03",
+      "authority_kind": "governed_policy",
+      "axis": "local_retention",
+      "circumvention_used": false,
+      "decision_id": "rights:local:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+      "decision_version": "1",
+      "explicit_prohibition_found": false,
+      "id": "rights:local:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+      "lawful_public_access": true,
+      "policy_id": "CG_BOUNDED_LOCAL_ANALYTICAL_RETENTION_V1",
+      "policy_version": "1.0.0",
+      "representation_artifact_id": "artifact:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+      "representation_sha256": "1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+      "review_deadline": "2027-11-03",
+      "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+      "source_artifact_id": "srcblob:07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+      "source_record_id": "srcrec:d2025968c8b6c873f3cc83441289e70fc94c98a891f5a9a1f95a56d89ac3188b",
+      "status": "authorized"
+    },
+    "representation": {
+      "artifact_id": "artifact:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+      "citation_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52000399744",
+      "content_hash": "1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+      "date_or_period": "2026-11-03",
+      "evidence_locator_ids": [
+        "locator:9afcd9e219d72d9512f5b56824afeee9f21c45ec0e0eac622e56fce73f57a94e"
+      ],
+      "id": "artifact:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+      "materialisation": "canonical_json_v1",
+      "representation_class": "structured_factual",
+      "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+      "source_artifact_id": "srcblob:07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+      "source_provenance": {
+        "currentness": {
+          "captured_at": "2026-11-03T00:33:45.171Z",
+          "source_version": "2026-10-26",
+          "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+          "status": "versioned_source_currentness_observed"
+        },
+        "publisher_original_bytes": false,
+        "rights": {
+          "id": "CC-BY-3.0-AU",
+          "title": "CC BY 3.0 AU",
+          "url": "https://creativecommons.org/licenses/by/3.0/au/"
+        },
+        "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+        "transport_capture_method": "curl stdout on ChatGPT execution environment; no local raw bulk CSV download",
+        "transport_captured_at": "2026-11-03T00:33:45.171Z",
+        "transport_schema": "charitygraph.private-source-transport/v1",
+        "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+        "upstream_original_csv_verification": "mirror_claim_not_locally_verified"
+      },
+      "source_record_id": "srcrec:d2025968c8b6c873f3cc83441289e70fc94c98a891f5a9a1f95a56d89ac3188b",
+      "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+    },
+    "representation_artifact_id": "artifact:1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+    "representation_sha256": "1405b49e6dcf06b399f2b1e5f3a40b14f17051cdc318a336813159e80d76af82",
+    "rights_decisions": {},
+    "rights_status": {
+      "private_provider_processing": {
+        "authority_record_id": null,
+        "reason": "no real provider authority record supplied",
+        "status": "blocked"
+      },
+      "public_redistribution": {
+        "authority_record_id": null,
+        "reason": "public redistribution is outside this private retention task",
+        "status": "not_assessed"
+      }
+    },
+    "schema": "charitygraph.gate4.t3.acnc-real-evidence-retention/v1",
+    "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+    "source_artifact_id": "srcblob:07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+    "source_definition_id": "srcdef:21dbd2bcf09bc1c778964db71f37f6ff57a088a47838dd6168d7be661b562e21",
+    "source_family": "acnc_register",
+    "source_record": {
+      "about_subject_ids": [
+        "subject:02649cdcb42049bb8dedd30f2333e150"
+      ],
+      "acquired_at": "2026-11-03T00:33:45Z",
+      "evidence_scope": {
+        "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+        "scope_kind": "registered_entity",
+        "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+      },
+      "id": "srcrec:d2025968c8b6c873f3cc83441289e70fc94c98a891f5a9a1f95a56d89ac3188b",
+      "payload_hash": "07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+      "payload_ref": "srcblob:07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+      "provenance": {
+        "acquisition_receipt_id": "acq:ac1279c49bb36c9c31c3f2651ca9ad1369bb9fede9c6a32c58ac823bbc38cbae",
+        "currentness": {
+          "captured_at": "2026-11-03T00:33:45.171Z",
+          "source_version": "2026-10-26",
+          "source_version_url": "https://publicdata.au/d/acnc-register/v/2026-10-26/",
+          "status": "versioned_source_currentness_observed"
+        },
+        "publisher_original_bytes": false,
+        "rights": {
+          "id": "CC-BY-3.0-AU",
+          "title": "CC BY 3.0 AU",
+          "url": "https://creativecommons.org/licenses/by/3.0/au/"
+        },
+        "source_artifact_id": "srcblob:07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+        "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+        "source_sha256": "07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+        "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52000399744",
+        "transport_capture_method": "curl stdout on ChatGPT execution environment; no local raw bulk CSV download",
+        "transport_captured_at": "2026-11-03T00:33:45.171Z",
+        "transport_schema": "charitygraph.private-source-transport/v1",
+        "upstream_original_csv_sha256_claim": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+        "upstream_original_csv_verification": "mirror_claim_not_locally_verified"
+      },
+      "source_family": "acnc_register",
+      "source_locator": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52000399744",
+      "source_record_id": "srcrec:d2025968c8b6c873f3cc83441289e70fc94c98a891f5a9a1f95a56d89ac3188b",
+      "source_role": "register_identity",
+      "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+    },
+    "source_record_id": "srcrec:d2025968c8b6c873f3cc83441289e70fc94c98a891f5a9a1f95a56d89ac3188b",
+    "source_role": "register_identity",
+    "source_sha256": "07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+    "source_url": "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52000399744",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  },
+  "schema": "charitygraph.gate4.o1c.first-charity-publicdata-source-retention/v1",
+  "source_acquisitions": 0,
+  "status": "MISSING",
+  "target": {
+    "abn": "52000399744",
+    "name": "Guide Dogs NSW/ACT",
+    "ordinal": 1,
+    "scope_id": "scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248",
+    "selected_manifest": "evidence/gate4-t3-five-subject-v1/selected-binding-manifest.json",
+    "selected_manifest_sha256": "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9",
+    "source_family": "acnc_register",
+    "source_role": "register_identity",
+    "subject_id": "subject:02649cdcb42049bb8dedd30f2333e150"
+  },
+  "transport_verification": {
+    "body_byte_size": 4086,
+    "body_sha256": "07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc",
+    "publisher_original_bytes": false,
+    "rights": {
+      "id": "CC-BY-3.0-AU",
+      "title": "CC BY 3.0 AU",
+      "url": "https://creativecommons.org/licenses/by/3.0/au/"
+    },
+    "schema": "charitygraph.private-source-transport/v1",
+    "source_kind": "independent_publicdata_au_api_representation_of_acnc_register",
+    "source_row_count": 1,
+    "transport_byte_size": 5664,
+    "transport_path": "C:\\Users\\grego\\My Drive\\CharityGraph Agent Bridge\\artifacts\\cg-g4-source-transport-publicdata-acnc-register-20261026-abn52000399744-07b83ca8f241.json",
+    "transport_sha256": "90dfd96f4aaa4922295b1ecd13ad53f1609b536b8726c07aa8fe28ef9fd587b7",
+    "upstream_dataset_version": "2026-10-26",
+    "upstream_original_csv_claim": {
+      "bytes": 15156962,
+      "sha256": "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d",
+      "verification_status": "mirror_claim_not_locally_verified"
+    }
+  }
+}

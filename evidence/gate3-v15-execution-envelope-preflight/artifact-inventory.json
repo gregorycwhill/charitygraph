@@ -1,0 +1,39 @@
+{
+  "artifacts": [
+    {
+      "bytes": 1824,
+      "path": "blockers-and-limitations.json",
+      "sha256": "5979d746629858547c8f12152873e894a75009e2a7ba37a92865ba83cd17ea76"
+    },
+    {
+      "bytes": 280,
+      "path": "derived-execution-envelope-contract.json",
+      "sha256": "82c595f18afe2195affe9043a7bd75ada3a99eda255b5064c0162d0c2e705fc1"
+    },
+    {
+      "bytes": 173,
+      "path": "evaluation-baseline-chronology.json",
+      "sha256": "a56ad0bbe1bccad850dbbdbdc96865b07171c75e9aab2badd7b6cffa72d5c1aa"
+    },
+    {
+      "bytes": 722,
+      "path": "field-level-authority-matrix.json",
+      "sha256": "ef2a5cd4a3ef774b3c6e90f47f5033fdf84f0889be9a270352f2df2f4823a348"
+    },
+    {
+      "bytes": 518,
+      "path": "frozen-input-verification.json",
+      "sha256": "d2e82dab0e61cfa6277faf26f56af7878e2ecd5fa2e20d344eb6ee5c733e0dc4"
+    },
+    {
+      "bytes": 98,
+      "path": "generic-synthetic-tests.json",
+      "sha256": "fa325dd4b7456c91a8fcee70c12f0dcf8fce7014b3de5defd474f3cc5bb0ca3c"
+    },
+    {
+      "bytes": 12240,
+      "path": "per-instance-lowering-results.json",
+      "sha256": "4797bc8dbdc8208b705148a1ceb77e798a0fc41fc1c45ebdbd7daaf94015335b"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "artifact_count": 12,
+  "artifacts": [
+    {
+      "bytes": 900,
+      "path": "accounting-reconciliation.json",
+      "sha256": "4ec3b06ccc90aa529623d544d4b86a66a99391621b5541883c07e7224c525260"
+    },
+    {
+      "bytes": 3467,
+      "path": "frozen-result-manifest.json",
+      "sha256": "e506b057855c5815945bfa57e7b739ed701a38eba7b463ebd77402cffed3b767"
+    },
+    {
+      "bytes": 113021,
+      "path": "handoff.json",
+      "sha256": "6ec769600d8dee0d04917b189a03ee488212abe3412f6a7a40e0e3a56f4e3e37"
+    },
+    {
+      "bytes": 84113,
+      "path": "mechanical-old-new-comparison.json",
+      "sha256": "e41b4548fe3105390094ac29bbcd0ea981a90ee8a39798f7fd35d42136f1afc6"
+    },
+    {
+      "bytes": 58837,
+      "path": "per-row-proposition-scope-assessment.json",
+      "sha256": "2b60a755190365cbf041a3505f7ee88f49676a237c214686ecee74630a578a85"
+    },
+    {
+      "bytes": 370,
+      "path": "post-run-tests.json",
+      "sha256": "2dc2c4ce492ac0d6e46d3edd57e45e6d4816b2beb1b61368e11e88110237bdc6"
+    },
+    {
+      "bytes": 15996,
+      "path": "prepared-run-identity.json",
+      "sha256": "49f3710171050adf28ff7383e8126f0559b161f29bcba149d566afe47c0febc9"
+    },
+    {
+      "bytes": 2952,
+      "path": "provider-visible-family-coverage.json",
+      "sha256": "e6f538a1d3d5391bc7eaf745888ef6361d73a7a609b62ce70101dea81f5308b9"
+    },
+    {
+      "bytes": 453,
+      "path": "resume-verification.json",
+      "sha256": "187f514d702cf747cebf2a78d931b59f4d78e62f3229f6dc1d284ddc8a58301b"
+    },
+    {
+      "bytes": 2008,
+      "path": "summary.md",
+      "sha256": "a621e91dee1e4e88e7b64ad80decb9e441c318401af6a607c3da044fc01dd627"
+    },
+    {
+      "bytes": 90811,
+      "path": "terminal-result-ledger.json",
+      "sha256": "73dbf6163556c898964ad002f430046d9b25cac56e1de62f7c123aee0b321cc2"
+    },
+    {
+      "bytes": 6271,
+      "path": "validation-results.json",
+      "sha256": "ff1087b19be1753eb9751d45fd34365db1b1bd7e9fbbbaf50818832b03a0e821"
+    }
+  ],
+  "policy": "lists every packet artifact except this self-referential inventory file",
+  "schema": "charitygraph.cg406-v12-artifact-inventory/v1"
+}

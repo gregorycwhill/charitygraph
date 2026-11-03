@@ -1,0 +1,146 @@
+{
+  "legacy_identity_count": 7,
+  "rows": [
+    {
+      "binding_status": "UNKNOWN_EXPOSURE",
+      "current_abn": null,
+      "current_identity_source_record_id": null,
+      "current_subject_id": null,
+      "legacy_abn": "20077830347",
+      "legacy_acnc_entity_uuid": "7f1af405-3aaf-e811-a961-000d3ad24182",
+      "legacy_authority": "ACNC exact ABN binding",
+      "legacy_binding_provenance": {
+        "artifact": "C:\\CharityGraph-runtime\\artifacts\\cg405-source-universe-sufficiency\\acquisition-ledger.json",
+        "artifact_sha256": "4d8434b8888984b2973a7e4416765f790adf352604ae33fa8756dece88b799c5",
+        "binding_reason": "acnc_exact_abn_bound_entity",
+        "binding_rule": "single ACNC search result whose Abn exactly equals the requested ABN; returned entity Abn equals the requested ABN"
+      },
+      "legacy_identity_scheme": "CG405 static opaque subject_id from scoped_benchmark_v2.SUBJECT_IDS",
+      "legacy_subject_id": "subject:11723c321bfbb575c2a13e93c18a310b52d760e305b44c2db9bdf9e62b1a0bc8",
+      "mapping_cardinality": "zero_current_pool_matches",
+      "name_based_matching_used": false,
+      "resolution_basis": "no current governed ABN match and no documented authority-identifier migration/crosswalk was located in the permitted historical identity inputs"
+    },
+    {
+      "binding_status": "RESOLVED",
+      "current_abn": "46070556642",
+      "current_identity_source_record_id": "srcrec:240603fcd347ae3dad922030a6f255dd6d944c217ff9320cc444f1947b788da8",
+      "current_subject_id": "subject:ca20920c8c074a268f09b7a57866479a",
+      "legacy_abn": "46070556642",
+      "legacy_acnc_entity_uuid": "b4a55fbf-38af-e811-a95e-000d3ad24c60",
+      "legacy_authority": "ACNC exact ABN binding",
+      "legacy_binding_provenance": {
+        "artifact": "C:\\CharityGraph-runtime\\artifacts\\cg405-source-universe-sufficiency\\acquisition-ledger.json",
+        "artifact_sha256": "4d8434b8888984b2973a7e4416765f790adf352604ae33fa8756dece88b799c5",
+        "binding_reason": "acnc_exact_abn_bound_entity",
+        "binding_rule": "single ACNC search result whose Abn exactly equals the requested ABN; returned entity Abn equals the requested ABN"
+      },
+      "legacy_identity_scheme": "CG405 static opaque subject_id from scoped_benchmark_v2.SUBJECT_IDS",
+      "legacy_subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
+      "mapping_cardinality": "one_to_one",
+      "name_based_matching_used": false,
+      "resolution_basis": "exact legacy ABN equals exact current governed ABN"
+    },
+    {
+      "binding_status": "UNKNOWN_EXPOSURE",
+      "current_abn": null,
+      "current_identity_source_record_id": null,
+      "current_subject_id": null,
+      "legacy_abn": "22007498482",
+      "legacy_acnc_entity_uuid": "d2e1368f-38af-e811-a960-000d3ad24282",
+      "legacy_authority": "ACNC exact ABN binding",
+      "legacy_binding_provenance": {
+        "artifact": "C:\\CharityGraph-runtime\\artifacts\\cg405-source-universe-sufficiency\\acquisition-ledger.json",
+        "artifact_sha256": "4d8434b8888984b2973a7e4416765f790adf352604ae33fa8756dece88b799c5",
+        "binding_reason": "acnc_exact_abn_bound_entity",
+        "binding_rule": "single ACNC search result whose Abn exactly equals the requested ABN; returned entity Abn equals the requested ABN"
+      },
+      "legacy_identity_scheme": "CG405 static opaque subject_id from scoped_benchmark_v2.SUBJECT_IDS",
+      "legacy_subject_id": "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
+      "mapping_cardinality": "zero_current_pool_matches",
+      "name_based_matching_used": false,
+      "resolution_basis": "no current governed ABN match and no documented authority-identifier migration/crosswalk was located in the permitted historical identity inputs"
+    },
+    {
+      "binding_status": "RESOLVED",
+      "current_abn": "15000002522",
+      "current_identity_source_record_id": "srcrec:c57cd64f61cbd97d03511cb80ad6bea0723836b2de1343659acc925a9f75780b",
+      "current_subject_id": "subject:67db77d503aa4689a78c685704cc8a96",
+      "legacy_abn": "15000002522",
+      "legacy_acnc_entity_uuid": "6e28d24a-38af-e811-a95e-000d3ad24c60",
+      "legacy_authority": "ACNC exact ABN binding",
+      "legacy_binding_provenance": {
+        "artifact": "C:\\CharityGraph-runtime\\artifacts\\cg405-source-universe-sufficiency\\acquisition-ledger.json",
+        "artifact_sha256": "4d8434b8888984b2973a7e4416765f790adf352604ae33fa8756dece88b799c5",
+        "binding_reason": "acnc_exact_abn_bound_entity",
+        "binding_rule": "single ACNC search result whose Abn exactly equals the requested ABN; returned entity Abn equals the requested ABN"
+      },
+      "legacy_identity_scheme": "CG405 static opaque subject_id from scoped_benchmark_v2.SUBJECT_IDS",
+      "legacy_subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
+      "mapping_cardinality": "one_to_one",
+      "name_based_matching_used": false,
+      "resolution_basis": "exact legacy ABN equals exact current governed ABN"
+    },
+    {
+      "binding_status": "RESOLVED",
+      "current_abn": "50169561394",
+      "current_identity_source_record_id": "srcrec:28871ec97cd51b3a553fface61a50384620475efa6a2d0e9e22913135a48d90e",
+      "current_subject_id": "subject:d10dfad31cb04c5fb27ada0a81f36b69",
+      "legacy_abn": "50169561394",
+      "legacy_acnc_entity_uuid": "3474837c-38af-e811-a95e-000d3ad24c60",
+      "legacy_authority": "ACNC exact ABN binding",
+      "legacy_binding_provenance": {
+        "artifact": "C:\\CharityGraph-runtime\\artifacts\\cg405-source-universe-sufficiency\\acquisition-ledger.json",
+        "artifact_sha256": "4d8434b8888984b2973a7e4416765f790adf352604ae33fa8756dece88b799c5",
+        "binding_reason": "acnc_exact_abn_bound_entity",
+        "binding_rule": "single ACNC search result whose Abn exactly equals the requested ABN; returned entity Abn equals the requested ABN"
+      },
+      "legacy_identity_scheme": "CG405 static opaque subject_id from scoped_benchmark_v2.SUBJECT_IDS",
+      "legacy_subject_id": "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
+      "mapping_cardinality": "one_to_one",
+      "name_based_matching_used": false,
+      "resolution_basis": "exact legacy ABN equals exact current governed ABN"
+    },
+    {
+      "binding_status": "RESOLVED",
+      "current_abn": "28004778081",
+      "current_identity_source_record_id": "srcrec:6a43b5d6a14aeb201c05fb0ca58b1b356fd7aec97f5876324d68d8b9ac842b3b",
+      "current_subject_id": "subject:cf042745edd84e58bce4e1c60704c472",
+      "legacy_abn": "28004778081",
+      "legacy_acnc_entity_uuid": "32477d82-38af-e811-a95e-000d3ad24c60",
+      "legacy_authority": "ACNC exact ABN binding",
+      "legacy_binding_provenance": {
+        "artifact": "C:\\CharityGraph-runtime\\artifacts\\cg405-source-universe-sufficiency\\acquisition-ledger.json",
+        "artifact_sha256": "4d8434b8888984b2973a7e4416765f790adf352604ae33fa8756dece88b799c5",
+        "binding_reason": "acnc_exact_abn_bound_entity",
+        "binding_rule": "single ACNC search result whose Abn exactly equals the requested ABN; returned entity Abn equals the requested ABN"
+      },
+      "legacy_identity_scheme": "CG405 static opaque subject_id from scoped_benchmark_v2.SUBJECT_IDS",
+      "legacy_subject_id": "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
+      "mapping_cardinality": "one_to_one",
+      "name_based_matching_used": false,
+      "resolution_basis": "exact legacy ABN equals exact current governed ABN"
+    },
+    {
+      "binding_status": "RESOLVED",
+      "current_abn": "28000030179",
+      "current_identity_source_record_id": "srcrec:28c7effc49267a5625aa371576b9f34a12b499f9566f81c798c52a3b63cce38c",
+      "current_subject_id": "subject:f284a1e0e31a4e04b7d9f8ae8863ef10",
+      "legacy_abn": "28000030179",
+      "legacy_acnc_entity_uuid": "c5fb7e82-38af-e811-a960-000d3ad24282",
+      "legacy_authority": "ACNC exact ABN binding",
+      "legacy_binding_provenance": {
+        "artifact": "C:\\CharityGraph-runtime\\artifacts\\cg405-source-universe-sufficiency\\acquisition-ledger.json",
+        "artifact_sha256": "4d8434b8888984b2973a7e4416765f790adf352604ae33fa8756dece88b799c5",
+        "binding_reason": "acnc_exact_abn_bound_entity",
+        "binding_rule": "single ACNC search result whose Abn exactly equals the requested ABN; returned entity Abn equals the requested ABN"
+      },
+      "legacy_identity_scheme": "CG405 static opaque subject_id from scoped_benchmark_v2.SUBJECT_IDS",
+      "legacy_subject_id": "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c",
+      "mapping_cardinality": "one_to_one",
+      "name_based_matching_used": false,
+      "resolution_basis": "exact legacy ABN equals exact current governed ABN"
+    }
+  ],
+  "schema": "charitygraph.gate3.cg405-identity-crosswalk/v1"
+}

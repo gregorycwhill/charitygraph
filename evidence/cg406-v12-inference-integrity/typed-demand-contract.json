@@ -1,0 +1,706 @@
+{
+  "rows": [
+    {
+      "demand_id": "SDC-0051",
+      "instance_id": "cg406:subject:00fd5d9d7b844d74ae64c4f47f7c4538:SDC-0051",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "service cohort",
+          "requirement_id": "requirement:fab0d5b47a937567c6ffbb298283c8424ccbf42c0a4bda2e4f422aa99f905f0c"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "record-to-coverage",
+          "requirement_id": "requirement:40145e3de996be597c92aa104c180286c97f7be79e72f37eab3d15a0c6ab7562"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "service-to-geography",
+          "requirement_id": "requirement:1ed6404cff792acaf6032989740d70b8157e87e09fafd67947f62453f4fc78b9"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "service-to-population",
+          "requirement_id": "requirement:d681a1d88a4f348bbfc33754d1e14984c754527170011be3a119f36387531c8e"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "audit",
+          "requirement_id": "requirement:d7e22c52a293ae6fd10e451f9a1b3d5225cd6fe7ef50fbc8ed7b572d9655a7a7"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "filter",
+          "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "excluded means not real",
+          "requirement_id": "requirement:b7b93afb768a4715c2a2d6fba5cc21859b3979698f467e42eda37100bce5edae"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "service-scoped evidence",
+          "requirement_id": "requirement:5577d2b2522d05afbd6947bfa1fb947392c5458f550789775f9b1d18472ba842"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "select a service cohort with exclusions",
+          "requirement_id": "requirement:de24728335e085e8e470cc67970e1ceb93d7847aca0ff948f796f32e39aac57c"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "service period",
+          "requirement_id": "requirement:ddb433563175e18e77ceefa55266cb9f632966970eaf19d0809c313fbb59ef21"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0026",
+      "instance_id": "cg406:subject:04549d1f5c7f4f658e4e33c8eee4f0fe:SDC-0026",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "appeal versus reporting entity",
+          "requirement_id": "requirement:5cb7d40bc6c38268217b2727ef404127a188efc3fa3def925c845b260fb1d908"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "appeal-to-financial line",
+          "requirement_id": "requirement:0faf1609d5e4ceade72d560f4fe5d596e54500315f5acc41019124fcea959a45"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "screen",
+          "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "total donation revenue equals method-specific proceeds",
+          "requirement_id": "requirement:873c4d1b47f09add2b4fb1f66a2a5deeab6d42678cf26258b79cdc02057c2ef7"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "method-specific reconciliation",
+          "requirement_id": "requirement:ee5dda614177687c9069474541314f0ccbcbdf5cf9e7db03b77a86ba995135ad"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "test fundraising accounting boundary",
+          "requirement_id": "requirement:f9a9f731716eb4392ae5d3e523295855aa3ab27a87e52628b19c7ec8f11595a0"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "reporting period",
+          "requirement_id": "requirement:379da3d9f5939189fc60d6079f80e1536d3f14b36d1909afbd2662d4cd5b3335"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0025",
+      "instance_id": "cg406:subject:1f6be8711c364328b77cf6cb5d5d44ab:SDC-0025",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "service availability",
+          "requirement_id": "requirement:6ed998a6095046a7be9d3243216b42301d718ffbdf3336cfc9bb641fa38de812"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "service-to-availability observation",
+          "requirement_id": "requirement:91286d1e2f22f370b16216d55698fbc85a0b2811bc105fca07dfa971c0a32948"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "lookup",
+          "requirement_id": "requirement:2180d3f724251bd6c6e2d47121dc7ca33acf568b298ef4cc83a1bed42e8aa4ab"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "service page proves current availability",
+          "requirement_id": "requirement:30881fd65c7d51b376b3e72c72b5bda2a9078a2382845c62bcd7d91538f93fd0"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "time-bound availability evidence",
+          "requirement_id": "requirement:c0a4c97521c148cdc2ca48ec8ec7966f23b1554bf3452f700c42b35ee3b6fbbf"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "inspect direct-service access",
+          "requirement_id": "requirement:9a897a532bab64b079eae89f5fdc001b9fab0b685cad6c36cd68fea2f663045c"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "as-of date",
+          "requirement_id": "requirement:1afd8babc60b6b56828a5e25ed6d5a55611413ecef286674a1cf43f228b15a77"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0038",
+      "instance_id": "cg406:subject:43db3f46f7274c8382905701f287ec09:SDC-0038",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "governance role",
+          "requirement_id": "requirement:9727740f789caee970f9c53588a6a76488d9c1424309b6cfc9ce9d3f9ce39a11"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "role-to-organisation",
+          "requirement_id": "requirement:8caf15a6d8b0b9fbf9165d1d9c3cef125bed0e782c5f663c03d297381732db10"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "role-to-period",
+          "requirement_id": "requirement:f7f8adab5161ca66425a8b2d489d2837e3d92dd3f4ef845f913173af993dcec9"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "compare",
+          "requirement_id": "requirement:3dc718a9edd39cc43871502489f05ef8dd1fdcc5c597bcce7b1f01c635bef9f8"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "lookup",
+          "requirement_id": "requirement:2180d3f724251bd6c6e2d47121dc7ca33acf568b298ef4cc83a1bed42e8aa4ab"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "office holding proves operational responsibility",
+          "requirement_id": "requirement:2568996f80ff9a7e9c4a75a25969cb649ff29802c8130187ab07a60c023c67e3"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "dated governance evidence",
+          "requirement_id": "requirement:41c8e36aa8ddeaf1017640b63c5dc86a93efefd1fabb703b4239d3063c59c119"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "inspect governance for access decisions",
+          "requirement_id": "requirement:418d29949c94dc5217dda858ae3d88a84e8c6d7d285255fa837d5389d3854753"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "tenure interval",
+          "requirement_id": "requirement:885d97809786062922815076fad4dec920db4a53a04c2d09a9174e1b7fe48f29"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0037",
+      "instance_id": "cg406:subject:54a09c18d354495eb2fde6a01480b86b:SDC-0037",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "entity identity",
+          "requirement_id": "requirement:7ce1b593aca3cda79455a8961fc080c1d50ad6f7bfcd7efade3f61d75b990e92"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "record-to-identifier",
+          "requirement_id": "requirement:b24ea0203289656dd9baff1c317523bf4954e2dcbce09554a69a9e1aa9b5812e"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "audit",
+          "requirement_id": "requirement:d7e22c52a293ae6fd10e451f9a1b3d5225cd6fe7ef50fbc8ed7b572d9655a7a7"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "lookup",
+          "requirement_id": "requirement:2180d3f724251bd6c6e2d47121dc7ca33acf568b298ef4cc83a1bed42e8aa4ab"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "name match proves same entity",
+          "requirement_id": "requirement:334d0e55100bcc60c3a03c8915a00c9fd3fc54b11cdd04a327292f4134531f08"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "authority-scoped identity",
+          "requirement_id": "requirement:d95ec19e4dd04bcd2e4165edcfee4a9460c3a4e7d4bf86dd992bcff5ee29f143"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "resolve reporting identity",
+          "requirement_id": "requirement:69eb46dba25077b1be940b372e9123bb504ecc83348036e1f57c7ca28af317a7"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "effective period",
+          "requirement_id": "requirement:1ab225b92a7f1b2a53575a631fdf3ee1e506d74159ad5d6a6d21af4efbe78b6b"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0003",
+      "instance_id": "cg406:subject:6da4240b384242a78455a01fc28e0ed8:SDC-0003",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "service and delivery geography",
+          "requirement_id": "requirement:3af2097a570c1a60279d0caa51a92a9619c40cc33d594627b39376071eb04cf0"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "service-to-delivery geography",
+          "requirement_id": "requirement:c49da8007d94eab3d5d1a0848d767de5663dd8cb5e3aaa86440975f968db1c98"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "service-to-population",
+          "requirement_id": "requirement:d681a1d88a4f348bbfc33754d1e14984c754527170011be3a119f36387531c8e"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "filter",
+          "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "headquarters equals delivery geography",
+          "requirement_id": "requirement:2e96e59ea937a7e339db612bd032aad4f38db53d7de1e0d8eb4432fb662aa76e"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "service-scoped evidence",
+          "requirement_id": "requirement:5577d2b2522d05afbd6947bfa1fb947392c5458f550789775f9b1d18472ba842"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "construct an evidenced service cohort",
+          "requirement_id": "requirement:36b0f742218221474a9d17b73d9f1e89f73a32441b1004e87df7efb3cda2834d"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "service period",
+          "requirement_id": "requirement:ddb433563175e18e77ceefa55266cb9f632966970eaf19d0809c313fbb59ef21"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0007",
+      "instance_id": "cg406:subject:771dbdb52fe54cb49ebcce20f72bd250:SDC-0007",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "program and financial-flow scope",
+          "requirement_id": "requirement:63a2523e0671a4dde67ad859e14912296d6f66270c2107b6372e20d178fc0ec7"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "flow-to-financial line",
+          "requirement_id": "requirement:7d80e6078155a526d21f4cb9e5e0d74f18d63467ae587130363ff6da441c0683"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "flow-to-program",
+          "requirement_id": "requirement:f80f10b89c1a4224aea8d436b753330edb9086e58c82f6a019d82c79c8a0810e"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "funder-to-flow",
+          "requirement_id": "requirement:bdac6ea8a1e6f9ec57d41df2dad7288ddd26bf4fae4c3c7039cb9b6f3d5b6e0d"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "compare",
+          "requirement_id": "requirement:3dc718a9edd39cc43871502489f05ef8dd1fdcc5c597bcce7b1f01c635bef9f8"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "trace",
+          "requirement_id": "requirement:5f8a47e9c7fe8f206674d8839656d7327d15d7b3b3d4f5433ceb1092b0f13e52"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "award equals payment or revenue",
+          "requirement_id": "requirement:339d465fca9891103a115dbcce202ee91a6a6422dd71faa01341bf26ebebaeb9"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "payment proves durable relationship",
+          "requirement_id": "requirement:a5eec5e200ad6b33b5447c36ca1d6803d2bbe77403dc629e26b2d2519eed87d9"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "flow-specific authoritative evidence",
+          "requirement_id": "requirement:7f9a45d3756d103b1ff805db4155b14e89df1dbcb488827561a277cfca61b7d5"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "trace resource dependencies",
+          "requirement_id": "requirement:df3a1b9d10106d2738ea97f990a42eb1ddb8edf1f1a1960eddbc4a716c913706"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "transaction/reporting period",
+          "requirement_id": "requirement:08cce90e4228072a0efcdfbfb3a19ea881f83929d469b5d4f11b429eb4a8ff5c"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0005",
+      "instance_id": "cg406:subject:78393016b9ad44dd832cfa913b7122ba:SDC-0005",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "advertised opportunity",
+          "requirement_id": "requirement:191a1c546da0485ed9e5d898af1b1ffeb418aabd4eb46ae8bf689d3d18e06a15"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "opportunity-to-service",
+          "requirement_id": "requirement:cf04bb838f0c9b844423fe3e93026b8b603ef69d3c6e632226bf39e0fb34c78f"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "filter",
+          "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "advertisement proves enduring participation",
+          "requirement_id": "requirement:4316c8f907ac4732f1174b92f7e17035bdf9a2785d766c21e40dfba0ea517a4f"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "opportunity evidence",
+          "requirement_id": "requirement:bd739bfa87a3a3b34349f15e515b6b3894389120dd6f68d9c8e658f77605d8d3"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "inspect participation routes",
+          "requirement_id": "requirement:7d930f775194cffea0e229640e27a7fdd8d987808c70b60074e21eb81ea49145"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "advertised effective period",
+          "requirement_id": "requirement:95de788b4433cf6ac38459d0bddd11b56671d790f2a313a839c7ca57ef7c9370"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0052",
+      "instance_id": "cg406:subject:93f185643c194b2da46032afc9521b30:SDC-0052",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "evaluation decision",
+          "requirement_id": "requirement:249cdf6433cc87084d4f8e62d0183337899947c3f094fa259d4858693bb8a92f"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "claim-to-evidence",
+          "requirement_id": "requirement:5cb3f24c04adea949c9e5d37dbdeb4392a99bae518ad3bc8c1519d8889ba37a7"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "intervention-to-study",
+          "requirement_id": "requirement:d27008f0b8edb3219afc275efcde4d4bd7dfe212c45395042824addbe597bca9"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "study-to-population",
+          "requirement_id": "requirement:36197c22dd394a18f2331f60b6c70854f0fa5bee52fb00fadbc1d6021141f0b5"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "explain",
+          "requirement_id": "requirement:afb2215dd2a1d13ae42f0bfd5a50239618170c785fa0de8754ffba9310b73eb3"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "find_exception",
+          "requirement_id": "requirement:b5295617285b027c88dc44bdadbf658d3852ea35d0fd31bab55add8747d0d574"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "screen",
+          "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "missing design proves failure",
+          "requirement_id": "requirement:b31cfcb3d8ee7969f9a5a76d90a50ca497cfaaf84705837df647ac27ad33dcf0"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "study-scoped gap evidence",
+          "requirement_id": "requirement:3be8d96cb5e29ee176e400796a30b61487c8a11062754d7c95156c04acb54e49"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "identify evidence gaps in a decision",
+          "requirement_id": "requirement:8dffcba45fda3a82e8074c1130c69d40bdf5c70fadebde3e9f035696eb7d8bbc"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "decision evidence period",
+          "requirement_id": "requirement:8e893c0cc4e038c0c56fc5940a33c9cb37f8a5931e308d3a3ba4116fb6a8d1ea"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0028",
+      "instance_id": "cg406:subject:96135bad66c645ecb487fba1f059240c:SDC-0028",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "resolved organisation",
+          "requirement_id": "requirement:278858254f9391dbefb62a6f90bb2955662fc280f86a2554dd977e9df265ae51"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "rule-to-proposition evidence",
+          "requirement_id": "requirement:9fb279bc68dd9713d490294bbf4cf37c317753536fe26f9951f1cbf8fba89342"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "explain",
+          "requirement_id": "requirement:afb2215dd2a1d13ae42f0bfd5a50239618170c785fa0de8754ffba9310b73eb3"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "filter",
+          "requirement_id": "requirement:2781d3045ae1cf50eb1bcb97712e1bd0ce0f553adb635d583f997d7b49b39a46"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "screen",
+          "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "missingness is a failed criterion",
+          "requirement_id": "requirement:260c2a47efe7b83f2059d4e56942e5449c4de58e455140250b2f822b49e6ce94"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "universal values score",
+          "requirement_id": "requirement:95085128f91b07cb2137f45b3426d95fc3a288ec319e4d19044edcffefb78bf4"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "rule-specific evidence/coverage",
+          "requirement_id": "requirement:c04348ae3a775669c8d24c2b33e5dab700b29cdfe52e63a4e8405cfd4c19c8f1"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "make a qualified selection decision",
+          "requirement_id": "requirement:0e374ac0c68142d3d864b92daa168fc324ac967393872881b38653bafbd32745"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "rule-defined time",
+          "requirement_id": "requirement:5b57f2a82e79dea7eaaf8f60e3b87141458dabf2cd7fb54c5d01c7bb8ac8398d"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0019",
+      "instance_id": "cg406:subject:99d810fb8e6e4ac7adc2ee0dd3e7e095:SDC-0019",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "organisation and event",
+          "requirement_id": "requirement:2ec0931d13e80d0ec8373881e5608478f7102d99c0f4b6f458774f2cccc8a974"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "correction-to-assertion",
+          "requirement_id": "requirement:042c0bd75f6675385c94551e8204ea6563055c491a7fb24a8e38a288da099c07"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "event-to-authority",
+          "requirement_id": "requirement:044bb1615707032caa9c0ddad3a7e7704e73bd39ff8c5ec562125e9156cc67ba"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "screen",
+          "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "trace",
+          "requirement_id": "requirement:5f8a47e9c7fe8f206674d8839656d7327d15d7b3b3d4f5433ceb1092b0f13e52"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "allegation equals finding",
+          "requirement_id": "requirement:e8ada1d3079ae7e7535119c05af484508306c3400edfd75136cad8d97f644ee6"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "source silence proves clean record",
+          "requirement_id": "requirement:ab1eaa3f468919d9a9b45730878e4be8e6ca3a2570c81164fc0e34bfdeeec16e"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "authoritative status/context",
+          "requirement_id": "requirement:d2d8cdad65ab3ad9e02f32938a06bb2ff050c4fe6886d092040290a87082e90a"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "review adverse-context evidence",
+          "requirement_id": "requirement:56f9b1cc655539d2afe0bff164d22e4e0a52afad4465d04073dd239b0c52ee3e"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "as-of date",
+          "requirement_id": "requirement:1afd8babc60b6b56828a5e25ed6d5a55611413ecef286674a1cf43f228b15a77"
+        }
+      ]
+    },
+    {
+      "demand_id": "SDC-0014",
+      "instance_id": "cg406:subject:d0b269be3d5d4b6db24d6d203637dfa5:SDC-0014",
+      "requirements": [
+        {
+          "field": "subjects",
+          "kind": "referent",
+          "requirement": "reporting entity",
+          "requirement_id": "requirement:2a500c36be063e87810ca13980fcfaa0d7a5fb77485c566da55c704addfc6dc0"
+        },
+        {
+          "field": "joins",
+          "kind": "relation",
+          "requirement": "historical line-to-proposed allocation",
+          "requirement_id": "requirement:28d40443dc15f459e6c683343f1f606772360cb0ba07857229d3220c8fbafb18"
+        },
+        {
+          "field": "operations",
+          "kind": "operation",
+          "requirement": "screen",
+          "requirement_id": "requirement:6eb1f91af836b83f37f84b136dfc0a1acaf933c1b6c61eddcc289773ec16a5c9"
+        },
+        {
+          "field": "forbidden",
+          "kind": "non_inference",
+          "requirement": "historical expenditure proves marginal destination",
+          "requirement_id": "requirement:e7ada51991777d415e260a7ef1b44ea6be9d82f38c76d72e5049c4fd0849b1c1"
+        },
+        {
+          "field": "evidence",
+          "kind": "evidence_standard",
+          "requirement": "explicit future allocation decision required",
+          "requirement_id": "requirement:1711cd4aace9a2e36f2d847e4d81b9ce6340afba381b5b7071c9dadf03e8a922"
+        },
+        {
+          "field": "intent",
+          "kind": "intent",
+          "requirement": "test a tempting allocation claim",
+          "requirement_id": "requirement:ef3b08303d73d043b7e90e02541af0931fd84c812cf7d87079607f6cbfebc090"
+        },
+        {
+          "field": "temporal",
+          "kind": "temporal",
+          "requirement": "historical versus future",
+          "requirement_id": "requirement:48e3b10c9a6dde9f6e248f0a03780c9c222f38280b99d7eabb26d5d45dc89e41"
+        }
+      ]
+    }
+  ]
+}

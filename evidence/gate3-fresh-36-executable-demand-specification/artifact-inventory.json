@@ -1,0 +1,55 @@
+{
+  "artifacts": [
+    {
+      "bytes": 259538,
+      "path": "candidate-executable-demand-specifications.json",
+      "sha256": "3cd23c6053a23cd81b80d9d6110cbc7f9e7b17060fb0276c8e66ae99d525b72e"
+    },
+    {
+      "bytes": 89395,
+      "path": "contract-gap-matrix.json",
+      "sha256": "2b2c1268cb3d18f2e2904c8ad573c25cdb0d645220f60236b0b262ac3f300d17"
+    },
+    {
+      "bytes": 966,
+      "path": "deterministic-instantiation-procedure.json",
+      "sha256": "01e0f932a830c09140130b69aecf926a01b37eccb3a4e57dea41c49dbd0c3bf3"
+    },
+    {
+      "bytes": 564,
+      "path": "evidence-corpus-continuity.json",
+      "sha256": "736ef4c1280cb749994f028ee931ffb45ab482d851204ca314808ce5df206b9b"
+    },
+    {
+      "bytes": 841,
+      "path": "handoff.json",
+      "sha256": "93cc4e69d54fbcb3bb668fa3558536f45befcc9336c37d327c9e377ca49f3ce6"
+    },
+    {
+      "bytes": 17851,
+      "path": "oracle-compatibility-analysis.json",
+      "sha256": "ebc7b011151b08f69998377b5ba060f25c3198d894e17fd24d022b4f721e65fc"
+    },
+    {
+      "bytes": 2135,
+      "path": "proposed-executable-demand-specification-schema.json",
+      "sha256": "0c51f7fe8dc821c0936be0d988041a13f11f10b5db79d0100894942f20b94a8d"
+    },
+    {
+      "bytes": 7645,
+      "path": "required-semantic-decisions.json",
+      "sha256": "e48e768d24c970caa63359ff4079fe06e3b7c8d5876e4cb8ae9bcce4a8bb89f3"
+    },
+    {
+      "bytes": 619,
+      "path": "summary.md",
+      "sha256": "a4689aa563660b452b6d3f23ddb2398b0744918328d438dc57d111f7f0864d5f"
+    },
+    {
+      "bytes": 605,
+      "path": "test-results.json",
+      "sha256": "1934909e3f10ce9b4ef83de8f98ecc7ec29fc79da5217008f452141266b38cc6"
+    }
+  ],
+  "schema": "charitygraph.evidence-inventory/v1"
+}

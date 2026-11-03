@@ -1,0 +1,1 @@
+{"additional_trusted_confirmation":"required by user instruction","product_owner_decision":"Greg authorized up to USD 2.00 for one 36-case run","provider_gate":"RealProviderExecutionGate default-deny; authorization must match run_id and plan_hash","run_bound_authorization_artifact":null,"status":"NOT_REQUESTABLE_UNTIL_EXACT_REQUEST_PLAN_EXISTS"}

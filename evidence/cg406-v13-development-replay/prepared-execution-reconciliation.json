@@ -1,0 +1,69 @@
+{
+  "schema": "charitygraph.cg406-v13-prepared-execution-reconciliation/v1",
+  "branch": "gate3-cg406-remediation",
+  "head": "c52288767c821eefcaeed88a412ecc1713ffbfe3",
+  "frozen_subject_manifest_sha256": "bc0c63a6938cb23772213d3025bc70b363ddae8af6ae67e1e1b9a4d419eb66c8",
+  "frozen_demand_manifest_sha256": "8aefa2a46838da065d93923004153abb905f1cabc087394aa58fa41f890b60fb",
+  "pinned_prepared_run": {
+    "path": "C:/CharityGraph-runtime/cg406-v13-inference-integrity-a3/prepared-run.json",
+    "file_sha256": "54dc71d121caca094095580015e32af781fb14d332e5bef9d7a0a40dd28979f7",
+    "prepared_run_hash": "df6ffa1fe7d6dd6ff293161ca807b6eca83b612ac356226c3fdc56027158f782",
+    "provider_project": "cg406-development-replay"
+  },
+  "approved_project_execution_preparation": {
+    "path": "C:/CharityGraph-runtime/cg406-v13-inference-integrity-a3/execution-prepared-run.json",
+    "file_sha256": "c4afe5b8bfcf680ca6327f010c66934e36b6d927aed85b103fb45696b9df3a2f",
+    "prepared_run_hash": "ad811d779b2e014846437f8745074aaadb2abb1f7f9047140003cda7172fbc39",
+    "provider_project": "proj_vnAuU8uxocL0Rosg3SulgmRI",
+    "row_count": 12,
+    "contract_version": "1.3",
+    "schema_version": "1.3-packet-demand-requirement-identity",
+    "aggregate_hard_max_usd": "0.182657",
+    "aggregate_hard_max_aud": "0.277645"
+  },
+  "normalized_semantic_request_comparison": {
+    "matched_instances": 12,
+    "model_facing_body_mismatches": 0,
+    "compared_fields": [
+      "request_body excluding only cohort/project-derived logical_task_id, provider_request_item_id, delivery_job_id",
+      "evidence_ids",
+      "schema_hash",
+      "schema_id",
+      "schema_version",
+      "contract_identity_hash",
+      "contract_version",
+      "prompt_sha256",
+      "model",
+      "reasoning_effort",
+      "provider",
+      "provider_service_tier",
+      "hard_max_usd",
+      "hard_max_aud"
+    ],
+    "execution_packet_hashes_differing_rows": 12,
+    "execution_request_ids_differing_rows": 12,
+    "identity_difference_explanation": "The approved provider project creates new cohort-derived execution identifiers. No semantic request content changed in the normalized comparison."
+  },
+  "provider_execution": {
+    "attempted": true,
+    "execution_gate_result": "REJECTED",
+    "rejection_reason": "The execution gate reported a conflict with provider-free/no-provider-call instructions.",
+    "provider_posts": 0,
+    "v13_actual_spend_usd": "0",
+    "v13_actual_spend_aud": "0",
+    "retry_or_resume": "Not run; no provider request was sent."
+  },
+  "preparation_family_coverage": {
+    "acnc_register": 12,
+    "acnc_ais_bundle": 12,
+    "ato_abr_dgr": 12,
+    "annual_report": 11,
+    "official_website": 9,
+    "wikipedia_wikimedia": 4,
+    "pfra": 3,
+    "total_records": 63
+  },
+  "source_universe_v1": "unchanged",
+  "sdc_0019": "CANDIDATE_SOURCE_GAP",
+  "oracle_consulted": false
+}

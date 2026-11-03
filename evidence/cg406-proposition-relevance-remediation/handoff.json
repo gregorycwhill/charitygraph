@@ -1,0 +1,27 @@
+{
+  "schema": "charitygraph.cg406-proposition-relevance-remediation-handoff/v1",
+  "purpose": "provider-free development regression and future replay preflight",
+  "frozen_development_result_manifest_sha256": "12ee7636294b1ed72ad13d54f11c905494e0defc0a3081c3de23dbb5ca1a0364",
+  "prepared_run_sha256": "a4a86dba629e4d91c5477809230cf9f73c1ebfee277b61775e398faf2a7eb6a7",
+  "prepared_request_count": 12,
+  "provider_calls": 0,
+  "semantic_contract": {
+    "id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+    "version": "1.2",
+    "schema_version": "1.2-packet-proposition-identity"
+  },
+  "provider_visible_family_counts": {
+    "acnc_register": 12,
+    "acnc_ais_bundle": 12,
+    "ato_abr_dgr": 12,
+    "annual_report": 11,
+    "official_website": 9,
+    "wikipedia_wikimedia": 4,
+    "pfra": 3
+  },
+  "maximum_provider_exposure": {"usd": "0.182657", "aud": "0.277645"},
+  "sdc_0019": "CANDIDATE_SOURCE_GAP",
+  "source_universe_v1_changed": false,
+  "raw_governed_bodies_included": false,
+  "provider_request_contents_included": false
+}

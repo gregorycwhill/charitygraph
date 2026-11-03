@@ -1,0 +1,38 @@
+{
+  "aggregate_actual_aud": "0.214338",
+  "aggregate_actual_usd": "0.141008",
+  "aggregate_hard_max_aud": "0.277645",
+  "aggregate_hard_max_usd": "0.182657",
+  "contract_version": "1.4",
+  "mechanical_validation_counts": {},
+  "outcome_counts": {},
+  "prepared_file_sha256": "4433399a2d827777c26b59fb309d6972ab5a74df9509d38bf7ab95dbc49d686a",
+  "prepared_run_hash": "da77187aa3fff0d59ef8931958f68b9bea7e88a716d0657dfc4a7c30ce8b5925",
+  "provider_posts": 12,
+  "response_sha256_by_request_item": {
+    "requestitem:05548f0ccf7149e6de515c588d0e0fc9660b8e3a29c84818a5c6c15f4895a678": "1067c8424a0ef0a0cac83313c0ccbeb3c71af7a79a9caf7811a3a336bc5442cf",
+    "requestitem:0c8670382dd4e601bfae3df3499433ae572c1bd9e691b92b24a7262715df5574": "2354b5fafa4852c298c2ec1ddb444eaaa0a11f151d85bec755039e55d66dbd0d",
+    "requestitem:2351ed3c9bcbfb14e0c71dcf29d09f035fcbffc1b4fa3728119ea64a5ad4a9de": "f9fd83b36ff7f96ef02ed8268816a9be43bb14f500d16e2150e896d7f1fa63b7",
+    "requestitem:29c9ea5b8d8494a24ec9f53af0939c7c6067400a45e0fa7ff3a5d43bbef077aa": "7cd05b3031cd69cbce465ceef105de046f7e8ef7e7c3bfb9030f12730ad7db2d",
+    "requestitem:35e5b2fc771d8b1c99ae2f6a44a82687079c409bee7fc745dd47b250854cb1de": "1095474e23660b5cb4f4e5375ee052f48379f1dcabd0b398a0a588afd0bfd072",
+    "requestitem:60b971d6426bc384dc834b0e195e74c612a92eca5da94917f41c27504f288f30": "4b2d86788618af95a30885900781960457eb296c8f5dad212a8bb83485f764d9",
+    "requestitem:622dd70fc49e331b0f4d3bfa118473dce96b5d0452cd318b447d5ad02f25e207": "424a0e05e2aeac459cf54606ec10ef5abd48a9d51fb802db5263bf878c580073",
+    "requestitem:681c2dac224e4f58586ecb4b766346ef426a3da5edbfb93acd88958aadd62f67": "ca0814ac97932229745487904e423e12ce4d20969738dca74c060546f53b0ddb",
+    "requestitem:8111f774ba82ba935ec0b95d25e6ebaa4a678e58e2642168fb74b63713a5571b": "2111c8b6873b37150400ce0ef957035638e5641ea91d38fae25088ce1fc90873",
+    "requestitem:ab0adb34716c60bb9423e44b8b3191ab0cf9675536a9554fe0a38e957d828e57": "ac74c582e981a4b46ab38b89ad6dc8637ef5310c8712c6e7d977ce4b9325a851",
+    "requestitem:e8c236a6e42905ecc32f0787a809319b425df2d970d0bac785954f8cd9504c47": "64109752b031cc8b15323ed7cc1d6e193c9c9f696c7ec39a4713550d7180869d",
+    "requestitem:ee6509de8f51dd822038923084dbff8efd896bd8537c21afd7926e70eff2e549": "c794fd4d9852925b2ccdb91c623305e971779fc5ba64536ab67ecf26f7f72f5c"
+  },
+  "result_manifest_sha256": "9f8ae0fe0ff7841b9c1095677b0e7a4326eda7eed4f3f44d152193cd79eed0dd",
+  "schema": "charitygraph.cg406-v14-development-result-manifest/v1",
+  "schema_version": "1.4-provenance-claim-separation",
+  "status": "FROZEN_FIRST_TERMINAL_RESULTS",
+  "terminal_result_ledger_sha256": "587fe13feda16ca8704357775540cdce5a32fbd0060c51a408527f548d343999",
+  "terminal_row_count": 12,
+  "token_usage": {
+    "input_tokens": 433242,
+    "output_tokens": 27246,
+    "total_tokens": 460488
+  },
+  "transport_retries": 0
+}

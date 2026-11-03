@@ -1,0 +1,7 @@
+{
+  "builder_baseline": "813c8e9e44160b93ecb11762e245d07e30acbfaf",
+  "join_rule": "exact template identity/version/content and exact approved user parameter bindings",
+  "schema": "charitygraph.gate3.execution-envelope/v1",
+  "semantic_choices_made": false,
+  "version": "1.0"
+}

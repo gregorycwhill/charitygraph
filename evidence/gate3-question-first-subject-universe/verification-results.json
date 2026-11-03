@@ -1,0 +1,22 @@
+{
+  "at_least_36_fresh_subjects": true,
+  "deterministic_ordering": true,
+  "eligible_count": 51,
+  "eligible_records_unexposed": true,
+  "excluded_count": 49,
+  "excluded_records_traceable": true,
+  "exposure_binding_complete": false,
+  "model_response_accessed": false,
+  "no_subject_selection_performed": true,
+  "oracle_accessed": false,
+  "provider_calls": 0,
+  "release_status": "BLOCKED_FOR_SUBJECT_UNIVERSE",
+  "required_identity_fields": true,
+  "selection_not_performed": true,
+  "source_acquisition": 0,
+  "source_availability_or_answerability_fields_absent": true,
+  "unique_abns": true,
+  "unique_subject_ids": true,
+  "universe_sha256": "6900774086762237395b0e84555d6ceb87699a6df3f6069a10deb7a522b42f3c",
+  "unresolved_exposure_binding_count": 7
+}

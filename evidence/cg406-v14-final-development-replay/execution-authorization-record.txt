@@ -1,0 +1,14 @@
+Product Owner execution scope (from the user-provided final CG406 v1.4 replay request):
+OpenAI Standard; approved existing project; gpt-5.6-luna; low reasoning;
+concurrency 1; exactly 12 logical requests; no semantic retries; append-only
+accounting; cumulative hard cap AUD 1.00. Frozen subject and demand manifests
+only. No promotion, adjudication, projection, release, source acquisition,
+oracle access before the terminal result manifest is frozen, or tuning after
+this final development replay.
+
+Trusted direct user authorization, received in conversation on 2026-10-18:
+“Greg here - yes, I approve this paid execution test for the development of this project”
+
+This record is bound to the current task context and exact v1.4 12-request
+execution. It does not authorize retries, a fresh holdout, source acquisition,
+or any broader provider work.

@@ -1,0 +1,102 @@
+{
+  "family_totals": {
+    "acnc_ais_bundle": 12,
+    "acnc_register": 12,
+    "annual_report": 11,
+    "ato_abr_dgr": 12,
+    "official_website": 9,
+    "pfra": 3,
+    "wikipedia_wikimedia": 4
+  },
+  "per_request": {
+    "cg406:subject:00fd5d9d7b844d74ae64c4f47f7c4538:SDC-0051": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1,
+      "official_website": 1,
+      "pfra": 1,
+      "wikipedia_wikimedia": 1
+    },
+    "cg406:subject:04549d1f5c7f4f658e4e33c8eee4f0fe:SDC-0026": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1,
+      "official_website": 1
+    },
+    "cg406:subject:1f6be8711c364328b77cf6cb5d5d44ab:SDC-0025": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1,
+      "pfra": 1
+    },
+    "cg406:subject:43db3f46f7274c8382905701f287ec09:SDC-0038": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1,
+      "official_website": 1
+    },
+    "cg406:subject:54a09c18d354495eb2fde6a01480b86b:SDC-0037": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1,
+      "official_website": 1
+    },
+    "cg406:subject:6da4240b384242a78455a01fc28e0ed8:SDC-0003": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1,
+      "official_website": 1,
+      "wikipedia_wikimedia": 1
+    },
+    "cg406:subject:771dbdb52fe54cb49ebcce20f72bd250:SDC-0007": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1,
+      "official_website": 1,
+      "wikipedia_wikimedia": 1
+    },
+    "cg406:subject:78393016b9ad44dd832cfa913b7122ba:SDC-0005": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "ato_abr_dgr": 1,
+      "official_website": 1,
+      "wikipedia_wikimedia": 1
+    },
+    "cg406:subject:93f185643c194b2da46032afc9521b30:SDC-0052": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1,
+      "official_website": 1,
+      "pfra": 1
+    },
+    "cg406:subject:96135bad66c645ecb487fba1f059240c:SDC-0028": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1,
+      "official_website": 1
+    },
+    "cg406:subject:99d810fb8e6e4ac7adc2ee0dd3e7e095:SDC-0019": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1
+    },
+    "cg406:subject:d0b269be3d5d4b6db24d6d203637dfa5:SDC-0014": {
+      "acnc_ais_bundle": 1,
+      "acnc_register": 1,
+      "annual_report": 1,
+      "ato_abr_dgr": 1
+    }
+  },
+  "provider_visible_record_count": 63,
+  "schema": "charitygraph.cg406-v12-provider-visible-family-coverage/v1"
+}

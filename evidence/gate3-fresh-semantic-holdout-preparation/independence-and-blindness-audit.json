@@ -1,0 +1,18 @@
+{
+  "allowed_selection_inputs": [
+    "C:\\CharityGraph-runtime\\phase5-top100-subject-bootstrap-v1\\identity-map.json",
+    "C:\\CharityGraph-clean\\charitygraph-data\\docs\\semantic-demand-catalogue-399\\semantic-demand-catalogue.v1.json",
+    "C:\\CharityGraph-clean\\charitygraph-data\\docs\\semantic-demand-catalogue-399\\validation.json",
+    "C:\\CharityGraph-runtime\\artifacts\\cg405-source-universe-sufficiency\\benchmark-manifest.json",
+    "C:\\CharityGraph-clean\\charitygraph\\evidence\\cg406-v14-final-development-replay\\prepared-run-identity.json"
+  ],
+  "boundary": "The two exposure inputs contribute identifiers only for exclusion. They contribute no outcomes, evidence, scores, diagnoses, answers, or oracle material.",
+  "builder_result_or_response_inputs": [],
+  "builder_validation_or_diagnostic_inputs": [],
+  "oracle_content_inputs": [],
+  "paid_oracle_generation": 0,
+  "provider_calls": 0,
+  "result": "PASS",
+  "schema": "charitygraph.gate3.fresh-holdout-independence-audit/v1",
+  "source_acquisition": 0
+}

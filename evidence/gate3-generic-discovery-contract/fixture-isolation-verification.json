@@ -1,0 +1,12 @@
+{
+  "bound_holdout_instance_present": false,
+  "eleven_digit_abn_literal_count": 0,
+  "expected_manifest_sha256": "9397c48a1a1bc353f18fb167a70117d019d0a9d13b4d3ff32049c7ff157d9c0a",
+  "fixture_inventory_artifact_count": 8,
+  "fixture_inventory_verified": true,
+  "fixture_manifest_sha256": "9397c48a1a1bc353f18fb167a70117d019d0a9d13b4d3ff32049c7ff157d9c0a",
+  "note": "Policy words such as 'answer', 'selected', 'organisation', and 'oracle' occur only in blindness/constraint language and are not identity or result records.",
+  "oracle_result_present": false,
+  "selected_subject_record_present": false,
+  "subject_id_literal_count": 0
+}

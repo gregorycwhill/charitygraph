@@ -1,0 +1,139 @@
+{
+  "eligible_subject_count": 46,
+  "excluded_subject_count": 54,
+  "freshness_standard": "BOUNDED_FRESHNESS_VERIFIED",
+  "residual_uncertainty": "Two historical ACNC-bound legal entities have no current-pool ABN match or documented successor crosswalk. They remain recorded as unresolved; no successor is inferred. This bounded standard does not assert absolute historical non-overlap.",
+  "resolved_exact_authority_identifier_overlaps": [
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "46070556642"
+      },
+      "classification": "EXACT_AUTHORITY_IDENTIFIER_OVERLAP",
+      "current_acnc_source_record_id": "srcrec:240603fcd347ae3dad922030a6f255dd6d944c217ff9320cc444f1947b788da8",
+      "current_binding_status": "reused_existing_subject",
+      "current_identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+      "current_source_blob_reused_from_legacy_acnc_entity": true,
+      "current_subject_id": "subject:ca20920c8c074a268f09b7a57866479a",
+      "exposure_action": "EXCLUDED",
+      "governed_subject_identity_resolved_by_this_reconciliation": false,
+      "issuer": "ACNC",
+      "legacy_acnc_entity_uuid": "b4a55fbf-38af-e811-a95e-000d3ad24c60",
+      "legacy_subject_id": "subject:195da95ae34873eeae2c0fd92639a46ca884e3bb87584d754a8a3b319adf4134",
+      "legacy_validity": "exact-ABN ACNC register binding captured in frozen CG405 ledger",
+      "mapping_cardinality": "one_to_one",
+      "scope": "registered_charity_legal_entity"
+    },
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "15000002522"
+      },
+      "classification": "EXACT_AUTHORITY_IDENTIFIER_OVERLAP",
+      "current_acnc_source_record_id": "srcrec:c57cd64f61cbd97d03511cb80ad6bea0723836b2de1343659acc925a9f75780b",
+      "current_binding_status": "reused_existing_subject",
+      "current_identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+      "current_source_blob_reused_from_legacy_acnc_entity": true,
+      "current_subject_id": "subject:67db77d503aa4689a78c685704cc8a96",
+      "exposure_action": "EXCLUDED",
+      "governed_subject_identity_resolved_by_this_reconciliation": false,
+      "issuer": "ACNC",
+      "legacy_acnc_entity_uuid": "6e28d24a-38af-e811-a95e-000d3ad24c60",
+      "legacy_subject_id": "subject:688b923239066705fdf85e5389b2e26de935c469575c1036fd71715af0a255f9",
+      "legacy_validity": "exact-ABN ACNC register binding captured in frozen CG405 ledger",
+      "mapping_cardinality": "one_to_one",
+      "scope": "registered_charity_legal_entity"
+    },
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "50169561394"
+      },
+      "classification": "EXACT_AUTHORITY_IDENTIFIER_OVERLAP",
+      "current_acnc_source_record_id": "srcrec:28871ec97cd51b3a553fface61a50384620475efa6a2d0e9e22913135a48d90e",
+      "current_binding_status": "reused_existing_subject",
+      "current_identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+      "current_source_blob_reused_from_legacy_acnc_entity": true,
+      "current_subject_id": "subject:d10dfad31cb04c5fb27ada0a81f36b69",
+      "exposure_action": "EXCLUDED",
+      "governed_subject_identity_resolved_by_this_reconciliation": false,
+      "issuer": "ACNC",
+      "legacy_acnc_entity_uuid": "3474837c-38af-e811-a95e-000d3ad24c60",
+      "legacy_subject_id": "subject:dcfd998d91be9fa9540d70263613b6d2f8a45650a4bfbde7b882dbc2f2bc575d",
+      "legacy_validity": "exact-ABN ACNC register binding captured in frozen CG405 ledger",
+      "mapping_cardinality": "one_to_one",
+      "scope": "registered_charity_legal_entity"
+    },
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "28004778081"
+      },
+      "classification": "EXACT_AUTHORITY_IDENTIFIER_OVERLAP",
+      "current_acnc_source_record_id": "srcrec:6a43b5d6a14aeb201c05fb0ca58b1b356fd7aec97f5876324d68d8b9ac842b3b",
+      "current_binding_status": "reused_existing_subject",
+      "current_identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+      "current_source_blob_reused_from_legacy_acnc_entity": false,
+      "current_subject_id": "subject:cf042745edd84e58bce4e1c60704c472",
+      "exposure_action": "EXCLUDED",
+      "governed_subject_identity_resolved_by_this_reconciliation": false,
+      "issuer": "ACNC",
+      "legacy_acnc_entity_uuid": "32477d82-38af-e811-a95e-000d3ad24c60",
+      "legacy_subject_id": "subject:ea7189a7e8d9c1898ed1d74b09783a25cf89daced9decbf759602803f6eba5d3",
+      "legacy_validity": "exact-ABN ACNC register binding captured in frozen CG405 ledger",
+      "mapping_cardinality": "one_to_one",
+      "scope": "registered_charity_legal_entity"
+    },
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "28000030179"
+      },
+      "classification": "EXACT_AUTHORITY_IDENTIFIER_OVERLAP",
+      "current_acnc_source_record_id": "srcrec:28c7effc49267a5625aa371576b9f34a12b499f9566f81c798c52a3b63cce38c",
+      "current_binding_status": "reused_existing_subject",
+      "current_identity_policy_id": "acnc-registered-charity-bootstrap-v1",
+      "current_source_blob_reused_from_legacy_acnc_entity": true,
+      "current_subject_id": "subject:f284a1e0e31a4e04b7d9f8ae8863ef10",
+      "exposure_action": "EXCLUDED",
+      "governed_subject_identity_resolved_by_this_reconciliation": false,
+      "issuer": "ACNC",
+      "legacy_acnc_entity_uuid": "c5fb7e82-38af-e811-a960-000d3ad24282",
+      "legacy_subject_id": "subject:ff2ae9182c0f7ff234eea4959762edc76eef0c68ece6d32d8cdbe07e25e4a61c",
+      "legacy_validity": "exact-ABN ACNC register binding captured in frozen CG405 ledger",
+      "mapping_cardinality": "one_to_one",
+      "scope": "registered_charity_legal_entity"
+    }
+  ],
+  "schema": "charitygraph.gate3.question-first-bounded-freshness-audit/v1",
+  "scope": "registered_charity_legal_entity",
+  "selection_performed": false,
+  "unresolved_historical_exposures": [
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "20077830347"
+      },
+      "candidate_subject_quarantined": null,
+      "issuer": "ACNC",
+      "legacy_acnc_entity_uuid": "7f1af405-3aaf-e811-a961-000d3ad24182",
+      "legacy_subject_id": "subject:11723c321bfbb575c2a13e93c18a310b52d760e305b44c2db9bdf9e62b1a0bc8",
+      "reason": "no current governed ABN match and no documented authority-identifier migration/crosswalk was located in the permitted historical identity inputs",
+      "scope": "registered_charity_legal_entity",
+      "state": "UNRESOLVED_HISTORICAL_EXPOSURE"
+    },
+    {
+      "authority_identifier": {
+        "scheme": "ABN",
+        "value": "22007498482"
+      },
+      "candidate_subject_quarantined": null,
+      "issuer": "ACNC",
+      "legacy_acnc_entity_uuid": "d2e1368f-38af-e811-a960-000d3ad24282",
+      "legacy_subject_id": "subject:2a893ecf70dfd1e2de1c1fd004f397dab7150e88e71ca5465c7944b69f29f567",
+      "reason": "no current governed ABN match and no documented authority-identifier migration/crosswalk was located in the permitted historical identity inputs",
+      "scope": "registered_charity_legal_entity",
+      "state": "UNRESOLVED_HISTORICAL_EXPOSURE"
+    }
+  ]
+}

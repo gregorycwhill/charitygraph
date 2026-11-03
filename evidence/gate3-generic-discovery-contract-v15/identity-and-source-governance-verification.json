@@ -1,0 +1,10 @@
+{
+  "abn_canonical_identity": false,
+  "authority_scoped_identifier_role": "external join only",
+  "opaque_subject_identity_preserved": true,
+  "oracle_access": 0,
+  "provider_calls": 0,
+  "selected_holdout_access": 0,
+  "source_acquisition": 0,
+  "source_universe_expansion": false
+}

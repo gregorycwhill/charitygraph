@@ -1,0 +1,30 @@
+{
+  "artifacts": [
+    {
+      "bytes": 24673,
+      "path": "successor-eligible-subject-universe.json",
+      "sha256": "ed433054d820373b17640add4ffcf09787879faf4ef8e47895db9264e49c02f4"
+    },
+    {
+      "bytes": 39557,
+      "path": "successor-excluded-subjects.json",
+      "sha256": "145ede810142f6afa4d459b7a55c25573b16e4cdd863540091f15429a61ca36f"
+    },
+    {
+      "bytes": 7148,
+      "path": "exposure-eligibility-audit.json",
+      "sha256": "b8012946e838b8aab1c29dc4dd3bd633484705fd40229c572646b6b57414383c"
+    },
+    {
+      "bytes": 978,
+      "path": "successor-subject-universe-manifest.json",
+      "sha256": "4fcd4013471d721ac62fe4e53fe3062832c79b19247f1cb236dab3461d5b7a1b"
+    },
+    {
+      "bytes": 891,
+      "path": "bounded-freshness-methodology.md",
+      "sha256": "20bebd95fac0213f92ccc0d3c4c8332084a23909f87ed99ec888c821aa721706"
+    }
+  ],
+  "schema": "charitygraph.evidence-inventory/v1"
+}

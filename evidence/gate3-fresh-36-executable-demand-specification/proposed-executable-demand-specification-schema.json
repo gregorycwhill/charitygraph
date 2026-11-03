@@ -1,0 +1,41 @@
+{
+  "contract_identity": "charitygraph.executable-demand-specification/v1",
+  "contract_version": "1",
+  "prohibitions": [
+    "no default scope, time, population, metric, rule, or person",
+    "no evidence/source availability input",
+    "no oracle input",
+    "no v1.4 request lowering while any material field is unresolved",
+    "no reuse of an oracle identity after a material question revision"
+  ],
+  "purpose": "lossless, provider-free bridge from a catalogue demand and governed subject to an explicitly complete or incomplete instance demand",
+  "required_top_level_fields": [
+    "specification_id",
+    "selection_manifest_sha256",
+    "selection_instance_id",
+    "catalogue_signature_sha256",
+    "catalogue_fields_explicitly_supplied",
+    "resolved_subject",
+    "resolved_required_parameters",
+    "unresolved_required_parameters",
+    "deterministically_derived",
+    "required_semantic_choices",
+    "unresolved_specification_parameters",
+    "semantic_equivalence",
+    "material_question_change_made",
+    "executable_under_v1_4",
+    "v1_4_lowering"
+  ],
+  "schema": "charitygraph.g3fresh36.proposed-demand-specification-contract/v1",
+  "semantic_components": {
+    "catalogue_demand_identity": "exact catalogue ID",
+    "evidence_standard": "catalogue expectations may be inherited losslessly but do not create evidence",
+    "exact_referent": "must be explicitly bound or remain a required semantic choice",
+    "forbidden_inferences": "catalogue missingness caution is carried as a constraint, never as an answer",
+    "frozen_subject_identity": "governed selection subject; external identifier binding remains provenance",
+    "proposition_identities": "only assignable after exact concrete proposition text is frozen",
+    "relationship_operation_and_joins": "must be explicit; catalogue family is not an operation default",
+    "required_parameters": "each is resolved, explicitly unspecified, or marked for a separate question-design choice",
+    "temporal_and_scope_constraints": "catalogue constraints are retained separately from missing concrete anchors"
+  }
+}

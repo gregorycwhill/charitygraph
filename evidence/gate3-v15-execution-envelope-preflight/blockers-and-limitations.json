@@ -1,0 +1,44 @@
+{
+  "affected": [
+    {
+      "blocker": "'QFT-D05B@v2'",
+      "bound_question_identity": "QINST-AD65E09A82255BF7C1B99C4A213F178906FA87F8F7FDDA61ED9E088340AC4B67",
+      "mechanically_executable": false,
+      "status": "BLOCKED_ON_REQUIRED_SEMANTICS",
+      "template_identity": "QFT-D05B@v2"
+    },
+    {
+      "blocker": "bound user parameters do not exactly match the frozen template contract",
+      "bound_question_identity": "QINST-A2B6B490074E7B2B91471C7F88A665EBFC2A1F43AC193269CACB52C001842B76",
+      "mechanically_executable": false,
+      "status": "BLOCKED_ON_REQUIRED_SEMANTICS",
+      "template_identity": "QFT-D08B@v1"
+    },
+    {
+      "blocker": "'QFT-D13B@v2'",
+      "bound_question_identity": "QINST-77DC1396AFEC85783F12FDE3B80A0EAE37A89ED911171E46C34BC1F9D6EFC325",
+      "mechanically_executable": false,
+      "status": "BLOCKED_ON_REQUIRED_SEMANTICS",
+      "template_identity": "QFT-D13B@v2"
+    },
+    {
+      "blocker": "'QFT-D17B@v2'",
+      "bound_question_identity": "QINST-7D9628272BA2C9DD3AD0986521729E4AD74BF3F716B768ABF8369E30B04D7C8F",
+      "mechanically_executable": false,
+      "status": "BLOCKED_ON_REQUIRED_SEMANTICS",
+      "template_identity": "QFT-D17B@v2"
+    },
+    {
+      "blocker": "'QFT-D18B@v2'",
+      "bound_question_identity": "QINST-0A16761F848839EABAEEF1F2DA6876E202C58A8C7CE0DB04C4A1323B2D850F88",
+      "mechanically_executable": false,
+      "status": "BLOCKED_ON_REQUIRED_SEMANTICS",
+      "template_identity": "QFT-D18B@v2"
+    }
+  ],
+  "oracle_access": 0,
+  "precise_blocker": "Four v2 identity serializations differ (@v2 versus -v2) without a content-hash crosswalk, and D08B has a non-identical frozen channel value. Exact joins cannot prove equivalence.",
+  "provider_calls": 0,
+  "source_acquisition": 0,
+  "status": "BLOCKED_ON_G3_EXECUTION_ENVELOPE"
+}

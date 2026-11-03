@@ -1,0 +1,48 @@
+{
+  "schema": "charitygraph.gate3.final-semantic-review.identity-verification/v1",
+  "verified_at": "2026-10-20",
+  "execution_run_id": "run:g3fresh36-question-first-v2-v151-20261020",
+  "execution_plan_sha256": "31834cc1e133d6c4c80c80ae787e3cab00a5819d15c84c26353618c801095efc",
+  "execution_result_sha256": "be632cdcc89e214a733d465d69001b3a9a43544c675e7ba2ccda27e0c94c7f7e",
+  "oracle_manifest_sha256": "7e7d2f105534864a56285fbd9ea333fdd7faac5d7023a0f1be8f02426e259816",
+  "oracle_certification_decision": "CERTIFIED",
+  "oracle_aggregate_status_count_reconciliation": {
+    "manifest_and_certification_report_counts": {"SUPPORTED": 16, "PARTIAL": 13, "NOT_ESTABLISHED": 22},
+    "sum_of_manifest_and_report_counts": 51,
+    "assessment_row_status_counts": {"SUPPORTED": 1, "PARTIAL": 13, "NOT_ESTABLISHED": 22},
+    "assessment_rows": 36,
+    "atomic_proposition_rows_and_status_counts": {"SUPPORTED": 1, "PARTIAL": 13, "NOT_ESTABLISHED": 22},
+    "reconciles": false,
+    "treatment": "Use per-question assessment records for case comparisons; disclose the unexplained aggregate-count discrepancy and do not rely on the manifest/certificate aggregate as a 36-case distribution."
+  },
+  "checks": {
+    "execution_questions": 36,
+    "oracle_assessments": 36,
+    "question_id_sets_equal": true,
+    "question_ids_unique_in_both_sets": true,
+    "subject_ids_equal_by_question_id": true,
+    "exact_question_text_equal_by_question_id": true,
+    "parameters_equal_after_slot_value_normalization": true,
+    "unique_oracle_intake_case_identities": 36,
+    "oracle_declared_artifact_inventory_verified": true,
+    "oracle_successor_source_bodies_verified": 19,
+    "provider_response_inventory_verified": true,
+    "provider_responses": 36,
+    "physical_requests_per_question": 1,
+    "request_retries": 0,
+    "oracle_access_during_generation": 0,
+    "provider_requests_during_review": 0
+  },
+  "parameter_normalization": "Builder instance parameters are keyed by slot; oracle parameter_bindings are converted to exact slot_id -> exact_value maps before equality comparison. Source and source_record metadata are provenance, not parameter values.",
+  "case_join": "question_id == frozen_question_id; oracle_intake_record_id is recorded from the matched oracle assessment. No positional correspondence is used.",
+  "builder_admitted_source_family_counts": {
+    "acnc_register": 36,
+    "acnc_ais_bundle": 36
+  },
+  "oracle_case_status_counts": {
+    "SUPPORTED": 1,
+    "PARTIAL": 13,
+    "NOT_ESTABLISHED": 22,
+    "UNSCORABLE_PENDING_EVIDENCE": 0
+  }
+}

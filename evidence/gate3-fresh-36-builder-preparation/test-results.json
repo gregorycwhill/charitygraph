@@ -1,0 +1,5 @@
+{
+  "command": "pytest tests/test_frozen_experiment.py tests/test_frozen_experiment_cli.py tests/test_baseline_corpus.py tests/test_phase5_baseline_corpus.py tests/test_phase5_execution_packet.py tests/test_phase6_semantic_contracts.py",
+  "provider_calls": 0,
+  "result": "83 passed, 1 environment cache warning"
+}

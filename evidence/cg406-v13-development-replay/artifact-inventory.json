@@ -1,0 +1,17 @@
+{
+  "schema": "charitygraph.evidence-artifact-inventory/v1",
+  "artifacts": {
+    "accounting-reconciliation.json": "f9ad60c8b65c750e527308f8b96eda505d6907484c9d6520cdb34931645b0e10",
+    "evidence-source-relevance-details.json": "d3bb9e7a6ccdc255f5b11ffff342638e0aeeed47284bcdbb06f4258152d2b43c",
+    "execution-control-investigation.json": "7f5d0549c83ccf7c0ab68a265d1888f022aad30f31d25382e2584fc8755ef9bb",
+    "frozen-result-manifest.json": "a75e0eaabdfc472755082615ad73b1b108544ae58e0793d4fd7a64b375850505",
+    "handoff.json": "3001c316499f4b7c658e9f7e30be24cc5b279923636bf190a45e0265f501b870",
+    "mechanical-v12-v13-comparison.json": "779950e7ba5d2e8d456eaac2ba83802b7b434153e15ca795635192f795bb0c0d",
+    "prepared-execution-reconciliation.json": "b38fe8cc2908c9a40b13fdc2e8fe3c47e9972c614d83cc7ba67bdd66a69a8bcc",
+    "resume-verification.json": "2fff6a848e262f056046529e75d47c030c2c4d3c2ae9e7c836ebe6f5d9a75b41",
+    "summary.md": "173222e3c36ffb784edee4fb5d73ec65d85b08f080a99c6c1558b142d200c16e",
+    "terminal-result-ledger.json": "40fc16c0af979992ff7c2f10df1e238da645456fb26bd720d5fd98cf039c3cac",
+    "test-results.json": "e94a49e887ddd2df2857727ba35183548a4b16a6290bb0112de202f7062ad2df",
+    "validation-results.json": "d61de171f92e51fcc7742ead36be2efe0cd41c0b6b984ccb549f1c53ad9140d2"
+  }
+}

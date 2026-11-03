@@ -1,0 +1,47 @@
+{
+  "builder": {
+    "branch": "gate3-cg406-remediation",
+    "commit": "6daf2a10d495a933cb56a49f2e87b974e664c879"
+  },
+  "data": {
+    "commit": "443d195abea91d7da111f5e573e90247ae823c36"
+  },
+  "demand_catalogue": {
+    "candidate_count": 20,
+    "path": "C:\\CharityGraph-clean\\charitygraph-data\\docs\\semantic-demand-catalogue-399\\semantic-demand-catalogue.v1.json",
+    "schema": "charitygraph.semantic-demand-catalogue/v1",
+    "sha256": "c5b25dc03395faaeb3c813daf0bd4df62b208e814d7a81b5317ee32fd2be3762",
+    "validation_sha256": "192baa172b72432e354940853e368ff83ee58936dd8f7a6abd532d81782ac9a9"
+  },
+  "frozen_cg406": {
+    "demand_manifest_sha256": "8aefa2a46838da065d93923004153abb905f1cabc087394aa58fa41f890b60fb",
+    "oracle_manifest_sha256": "549bf31a2d3edd1f6798a4661295c916c2169781b4e7f2ec87756380c0b2890a",
+    "oracle_reference_ledger_sha256": "1af26276c216fd2af7dbaa7517e372efb08e991c947a612f6866db381c77f752",
+    "subject_manifest_sha256": "bc0c63a6938cb23772213d3025bc70b363ddae8af6ae67e1e1b9a4d419eb66c8",
+    "treatment": "READ_ONLY_BASELINE_ONLY; no CG406 response, oracle content, classification, or diagnostic is input to selection",
+    "v14_prepared_run_sha256": "da77187aa3fff0d59ef8931958f68b9bea7e88a716d0657dfc4a7c30ce8b5925",
+    "v14_result_manifest_sha256": "12ee7636294b1ed72ad13d54f11c905494e0defc0a3081c3de23dbb5ca1a0364"
+  },
+  "provider_calls": 0,
+  "provider_reservations": 0,
+  "schema": "charitygraph.gate3.fresh-holdout-baseline/v1",
+  "sdc_0019": "CANDIDATE_SOURCE_GAP; unchanged and not sampled or reclassified by this tranche",
+  "semantic_contract": {
+    "adapter_version": "1.4",
+    "contract_id": "urn:charitygraph:builder:semantic-contract:evidence-selection-v1",
+    "contract_version": "1.4",
+    "schema_id": "urn:charitygraph:builder:schema:evidence-selection-output:1.4",
+    "schema_version": "1.4-provenance-claim-separation",
+    "validation_identity": "charitygraph.frozen_experiment.validate_evidence_selection"
+  },
+  "source_acquisition": 0,
+  "source_universe_v1": [
+    "acnc_register",
+    "acnc_ais_bundle",
+    "ato_abr_dgr",
+    "official_website",
+    "annual_report",
+    "wikipedia_wikimedia",
+    "pfra"
+  ]
+}

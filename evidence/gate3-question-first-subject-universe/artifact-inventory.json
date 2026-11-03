@@ -1,0 +1,35 @@
+{
+  "artifacts": [
+    {
+      "bytes": 1086,
+      "path": "eligibility-methodology.md",
+      "sha256": "52199ef4e6891264d256c2db89587f5ca1125b6d0c4d51b72265a93bc7440094"
+    },
+    {
+      "bytes": 23031,
+      "path": "eligible-subject-universe.json",
+      "sha256": "ae2448516b6115a71bd1f7ff37987dcf83646583fed135fbed45f0ddf37fc275"
+    },
+    {
+      "bytes": 37343,
+      "path": "excluded-subjects.json",
+      "sha256": "c920e7305f2a78026b9af591912c562ec28d57aa4d2fd979d26561564da64bb8"
+    },
+    {
+      "bytes": 22681,
+      "path": "exposure-ledger.json",
+      "sha256": "16d31118aca07750b211c33b571a28c7dccb28b9bff45c9c0f32595cc3488e1f"
+    },
+    {
+      "bytes": 2226,
+      "path": "subject-universe-manifest.json",
+      "sha256": "81cc539a2b6df84600401fcc64afad63352b2a905c27332c2aa8e94f5f6432a5"
+    },
+    {
+      "bytes": 784,
+      "path": "verification-results.json",
+      "sha256": "c9ca0b5af2cb54d93c9cba784c8fc9273a66a7dd77e08f9ed9a4f35bebced5d0"
+    }
+  ],
+  "schema": "charitygraph.evidence-inventory/v1"
+}

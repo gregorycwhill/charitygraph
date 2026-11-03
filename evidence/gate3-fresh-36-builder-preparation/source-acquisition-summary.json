@@ -1,0 +1,236 @@
+{
+  "acquisition_by_family_and_state": [
+    {
+      "count": 36,
+      "source_family": "acnc_ais_bundle",
+      "state": "acquired_available"
+    },
+    {
+      "count": 36,
+      "source_family": "acnc_register",
+      "state": "acquired_available"
+    },
+    {
+      "count": 28,
+      "source_family": "annual_report",
+      "state": "acquired_available"
+    },
+    {
+      "count": 8,
+      "source_family": "annual_report",
+      "state": "unavailable"
+    },
+    {
+      "count": 36,
+      "source_family": "ato_abr_dgr",
+      "state": "acquired_available"
+    },
+    {
+      "count": 20,
+      "source_family": "official_website",
+      "state": "acquired_available"
+    },
+    {
+      "count": 13,
+      "source_family": "official_website",
+      "state": "attempted_unavailable"
+    },
+    {
+      "count": 3,
+      "source_family": "official_website",
+      "state": "blocked"
+    },
+    {
+      "count": 36,
+      "source_family": "pfra",
+      "state": "acquired_available"
+    },
+    {
+      "count": 32,
+      "source_family": "wikipedia_wikimedia",
+      "state": "acquired_available"
+    },
+    {
+      "count": 4,
+      "source_family": "wikipedia_wikimedia",
+      "state": "failed"
+    }
+  ],
+  "actual_provider_visible_records": 0,
+  "annual_report_native_representation": {
+    "by_readiness": [
+      {
+        "count": 13,
+        "readiness": "partial"
+      },
+      {
+        "count": 15,
+        "readiness": "ready"
+      }
+    ],
+    "documents": 28,
+    "excluded_from_packet": "source-native extracted page text remains only in the private runtime store",
+    "native_text_pages": 600,
+    "pages": 768
+  },
+  "binding_by_family": [
+    {
+      "binding": null,
+      "count": 36,
+      "source_family": "acnc_ais_bundle"
+    },
+    {
+      "binding": null,
+      "count": 36,
+      "source_family": "acnc_register"
+    },
+    {
+      "binding": null,
+      "count": 36,
+      "source_family": "annual_report"
+    },
+    {
+      "binding": null,
+      "count": 36,
+      "source_family": "ato_abr_dgr"
+    },
+    {
+      "binding": null,
+      "count": 36,
+      "source_family": "official_website"
+    },
+    {
+      "binding": "no_bound_record",
+      "count": 36,
+      "source_family": "pfra"
+    },
+    {
+      "binding": null,
+      "count": 4,
+      "source_family": "wikipedia_wikimedia"
+    },
+    {
+      "binding": "bound",
+      "count": 5,
+      "source_family": "wikipedia_wikimedia"
+    },
+    {
+      "binding": "no_bound_record",
+      "count": 27,
+      "source_family": "wikipedia_wikimedia"
+    }
+  ],
+  "coverage_cells": 252,
+  "mechanical_corpus_admission_by_family_and_disposition": [
+    {
+      "count": 36,
+      "disposition": "admitted",
+      "source_family": "acnc_ais_bundle"
+    },
+    {
+      "count": 36,
+      "disposition": "admitted",
+      "source_family": "acnc_register"
+    },
+    {
+      "count": 8,
+      "disposition": "acquisition_not_available",
+      "source_family": "annual_report"
+    },
+    {
+      "count": 28,
+      "disposition": "admitted",
+      "source_family": "annual_report"
+    },
+    {
+      "count": 36,
+      "disposition": "admitted",
+      "source_family": "ato_abr_dgr"
+    },
+    {
+      "count": 16,
+      "disposition": "acquisition_not_available",
+      "source_family": "official_website"
+    },
+    {
+      "count": 20,
+      "disposition": "admitted",
+      "source_family": "official_website"
+    },
+    {
+      "count": 36,
+      "disposition": "subject_not_bound",
+      "source_family": "pfra"
+    },
+    {
+      "count": 4,
+      "disposition": "acquisition_not_available",
+      "source_family": "wikipedia_wikimedia"
+    },
+    {
+      "count": 5,
+      "disposition": "admitted",
+      "source_family": "wikipedia_wikimedia"
+    },
+    {
+      "count": 27,
+      "disposition": "subject_not_bound",
+      "source_family": "wikipedia_wikimedia"
+    }
+  ],
+  "mechanically_admitted_pre_rights_records": 161,
+  "network_by_family_and_outcome": [
+    {
+      "count": 28,
+      "outcome": "available",
+      "source_family": "annual_report"
+    },
+    {
+      "count": 8,
+      "outcome": "unavailable",
+      "source_family": "annual_report"
+    },
+    {
+      "count": 35,
+      "outcome": "available",
+      "source_family": "ato_abr_dgr"
+    },
+    {
+      "count": 18,
+      "outcome": "available",
+      "source_family": "official_website"
+    },
+    {
+      "count": 3,
+      "outcome": "blocked",
+      "source_family": "official_website"
+    },
+    {
+      "count": 2,
+      "outcome": "available",
+      "source_family": "pfra"
+    },
+    {
+      "count": 32,
+      "outcome": "available",
+      "source_family": "wikipedia_wikimedia"
+    },
+    {
+      "count": 4,
+      "outcome": "failed",
+      "source_family": "wikipedia_wikimedia"
+    }
+  ],
+  "provider_visibility_note": "No packet was materialized, no rights decision was invoked for transmission, and no source content was shown to a provider.",
+  "schema": "charitygraph.g3fresh36.provider-free-source-summary/v1",
+  "selection_manifest_sha256": "41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9",
+  "source_universe_v1_families": [
+    "acnc_register",
+    "acnc_ais_bundle",
+    "ato_abr_dgr",
+    "official_website",
+    "annual_report",
+    "wikipedia_wikimedia",
+    "pfra"
+  ]
+}

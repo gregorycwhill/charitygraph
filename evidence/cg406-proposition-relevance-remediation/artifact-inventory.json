@@ -1,0 +1,19 @@
+{
+  "schema": "charitygraph.evidence-inventory/v1",
+  "hash_algorithm": "SHA-256",
+  "self_hash_excluded": true,
+  "artifacts": [
+    {"name":"before-after-evidence-family-matrix.md","sha256":"7d5d3cda7803c6de6b58841c32ba9dc1146404a53663068f48a7a6dfa0f4aa78"},
+    {"name":"handoff.json","sha256":"f836d00ff645a4700661a00230616c8b9273bfaee2cc5dd511f3769a282b804b"},
+    {"name":"prepared-request-identity-manifest.json","sha256":"7a8bbb895fe662281c40b0554720c41e8e4d712a0f25a95c36b566cf3ba719ca"},
+    {"name":"summary.md","sha256":"883a0ea0b9df3642ddb039b3208baeb6878cd0fa0302bf6838c728af9c025132"},
+    {"name":"test-results.md","sha256":"60c6e980675982732169ba369d26dbf0f30b3e28934c9433dc47cb454c7195d8"},
+    {"name":"validation-results.json","sha256":"496e42a4f8c29c1249399fd802624fb2d20c5d5dc159a52719b18af8909adb62"}
+  ],
+  "linked_runtime_artifacts_not_uploaded": [
+    {"name":"governed-provider-corpus.json","sha256":"6bd0b2736028942f4a48f99188d5f242e12187bd850c4195bc93b77a6f0bca7e"},
+    {"name":"artifact-rights-decisions.json","sha256":"e60eb0c10a495a126c5ccd4d23ff01feed44538038867b1dad0673deee81c413"},
+    {"name":"row-classification.json","sha256":"c4a3ac803e101b1b0082dd95359e2a0cc813a12326e2ec2e0f24c69aee66b694"},
+    {"name":"prepared-run.json","sha256":"8306e499851baf2a0c3532384cca9dcbcfa5569f36b371d79f66e6b0ec8ee936"}
+  ]
+}

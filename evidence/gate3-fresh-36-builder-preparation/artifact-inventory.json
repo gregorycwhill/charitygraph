@@ -1,0 +1,70 @@
+{
+  "artifacts": [
+    {
+      "bytes": 12857,
+      "path": "corpus-identity-manifest.json",
+      "sha256": "62dfca4039582c1aa214028dfaa5f9d8abcd6763f26925404d1c641007eec15a"
+    },
+    {
+      "bytes": 665,
+      "path": "frozen-input-verification.json",
+      "sha256": "385c009c4677bd8d1db441e2532773ed0c22688578998a7f4913067ff85a4c25"
+    },
+    {
+      "bytes": 827,
+      "path": "handoff.json",
+      "sha256": "366a6a733ee9f7e5a8631f58a8acc597f6fa517b579b0b15ae6dd19771bd3dce"
+    },
+    {
+      "bytes": 15557,
+      "path": "preparation-contract-validation.json",
+      "sha256": "615e1650d727bf4196cef1d34b5091386dfeb74b7d0a2bc928386f46012db92d"
+    },
+    {
+      "bytes": 6245,
+      "path": "prepared-request-status.json",
+      "sha256": "2ef4a480cb4bee714b86b4267956754ec6252ee7a01d974ff1771c2e6fd1fcd7"
+    },
+    {
+      "bytes": 328788,
+      "path": "provider-corpus-admission-ledger.json",
+      "sha256": "fea51e4a086b55d71d24af43c48b62befb3f7bbc711f1ec3f02f09cd3a9e2701"
+    },
+    {
+      "bytes": 275,
+      "path": "provider-free-guard.json",
+      "sha256": "764be945a54072d0ea540da12110fd6846f948b8bc0e31f862a157f668ec3995"
+    },
+    {
+      "bytes": 79788,
+      "path": "source-acquisition-ledger.json",
+      "sha256": "96133c9a6b4f2c94d45a7810ced87f896ff1eb281c54af6f4119099993ab9c1b"
+    },
+    {
+      "bytes": 5520,
+      "path": "source-acquisition-summary.json",
+      "sha256": "7c398e5cf05ad1562d199ccba346acade1186ade8732d4ffefcc90a954933b42"
+    },
+    {
+      "bytes": 47440,
+      "path": "source-coverage-matrix.json",
+      "sha256": "ca39923c3f89bc73ac9da2633b032251d95b8917eda86f4cdc2ea5d970b46e07"
+    },
+    {
+      "bytes": 8115,
+      "path": "source-gap-register.json",
+      "sha256": "ecbb0ad101cbcb4ad0b82d1163b3fadce9a9a1dc0f4144affee10821583a6544"
+    },
+    {
+      "bytes": 704,
+      "path": "summary.md",
+      "sha256": "1308e89b732577e10a25adfe93e8c2fefedecb7d49e60ab9372e7efdd189f9fb"
+    },
+    {
+      "bytes": 321,
+      "path": "test-results.json",
+      "sha256": "90f5b86a8eb76630758aa3eda1d234101be333460e7c6dc50b684cd7861df042"
+    }
+  ],
+  "schema": "charitygraph.evidence-inventory/v1"
+}

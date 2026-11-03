@@ -1,0 +1,96 @@
+{
+  "body_semantic_equivalence": "All 12 request input texts match after masking only cohort-derived task/request/attempt IDs; model, reasoning, schema, demand, evidence IDs and provider-visible corpus are unchanged.",
+  "execution_prepared_run_hash": "321391ea1693843fe0bc0d4588637f59543c3f59956503e7296dd28576042ca8",
+  "execution_provider_project": "proj_vnAuU8uxocL0Rosg3SulgmRI",
+  "original_and_execution_packet_hashes_differ": true,
+  "original_prepared_run_hash": "ec24b6c584d5c05983cc83477423df802feb818d23d6037f0f9c565959f877d2",
+  "packet_hash_difference_reason": "Packet hashes bind logical task IDs, which derive from the provider project-bound cohort identity. The execution-bound manifest retains the original prompts and evidence IDs under the approved project.",
+  "request_count": 12,
+  "rows": [
+    {
+      "instance_id": "cg406:subject:00fd5d9d7b844d74ae64c4f47f7c4538:SDC-0051",
+      "logical_task_id": "modeltask:dfcfc94ca8931e3ddc42e1c5503f5e40505ff1376bbd6962303d2b3b4e6da0be",
+      "packet_hash": "4b42de505883c51e719a126efb860c5c7fc2c2200f7bd731611abe1229c35842",
+      "provider_request_item_id": "requestitem:de86eb6eca0a5401c60556c222eed09f2c0f1edcd4c9d764a332655a7178c8a2",
+      "request_body_sha256": "410e7bf7c56398d126672c1d3878fa8ce8a4981c49d9a2d16d5d1aa16fb8629a"
+    },
+    {
+      "instance_id": "cg406:subject:04549d1f5c7f4f658e4e33c8eee4f0fe:SDC-0026",
+      "logical_task_id": "modeltask:e9771131687821e6be77b670467923e80afb807a8512a038125620c5a9934c41",
+      "packet_hash": "ba709f38c401c2bb4dd53e90dfdfbb52f190905ce88f8d96ae630b5246b7854a",
+      "provider_request_item_id": "requestitem:7bdffb3b3258d1db6b23c6485dec8ce28bc989893f638fb8018c8eae51f05f60",
+      "request_body_sha256": "9cdc413355df03b52029ebcbc7e44952353ec9077a768be5d8e6412182d99e45"
+    },
+    {
+      "instance_id": "cg406:subject:1f6be8711c364328b77cf6cb5d5d44ab:SDC-0025",
+      "logical_task_id": "modeltask:72cf66b73c6d48a126df34e96f8367dd0ed0c53185f625142bb53ce2c2f0d285",
+      "packet_hash": "b30cc7ce289bfc34f785a790dcac6f1c79229867db9f933d4c87683d9b178b4e",
+      "provider_request_item_id": "requestitem:ae3724a6190f6aebd914dddd5bbd1539081b828b2202d19096bbef59309dc8c4",
+      "request_body_sha256": "62cc6c37f4636ef359ef03aee8f2cc27ea79646e32fe9a74c332beeb8f19cfc0"
+    },
+    {
+      "instance_id": "cg406:subject:43db3f46f7274c8382905701f287ec09:SDC-0038",
+      "logical_task_id": "modeltask:049abb7da04d391da67530a6e1f22bcdde9c101a1ca6a53f6de3854482f1a87c",
+      "packet_hash": "87dc88711f6101fd937505967675355a50636053622d15f1a5fe3229b3e8c5d8",
+      "provider_request_item_id": "requestitem:6b6a8e1a319281e78b92b04585228bc98dd589b3bde5aa0872bb21c0dae0707d",
+      "request_body_sha256": "025d39a19e542afb57346319bc80452e3d10c8311b783a048551c31baa206623"
+    },
+    {
+      "instance_id": "cg406:subject:54a09c18d354495eb2fde6a01480b86b:SDC-0037",
+      "logical_task_id": "modeltask:bd6d7da638ecda8abb2085ad8e0c56f229839245231b49d3da599595276f3b18",
+      "packet_hash": "a1270c562c228e428e5bacc68ffcf9bfa0b5ba68adf8f55189db85aec7e8dde2",
+      "provider_request_item_id": "requestitem:9b45e4cd719838f4f5b96b3207b49369c757efa076e3b5dce62d24e332227ff5",
+      "request_body_sha256": "30fdfbf03c8e0b46ca1cccce79606fa87d1d40f156ac391035c7a3cca8ad3777"
+    },
+    {
+      "instance_id": "cg406:subject:6da4240b384242a78455a01fc28e0ed8:SDC-0003",
+      "logical_task_id": "modeltask:d472a83f6145c24b1d91202f4d653a98d8c326e81a9b45f28cda8d62c7ffe863",
+      "packet_hash": "14aaab37d7be2dc78fb129ed854bdd6b4b0a7d17bbcdd5241895b44e7b8fc4fe",
+      "provider_request_item_id": "requestitem:878c2e141cc88fd27cf59a8fb652826f7e687729aa04dbfb0faf7e64aa96ba7a",
+      "request_body_sha256": "d8594590a287610349ec59fa3cdb5b5221dad1ae130961277d9a1e668a34606e"
+    },
+    {
+      "instance_id": "cg406:subject:771dbdb52fe54cb49ebcce20f72bd250:SDC-0007",
+      "logical_task_id": "modeltask:96d4d6b000eaefd5c0150a6045677d1b008b9f0d5c5acdc15673802f7e780d5b",
+      "packet_hash": "758a567b442a6355c1dfae05905b9efa2b8bab8209af34179883148666c63509",
+      "provider_request_item_id": "requestitem:51d2bb6f5760e61aa223e6bb40143bbe063daaa95240528a5ff118b0e8d06537",
+      "request_body_sha256": "e466bda84ed19e460a17d19d595c0876f4f338db432bf102550f9334321a923c"
+    },
+    {
+      "instance_id": "cg406:subject:78393016b9ad44dd832cfa913b7122ba:SDC-0005",
+      "logical_task_id": "modeltask:595eb82c431b987c40f1beaa670967dc51f0d1d46412010eb50b2f27712defe8",
+      "packet_hash": "f91c61e3872d7a9c6b46c4c37c2e4c5e3ec412b39d822561b05bc1b2cfb54a32",
+      "provider_request_item_id": "requestitem:8e4279c0d5c3905b3f25a0ea5a1ab49ea5f843356006679e7646562344e60ee7",
+      "request_body_sha256": "630dfd12a97f20d59c4e17c8e09249460a7f3024efaf6f269fd62f86e876f081"
+    },
+    {
+      "instance_id": "cg406:subject:93f185643c194b2da46032afc9521b30:SDC-0052",
+      "logical_task_id": "modeltask:54a64e10cc06088c0484981156c19a66f4ad369d1c44354140c8227622555ee0",
+      "packet_hash": "488a8c1b58ebdc005327cb329d67bb550a4aa60aa52df4584e238d2a7e439e01",
+      "provider_request_item_id": "requestitem:c5574be94dfed7e99f29d116d8cdfdad4fc5c7107b17a18492f16138c67b063d",
+      "request_body_sha256": "eeae56c1caf30ddef3c4889e3e064584ce4bd45dc60d144379323fe69bf7c4b0"
+    },
+    {
+      "instance_id": "cg406:subject:96135bad66c645ecb487fba1f059240c:SDC-0028",
+      "logical_task_id": "modeltask:0fbf5bec46dee62c89c5a5add5ac52fa78a6f2139b864b364b806fd8d3075091",
+      "packet_hash": "4cdb6ffad337165ba30079245c67a58ebf45a5b9eed07090336dfaf6006bfc09",
+      "provider_request_item_id": "requestitem:b43fa93d1e27bc682e64456a908e7b283f23229b5e041edc3de7b2e3c6995f60",
+      "request_body_sha256": "8183d4e62dbe9f977ca9a6365e01bccedd609bc4a02e7bfcdffc8b8b795264b1"
+    },
+    {
+      "instance_id": "cg406:subject:99d810fb8e6e4ac7adc2ee0dd3e7e095:SDC-0019",
+      "logical_task_id": "modeltask:8e3cdbb30e3d520b827da4c2dc4f890183b219d2ded891b7c99a5704bd5ff0c9",
+      "packet_hash": "592d4ea6c530bcc21dfc4773940e151661593950afed430114db036d102940b2",
+      "provider_request_item_id": "requestitem:904c63704f2dd7f7b0fefa0a7e4f087fe4617c9f363de95c6fdd7df311ba6548",
+      "request_body_sha256": "d87969d9b73c34a511441f9119351f66ab55a7c6a3d9a847a49037aab9a131dc"
+    },
+    {
+      "instance_id": "cg406:subject:d0b269be3d5d4b6db24d6d203637dfa5:SDC-0014",
+      "logical_task_id": "modeltask:b80cdedb43a65b8a005c10965072362b038ad96d5482f5a442a2f4379b7bc3e0",
+      "packet_hash": "beb07e54b99b07eeb896bd4eb233e674a82972a81482228fff7c5256503a685e",
+      "provider_request_item_id": "requestitem:08d7be7c8dfc80cdf2af9efc520da1ed0195e9f16b5d7d3443985f0dd38f56c9",
+      "request_body_sha256": "aec7e9d7cf559553ae9f961b5f4c44177d84f86a61a82dbbaf5fcdfc3ac0704b"
+    }
+  ],
+  "schema": "charitygraph.cg406-development-prepared-run-identity/v1"
+}
