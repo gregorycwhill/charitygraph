@@ -1,0 +1,8 @@
+{
+  "decision": "MEGARUN5_SOURCE_REACQUISITION_OR_RETENTION_MODEL_BREAKS",
+  "prior_cohort_paths": [],
+  "reason": "No retained Mega-run 4 cohort or locator-to-document identity was present; an orphan PDF cannot truthfully be treated as an exact reacquisition.",
+  "run_id": "CG-REALITY-MEGARUN5-SOURCE-OBJECT-REPRESENTATION-TERRA-175",
+  "stage": "final",
+  "updated_at": "2026-09-29T11:07:30.896578+00:00"
+}

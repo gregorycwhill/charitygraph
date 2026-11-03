@@ -1,0 +1,12 @@
+{
+  "attributable_readable_pages": 0,
+  "exact_blocked_pages_replayed": 0,
+  "exact_reports_reacquired": 0,
+  "network_requests": 0,
+  "orphan_page_count": 3,
+  "orphan_source_object_sha256": "03c092980e9758b83cf575565b7ecdae8b2024830b18db1a960957b2da51ce5d",
+  "primary_outcome": "MEGARUN5_SOURCE_REACQUISITION_OR_RETENTION_MODEL_BREAKS",
+  "propositions": 0,
+  "qa_abstentions": 50,
+  "qa_cases": 50
+}
