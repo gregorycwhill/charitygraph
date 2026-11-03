@@ -1,0 +1,27 @@
+{
+  "run_id": "CG-MEGARUN3-173-CAMPAIGN-SYNTHESIS-TERRA",
+  "status": "MEGARUN3_RAW_TO_PRODUCT_SYNTHESISED",
+  "canonical_mutations": false,
+  "basis": {
+    "persisted_tranches_found": [169],
+    "requested_tranches_not_found": [167, 168, 170, 171, 172],
+    "artifact": "spike-18-temporal-conflict-lab/comparison-ledger.json",
+    "source_mode": "retained attributable real-subject packets; no acquisition or provider calls"
+  },
+  "totals": {
+    "subjects": 5,
+    "pages_or_chunks": null,
+    "propositions": 31,
+    "retained_propositions": 22,
+    "candidate_not_promoted": 9,
+    "explicit_abstentions": 0,
+    "comparison_pairs": 16,
+    "query_tests": 0,
+    "review_units": 9,
+    "failure_rate": null
+  },
+  "comparison_outcomes": {"compatible": 6, "scoped_difference": 4, "source_role_difference": 6, "temporal_supersession": 0, "ambiguous": 0, "true_conflict": 0},
+  "conclusions": {"g2_core": "supported with satellites", "routing_ownership": "external deterministic projection", "surface": "progressive card plus evidence ledger", "top100": "not ready"},
+  "uncertainties": ["missing persisted tranche artifacts", "no raw acquisition/extraction evidence", "no observed true conflict or supersession", "nonrepresentative five-subject cohort"],
+  "restart": "Recover or explicitly mark tranches 167-172, then append measured cohort evidence without overwriting this synthesis."
+}

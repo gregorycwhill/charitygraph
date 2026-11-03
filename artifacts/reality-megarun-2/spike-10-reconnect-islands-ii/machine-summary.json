@@ -1,0 +1,17 @@
+{
+  "spec": "CG-REALITY-SPIKE-10-RECONNECT-ISLANDS-II-TERRA-161",
+  "result": "REALITY_SPIKE_10_RECONNECT_ISLANDS_II_DISCOVERED",
+  "branch": "spike-10-reconnect-islands-ii-terra-161",
+  "bridge": "spike-9-B existing-domain-rich/disposable-mapping",
+  "subjects_run": 3,
+  "evidence_volume_read": {"msf_report_pages":0,"bush_report_pages":5,"bush_native_characters":4464,"noongar_report_pages":5,"noongar_native_characters":3383,"deferred_pages_observed":109},
+  "propositions": {"candidates":3,"abstentions":9,"positive_by_subject":{"74068758654":0,"78053639115":3,"47613674461":0}},
+  "section_gains": {"6":1,"9":0,"12":1,"18":0},
+  "cross_section_reuse": 1,
+  "domain_specific_exceptions": 2,
+  "projection_losses": {"B":0,"A":2},
+  "review_units": 12,
+  "subject_to_subject_generalisation": "supported for provenance/status plus typed relationship/role routing; not supported for manufacture of governance or evaluation claims from sparse or unavailable reports",
+  "code_or_adapter_changes_from_spike_9": {"required":0,"disposable_mapping_changes":0,"new_acquisition_or_provider_machinery":0},
+  "activities": {"provider_network":0,"S0":0,"github":0,"promotion":0,"acquisition":0}
+}
