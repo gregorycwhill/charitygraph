@@ -50,6 +50,21 @@ tree, preserving repeat-copy behaviour.
 No authenticated GitHub actions, provider/source calls, reset-credit actions,
 reservations, physical sends, or credential reads were performed.
 
+## Final broad regression (T28)
+
+On 2026-10-04, the full Builder test suite was rerun from this fresh worktree
+with a newly empty runtime root at
+`C:\CharityGraph-runtime\cg-s0-cleanroom-286-runtime\t28-full`. The process
+again set `CHARITYGRAPH_S0_DATA_PACKAGE` to the fresh Data checkout, set
+`TEMP` and `TMP` to that root, and removed `OPENAI_API_KEY`.
+
+`python -m pytest --junitxml .pytest-t28-full.xml` completed with **1100
+passed, 1 skipped** in 91.45 seconds. The only output was three expected
+deprecation warnings for legacy environment-variable aliases in the dedicated
+configuration compatibility test. No test failure, provider crossing,
+reservation, send, source acquisition, credential read, reset-credit action,
+or authenticated GitHub action occurred.
+
 ## End state
 
 Local Builder branch `cg-s0-cleanroom-reproducibility-286` contains this
