@@ -63,7 +63,7 @@ def test_cached_phase2a_synthesis_preserves_provenance_and_never_uses_fixture_pr
     assert card.fundraising_expenditure is None
     assert any(
         observation.capability == "fundraising_expenditure"
-        and observation.status == "not_available_from_source"
+        and observation.status == "not_yet_processed"
         for observation in card.coverage
     )
     assert {item.term_id for item in card.classifications} == {

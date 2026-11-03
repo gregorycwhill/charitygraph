@@ -126,8 +126,12 @@ def build_card(source: dict, dataset_version: str) -> CauseBaseCard:
     ):
         coverage_source.append({
             "capability": "fundraising_expenditure",
-            "status": "not_available_from_source",
-            "freshness_note": "No direct or defensible derived fundraising expenditure was found in selected evidence.",
+            # This generic builder has not performed the scoped assessment
+            # required to say that a source lacks the value.  Keep the
+            # unprocessed capability explicit rather than turning an omitted
+            # input into a source-level negative result.
+            "status": "not_yet_processed",
+            "freshness_note": "Fundraising expenditure has not been assessed from the supplied evidence.",
         })
 
     return CauseBaseCard(
