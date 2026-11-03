@@ -1618,3 +1618,6 @@ worktree C:/Users/grego/OneDrive/Documents/GitHub/CharityGraph/charitygraph-play
 HEAD f0cd9fe76b9fd402ec53b82210e148feeb984af6
 branch refs/heads/review-readiness-2026-09-11
 ```
+## Decommission verification limits
+Main preservation commit ffe28120f4b5ce0423042209e4681bce73b2706d was verified on origin/gate3-cg406-remediation. Both clean-root repositories pushed all local branches. Historical OneDrive branch pushes encountered non-fast-forward rejections; archival refs under decommission-20261103 preserve the older histories without overwriting origin. Full cleanup remains incomplete: main checkout still has 29 untracked evidence/temp entries, additional OneDrive changes and historical worktrees need capture, and one pytest directory reports permission denied. No fresh test result or complete all-checkout clean status is certified. No files were deleted to manufacture a clean status.
+
