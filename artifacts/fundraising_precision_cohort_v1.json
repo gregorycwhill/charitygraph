@@ -1,0 +1,162 @@
+{
+  "cohort": {
+    "examples": [
+      "Australian Red Cross Society",
+      "World Vision Australia",
+      "Oxfam Australia",
+      "Mission Australia",
+      "Cancer Council Victoria"
+    ],
+    "handles": {
+      "count": 30,
+      "denominator": 30,
+      "rate": 1.0
+    },
+    "identity_status": "unresolved_not_joinable_to_review_cases"
+  },
+  "mode": "cached_governed_review_aggregation_no_acquisition",
+  "refusals": [
+    "Selection handles are not evidence and are never joined to anonymous review cases.",
+    "PFRA membership, regulator permission, ambiguous provider evidence, and scoped silence do not assert F2F practice or currentness.",
+    "Aggregate or mixed finance is not allocated to methods, campaigns, providers, or revenue performance metrics.",
+    "No ROI, cost-to-raise, donor acquisition, lifetime value, profitability, or causal method-revenue claim is emitted."
+  ],
+  "report_version": "1.0",
+  "review": {
+    "attribution_grain": {
+      "campaign": 2,
+      "none": 9,
+      "organisation": 1
+    },
+    "cases": {
+      "count": 12,
+      "denominator": 12,
+      "rate": 1.0
+    },
+    "currentness": {
+      "current": 2,
+      "discontinued": 1,
+      "historical": 2,
+      "not_found_in_scoped_source": 1,
+      "unknown": 6
+    },
+    "examples": [
+      {
+        "id": "direct-f2f-current",
+        "note": "Direct reviewed F2F wording; candidate remains reviewable.",
+        "outcome": "true_positive"
+      },
+      {
+        "id": "annual-report-historical",
+        "note": "Historical method and aggregate cost are separately retained.",
+        "outcome": "true_positive"
+      },
+      {
+        "id": "explicit-cessation",
+        "note": "Cessation is time-bounded, not current.",
+        "outcome": "true_positive"
+      },
+      {
+        "id": "named-campaign-provider",
+        "note": "Campaign/provider relationship is not promoted to standing practice.",
+        "outcome": "true_positive"
+      },
+      {
+        "id": "direct-campaign-cost",
+        "note": "Direct named campaign cost is retained without revenue claim.",
+        "outcome": "true_positive"
+      },
+      {
+        "id": "pfra-membership",
+        "note": "Membership alone refuses a practice inference.",
+        "outcome": "true_negative"
+      },
+      {
+        "id": "regulator-permission",
+        "note": "Permission/listing alone refuses a practice inference.",
+        "outcome": "true_negative"
+      },
+      {
+        "id": "ambiguous-agency-case",
+        "note": "Name-only binding is blocked.",
+        "outcome": "true_negative"
+      },
+      {
+        "id": "scoped-silence",
+        "note": "Silence is coverage, not absence.",
+        "outcome": "refused"
+      },
+      {
+        "id": "mixed-income-row",
+        "note": "Mixed aggregate income is not split across methods or campaigns.",
+        "outcome": "refused"
+      },
+      {
+        "id": "pending-review-practice",
+        "note": "Evidence awaiting review remains review-only.",
+        "outcome": "refused"
+      },
+      {
+        "id": "no-fundraising-section",
+        "note": "Section-level silence has no organisation-wide meaning.",
+        "outcome": "refused"
+      }
+    ],
+    "finance_coverage": {
+      "aggregate_cost": 1,
+      "direct_cost": 1,
+      "incompatible": 1,
+      "unavailable": 9
+    },
+    "method_coverage": {
+      "face_to_face": 6,
+      "peer_to_peer": 1,
+      "regular_giving": 1,
+      "unknown": 4
+    },
+    "outcomes": {
+      "refused": 4,
+      "true_negative": 3,
+      "true_positive": 5
+    },
+    "precision_oriented": {
+      "explicit_refusals": {
+        "count": 7,
+        "denominator": 12,
+        "rate": 0.5833
+      },
+      "false_negatives": {
+        "count": 0,
+        "denominator": 3,
+        "rate": 0.0
+      },
+      "false_positives": {
+        "count": 0,
+        "denominator": 5,
+        "rate": 0.0
+      },
+      "interpretation": "A review-case gate check, not sector prevalence or production precision.",
+      "supported_promotions": {
+        "count": 5,
+        "denominator": 5,
+        "rate": 1.0
+      }
+    },
+    "source_coverage": {
+      "ambiguous_binding": 1,
+      "not_found_in_scoped_source": 2,
+      "observed": 9
+    },
+    "source_roles": {
+      "agency_provider_case_evidence": 1,
+      "annual_report_statement": 2,
+      "audited_financial_statement": 2,
+      "first_party_campaign_page": 1,
+      "first_party_practice_page": 3,
+      "pfra_membership": 1,
+      "regulator_registration": 1,
+      "scoped_source_inventory": 1
+    }
+  },
+  "selection_basis": "Existing local reality-spike discovery handles. Handles are not resolved subjects and do not supply evidence."
+}
