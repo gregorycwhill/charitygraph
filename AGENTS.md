@@ -41,4 +41,11 @@ Before changing Builder logic that touches unrestricted natural-language semanti
 **BUILDER DOESN'T DO DISCOVERY.** Builder and specialist sections consume the
 centrally governed evidence universe and persisted reusable representations.
 Sparse evidence may expose a coverage gap, but does not authorise external
-search or new source-family acquisition.
+search, open-web wandering or new source-family acquisition. The evidence
+universe is closed by default. A task may authorise source instances only
+under an already-approved source-family and acquisition policy; task,
+campaign, agent, model and evaluation authority cannot create or materially
+broaden a source family. An unapproved class is `DECISION_REQUIRED` and a
+source-policy proposal for Product Owner approval, not implementation work.
+Evaluation may explore the open world, but Builder operates only inside the
+admitted evidence universe.

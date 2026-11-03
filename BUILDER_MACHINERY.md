@@ -54,9 +54,19 @@ These are durable capability seams; filenames are current proven pointers and ma
 | Projection | existing validation/reprojection/rendering path | Governed observations into cards and release candidates |
 | Validation/release | existing RC4/release audit and validation machinery | Consistency, allowlists, diagnostics and release gates |
 
+### Source-universe invariant
+
+Builder's evidence universe is closed by default. New source-family admission
+and material acquisition-rule expansion are Product Owner decisions; source-
+family-led enumeration is only within approved source-family rules. Same-origin
+navigation or sitemap enumeration is an acquisition mechanism under an approved
+first-party/source-family policy, not blanket authority to crawl arbitrary
+same-origin pages. Recognised roles such as media or direct observation are
+possible source roles, not blanket current source-family approval.
+
 ### Durable planning seams
 
-Subject-led acquisition remains centrally governed, and source-family-led enumeration is also supported: high-density registries, directories, industry bodies and platforms can enumerate candidates efficiently. Discovery is separate from conservative identity binding and source-role governance. Plan work by claim family and route tasks by proposition, not by a universal source score. Durable seams include scoped destination identity resolution; claim-family planning and routing; cross-domain compatibility/reconciliation; question/answer projection; and actionability/freshness for volatile propositions such as Giving Offers, appeals and service availability. A Fundable Universe is a projection over governed knowledge and explicit coverage, not a stored shadow list.
+Subject-led acquisition remains centrally governed, and source-family-led enumeration is also supported only within approved source-family rules: high-density registries, directories, industry bodies and platforms can enumerate candidates efficiently. Discovery is separate from conservative identity binding and source-role governance. Plan work by claim family and route tasks by proposition, not by a universal source score. Durable seams include scoped destination identity resolution; claim-family planning and routing; cross-domain compatibility/reconciliation; question/answer projection; and actionability/freshness for volatile propositions such as Giving Offers, appeals and service availability. A Fundable Universe is a projection over governed knowledge and explicit coverage, not a stored shadow list.
 
 The current repository does not establish a stable productised Giving Offer implementation path suitable for canonical citation; the generic seam is intentional and an implementation pointer is deferred.
 
