@@ -1,0 +1,5 @@
+{
+  "contract_version": "fundraising-review-profile-v1",
+  "fixture": "tests/fixtures/fundraising_review_profile.json",
+  "input_sha256": "53613799619e03fbaa0992fff4ec71a4a87d9cefcd2517d771b54973d0297949"
+}
