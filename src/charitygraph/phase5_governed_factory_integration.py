@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import json
 from typing import Any, Callable, Iterable, Literal
 
 from pydantic import Field, field_validator, model_validator
@@ -21,16 +22,20 @@ from .contracts.common import require_nonblank
 from .contracts.tasks import model_task_cache_key
 from .phase5_factory import FactoryPlan
 from .phase5_preflight import PlannedLogicalTask, StrictPlanModel
+from .source_rights import ArtifactRightsDecision, governed_rights_policy, require_provider_rights
 
 
 GovernedMaterialState = Literal[
     "available", "missing", "blocked", "structurally_invalid", "unrecoverable",
     "mismatched", "not_applicable", "not_processed", "retrieval_failed",
+    "rights_missing", "rights_denied", "rights_conflict", "rights_mismatched",
+    "rights_expired",
 ]
 
 _NO_TASK_STATES = {
     "missing", "blocked", "structurally_invalid", "unrecoverable", "mismatched",
-    "not_applicable", "not_processed", "retrieval_failed",
+    "not_applicable", "not_processed", "retrieval_failed", "rights_missing",
+    "rights_denied", "rights_conflict", "rights_mismatched", "rights_expired",
 }
 _AVAILABLE_OUTCOMES = {"available", "partial"}
 _INPUT_SCHEMA = SchemaRef(
@@ -57,8 +62,12 @@ class GovernedReference(StrictPlanModel):
     evidence_locator_ids: tuple[str, ...] = ()
     representation_artifact_ids: tuple[str, ...] = ()
     representation_hashes: dict[str, str] = Field(default_factory=dict)
+    rights_decision_ids: tuple[str, ...] = ()
     rights_policy_id: str | None = None
+    rights_policy_version: str | None = None
     rights_role: str
+    provider_processing_policy_id: str | None = None
+    provider_processing_policy_version: str | None = None
     declared_state: GovernedMaterialState = "available"
     claim_family_id: str
     task_profile: str
@@ -79,14 +88,17 @@ class GovernedReference(StrictPlanModel):
     def _text(cls, value: str) -> str:
         return require_nonblank(value)
 
-    @field_validator("scope_id", "rights_policy_id", "physical_bundle_opportunity")
+    @field_validator(
+        "scope_id", "rights_policy_id", "rights_policy_version", "provider_processing_policy_id",
+        "provider_processing_policy_version", "physical_bundle_opportunity",
+    )
     @classmethod
     def _optional_text(cls, value: str | None) -> str | None:
         return None if value is None else require_nonblank(value)
 
     @field_validator(
         "acquisition_receipt_ids", "source_record_ids", "evidence_locator_ids",
-        "representation_artifact_ids",
+        "representation_artifact_ids", "rights_decision_ids",
     )
     @classmethod
     def _unique_ids(cls, value: tuple[str, ...]) -> tuple[str, ...]:
@@ -154,7 +166,13 @@ def _material_hash_for_locator(catalog: Any, locator: dict[str, Any]) -> str | N
     return None
 
 
-def _build_typed_task(reference: GovernedReference, task: PlannedLogicalTask, catalog: Any, actual_hashes: dict[str, str]) -> ModelTask[Any]:
+def _build_typed_task(
+    reference: GovernedReference,
+    task: PlannedLogicalTask,
+    catalog: Any,
+    actual_hashes: dict[str, str],
+    rights_policy_version: str | None,
+) -> ModelTask[Any]:
     evidence_inputs: list[EvidenceInput] = []
     for evidence_id in task.evidence_locator_ids:
         locator = catalog.get_evidence_locator(evidence_id)
@@ -176,8 +194,12 @@ def _build_typed_task(reference: GovernedReference, task: PlannedLogicalTask, ca
         "evidence_locator_ids": list(task.evidence_locator_ids),
         "representation_artifact_ids": list(task.representation_artifact_ids),
         "representation_hashes": actual_hashes,
+        "rights_decision_ids": list(reference.rights_decision_ids),
         "rights_policy_ids": list(task.rights_policy_ids),
+        "rights_policy_version": rights_policy_version,
         "rights_roles": list(task.rights_roles),
+        "provider_processing_policy_id": reference.provider_processing_policy_id,
+        "provider_processing_policy_version": reference.provider_processing_policy_version,
     }
     policies = (VersionedPolicy(policy_id="phase5-governed-reference-preflight", version="1"),)
     cache_key = model_task_cache_key(
@@ -273,7 +295,9 @@ def _validate_available(
         if source.get("source_family") != reference.source_family:
             return _diagnostic(reference, "mismatched", "source record family does not match governed reference", source_record_id), {}
         about_subjects = set((source.get("material") or {}).get("about_subject_ids") or ())
-        if about_subjects and reference.subject_id not in about_subjects:
+        if not about_subjects:
+            return _diagnostic(reference, "mismatched", "source record has no explicit durable subject binding", source_record_id), {}
+        if reference.subject_id not in about_subjects:
             return _diagnostic(reference, "mismatched", "source record is bound to a different subject", source_record_id), {}
         if source.get("payload_hash") not in receipt_hashes:
             return _diagnostic(reference, "mismatched", "source record payload hash does not match acquisition material", source_record_id), {}
@@ -314,6 +338,200 @@ def _validate_available(
     return None, actual_hashes
 
 
+def _validate_provider_rights(
+    reference: GovernedReference,
+    catalog: Any,
+    actual_hashes: dict[str, str],
+    planned_processing_at: datetime,
+) -> PreflightDiagnostic | None:
+    """Resolve the durable current decision for every exact representation."""
+    if not reference.rights_decision_ids:
+        diagnostic = _diagnostic(reference, "rights_missing", "provider rights decision references are absent")
+        catalog.record_provider_rights_diagnostic(
+            reference_id=reference.reference_id, subject_id=reference.subject_id,
+            state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+            recorded_at=planned_processing_at,
+        )
+        return diagnostic
+
+    if reference.rights_policy_id is None:
+        diagnostic = _diagnostic(reference, "rights_missing", "governed rights policy identity is absent")
+        catalog.record_provider_rights_diagnostic(
+            reference_id=reference.reference_id, subject_id=reference.subject_id,
+            state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+            recorded_at=planned_processing_at,
+        )
+        return diagnostic
+
+    rows = catalog.get_artifact_rights_decisions(reference.rights_decision_ids)
+    found_ids = {str(row["decision_id"]) for row in rows}
+    missing_ids = tuple(sorted(set(reference.rights_decision_ids) - found_ids))
+    if missing_ids:
+        diagnostic = _diagnostic(reference, "rights_missing", "a referenced provider rights decision is not durable", *missing_ids)
+        catalog.record_provider_rights_diagnostic(
+            reference_id=reference.reference_id, subject_id=reference.subject_id,
+            state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+            recorded_at=planned_processing_at,
+        )
+        return diagnostic
+
+    receipt_rows = [catalog.get_acquisition_receipt(item) for item in reference.acquisition_receipt_ids]
+    receipt_artifacts = {str(row["artifact_id"]) for row in receipt_rows if row and row.get("artifact_id")}
+    for representation_artifact_id, representation_hash in sorted(actual_hashes.items()):
+        all_rows = catalog.list_artifact_rights_decisions(representation_artifact_id=representation_artifact_id)
+        decisions = [
+            ArtifactRightsDecision.model_validate(json.loads(row["material_json"])["decision"])
+            for row in all_rows
+        ]
+        superseded_ids = {item.supersedes_decision_id for item in decisions if item.supersedes_decision_id}
+        current = [item for item in decisions if item.decision_id not in superseded_ids and item.status != "superseded"]
+        matching = [
+            item for item in current
+            if item.representation_artifact_id == representation_artifact_id
+            and str(item.transmitted_representation_sha256) == representation_hash
+        ]
+        if len(matching) > 1:
+            diagnostic = _diagnostic(reference, "rights_conflict", "multiple current provider rights decisions are contradictory", representation_artifact_id, *sorted(item.decision_id for item in matching))
+            catalog.record_provider_rights_diagnostic(
+                reference_id=reference.reference_id, subject_id=reference.subject_id,
+                state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+                recorded_at=planned_processing_at,
+            )
+            return diagnostic
+        if not matching:
+            state: GovernedMaterialState = "rights_missing" if not current else "rights_mismatched"
+            diagnostic = _diagnostic(reference, state, "no current provider rights decision matches the exact representation", representation_artifact_id)
+            catalog.record_provider_rights_diagnostic(
+                reference_id=reference.reference_id, subject_id=reference.subject_id,
+                state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+                recorded_at=planned_processing_at,
+            )
+            return diagnostic
+        decision = matching[0]
+        if (
+            decision.rights_policy_id != reference.rights_policy_id
+            or reference.rights_policy_version is not None
+            and decision.rights_policy_version != reference.rights_policy_version
+        ):
+            diagnostic = _diagnostic(
+                reference,
+                "rights_mismatched",
+                "governed reference rights policy identity does not match the current decision",
+                decision.rights_policy_id,
+                str(decision.rights_policy_version),
+            )
+            catalog.record_provider_rights_diagnostic(
+                reference_id=reference.reference_id, subject_id=reference.subject_id,
+                state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+                recorded_at=planned_processing_at,
+            )
+            return diagnostic
+        # A deterministic handoff is local planning only.  An exact current
+        # provider decision that explicitly blocks transmission is therefore a
+        # positive no-send authority for this route, not permission to send.
+        # Provider routes still fall through to the governed policy and
+        # require affirmative transmission authority.
+        if (
+            reference.difficulty == "deterministic"
+            and reference.provider_processing_policy_id is None
+            and decision.status == "authorized"
+            and not decision.provider_transmission_allowed
+            and (decision.expires_on is None or planned_processing_at.date() <= decision.expires_on)
+        ):
+            continue
+        if governed_rights_policy(
+            decision.rights_policy_id,
+            decision.rights_policy_version,
+            rights_basis=decision.rights_basis,
+        ) is None:
+            diagnostic = _diagnostic(
+                reference,
+                "rights_mismatched",
+                "durable rights decision has an unknown or version-mismatched governed policy identity",
+                decision.rights_policy_id,
+                str(decision.rights_policy_version),
+            )
+            catalog.record_provider_rights_diagnostic(
+                reference_id=reference.reference_id, subject_id=reference.subject_id,
+                state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+                recorded_at=planned_processing_at,
+            )
+            return diagnostic
+        if decision.decision_id not in found_ids:
+            diagnostic = _diagnostic(reference, "rights_mismatched", "the reference does not bind the current provider rights decision", decision.decision_id)
+            catalog.record_provider_rights_diagnostic(
+                reference_id=reference.reference_id, subject_id=reference.subject_id,
+                state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+                recorded_at=planned_processing_at,
+            )
+            return diagnostic
+        if decision.source_artifact_id not in receipt_artifacts or decision.source_record_id not in reference.source_record_ids:
+            diagnostic = _diagnostic(reference, "rights_mismatched", "provider rights source or acquisition lineage is outside the governed reference", representation_artifact_id)
+            catalog.record_provider_rights_diagnostic(
+                reference_id=reference.reference_id, subject_id=reference.subject_id,
+                state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+                recorded_at=planned_processing_at,
+            )
+            return diagnostic
+        source = catalog.get_source_record(decision.source_record_id)
+        if source is None:
+            diagnostic = _diagnostic(reference, "rights_mismatched", "provider rights source record is not durable", decision.source_record_id)
+            catalog.record_provider_rights_diagnostic(
+                reference_id=reference.reference_id, subject_id=reference.subject_id,
+                state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+                recorded_at=planned_processing_at,
+            )
+            return diagnostic
+        if reference.rights_role != source.get("source_role"):
+            diagnostic = _diagnostic(reference, "rights_mismatched", "governed source role does not match durable rights/source role", reference.rights_role, str(source.get("source_role")))
+            catalog.record_provider_rights_diagnostic(
+                reference_id=reference.reference_id, subject_id=reference.subject_id,
+                state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+                recorded_at=planned_processing_at,
+            )
+            return diagnostic
+        blockers = require_provider_rights(
+            [decision],
+            [{
+                "source_artifact_id": decision.source_artifact_id,
+                "representation_artifact_id": representation_artifact_id,
+                "transmitted_representation_sha256": representation_hash,
+                "source_record_id": decision.source_record_id,
+                "source_locator": source.get("source_locator"),
+                "source_role": source.get("source_role"),
+                "acquisition_lineage_ids": reference.acquisition_receipt_ids,
+                "rights_policy_id": reference.rights_policy_id,
+                "rights_policy_version": reference.rights_policy_version,
+                "provider_processing_policy_id": reference.provider_processing_policy_id,
+                "provider_processing_policy_version": reference.provider_processing_policy_version,
+            }],
+            planned_processing_at=planned_processing_at.date(),
+        )
+        if blockers:
+            state = "rights_expired" if any("expired" in item for item in blockers) else "rights_denied" if any("not permitted" in item for item in blockers) else "rights_mismatched"
+            diagnostic = _diagnostic(reference, state, "durable provider rights preflight blocked the exact representation", *blockers)
+            catalog.record_provider_rights_diagnostic(
+                reference_id=reference.reference_id, subject_id=reference.subject_id,
+                state=diagnostic.state, reason=diagnostic.reason, details=diagnostic.details,
+                recorded_at=planned_processing_at,
+            )
+            return diagnostic
+    return None
+
+
+def _effective_rights_policy_version(reference: GovernedReference, catalog: Any) -> str | None:
+    if reference.rights_policy_version is not None:
+        return reference.rights_policy_version
+    rows = catalog.get_artifact_rights_decisions(reference.rights_decision_ids)
+    versions = {
+        str(row["rights_policy_version"])
+        for row in rows
+        if row.get("rights_policy_id") == reference.rights_policy_id
+        and row.get("rights_policy_version")
+    }
+    return next(iter(versions)) if len(versions) == 1 else None
+
+
 def preflight_governed_references(
     references: Iterable[GovernedReference | dict[str, Any]],
     *,
@@ -321,8 +539,10 @@ def preflight_governed_references(
     retained_bytes: Callable[[str], bytes] | None = None,
     build_id: str = "phase5-governed-factory-integration-v1",
     route_policy_version: str = "phase5-governed-reference-route-v1",
+    planned_processing_at: datetime | None = None,
 ) -> GovernedFactoryPreflight:
     """Validate references and lower only ready material into Factory work."""
+    planned_processing_at = planned_processing_at or datetime.now(timezone.utc)
     tasks: list[dict[str, Any]] = []
     diagnostics: list[PreflightDiagnostic] = []
     seen_references: set[str] = set()
@@ -339,6 +559,11 @@ def preflight_governed_references(
         if diagnostic is not None:
             diagnostics.append(diagnostic)
             continue
+        diagnostic = _validate_provider_rights(reference, catalog, actual_hashes, planned_processing_at)
+        if diagnostic is not None:
+            diagnostics.append(diagnostic)
+            continue
+        rights_policy_version = _effective_rights_policy_version(reference, catalog)
         material = {
             "reference_id": reference.reference_id,
             "subject_id": reference.subject_id,
@@ -349,8 +574,12 @@ def preflight_governed_references(
             "source_record_ids": reference.source_record_ids,
             "evidence_locator_ids": reference.evidence_locator_ids,
             "representation_hashes": actual_hashes,
+            "rights_decision_ids": reference.rights_decision_ids,
             "rights_policy_id": reference.rights_policy_id,
+            "rights_policy_version": rights_policy_version,
             "rights_role": reference.rights_role,
+            "provider_processing_policy_id": reference.provider_processing_policy_id,
+            "provider_processing_policy_version": reference.provider_processing_policy_version,
         }
         reference_hash = canonical_sha256(material)
         evidence_identity = canonical_sha256({"source_record_ids": reference.source_record_ids, "evidence_locator_ids": reference.evidence_locator_ids, "representation_hashes": actual_hashes})
@@ -391,7 +620,7 @@ def preflight_governed_references(
             rights_roles=(reference.rights_role,),
             governed_reference_hash=reference_hash,
         )
-        typed_task = _build_typed_task(reference, planned, catalog, actual_hashes)
+        typed_task = _build_typed_task(reference, planned, catalog, actual_hashes, rights_policy_version)
         task = planned.model_dump()
         task["_model_task"] = typed_task
         tasks.append(task)
