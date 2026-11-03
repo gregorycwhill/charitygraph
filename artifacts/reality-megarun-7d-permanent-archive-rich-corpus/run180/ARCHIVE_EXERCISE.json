@@ -1,0 +1,28 @@
+{
+  "dedupe": {
+    "first_sha": "b595b150ab0632d5420267895e2d3fb31f631dccd975c1d00fabd54608188d38",
+    "second_sha": "b595b150ab0632d5420267895e2d3fb31f631dccd975c1d00fabd54608188d38",
+    "same_object_path": true,
+    "events_retained": 2
+  },
+  "same_locator_new_bytes": {
+    "old_sha": "b595b150ab0632d5420267895e2d3fb31f631dccd975c1d00fabd54608188d38",
+    "new_sha": "c8cb2a43c1ff64b809e53ee01eb8952fc17beeed060207fdb10baf58f3b70be3",
+    "distinct_objects": true
+  },
+  "failed_acquisition": {
+    "event_id": "acq-4a083201731449febb35f62aa0cfa1de",
+    "retrieved_at": "2026-09-29T13:08:48.982462+00:00",
+    "subject_id": "archive-exercise",
+    "requested_locator": "https://example.invalid/404",
+    "source_role": "archive_exercise",
+    "retrieval_method": "requests public HTTPS",
+    "relation_to_previous_sha": null,
+    "http_status": null,
+    "failure": "deliberate registered failed acquisition",
+    "archive_object_path": null,
+    "sha256": null,
+    "byte_size": 0
+  },
+  "live_primary_reports": 5
+}

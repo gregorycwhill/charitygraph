@@ -1,0 +1,83 @@
+{
+  "module_id": "M22",
+  "title": "Ten time/scope retrieval intents",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 22,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/megarun10b/M22-queries.json",
+    "C:/CharityGraph-runtime/megarun10b/M22-retrieval-output.json",
+    "C:/CharityGraph-runtime/megarun10b/retrieve.py"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "id": "R22-01",
+      "finding": "Smith people-count rank 3 behind other organisations; query scope/time metadata not enforced by FTS.",
+      "route": "scope filter + source time"
+    },
+    {
+      "id": "R22-02",
+      "finding": "Correct survey unit; no survey denominator.",
+      "route": "qualified answer"
+    },
+    {
+      "id": "R22-03",
+      "finding": "2021 self-assertion retrieved for current independent verification.",
+      "route": "abstain"
+    },
+    {
+      "id": "R22-04",
+      "finding": "32 ANCP projects retrieved; FY24 carried outside indexed claim.",
+      "route": "bind report date"
+    },
+    {
+      "id": "R22-05",
+      "finding": "25 versus 83+ distinction preserved.",
+      "route": "correct false premise"
+    },
+    {
+      "id": "R22-06",
+      "finding": "Duration facts ranks 3/4 behind funder/story.",
+      "route": "source-scoped drill-down"
+    },
+    {
+      "id": "R22-07",
+      "finding": "Correct page hit but value 2,759 absent from compressed unit.",
+      "route": "page expansion"
+    },
+    {
+      "id": "R22-08",
+      "finding": "Expected improvement hit is not observed result.",
+      "route": "abstain from observed improvement"
+    },
+    {
+      "id": "R22-09",
+      "finding": "Approval/effective dates both retained.",
+      "route": "qualified answer"
+    },
+    {
+      "id": "R22-10",
+      "finding": "49% external-population statistic retrieved.",
+      "route": "reject program attribution"
+    }
+  ],
+  "defects": [
+    "D22: Retrieval returns plausible evidence without enforcing time/subject/epistemic constraints.",
+    "D22b: A page hit is not necessarily a sufficient answer unit."
+  ],
+  "counterexamples": [
+    "Ten nonempty hit sets do not mean ten answerable questions."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Constraints directly assessed by agent after FTS, not implemented baseline filters; no production routing exercised."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\megarun10b\\M22-queries.json": "791e5092fd88aece3418854572d4e498a259fc7ce4c8d22c86fe09a3c4a03dca",
+    "C:\\CharityGraph-runtime\\megarun10b\\M22-retrieval-output.json": "948f4de2f2605130e77cebb954abf3f4f71a77b7df151cb81aca2c745e3c5f05",
+    "C:\\CharityGraph-runtime\\megarun10b\\retrieve.py": "a7d7c1bb8e34256ac46c814bea2d1f3a493689c89c8a4ee2539afe63d4b35cf9"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

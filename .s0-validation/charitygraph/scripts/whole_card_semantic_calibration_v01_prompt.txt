@@ -1,0 +1,187 @@
+You are performing a private CharityGraph semantic extraction experiment.
+
+Your task is to identify material candidate observations about the supplied
+Australian charity from the FROZEN EVIDENCE PACKET.
+
+This is NOT a writing task and NOT a request to produce a finished charity card.
+Produce independently governable candidate observations with precise evidence.
+
+GENERAL RULES
+
+1. Use only the supplied packet. Do not use outside knowledge.
+
+2. Do not fill gaps. If the packet does not support useful observations for a
+   section, mark that section insufficient_evidence. This says nothing about
+   whether the fact exists in the real world.
+
+3. Lexical presence is not proposition support. A word, heading, URL, program
+   name or repeated phrase does not by itself establish a proposition.
+
+4. Keep propositions atomic. Prefer several independently evidenced observations
+   to one broad summary that combines distinct claims.
+
+5. Do not create CharityGraph identities. Named programs, services, projects or
+   other scopes may be identified using their source-native labels only.
+
+6. Preserve grain. Distinguish:
+   - the registered charity/entity,
+   - an ACNC reporting group,
+   - named programs/services/projects/campaigns,
+   - other explicitly bounded scopes.
+   Do not attribute a group-scoped fact to the individual charity unless the
+   evidence supports that attribution.
+
+7. Preserve temporal meaning. A 2025 filing is evidence about its reporting
+   period; a historical event is not automatically current.
+
+8. Every supported or explicit-absence observation requires at least one
+   SUPPORTING evidence reference using an exact source_record_id and packet
+   locator supplied in the packet.
+
+9. An evidence excerpt, if supplied, must be short and exact. Do not manufacture
+   quotations.
+
+10. Do not output a generic confidence score.
+
+SOURCE AND EDITORIAL DISCIPLINE
+
+Treat sources according to what they are authoritative for.
+
+- ACNC register and regulator-supplied structured records are strong evidence
+  for the regulatory/registration facts they actually report.
+
+- Statutory/ACNC-filed financial reports are strong evidence for reported
+  financial values and reporting scope. Preserve audit/reporting qualifications
+  and group scope where present.
+
+- Official websites and narrative annual reports are first-party authored
+  evidence. They are valuable for mission, programs, delivery models,
+  beneficiaries, commitments and the charity's own claims, but do not silently
+  convert promotional or strategic claims into independently demonstrated fact.
+
+- Outcome, impact, ROI, uplift, effectiveness and similar claims must retain
+  their epistemic posture. If the corpus contains only a charity's own claim,
+  phrase the observation as a reported/claimed outcome. Do not describe it as
+  independently established.
+
+- Wikipedia is external editorial/contextual evidence and may establish why a
+  fact or event has external notability. It is not automatically authoritative
+  for regulatory or financial facts when stronger sources are available.
+
+- PFRA material is authoritative for what the PFRA source itself establishes,
+  such as membership.
+
+Prefer the strongest appropriate evidence source for the proposition. Multiple
+sources may corroborate the same observation.
+
+NORTH STAR SECTIONS
+
+1. Identity / regulatory
+   Identity, registration, legal/regulatory status and source-supported
+   organisational or reporting structure.
+
+2. Purpose / mandate / cause
+   Formal or stated purposes, mission, mandate and problem/cause domains.
+
+3. Programs / services / projects / campaigns
+   Material named or clearly bounded operational initiatives. Distinguish
+   programs/services from fundraising campaigns or organisational functions.
+
+4. Populations / beneficiaries
+   People, communities or other populations served, targeted or eligible.
+
+5. Geography
+   Places or geographic scopes in which activity, delivery or beneficiaries
+   occur.
+
+6. Participation
+   Participation, reach, service-user or beneficiary volumes and other
+   source-supported engagement measures.
+
+7. Fundraising / resource mobilisation
+   Fundraising approaches, appeals, bequests, sponsorship, donations,
+   fundraising campaigns and resource mobilisation practices.
+
+8. Finance / resource flows
+   Material revenue, expenditure, assets, liabilities, grants and other
+   financial/resource-flow observations. Prefer authoritative filed figures.
+
+9. Governance
+   Governance structure, responsible bodies, board/governance arrangements and
+   source-supported governance practices.
+
+10. Workforce
+    Employees, volunteers and other workforce composition/capacity observations.
+
+11. Capability / capacity / access / availability
+    Operational capability, service capacity, infrastructure, accessibility,
+    availability and delivery/access constraints.
+
+12. Relationships / ecosystem
+    Partnerships, affiliates, delivery relationships, funders and other
+    material ecosystem relationships.
+
+13. Memberships / schemes / registrations / accreditations
+    Relevant memberships, accreditation, registration and scheme participation.
+
+14. Ethos / institutional identity
+    Source-supported religious, cultural, institutional or other ethos/identity
+    characteristics. Do not infer ethos from names or incidental language.
+
+15. Positions / commitments / implementation
+    Public positions, commitments, advocacy, policies and evidence about their
+    implementation.
+
+16. Conduct / adverse / compliance
+    Material regulatory, court, inquiry, compliance or adverse matters actually
+    supported by the corpus. Absence from the packet is not evidence of clean
+    conduct.
+
+17. Notable context / history
+    Material history, milestones and externally notable context.
+
+18. Outcomes / impact / evaluation
+    Reported outcomes, impact claims, evaluations and evidence of effectiveness.
+    Clearly distinguish self-reported claims from independent evaluation.
+
+19. Classifications / semantic lenses
+    Reproduce relevant SOURCE-REPORTED classifications if present.
+    Do NOT assign CLASSIE, SDG or CharityGraph semantic classifications in this
+    experiment. Inferred taxonomy mapping is deferred.
+
+20. Evidence / coverage / freshness / corrections
+    Material limitations visible in the packet: source freshness, reporting
+    scope, representation gaps, conflicting evidence or other evidence caveats.
+    Do not speculate about unacquired sources.
+
+MATERIALITY
+
+Aim for broad, decision-useful coverage of the charity, not maximum output
+volume.
+
+Do not reproduce every financial line item, every sentence on a website or
+every minor event. Prefer observations that would materially help an analyst
+understand what the charity is, does, serves, spends, raises, governs, claims,
+relates to, and is externally notable for.
+
+Where several observations concern the same named program/service, use the same
+source-native scope label consistently.
+
+SECTION ASSESSMENTS
+
+Return exactly one assessment for each section 1 through 20.
+
+Use:
+- observations_found when you extracted one or more material observations;
+- insufficient_evidence when this packet does not support a useful observation;
+- not_applicable only where evidence positively supports inapplicability;
+- deferred only where the experiment explicitly defers the analysis.
+
+OUTPUT
+
+Return only the required structured output.
+
+Do not provide an executive summary.
+Do not produce recommendations.
+Do not write a narrative charity profile.
+Do not reveal chain-of-thought.

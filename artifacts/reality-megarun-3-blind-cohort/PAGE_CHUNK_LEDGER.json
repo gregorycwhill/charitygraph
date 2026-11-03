@@ -1,0 +1,602 @@
+[
+  {
+    "chunk_id": "75442934320-01",
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "abn": "75442934320",
+    "label": "identity",
+    "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+    "locator": "$.source_payload.data.LegalName,$.source_payload.data.CharitySize,$.source_payload.data.StatementYear",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "75442934320-02",
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "abn": "75442934320",
+    "label": "purpose",
+    "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+    "locator": "$.source_payload.data.ActivityPersuitPurposesDescription",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "75442934320-03",
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "abn": "75442934320",
+    "label": "activity",
+    "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+    "locator": "$.source_payload.data.ActivityOperating,$.source_payload.data.ActivityOperatingOverseas",
+    "state": "inspected_structured",
+    "field_count": 2
+  },
+  {
+    "chunk_id": "75442934320-04",
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "abn": "75442934320",
+    "label": "beneficiaries",
+    "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+    "locator": "$.source_payload.data.",
+    "state": "abstained_empty_structured",
+    "field_count": 0
+  },
+  {
+    "chunk_id": "75442934320-05",
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "abn": "75442934320",
+    "label": "programs",
+    "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+    "locator": "$.source_payload.data.Programs",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "75442934320-06",
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "abn": "75442934320",
+    "label": "workforce",
+    "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+    "locator": "$.source_payload.data.HrFteStaff,$.source_payload.data.HrFullTimeEmployees,$.source_payload.data.HrPartTimeEmployees,$.source_payload.data.HrUnpainVolunteers",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "75442934320-07",
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "abn": "75442934320",
+    "label": "income",
+    "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+    "locator": "$.source_payload.data.RevenueTotal,$.source_payload.data.IncomeDonationsBequests,$.source_payload.data.IncomeGovernmentGrants",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "75442934320-08",
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "abn": "75442934320",
+    "label": "expenses",
+    "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+    "locator": "$.source_payload.data.ExpenseTotal,$.source_payload.data.ExpenseEmployees,$.source_payload.data.ExpenseGrantDonationsInAustralia",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "75442934320-09",
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "abn": "75442934320",
+    "label": "financial_position",
+    "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+    "locator": "$.source_payload.data.TotalAssets,$.source_payload.data.TotalLiabilities,$.source_payload.data.NetAssetsLiabilities,$.source_payload.data.NetSurplusDeficit",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "75442934320-10",
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "abn": "75442934320",
+    "label": "governance_regulatory",
+    "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+    "locator": "$.source_payload.data.FinRelatedPartyTransactions,$.source_payload.data.RegulatorFundRaising",
+    "state": "inspected_structured",
+    "field_count": 2
+  },
+  {
+    "chunk_id": "87684571829-01",
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "abn": "87684571829",
+    "label": "identity",
+    "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+    "locator": "$.source_payload.data.LegalName,$.source_payload.data.CharitySize,$.source_payload.data.StatementYear",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "87684571829-02",
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "abn": "87684571829",
+    "label": "purpose",
+    "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+    "locator": "$.source_payload.data.ActivityPersuitPurposesDescription",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "87684571829-03",
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "abn": "87684571829",
+    "label": "activity",
+    "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+    "locator": "$.source_payload.data.ActivityOperating,$.source_payload.data.ActivityOperatingOverseas",
+    "state": "inspected_structured",
+    "field_count": 2
+  },
+  {
+    "chunk_id": "87684571829-04",
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "abn": "87684571829",
+    "label": "beneficiaries",
+    "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+    "locator": "$.source_payload.data.",
+    "state": "abstained_empty_structured",
+    "field_count": 0
+  },
+  {
+    "chunk_id": "87684571829-05",
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "abn": "87684571829",
+    "label": "programs",
+    "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+    "locator": "$.source_payload.data.Programs",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "87684571829-06",
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "abn": "87684571829",
+    "label": "workforce",
+    "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+    "locator": "$.source_payload.data.HrFteStaff,$.source_payload.data.HrFullTimeEmployees,$.source_payload.data.HrPartTimeEmployees,$.source_payload.data.HrUnpainVolunteers",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "87684571829-07",
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "abn": "87684571829",
+    "label": "income",
+    "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+    "locator": "$.source_payload.data.RevenueTotal,$.source_payload.data.IncomeDonationsBequests,$.source_payload.data.IncomeGovernmentGrants",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "87684571829-08",
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "abn": "87684571829",
+    "label": "expenses",
+    "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+    "locator": "$.source_payload.data.ExpenseTotal,$.source_payload.data.ExpenseEmployees,$.source_payload.data.ExpenseGrantDonationsInAustralia",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "87684571829-09",
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "abn": "87684571829",
+    "label": "financial_position",
+    "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+    "locator": "$.source_payload.data.TotalAssets,$.source_payload.data.TotalLiabilities,$.source_payload.data.NetAssetsLiabilities,$.source_payload.data.NetSurplusDeficit",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "87684571829-10",
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "abn": "87684571829",
+    "label": "governance_regulatory",
+    "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+    "locator": "$.source_payload.data.FinRelatedPartyTransactions,$.source_payload.data.RegulatorFundRaising",
+    "state": "inspected_structured",
+    "field_count": 2
+  },
+  {
+    "chunk_id": "32942723464-01",
+    "subject": "Aboriginal Legal Rights Movement",
+    "abn": "32942723464",
+    "label": "identity",
+    "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+    "locator": "$.source_payload.data.LegalName,$.source_payload.data.CharitySize,$.source_payload.data.StatementYear",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "32942723464-02",
+    "subject": "Aboriginal Legal Rights Movement",
+    "abn": "32942723464",
+    "label": "purpose",
+    "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+    "locator": "$.source_payload.data.ActivityPersuitPurposesDescription",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "32942723464-03",
+    "subject": "Aboriginal Legal Rights Movement",
+    "abn": "32942723464",
+    "label": "activity",
+    "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+    "locator": "$.source_payload.data.ActivityOperating,$.source_payload.data.ActivityOperatingOverseas",
+    "state": "inspected_structured",
+    "field_count": 2
+  },
+  {
+    "chunk_id": "32942723464-04",
+    "subject": "Aboriginal Legal Rights Movement",
+    "abn": "32942723464",
+    "label": "beneficiaries",
+    "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+    "locator": "$.source_payload.data.",
+    "state": "abstained_empty_structured",
+    "field_count": 0
+  },
+  {
+    "chunk_id": "32942723464-05",
+    "subject": "Aboriginal Legal Rights Movement",
+    "abn": "32942723464",
+    "label": "programs",
+    "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+    "locator": "$.source_payload.data.Programs",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "32942723464-06",
+    "subject": "Aboriginal Legal Rights Movement",
+    "abn": "32942723464",
+    "label": "workforce",
+    "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+    "locator": "$.source_payload.data.HrFteStaff,$.source_payload.data.HrFullTimeEmployees,$.source_payload.data.HrPartTimeEmployees,$.source_payload.data.HrUnpainVolunteers",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "32942723464-07",
+    "subject": "Aboriginal Legal Rights Movement",
+    "abn": "32942723464",
+    "label": "income",
+    "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+    "locator": "$.source_payload.data.RevenueTotal,$.source_payload.data.IncomeDonationsBequests,$.source_payload.data.IncomeGovernmentGrants",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "32942723464-08",
+    "subject": "Aboriginal Legal Rights Movement",
+    "abn": "32942723464",
+    "label": "expenses",
+    "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+    "locator": "$.source_payload.data.ExpenseTotal,$.source_payload.data.ExpenseEmployees,$.source_payload.data.ExpenseGrantDonationsInAustralia",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "32942723464-09",
+    "subject": "Aboriginal Legal Rights Movement",
+    "abn": "32942723464",
+    "label": "financial_position",
+    "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+    "locator": "$.source_payload.data.TotalAssets,$.source_payload.data.TotalLiabilities,$.source_payload.data.NetAssetsLiabilities,$.source_payload.data.NetSurplusDeficit",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "32942723464-10",
+    "subject": "Aboriginal Legal Rights Movement",
+    "abn": "32942723464",
+    "label": "governance_regulatory",
+    "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+    "locator": "$.source_payload.data.FinRelatedPartyTransactions,$.source_payload.data.RelatedPartyDetails,$.source_payload.data.RegulatorFundRaising",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "82136720784-01",
+    "subject": "Project Underdog Rescue Inc",
+    "abn": "82136720784",
+    "label": "identity",
+    "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+    "locator": "$.source_payload.data.LegalName,$.source_payload.data.CharitySize,$.source_payload.data.StatementYear",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "82136720784-02",
+    "subject": "Project Underdog Rescue Inc",
+    "abn": "82136720784",
+    "label": "purpose",
+    "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+    "locator": "$.source_payload.data.ActivityPersuitPurposesDescription",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "82136720784-03",
+    "subject": "Project Underdog Rescue Inc",
+    "abn": "82136720784",
+    "label": "activity",
+    "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+    "locator": "$.source_payload.data.ActivityOperating,$.source_payload.data.ActivityOperatingOverseas",
+    "state": "inspected_structured",
+    "field_count": 2
+  },
+  {
+    "chunk_id": "82136720784-04",
+    "subject": "Project Underdog Rescue Inc",
+    "abn": "82136720784",
+    "label": "beneficiaries",
+    "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+    "locator": "$.source_payload.data.",
+    "state": "abstained_empty_structured",
+    "field_count": 0
+  },
+  {
+    "chunk_id": "82136720784-05",
+    "subject": "Project Underdog Rescue Inc",
+    "abn": "82136720784",
+    "label": "programs",
+    "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+    "locator": "$.source_payload.data.Programs",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "82136720784-06",
+    "subject": "Project Underdog Rescue Inc",
+    "abn": "82136720784",
+    "label": "workforce",
+    "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+    "locator": "$.source_payload.data.HrFteStaff,$.source_payload.data.HrFullTimeEmployees,$.source_payload.data.HrPartTimeEmployees,$.source_payload.data.HrUnpainVolunteers",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "82136720784-07",
+    "subject": "Project Underdog Rescue Inc",
+    "abn": "82136720784",
+    "label": "income",
+    "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+    "locator": "$.source_payload.data.RevenueTotal,$.source_payload.data.IncomeDonationsBequests,$.source_payload.data.IncomeGovernmentGrants",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "82136720784-08",
+    "subject": "Project Underdog Rescue Inc",
+    "abn": "82136720784",
+    "label": "expenses",
+    "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+    "locator": "$.source_payload.data.ExpenseTotal,$.source_payload.data.ExpenseEmployees,$.source_payload.data.ExpenseGrantDonationsInAustralia",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "82136720784-09",
+    "subject": "Project Underdog Rescue Inc",
+    "abn": "82136720784",
+    "label": "financial_position",
+    "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+    "locator": "$.source_payload.data.TotalAssets,$.source_payload.data.TotalLiabilities,$.source_payload.data.NetAssetsLiabilities,$.source_payload.data.NetSurplusDeficit",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "82136720784-10",
+    "subject": "Project Underdog Rescue Inc",
+    "abn": "82136720784",
+    "label": "governance_regulatory",
+    "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+    "locator": "$.source_payload.data.FinRelatedPartyTransactions,$.source_payload.data.RegulatorFundRaising",
+    "state": "inspected_structured",
+    "field_count": 2
+  },
+  {
+    "chunk_id": "30091040649-01",
+    "subject": "International China Concern (Australia) Ltd",
+    "abn": "30091040649",
+    "label": "identity",
+    "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+    "locator": "$.source_payload.data.LegalName,$.source_payload.data.CharitySize,$.source_payload.data.StatementYear",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "30091040649-02",
+    "subject": "International China Concern (Australia) Ltd",
+    "abn": "30091040649",
+    "label": "purpose",
+    "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+    "locator": "$.source_payload.data.ActivityPersuitPurposesDescription",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "30091040649-03",
+    "subject": "International China Concern (Australia) Ltd",
+    "abn": "30091040649",
+    "label": "activity",
+    "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+    "locator": "$.source_payload.data.ActivityOperating,$.source_payload.data.ActivityOperatingOverseas",
+    "state": "inspected_structured",
+    "field_count": 2
+  },
+  {
+    "chunk_id": "30091040649-04",
+    "subject": "International China Concern (Australia) Ltd",
+    "abn": "30091040649",
+    "label": "beneficiaries",
+    "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+    "locator": "$.source_payload.data.",
+    "state": "abstained_empty_structured",
+    "field_count": 0
+  },
+  {
+    "chunk_id": "30091040649-05",
+    "subject": "International China Concern (Australia) Ltd",
+    "abn": "30091040649",
+    "label": "programs",
+    "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+    "locator": "$.source_payload.data.Programs",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "30091040649-06",
+    "subject": "International China Concern (Australia) Ltd",
+    "abn": "30091040649",
+    "label": "workforce",
+    "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+    "locator": "$.source_payload.data.HrFteStaff,$.source_payload.data.HrFullTimeEmployees,$.source_payload.data.HrPartTimeEmployees,$.source_payload.data.HrUnpainVolunteers",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "30091040649-07",
+    "subject": "International China Concern (Australia) Ltd",
+    "abn": "30091040649",
+    "label": "income",
+    "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+    "locator": "$.source_payload.data.RevenueTotal,$.source_payload.data.IncomeDonationsBequests,$.source_payload.data.IncomeGovernmentGrants",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "30091040649-08",
+    "subject": "International China Concern (Australia) Ltd",
+    "abn": "30091040649",
+    "label": "expenses",
+    "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+    "locator": "$.source_payload.data.ExpenseTotal,$.source_payload.data.ExpenseEmployees,$.source_payload.data.ExpenseGrantDonationsInAustralia",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "30091040649-09",
+    "subject": "International China Concern (Australia) Ltd",
+    "abn": "30091040649",
+    "label": "financial_position",
+    "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+    "locator": "$.source_payload.data.TotalAssets,$.source_payload.data.TotalLiabilities,$.source_payload.data.NetAssetsLiabilities,$.source_payload.data.NetSurplusDeficit",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "30091040649-10",
+    "subject": "International China Concern (Australia) Ltd",
+    "abn": "30091040649",
+    "label": "governance_regulatory",
+    "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+    "locator": "$.source_payload.data.FinRelatedPartyTransactions,$.source_payload.data.RegulatorFundRaising",
+    "state": "inspected_structured",
+    "field_count": 2
+  },
+  {
+    "chunk_id": "11566496319-01",
+    "subject": "Australian National Capital Artists Inc",
+    "abn": "11566496319",
+    "label": "identity",
+    "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+    "locator": "$.source_payload.data.LegalName,$.source_payload.data.CharitySize,$.source_payload.data.StatementYear",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "11566496319-02",
+    "subject": "Australian National Capital Artists Inc",
+    "abn": "11566496319",
+    "label": "purpose",
+    "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+    "locator": "$.source_payload.data.ActivityPersuitPurposesDescription",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "11566496319-03",
+    "subject": "Australian National Capital Artists Inc",
+    "abn": "11566496319",
+    "label": "activity",
+    "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+    "locator": "$.source_payload.data.ActivityOperating,$.source_payload.data.ActivityOperatingOverseas",
+    "state": "inspected_structured",
+    "field_count": 2
+  },
+  {
+    "chunk_id": "11566496319-04",
+    "subject": "Australian National Capital Artists Inc",
+    "abn": "11566496319",
+    "label": "beneficiaries",
+    "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+    "locator": "$.source_payload.data.",
+    "state": "abstained_empty_structured",
+    "field_count": 0
+  },
+  {
+    "chunk_id": "11566496319-05",
+    "subject": "Australian National Capital Artists Inc",
+    "abn": "11566496319",
+    "label": "programs",
+    "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+    "locator": "$.source_payload.data.Programs",
+    "state": "inspected_structured",
+    "field_count": 1
+  },
+  {
+    "chunk_id": "11566496319-06",
+    "subject": "Australian National Capital Artists Inc",
+    "abn": "11566496319",
+    "label": "workforce",
+    "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+    "locator": "$.source_payload.data.HrFteStaff,$.source_payload.data.HrFullTimeEmployees,$.source_payload.data.HrPartTimeEmployees,$.source_payload.data.HrUnpainVolunteers",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "11566496319-07",
+    "subject": "Australian National Capital Artists Inc",
+    "abn": "11566496319",
+    "label": "income",
+    "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+    "locator": "$.source_payload.data.RevenueTotal,$.source_payload.data.IncomeDonationsBequests,$.source_payload.data.IncomeGovernmentGrants",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "11566496319-08",
+    "subject": "Australian National Capital Artists Inc",
+    "abn": "11566496319",
+    "label": "expenses",
+    "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+    "locator": "$.source_payload.data.ExpenseTotal,$.source_payload.data.ExpenseEmployees,$.source_payload.data.ExpenseGrantDonationsInAustralia",
+    "state": "inspected_structured",
+    "field_count": 3
+  },
+  {
+    "chunk_id": "11566496319-09",
+    "subject": "Australian National Capital Artists Inc",
+    "abn": "11566496319",
+    "label": "financial_position",
+    "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+    "locator": "$.source_payload.data.TotalAssets,$.source_payload.data.TotalLiabilities,$.source_payload.data.NetAssetsLiabilities,$.source_payload.data.NetSurplusDeficit",
+    "state": "inspected_structured",
+    "field_count": 4
+  },
+  {
+    "chunk_id": "11566496319-10",
+    "subject": "Australian National Capital Artists Inc",
+    "abn": "11566496319",
+    "label": "governance_regulatory",
+    "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+    "locator": "$.source_payload.data.FinRelatedPartyTransactions,$.source_payload.data.RelatedPartyDetails,$.source_payload.data.RegulatorFundRaising",
+    "state": "inspected_structured",
+    "field_count": 3
+  }
+]

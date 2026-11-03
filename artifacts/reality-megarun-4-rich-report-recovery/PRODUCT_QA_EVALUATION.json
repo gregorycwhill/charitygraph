@@ -1,0 +1,409 @@
+{
+  "abstentions": 40,
+  "answerable": 0,
+  "count": 40,
+  "outcomes": [
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-001",
+      "question": "How can someone participate?",
+      "subject": "APNIC Foundation Limited",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-002",
+      "question": "Where are services available?",
+      "subject": "Australian charity (ABN 32590616129)",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-003",
+      "question": "What capacity or reach is evidenced?",
+      "subject": "BMDI",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-004",
+      "question": "Who governs the organisation?",
+      "subject": "Australian charity (ABN 49079016738)",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-005",
+      "question": "Which partners are named?",
+      "subject": "Environmental Justice Australia Limited",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-006",
+      "question": "Which values are implemented?",
+      "subject": "Australian Red Cross Society",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-007",
+      "question": "What outcome evaluation exists?",
+      "subject": "World Vision Australia",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-008",
+      "question": "What changed between periods?",
+      "subject": "Bush Heritage Australia",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-009",
+      "question": "How can someone participate?",
+      "subject": "APNIC Foundation Limited",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-010",
+      "question": "Where are services available?",
+      "subject": "Australian charity (ABN 32590616129)",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-011",
+      "question": "What capacity or reach is evidenced?",
+      "subject": "BMDI",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-012",
+      "question": "Who governs the organisation?",
+      "subject": "Australian charity (ABN 49079016738)",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-013",
+      "question": "Which partners are named?",
+      "subject": "Environmental Justice Australia Limited",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-014",
+      "question": "Which values are implemented?",
+      "subject": "Australian Red Cross Society",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-015",
+      "question": "What outcome evaluation exists?",
+      "subject": "World Vision Australia",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-016",
+      "question": "What changed between periods?",
+      "subject": "Bush Heritage Australia",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-017",
+      "question": "How can someone participate?",
+      "subject": "APNIC Foundation Limited",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-018",
+      "question": "Where are services available?",
+      "subject": "Australian charity (ABN 32590616129)",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-019",
+      "question": "What capacity or reach is evidenced?",
+      "subject": "BMDI",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-020",
+      "question": "Who governs the organisation?",
+      "subject": "Australian charity (ABN 49079016738)",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-021",
+      "question": "Which partners are named?",
+      "subject": "Environmental Justice Australia Limited",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-022",
+      "question": "Which values are implemented?",
+      "subject": "Australian Red Cross Society",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-023",
+      "question": "What outcome evaluation exists?",
+      "subject": "World Vision Australia",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-024",
+      "question": "What changed between periods?",
+      "subject": "Bush Heritage Australia",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-025",
+      "question": "How can someone participate?",
+      "subject": "APNIC Foundation Limited",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-026",
+      "question": "Where are services available?",
+      "subject": "Australian charity (ABN 32590616129)",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-027",
+      "question": "What capacity or reach is evidenced?",
+      "subject": "BMDI",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-028",
+      "question": "Who governs the organisation?",
+      "subject": "Australian charity (ABN 49079016738)",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-029",
+      "question": "Which partners are named?",
+      "subject": "Environmental Justice Australia Limited",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-030",
+      "question": "Which values are implemented?",
+      "subject": "Australian Red Cross Society",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-031",
+      "question": "What outcome evaluation exists?",
+      "subject": "World Vision Australia",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-032",
+      "question": "What changed between periods?",
+      "subject": "Bush Heritage Australia",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-033",
+      "question": "How can someone participate?",
+      "subject": "APNIC Foundation Limited",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-034",
+      "question": "Where are services available?",
+      "subject": "Australian charity (ABN 32590616129)",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-035",
+      "question": "What capacity or reach is evidenced?",
+      "subject": "BMDI",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-036",
+      "question": "Who governs the organisation?",
+      "subject": "Australian charity (ABN 49079016738)",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-037",
+      "question": "Which partners are named?",
+      "subject": "Environmental Justice Australia Limited",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-038",
+      "question": "Which values are implemented?",
+      "subject": "Australian Red Cross Society",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-039",
+      "question": "What outcome evaluation exists?",
+      "subject": "World Vision Australia",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    },
+    {
+      "answer": "Abstain: no newly recovered report proposition is available.",
+      "answerability_post_recovery": "unsupported_representation_blocked",
+      "answerability_pre_recovery": "unsupported_for_this_narrative_question",
+      "cited_proposition_ids": [],
+      "qa_id": "QA-040",
+      "question": "What changed between periods?",
+      "subject": "Bush Heritage Australia",
+      "trust_behaviour": "explicit_abstention; does not infer from AIS/financial rows"
+    }
+  ],
+  "reason": "The required narrative corpus was not recoverable.",
+  "schema": "cg.megarun4.product-qa/v1"
+}

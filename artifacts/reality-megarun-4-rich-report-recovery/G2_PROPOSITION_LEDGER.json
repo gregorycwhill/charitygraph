@@ -1,0 +1,7 @@
+{
+  "count": 0,
+  "exclusion": "Structured AIS and retained financial-table rows were not admitted as narrative-recovery propositions.",
+  "non_financial_newly_recovered_count": 0,
+  "propositions": [],
+  "schema": "cg.experimental.g2/v1"
+}

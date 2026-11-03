@@ -1,0 +1,17 @@
+{
+  "outcome": "MEGARUN7_ARCHIVE_EXECUTION_BREAKS",
+  "archive_root": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\Source Archive",
+  "preflight": {
+    "archive_root": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\Source Archive",
+    "repository_root": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph",
+    "outside_git": true,
+    "checks": {},
+    "performed_at": "2026-09-29T13:07:49.282689+00:00",
+    "status": "FAIL",
+    "failed_operation": "verify_or_write_preflight",
+    "error_type": "FileNotFoundError",
+    "error": "FileNotFoundError('pre-existing archive root is absent or not a directory: C:\\\\Users\\\\grego\\\\OneDrive\\\\Documents\\\\GitHub\\\\CharityGraph\\\\Source Archive')"
+  },
+  "network_activity": "none",
+  "source_bytes_in_repository": false
+}

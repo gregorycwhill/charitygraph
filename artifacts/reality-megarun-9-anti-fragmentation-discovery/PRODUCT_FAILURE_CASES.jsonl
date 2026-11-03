@@ -1,0 +1,4 @@
+{"id":"P9-01","question":"Is WWF compliant with the ACFID Code?","failure":"self_assertion_rendered_as_verified_fact","required_answer":"WWF reports adherence; independent verification absent","status":"unresolved"}
+{"id":"P9-02","question":"Did AP4D change Australian policy?","failure":"activity_or_theme_conflated_with_causation","required_answer":"submissions and thematic reflection reported; causal influence not established","status":"unresolved"}
+{"id":"P9-03","question":"How many Smith Family volunteers are there?","failure":"people_roles_conflated","required_answer":"5,478 people; 5,983 roles; some people hold multiple roles","status":"unresolved"}
+{"id":"P9-04","question":"Does a volunteer story prove student outcomes?","failure":"testimonial_inflation","required_answer":"no; it is a named testimonial","status":"unresolved"}

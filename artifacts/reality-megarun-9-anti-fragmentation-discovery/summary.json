@@ -1,0 +1,18 @@
+{
+  "outcome":"MEGARUN9_PREMATURE_TERMINATION",
+  "reason":"No global stop, but active campaign time is below the mandatory 30-minute minimum.",
+  "model":"running GPT-5.6 Terra agent direct reasoning",
+  "workspace":"C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph",
+  "archive_root":"C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\Source Archive",
+  "predecessors_consumed":["run 180 archive corpus","run 182 semantic-first artifact and generator"],
+  "run182_verdict":"mixed/pseudo-semantic; hard-coded propositions with real locator validation, template-generated downstream evidence quarantined",
+  "direct_terra_entries":10,
+  "direct_entry_audit":{"affirmative_entailed":8,"boundary_abstentions":2,"fabricated":0},
+  "defects":{"high":3,"medium":1,"low":1},
+  "network_new_primary_documents":0,
+  "external_provider_activity":0,
+  "authenticated_git_or_s0_activity":0,
+  "source_bytes_in_git":false,
+  "integrated_rerun":"direct 10-item semantic ledger plus audit after method quarantine",
+  "remaining_authorised_overflow":"listed in READOUT.md"
+}

@@ -1,0 +1,23 @@
+{
+  "run_id": "CG-REALITY-SPIKE-15-G2-LEDGER-DECISION-GATE-TERRA-166",
+  "head": "9768d61",
+  "canonical_mutations": false,
+  "provider_network_activity": false,
+  "s0_activity": false,
+  "github_activity": false,
+  "source_continuity": {"spike_9_10_runtime_root":"C:\\CharityGraph-runtime\\cg-builder-machinery-v1\\artifacts\\reality-megarun-2","spike_11_14_repo_root":"charitygraph\\artifacts\\reality-megarun-2","copied_minimum":"semantic evidence restated with original paths/IDs in recovery document"},
+  "subjects": 4,
+  "rich_evidence_subjects": 3,
+  "propositions": 14,
+  "abstentions": 4,
+  "coverage_records": 4,
+  "target_section_gains":{"6":2,"7":3,"9":3,"12":3,"15":4,"18":2},
+  "cross_section_reuse":3,
+  "domain_qualifiers":6,
+  "rich_satellites_required":["participation opportunity lifecycle","governance graph","relationship graph","service/capacity","evaluation/measurement"],
+  "conflicts":{"true_substantive":0,"scope_time_source_nonconflicts":4,"review_relations":4},
+  "review_units":18,
+  "architecture":{"g2_stages":5,"g2_adapters":2,"g2_record_types":4,"historical_stages":10,"historical_adapters":"8-9","historical_record_types":"6+","disposable_glue_loc":154},
+  "validation":{"json_parse":"pass","routing_projection":"pass","product_output":"inspected markdown cards and Q&A","git_diff_check":"pass"},
+  "conclusion":"REALITY_SPIKE_15_G2_CORE_STRONGLY_SUPPORTED"
+}

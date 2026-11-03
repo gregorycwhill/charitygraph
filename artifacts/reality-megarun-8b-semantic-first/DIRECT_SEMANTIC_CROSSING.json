@@ -1,0 +1,37 @@
+{
+  "agent": "running GPT-5.6 Terra agent itself",
+  "method": "direct reading and semantic interpretation of represented narrative text; no provider/API",
+  "tranche_pages": [
+    "acfid-10",
+    "acfid-8",
+    "australian-red-cross-18",
+    "australian-red-cross-9",
+    "bush-heritage-australia-10",
+    "bush-heritage-australia-15",
+    "caritas-australia-3",
+    "caritas-australia-7",
+    "plan-international-australia-4",
+    "plan-international-australia-5",
+    "the-smith-family-16",
+    "the-smith-family-8",
+    "world-vision-australia-3",
+    "world-vision-australia-7",
+    "wwf-australia-3",
+    "wwf-australia-6"
+  ],
+  "tranche_subjects": [
+    "acfid",
+    "australian-red-cross",
+    "bush-heritage-australia",
+    "caritas-australia",
+    "plan-international-australia",
+    "the-smith-family",
+    "world-vision-australia",
+    "wwf-australia"
+  ],
+  "propositions": 80,
+  "lineage_validation": {
+    "valid": 80,
+    "failures": 0
+  }
+}

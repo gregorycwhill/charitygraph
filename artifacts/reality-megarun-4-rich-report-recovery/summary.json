@@ -1,0 +1,55 @@
+{
+  "activity": "no provider/network/S0/GitHub activity",
+  "changed_artifacts": [
+    "ARCHITECTURE_PRODUCT_DECISION.md",
+    "BLOCKED_PAGE_COHORT.jsonl",
+    "CAMPAIGN_STATE.json",
+    "COVERAGE_AND_ABSTENTIONS.json",
+    "G2_PROPOSITION_LEDGER.json",
+    "NORTH_STAR_RECONNECTION_MATRIX.md",
+    "PRODUCT_QA_EVALUATION.json",
+    "PRODUCT_READOUT.md",
+    "READOUT.md",
+    "REPRESENTATION_ABLATION.json",
+    "REPRESENTATION_ABLATION.md",
+    "REPRESENTATION_RECOVERY_LEDGER.jsonl",
+    "SATELLITE_REGISTRY_EXPERIMENTAL.md",
+    "TEMPORAL_SOURCE_COMPARISONS.md",
+    "TOP100_RICH_REPORT_ESTIMATE.md",
+    "summary.json"
+  ],
+  "changed_scripts": [
+    "scripts/run_megarun4_representation_boundary.py"
+  ],
+  "character_gain": 0,
+  "charities": 5,
+  "cohort_pages": 30,
+  "comparison_pairs": 0,
+  "documents": 5,
+  "native_readable": 0,
+  "newly_recovered_nonfinancial_propositions": 0,
+  "newly_recovered_propositions": 0,
+  "ocr_attempted": 0,
+  "outcome": "MEGARUN4_REPRESENTATION_PIPELINE_BLOCKED",
+  "page_image_attempted": 0,
+  "provider_blocked": 30,
+  "qa": {
+    "abstained": 40,
+    "answerable": 0,
+    "count": 40
+  },
+  "recovery_rate": 0,
+  "review_units": {
+    "proposition_satellite": 0,
+    "representation_forensics": 30
+  },
+  "section_gains": {
+    "12": 0,
+    "15": 0,
+    "18": 0,
+    "6": 0,
+    "7": 0,
+    "9": 0
+  },
+  "terra_visual_attempted": 0
+}

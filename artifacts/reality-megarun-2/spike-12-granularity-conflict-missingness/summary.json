@@ -1,0 +1,13 @@
+{
+  "token": "REALITY_SPIKE_12_PROPOSITION_UNIT_DISCOVERED",
+  "spec_identifier": "CG-REALITY-SPIKE-12-GRANULARITY-CONFLICT-MISSINGNESS-TERRA-163",
+  "model": "terra",
+  "result": "G2 atomic attributed proposition with inseparable scope/time qualifiers",
+  "inputs": {"spike_11":"read","spike_9_10":"absent; not reconstructed","rich":["Red Cross","World Vision"],"middle":"unavailable in retained input","sparse_controls":["Sunrise","Noongar Boodja Trust","The Smith Family"]},
+  "granularity_units":{"G1":12,"G2":23,"G3":68},
+  "review_units":{"G1":12,"G2":27,"G3":73},
+  "conflict_fixture_result":"0 substantive retained conflicts; 3/3 scope/time near-collisions correctly triaged as non-conflict",
+  "missingness":"separate coverage observation, never a negative proposition",
+  "routing":"deterministic projection view/router; optional non-authoritative candidate hint only",
+  "mutations":{"s0":false,"github":false,"canonical":false,"authorisation":false,"provider_subsystem":false,"migration_or_provenance_hardening":false}
+}

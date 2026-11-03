@@ -1,0 +1,41 @@
+{
+  "schema": "charitygraph.technical-spec/v1",
+  "spec_identifier": "CG-REALITY-SPIKE-14-CAMPAIGN-SYNTHESIS-TERRA-165",
+  "model": "terra",
+  "status": "completed",
+  "result_token": "REALITY_MEGARUN_2_RECONNECT_ISLANDS_SYNTHESISED",
+  "evidence_scope": {
+    "cohort": 8,
+    "exact_proposition_bridge_replay_subjects": 5,
+    "report_stress_subjects": 2,
+    "challenger_surface_subjects": 5,
+    "spikes_9_10": "not present; not reconstructed",
+    "controls": ["MSF: no_compatible_retained_evidence", "Bush Heritage: no_compatible_retained_evidence"]
+  },
+  "measurements": {
+    "spike8_propositions": 101,
+    "spike8_positive_cells": 83,
+    "spike8_explicit_missingness_cells": 66,
+    "spike8_unsurfaced_cells": 11,
+    "spike11_accepted_candidates": 16,
+    "spike11_domain_qualifier_needed": 5,
+    "spike13_claims_preserved": "12/12",
+    "spike13_bounded_queries": "6/6",
+    "g2_review_units": "27 for 23 propositions plus 4 relations"
+  },
+  "product_conclusions": [
+    "G2 attributed proposition ledger with coverage and relations is the product core",
+    "candidate visibility may precede promotion only with status and evidence visibility",
+    "progressive card is the default surface; 20-section dossier is on-demand",
+    "routing is deterministic; model hints are non-authoritative",
+    "generic envelope requires explicit domain extensions rather than a mega-schema",
+    "batch extraction creates durable queryable knowledge; on-demand answers must remain bounded and non-promoting"
+  ],
+  "mutations": {
+    "s0": false,
+    "github": false,
+    "canonical": false,
+    "authorisation": false,
+    "provider_subsystem": false
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "report_version": "1.0-tranche2",
+  "generated_utc": "2026-08-22T11:37:45.361273+00:00",
+  "edges": [
+    {
+      "producer": "charitygraph.phase2a.make_evidence_pack/enrich_governed_entity",
+      "input_path_pattern": "archive:processed/reality-spike/2026-08-10/{report-extracts,web-extracts}/**",
+      "output_path_pattern": "runtime:cache/<content-taxonomy-model-key>.json",
+      "evidence_basis": "code reference",
+      "confidence": "direct"
+    },
+    {
+      "producer": "charitygraph.phase2b.project_phase2b",
+      "input_path_pattern": "data:releases/<input-release>/cards/**; archive:processed/<phase>/report-extracts/**",
+      "output_path_pattern": "data:releases/<phase2b-release>/**; runtime:cache/<content-taxonomy-model-key>.json",
+      "evidence_basis": "code reference",
+      "confidence": "direct"
+    },
+    {
+      "producer": "charitygraph.phase2d.project_phase2d",
+      "input_path_pattern": "archive:sources/regulator/acnc-public-profiles/2026-08-14/**; archive:processed/phase2b/2026-08-14/source-discovery.json; archive:processed/national-backbone/2026-08-10/dgr-source-records.jsonl; archive:processed/phase2b/2026-08-14/report-extracts/**",
+      "output_path_pattern": "data:releases/<output-release>/**",
+      "evidence_basis": "code reference",
+      "confidence": "direct"
+    },
+    {
+      "producer": "charitygraph.evidence_engine.run_integrated_pilot",
+      "input_path_pattern": "archive:sources/web/<abn>/*/*.html; archive:<golden-document-locator>",
+      "output_path_pattern": "runtime:document-cache/**; runtime:integrated-golden-corpus-pilot.json",
+      "evidence_basis": "code reference",
+      "confidence": "direct"
+    },
+    {
+      "producer": "charitygraph.document_v2.evaluate.run_benchmark",
+      "input_path_pattern": "archive:<golden-document-locator>",
+      "output_path_pattern": "runtime:golden-corpus-v1-ecosystem-results.{json,md}; runtime:<document-cache>/**",
+      "evidence_basis": "code reference",
+      "confidence": "direct"
+    },
+    {
+      "producer": "charitygraph.semantic_benchmark.prepare_benchmark",
+      "input_path_pattern": "data:<governed cohort input>",
+      "output_path_pattern": "runtime:staging/<benchmark-output>/{cohort.json,source-opportunity-inventory.json,candidate-inventory.jsonl,assessment-scope.jsonl,cost-ledger.jsonl,HUMAN_REVIEW_PACKAGE.md,benchmark-summary.json}",
+      "evidence_basis": "code reference",
+      "confidence": "direct"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "session_key": "cg-megarun3-171-progressive-product-blind-test-v1",
+  "state": "COMPLETE",
+  "counts": {
+    "cards": 10,
+    "questions": 40,
+    "useful": 20,
+    "abstentions": 20
+  }
+}

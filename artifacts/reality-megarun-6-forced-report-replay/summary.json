@@ -1,0 +1,19 @@
+{
+  "blocked": 24,
+  "cohort_pages": 30,
+  "http_requests": 5,
+  "native_readable": 6,
+  "primary_token": "MEGARUN6_SOURCE_BINDING_RECOVERY_PARTIAL",
+  "propositions": 16,
+  "qa_answerable": 50,
+  "qa_count": 60,
+  "recovered_characters": 5887,
+  "reports_bound": 1,
+  "section_gains": {
+    "6": 3,
+    "7": 5,
+    "9": 4,
+    "15": 2,
+    "18": 2
+  }
+}

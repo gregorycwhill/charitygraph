@@ -3,7 +3,7 @@
 **Status:** Canonical repository instructions  
 **Architecture authority:** [ARCHITECTURE.md](ARCHITECTURE.md)
 
-Read the sibling Data repository's DOCUMENT_AUTHORITY.md, current state and plans before changing cross-product behaviour. Builder's internal authority is governed typed observations attached to durable subjects and scopes. Cards are public release projections, not canonical stored knowledge.
+Read the sibling Data repository's DOCUMENT_AUTHORITY.md, CURRENT_STATE.md, ROADMAP.md, DEVELOPMENT_METHOD.md and the canonical [Builder-to-65k plan](https://github.com/gregorycwhill/charitygraph-data/blob/main/BUILDER_TO_65K_PLAN.md) before changing cross-product behaviour. Every Builder tranche must report its current gate, earned progress, unresolved exit evidence and next highest-value tranche, and identify its gate, intended exit evidence, prior dependency and expected product delta. Builder's internal authority is governed typed observations attached to durable subjects and scopes. Cards are public release projections, not canonical stored knowledge.
 
 Builder is Python-controlled and LLM-powered. Follow the sibling Data repository's [`COVERAGE_LLM_ECONOMICS_AND_OPEN_CURATION_POLICY.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/COVERAGE_LLM_ECONOMICS_AND_OPEN_CURATION_POLICY.md): routine semantic work uses typed model tasks; Python owns evidence preparation, batching, scheduling, caching, cost enforcement, validation and release compilation. Read the canonical [`INTEGRATED_PRODUCT_AND_DATA_MODEL.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/INTEGRATED_PRODUCT_AND_DATA_MODEL.md), [`SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/SOURCE_EVIDENCE_AND_PUBLICATION_GOVERNANCE.md), [`TAXONOMY_AND_SCHEME_GOVERNANCE.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/TAXONOMY_AND_SCHEME_GOVERNANCE.md), [`IMPLEMENTATION_PLAN.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/IMPLEMENTATION_PLAN.md) and [`TEST_PLAN.md`](https://github.com/gregorycwhill/charitygraph-data/blob/main/TEST_PLAN.md) before cross-product work.
 
@@ -31,6 +31,18 @@ Former-brand compatibility identifiers remain isolated where code, tests or immu
 ## Completion
 
 Run relevant tests, inspect generated diagnostics where applicable, verify publication allowlists and representation consistency, and report private-material exclusion. Do not use broad add-all Git commands.
+
+**BUILDER DOESN'T DO DISCOVERY.** Builder and specialist sections consume the
+centrally governed evidence universe and persisted reusable representations.
+Sparse evidence may expose a coverage gap, but does not authorise external
+search, open-web wandering or new source-family acquisition. The evidence
+universe is closed by default. A task may authorise source instances only
+under an already-approved source-family and acquisition policy; task,
+campaign, agent, model and evaluation authority cannot create or materially
+broaden a source family. An unapproved class is `DECISION_REQUIRED` and a
+source-policy proposal for Product Owner approval, not implementation work.
+Evaluation may explore the open world, but Builder operates only inside the
+admitted evidence universe.
 
 ## SEMANTIC HEURISTIC GATE -- STOP BEFORE CODING
 

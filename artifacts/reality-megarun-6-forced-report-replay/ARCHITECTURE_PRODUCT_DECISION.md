@@ -1,0 +1,3 @@
+# Architecture/product decision
+
+Outcome: `MEGARUN6_SOURCE_BINDING_RECOVERY_PARTIAL`. Durable report/subject/source-to-SHA binding and reproducible local derivatives are supported by this run. G2+bounded satellites are supported only to the measured corpus density (16 candidates); canonical adoption remains a separate decision. Strongest counterevidence: sentence-rule extraction is not semantic adjudication and no genuine temporal comparison corpus was available. Next genuine decision: whether to build the durable binding + batch semantic review seam; engineering hygiene: promote this disposable runner into tested maintained integration only after that choice.

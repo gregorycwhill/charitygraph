@@ -1,0 +1,819 @@
+"""Append-only SQLite catalogue migrations."""
+
+from __future__ import annotations
+
+import hashlib
+from dataclasses import dataclass
+
+
+CATALOGUE_SQL_V1 = """
+CREATE TABLE cohorts (
+    cohort_id TEXT PRIMARY KEY,
+    cohort_code TEXT NOT NULL,
+    definition_version TEXT NOT NULL,
+    membership_hash TEXT NOT NULL,
+    budget_cap_aud TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    material_hash TEXT NOT NULL
+);
+CREATE TABLE runs (
+    run_id TEXT PRIMARY KEY,
+    cohort_id TEXT REFERENCES cohorts(cohort_id),
+    run_kind TEXT NOT NULL,
+    status TEXT NOT NULL,
+    configuration_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    started_at TEXT,
+    completed_at TEXT,
+    updated_at TEXT NOT NULL,
+    material_hash TEXT NOT NULL
+);
+CREATE TABLE tasks (
+    model_task_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    subject_id TEXT NOT NULL,
+    scope_id TEXT,
+    cohort_id TEXT REFERENCES cohorts(cohort_id),
+    task_type TEXT NOT NULL,
+    task_schema_id TEXT NOT NULL,
+    cache_key TEXT NOT NULL,
+    provider_id TEXT NOT NULL,
+    model_snapshot TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('ready','leased','running','succeeded','failed_retryable','failed_terminal','held','cancelled')),
+    attempt_count INTEGER NOT NULL DEFAULT 0 CHECK(attempt_count >= 0),
+    lease_owner TEXT,
+    lease_expires_at TEXT,
+    next_eligible_at TEXT,
+    result_artifact_id TEXT,
+    error_class TEXT,
+    error_message_redacted TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    material_hash TEXT NOT NULL
+);
+CREATE INDEX tasks_claim_idx ON tasks(status, next_eligible_at, lease_expires_at);
+CREATE TABLE task_attempts (
+    task_run_id TEXT PRIMARY KEY,
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    attempt_number INTEGER NOT NULL CHECK(attempt_number > 0),
+    status TEXT NOT NULL,
+    provider_request_id TEXT,
+    provider_batch_id TEXT,
+    submitted_at TEXT,
+    started_at TEXT,
+    completed_at TEXT,
+    retryable INTEGER,
+    pricing_snapshot_id TEXT,
+    fx_snapshot_id TEXT,
+    reservation_id TEXT,
+    usage_json TEXT,
+    result_artifact_id TEXT,
+    error_class TEXT,
+    error_message_redacted TEXT,
+    UNIQUE(model_task_id, attempt_number)
+);
+CREATE UNIQUE INDEX task_attempts_one_running_idx
+    ON task_attempts(model_task_id)
+    WHERE status='running';
+CREATE TABLE operation_receipts (
+    operation_key TEXT PRIMARY KEY,
+    operation_type TEXT NOT NULL,
+    request_hash TEXT NOT NULL,
+    state TEXT NOT NULL CHECK(state IN ('started','completed','failed')),
+    result_ref TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE budget_reservations (
+    reservation_id TEXT PRIMARY KEY,
+    cohort_id TEXT NOT NULL REFERENCES cohorts(cohort_id),
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    reserved_aud TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('active','partially_consumed','consumed','released','expired')),
+    reserved_at TEXT NOT NULL,
+    expires_at TEXT,
+    updated_at TEXT NOT NULL,
+    material_hash TEXT NOT NULL
+);
+CREATE TABLE reservation_tasks (
+    reservation_id TEXT NOT NULL REFERENCES budget_reservations(reservation_id),
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    PRIMARY KEY(reservation_id, model_task_id)
+);
+CREATE TABLE cost_entries (
+    entry_key TEXT PRIMARY KEY,
+    entry_hash TEXT NOT NULL,
+    cohort_id TEXT NOT NULL REFERENCES cohorts(cohort_id),
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    task_run_id TEXT,
+    reservation_id TEXT NOT NULL,
+    entry_type TEXT NOT NULL CHECK(entry_type IN ('reservation','reservation_release','actual','credit','adjustment')),
+    paid_output_category TEXT,
+    provider_amount TEXT,
+    provider_currency TEXT,
+    aud_amount TEXT NOT NULL,
+    adjustment_direction TEXT CHECK(adjustment_direction IN ('debit','credit') OR adjustment_direction IS NULL),
+    pricing_snapshot_id TEXT,
+    fx_snapshot_id TEXT,
+    usage_json TEXT,
+    provider_invoice_ref TEXT,
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX cost_entries_cohort_idx ON cost_entries(cohort_id, entry_type, reservation_id);
+CREATE TABLE cache_entries (
+    cache_key TEXT PRIMARY KEY,
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    result_artifact_id TEXT NOT NULL,
+    result_content_hash TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('valid','invalidated')),
+    created_at TEXT NOT NULL,
+    invalidated_at TEXT,
+    invalidation_reason TEXT
+);
+CREATE TABLE cache_events (
+    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cache_key TEXT NOT NULL,
+    event_type TEXT NOT NULL CHECK(event_type IN ('created','invalidated','replaced')),
+    event_at TEXT NOT NULL,
+    result_artifact_id TEXT,
+    result_content_hash TEXT,
+    reason TEXT
+);
+CREATE INDEX cache_events_key_idx ON cache_events(cache_key, event_id);
+
+CREATE TABLE artifact_index (
+    artifact_id TEXT PRIMARY KEY,
+    content_hash TEXT NOT NULL,
+    schema_id TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    storage_path TEXT NOT NULL,
+    availability TEXT NOT NULL CHECK(availability IN ('available','missing','quarantined')),
+    created_at TEXT NOT NULL,
+    indexed_at TEXT NOT NULL
+);
+""".strip() + "\n"
+
+
+
+CATALOGUE_SQL_V8 = """
+CREATE TABLE semantic_measurement_authorizations (
+    slot_key TEXT PRIMARY KEY,
+    authorization_scope_hash TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    task_family TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    measurement_id TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('authorized','claimed','completed','failed_terminal','abandoned','reviewed_reset')),
+    lease_owner TEXT,
+    lease_expires_at TEXT,
+    provider_transmitted INTEGER NOT NULL DEFAULT 0 CHECK(provider_transmitted IN (0,1)),
+    claimed_at TEXT,
+    completed_at TEXT,
+    reviewed_reset_at TEXT,
+    review_ref TEXT,
+    result_ref TEXT,
+    updated_at TEXT NOT NULL,
+    UNIQUE(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id)
+);
+CREATE INDEX semantic_measurement_authorizations_lookup_idx
+    ON semantic_measurement_authorizations(authorization_scope_hash, subject_id, task_family, material_hash, measurement_id);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V9 = """
+ALTER TABLE relationship_statements ADD COLUMN relationship_role TEXT;
+CREATE INDEX relationship_statements_role_idx ON relationship_statements(relationship_role);
+""".strip() + "\n"
+
+@dataclass(frozen=True)
+class Migration:
+    version: int
+    name: str
+    sql: str
+
+    @property
+    def checksum(self) -> str:
+        return hashlib.sha256(self.sql.encode("utf-8")).hexdigest()
+
+
+
+CATALOGUE_SQL_V2 = """
+CREATE TABLE source_definitions (
+    source_definition_id TEXT PRIMARY KEY,
+    definition_version TEXT NOT NULL,
+    publisher TEXT NOT NULL,
+    source_class TEXT NOT NULL,
+    authority_roles_json TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE acquisition_receipts (
+    acquisition_id TEXT PRIMARY KEY,
+    source_definition_id TEXT NOT NULL REFERENCES source_definitions(source_definition_id),
+    requested_locator TEXT NOT NULL,
+    resolved_locator TEXT,
+    retrieved_at TEXT,
+    effective_at TEXT,
+    outcome TEXT NOT NULL CHECK(outcome IN ('available','not_modified','absent','blocked','failed','partial','unavailable')),
+    response_status INTEGER,
+    media_type TEXT,
+    content_hash TEXT,
+    byte_size INTEGER CHECK(byte_size IS NULL OR byte_size >= 0),
+    artifact_id TEXT,
+    tool_id TEXT,
+    tool_version TEXT,
+    material_parameters_json TEXT NOT NULL,
+    retry_of TEXT,
+    replaces_receipt_id TEXT,
+    error_class TEXT,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX acquisition_receipts_source_idx ON acquisition_receipts(source_definition_id, retrieved_at);
+CREATE TABLE artifact_lineage (
+    artifact_id TEXT NOT NULL,
+    input_artifact_id TEXT NOT NULL,
+    edge_type TEXT NOT NULL CHECK(edge_type IN ('derived_from','acquired_as','parsed_from','excerpted_from')),
+    PRIMARY KEY(artifact_id, input_artifact_id)
+);
+CREATE INDEX artifact_lineage_input_idx ON artifact_lineage(input_artifact_id);
+CREATE TABLE evidence_locators (
+    evidence_locator_id TEXT PRIMARY KEY,
+    artifact_id TEXT,
+    source_record_id TEXT,
+    kind TEXT NOT NULL CHECK(kind IN ('structured_field','text_span','document')),
+    locator_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CHECK(artifact_id IS NOT NULL OR source_record_id IS NOT NULL)
+);
+CREATE INDEX evidence_locator_artifact_idx ON evidence_locators(artifact_id);
+CREATE INDEX evidence_locator_source_idx ON evidence_locators(source_record_id);
+CREATE INDEX artifact_index_content_idx ON artifact_index(content_hash);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V3 = """
+CREATE TABLE subjects (
+    subject_id TEXT PRIMARY KEY,
+    subject_kind TEXT NOT NULL,
+    lifecycle_status TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE external_identifiers (
+    external_identifier_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    scheme TEXT NOT NULL,
+    identifier_value TEXT NOT NULL,
+    issuing_authority TEXT NOT NULL DEFAULT '',
+    valid_from TEXT,
+    valid_to TEXT,
+    status TEXT NOT NULL CHECK(status IN ('active','inactive','superseded','withdrawn')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    UNIQUE(scheme, identifier_value, issuing_authority)
+);
+CREATE INDEX external_identifiers_subject_idx ON external_identifiers(subject_id);
+CREATE TABLE subject_scopes (
+    scope_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    scope_kind TEXT NOT NULL,
+    label TEXT,
+    parent_scope_id TEXT REFERENCES subject_scopes(scope_id),
+    valid_from TEXT,
+    valid_to TEXT,
+    lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('active','inactive','superseded','withdrawn')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX subject_scopes_subject_idx ON subject_scopes(subject_id);
+CREATE TABLE party_roles (
+    party_role_id TEXT PRIMARY KEY,
+    party_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    context_record_id TEXT,
+    scope_id TEXT REFERENCES subject_scopes(scope_id),
+    valid_from TEXT,
+    valid_to TEXT,
+    status TEXT NOT NULL CHECK(status IN ('active','inactive','withdrawn')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX party_roles_party_idx ON party_roles(party_id, role);
+CREATE TABLE knowledge_observations (
+    observation_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    scope_id TEXT REFERENCES subject_scopes(scope_id),
+    predicate TEXT NOT NULL,
+    value_json TEXT,
+    outcome_state TEXT NOT NULL CHECK(outcome_state IN ('resolved','supported','contradicted','unknown','insufficient_evidence','not_applicable','not_attempted','withheld','acquisition_failure','extraction_failure','model_failure')),
+    evidence_locator_ids_json TEXT NOT NULL,
+    source_record_ids_json TEXT NOT NULL,
+    observation_time_json TEXT NOT NULL,
+    method TEXT NOT NULL,
+    lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('candidate','accepted','edited','rejected','superseded','contradicted','withdrawn','held','unresolved')),
+    supersedes_observation_id TEXT REFERENCES knowledge_observations(observation_id),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX knowledge_observations_subject_idx ON knowledge_observations(subject_id, scope_id);
+CREATE INDEX knowledge_observations_predicate_idx ON knowledge_observations(predicate, lifecycle_status);
+CREATE TABLE knowledge_assertions (
+    assertion_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    scope_id TEXT REFERENCES subject_scopes(scope_id),
+    predicate TEXT NOT NULL,
+    value_json TEXT,
+    outcome_state TEXT NOT NULL CHECK(outcome_state IN ('resolved','supported','contradicted','unknown','insufficient_evidence','not_applicable','not_attempted','withheld','acquisition_failure','extraction_failure','model_failure')),
+    observation_ids_json TEXT NOT NULL,
+    evidence_locator_ids_json TEXT NOT NULL,
+    assertion_time_json TEXT NOT NULL,
+    method TEXT NOT NULL,
+    lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('candidate','accepted','edited','rejected','superseded','contradicted','withdrawn','held','unresolved')),
+    publication_eligibility TEXT NOT NULL CHECK(publication_eligibility IN ('eligible','ineligible','review_required','withheld')),
+    supersedes_assertion_id TEXT REFERENCES knowledge_assertions(assertion_id),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX knowledge_assertions_subject_idx ON knowledge_assertions(subject_id, scope_id);
+CREATE INDEX knowledge_assertions_predicate_idx ON knowledge_assertions(predicate, lifecycle_status);
+CREATE TABLE relationship_statements (
+    relationship_id TEXT PRIMARY KEY,
+    source_subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    target_subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    relationship_type TEXT NOT NULL,
+    scope_id TEXT REFERENCES subject_scopes(scope_id),
+    source_role TEXT,
+    target_role TEXT,
+    evidence_locator_ids_json TEXT NOT NULL,
+    observation_ids_json TEXT NOT NULL,
+    valid_from TEXT,
+    valid_to TEXT,
+    status TEXT NOT NULL CHECK(status IN ('candidate','accepted','rejected','withdrawn','superseded')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CHECK(source_subject_id <> target_subject_id)
+);
+CREATE INDEX relationship_statements_source_idx ON relationship_statements(source_subject_id, relationship_type);
+CREATE INDEX relationship_statements_target_idx ON relationship_statements(target_subject_id, relationship_type);
+CREATE TABLE adjudication_decisions (
+    adjudication_id TEXT PRIMARY KEY,
+    input_record_ids_json TEXT NOT NULL,
+    outcome TEXT NOT NULL CHECK(outcome IN ('accepted','edited','rejected','insufficient','withheld','identity_blocked','scope_blocked','deferred')),
+    rationale TEXT NOT NULL,
+    reviewer_id TEXT NOT NULL,
+    result_record_id TEXT,
+    decision_time TEXT NOT NULL,
+    review_policy_id TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX adjudication_result_idx ON adjudication_decisions(result_record_id);
+CREATE TABLE knowledge_lineage (
+    source_record_id TEXT NOT NULL,
+    target_record_id TEXT NOT NULL,
+    edge_type TEXT NOT NULL CHECK(edge_type IN ('proposed_from','reviewed_by','promoted_as','derived_from','supersedes','invalidates','contradicts','withdraws','adjudicates')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY(source_record_id, target_record_id, edge_type),
+    CHECK(source_record_id <> target_record_id)
+);
+CREATE INDEX knowledge_lineage_target_idx ON knowledge_lineage(target_record_id, edge_type);
+CREATE INDEX knowledge_lineage_source_idx ON knowledge_lineage(source_record_id, edge_type);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V4 = """
+CREATE TABLE taxonomy_schemes (
+    scheme_id TEXT PRIMARY KEY,
+    scheme_key TEXT NOT NULL UNIQUE,
+    owner TEXT NOT NULL,
+    purpose TEXT NOT NULL,
+    jurisdiction TEXT,
+    disposition TEXT NOT NULL CHECK(disposition IN ('adopted','incorporated','adapted','mapped','reference_only','deferred','rejected','retired')),
+    licence TEXT NOT NULL,
+    reuse_policy TEXT NOT NULL,
+    attribution TEXT NOT NULL,
+    maintenance_policy TEXT,
+    deprecation_policy TEXT,
+    steward TEXT NOT NULL,
+    review_status TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE taxonomy_versions (
+    scheme_version_id TEXT PRIMARY KEY,
+    scheme_id TEXT NOT NULL REFERENCES taxonomy_schemes(scheme_id),
+    version TEXT NOT NULL,
+    release_date TEXT NOT NULL,
+    jurisdiction_scope TEXT,
+    source_locator TEXT,
+    status TEXT NOT NULL CHECK(status IN ('current','historical','deprecated','frozen')),
+    licence TEXT NOT NULL,
+    reuse_policy TEXT NOT NULL,
+    attribution TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(scheme_id, version)
+);
+CREATE TABLE taxonomy_concepts (
+    concept_id TEXT PRIMARY KEY,
+    scheme_version_id TEXT NOT NULL REFERENCES taxonomy_versions(scheme_version_id),
+    external_concept_id TEXT NOT NULL,
+    preferred_label TEXT NOT NULL,
+    definition TEXT,
+    parent_concept_ids_json TEXT NOT NULL,
+    active INTEGER NOT NULL CHECK(active IN (0,1)),
+    deprecated INTEGER NOT NULL CHECK(deprecated IN (0,1)),
+    replacement_concept_ids_json TEXT NOT NULL,
+    notes_json TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(scheme_version_id, external_concept_id)
+);
+CREATE INDEX taxonomy_concepts_scheme_idx ON taxonomy_concepts(scheme_version_id, active, deprecated);
+CREATE TABLE taxonomy_mappings (
+    mapping_id TEXT PRIMARY KEY,
+    source_concept_id TEXT NOT NULL REFERENCES taxonomy_concepts(concept_id),
+    target_concept_id TEXT NOT NULL REFERENCES taxonomy_concepts(concept_id),
+    predicate TEXT NOT NULL CHECK(predicate IN ('exact_match','close_match','broader_match','narrower_match','related_match','no_match')),
+    method TEXT NOT NULL,
+    evidence_ids_json TEXT NOT NULL,
+    reason TEXT,
+    review_state TEXT NOT NULL CHECK(review_state IN ('unreviewed','review_required','accepted','rejected','held')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CHECK(source_concept_id <> target_concept_id)
+);
+CREATE TABLE taxonomy_assignments (
+    assignment_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    scope_id TEXT REFERENCES subject_scopes(scope_id),
+    scheme_version_id TEXT NOT NULL REFERENCES taxonomy_versions(scheme_version_id),
+    concept_id TEXT NOT NULL REFERENCES taxonomy_concepts(concept_id),
+    role TEXT NOT NULL CHECK(role IN ('primary','secondary')),
+    assignment_method TEXT NOT NULL CHECK(assignment_method IN ('source-reported','deterministic','model-assessed','human-reviewed','community-proposed')),
+    evidence_ids_json TEXT NOT NULL,
+    rationale TEXT,
+    confidence TEXT,
+    outcome_state TEXT NOT NULL CHECK(outcome_state IN ('resolved','supported','unknown','insufficient_evidence','withheld')),
+    lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('candidate','accepted','edited','rejected','held')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX taxonomy_assignments_subject_idx ON taxonomy_assignments(subject_id, scope_id);
+CREATE TABLE source_records (
+    source_record_id TEXT PRIMARY KEY,
+    subject_id TEXT REFERENCES subjects(subject_id),
+    source_family TEXT NOT NULL,
+    source_role TEXT NOT NULL,
+    source_version TEXT,
+    source_locator TEXT NOT NULL,
+    observed_at TEXT NOT NULL,
+    payload_ref TEXT NOT NULL,
+    payload_hash TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX source_records_subject_idx ON source_records(subject_id, source_family);
+CREATE TABLE program_candidates (
+    program_candidate_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    source_record_id TEXT NOT NULL,
+    evidence_ids_json TEXT NOT NULL,
+    label TEXT NOT NULL,
+    candidate_kind TEXT NOT NULL CHECK(candidate_kind IN ('explicit_program','explicit_service','structured_segment','non_program','ambiguous')),
+    extraction_method TEXT NOT NULL CHECK(extraction_method IN ('structured','segmented','model_task')),
+    source_locator TEXT,
+    status TEXT NOT NULL CHECK(status IN ('candidate','accepted','rejected','held')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX program_candidates_subject_idx ON program_candidates(subject_id, status);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V5 = """
+CREATE TABLE authorized_call_slots (
+    slot_key TEXT PRIMARY KEY,
+    authorization_scope_hash TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    task_family TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('claimed','completed','failed_terminal','abandoned','reviewed_reset')),
+    lease_owner TEXT,
+    lease_expires_at TEXT,
+    provider_transmitted INTEGER NOT NULL DEFAULT 0 CHECK(provider_transmitted IN (0,1)),
+    claimed_at TEXT NOT NULL,
+    completed_at TEXT,
+    reviewed_reset_at TEXT,
+    review_ref TEXT,
+    result_ref TEXT,
+    updated_at TEXT NOT NULL,
+    UNIQUE(authorization_scope_hash, subject_id, task_family, material_hash)
+);
+CREATE INDEX authorized_call_slots_status_idx ON authorized_call_slots(status, lease_expires_at);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V6 = """
+ALTER TABLE tasks ADD COLUMN output_schema_id TEXT;
+ALTER TABLE tasks ADD COLUMN output_schema_version TEXT;
+ALTER TABLE tasks ADD COLUMN task_material_json TEXT;
+
+CREATE TABLE model_task_evidence (
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+    evidence_id TEXT NOT NULL REFERENCES evidence_locators(evidence_locator_id),
+    content_hash TEXT NOT NULL,
+    selection_hash TEXT NOT NULL,
+    PRIMARY KEY(model_task_id, ordinal),
+    UNIQUE(model_task_id, evidence_id)
+);
+CREATE INDEX model_task_evidence_evidence_idx ON model_task_evidence(evidence_id);
+
+CREATE TABLE model_results (
+    model_result_id TEXT PRIMARY KEY,
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    task_run_id TEXT NOT NULL REFERENCES task_attempts(task_run_id),
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    output_schema_id TEXT NOT NULL,
+    output_schema_version TEXT NOT NULL,
+    output_json TEXT NOT NULL,
+    output_hash TEXT NOT NULL,
+    validation_status TEXT NOT NULL CHECK(validation_status IN ('valid','invalid','held')),
+    validation_errors_json TEXT NOT NULL,
+    raw_response_ref TEXT NOT NULL,
+    provider_id TEXT NOT NULL,
+    model_snapshot TEXT NOT NULL,
+    completed_at TEXT NOT NULL,
+    evidence_ids_json TEXT NOT NULL,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX model_results_task_idx ON model_results(model_task_id, task_run_id);
+CREATE INDEX model_results_subject_idx ON model_results(subject_id, validation_status);
+
+ALTER TABLE program_candidates RENAME TO program_candidates_v5;
+CREATE TABLE program_candidates (
+    program_candidate_id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects(subject_id),
+    source_record_id TEXT,
+    model_result_id TEXT REFERENCES model_results(model_result_id),
+    evidence_ids_json TEXT NOT NULL,
+    label TEXT NOT NULL,
+    candidate_kind TEXT NOT NULL CHECK(candidate_kind IN ('explicit_program','explicit_service','structured_segment','non_program','ambiguous')),
+    extraction_method TEXT NOT NULL CHECK(extraction_method IN ('structured','segmented','model_task')),
+    source_locator TEXT,
+    status TEXT NOT NULL CHECK(status IN ('candidate','accepted','rejected','held')),
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CHECK ((extraction_method IN ('structured','segmented') AND source_record_id IS NOT NULL AND model_result_id IS NULL) OR (extraction_method = 'model_task' AND source_record_id IS NULL AND model_result_id IS NOT NULL))
+);
+INSERT INTO program_candidates(program_candidate_id, subject_id, source_record_id, model_result_id, evidence_ids_json, label, candidate_kind, extraction_method, source_locator, status, material_json, material_hash, created_at)
+SELECT program_candidate_id, subject_id, source_record_id, NULL, evidence_ids_json, label, candidate_kind, extraction_method, source_locator, status, material_json, material_hash, created_at FROM program_candidates_v5;
+DROP TABLE program_candidates_v5;
+CREATE INDEX program_candidates_subject_idx ON program_candidates(subject_id, status);
+CREATE INDEX program_candidates_model_result_idx ON program_candidates(model_result_id);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V7 = """
+ALTER TABLE program_candidates ADD COLUMN model_result_item_key TEXT;
+""".strip() + "\n"
+
+CATALOGUE_SQL_V10 = """
+CREATE TABLE physical_attempts (
+    physical_attempt_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    subject_id TEXT NOT NULL,
+    delivery_mode TEXT NOT NULL CHECK(delivery_mode IN ('standard','flex','batch')),
+    status TEXT NOT NULL CHECK(status IN ('prepared','send_started','receipt_persisted','validated','held','failed')),
+    provider_request_id TEXT NOT NULL UNIQUE,
+    reservation_id TEXT REFERENCES budget_reservations(reservation_id),
+    provider_batch_id TEXT,
+    created_at TEXT NOT NULL,
+    send_started_at TEXT,
+    receipt_persisted_at TEXT,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE physical_attempt_members (
+    physical_attempt_id TEXT NOT NULL REFERENCES physical_attempts(physical_attempt_id),
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    PRIMARY KEY(physical_attempt_id, model_task_id)
+);
+CREATE TABLE provider_receipts (
+    provider_receipt_id TEXT PRIMARY KEY,
+    physical_attempt_id TEXT NOT NULL UNIQUE REFERENCES physical_attempts(physical_attempt_id),
+    provider_request_id TEXT NOT NULL,
+    raw_result_ref TEXT NOT NULL,
+    usage_json TEXT NOT NULL,
+    received_at TEXT NOT NULL
+);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V11 = """
+CREATE TABLE delivery_jobs (
+    delivery_job_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    provider_id TEXT NOT NULL,
+    model_route TEXT NOT NULL,
+    delivery_mode TEXT NOT NULL CHECK(delivery_mode IN ('batch','flex','standard')),
+    provider_batch_id TEXT UNIQUE,
+    status TEXT NOT NULL CHECK(status IN ('prepared','submitted','in_progress','completed','expired','cancelled','failed','held')),
+    pricing_snapshot_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    submitted_at TEXT,
+    completed_at TEXT,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE provider_request_items (
+    provider_request_item_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    model_task_id TEXT NOT NULL REFERENCES tasks(model_task_id),
+    physical_attempt_id TEXT REFERENCES physical_attempts(physical_attempt_id),
+    delivery_job_id TEXT REFERENCES delivery_jobs(delivery_job_id),
+    provider_id TEXT NOT NULL,
+    model_route TEXT NOT NULL,
+    requested_delivery_mode TEXT NOT NULL CHECK(requested_delivery_mode IN ('batch','flex','standard')),
+    effective_service_tier TEXT NOT NULL CHECK(effective_service_tier IN ('batch','flex','standard')),
+    status TEXT NOT NULL CHECK(status IN ('prepared','submitted','in_progress','send_ambiguous','completed','failed','expired','cancelled','held')),
+    provider_request_id TEXT UNIQUE,
+    provider_receipt_id TEXT UNIQUE,
+    result_ref TEXT,
+    usage_json TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(run_id, model_task_id)
+);
+CREATE INDEX provider_request_items_job_idx ON provider_request_items(delivery_job_id, status);
+CREATE INDEX provider_request_items_task_idx ON provider_request_items(model_task_id);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V12 = """
+ALTER TABLE delivery_jobs ADD COLUMN provider_input_file_id TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN provider_output_file_id TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN provider_error_file_id TEXT;
+""".strip() + "\n"
+
+CATALOGUE_SQL_V13 = """
+ALTER TABLE delivery_jobs ADD COLUMN payload_sha256 TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN payload_bytes INTEGER;
+ALTER TABLE delivery_jobs ADD COLUMN payload_encoding TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN payload_newline TEXT;
+ALTER TABLE delivery_jobs ADD COLUMN payload_local_ref TEXT;
+CREATE TABLE provider_request_attempts (
+    delivery_attempt_id TEXT PRIMARY KEY,
+    provider_request_item_id TEXT NOT NULL REFERENCES provider_request_items(provider_request_item_id),
+    physical_attempt_id TEXT NOT NULL UNIQUE REFERENCES physical_attempts(physical_attempt_id),
+    delivery_job_id TEXT NOT NULL REFERENCES delivery_jobs(delivery_job_id),
+    attempt_ordinal INTEGER NOT NULL,
+    authorization_id TEXT NOT NULL,
+    attempt_class TEXT NOT NULL CHECK(attempt_class IN ('initial','reviewed_transport_correction')),
+    predecessor_attempt_id TEXT REFERENCES provider_request_attempts(delivery_attempt_id),
+    status TEXT NOT NULL CHECK(status IN ('prepared','send_started','submitted','in_progress','receipt_persisted','completed','failed','expired','cancelled','held')),
+    provider_request_id TEXT UNIQUE,
+    provider_receipt_id TEXT UNIQUE,
+    result_ref TEXT,
+    usage_json TEXT,
+    failure_class TEXT,
+    failure_message_redacted TEXT,
+    created_at TEXT NOT NULL,
+    submitted_at TEXT,
+    completed_at TEXT,
+    updated_at TEXT NOT NULL,
+    UNIQUE(provider_request_item_id, attempt_ordinal),
+    UNIQUE(delivery_job_id, provider_request_item_id)
+);
+CREATE INDEX provider_request_attempts_item_idx ON provider_request_attempts(provider_request_item_id, attempt_ordinal);
+CREATE INDEX provider_request_attempts_job_idx ON provider_request_attempts(delivery_job_id, status);
+INSERT INTO provider_request_attempts(
+    delivery_attempt_id, provider_request_item_id, physical_attempt_id, delivery_job_id,
+    attempt_ordinal, authorization_id, attempt_class, predecessor_attempt_id, status,
+    provider_request_id, provider_receipt_id, result_ref, usage_json,
+    failure_class, failure_message_redacted, created_at, submitted_at, completed_at, updated_at
+)
+SELECT
+    'deliveryattempt:historical:' || i.provider_request_item_id,
+    i.provider_request_item_id,
+    i.physical_attempt_id,
+    i.delivery_job_id,
+    1,
+    'historical:backfill',
+    'initial',
+    NULL,
+    CASE WHEN i.status = 'send_ambiguous' THEN 'held' ELSE i.status END,
+    p.provider_request_id,
+    i.provider_receipt_id,
+    i.result_ref,
+    i.usage_json,
+    CASE WHEN i.status IN ('failed','expired','cancelled','held') THEN 'historical_terminal' ELSE NULL END,
+    NULL,
+    p.created_at,
+    p.send_started_at,
+    CASE WHEN p.status IN ('receipt_persisted','validated','failed','held') THEN p.updated_at ELSE NULL END,
+    i.updated_at
+FROM provider_request_items i
+JOIN physical_attempts p ON p.physical_attempt_id = i.physical_attempt_id
+WHERE i.physical_attempt_id IS NOT NULL AND i.delivery_job_id IS NOT NULL;
+""".strip() + "\n"
+
+CATALOGUE_SQL_V14 = """
+CREATE TABLE provider_pre_send_replacements (
+    replacement_id TEXT PRIMARY KEY,
+    provider_request_item_id TEXT NOT NULL REFERENCES provider_request_items(provider_request_item_id),
+    old_delivery_attempt_id TEXT NOT NULL REFERENCES provider_request_attempts(delivery_attempt_id),
+    old_physical_attempt_id TEXT NOT NULL REFERENCES physical_attempts(physical_attempt_id),
+    new_delivery_attempt_id TEXT NOT NULL UNIQUE REFERENCES provider_request_attempts(delivery_attempt_id),
+    new_physical_attempt_id TEXT NOT NULL UNIQUE REFERENCES physical_attempts(physical_attempt_id),
+    authorization_id TEXT NOT NULL,
+    provider_material_sha256 TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX provider_pre_send_replacements_item_idx ON provider_pre_send_replacements(provider_request_item_id);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V15 = """
+CREATE TABLE standard_transport_traces (
+    physical_attempt_id TEXT PRIMARY KEY REFERENCES physical_attempts(physical_attempt_id),
+    delivery_attempt_id TEXT NOT NULL UNIQUE REFERENCES provider_request_attempts(delivery_attempt_id),
+    client_request_id TEXT NOT NULL UNIQUE,
+    endpoint TEXT NOT NULL,
+    request_body_sha256 TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('NOT_SENT','CROSSING_STARTED','LOCAL_PRE_SEND_FAILURE','PROVIDER_CROSSING_AMBIGUOUS','PROVIDER_REJECTED','PROVIDER_RESPONSE_RECEIVED','COMPLETED')),
+    request_started_at TEXT,
+    response_headers_received INTEGER NOT NULL DEFAULT 0 CHECK(response_headers_received IN (0,1)),
+    server_request_id TEXT,
+    response_identity TEXT,
+    provider_model_identity TEXT,
+    usage_json TEXT,
+    transport_exception TEXT,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX standard_transport_traces_status_idx ON standard_transport_traces(status);
+""".strip() + "\n"
+
+CATALOGUE_SQL_V16 = """
+CREATE TABLE scale_s0_halts (
+    halt_id TEXT PRIMARY KEY,
+    slice_id TEXT NOT NULL,
+    scope TEXT NOT NULL CHECK(scope IN ('task','subject','slice')),
+    task_key TEXT,
+    subject_id TEXT,
+    reason TEXT NOT NULL,
+    hard INTEGER NOT NULL CHECK(hard IN (0,1)),
+    created_at TEXT NOT NULL,
+    recovery_actor TEXT,
+    recovery_rationale TEXT,
+    recovered_at TEXT,
+    material_hash TEXT NOT NULL,
+    CHECK((scope='slice' AND task_key IS NULL AND subject_id IS NULL) OR (scope='task' AND task_key IS NOT NULL) OR (scope='subject' AND subject_id IS NOT NULL))
+);
+CREATE INDEX scale_s0_halts_active_idx ON scale_s0_halts(slice_id, scope, task_key, subject_id, recovered_at);
+CREATE TABLE scale_s0_halt_events (
+    event_id TEXT PRIMARY KEY,
+    halt_id TEXT NOT NULL REFERENCES scale_s0_halts(halt_id),
+    event_type TEXT NOT NULL CHECK(event_type IN ('halted','recovered')),
+    actor TEXT,
+    rationale TEXT,
+    recorded_at TEXT NOT NULL,
+    material_hash TEXT NOT NULL
+);
+""".strip() + "\n"
+
+MIGRATIONS: tuple[Migration, ...] = (
+    Migration(1, "initial_operational_catalogue", CATALOGUE_SQL_V1),
+    Migration(2, "source_evidence_foundation", CATALOGUE_SQL_V2),
+    Migration(3, "governed_knowledge_primitives", CATALOGUE_SQL_V3),
+    Migration(4, "taxonomy_and_pre_run_engine", CATALOGUE_SQL_V4),
+    Migration(5, "authorized_call_slots", CATALOGUE_SQL_V5),
+    Migration(6, "model_results_and_candidate_lineage", CATALOGUE_SQL_V6),
+    Migration(7, "model_result_item_lineage", CATALOGUE_SQL_V7),
+    Migration(8, "durable_semantic_measurement_authorizations", CATALOGUE_SQL_V8),
+    Migration(9, "structured_relationship_roles", CATALOGUE_SQL_V9),
+    Migration(10, "physical_factory_attempts", CATALOGUE_SQL_V10),
+    Migration(11, "provider_delivery_jobs_and_request_items", CATALOGUE_SQL_V11),
+    Migration(12, "provider_batch_file_identities", CATALOGUE_SQL_V12),
+    Migration(13, "append_only_provider_delivery_attempts_and_payload_identity", CATALOGUE_SQL_V13),
+    Migration(14, "zero_crossing_pre_send_replacements", CATALOGUE_SQL_V14),
+    Migration(15, "standard_transport_request_trace_ids", CATALOGUE_SQL_V15),
+    Migration(16, "durable_scale_s0_halt_controller", CATALOGUE_SQL_V16),
+)
+
+SUPPORTED_VERSION = MIGRATIONS[-1].version

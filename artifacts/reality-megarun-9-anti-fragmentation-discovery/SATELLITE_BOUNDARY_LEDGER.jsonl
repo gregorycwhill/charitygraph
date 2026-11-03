@@ -1,0 +1,5 @@
+{"id":"SB9-01","case":"AP4D host/funder/initiative","pure_g2":"lossy","g2_qualifier":"still_lossy","satellite":"directed_relationship_roles","status":"irreducible"}
+{"id":"SB9-02","case":"volunteers versus volunteer roles","pure_g2":"lossy","g2_qualifier":"still_lossy","satellite":"participation_role_measure","status":"irreducible"}
+{"id":"SB9-03","case":"12 evaluations: 7 + 5","pure_g2":"lossy","g2_qualifier":"partly_adequate","satellite":"measurement_observation","status":"irreducible"}
+{"id":"SB9-04","case":"WWF Code adherence","pure_g2":"misleading_as_fact","g2_qualifier":"adequate","satellite":"assertion_source_role","status":"optional_but_product_critical"}
+{"id":"SB9-05","case":"named testimonial","pure_g2":"misleading_as_outcome","g2_qualifier":"adequate","satellite":"evidence_role","status":"projection_critical"}

@@ -1,0 +1,109 @@
+You are performing a private CharityGraph semantic knowledge-production experiment.
+
+Use only the supplied FROZEN EVIDENCE PACKET. Do not use outside knowledge, do
+not create CharityGraph IDs, and do not produce a finished charity profile.
+Return only the required structured output.
+
+HIGH-RECALL SCOPE
+
+Within each target section/schema, identify distinct supported in-scope facts
+comprehensively. Do not omit an in-scope supported fact because you judge it
+unimportant. CharityGraph decides schema scope; display prioritisation is
+downstream. Do not extract every sentence: the bound is membership in the
+defined North Star sections and the semantic lenses below.
+
+Lexical presence is not proposition support. Do not fill gaps. Preserve source
+grain, first-party epistemic posture, reporting scope and temporal meaning.
+Keep propositions atomic. Explicit missingness is useful. Outcome, ROI,
+economic-benefit and advocacy claims remain claims unless stronger evidence is
+present. Do not manufacture quotations or IDs.
+
+COMPACT EVIDENCE
+
+Every supported or explicit-absence observation, assignment, relationship and
+issue must cite packet evidence. Use only compact references of this form:
+
+evidence: {source: S003, locator: L0176-L0182, role: supporting|corroborating|context}
+
+Do not reproduce full source_record_id hashes or verbatim excerpts. Builder
+resolves S003 and its line locator back to the immutable source record. A
+supporting citation must support the proposition itself, not merely a related
+word or page title.
+
+TEMPORAL SCOPE
+
+Use exactly one of: current, as_of, reporting_period, historical, undated,
+mixed. Use as_of for point-in-time statements such as officeholder status on a
+specified date. Preserve the source-native period/date in value when useful.
+
+NORTH STAR SECTIONS (assess every section 1 through 20 exactly once)
+
+1 Identity / regulatory: registration, legal/regulatory status and supported
+   organisational or reporting structure.
+2 Purpose / mandate / cause: formal purpose, mission, mandate and cause.
+3 Programs / services / projects / campaigns: named or clearly bounded
+   initiatives; distinguish programs from campaigns and functions.
+4 Populations / beneficiaries: people, communities or populations served.
+5 Geography: places or geographic scopes of activity or beneficiaries.
+6 Participation: reach, service-user, beneficiary and engagement measures.
+7 Fundraising / resource mobilisation: appeals, bequests, sponsorship,
+   donations, campaigns and mobilisation practices.
+8 Finance / resource flows: material revenue, expenditure, assets, liabilities,
+   grants and other filed resource-flow observations.
+9 Governance: governing bodies, board and governance practices.
+10 Workforce: employees, volunteers and workforce capacity.
+11 Capability / capacity / access / availability: delivery capacity,
+   infrastructure, accessibility and constraints.
+12 Relationships / ecosystem: partnerships, affiliates, delivery relationships
+   and funders.
+13 Memberships / schemes / registrations / accreditations.
+14 Ethos / institutional identity: supported religious, cultural or other ethos.
+15 Positions / commitments / implementation: public positions, commitments,
+   policies and evidence of implementation.
+16 Conduct / adverse / compliance: supported regulatory, court, inquiry,
+   compliance or adverse matters. Absence from the packet is not clean conduct.
+17 Notable context / history: material history, milestones and external context.
+18 Outcomes / impact / evaluation: reported outcomes, impact, evaluation and
+   effectiveness evidence, retaining self-report status.
+19 Classifications / semantic lenses: reproduce source-reported classifications
+   only; do not infer classifications outside the candidate lenses below.
+20 Evidence / coverage / freshness / corrections: visible limitations,
+   freshness, reporting scope, representation gaps and conflicts.
+
+SECTION ASSESSMENTS
+
+Return one assessment for every section. Use observations_found when one or
+more bounded observations were extracted; insufficient_evidence when the packet
+does not support a useful observation; not_applicable only for positive evidence
+of inapplicability; deferred only where this experiment explicitly defers it.
+
+SEMANTIC LENSES (CANDIDATES ONLY)
+
+After observations, return candidate assignments for evidence-supported subject
+or named scopes using only these distinct schemes when available in the packet:
+UN SDG; CharityGraph Native; ACNC CLASSIE using the supplied private/versioned
+scheme material; CharityGraph CLASSIE when its current contract is supplied.
+ACNC Registration and ATO DGR remain source-reported facts. Multiple labels are
+allowed. Do not use a generic scalar confidence. Include alternatives only when
+genuinely plausible and cite evidence for each assignment. Protected CLASSIE
+labels/definitions may be represented only as permitted IDs/metadata.
+
+For each assignment provide target_scope (kind and source-native label), scheme,
+scheme_version, concept_id, concept_label_if_permitted, evidence, rationale,
+alternatives and qualification.
+
+RELATIONSHIPS AND ISSUES
+
+Return only evidence-supported relationships involving the subject or named
+program/scope. Include source scope, target source-native name, relationship
+type/description, direction, temporal scope, evidence and qualification. Do not
+infer a relationship from co-mention.
+
+Return only evidence-supported cross-source issues: contradictions, materially
+different source characterisations, scope/reporting mismatches, temporal
+conflicts or unresolved identity/binding ambiguities. Do not manufacture an
+issue merely because sources phrase the same fact differently.
+
+The output is high-recall candidate production, not adjudication, publication,
+display summarisation or durable knowledge. Do not assign final validity,
+confidence or publication status.

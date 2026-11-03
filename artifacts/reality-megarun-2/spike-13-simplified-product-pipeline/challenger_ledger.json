@@ -1,0 +1,392 @@
+{
+  "experiment": "Spike 13 challenger",
+  "envelope": "Spike 12 G2",
+  "propositions": [
+    {
+      "proposition_id": "P-RC-1",
+      "subject_ref": "Australian Red Cross",
+      "predicate": "structure",
+      "value": {
+        "kind": "attributed_text",
+        "data": "two operating divisions"
+      },
+      "scope": {
+        "level": "organisation",
+        "ref": null,
+        "text": "organisation"
+      },
+      "valid_time": {
+        "start": "2024-25",
+        "end": "2024-25",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "RC-1"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": null,
+      "route": "organisation"
+    },
+    {
+      "proposition_id": "P-RC-2",
+      "subject_ref": "Australian Red Cross",
+      "predicate": "service_description",
+      "value": {
+        "kind": "attributed_text",
+        "data": "member-run services"
+      },
+      "scope": {
+        "level": "service",
+        "ref": null,
+        "text": "service"
+      },
+      "valid_time": {
+        "start": "2024-25",
+        "end": "2024-25",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "RC-2"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": null,
+      "route": "capacity"
+    },
+    {
+      "proposition_id": "P-RC-3",
+      "subject_ref": "Australian Red Cross",
+      "predicate": "footprint",
+      "value": {
+        "kind": "attributed_text",
+        "data": "branches"
+      },
+      "scope": {
+        "level": "site/footprint",
+        "ref": null,
+        "text": "site/footprint"
+      },
+      "valid_time": {
+        "start": "2024-25",
+        "end": "2024-25",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "RC-3"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": null,
+      "route": "capacity"
+    },
+    {
+      "proposition_id": "P-RC-4",
+      "subject_ref": "Australian Red Cross",
+      "predicate": "workforce",
+      "value": {
+        "kind": "attributed_text",
+        "data": "volunteers and employees"
+      },
+      "scope": {
+        "level": "organisation",
+        "ref": null,
+        "text": "organisation"
+      },
+      "valid_time": {
+        "start": "2024-25",
+        "end": "2024-25",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "RC-4"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": "capacity:workforce",
+      "route": "capacity"
+    },
+    {
+      "proposition_id": "P-RC-5",
+      "subject_ref": "Australian Red Cross",
+      "predicate": "reported_reach",
+      "value": {
+        "kind": "attributed_text",
+        "data": "reported reach metrics"
+      },
+      "scope": {
+        "level": "reported metric",
+        "ref": null,
+        "text": "reported metric"
+      },
+      "valid_time": {
+        "start": "2024-25",
+        "end": "2024-25",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "RC-5"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": "capacity:reach",
+      "route": "outcomes"
+    },
+    {
+      "proposition_id": "P-RC-6",
+      "subject_ref": "Australian Red Cross",
+      "predicate": "commitment",
+      "value": {
+        "kind": "attributed_text",
+        "data": "ACFID Code commitment and stated values"
+      },
+      "scope": {
+        "level": "organisation",
+        "ref": null,
+        "text": "organisation"
+      },
+      "valid_time": {
+        "start": "2024-25",
+        "end": "2024-25",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "RC-6"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": "ethos:commitment",
+      "route": "ethos"
+    },
+    {
+      "proposition_id": "P-RC-7",
+      "subject_ref": "Australian Red Cross",
+      "predicate": "audit_statement",
+      "value": {
+        "kind": "attributed_text",
+        "data": "external audit / separately audited programmes"
+      },
+      "scope": {
+        "level": "organisation/programme",
+        "ref": null,
+        "text": "organisation/programme"
+      },
+      "valid_time": {
+        "start": "2024-25",
+        "end": "2024-25",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "RC-7"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": null,
+      "route": "governance"
+    },
+    {
+      "proposition_id": "P-WV-1",
+      "subject_ref": "World Vision Australia",
+      "predicate": "governance_structure",
+      "value": {
+        "kind": "attributed_text",
+        "data": "named directors and committee responsibilities"
+      },
+      "scope": {
+        "level": "organisation",
+        "ref": null,
+        "text": "organisation"
+      },
+      "valid_time": {
+        "start": "2025",
+        "end": "2025",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "WV-1"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": null,
+      "route": "governance"
+    },
+    {
+      "proposition_id": "P-WV-2",
+      "subject_ref": "World Vision Australia",
+      "predicate": "relationship",
+      "value": {
+        "kind": "attributed_text",
+        "data": "international-board relationship"
+      },
+      "scope": {
+        "level": "organisation relationship",
+        "ref": null,
+        "text": "organisation relationship"
+      },
+      "valid_time": {
+        "start": "2025",
+        "end": "2025",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "WV-2"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": null,
+      "route": "relationships"
+    },
+    {
+      "proposition_id": "P-WV-3",
+      "subject_ref": "World Vision Australia",
+      "predicate": "audit_statement",
+      "value": {
+        "kind": "attributed_text",
+        "data": "account certification and auditor"
+      },
+      "scope": {
+        "level": "organisation",
+        "ref": null,
+        "text": "organisation"
+      },
+      "valid_time": {
+        "start": "2025",
+        "end": "2025",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "WV-3"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": null,
+      "route": "governance"
+    },
+    {
+      "proposition_id": "P-WV-4",
+      "subject_ref": "World Vision Australia",
+      "predicate": "faith_statement",
+      "value": {
+        "kind": "attributed_text",
+        "data": "faith-related director statement"
+      },
+      "scope": {
+        "level": "speaker/director",
+        "ref": null,
+        "text": "speaker/director"
+      },
+      "valid_time": {
+        "start": "2025",
+        "end": "2025",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "WV-4"
+      ],
+      "source_role": "first_party_report",
+      "domain_semantics": "ethos:speaker_scoped",
+      "route": "ethos"
+    },
+    {
+      "proposition_id": "P-SUN-1",
+      "subject_ref": "Sunrise Foundation",
+      "predicate": "regulator_bundle",
+      "value": {
+        "kind": "attributed_text",
+        "data": "historical structured regulator bundles"
+      },
+      "scope": {
+        "level": "organisation",
+        "ref": null,
+        "text": "organisation"
+      },
+      "valid_time": {
+        "start": "historical",
+        "end": "historical",
+        "precision": "period"
+      },
+      "assertion_mode": "reported",
+      "status": "candidate",
+      "evidence_refs": [
+        "SUN-1"
+      ],
+      "source_role": "regulator_record",
+      "domain_semantics": null,
+      "route": "classification"
+    }
+  ],
+  "coverage": [
+    {
+      "subject_ref": "Australian Red Cross",
+      "projection_domain": "all",
+      "state": "examined_with_candidates",
+      "evidence_boundary_refs": []
+    },
+    {
+      "subject_ref": "World Vision Australia",
+      "projection_domain": "all",
+      "state": "examined_with_candidates",
+      "evidence_boundary_refs": []
+    },
+    {
+      "subject_ref": "MSF",
+      "projection_domain": "all",
+      "state": "no_compatible_retained_evidence",
+      "evidence_boundary_refs": []
+    },
+    {
+      "subject_ref": "Bush Heritage",
+      "projection_domain": "all",
+      "state": "no_compatible_retained_evidence",
+      "evidence_boundary_refs": []
+    },
+    {
+      "subject_ref": "Sunrise Foundation",
+      "projection_domain": "all",
+      "state": "not_processed",
+      "evidence_boundary_refs": []
+    }
+  ],
+  "relations": [
+    {
+      "type": "scope_split",
+      "members": [
+        "P-RC-7"
+      ],
+      "outcome": "organisation/programme audit remains reviewable"
+    },
+    {
+      "type": "speaker_scope",
+      "members": [
+        "P-WV-4"
+      ],
+      "outcome": "not organisation-wide ethos"
+    },
+    {
+      "type": "time_bound",
+      "members": [
+        "P-SUN-1"
+      ],
+      "outcome": "not current"
+    },
+    {
+      "type": "duplicate",
+      "members": [
+        "P-RC-6"
+      ],
+      "outcome": "one proposition; repeated support permitted"
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+# Retrieval architecture readout
+
+Run 182’s retrieval stress is invalid as a benchmark because each intent was manufactured from the answer proposition. The fresh adversarial intents show metadata/lexical retrieval should retrieve evidence candidates, not answer truthfully by itself. Needed filters/joins: source role, time, organisation-versus-program scope, measurement unit, relationship direction and evidence kind. For policy influence and absence questions, retrieval must surface the relevant positive text and caveat, then defer synthesis to direct reasoning. No local embedding benchmark was found or claimed; its absence is not a campaign stop.

@@ -1,0 +1,17 @@
+{
+  "token": "REALITY_SPIKE_11_CAPACITY_ETHOS_STRESS_DISCOVERED",
+  "spec_identifier": "CG-REALITY-SPIKE-11-CAPACITY-ETHOS-STRESS-TERRA-162",
+  "model": "terra",
+  "inputs": {"red_cross": "retained 2024-25 annual-report candidate material, pp. 2-4", "world_vision": "retained 2025 annual-report candidate material, pp. 1-5", "spike_9_10": "not present in checked-out workspace; no reconstruction"},
+  "mutations": {"s0": false, "github": false, "canonical": false, "authorisation": false, "provider_subsystem": false},
+  "candidate_propositions": 18,
+  "accepted_reviewable": 16,
+  "unchanged_envelope": 11,
+  "minimum_extension": 5,
+  "holds_or_abstentions": 3,
+  "section_routing": {"capacity": "8/8 accepted correct", "ethos": "8/8 accepted correct"},
+  "projection_loss": {"capacity": "3/8", "ethos": "2/8", "combined": "5/16"},
+  "temporal_currentness_flags": 5,
+  "review_units": 19,
+  "conclusion": "One universal proposition envelope remains viable only when it keeps scope/time/attribution and delegates measurement and assertion-stage distinctions to a small disposable domain qualifier; embedding these into the base would be a mega-schema."
+}

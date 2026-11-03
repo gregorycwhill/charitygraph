@@ -1,0 +1,125 @@
+{
+  "module_id": "M26",
+  "title": "Five genuine historical/current changes",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 26,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/megarun10b/M26-old-report-binding.json",
+    "C:/CharityGraph-runtime/megarun10b/M26-old-report-pages/p016.txt",
+    "C:/CharityGraph-runtime/megarun10b/M26-old-report-pages/p023.txt",
+    "C:/CharityGraph-runtime/megarun10b/M26-old-report-pages/p037.txt",
+    "C:/CharityGraph-runtime/megarun10b/M26-old-report-pages/p041.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-16.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-23.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-37.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-41.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "case": "Learning for Life reach",
+      "old": {
+        "period": "2023-24",
+        "page": 23,
+        "value": 67165,
+        "unit": "students"
+      },
+      "new": {
+        "period": "2024-25",
+        "page_id": "the-smith-family-23",
+        "value": 71818,
+        "unit": "students"
+      },
+      "finding": "Report-to-report increase of 4,653; do not use 67,282 sponsors as the old student baseline."
+    },
+    {
+      "case": "Volunteer people and contribution",
+      "old": {
+        "period": "2023-24",
+        "page": 41,
+        "people": 4913,
+        "roles": 5485,
+        "hours": 123547
+      },
+      "new": {
+        "period": "2024-25",
+        "page_id": "the-smith-family-41",
+        "people": 5478,
+        "roles": 5983,
+        "hours": 113792
+      },
+      "finding": "People and roles rise while hours fall; participation growth is not uniformly increasing contribution."
+    },
+    {
+      "case": "Annual digital devices",
+      "old": {
+        "period": "2023-24",
+        "page": 16,
+        "value": 3774
+      },
+      "new": {
+        "period": "2024-25",
+        "page_id": "the-smith-family-16",
+        "value": 2759
+      },
+      "finding": "Annual reported delivery decreases by 1,015. Cumulative 6,425 plus 2,759 would be 9,184, not newer 8,026; unexplained reconciliation issue."
+    },
+    {
+      "case": "Gender pay gap",
+      "old": {
+        "period": "2023-24",
+        "page": 37,
+        "mean": 18.53,
+        "median": 15.43
+      },
+      "new": {
+        "period": "2024-25",
+        "page_id": "the-smith-family-37",
+        "mean": 15.01,
+        "median": 14.3
+      },
+      "finding": "Reported mean/median gaps decrease; composition/method comparability beyond page description remains unverified."
+    },
+    {
+      "case": "Broader reach and digital support",
+      "old": {
+        "period": "2023-24",
+        "page": 23,
+        "all_participants": 178430,
+        "digital_supported": 5682
+      },
+      "new": {
+        "period": "2024-25",
+        "page_id": "the-smith-family-23",
+        "all_participants": 186499,
+        "digital_supported": 4945
+      },
+      "finding": "Overall participation rises by 8,069 while digital support falls by 737; need program-specific denominators."
+    }
+  ],
+  "defects": [
+    "D26: Reported cumulative device series does not reconcile across years; may be revised definition or source error, not automatically wrongdoing.",
+    "D26b: Sponsors, students and families are mislabeled across otherwise official sources."
+  ],
+  "counterexamples": [
+    "Five real changes include opposite directions across related measures; a single trend summary would mislead."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Newer period means 2024-25 archived report, not verified 2026 live operations; no same-URL version pair; Terra requirement unmet."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\megarun10b\\M26-old-report-binding.json": "0916ca7908d154ded6924df8cc4cfe77efaf99617acb723ca686e3c87b3a9e9c",
+    "C:\\CharityGraph-runtime\\megarun10b\\M26-old-report-pages\\p016.txt": "b30c3c2a09377311d33270e364928237949ac7d3f3146c990cfd68d18661cca3",
+    "C:\\CharityGraph-runtime\\megarun10b\\M26-old-report-pages\\p023.txt": "663f18566a49836a4fc0a5b5d0bd3f9fc0cef422671b9066d3584ee7fbcdf748",
+    "C:\\CharityGraph-runtime\\megarun10b\\M26-old-report-pages\\p037.txt": "88bc5501e934b6c5526580a857aea27369af6c66dada06c603b9c33ff94b2c34",
+    "C:\\CharityGraph-runtime\\megarun10b\\M26-old-report-pages\\p041.txt": "01b136dda5a8220356f8b562a3ab7e9f9c2f1558c0116ddc8487c03d98d806b6",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-16.txt": "828cc75f6491e263202334719d02afd865bee46c98ba5c643bcc45e66d38ba71",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-23.txt": "6660a6e99cb1921861a59a23b5da50740f907508ed66a7577a228aad3cba5221",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-37.txt": "b15abd39bacbed754c77de1652ad37f405a22a416ae0dd28158155f9c47c2391",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-41.txt": "3f4e307b742fd97149a9b95af1c27f8b6c5bdde3d7bdbcaaa24f9ff93acb0895"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

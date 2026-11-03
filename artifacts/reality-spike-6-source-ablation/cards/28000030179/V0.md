@@ -1,0 +1,11 @@
+# The Smith Family — V0
+
+> EXPERIMENTAL, NON-PRODUCTION. Retained historical evidence only; report claims remain attributed and unpromoted.
+
+Positive sections: **6/20**.
+- §1 Identity / regulatory — structured regulator projection.
+- §2 Purpose / cause — structured regulator projection.
+- §4 Activities / SDGs — structured regulator projection.
+- §8 Fundraising — structured regulator projection.
+- §11 Scale / capability — structured regulator projection.
+- §20 Evidence / coverage / freshness / corrections — structured regulator projection.

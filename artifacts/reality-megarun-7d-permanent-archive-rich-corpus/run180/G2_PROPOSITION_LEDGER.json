@@ -1,0 +1,682 @@
+{
+  "schema": "experimental-g2-ledger/v1",
+  "propositions": [],
+  "review_queue": [
+    {
+      "candidate_id": "candidate-australian-red-cross-1",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=1",
+      "evidence_excerpt": "Annual Report 2023-2024 Image: Dean Sewell",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-9",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9",
+      "evidence_excerpt": "Strategic Focus 1: Emergency Services and Disasters 213,000 Our disaster preparedness, relief, and recovery work is based on the promotion of people were supported before, five key psychosocial principles: safety, calm, during and after disasters. connection, self-efficacy, and hope. Our core activities include providing psychological first 115,000",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-18",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18",
+      "evidence_excerpt": "Standing up for the laws of war government agencies, and the applicable legal of contemporary armed conflict and the alongside New Zealand Red Cross and the frameworks in times of armed conflict and Movement\u2019s humanitarian response. ICRC, with funding support from the Swiss Australian Red Cross has a mandate other emergencies. embassies in Australi",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-27",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=27",
+      "evidence_excerpt": "Financial capital Image: Helen Orr",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-35",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35",
+      "evidence_excerpt": "Keeping Australian Red Cross This included: Our Inclusion Networks for Australian Red Our people Cross people who identify, or are allies of, people safe \u2022 partnering with the WHS committees to meet the LGBTQIA+, disability, and culturally and business KPIs and legislative compliance We are all responsible for creating and linguistically diverse (C",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-43",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=43",
+      "evidence_excerpt": "Risk Our brand, culture, and strategy transformation We require our people to adopt sound risk We have a comprehensive risk governance structure and accountability framework to support the continued this year against a backdrop of management principles that include: effective management of risk. It is guided by a \u2018three lines of engagement\u2019 operati",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-52",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=52",
+      "evidence_excerpt": "Expenditure for the year ended Programs expenditure Our expenditure 30 June 2024 In FY24, program expenditure totalled In FY24, the Australian Red Cross Society $177.9 million. Migration support was our recorded total expenditure of $1,141.5 million. largest expenditure category, amounting This includes $834.6 million spent by Australian to $63.7 m",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-61",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=61",
+      "evidence_excerpt": "Notes to the financial statements 30 June 2024 NOTE 1. .MATERIAL ACCOUNTING POLICIES Statementofcompliance ThefinancialreportisageneralpurposefinancialreportthathasbeenpreparedinaccordancewiththeAustralian CharitiesandNot-for-profitsCommissionAct2012,andAustralianAccountingStandards-SimplifiedDisclosures, Interpretationsandotherapplicableauthoritat",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-69",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=69",
+      "evidence_excerpt": "Notes to the financial statements 30 June 2024 NOTE 1. MATERIAL ACCOUNTING POLICIES(continued) (k)Property, plantandequipment Eachclassofproperty,plantandequipmentismeasuredathistoricalcostless,whereapplicable,anyaccumulated depreciationandanyaccumulatedimpairmentlosses.Grantfundedassetsaredepreciatedinaccordancewiththe termsofthefundingagreement. ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-77",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=77",
+      "evidence_excerpt": "Notes to the financial statements 30 June 2024 NOTE 3. .DIVISIONAL REPORTING Operatingdivisions TheAustralianRedCrossSocietycomprisesthefollowingoperatingdivisionsasdefinedinNote1tothisreport: \u2022AustralianRedCrossHumanitarianServices(HumanitarianServices) \u2022AustralianRedCrossLifeblood(Lifeblood) Theaccountingpoliciesofthereportabledivisionsarethesame",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-86",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=86",
+      "evidence_excerpt": "Notes to the financial statements 30 June 2024 NOTE 11. .OTHER FINANCIAL ASSETS 2024 2023 $'000 $'000 FairValuethroughOtherComprehensiveIncome(FVOCI) Shares 37,388 35,023 ListedBonds - 3,366 Unlistedbonds 109,540 106,447 Totalfinancialassetsatfairvaluethroughothercomprehensiveincome (FVOCI) 146,928 144,836 Totalotherfinancialassets 146,928 144,836 ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-95",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=95",
+      "evidence_excerpt": "Notes to the financial statements 30 June 2024 NOTE 18. DEFINED BENEFITSUPERANNUATION PLANS (continued) (b) Amountsrecognisedinthestatementofprofitandlossandothercomprehensiveincome 2024 2023 $'000 $'000 Servicecost: Currentservicecost 305 303 Employercontributions (258) (290) Membercontributions (25) (26) Netinterestcost (90) (65) Componentsofdefi",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-103",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=103",
+      "evidence_excerpt": "Notes to the financial statements 30 June 2024 NOTE 24. LEASES (continued) (b)Leaseliabilities 2024 2023 $'000 $'000 Maturityanalysis-contractualundiscountedcashflows1 Nolongerthan1year 41,779 42,529 Longerthan1yearandnotlongerthan5years 97,334 98,542 Longerthan5years 19,536 24,796 Total1 158,649 165,867 1Thevalueofcontractualandundiscountedcashflo",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-111",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=111",
+      "evidence_excerpt": "Notes to the financial statements 30 June 2024 NOTE 30. KEY MANAGEMENT PERSONNEL(continued) Boardmembers SOCIETYBOARD LIFEBLOODBOARD CharlesBurkitt(President) JamesBirchAM(Chair) SamHardjono(ChairofAuditandRiskCommittee) StephenCornelissenAM(ChiefExecutiveOfficer) JamesBirchAM ProfChristopherBaggoleyAO(toJune2024) HelenClarke CharlesBurkitt AneCoet",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-australian-red-cross-120",
+      "subject_id": "australian-red-cross",
+      "archive_source_sha256": "87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b",
+      "page_locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=120",
+      "evidence_excerpt": "We communicate with the Board Members regarding, among other matters, the planned scope and timing of the audit and significant audit findings, including any significant deficiencies in internal control that we identify during our audit. DELOITTE TOUCHE TOHMATSU Isabelle Lefevre Partner Chartered Accountants Melbourne, 18 October 2024 120",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-1",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=1",
+      "evidence_excerpt": "1 AILARTSUA NOISIV DLROW | 4202 tropeR launnA AN INCREDIBLE YEAR OF AUSTRALIAN GIVING 2 024 A N N U A L R E P O R T",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-3",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=3",
+      "evidence_excerpt": "First Nations youth taking part in our Young Mob Program explore Uluru on a cultural exchange trip. ACKNOWLEDGMENT OF COUNTRY World Vision Australia is deeply committed to working with Aboriginal and Torres Strait Islander peoples. We acknowledge the Creator God, and Aboriginal and Torres Strait Islander peoples as the custodians of His creation, t",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-5",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=5",
+      "evidence_excerpt": "MESSAGE As I write this reflection on the last 12 months, I am reminded of 1 John 3:18. It reads \u201cDear children, let us not love with words or speech but with actions and in truth.\u201d As Christians we are called not only to say, but most importantly to do and put our faith in FROM OUR action. World Vision is a living, breathing example of Christian f",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-7",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=7",
+      "evidence_excerpt": "7 AILARTSUA NOISIV DLROW | 4202 tropeR launnA WHO WE ARE WE ARE A CHRISTIAN WHAT WE DO OUR FOUNDATION CHARITY DEDICATED TO EMPOWERING Transformational development focused especially on Our Christian faith is central to our work and we strive to EVERYDAY the needs of children. We guide communities to set and follow the teachings of Jesus Christ. We ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-9",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=9",
+      "evidence_excerpt": "9 AILARTSUA NOISIV DLROW | 4202 tropeR launnA PROGRAM SECTORS We deliver both humanitarian response and international community development programming across five key sectors: livelihoods; health and WHAT nutrition; education; water, sanitation and hygiene (WASH); and child protection. WE DO WASH programs deliver clean drinking water and appropria",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-11",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=11",
+      "evidence_excerpt": "11 AILARTSUA NOISIV DLROW | 4202 tropeR launnA OUR COMMITMENT We are committed to demonstrating a credible account of change through our programs. TO ACCOUNTABILITY We undertake scheduled evaluations and reviews of all our programs and projects to assess their impact on the lives of participants. We focus especially on those who are the most vulner",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-13",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=13",
+      "evidence_excerpt": "13 AILARTSUA NOISIV DLROW | 4202 tropeR launnA THE WAY In 2020, we developed an evidence-building strategy aimed at improving the way we collect, aggregate and utilise evidence of impact. This has enabled us to generate credible evidence of our impact and effectiveness at the portfolio level. We publicly disseminate results from a series WE MEASURE",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-15",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=15",
+      "evidence_excerpt": "15 AILARTSUA NOISIV DLROW | 4202 tropeR launnA ENVIRONMENTAL This page is subject to assurance MANAGEMENT 2024 2023 We are committed to improving our environmental performance and reducing our KEY ACTIVITIES MEASURED: Tonnes CO-e Tonnes CO-e 2 2 contribution to climate change and environmental degradation. Since 2008, we have considered the extent ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-17",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=17",
+      "evidence_excerpt": "17 AILARTSUA NOISIV DLROW | 4202 tropeR launnA Three-year history of our income by source. $200m Non-monetary FY22 donations and gifts FY23 FY24 INCOME $150m Sponsorship Overseas grants Australian - OUR Government (DFAT) $100m REVENUE Appeals, donations and gifts $50m Other income IN FY24 FY24 AND FY23 Sponsorship Appeals, donations and gifts Non-m",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-19",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=19",
+      "evidence_excerpt": "19 AILARTSUA NOISIV DLROW | 4202 tropeR launnA Funds to $400m international programs FY22 FY23 FY24 $300m $200m $100m FY24 AND FY23 Accountability Fundraising and COMPARISONS administration Co ac m ti m vi e t r ie c s ia l Domestic Community Program expendiure programs education support costs FUNDRAISING DOMESTIC PROGRAMS PROGRAM SUPPORT COSTS FUN",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-21",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=21",
+      "evidence_excerpt": "21 AILARTSUA NOISIV DLROW | 4202 tropeR launnA ENSURING OUR ABILITY TO MEET OUR FIELD PROGRAM FINANCIAL COMMITMENTS The World Vision Australia Treasury and and delegated authority from our Board for Where specific communication is required, the Investment Policy governs the objectives, overseeing the use of funds in all our programs. method of comm",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-23",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=23",
+      "evidence_excerpt": "23 AILARTSUA NOISIV DLROW | 4202 tropeR launnA INDEPENDENT AUDITOR\u2019S REPORT OUR OPINION The audited financial report and our report thereon We expressed an unmodified audit opinion on the financial report in our report dated In our opinion, the summary financial statements as derived from the audited financial 22 November 2024. report of World Visi",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-25",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=25",
+      "evidence_excerpt": "25 AILARTSUA NOISIV DLROW | 4202 tropeR launnA STATEMENT OF COMPREHENSIVE INCOME FOR THE YEAR ENDED 30 SEPTEMBER 2024 Notes FY24 FY23 $\u2019000 $\u2019000 (Deficit)/surplus of income over expenditure (27,349) 3,422 Other comprehensive income Items that will not be reclassified subsequently to the income statement OCI related to derecognised shares transferr",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-27",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=27",
+      "evidence_excerpt": "27 AILARTSUA NOISIV DLROW | 4202 tropeR launnA STATEMENT OF CHANGES IN EQUITY FOR THE YEAR ENDED 30 SEPTEMBER 2024 BASIS OF PREPARATION Hedging FVOCI Retained Total reserve reserve earnings These summary financial statements have been prepared in accordance with Australian Accounting $ '000 $ '000 $ '000 $ '000 Standards and other authoritative pro",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-world-vision-australia-29",
+      "subject_id": "world-vision-australia",
+      "archive_source_sha256": "9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651",
+      "page_locator": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=29",
+      "evidence_excerpt": "29 AILARTSUA NOISIV DLROW | 4202 tropeR launnA THANK YOU TO EVERY SUPPORTER, PARTNER AND DONOR WHO JOINED US IN 2024. TOGETHER, WE\u2019RE CHANGING CHILDREN\u2019S LIVES 1 Vision Drive Burwood East VIC 3151 Telephone: (03) 9287 2233 Email: service@worldvision.com.au World Vision Australia acknowledges that our head office in Melbourne is built worldvision.co",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-1",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=1",
+      "evidence_excerpt": "Annual Impact 2024 Report",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-2",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=2",
+      "evidence_excerpt": "Contents 04 26 From the CEO Who we are 05 28 From the Chair By the numbers 06 29 W hy we exist Our finances 07 30 How we create impact Revenue 09 31 Where we work Expenditure 10 32 The year in a snapshot Summarised financial report 13 34 Our commitment to reconciliation Key Ratios 14 35 Gender Compass Directors' declaration 15 36 Our first Giving D",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-4",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=4",
+      "evidence_excerpt": "Why we exist Our purpose We engage people and partners to: \u2022 Empower children, young people and We strive for a just communities to make vital changes that tackle the root causes of discrimination against girls, world that advances exclusion and vulnerability children\u2019s rights and \u2022 Drive change in practice and policy at local, national and global ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-5",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=5",
+      "evidence_excerpt": "our parenting and nutrition project in Timor Leste and our Pacific Story Time and Play early learning Where we work project have been endorsed by national education ministries, which indicates a lasting impact on systems that support early childhood development in these countries. Furthermore, our projects that work with young people, particularly ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-7",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=7",
+      "evidence_excerpt": "Plan International Australia played a vital role in contributing to this collective impact 14 ailartsuA lanoitanretnI nalP Our commitment to reconciliation Tackling structural racism, inequities, and all forms of discrimination is a fundamental part of Plan International Australia\u2019s mission. Our vision for reconciliation aligns with our commitment ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-8",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=8",
+      "evidence_excerpt": "ul 24% Trailbla z o p ef e r 1 9 H % Gender Compass %2 1 d e t c nfli Co M % In FY24, Plan International Australia Why Gender Compass is important o 6 l i a ts u - n k c in h d e d re G s e e n a d rc e h r C pr o o m je p c a t s th s, a a t s fi e rs g t m -o e f n - ted In Australia, women are still paid less for the same d e ra te 23% Indiffer ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-10",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=10",
+      "evidence_excerpt": "The Global Hunger Crisis Humanitarian Plan International has been actively responding to the global hunger crisis in some of the most affected countries, including Kenya, Somalia, Action Ethiopia, Sudan, South Sudan, Burkina Faso, Mali, Niger, and Haiti. Through a combination of emergency food relief, nutrition support, education programs, and live",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-11",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=11",
+      "evidence_excerpt": "Education for all 22 23 ailartsuA lanoitanretnI nalP Children in Cambodia learning Esther, 18, is the leader of the and cooking nutritious meals sexual and reproductive health thanks to their school gardens. and rights (SRHR) club at her school in Rwanda. Every child has the right to an education that equips them with the skills, knowledge, and con",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-12",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=12",
+      "evidence_excerpt": "Building Climate Resilience for the future The effects of climate change are becoming increasingly severe, and it is the world\u2019s poorest communities\u2014those least responsible for global warming\u2014that are suffering the most. These communities often live in the most vulnerable areas and lack the resources to adapt to the growing frequency of climate-rel",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-14",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=14",
+      "evidence_excerpt": "Who we are Our staff Our Volunteers In the 2024 Board of Directors Executive Team One of Plan International Australia\u2019s most valuable Plan International Australia\u2019s office-based financial year: Our Board of Directors are responsible for guiding the strategic direction of the organisation Our Executive Team is responsible for providing assets is the",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-15",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=15",
+      "evidence_excerpt": "By the numbers Our finances 30 31 ailartsuA lanoitanretnI nalP 4202 tropeR tcapmI launnA the increased grant remittance funding being A year in review sent to overseas programs (increase of $7.6m or This year, PIA successfully remitted a record 17%). A fundraising cost increase of $0.8m over $53.3M to our global programs, launched the previous year",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-17",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=17",
+      "evidence_excerpt": "34 35 ailartsuA lanoitanretnI nalP 4202 tropeR tcapmI launnA Consolidated Statement of Financial Position (As at 30 June 2024) 2024 2023 Note to the Summary Summarised financial report $\u2019000s $\u2019000s Financial Report for the year ASSETS ended 30 June 2024 Current Assets Cash and Cash Equivalents 3,140 5,256 1. Basis of Preparation Consolidated state",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-18",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=18",
+      "evidence_excerpt": "Key ratios 36 37 ailartsuA lanoitanretnI nalP 4202 tropeR tcapmI launnA Children at school in West Guadalcanal, Solomon Islands. Photo: Plan International Australia. Directors' declaration There are two performance ratios that 82%, maintaining a consistent five-year average of The directors of Plan International Australia ('the Company') declare ca",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-20",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=20",
+      "evidence_excerpt": "Thank You 40 ailartsuA lanoitanretnI nalP Equality Leaders Gifts in Wills Girls Education & Empowerment Fund (GEEFund) Major Supporters Institutional partners Partners Anita Sandra Tennison Patricia Freeman Plan International ACME Foundation Dr Gary Leong Marsha Beck Anonymous NSW DFAT - Department of Foreign Affairs and Trade Australia is incredib",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-plan-international-australia-21",
+      "subject_id": "plan-international-australia",
+      "archive_source_sha256": "840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e",
+      "page_locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=21",
+      "evidence_excerpt": "Until we are all equal",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-1",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=1",
+      "evidence_excerpt": "Australian Council for International Annual Report Development 2023\u201324",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-3",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=3",
+      "evidence_excerpt": "Acknowledgement of Country In 2022\u201323, the total revenue raised by ACFID\u2019s The ACFID Secretariat respectfully acknowledges members amounted to the traditional custodians of the lands on which we are based; the Ngunnawal and Ngambri peoples in Canberra. We extend this acknowledgement to the $1.938 BILLION, traditional custodians of the lands across ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-6",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=6",
+      "evidence_excerpt": "Act for Peace works side-by-side with people who are displaced around the world, like Tsehay* pictured here with her daughter in Ethiopia, providing a pathway out of poverty through the Tesfa (hope) program. Creating lasting positive change happens with people, not to people, and is key to empowering people to rebuild their lives. Photo: Act for Pe",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-8",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=8",
+      "evidence_excerpt": "SUSTAINABLE AND INCLUSIVE DEVELOPMENT CASE STUDY: Federal Budget 2024 ACFID staff working on the Federal Budget analysis. In preparation for the Federal Budget 2024-2025, ACFID officials. It was opened by these stakeholders 471 produced and finalised our pre-budget submission in late times and had an open rate of 65 per cent. January in consultatio",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-10",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=10",
+      "evidence_excerpt": "GOAL TWO: Organisations for the Future From Director of Effectiveness and Engagement Emily Moreton This year, ACFID remained focused on advocating for and supporting our members as they navigate a rapidly changing world and operating environment. A significant milestone was the unanimous A significant milestone was the unanimous agreement agreement",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-12",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=12",
+      "evidence_excerpt": "ORGANISATIONS FOR THE FUTURE CASE STUDY: A Revised ACFID Code of Conduct This year saw the culmination of an 18-month review To help members identify areas of alignment between of ACFID\u2019s Code of Conduct, with a revised Code the Code and other standards, ACFID created updated approved by ACFID members in October 2023. mapping with the ACNC Governan",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-15",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=15",
+      "evidence_excerpt": "Enablers Four enablers are key to the ENGAGED MEMBERS achievement of ACFID\u2019s Strategic CONFERENCE 2023 Plan 2020-2025: Engaged Members, After three years of delivering a virtual conference, ACFID Positive People and Culture, was delighted to finally welcome delegates back to The Roundhouse at the University of New South Wales. Strategic Partners, a",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-17",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=17",
+      "evidence_excerpt": "Asia-Pacific Development, Diplomacy & Defence Dialogue The Asia-Pacific Development, Diplomacy & By advocating for the need to respect, resource AP4D CONSULTATIONS AND SUBMISSIONS Defence Dialogue (AP4D) is a tripartite initiative, and coordinate all elements of statecraft, AP4D AP4D held consultations with more than 320 non- hosted by ACFID and fu",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-19",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=19",
+      "evidence_excerpt": "Sephrose, a mother of four, lives in Cankuzo. For over a year, she has been part of a farming group that belongs to the LWF project. The project has provided Sephrose knowledge on what to plant, where to get the seeds, and how to irrigate, helping her to have a good harvest. She says: \u201cNow my children are better nourished thanks to the bigger and b",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-22",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=22",
+      "evidence_excerpt": "Communities of Practice A Community of Practice (CoP) AFGHANISTAN DISABILITY EQUITY Co-convenors Co-convenors NEPAL is a group of people who come Francesca Zorzi, World Vision Australia Kerryn Clarke, Australian Disability Co-convenors together to share, learn and James Montgomery, Tearfund Australia and Development Consortium Santosh Nepali, INF A",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-24",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=24",
+      "evidence_excerpt": "ACFID Committees HUMANITARIAN REFERENCE GROUP DEVELOPMENT PRACTICE COMMITTEE CODE OF CONDUCT COMMITTEE FINANCE AND AUDIT COMMITTEE The ACFID Humanitarian Reference Group (HRG) is the The Development Practice Committee (DPC) is a specialist ACFID\u2019s Code of Conduct Committee (CCC) was The Finance and Audit Committee assists ACFID\u2019s independent voice ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-26",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=26",
+      "evidence_excerpt": "ACFID Noteable Submissions, Papers, Reports and Events PAPERS, REPORTS AND ANALYSIS \u2022 Member consultations to influence country and SUBMISSIONS AP4D regional Development Partnership Plans for: Tonga, \u2022 ACFID\u2019s Pre-Budget Submission, Budget Context \u2022 Feedback on DFAT\u2019s Locally Led Nepal, Sri Lanka, Bangladesh, Afghanistan, Myanmar, SUBMISSIONS Analy",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-28",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=28",
+      "evidence_excerpt": "STATEMENT OF PROFIT AND LOSS AND COMPREHENSIVE INCOME STATEMENT OF FINANCIAL POSITION AS AT 30 JUNE 2024 FOR THE YEAR ENDED 30 JUNE 2024 Note 2024 2023 NoteNote 20172024 20162023 $ $ $ $ $ $ AsseAtsssets Revenue CurreCnutr Aresnste Atsssets Members subscriptions including Code of Conduct fees 1,754,305 1,603,194 CashC aansdh caansdh ceaqsuhi veaqle",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-31",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=31",
+      "evidence_excerpt": "INDEPENDENT AUDITOR\u2019S REPORT Acknowledgements ACFID would like to thank our partners at the Department of Foreign Affairs and Trade: ACFID would like to thank the following partners: ACFID would also like thank the following corporate partners: ACFID greatly appreciates the assistance provided by the many individuals, companies and organisations ac",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-acfid-33",
+      "subject_id": "acfid",
+      "archive_source_sha256": "5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea",
+      "page_locator": "archive-sha256:5bf6a1707ee75bd4b8661f7b3070299c3c4853e8364c7c26f395107d3fd196ea#page=33",
+      "evidence_excerpt": "Cover photo: Nature-based solutions harness the power of nature to boost natural ecosystems, biodiversity and human well-being to address major societal issues, including climate change. In Solomon Islands, drawing on traditional practices is helping to conserve sea grapes, a critical food source in the face of a changing climate to ensure they can",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-1",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=1",
+      "evidence_excerpt": "Impact Report 2025-26 Midway to 2030",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-5",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=5",
+      "evidence_excerpt": "President\u2019s message In Tasmania\u2019s Liffey Valley, smoke rose above ancient myrtles at Liffey Reserve \u2013 Bush Heritage\u2019s birthplace. Welcomed by Traditional Custodian Uncle Hank Horton, our annual Board trip in November connected us to Pakana Country, one hour south-west of Launceston, and our organisation\u2019s origin story. Later, with Dr Bob Brown, we ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-10",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=10",
+      "evidence_excerpt": "Measuring our impact Our team of scientists, field staff, data specialists, \u201cOur CMP gives us the ability to adapt. conservation planners and Aboriginal and Torres Strait Good conservation is about knowing when Islander partnerships managers work every day to heal your plan is working, when it isn\u2019t and and protect the bush. We are on the ground, a",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-15",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=15",
+      "evidence_excerpt": "Doubling protection for Every potential reserve is subject to a rigorous assessment process. Land is evaluated for its biodiverse landscapes at risk biodiversity, conservation significance, connectivity, climate resilience, management feasibility and financial sustainability. Traditional Custodians are engaged early, Since launching our ambitious 2",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-19",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=19",
+      "evidence_excerpt": "Fellowship of the spring Dean returned with confidence that we\u2019re doing a good job of managing Edgbaston\u2019s springs by already applying many world-leading conservation approaches. However, he stressed the need for stronger laws to protect our precious groundwater, and access to data on its condition in real time. One of Edgbaston\u2019s highest prioritie",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-23",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=23",
+      "evidence_excerpt": "A certified path to restoration In south-west Western Australia, biodiversity certification and carbon sequestration are delivering strong outcomes for nature while unlocking new revenue pathways. Ediegarrup Reserve is located 400 kilometres south- east of Perth, on the traditional lands of the Goreng Noongar people. On its way to becoming a thrivi",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-28",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=28",
+      "evidence_excerpt": "Protecting cultural heritage \u201cThe method is called foliar spraying, which means the whole cactus gets sprayed with a chemical, and addressing Wheel Cactus touching every single part of the plant,\u201d explains Shana Nerenberg, DJANDAK Biodiversity Lead, who has been At Buckrabanyule Reserve on Dja Dja Wurrung Country, spearheading the trials. \u201cWe\u2019ve ha",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-33",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=33",
+      "evidence_excerpt": "Generosity and professionalism Many hands truly do make light work. In 2025-26, our volunteers contributed more than 47,235 hours. This generous support will ultimately help us double and deepen our impact by 2030. Our volunteers were able to build connections with a diverse cohort across the country, whether it was through helping our agricultural",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-37",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=37",
+      "evidence_excerpt": "Regional partners Research partners Allison Lullfitz, Rob Wright Adelaide University & Peter-Jon Waddell Arthur Rylah Institute (Nyoobilyang Martup) Australian National Alpine Resorts Australia University Arid Recovery Limited Charles Darwin University Australian Land Curtin University Conservation Alliance Deakin University Cassinia Environmental ",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-41",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=41",
+      "evidence_excerpt": "Board of Directors The Board sets the strategic direction of the organisation and oversees our systems of accountability and control. The following people have served as Directors on the Board during the year and to the date of this report. Sue O\u2019Connor \u2013 President Dr Alexander Gosling AM BAppSc, GDipBus Mgt, FAICD. FTSE, FIEAust, DEng MA (Hons), M",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-46",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=46",
+      "evidence_excerpt": "Auditor\u2019s Independence Declaration under Section 60-40 of the Australian Charities and Not-for-profits Commission Act 2012 To those charged with governance of Bush Heritage Australia As auditor for the audit of Bush Heritage Australia for the year ended 31 March 2026, I declare that, to the best of my knowledge and belief, there have been: \u2014 no con",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-51",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=51",
+      "evidence_excerpt": "Discussion and Analysis \u2013 Consolidated Statement of Financial Position Changes in the composition of assets and liabilities Bush Heritage\u2019s Total Equity at 31 March 2026 of $95.5 million was a slight decrease of $1.0 million from the prior year. Total Equity represents the accumulated supporter contributions and other net earnings that Bush Heritag",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-55",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=55",
+      "evidence_excerpt": "Notes to the Concise Consolidated Financial Statements for the year ended 31 March 2026 Note 1. Corporate information and basis A full description of the accounting policies adopted of preparation by Bush Heritage is provided in the Full Consolidated Financial Report. Bush Heritage is a public company limited by guarantee The current financial peri",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-59",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=59",
+      "evidence_excerpt": "(i) The Bush Heritage General Reserve represents Note 8. State and Territory Government the accumulated supporter contributions and fundraising legislation requirements other net earnings that Bush Heritage has received since inception and which have been applied to As a national organisation, Bush Heritage conducts the acquisition of land and othe",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    },
+    {
+      "candidate_id": "candidate-bush-heritage-australia-64",
+      "subject_id": "bush-heritage-australia",
+      "archive_source_sha256": "f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1",
+      "page_locator": "archive-sha256:f378cc19b8ab487bb0190749e793975c01d20509dd8b65a7f5b80b5bd7a4b2d1#page=64",
+      "evidence_excerpt": "We greatly appreciate your enduring support and loyalty. With thanks to you, our staff, volunteers and partners can continue working from one horizon to the next to heal and protect Country \u2013 now and for future generations. Bush Heritage Australia Level 10, 637 Flinders St, Docklands, VIC 3008 PO Box 329 Flinders Lane, VIC 8009 T 1300 NATURE E info",
+      "status": "requires_Terra_semantic_review",
+      "not_a_proposition": true
+    }
+  ],
+  "note": "No automated claim atomisation: native excerpts await constrained semantic review. Empty proposition set is an explicit measured limitation, not zero evidence."
+}

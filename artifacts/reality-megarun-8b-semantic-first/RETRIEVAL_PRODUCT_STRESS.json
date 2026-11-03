@@ -1,0 +1,890 @@
+{
+  "intents": [
+    {
+      "intent_id": "R-001",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0001",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-002",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0002",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-003",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0003",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-004",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0004",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-005",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0005",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-006",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0006",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-007",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0007",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-008",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0008",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-009",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0009",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-010",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0010",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-011",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0011",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-012",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0012",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-013",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0013",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-014",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0014",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-015",
+      "intent": "find governance evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0015",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-016",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0016",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-017",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0017",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-018",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0018",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-019",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0019",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-020",
+      "intent": "find governance evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0020",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-021",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0021",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-022",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0022",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-023",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0023",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-024",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0024",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-025",
+      "intent": "find governance evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0025",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=43",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-026",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0026",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=43",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-027",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0027",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=43",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-028",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0028",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=43",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-029",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0029",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=43",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-030",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0030",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=43",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-031",
+      "intent": "find governance evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0031",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=43",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-032",
+      "intent": "find service_program evidence for australian-red-cross",
+      "filters": {
+        "subject_id": "australian-red-cross",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0032",
+      "evidence_drilldown": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=43",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-033",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0033",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=3",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-034",
+      "intent": "find governance evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0034",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=3",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-035",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0035",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=3",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-036",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0036",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=3",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-037",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0037",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=3",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-038",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0038",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=7",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-039",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0039",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=7",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-040",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0040",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=7",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-041",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0041",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=7",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-042",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0042",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=7",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-043",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0043",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=7",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-044",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0044",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=7",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-045",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0045",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=7",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-046",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0046",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-047",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0047",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-048",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0048",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-049",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0049",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-050",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0050",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-051",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0051",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-052",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0052",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-053",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0053",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=9",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-054",
+      "intent": "find measurement_outcome evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0054",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=11",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-055",
+      "intent": "find measurement_outcome evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0055",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=11",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-056",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0056",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=11",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-057",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0057",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=11",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-058",
+      "intent": "find measurement_outcome evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0058",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=11",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-059",
+      "intent": "find measurement_outcome evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0059",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=11",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-060",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0060",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=11",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-061",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0061",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=11",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-062",
+      "intent": "find measurement_outcome evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0062",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=13",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-063",
+      "intent": "find measurement_outcome evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0063",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=13",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-064",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0064",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=13",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-065",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0065",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=13",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-066",
+      "intent": "find measurement_outcome evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0066",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=13",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-067",
+      "intent": "find measurement_outcome evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0067",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=13",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-068",
+      "intent": "find measurement_outcome evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0068",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=13",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-069",
+      "intent": "find service_program evidence for world-vision-australia",
+      "filters": {
+        "subject_id": "world-vision-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0069",
+      "evidence_drilldown": "archive-sha256:9299e75f148ee919ac1ec2522cd87b152bb7709ba7af23c5f89a692aa391f651#page=13",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-070",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0070",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=4",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-071",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0071",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=4",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-072",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0072",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=4",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-073",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0073",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=4",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-074",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0074",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=4",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-075",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0075",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=4",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-076",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0076",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=4",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-077",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0077",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=4",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-078",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0078",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=5",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-079",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0079",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=5",
+      "result": "grounded_hit"
+    },
+    {
+      "intent_id": "R-080",
+      "intent": "find service_program evidence for plan-international-australia",
+      "filters": {
+        "subject_id": "plan-international-australia",
+        "source_role": "official annual report"
+      },
+      "retrieved_proposition_id": "G2-8B-0080",
+      "evidence_drilldown": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=5",
+      "result": "grounded_hit"
+    }
+  ],
+  "metrics": {
+    "count": 80,
+    "grounded_hits": 80,
+    "misses": 0,
+    "embeddings": "not used; deterministic metadata/proposition retrieval"
+  }
+}

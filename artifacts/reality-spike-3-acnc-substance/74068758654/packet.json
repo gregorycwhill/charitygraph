@@ -1,0 +1,2824 @@
+{
+  "non_production_reality_spike_3": true,
+  "name": "Medecins Sans Frontieres Australia Limited",
+  "identity": {
+    "acnc_uuid": "33ed3439-38af-e811-a962-000d3ad24a0d",
+    "acnc_profile_url": "https://www.acnc.gov.au/charity/charities/33ed3439-38af-e811-a962-000d3ad24a0d/profile",
+    "abn_join_key": "74068758654"
+  },
+  "retrieved_at": "2026-09-28T14:26:45.309827+00:00",
+  "acnc_profile": {
+    "type": "charity",
+    "uuid": "33ed3439-38af-e811-a962-000d3ad24a0d",
+    "data": {
+      "Name": "Medecins Sans Frontieres Australia Limited",
+      "Status": "Registered",
+      "LastReported": "2026-06-09T22:30:30.0000000Z",
+      "RelatedPartyTransactions": null,
+      "RelevantTransactions": null,
+      "OtherDetails": null,
+      "NextReportDue": "2027-06-30T13:30:00.0000000Z",
+      "ReportingLate": "2027-12-30T13:30:00.0000000Z",
+      "OtherNames": [],
+      "Abn": "74068758654",
+      "TransparencyRegisterUrl": null,
+      "ReferendumReturnsUrl": null,
+      "AddressLine1": "Level 8",
+      "AddressLine2": "700 Harris Street",
+      "AddressLine3": null,
+      "AddressSuburb": "Ultimo",
+      "AddressStateOrProvince": "NSW",
+      "AddressPostalCode": "2007",
+      "AddressCountry": "Australia",
+      "Website": "https://msf.org.au/",
+      "Email": "office@sydney.msf.org",
+      "Phone": "02 8570 2600",
+      "CharitySize": "Large",
+      "Beneficiaries": [
+        {
+          "Name": "Youth - 15 to under 25",
+          "Description": null,
+          "uuid": "9959bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Victims of disaster",
+          "Description": null,
+          "uuid": "9e59bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Victims of crime (including family violence)",
+          "Description": null,
+          "uuid": "a359bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Unemployed persons",
+          "Description": null,
+          "uuid": "a859bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Pre/post release offenders and/or their families",
+          "Description": null,
+          "uuid": "ac59bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "People with disabilities",
+          "Description": null,
+          "uuid": "b059bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "People with chronic illness (including terminal illness)",
+          "Description": null,
+          "uuid": "b459bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "People in rural/regional/remote communities",
+          "Description": null,
+          "uuid": "b759bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "People from a culturally and linguistically diverse background",
+          "Description": null,
+          "uuid": "ba59bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "People at risk of homelessness/ people experiencing homelessness",
+          "Description": null,
+          "uuid": "bf59bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Overseas communities or charities",
+          "Description": null,
+          "uuid": "c259bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Males",
+          "Description": null,
+          "uuid": "c659bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Financially disadvantaged people",
+          "Description": null,
+          "uuid": "cb59bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Females",
+          "Description": null,
+          "uuid": "cf59bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Families",
+          "Description": null,
+          "uuid": "d459bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Early childhood - aged under 6",
+          "Description": null,
+          "uuid": "da59bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Children - aged 6 to under 15",
+          "Description": null,
+          "uuid": "dd59bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Adults - aged 65 and over",
+          "Description": null,
+          "uuid": "e359bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Adults - aged 25 to under 65",
+          "Description": null,
+          "uuid": "e759bed9-5264-f111-a826-6045bde5b710"
+        }
+      ],
+      "DateEstablished": null,
+      "Countries": [
+        {
+          "Name": "Afghanistan",
+          "uuid": "e37b5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Bangladesh",
+          "uuid": "ff7b5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Burkina Faso",
+          "uuid": "1b7c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Central African Republic",
+          "uuid": "2b7c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Chad",
+          "uuid": "2d7c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Haiti",
+          "uuid": "7d7c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Honduras",
+          "uuid": "7f7c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Indonesia",
+          "uuid": "877c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Iraq",
+          "uuid": "8b7c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Jordan",
+          "uuid": "977c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Kenya",
+          "uuid": "9b7c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Lebanon",
+          "uuid": "a77c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Malawi",
+          "uuid": "b97c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Malaysia",
+          "uuid": "bb7c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Mauritania",
+          "uuid": "c57c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Niger",
+          "uuid": "e57c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Nigeria",
+          "uuid": "e77c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Pakistan",
+          "uuid": "f17c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Philippines",
+          "uuid": "fb7c5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "South Sudan",
+          "uuid": "2f7d5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Sudan",
+          "uuid": "357d5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Thailand",
+          "uuid": "457d5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Uganda",
+          "uuid": "557d5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Yemen",
+          "uuid": "697d5602-9a4d-e811-a951-000d3ad06f2d"
+        },
+        {
+          "Name": "Congo, the Democratic Republic of the",
+          "uuid": "07c8d738-91a3-e811-a968-000d3ae13f75"
+        },
+        {
+          "Name": "Iran, Islamic Republic of",
+          "uuid": "25c8d738-91a3-e811-a968-000d3ae13f75"
+        },
+        {
+          "Name": "Kiribati",
+          "uuid": "2fc8d738-91a3-e811-a968-000d3ae13f75"
+        },
+        {
+          "Name": "Myanmar",
+          "uuid": "41c8d738-91a3-e811-a968-000d3ae13f75"
+        },
+        {
+          "Name": "Palestine, State of",
+          "uuid": "4fc8d738-91a3-e811-a968-000d3ae13f75"
+        },
+        {
+          "Name": "Syrian Arab Republic",
+          "uuid": "69c8d738-91a3-e811-a968-000d3ae13f75"
+        }
+      ],
+      "SummaryOfActivities": "- We operate entirely through the public s generous donations, which allow us to provide funding to projects in over 30 countries worldwide. The funds we raise are directed to the provision of emergency medical humanitarian aid in response to conflicts, epidemics, natural disasters and exclusion from healthcare. - Our work calls for rapid responses, specialised medical personnel and logistical teams, so that we can support people where the need is greatest.  - We also support longer term projects that engage with situations of sustained crisis, emergency or healthcare need.",
+      "OperatingInStates": [],
+      "TotalGrossIncomeGovernmentGrants": "0",
+      "TotalGrossIncomeOtherRevenues": "6144680",
+      "TotalGrossIncomeDonationsAndRequests": "134240207",
+      "TotalGrossIncomeGoodsOrServices": "0",
+      "TotalGrossIncomeInvestments": "576427",
+      "TotalExpensesGrantsAndDonationsInAustralia": "0",
+      "TotalExpensesGrantsAndDonationsOutsideAustralia": "95927737",
+      "TotalExpensesInterest": "65923",
+      "TotalExpensesOther": "25719244",
+      "TotalExpensesEmployee": "21857601",
+      "ChooseToProvideAis": null,
+      "AnnualReports": [
+        {
+          "type": "Financial Report 2019",
+          "Year": "2019",
+          "IsAIS": false,
+          "DueDate": "2020-08-30T14:00:00.0000000Z",
+          "DateReceived": "2020-07-24T01:45:32.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "6f91547a-e6e8-eb11-bacb-000d3acc5934",
+          "uuid": "51903aa9-f425-e911-a977-000d3ad064bd"
+        },
+        {
+          "type": "Annual Information Statement 2019",
+          "Year": "2019",
+          "IsAIS": true,
+          "DueDate": "2020-08-30T14:00:00.0000000Z",
+          "DateReceived": "2020-07-24T01:45:35.0000000Z",
+          "AISId": "a1cd6281-e6e8-eb11-bacb-000d3acc59eb",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "79903aa9-f425-e911-a977-000d3ad064bd"
+        },
+        {
+          "type": "Financial Report 2020",
+          "Year": "2020",
+          "IsAIS": false,
+          "DueDate": "2021-06-29T14:00:00.0000000Z",
+          "DateReceived": "2021-06-29T08:00:22.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "62ae0f08-b0d8-eb11-bacb-000d3acc5dd6",
+          "uuid": "b6903aa9-f425-e911-a977-000d3ad064bd"
+        },
+        {
+          "type": "Annual Information Statement 2020",
+          "Year": "2020",
+          "IsAIS": true,
+          "DueDate": "2021-06-29T14:00:00.0000000Z",
+          "DateReceived": "2021-06-29T08:00:33.0000000Z",
+          "AISId": "f60b4310-b0d8-eb11-bacb-0022481071bb",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "df903aa9-f425-e911-a977-000d3ad064bd"
+        },
+        {
+          "type": "Annual Information Statement 2021",
+          "Year": "2021",
+          "IsAIS": true,
+          "DueDate": "2022-06-29T14:00:00.0000000Z",
+          "DateReceived": "2022-06-29T01:18:05.0000000Z",
+          "AISId": "c7f1bb4c-49f7-ec11-82e7-002248944157",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "d3c17a45-99eb-ea11-a815-000d3ad1fbf8"
+        },
+        {
+          "type": "Financial Report 2021",
+          "Year": "2021",
+          "IsAIS": false,
+          "DueDate": "2022-06-29T14:00:00.0000000Z",
+          "DateReceived": "2022-06-29T01:17:05.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "6a59e525-49f7-ec11-82e6-000d3ad1769c",
+          "uuid": "edc17a45-99eb-ea11-a815-000d3ad1fbf8"
+        },
+        {
+          "type": "Annual Information Statement 2018",
+          "Year": "2018",
+          "IsAIS": true,
+          "DueDate": "2019-06-29T14:00:00.0000000Z",
+          "DateReceived": "2019-06-18T05:52:48.0000000Z",
+          "AISId": "5e525a49-8d91-e911-a982-000d3ad06f2d",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "90197d5d-3ac8-e811-a961-000d3ad24282"
+        },
+        {
+          "type": "Financial Report 2014",
+          "Year": "2014",
+          "IsAIS": false,
+          "DueDate": "2015-06-29T14:00:00.0000000Z",
+          "DateReceived": "2015-04-19T14:00:00.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "68a69caa-3eb0-e811-a961-000d3ad24182",
+          "uuid": "a39b049f-3dc8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Financial Report 2015",
+          "Year": "2015",
+          "IsAIS": false,
+          "DueDate": "2016-06-29T14:00:00.0000000Z",
+          "DateReceived": "2016-05-04T14:00:00.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "baa69caa-3eb0-e811-a961-000d3ad24182",
+          "uuid": "c29b049f-3dc8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Financial Report 2017",
+          "Year": "2017",
+          "IsAIS": false,
+          "DueDate": "2018-06-29T14:00:00.0000000Z",
+          "DateReceived": "2018-06-19T14:00:00.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "44674caa-3eb0-e811-a95e-000d3ad24c60",
+          "uuid": "dd9b049f-3dc8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Financial Report 2016",
+          "Year": "2016",
+          "IsAIS": false,
+          "DueDate": "2017-06-29T14:00:00.0000000Z",
+          "DateReceived": "2017-04-27T14:00:00.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "1ea79caa-3eb0-e811-a961-000d3ad24182",
+          "uuid": "f49b049f-3dc8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Financial Report 2013",
+          "Year": "2013",
+          "IsAIS": false,
+          "DueDate": "2014-06-29T14:00:00.0000000Z",
+          "DateReceived": "2014-06-17T14:00:00.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "54a69caa-3eb0-e811-a961-000d3ad24182",
+          "uuid": "0a9c049f-3dc8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Financial Report 2018",
+          "Year": "2018",
+          "IsAIS": false,
+          "DueDate": "2019-06-29T14:00:00.0000000Z",
+          "DateReceived": "2019-06-18T05:52:48.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "ecc24a43-8d91-e911-a978-000d3ad24282",
+          "uuid": "249c049f-3dc8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Annual Information Statement 2013",
+          "Year": "2013",
+          "IsAIS": true,
+          "DueDate": "2014-06-29T14:00:00.0000000Z",
+          "DateReceived": "2014-06-17T14:00:00.0000000Z",
+          "AISId": "9ac7fef9-44c8-e811-a964-000d3ad244fd",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "3a35b8fe-44c8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Annual Information Statement 2014",
+          "Year": "2014",
+          "IsAIS": true,
+          "DueDate": "2015-06-29T14:00:00.0000000Z",
+          "DateReceived": "2015-04-19T14:00:00.0000000Z",
+          "AISId": "7d2435f9-4fc8-e811-a964-000d3ad244fd",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "3c0398f8-4fc8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Annual Information Statement 2017",
+          "Year": "2017",
+          "IsAIS": true,
+          "DueDate": "2018-06-29T14:00:00.0000000Z",
+          "DateReceived": "2018-06-19T14:00:00.0000000Z",
+          "AISId": "872435f9-4fc8-e811-a964-000d3ad244fd",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "420398f8-4fc8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Annual Information Statement 2015",
+          "Year": "2015",
+          "IsAIS": true,
+          "DueDate": "2016-06-29T14:00:00.0000000Z",
+          "DateReceived": "2016-05-04T14:00:00.0000000Z",
+          "AISId": "942435f9-4fc8-e811-a964-000d3ad244fd",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "4c0398f8-4fc8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Annual Information Statement 2016",
+          "Year": "2016",
+          "IsAIS": true,
+          "DueDate": "2017-06-29T14:00:00.0000000Z",
+          "DateReceived": "2017-04-27T14:00:00.0000000Z",
+          "AISId": "9b2435f9-4fc8-e811-a964-000d3ad244fd",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "520398f8-4fc8-e811-a95f-000d3ad24c60"
+        },
+        {
+          "type": "Annual Information Statement 2022",
+          "Year": "2022",
+          "IsAIS": true,
+          "DueDate": "2023-06-29T14:00:00.0000000Z",
+          "DateReceived": "2023-06-30T04:20:42.0000000Z",
+          "AISId": "0bd78d70-fd16-ee11-9cbe-002248122521",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "eac9fa93-bed9-eb11-bacb-002248107829"
+        },
+        {
+          "type": "Financial Report 2022",
+          "Year": "2022",
+          "IsAIS": false,
+          "DueDate": "2023-06-29T14:00:00.0000000Z",
+          "DateReceived": "2023-06-30T04:20:36.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "a4200f6c-fd16-ee11-9cbe-00224893362a",
+          "uuid": "08cafa93-bed9-eb11-bacb-002248107829"
+        },
+        {
+          "type": "Annual Information Statement 2023",
+          "Year": "2023",
+          "IsAIS": true,
+          "DueDate": "2024-06-29T14:00:00.0000000Z",
+          "DateReceived": "2024-06-28T13:26:27.0000000Z",
+          "AISId": "54df8d00-5235-ef11-a316-00224893c324",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "db88961c-8ef8-ec11-82e7-002248116f6b"
+        },
+        {
+          "type": "Financial Report 2023",
+          "Year": "2023",
+          "IsAIS": false,
+          "DueDate": "2024-06-29T14:00:00.0000000Z",
+          "DateReceived": "2024-06-28T13:25:24.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "1a44f6d7-5135-ef11-a316-0022489878fd",
+          "uuid": "e688961c-8ef8-ec11-82e7-002248116f6b"
+        },
+        {
+          "type": "Annual Information Statement 2026",
+          "Year": "2026",
+          "IsAIS": true,
+          "DueDate": "2027-06-29T14:00:00.0000000Z",
+          "DateReceived": null,
+          "AISId": null,
+          "Status": "Not yet submitted",
+          "DocumentUuid": null,
+          "uuid": "6528ae55-bb55-f011-bec2-0022489328a2"
+        },
+        {
+          "type": "Financial Report 2026",
+          "Year": "2026",
+          "IsAIS": false,
+          "DueDate": "2027-06-29T14:00:00.0000000Z",
+          "DateReceived": null,
+          "AISId": null,
+          "Status": "Pending",
+          "DocumentUuid": null,
+          "uuid": "7728ae55-bb55-f011-bec2-0022489328a2"
+        },
+        {
+          "type": "Annual Information Statement 2025",
+          "Year": "2025",
+          "IsAIS": true,
+          "DueDate": "2026-06-29T14:00:00.0000000Z",
+          "DateReceived": "2026-06-09T22:30:30.0000000Z",
+          "AISId": "80d2bccd-5264-f111-a826-6045bde5b710",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "962836d1-ea36-ef11-a317-00224893b0ed"
+        },
+        {
+          "type": "Financial Report 2025",
+          "Year": "2025",
+          "IsAIS": false,
+          "DueDate": "2026-06-29T14:00:00.0000000Z",
+          "DateReceived": "2026-06-09T22:30:27.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "851dcdc2-5264-f111-a826-7ced8d33fdea",
+          "uuid": "a32836d1-ea36-ef11-a317-00224893b0ed"
+        },
+        {
+          "type": "Annual Information Statement 2024",
+          "Year": "2024",
+          "IsAIS": true,
+          "DueDate": "2025-06-29T14:00:00.0000000Z",
+          "DateReceived": "2025-06-04T04:20:32.0000000Z",
+          "AISId": "8378ce3c-fb40-f011-8779-0022489511f7",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "fade3d60-5217-ee11-8f6d-00224893b8c7"
+        },
+        {
+          "type": "Financial Report 2024",
+          "Year": "2024",
+          "IsAIS": false,
+          "DueDate": "2025-06-29T14:00:00.0000000Z",
+          "DateReceived": "2025-06-04T04:20:27.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "4ddbe035-fb40-f011-8779-00224898181e",
+          "uuid": "28df3d60-5217-ee11-8f6d-00224893b8c7"
+        },
+        {
+          "type": "Annual Information Statement 2027",
+          "Year": "2027",
+          "IsAIS": true,
+          "DueDate": "2028-06-29T14:00:00.0000000Z",
+          "DateReceived": null,
+          "AISId": null,
+          "Status": "Not yet submitted",
+          "DocumentUuid": null,
+          "uuid": "89963405-8d74-f111-ab0f-7c1e522b035c"
+        },
+        {
+          "type": "Financial Report 2027",
+          "Year": "2027",
+          "IsAIS": false,
+          "DueDate": "2028-06-29T14:00:00.0000000Z",
+          "DateReceived": null,
+          "AISId": null,
+          "Status": "Pending",
+          "DocumentUuid": null,
+          "uuid": "9b963405-8d74-f111-ab0f-7c1e522b035c"
+        }
+      ],
+      "Documents": [
+        {
+          "type": "Governing Document",
+          "Date": "2022-06-20T00:00:00.0000000",
+          "Year": null,
+          "Title": "Medecins_Sans_Frontieres_Australia_Constitution-2022-FINAL.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Governing%20Document-235dba08-58f0-ec11-bb3d-002248944339-Medecins_Sans_Frontieres_Australia_Constitution-2022-FINAL.pdf",
+          "uuid": "235dba08-58f0-ec11-bb3d-002248944339"
+        },
+        {
+          "type": "Annual Report",
+          "Date": "2021-07-20T00:00:00.0000000",
+          "Year": "2019",
+          "Title": "MSF2019_Annual Report.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Annual%20Report-5891547a-e6e8-eb11-bacb-000d3acc5934-MSF2019_Annual_Report.pdf",
+          "uuid": "5891547a-e6e8-eb11-bacb-000d3acc5934"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2021-07-20T00:00:00.0000000",
+          "Year": "2019",
+          "Title": "19 A4.1_MSF_Financial Report_Final Signed.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-6f91547a-e6e8-eb11-bacb-000d3acc5934-19_A4.1_MSF_Financial_Report_Final_Signed.pdf",
+          "uuid": "6f91547a-e6e8-eb11-bacb-000d3acc5934"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2021-06-29T00:00:00.0000000",
+          "Year": "2020",
+          "Title": "20  A4.1_MSF_ Financial Report  with Auditors Declaration.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-62ae0f08-b0d8-eb11-bacb-000d3acc5dd6-20__A4.1_MSF__Financial_Report__with_Auditors_Declaration.pdf",
+          "uuid": "62ae0f08-b0d8-eb11-bacb-000d3acc5dd6"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2022-06-29T00:00:00.0000000",
+          "Year": "2021",
+          "Title": "21 MSF Signed Financial Report- Auditors Report and Independence Declaration.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-6a59e525-49f7-ec11-82e6-000d3ad1769c-21_MSF_Signed_Financial_Report-_Auditors_Report_and_Independence_Declaration.pdf",
+          "uuid": "6a59e525-49f7-ec11-82e6-000d3ad1769c"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2014-06-18T00:00:00.0000000",
+          "Year": "2013",
+          "Title": "MSF_2013_Final_Signed_Financials.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-54a69caa-3eb0-e811-a961-000d3ad24182-MSF_2013_Final_Signed_Financials.pdf",
+          "uuid": "54a69caa-3eb0-e811-a961-000d3ad24182"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2015-04-20T00:00:00.0000000",
+          "Year": "2014",
+          "Title": "2014 MSF Australia Final Signed Financials.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-68a69caa-3eb0-e811-a961-000d3ad24182-2014_MSF_Australia_Final_Signed_Financials.pdf",
+          "uuid": "68a69caa-3eb0-e811-a961-000d3ad24182"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2016-05-05T00:00:00.0000000",
+          "Year": "2015",
+          "Title": "2015 MSF Australia Signed Financials by the auditors 04 04 2016.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-baa69caa-3eb0-e811-a961-000d3ad24182-2015_MSF_Australia_Signed_Financials_by_the_auditors_04_04_2016.pdf",
+          "uuid": "baa69caa-3eb0-e811-a961-000d3ad24182"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2017-04-28T00:00:00.0000000",
+          "Year": "2016",
+          "Title": "2016 MSF Signed Financial Statements FINAL.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-1ea79caa-3eb0-e811-a961-000d3ad24182-2016_MSF_Signed_Financial_Statements_FINAL.pdf",
+          "uuid": "1ea79caa-3eb0-e811-a961-000d3ad24182"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2019-06-18T00:00:00.0000000",
+          "Year": "2018",
+          "Title": "18_MSFA Financial Report (Signed).pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-ecc24a43-8d91-e911-a978-000d3ad24282-18_MSFA_Financial_Report_(Signed).pdf",
+          "uuid": "ecc24a43-8d91-e911-a978-000d3ad24282"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2018-06-20T00:00:00.0000000",
+          "Year": "2017",
+          "Title": "17 MSFA Consol Financial Statements (Signed).pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-44674caa-3eb0-e811-a95e-000d3ad24c60-17_MSFA_Consol_Financial_Statements_(Signed).pdf",
+          "uuid": "44674caa-3eb0-e811-a95e-000d3ad24c60"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2023-06-30T00:00:00.0000000",
+          "Year": "2022",
+          "Title": "2022_MSF Financial Report.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-a4200f6c-fd16-ee11-9cbe-00224893362a-2022_MSF_Financial_Report.pdf",
+          "uuid": "a4200f6c-fd16-ee11-9cbe-00224893362a"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2025-06-04T00:00:00.0000000",
+          "Year": "2024",
+          "Title": "Final_Signed_MSF Financial Report.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-4ddbe035-fb40-f011-8779-00224898181e-Final_Signed_MSF_Financial_Report.pdf",
+          "uuid": "4ddbe035-fb40-f011-8779-00224898181e"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2024-06-28T00:00:00.0000000",
+          "Year": "2023",
+          "Title": "MSF Financial Report Signed by auditors 30.4.24.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-1a44f6d7-5135-ef11-a316-0022489878fd-MSF_Financial_Report_Signed_by_auditors_30.4.24.pdf",
+          "uuid": "1a44f6d7-5135-ef11-a316-0022489878fd"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2026-06-10T00:00:00.0000000",
+          "Year": "2025",
+          "Title": "2025 Signed Financial Statements MSFA Consolidated signed by CROWE.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-851dcdc2-5264-f111-a826-7ced8d33fdea-2025_Signed_Financial_Statements_MSFA_Consolidated_signed_by_CROWE.pdf",
+          "uuid": "851dcdc2-5264-f111-a826-7ced8d33fdea"
+        }
+      ],
+      "ResponsiblePersons": [
+        {
+          "Name": "Kerry Atkins",
+          "Role": "Treasurer",
+          "uuid": "a2016c5e-03bc-e811-a962-000d3ad24182"
+        },
+        {
+          "Name": "Sivapalan Namasivayam",
+          "Role": "Vice-president",
+          "uuid": "36dab4df-55f0-ec11-bb3e-002248116a15"
+        },
+        {
+          "Name": "Nikola Morton",
+          "Role": "President",
+          "uuid": "7af3c1e7-3d40-f011-8779-002248939a2d"
+        },
+        {
+          "Name": "Jananie Balendran",
+          "Role": "Director",
+          "uuid": "bd68a016-4f29-ef11-840b-00224893b0ed"
+        },
+        {
+          "Name": "Matthew Reid",
+          "Role": "Director",
+          "uuid": "6e3564b3-8241-ee11-bdf4-00224893b0ed"
+        },
+        {
+          "Name": "Jana Armstrong",
+          "Role": "Director",
+          "uuid": "81df8d00-5235-ef11-a316-00224893c324"
+        },
+        {
+          "Name": "Scarlett Wong",
+          "Role": "Vice-president",
+          "uuid": "b798a053-4829-ef11-840a-00224894e3f7"
+        },
+        {
+          "Name": "Elizabeth Basey",
+          "Role": "Secretary",
+          "uuid": "a2d9a870-8226-f111-8341-7ced8da13cff"
+        },
+        {
+          "Name": "Michael Hoey",
+          "Role": "Director",
+          "uuid": "653464b3-8241-ee11-bdf4-00224893b0ed"
+        },
+        {
+          "Name": "Danielle Al-Ani",
+          "Role": "Director",
+          "uuid": "df48ef34-9fa5-f111-b8dd-6045bde5051f"
+        },
+        {
+          "Name": "Wilson Li",
+          "Role": "Director",
+          "uuid": "72162787-a9bb-f011-bbd2-7c1e522b2eae"
+        },
+        {
+          "Name": "Thomas Roth",
+          "Role": "Secretary",
+          "uuid": "006ab8e2-9328-f111-8341-7ced8d3292ef"
+        }
+      ],
+      "CharitySubtypeHistory": [
+        {
+          "Purpose": "Advancing health",
+          "StartDate": "2013-12-31T13:00:00.0000000Z",
+          "EndDate": null,
+          "uuid": "b67ffd5e-fcc6-e811-a961-000d3ad24282"
+        },
+        {
+          "Purpose": "2012 Another purpose beneficial to the community",
+          "StartDate": "2012-12-02T13:00:00.0000000Z",
+          "EndDate": "2013-12-30T13:00:00.0000000Z",
+          "uuid": "fe7ffd5e-fcc6-e811-a961-000d3ad24282"
+        },
+        {
+          "Purpose": "2012 Public benevolent institution",
+          "StartDate": "2012-12-02T13:00:00.0000000Z",
+          "EndDate": "2013-12-30T13:00:00.0000000Z",
+          "uuid": "0680fd5e-fcc6-e811-a961-000d3ad24282"
+        },
+        {
+          "Purpose": "Public Benevolent Institution (PBI)",
+          "StartDate": "2013-12-31T13:00:00.0000000Z",
+          "EndDate": null,
+          "uuid": "1180fd5e-fcc6-e811-a961-000d3ad24282"
+        }
+      ],
+      "RegistrationStatusHistory": [
+        {
+          "EffectiveDate": "2012-12-02T13:00:00.0000000Z",
+          "TransactionDate": "2012-12-02T13:00:00.0000000Z",
+          "Status": "Registered",
+          "uuid": "6cd91a63-06c6-e811-a964-000d3ad244fd"
+        }
+      ],
+      "EnforcementOutcomes": [],
+      "GroupHeadFlag": false,
+      "ParentAccountId": null,
+      "ParentAccountAbn": null,
+      "ChildMemberStartDate": null,
+      "ChildMemberEndDate": null,
+      "AFSEmail": "office@sydney.msf.org",
+      "FinancialYearEnd": "31/12",
+      "GovernmentAgencies": [
+        {
+          "Name": "Online fundraising",
+          "ReferenceNumber": null,
+          "uuid": "de525a49-8d91-e911-a982-000d3ad06f2d"
+        },
+        {
+          "Name": "Online fundraising",
+          "ReferenceNumber": null,
+          "uuid": "0ce40158-4fcd-ea11-a812-000d3ad1fbf8"
+        },
+        {
+          "Name": "Online fundraising",
+          "ReferenceNumber": null,
+          "uuid": "08d6bddd-e6af-e811-a961-000d3ad24182"
+        },
+        {
+          "Name": "Australian Securities and Investment Commission",
+          "ReferenceNumber": "068758654",
+          "uuid": "8201a6ac-e6af-e811-a95e-000d3ad24c60"
+        },
+        {
+          "Name": "Online fundraising",
+          "ReferenceNumber": null,
+          "uuid": "470d4310-b0d8-eb11-bacb-0022481071bb"
+        },
+        {
+          "Name": "Online fundraising",
+          "ReferenceNumber": null,
+          "uuid": "adf4807c-fd16-ee11-9cbe-002248122521"
+        },
+        {
+          "Name": "Online fundraising",
+          "ReferenceNumber": null,
+          "uuid": "ef31830c-5235-ef11-a316-00224893c324"
+        },
+        {
+          "Name": "Online fundraising",
+          "ReferenceNumber": null,
+          "uuid": "a1d9ae58-49f7-ec11-82e7-002248944157"
+        },
+        {
+          "Name": "Online fundraising",
+          "ReferenceNumber": null,
+          "uuid": "e978ce3c-fb40-f011-8779-0022489511f7"
+        },
+        {
+          "Name": "ACT - Fundraising",
+          "ReferenceNumber": "19000172",
+          "uuid": "08d3bccd-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "NSW - Fundraising",
+          "ReferenceNumber": "11960",
+          "uuid": "0fd3bccd-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "QLD - Fundraising",
+          "ReferenceNumber": "CH1341",
+          "uuid": "12d3bccd-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "SA - Fundraising",
+          "ReferenceNumber": "CCP2421",
+          "uuid": "431ec1d3-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "TAS - Fundraising",
+          "ReferenceNumber": "F1A-40",
+          "uuid": "471ec1d3-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "VIC - Fundraising",
+          "ReferenceNumber": "11085.16",
+          "uuid": "4a1ec1d3-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "WA - Fundraising",
+          "ReferenceNumber": "CC20347",
+          "uuid": "5c1ec1d3-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Online fundraising",
+          "ReferenceNumber": null,
+          "uuid": "701ec1d3-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "NT - Fundraising",
+          "ReferenceNumber": null,
+          "uuid": "731ec1d3-5264-f111-a826-6045bde5b710"
+        }
+      ],
+      "Programs": [
+        {
+          "Name": "International Programs",
+          "ProgramLocations": [
+            {
+              "Name": null,
+              "FormattedAddress": null,
+              "DisplayName": null,
+              "Marker": {
+                "Latitude": 0,
+                "Longitude": 0
+              },
+              "uuid": "4659bed9-5264-f111-a826-6045bde5b710"
+            }
+          ],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Early childhood - aged under 6",
+            "Children - aged 6 to under 15",
+            "Youth - 15 to under 25",
+            "Adults - aged 25 to under 65",
+            "Adults - aged 65 and over",
+            "Families",
+            "People from a culturally and linguistically diverse background",
+            "People in rural/regional/remote communities",
+            "Financially disadvantaged people",
+            "People at risk of homelessness/ people experiencing homelessness",
+            "People with chronic illness (including terminal illness)",
+            "People with disabilities",
+            "Pre/post release offenders and/or their families",
+            "Unemployed persons",
+            "Victims of crime (including family violence)",
+            "Victims of disaster",
+            "Females",
+            "Males",
+            "Overseas communities or charities"
+          ],
+          "ProgramWeblink": "https://msf.org.au/our-work/reports-and-publications/annual-reports",
+          "ProgramClassification": "Public health",
+          "ProgramClassificationID": "418",
+          "ProgramCountries": [
+            "Afghanistan",
+            "Bangladesh",
+            "Burkina Faso",
+            "Central African Republic",
+            "Chad",
+            "Congo, the Democratic Republic of the",
+            "Eswatini",
+            "Haiti",
+            "Honduras",
+            "Iran, Islamic Republic of",
+            "Iraq",
+            "Jordan",
+            "Kenya",
+            "Kiribati",
+            "Lebanon",
+            "Malawi",
+            "Mauritania",
+            "Myanmar",
+            "Niger",
+            "Nigeria",
+            "Pakistan",
+            "Palestine, State of",
+            "Philippines",
+            "South Sudan",
+            "Sudan",
+            "Syrian Arab Republic",
+            "Uganda",
+            "Yemen"
+          ],
+          "AisUuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+          "uuid": "951ec1d3-5264-f111-a826-6045bde5b710",
+          "ProgramClassie": [
+            {
+              "classie_id": "418",
+              "parent_id": "264",
+              "label": "Public health",
+              "selected": true
+            },
+            {
+              "classie_id": "264",
+              "parent_id": null,
+              "label": "Health",
+              "selected": false
+            }
+          ]
+        },
+        {
+          "Name": "Kiribati",
+          "ProgramLocations": [],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Early childhood - aged under 6",
+            "Children - aged 6 to under 15",
+            "Youth - 15 to under 25",
+            "Adults - aged 25 to under 65",
+            "Adults - aged 65 and over",
+            "Families",
+            "People from a culturally and linguistically diverse background",
+            "People in rural/regional/remote communities",
+            "Financially disadvantaged people",
+            "People at risk of homelessness/ people experiencing homelessness",
+            "People with chronic illness (including terminal illness)",
+            "People with disabilities",
+            "Unemployed persons",
+            "Victims of disaster",
+            "Females",
+            "Males",
+            "Overseas communities or charities"
+          ],
+          "ProgramWeblink": "https://msf.org.au/our-work/reports-and-publications/annual-reports",
+          "ProgramClassification": "Public health",
+          "ProgramClassificationID": "418",
+          "ProgramCountries": [
+            "Kiribati"
+          ],
+          "AisUuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+          "uuid": "4859bed9-5264-f111-a826-6045bde5b710",
+          "ProgramClassie": [
+            {
+              "classie_id": "418",
+              "parent_id": "264",
+              "label": "Public health",
+              "selected": true
+            },
+            {
+              "classie_id": "264",
+              "parent_id": null,
+              "label": "Health",
+              "selected": false
+            }
+          ]
+        },
+        {
+          "Name": "Asia Pacific Partnership (APAC)",
+          "ProgramLocations": [],
+          "OperatesOnline": true,
+          "ProgramBeneficiaries": [
+            "Early childhood - aged under 6",
+            "Children - aged 6 to under 15",
+            "Youth - 15 to under 25",
+            "Adults - aged 25 to under 65",
+            "Adults - aged 65 and over",
+            "Families",
+            "Financially disadvantaged people",
+            "People at risk of homelessness/ people experiencing homelessness",
+            "People with chronic illness (including terminal illness)",
+            "People with disabilities",
+            "Victims of disaster",
+            "Females",
+            "Males",
+            "Overseas communities or charities"
+          ],
+          "ProgramWeblink": null,
+          "ProgramClassification": "Human services management",
+          "ProgramClassificationID": "510",
+          "ProgramCountries": [
+            "Indonesia",
+            "Malaysia",
+            "Philippines",
+            "Thailand"
+          ],
+          "AisUuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+          "uuid": "6259bed9-5264-f111-a826-6045bde5b710",
+          "ProgramClassie": [
+            {
+              "classie_id": "510",
+              "parent_id": "485",
+              "label": "Human services management",
+              "selected": true
+            },
+            {
+              "classie_id": "485",
+              "parent_id": null,
+              "label": "Human services",
+              "selected": false
+            }
+          ]
+        }
+      ],
+      "CharityVersion": "265",
+      "type": "charity",
+      "uuid": "33ed3439-38af-e811-a962-000d3ad24a0d",
+      "AFSAddressPostalCode": "2007",
+      "AddressSuburbStatePostcode": "Ultimo NSW 2007",
+      "__normalized": true
+    }
+  },
+  "latest_submitted_ais": {
+    "type": "Annual Information Statement 2025",
+    "Year": "2025",
+    "IsAIS": true,
+    "DueDate": "2026-06-29T14:00:00.0000000Z",
+    "DateReceived": "2026-06-09T22:30:30.0000000Z",
+    "AISId": "80d2bccd-5264-f111-a826-6045bde5b710",
+    "Status": "Submitted",
+    "DocumentUuid": null,
+    "uuid": "962836d1-ea36-ef11-a317-00224893b0ed"
+  },
+  "ais_detail": {
+    "type": "annual_information_statement",
+    "uuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+    "data": {
+      "StatementYear": "2025",
+      "LegalName": "Medecins Sans Frontieres Australia Limited",
+      "Abn": "74068758654",
+      "CharityUuid": "33ed3439-38af-e811-a962-000d3ad24a0d",
+      "OtherNames": [],
+      "CharityEmail": "office@sydney.msf.org",
+      "CharityAddressLine1": "Level 8",
+      "CharityAddressLine2": "700 Harris Street",
+      "CharityAddressSuburb": "Ultimo",
+      "CharityAddressStateOrProvince": "NSW",
+      "CharityAddressPostalCode": "2007",
+      "CharityAddressCountry": "Australia",
+      "CharitySize": "Large",
+      "ReliefOfPoverty": false,
+      "AdvancementOfEducation": false,
+      "AdvancementOfReligion": false,
+      "ChildCareServices": false,
+      "OtherPurposes": "False",
+      "OtherPurposeDescription": null,
+      "BasicReligiousCharity": false,
+      "ReportingGroupFlag": false,
+      "Website": "https://msf.org.au/",
+      "ActivityOperating": true,
+      "ActivityMain": null,
+      "ActivityCultureAndArt": false,
+      "ActivitySports": false,
+      "ActivityRecreationSocialClub": false,
+      "ActivityPrimarySecondaryEducation": false,
+      "ActivityHigherEducation": false,
+      "ActivityOtherEducation": false,
+      "ActivityResearch": false,
+      "ActivityHealthRehabilitation": false,
+      "ActivityAgedCare": false,
+      "ActivityMentalHealthCrisisIntervention": false,
+      "ActivityOtherHealthServices": false,
+      "ActivitySocialServices": false,
+      "ActivityEmergencyNRelief": false,
+      "ActivityIncomeSupportNMaintenance": false,
+      "ActivityEnvironmental": false,
+      "ActivityAnimalProtection": false,
+      "ActivityEconomicSocialCommunity": false,
+      "ActivityHousing": false,
+      "ActivityEmploymentNTraining": false,
+      "ActivityAdvocacyNCivic": false,
+      "ActivityLawNLegalServices": false,
+      "ActivityGrantMaking": false,
+      "ActivityPhilanthropicPromotion": false,
+      "ActivityInternational": false,
+      "ActivityReligious": false,
+      "ActivityPolitical": false,
+      "ActivityOther": false,
+      "ActivityOtherDescription": null,
+      "ActivityPersuitPurposesDescription": "- We operate entirely through the public s generous donations, which allow us to provide funding to projects in over 30 countries worldwide. The funds we raise are directed to the provision of emergency medical humanitarian aid in response to conflicts, epidemics, natural disasters and exclusion from healthcare. - Our work calls for rapid responses, specialised medical personnel and logistical teams, so that we can support people where the need is greatest.  - We also support longer term projects that engage with situations of sustained crisis, emergency or healthcare need.",
+      "GrantCapacityBuildingPct": null,
+      "GrantPublicOpenApplicationPct": null,
+      "GrantRuralRegionPct": null,
+      "GrantMultiYearPct": null,
+      "ActivityTransferringFundsGoods": true,
+      "ActivityOperatingOverseas": true,
+      "ActivityInternationalOther": false,
+      "ActivityInternationalOtherDescription": null,
+      "ActivityInternationalDescription": "MSF Australia supports the global MSF movement to provide humanitarian medical assistance to people affected by conflicts, epidemics, natural and man-made disasters, or exclusion from healthcare. We provide this support primarily through funding international field operations, and through coordinating the recruitment of healthcare, logistics, administrative and other professionally qualified staff, to work in these operations. We also provide medical expertise in mother and child health through our staff s specialised work in MSF s humanitarian projects overseas, and through technical support/oversight, medical training, medico-operational research, communications and policy development. Further, we directly manage operations in the Pacific region, organise international training courses for project staff, develop international communications packages and run evaluation missions to projects.",
+      "BeneficiaryMain": null,
+      "BeneficiaryGeneral": false,
+      "BeneficiaryWomen": false,
+      "BeneficiaryMen": false,
+      "BeneficiaryEarlyChildhood": false,
+      "BeneficiaryChildren": false,
+      "BeneficiaryYouth": false,
+      "BeneficiaryAdults": false,
+      "BeneficiarySeniors": false,
+      "BeneficiaryAllAges": false,
+      "BeneficiaryAboriginalTorres": false,
+      "BeneficiaryLGBT": false,
+      "BeneficiaryMigrantsRefugees": false,
+      "BeneficiaryOtherCharities": false,
+      "BeneficiaryEthnic": false,
+      "BeneficiaryOverseas": false,
+      "BeneficiaryRuralRegionalRemote": false,
+      "BeneficiaryFamilies": false,
+      "BeneficiaryFinanciallyDisadvantaged": false,
+      "BeneficiaryHomelessnessRisk": false,
+      "BeneficiaryChronicIllness": false,
+      "BeneficiaryPeopleWithDisability": false,
+      "BeneficiaryOffenderFamilies": false,
+      "BeneficiaryUnemployed": false,
+      "BeneficiaryVeteranFamilies": false,
+      "BeneficiaryCrimeVictims": false,
+      "BeneficiaryDisasterVictims": false,
+      "BeneficiaryOther": false,
+      "BeneficiaryOtherDescription": null,
+      "ActivityNdisSupported": null,
+      "ActivityNdisSupportedNext": null,
+      "OperatingInACT": false,
+      "OperatingInNSW": false,
+      "OperatingInNT": false,
+      "OperatingInQLD": false,
+      "OperatingInSA": false,
+      "OperatingInTAS": false,
+      "OperatingInVIC": false,
+      "OperatingInWA": false,
+      "OperatingOverseas": false,
+      "OperatingCountries": null,
+      "ActivityPurposeChange": null,
+      "ActivityPurposeChangeDescription": null,
+      "HrFullTimeEmployees": "147",
+      "HrPartTimeEmployees": "18",
+      "HrCasualEmployees": "1",
+      "HrUnpainVolunteers": "25",
+      "HrFteStaff": "158.5000000000",
+      "FinFyeJune": false,
+      "FinSapDate": null,
+      "FinProvideVoluntarily": null,
+      "FinReportFrom": "2025-01-01T00:00:00.0000000Z",
+      "FinReportTo": "2025-12-31T00:00:00.0000000Z",
+      "FinAccrualAccounting": null,
+      "FinReportingType": "General purpose financial statements   simplified disclosure",
+      "FinConsolidatedReportFromMiltiple": "Yes",
+      "FinRelatedPartyTransactions": "Yes",
+      "FinDocumentedPoliciesRelatedPartyTransactions": null,
+      "KeyManagementPersonnel": true,
+      "NumberOfKeyManagementPersonnel": "13",
+      "TotalPaidKMP": "$2,668,993.00",
+      "RelatedPartyTransactions": [
+        {
+          "Transaction": "Investment in a related party",
+          "Description": "",
+          "uuid": "85d2bccd-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Transaction": "Other",
+          "Description": "Grants and Recharges",
+          "uuid": "89d2bccd-5264-f111-a826-6045bde5b710"
+        }
+      ],
+      "RelatedPartyDetails": "There were grants to, and recharges from, related parties in relation to international field operations. However, these related parties are not members of the group of the 2 entities providing the consolidated financial statement (being MSF Australia and the MSF New Zealand Charitable Trust).",
+      "IncomeGovernmentGrants": "0.0000",
+      "IncomeDonationsBequests": "134240207.0000",
+      "RevenueGoodsServices": "0.0000",
+      "RevenueInvestments": "576427.0000",
+      "IncomeOtherReceipts": "6144680.0000",
+      "RevenueTotal": "140961314.0000",
+      "IncomeOther": "0.0000",
+      "IncomeOtherNeg": null,
+      "IncomeTotalReceipts": "140961314.0000",
+      "ExpenseEmployees": "21857601.0000",
+      "ExpenseGrantDonationsInAustralia": "0.0000",
+      "ExpenseGrantDonationsOutsideAustralia": "95927737.0000",
+      "ExpensesOther": "25719244.0000",
+      "InterestExpense": "65923.0000",
+      "ExpenseTotal": "143570505.0000",
+      "NetSurplusDeficit": "-2609191.0000",
+      "IncomeOtherComprehinsive": "-223373.0000",
+      "IncomeTotalComprehensive": "-2832564.0000",
+      "TotalCurrentAssets": "20812547.0000",
+      "TotalNonCurrentLoansReceivable": "0.0000",
+      "OtherNonCurrentAssets": "3607432.0000",
+      "TotalNonCurrentAssets": "3607432.0000",
+      "TotalAssets": "24419979.0000",
+      "TotalCurrentLiabilities": "6315216.0000",
+      "NonCurrentLoansPayable": "0.0000",
+      "OtherNonCurrentLiabilities": "2338713.0000",
+      "TotalNonCurrentLiabilities": "2338713.0000",
+      "TotalLiabilities": "8653929.0000",
+      "NetAssetsLiabilities": "15766050.0000",
+      "HasSubmittedToRegulator": false,
+      "IncorporationStatus": null,
+      "AssetsandLiabilitiesDescription": null,
+      "FinReportACT": false,
+      "FinReportNSW": false,
+      "FinReportNT": false,
+      "FinReportQLD": false,
+      "FinReportSA": false,
+      "FinReportTAS": false,
+      "FinReportVIC": false,
+      "FinReportWA": false,
+      "IsIncorporatedAssociation": false,
+      "Regulator": null,
+      "RegulatorOtherDetails": null,
+      "RegulatorPrograms": null,
+      "RegulatorStates": false,
+      "RegulatorIncorporatedAssociationACT": false,
+      "RegulatorIncorporatedAssociationNSW": false,
+      "RegulatorIncorporatedAssociationNT": false,
+      "RegulatorIncorporatedAssociationQLD": false,
+      "RegulatorIncorporatedAssociationSA": false,
+      "RegulatorIncorporatedAssociationTAS": false,
+      "RegulatorIncorporatedAssociationVIC": false,
+      "RegulatorIncorporatedAssociationWA": false,
+      "RegulatedACT": false,
+      "RegulatedNSW": false,
+      "RegulatedNT": false,
+      "RegulatedQLD": false,
+      "RegulatedSA": false,
+      "RegulatedTAS": false,
+      "RegulatedVIC": false,
+      "RegulatedWA": false,
+      "HoursPaid": null,
+      "HoursVolunteer": null,
+      "HoursTotal": null,
+      "RegulatorIncorporatedAssociationNumberACT": null,
+      "RegulatorAGMDateACT": null,
+      "RegulatorMetRequirementACT": false,
+      "RegulatorIncorporatedAssociationNumberNSW": null,
+      "RegulatorIncorporatedAssociationNumberNT": null,
+      "RegulatorAGMDateNT": null,
+      "RegulatorIncorporatedAssociationNumberQLD": null,
+      "RegulatorIncorporatedAssociationNumberSA": null,
+      "RegulatorIncorporatedAssociationNumberTAS": null,
+      "RegulatorIncorporatedAssociationNumberVIC": null,
+      "RegulatorAGMDateVIC": null,
+      "RegulatorIncorporatedAssociationNumberWA": null,
+      "RegulatorAGMDateWA": null,
+      "RegulatorMetRequirementWA": null,
+      "RegulatorFundRaising": "Yes",
+      "RegulatorFundRaisingACT": true,
+      "RegulatorFundRaisingNSW": true,
+      "RegulatorFundRaisingNT": true,
+      "RegulatorFundRaisingQLD": true,
+      "RegulatorFundRaisingSA": true,
+      "RegulatorFundRaisingTAS": true,
+      "RegulatorFundRaisingVIC": true,
+      "RegulatorFundRaisingWA": true,
+      "FundRaisingNumberACT": "19000172",
+      "FundRaisingNumberNSW": "11960",
+      "FundRaisingNumberQLD": "CH1341",
+      "FundRaisingNumberSA": "CCP2421",
+      "FundRaisingNumberTAS": "F1A-40",
+      "FundRaisingNumberVIC": "11085.16",
+      "FundRaisingNumberWA": "CC20347",
+      "RegulatorFundRaisingOnline": true,
+      "GovDocAccurate": null,
+      "ResponsiblePersonAccurate": null,
+      "SubTypesAccurate": null,
+      "Programs": [
+        {
+          "Name": "International Programs",
+          "ProgramLocations": [
+            {
+              "Name": null,
+              "FormattedAddress": null,
+              "DisplayName": null,
+              "Marker": {
+                "Latitude": 0,
+                "Longitude": 0
+              },
+              "uuid": "4659bed9-5264-f111-a826-6045bde5b710"
+            }
+          ],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Early childhood - aged under 6",
+            "Children - aged 6 to under 15",
+            "Youth - 15 to under 25",
+            "Adults - aged 25 to under 65",
+            "Adults - aged 65 and over",
+            "Families",
+            "People from a culturally and linguistically diverse background",
+            "People in rural/regional/remote communities",
+            "Financially disadvantaged people",
+            "People at risk of homelessness/ people experiencing homelessness",
+            "People with chronic illness (including terminal illness)",
+            "People with disabilities",
+            "Pre/post release offenders and/or their families",
+            "Unemployed persons",
+            "Victims of crime (including family violence)",
+            "Victims of disaster",
+            "Females",
+            "Males",
+            "Overseas communities or charities"
+          ],
+          "ProgramWeblink": "https://msf.org.au/our-work/reports-and-publications/annual-reports",
+          "ProgramClassification": "Public health",
+          "ProgramClassificationID": "418",
+          "ProgramCountries": [
+            "Afghanistan",
+            "Bangladesh",
+            "Burkina Faso",
+            "Central African Republic",
+            "Chad",
+            "Congo, the Democratic Republic of the",
+            "Eswatini",
+            "Haiti",
+            "Honduras",
+            "Iran, Islamic Republic of",
+            "Iraq",
+            "Jordan",
+            "Kenya",
+            "Kiribati",
+            "Lebanon",
+            "Malawi",
+            "Mauritania",
+            "Myanmar",
+            "Niger",
+            "Nigeria",
+            "Pakistan",
+            "Palestine, State of",
+            "Philippines",
+            "South Sudan",
+            "Sudan",
+            "Syrian Arab Republic",
+            "Uganda",
+            "Yemen"
+          ],
+          "AisUuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+          "uuid": "951ec1d3-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Kiribati",
+          "ProgramLocations": [],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Early childhood - aged under 6",
+            "Children - aged 6 to under 15",
+            "Youth - 15 to under 25",
+            "Adults - aged 25 to under 65",
+            "Adults - aged 65 and over",
+            "Families",
+            "People from a culturally and linguistically diverse background",
+            "People in rural/regional/remote communities",
+            "Financially disadvantaged people",
+            "People at risk of homelessness/ people experiencing homelessness",
+            "People with chronic illness (including terminal illness)",
+            "People with disabilities",
+            "Unemployed persons",
+            "Victims of disaster",
+            "Females",
+            "Males",
+            "Overseas communities or charities"
+          ],
+          "ProgramWeblink": "https://msf.org.au/our-work/reports-and-publications/annual-reports",
+          "ProgramClassification": "Public health",
+          "ProgramClassificationID": "418",
+          "ProgramCountries": [
+            "Kiribati"
+          ],
+          "AisUuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+          "uuid": "4859bed9-5264-f111-a826-6045bde5b710"
+        },
+        {
+          "Name": "Asia Pacific Partnership (APAC)",
+          "ProgramLocations": [],
+          "OperatesOnline": true,
+          "ProgramBeneficiaries": [
+            "Early childhood - aged under 6",
+            "Children - aged 6 to under 15",
+            "Youth - 15 to under 25",
+            "Adults - aged 25 to under 65",
+            "Adults - aged 65 and over",
+            "Families",
+            "Financially disadvantaged people",
+            "People at risk of homelessness/ people experiencing homelessness",
+            "People with chronic illness (including terminal illness)",
+            "People with disabilities",
+            "Victims of disaster",
+            "Females",
+            "Males",
+            "Overseas communities or charities"
+          ],
+          "ProgramWeblink": null,
+          "ProgramClassification": "Human services management",
+          "ProgramClassificationID": "510",
+          "ProgramCountries": [
+            "Indonesia",
+            "Malaysia",
+            "Philippines",
+            "Thailand"
+          ],
+          "AisUuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+          "uuid": "6259bed9-5264-f111-a826-6045bde5b710"
+        }
+      ],
+      "type": "annual_information_statement",
+      "entityTypeVersion": "",
+      "entityVersion": "1943559478",
+      "timeStamp": "2026-06-09T22:30:28.0000000Z",
+      "uuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+      "__normalized": true
+    }
+  },
+  "ais_acquisition_failure": null,
+  "ais_source_native_nonempty_fields": {
+    "StatementYear": "2025",
+    "LegalName": "Medecins Sans Frontieres Australia Limited",
+    "Abn": "74068758654",
+    "CharityUuid": "33ed3439-38af-e811-a962-000d3ad24a0d",
+    "CharityEmail": "office@sydney.msf.org",
+    "CharityAddressLine1": "Level 8",
+    "CharityAddressLine2": "700 Harris Street",
+    "CharityAddressSuburb": "Ultimo",
+    "CharityAddressStateOrProvince": "NSW",
+    "CharityAddressPostalCode": "2007",
+    "CharityAddressCountry": "Australia",
+    "CharitySize": "Large",
+    "ReliefOfPoverty": false,
+    "AdvancementOfEducation": false,
+    "AdvancementOfReligion": false,
+    "ChildCareServices": false,
+    "OtherPurposes": "False",
+    "BasicReligiousCharity": false,
+    "ReportingGroupFlag": false,
+    "Website": "https://msf.org.au/",
+    "ActivityOperating": true,
+    "ActivityCultureAndArt": false,
+    "ActivitySports": false,
+    "ActivityRecreationSocialClub": false,
+    "ActivityPrimarySecondaryEducation": false,
+    "ActivityHigherEducation": false,
+    "ActivityOtherEducation": false,
+    "ActivityResearch": false,
+    "ActivityHealthRehabilitation": false,
+    "ActivityAgedCare": false,
+    "ActivityMentalHealthCrisisIntervention": false,
+    "ActivityOtherHealthServices": false,
+    "ActivitySocialServices": false,
+    "ActivityEmergencyNRelief": false,
+    "ActivityIncomeSupportNMaintenance": false,
+    "ActivityEnvironmental": false,
+    "ActivityAnimalProtection": false,
+    "ActivityEconomicSocialCommunity": false,
+    "ActivityHousing": false,
+    "ActivityEmploymentNTraining": false,
+    "ActivityAdvocacyNCivic": false,
+    "ActivityLawNLegalServices": false,
+    "ActivityGrantMaking": false,
+    "ActivityPhilanthropicPromotion": false,
+    "ActivityInternational": false,
+    "ActivityReligious": false,
+    "ActivityPolitical": false,
+    "ActivityOther": false,
+    "ActivityPersuitPurposesDescription": "- We operate entirely through the public s generous donations, which allow us to provide funding to projects in over 30 countries worldwide. The funds we raise are directed to the provision of emergency medical humanitarian aid in response to conflicts, epidemics, natural disasters and exclusion from healthcare. - Our work calls for rapid responses, specialised medical personnel and logistical teams, so that we can support people where the need is greatest.  - We also support longer term projects that engage with situations of sustained crisis, emergency or healthcare need.",
+    "ActivityTransferringFundsGoods": true,
+    "ActivityOperatingOverseas": true,
+    "ActivityInternationalOther": false,
+    "ActivityInternationalDescription": "MSF Australia supports the global MSF movement to provide humanitarian medical assistance to people affected by conflicts, epidemics, natural and man-made disasters, or exclusion from healthcare. We provide this support primarily through funding international field operations, and through coordinating the recruitment of healthcare, logistics, administrative and other professionally qualified staff, to work in these operations. We also provide medical expertise in mother and child health through our staff s specialised work in MSF s humanitarian projects overseas, and through technical support/oversight, medical training, medico-operational research, communications and policy development. Further, we directly manage operations in the Pacific region, organise international training courses for project staff, develop international communications packages and run evaluation missions to projects.",
+    "BeneficiaryGeneral": false,
+    "BeneficiaryWomen": false,
+    "BeneficiaryMen": false,
+    "BeneficiaryEarlyChildhood": false,
+    "BeneficiaryChildren": false,
+    "BeneficiaryYouth": false,
+    "BeneficiaryAdults": false,
+    "BeneficiarySeniors": false,
+    "BeneficiaryAllAges": false,
+    "BeneficiaryAboriginalTorres": false,
+    "BeneficiaryLGBT": false,
+    "BeneficiaryMigrantsRefugees": false,
+    "BeneficiaryOtherCharities": false,
+    "BeneficiaryEthnic": false,
+    "BeneficiaryOverseas": false,
+    "BeneficiaryRuralRegionalRemote": false,
+    "BeneficiaryFamilies": false,
+    "BeneficiaryFinanciallyDisadvantaged": false,
+    "BeneficiaryHomelessnessRisk": false,
+    "BeneficiaryChronicIllness": false,
+    "BeneficiaryPeopleWithDisability": false,
+    "BeneficiaryOffenderFamilies": false,
+    "BeneficiaryUnemployed": false,
+    "BeneficiaryVeteranFamilies": false,
+    "BeneficiaryCrimeVictims": false,
+    "BeneficiaryDisasterVictims": false,
+    "BeneficiaryOther": false,
+    "OperatingInACT": false,
+    "OperatingInNSW": false,
+    "OperatingInNT": false,
+    "OperatingInQLD": false,
+    "OperatingInSA": false,
+    "OperatingInTAS": false,
+    "OperatingInVIC": false,
+    "OperatingInWA": false,
+    "OperatingOverseas": false,
+    "HrFullTimeEmployees": "147",
+    "HrPartTimeEmployees": "18",
+    "HrCasualEmployees": "1",
+    "HrUnpainVolunteers": "25",
+    "HrFteStaff": "158.5000000000",
+    "FinFyeJune": false,
+    "FinReportFrom": "2025-01-01T00:00:00.0000000Z",
+    "FinReportTo": "2025-12-31T00:00:00.0000000Z",
+    "FinReportingType": "General purpose financial statements   simplified disclosure",
+    "FinConsolidatedReportFromMiltiple": "Yes",
+    "FinRelatedPartyTransactions": "Yes",
+    "KeyManagementPersonnel": true,
+    "NumberOfKeyManagementPersonnel": "13",
+    "TotalPaidKMP": "$2,668,993.00",
+    "RelatedPartyTransactions": [
+      {
+        "Transaction": "Investment in a related party",
+        "Description": "",
+        "uuid": "85d2bccd-5264-f111-a826-6045bde5b710"
+      },
+      {
+        "Transaction": "Other",
+        "Description": "Grants and Recharges",
+        "uuid": "89d2bccd-5264-f111-a826-6045bde5b710"
+      }
+    ],
+    "RelatedPartyDetails": "There were grants to, and recharges from, related parties in relation to international field operations. However, these related parties are not members of the group of the 2 entities providing the consolidated financial statement (being MSF Australia and the MSF New Zealand Charitable Trust).",
+    "IncomeGovernmentGrants": "0.0000",
+    "IncomeDonationsBequests": "134240207.0000",
+    "RevenueGoodsServices": "0.0000",
+    "RevenueInvestments": "576427.0000",
+    "IncomeOtherReceipts": "6144680.0000",
+    "RevenueTotal": "140961314.0000",
+    "IncomeOther": "0.0000",
+    "IncomeTotalReceipts": "140961314.0000",
+    "ExpenseEmployees": "21857601.0000",
+    "ExpenseGrantDonationsInAustralia": "0.0000",
+    "ExpenseGrantDonationsOutsideAustralia": "95927737.0000",
+    "ExpensesOther": "25719244.0000",
+    "InterestExpense": "65923.0000",
+    "ExpenseTotal": "143570505.0000",
+    "NetSurplusDeficit": "-2609191.0000",
+    "IncomeOtherComprehinsive": "-223373.0000",
+    "IncomeTotalComprehensive": "-2832564.0000",
+    "TotalCurrentAssets": "20812547.0000",
+    "TotalNonCurrentLoansReceivable": "0.0000",
+    "OtherNonCurrentAssets": "3607432.0000",
+    "TotalNonCurrentAssets": "3607432.0000",
+    "TotalAssets": "24419979.0000",
+    "TotalCurrentLiabilities": "6315216.0000",
+    "NonCurrentLoansPayable": "0.0000",
+    "OtherNonCurrentLiabilities": "2338713.0000",
+    "TotalNonCurrentLiabilities": "2338713.0000",
+    "TotalLiabilities": "8653929.0000",
+    "NetAssetsLiabilities": "15766050.0000",
+    "HasSubmittedToRegulator": false,
+    "FinReportACT": false,
+    "FinReportNSW": false,
+    "FinReportNT": false,
+    "FinReportQLD": false,
+    "FinReportSA": false,
+    "FinReportTAS": false,
+    "FinReportVIC": false,
+    "FinReportWA": false,
+    "IsIncorporatedAssociation": false,
+    "RegulatorStates": false,
+    "RegulatorIncorporatedAssociationACT": false,
+    "RegulatorIncorporatedAssociationNSW": false,
+    "RegulatorIncorporatedAssociationNT": false,
+    "RegulatorIncorporatedAssociationQLD": false,
+    "RegulatorIncorporatedAssociationSA": false,
+    "RegulatorIncorporatedAssociationTAS": false,
+    "RegulatorIncorporatedAssociationVIC": false,
+    "RegulatorIncorporatedAssociationWA": false,
+    "RegulatedACT": false,
+    "RegulatedNSW": false,
+    "RegulatedNT": false,
+    "RegulatedQLD": false,
+    "RegulatedSA": false,
+    "RegulatedTAS": false,
+    "RegulatedVIC": false,
+    "RegulatedWA": false,
+    "RegulatorMetRequirementACT": false,
+    "RegulatorFundRaising": "Yes",
+    "RegulatorFundRaisingACT": true,
+    "RegulatorFundRaisingNSW": true,
+    "RegulatorFundRaisingNT": true,
+    "RegulatorFundRaisingQLD": true,
+    "RegulatorFundRaisingSA": true,
+    "RegulatorFundRaisingTAS": true,
+    "RegulatorFundRaisingVIC": true,
+    "RegulatorFundRaisingWA": true,
+    "FundRaisingNumberACT": "19000172",
+    "FundRaisingNumberNSW": "11960",
+    "FundRaisingNumberQLD": "CH1341",
+    "FundRaisingNumberSA": "CCP2421",
+    "FundRaisingNumberTAS": "F1A-40",
+    "FundRaisingNumberVIC": "11085.16",
+    "FundRaisingNumberWA": "CC20347",
+    "RegulatorFundRaisingOnline": true,
+    "Programs": [
+      {
+        "Name": "International Programs",
+        "ProgramLocations": [
+          {
+            "Name": null,
+            "FormattedAddress": null,
+            "DisplayName": null,
+            "Marker": {
+              "Latitude": 0,
+              "Longitude": 0
+            },
+            "uuid": "4659bed9-5264-f111-a826-6045bde5b710"
+          }
+        ],
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "People from a culturally and linguistically diverse background",
+          "People in rural/regional/remote communities",
+          "Financially disadvantaged people",
+          "People at risk of homelessness/ people experiencing homelessness",
+          "People with chronic illness (including terminal illness)",
+          "People with disabilities",
+          "Pre/post release offenders and/or their families",
+          "Unemployed persons",
+          "Victims of crime (including family violence)",
+          "Victims of disaster",
+          "Females",
+          "Males",
+          "Overseas communities or charities"
+        ],
+        "ProgramWeblink": "https://msf.org.au/our-work/reports-and-publications/annual-reports",
+        "ProgramClassification": "Public health",
+        "ProgramClassificationID": "418",
+        "ProgramCountries": [
+          "Afghanistan",
+          "Bangladesh",
+          "Burkina Faso",
+          "Central African Republic",
+          "Chad",
+          "Congo, the Democratic Republic of the",
+          "Eswatini",
+          "Haiti",
+          "Honduras",
+          "Iran, Islamic Republic of",
+          "Iraq",
+          "Jordan",
+          "Kenya",
+          "Kiribati",
+          "Lebanon",
+          "Malawi",
+          "Mauritania",
+          "Myanmar",
+          "Niger",
+          "Nigeria",
+          "Pakistan",
+          "Palestine, State of",
+          "Philippines",
+          "South Sudan",
+          "Sudan",
+          "Syrian Arab Republic",
+          "Uganda",
+          "Yemen"
+        ],
+        "AisUuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+        "uuid": "951ec1d3-5264-f111-a826-6045bde5b710"
+      },
+      {
+        "Name": "Kiribati",
+        "ProgramLocations": [],
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "People from a culturally and linguistically diverse background",
+          "People in rural/regional/remote communities",
+          "Financially disadvantaged people",
+          "People at risk of homelessness/ people experiencing homelessness",
+          "People with chronic illness (including terminal illness)",
+          "People with disabilities",
+          "Unemployed persons",
+          "Victims of disaster",
+          "Females",
+          "Males",
+          "Overseas communities or charities"
+        ],
+        "ProgramWeblink": "https://msf.org.au/our-work/reports-and-publications/annual-reports",
+        "ProgramClassification": "Public health",
+        "ProgramClassificationID": "418",
+        "ProgramCountries": [
+          "Kiribati"
+        ],
+        "AisUuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+        "uuid": "4859bed9-5264-f111-a826-6045bde5b710"
+      },
+      {
+        "Name": "Asia Pacific Partnership (APAC)",
+        "ProgramLocations": [],
+        "OperatesOnline": true,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "Financially disadvantaged people",
+          "People at risk of homelessness/ people experiencing homelessness",
+          "People with chronic illness (including terminal illness)",
+          "People with disabilities",
+          "Victims of disaster",
+          "Females",
+          "Males",
+          "Overseas communities or charities"
+        ],
+        "ProgramWeblink": null,
+        "ProgramClassification": "Human services management",
+        "ProgramClassificationID": "510",
+        "ProgramCountries": [
+          "Indonesia",
+          "Malaysia",
+          "Philippines",
+          "Thailand"
+        ],
+        "AisUuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+        "uuid": "6259bed9-5264-f111-a826-6045bde5b710"
+      }
+    ],
+    "type": "annual_information_statement",
+    "entityVersion": "1943559478",
+    "timeStamp": "2026-06-09T22:30:28.0000000Z",
+    "uuid": "80d2bccd-5264-f111-a826-6045bde5b710",
+    "__normalized": true
+  },
+  "report_discovery": {
+    "basis": "ACNC profile Documents collection (discover_public_sources.py semantics)",
+    "selected_by": "baseline_corpus.select_filing_documents structured Year/type metadata",
+    "selected": [
+      {
+        "role": "financial_report",
+        "type": "Financial Report",
+        "Date": "2026-06-10T00:00:00.0000000",
+        "Year": "2025",
+        "Title": "2025 Signed Financial Statements MSFA Consolidated signed by CROWE.pdf",
+        "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-851dcdc2-5264-f111-a826-7ced8d33fdea-2025_Signed_Financial_Statements_MSFA_Consolidated_signed_by_CROWE.pdf",
+        "uuid": "851dcdc2-5264-f111-a826-7ced8d33fdea"
+      }
+    ]
+  },
+  "filings": [
+    {
+      "role": "financial_report",
+      "metadata": {
+        "role": "financial_report",
+        "type": "Financial Report",
+        "Date": "2026-06-10T00:00:00.0000000",
+        "Year": "2025",
+        "Title": "2025 Signed Financial Statements MSFA Consolidated signed by CROWE.pdf",
+        "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-851dcdc2-5264-f111-a826-7ced8d33fdea-2025_Signed_Financial_Statements_MSFA_Consolidated_signed_by_CROWE.pdf",
+        "uuid": "851dcdc2-5264-f111-a826-7ced8d33fdea"
+      },
+      "outcome": "acquired",
+      "resolved_url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/33ed3439-38af-e811-a962-000d3ad24a0d-9669a4cd-1adf-4791-9eb8-398606e1009e-Financial%20Report-851dcdc2-5264-f111-a826-7ced8d33fdea-2025_Signed_Financial_Statements_MSFA_Consolidated_signed_by_CROWE.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "sha256": "7b9240db6d25b759bb66b279187ab3f218549f28cd90ae379ab8c84029509585",
+      "bytes": 2196832,
+      "representation": {
+        "readiness": "partial",
+        "page_gaps": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41
+        ],
+        "gap_reasons": {
+          "low_text": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41
+          ],
+          "image_only_or_scanned": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41
+          ],
+          "visual_relationships_unresolved": []
+        },
+        "native_text_pages": 4,
+        "visual_escalations": 0,
+        "source_sha256": "7b9240db6d25b759bb66b279187ab3f218549f28cd90ae379ab8c84029509585",
+        "page_count": 41,
+        "extracted_page_count": 41,
+        "pages": [
+          {
+            "page": 1,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.029061,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 2,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.027751,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 3,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.079013,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 4,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.039103,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 5,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.059938,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 6,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.065422,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 7,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.067573,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 8,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.043301,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 9,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.059891,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 10,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.017166,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 11,
+            "text": "Crowe Audit Australia\nABN 13 969 921 386\nLevel 24, 1 O’Connell Street\nSydney NSW 2000\nMain +61 (02) 9262 2155\nFax +61 (02) 9262 2190\nwww.crowe.com/au\nAuditor’s Independence Declaration to the\nDirectors of Médecins Sans Frontières Australia\nLimited\nI declare that, to the best of my knowledge and belief, during the year ended 31 December 2025 there\nhave been:\n(i) no contraventions of the auditor independence requirements as set out in the Australian Charities\nand Not-for-profits Commission Act 2012, in relation to the audit, and\n(ii) no contraventions of any applicable code of professional conduct in relation to the audit.\nYours sincerely,\nCrowe Audit Australia\nAlison Swansborough\nPartner\n29 April 2026\nSydney\nSome of the Crowe personnel involved in preparing this document may be members of a professional scheme approved under Professional\nStandards Legislation such that their occupational liability is limited under that Legislation. To the extent that applies, the following disclaimer\napplies to them. If you have any questions about the applicability of Professional Standards Legislation Crowe’s personnel involved in preparing\nthis document, please speak to your Crowe adviser.\nLiability limited by a scheme approved under Professional Standards Legislation.\nThe title ‘Partner’ conveys that the person is a senior member within their respective division, and is among the group of persons who hold an\nequity interest (shareholder) in its parent entity, Findex Group Limited. The only professional service offering which is conducted by a partnership\nis external audit, conducted via the Crowe Australasia external audit division and Unison SMSF Audit. All other professional services offered by\nFindex Group Limited are conducted by a privately owned organisation and/or its subsidiaries.\nFindex (Aust) Pty Ltd, trading as Crowe Australasia is a member of Crowe Global, a Swiss verein. Each member firm of Crowe Global is a\nseparate and independent legal entity. Findex (Aust) Pty Ltd and its affiliates are not responsible or liable for any acts or omissions of Crowe\nGlobal or any other member of Crowe Global. Crowe Global does not render any professional services and does not have an ownership or\npartnership interest in Findex (Aust) Pty Ltd. Services are provided by Crowe Audit Australia, an affiliate of Findex (Aust) Pty Ltd.\n© 2026 Findex (Aust) Pty Ltd\n11",
+            "tables": [],
+            "native_text_characters": 2384,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.037261,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 12,
+            "text": "Crowe Audit Australia\nABN 13 969 921 386\nLevel 24, 1 O’Connell Street\nSydney NSW 2000\nMain +61 (02) 9262 2155\nFax +61 (02) 9262 2190\nwww.crowe.com/au\nIndependent Auditor’s Report to the Members of\nMédecins Sans Frontières Australia Limited\nReport on the Audit of the Financial Report\nOpinion\nWe have audited the financial report of Médecins Sans Frontières Australia Limited (the Company)\nand its subsidiary (the Group), which comprises the consolidated statement of financial position as at\n31 December 2025, the consolidated statement of comprehensive income, the consolidated\nstatement of changes in equity and the consolidated statement of cash flows for the year then ended,\nand notes to the financial statements, including material accounting policy information, and the\ndirectors’ declaration.\nIn our opinion, the accompanying financial report of the Group has been prepared:\n1. In accordance with Division 60 of the Australian Charities and Not-for-profits Commission Act\n2012 (ACNC Act), including:\n(a) Giving a true and fair view of the Group’s financial position as at 31 December 2025 and of\nits financial performance for the year then ended; and\n(b) Complying with Australian Accounting Standards – Simplified Disclosures and Division 60 of\nthe Australian Charities and Not-for-profits Commission Regulation 2022; and\n2. In all material respects, in accordance with the requirements of the Charitable Fundraising Act\nNSW 1991 and the Charitable Fundraising Regulation 2021, and the requirements of the WA\nCharitable Collections Act (1946) and the WA Charitable Collections Regulations (1947).\nBasis for Opinion\nWe conducted our audit in accordance with Australian Auditing Standards. Our responsibilities under\nthose standards are further described in the Auditor’s Responsibilities for the Audit of the Financial\nReport section of our report. We are independent of the Group in accordance with the ethical\nrequirements of the Accounting Professional & Ethical Standards Board’s APES 110 Code of Ethics\nfor Professional Accountants (including Independence Standards) (the Code) that are relevant to our\naudit of the financial report in Australia. We have also fulfilled our other ethical responsibilities in\naccordance with the Code.\nWe believe that the audit evidence we have obtained is sufficient and appropriate to provide a basis\nfor our opinion.\nSome of the Crowe personnel involved in preparing this document may be members of a professional scheme approved under Professional\nStandards Legislation such that their occupational liability is limited under that Legislation. To the extent that applies, the following disclaimer\napplies to them. If you have any questions about the applicability of Professional Standards Legislation Crowe’s personnel involved in preparing\nthis document, please speak to your Crowe adviser.\nLiability limited by a scheme approved under Professional Standards Legislation.\nThe title ‘Partner’ conveys that the person is a senior member within their respective division, and is among the group of persons who hold an\nequity interest (shareholder) in its parent entity, Findex Group Limited. The only professional service offering which is conducted by a partnership\nis external audit, conducted via the Crowe Australasia external audit division and Unison SMSF Audit. All other professional services offered by\nFindex Group Limited are conducted by a privately owned organisation and/or its subsidiaries.\nFindex (Aust) Pty Ltd, trading as Crowe Australasia is a member of Crowe Global, a Swiss verein. Each member firm of Crowe Global is a\nseparate and independent legal entity. Findex (Aust) Pty Ltd and its affiliates are not responsible or liable for any acts or omissions of Crowe\nGlobal or any other member of Crowe Global. Crowe Global does not render any professional services and does not have an ownership or\npartnership interest in Findex (Aust) Pty Ltd. Services are provided by Crowe Audit Australia, an affiliate of Findex (Aust) Pty Ltd.\n© 2026 Findex (Aust) Pty Ltd\n12",
+            "tables": [],
+            "native_text_characters": 4032,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.067412,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 13,
+            "text": "Independent Auditor’s Report Médecins Sans Frontières Australia\nOther Information\nThe Directors are responsible for the other information. The other information comprises the\ninformation included in the Group’s Annual Report for the year ended 31 December 2025, but does\nnot include the financial report and our auditor’s report thereon.\nOur opinion on the financial report does not cover the other information and accordingly we do not\nexpress any form of assurance conclusion thereon.\nIn connection with our audit of the financial report, our responsibility is to read the other information\nand, in doing so, consider whether the other information is materially inconsistent with the financial\nreport or our knowledge obtained in the audit or otherwise appears to be materially misstated.\nIf, based on the work we have performed, we conclude that there is a material misstatement of this\nother information, we are required to report that fact. We have nothing to report in this regard.\nResponsibilities of Directors for the Financial Report\nThe Directors of the Company are responsible for the preparation of the financial report that gives a\ntrue and fair view in accordance with Australian Accounting Standards – Simplified Disclosures and\nthe ACNC Act, the Charitable Fundraising Act NSW 1991 and the Charitable Fundraising Regulation\n2021, and the requirements of the WA Charitable Collections Act (1946) and the WA Charitable\nCollections Regulations (1947), and for such internal control as the Directors determines is necessary\nto enable the preparation of the financial report that gives a true and fair view and is free from material\nmisstatement, whether due to fraud or error.\nIn preparing the financial report, the Directors is responsible for assessing the Group’s ability to\ncontinue as a going concern, disclosing, as applicable, matters related to going concern and using the\ngoing concern basis of accounting unless the Directors either intend to liquidate the Group or to cease\noperations, or has no realistic alternative but to do so.\nAuditor’s Responsibilities for the Audit of the Financial Report\nOur objectives are to obtain reasonable assurance about whether the financial report as a whole is\nfree from material misstatement, whether due to fraud or error, and to issue an auditor’s report that\nincludes our opinion. Reasonable assurance is a high level of assurance, but is not a guarantee that\nan audit conducted in accordance with the Australian Auditing Standards will always detect a material\nmisstatement when it exists. Misstatements can arise from fraud or error and are considered material\nif, individually or in the aggregate, they could reasonably be expected to influence the economic\ndecisions of users taken on the basis of this financial report.\nAs part of an audit in accordance with the Australian Auditing Standards, we exercise professional\njudgement and maintain professional scepticism throughout the audit.\nWe also:\n• Identify and assess the risks of material misstatement of the financial report, whether due to\nfraud or error, design and perform audit procedures responsive to those risks, and obtain audit\nevidence that is sufficient and appropriate to provide a basis for our opinion. The risk of not\ndetecting a material misstatement resulting from fraud is higher than for one resulting from error,\nas fraud may involve collusion, forgery, intentional omissions, misrepresentations, or the override\nof internal control.\n• Obtain an understanding of internal control relevant to the audit in order to design audit\nprocedures that are appropriate in the circumstances, but not for the purpose of expressing an\nopinion on the effectiveness of the Group’s internal control.\n• Evaluate the appropriateness of accounting policies used and the reasonableness of accounting\nestimates and related disclosures made by the Directors.\n© 2026 Findex (Aust) Pty Ltd www.crowe.com/au\n13",
+            "tables": [],
+            "native_text_characters": 3925,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.075068,
+            "graphic_structure": false,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 14,
+            "text": "Independent Auditor’s Report Médecins Sans Frontières Australia\n• Conclude on the appropriateness of the Director’s use of the going concern basis of accounting\nand, based on the audit evidence obtained, whether a material uncertainty exists related to\nevents or conditions that may cast significant doubt on the Group’s ability to continue as a going\nconcern. If we conclude that a material uncertainty exists, we are required to draw attention in\nour auditor’s report to the related disclosures in the financial report or, if such disclosures are\ninadequate, to modify our opinion. Our conclusions are based on the audit evidence obtained up\nto the date of our auditor’s report. However, future events or conditions may cause the Group to\ncease to continue as a going concern.\n• Evaluate the overall presentation, structure and content of the financial report, including the\ndisclosures, and whether the financial report represents the underlying transactions and events\nin a manner that achieves fair presentation.\n• Plan and perform the group audit to obtain sufficient appropriate audit evidence regarding the\nfinancial information of the entities or business units within the group as a basis for forming an\nopinion on the group financial report. We are responsible for the direction, supervision and\nreview of the audit work performed for the purposes of the Group audit. We remain solely\nresponsible for our audit opinion.\nWe communicate with the Director regarding, among other matters, the planned scope and timing of\nthe audit and significant audit findings, including any significant deficiencies in internal control that we\nidentify during our audit.\nCrowe Audit Australia\nAlison Swansborough\nPartner\n29 April 2026\nSydney\n© 2026 Findex (Aust) Pty Ltd www.crowe.com/au\n14",
+            "tables": [],
+            "native_text_characters": 1783,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.035414,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 15,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.05037,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 16,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.038215,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 17,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.024694,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 18,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.028783,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 19,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.036186,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 20,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.044489,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 21,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.05461,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 22,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.059553,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 23,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.065288,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 24,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.052381,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 25,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.060546,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 26,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.061245,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 27,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.071721,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 28,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.02544,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 29,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.056746,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 30,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.027467,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 31,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.040114,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 32,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.032607,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 33,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.023785,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 34,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.042503,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 35,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.039161,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 36,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.051363,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 37,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.029519,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 38,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.047498,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 39,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.04389,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 40,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.041934,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 41,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.041961,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          }
+        ]
+      }
+    }
+  ],
+  "model_calls": 0
+}

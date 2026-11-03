@@ -1,0 +1,1487 @@
+{
+  "fixture_kind": "sanitized-previously-rejected-phase6-provider-schemas",
+  "source_run_id": "phase6-corrected-confirmation-20260913-v2",
+  "schemas": {
+    "outcomes": {
+      "historical_request_body_sha256": "8f9de07ddbefc2659cd11883bcef01674cdc092dc3954c0614d61d35236e175e",
+      "schema": {
+        "$defs": {
+          "ActivityReported": {
+            "additionalProperties": false,
+            "properties": {
+              "activity_kind": {
+                "enum": [
+                  "service_delivery",
+                  "research",
+                  "advocacy",
+                  "management",
+                  "fundraising",
+                  "other"
+                ],
+                "type": "string"
+              },
+              "count": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "epistemic_class": {
+                "enum": [
+                  "first_party_claim",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "proposition_type": {
+                "enum": [
+                  "activity_reported"
+                ],
+                "type": "string"
+              },
+              "reporting_period": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "unit": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "activity_kind",
+              "reporting_period",
+              "count",
+              "unit"
+            ],
+            "type": "object"
+          },
+          "CausalAttributionClaimReported": {
+            "additionalProperties": false,
+            "properties": {
+              "attributed_result": {
+                "type": "string"
+              },
+              "epistemic_class": {
+                "enum": [
+                  "source_claimed_causation"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "intervention": {
+                "type": "string"
+              },
+              "outcome_domain": {
+                "enum": [
+                  "health",
+                  "education",
+                  "housing_security",
+                  "wellbeing",
+                  "ecological_condition",
+                  "social_condition",
+                  "safety",
+                  "other_beneficiary_or_target_state"
+                ],
+                "type": "string"
+              },
+              "population": {
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "causal_attribution_claim_reported"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "outcome_domain",
+              "population",
+              "intervention",
+              "attributed_result"
+            ],
+            "type": "object"
+          },
+          "CausalEvidenceSupported": {
+            "additionalProperties": false,
+            "properties": {
+              "comparator": {
+                "type": "string"
+              },
+              "epistemic_class": {
+                "enum": [
+                  "independent_finding_reported"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "intervention": {
+                "type": "string"
+              },
+              "limitations": {
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "measured_result": {
+                "type": "string"
+              },
+              "outcome_domain": {
+                "enum": [
+                  "health",
+                  "education",
+                  "housing_security",
+                  "wellbeing",
+                  "ecological_condition",
+                  "social_condition",
+                  "safety",
+                  "other_beneficiary_or_target_state"
+                ],
+                "type": "string"
+              },
+              "population": {
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "causal_evidence_supported"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "study_design": {
+                "enum": [
+                  "randomized_comparison",
+                  "quasi_experimental",
+                  "natural_experiment",
+                  "other_explicit_counterfactual"
+                ],
+                "type": "string"
+              },
+              "study_period": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "outcome_domain",
+              "population",
+              "intervention",
+              "comparator",
+              "measured_result",
+              "study_design",
+              "study_period",
+              "limitations"
+            ],
+            "type": "object"
+          },
+          "ContributionClaimReported": {
+            "additionalProperties": false,
+            "properties": {
+              "activity": {
+                "type": "string"
+              },
+              "claimed_relation": {
+                "enum": [
+                  "contributed_to",
+                  "supported",
+                  "associated_with"
+                ],
+                "type": "string"
+              },
+              "epistemic_class": {
+                "enum": [
+                  "first_party_claim",
+                  "independent_finding_reported"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "outcome_domain": {
+                "enum": [
+                  "health",
+                  "education",
+                  "housing_security",
+                  "wellbeing",
+                  "ecological_condition",
+                  "social_condition",
+                  "safety",
+                  "other_beneficiary_or_target_state"
+                ],
+                "type": "string"
+              },
+              "population": {
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "contribution_claim_reported"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "outcome_domain",
+              "population",
+              "activity",
+              "claimed_relation"
+            ],
+            "type": "object"
+          },
+          "OutcomeObservedReported": {
+            "additionalProperties": false,
+            "properties": {
+              "epistemic_class": {
+                "enum": [
+                  "first_party_measure_reported",
+                  "independent_finding_reported"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "indicator": {
+                "type": "string"
+              },
+              "measured_result": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "measured_subject_kind": {
+                "enum": [
+                  "beneficiary_state",
+                  "target_system_condition"
+                ],
+                "type": "string"
+              },
+              "measurement_period": {
+                "type": "string"
+              },
+              "outcome_domain": {
+                "enum": [
+                  "health",
+                  "education",
+                  "housing_security",
+                  "wellbeing",
+                  "ecological_condition",
+                  "social_condition",
+                  "safety",
+                  "other_beneficiary_or_target_state"
+                ],
+                "type": "string"
+              },
+              "population": {
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "outcome_observed_reported"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "measured_subject_kind",
+              "outcome_domain",
+              "population",
+              "indicator",
+              "measured_result",
+              "unit",
+              "measurement_period"
+            ],
+            "type": "object"
+          },
+          "OutputReported": {
+            "additionalProperties": false,
+            "properties": {
+              "epistemic_class": {
+                "enum": [
+                  "first_party_measure_reported",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "measure": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "output_kind": {
+                "enum": [
+                  "services_delivered",
+                  "grants_made",
+                  "funds_raised",
+                  "hectares_managed",
+                  "publications",
+                  "other_direct_output"
+                ],
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "output_reported"
+                ],
+                "type": "string"
+              },
+              "reporting_period": {
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "output_kind",
+              "measure",
+              "unit",
+              "reporting_period"
+            ],
+            "type": "object"
+          },
+          "Phase6EvidenceRef": {
+            "additionalProperties": false,
+            "description": "One immutable, request-bound evidence locator and its source role/date.",
+            "properties": {
+              "effective_from": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "effective_to": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "locator_id": {
+                "enum": [
+                  "FIXTURE_REDACTED"
+                ],
+                "type": "string"
+              },
+              "retrieved_at": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "source_date": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "source_role": {
+                "enum": [
+                  "official_homepage",
+                  "annual_report",
+                  "financial_report",
+                  "first_party_policy",
+                  "historical_frozen_regulator_material",
+                  "regulator_record",
+                  "court_or_inquiry_record",
+                  "independent_evaluation",
+                  "external_authoritative",
+                  "unknown"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "locator_id",
+              "source_role",
+              "source_date",
+              "retrieved_at",
+              "effective_from",
+              "effective_to"
+            ],
+            "type": "object"
+          },
+          "Phase6Scope": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_id": {
+                "enum": [
+                  "FIXTURE_REDACTED"
+                ],
+                "type": "string"
+              },
+              "scope_kind": {
+                "enum": [
+                  "organisation"
+                ],
+                "type": "string"
+              },
+              "scope_label": {
+                "enum": [
+                  "FIXTURE_REDACTED"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope_id",
+              "scope_kind",
+              "scope_label"
+            ],
+            "type": "object"
+          },
+          "ReachReported": {
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  }
+                ]
+              },
+              "denominator": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "epistemic_class": {
+                "enum": [
+                  "first_party_measure_reported",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "population": {
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "reach_or_participation_reported"
+                ],
+                "type": "string"
+              },
+              "reporting_period": {
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "population",
+              "count",
+              "unit",
+              "reporting_period",
+              "denominator"
+            ],
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "propositions": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ActivityReported"
+                },
+                {
+                  "$ref": "#/$defs/OutputReported"
+                },
+                {
+                  "$ref": "#/$defs/ReachReported"
+                },
+                {
+                  "$ref": "#/$defs/OutcomeObservedReported"
+                },
+                {
+                  "$ref": "#/$defs/ContributionClaimReported"
+                },
+                {
+                  "$ref": "#/$defs/CausalAttributionClaimReported"
+                },
+                {
+                  "$ref": "#/$defs/CausalEvidenceSupported"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "slice_id": {
+            "enum": [
+              "outcomes"
+            ],
+            "type": "string"
+          },
+          "subject_id": {
+            "enum": [
+              "subject:f284a1e0e31a4e04b7d9f8ae8863ef10"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "slice_id",
+          "subject_id",
+          "propositions"
+        ],
+        "type": "object"
+      }
+    },
+    "capacity": {
+      "historical_request_body_sha256": "2b413c488f329fc86f44a9918807e451b71bef993b5e707d5f100c63f82f72ca",
+      "schema": {
+        "$defs": {
+          "AccessInformation": {
+            "additionalProperties": false,
+            "properties": {
+              "epistemic_class": {
+                "enum": [
+                  "first_party_claim",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "information": {
+                "type": "string"
+              },
+              "information_kind": {
+                "enum": [
+                  "address",
+                  "contact",
+                  "directions",
+                  "service_hours",
+                  "information_page",
+                  "online_flag"
+                ],
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "access_information"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "information_kind",
+              "information"
+            ],
+            "type": "object"
+          },
+          "AccessPathway": {
+            "additionalProperties": false,
+            "properties": {
+              "entry_actions": {
+                "items": {
+                  "enum": [
+                    "apply",
+                    "request_referral",
+                    "call_intake",
+                    "book_appointment",
+                    "complete_assessment",
+                    "attend_drop_in",
+                    "submit_online_request"
+                  ],
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "entry_conditions": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "epistemic_class": {
+                "enum": [
+                  "first_party_claim",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "proposition_type": {
+                "enum": [
+                  "access_pathway"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "entry_actions",
+              "entry_conditions"
+            ],
+            "type": "object"
+          },
+          "AvailabilityReportedAsOf": {
+            "additionalProperties": false,
+            "properties": {
+              "as_of": {
+                "format": "date",
+                "type": "string"
+              },
+              "epistemic_class": {
+                "enum": [
+                  "first_party_claim",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "proposition_type": {
+                "enum": [
+                  "availability_reported_as_of_date"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "status": {
+                "enum": [
+                  "available",
+                  "limited",
+                  "waitlisted",
+                  "unavailable",
+                  "unknown"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "status",
+              "as_of"
+            ],
+            "type": "object"
+          },
+          "AvailabilityUnknown": {
+            "additionalProperties": false,
+            "properties": {
+              "coverage_state": {
+                "enum": [
+                  "source_silent",
+                  "source_unavailable",
+                  "not_processed",
+                  "processing_failed",
+                  "stale",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "type": "array"
+              },
+              "proposition_type": {
+                "enum": [
+                  "availability_unknown"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              }
+            },
+            "required": [
+              "proposition_type",
+              "scope",
+              "coverage_state",
+              "evidence"
+            ],
+            "type": "object"
+          },
+          "CapacityLimitOrMeasure": {
+            "additionalProperties": false,
+            "properties": {
+              "as_of": {
+                "format": "date",
+                "type": "string"
+              },
+              "capacity_basis": {
+                "enum": [
+                  "published_limit",
+                  "maximum_throughput",
+                  "concurrent_capacity",
+                  "available_slots_as_of"
+                ],
+                "type": "string"
+              },
+              "epistemic_class": {
+                "enum": [
+                  "first_party_measure_reported",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "measure": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  }
+                ]
+              },
+              "measurement_period": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "proposition_type": {
+                "enum": [
+                  "capacity_limit_or_capacity_measure"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "unit": {
+                "enum": [
+                  "people",
+                  "places",
+                  "beds",
+                  "appointments",
+                  "appointments_per_period",
+                  "service_instances_per_period",
+                  "available_slots"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "capacity_basis",
+              "measure",
+              "unit",
+              "as_of",
+              "measurement_period"
+            ],
+            "type": "object"
+          },
+          "FormalEligibilityRule": {
+            "additionalProperties": false,
+            "properties": {
+              "assessment_required": {
+                "type": "boolean"
+              },
+              "epistemic_class": {
+                "enum": [
+                  "first_party_claim",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "proposition_type": {
+                "enum": [
+                  "formal_eligibility_rule"
+                ],
+                "type": "string"
+              },
+              "rule": {
+                "type": "string"
+              },
+              "rule_basis": {
+                "enum": [
+                  "explicit_published_criteria",
+                  "mandated_criterion"
+                ],
+                "type": "string"
+              },
+              "rule_issuer": {
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "rule_basis",
+              "rule_issuer",
+              "rule",
+              "assessment_required"
+            ],
+            "type": "object"
+          },
+          "HistoricalActivityVolume": {
+            "additionalProperties": false,
+            "properties": {
+              "epistemic_class": {
+                "enum": [
+                  "first_party_measure_reported",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "measure": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  }
+                ]
+              },
+              "period": {
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "historical_activity_volume"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "measure",
+              "unit",
+              "period"
+            ],
+            "type": "object"
+          },
+          "IntendedBeneficiaryGroup": {
+            "additionalProperties": false,
+            "properties": {
+              "epistemic_class": {
+                "enum": [
+                  "first_party_claim",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "population": {
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "intended_beneficiary_group"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "population"
+            ],
+            "type": "object"
+          },
+          "Phase6EvidenceRef": {
+            "additionalProperties": false,
+            "description": "One immutable, request-bound evidence locator and its source role/date.",
+            "properties": {
+              "effective_from": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "effective_to": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "locator_id": {
+                "enum": [
+                  "FIXTURE_REDACTED"
+                ],
+                "type": "string"
+              },
+              "retrieved_at": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "source_date": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "source_role": {
+                "enum": [
+                  "official_homepage",
+                  "annual_report",
+                  "financial_report",
+                  "first_party_policy",
+                  "historical_frozen_regulator_material",
+                  "regulator_record",
+                  "court_or_inquiry_record",
+                  "independent_evaluation",
+                  "external_authoritative",
+                  "unknown"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "locator_id",
+              "source_role",
+              "source_date",
+              "retrieved_at",
+              "effective_from",
+              "effective_to"
+            ],
+            "type": "object"
+          },
+          "Phase6Scope": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_id": {
+                "enum": [
+                  "FIXTURE_REDACTED"
+                ],
+                "type": "string"
+              },
+              "scope_kind": {
+                "enum": [
+                  "organisation"
+                ],
+                "type": "string"
+              },
+              "scope_label": {
+                "enum": [
+                  "FIXTURE_REDACTED"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope_id",
+              "scope_kind",
+              "scope_label"
+            ],
+            "type": "object"
+          },
+          "ResourceOrWorkforceMeasure": {
+            "additionalProperties": false,
+            "properties": {
+              "epistemic_class": {
+                "enum": [
+                  "first_party_measure_reported",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "measure": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  }
+                ]
+              },
+              "period": {
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "resource_or_workforce_measure"
+                ],
+                "type": "string"
+              },
+              "resource_kind": {
+                "enum": [
+                  "expenditure",
+                  "staff_fte",
+                  "volunteers",
+                  "funds",
+                  "other_resource"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "resource_kind",
+              "measure",
+              "unit",
+              "period"
+            ],
+            "type": "object"
+          },
+          "ServiceExists": {
+            "additionalProperties": false,
+            "properties": {
+              "epistemic_class": {
+                "enum": [
+                  "first_party_claim",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "proposition_type": {
+                "enum": [
+                  "service_exists"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "service_name": {
+                "type": "string"
+              },
+              "service_scope": {
+                "enum": [
+                  "organisation",
+                  "program",
+                  "service"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "service_name",
+              "service_scope"
+            ],
+            "type": "object"
+          },
+          "ServiceScaleMeasure": {
+            "additionalProperties": false,
+            "properties": {
+              "epistemic_class": {
+                "enum": [
+                  "first_party_measure_reported",
+                  "source_native_record"
+                ],
+                "type": "string"
+              },
+              "evidence": {
+                "items": {
+                  "$ref": "#/$defs/Phase6EvidenceRef"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "measure": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  }
+                ]
+              },
+              "period": {
+                "type": "string"
+              },
+              "proposition_type": {
+                "enum": [
+                  "service_scale_measure"
+                ],
+                "type": "string"
+              },
+              "scale_kind": {
+                "enum": [
+                  "homes",
+                  "beds",
+                  "locations",
+                  "people_served",
+                  "services_delivered",
+                  "other_scale"
+                ],
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/Phase6Scope"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope",
+              "evidence",
+              "epistemic_class",
+              "proposition_type",
+              "scale_kind",
+              "measure",
+              "unit",
+              "period"
+            ],
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "propositions": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ServiceExists"
+                },
+                {
+                  "$ref": "#/$defs/IntendedBeneficiaryGroup"
+                },
+                {
+                  "$ref": "#/$defs/FormalEligibilityRule"
+                },
+                {
+                  "$ref": "#/$defs/AccessInformation"
+                },
+                {
+                  "$ref": "#/$defs/AccessPathway"
+                },
+                {
+                  "$ref": "#/$defs/HistoricalActivityVolume"
+                },
+                {
+                  "$ref": "#/$defs/ResourceOrWorkforceMeasure"
+                },
+                {
+                  "$ref": "#/$defs/ServiceScaleMeasure"
+                },
+                {
+                  "$ref": "#/$defs/CapacityLimitOrMeasure"
+                },
+                {
+                  "$ref": "#/$defs/AvailabilityReportedAsOf"
+                },
+                {
+                  "$ref": "#/$defs/AvailabilityUnknown"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "slice_id": {
+            "enum": [
+              "capacity"
+            ],
+            "type": "string"
+          },
+          "subject_id": {
+            "enum": [
+              "subject:c5418719398a412593d91e66bad184a8"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "slice_id",
+          "subject_id",
+          "propositions"
+        ],
+        "type": "object"
+      }
+    }
+  }
+}

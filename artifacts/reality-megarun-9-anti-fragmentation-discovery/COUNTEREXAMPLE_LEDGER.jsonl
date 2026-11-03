@@ -1,0 +1,5 @@
+{"id":"C9-INIT","frontier":"campaign","classification":"pending","finding":"Counterexample collection initialized."}
+{"id":"C9-01","frontier":"semantic","classification":"source_role","finding":"WWF Code adherence is an organisation self-assertion, not independent compliance evidence."}
+{"id":"C9-02","frontier":"g2","classification":"irreducible_satellite","finding":"AP4D host/funder/initiative roles cannot be represented by an undirected partner proposition."}
+{"id":"C9-03","frontier":"product","classification":"outcome_inflation","finding":"Learning Club volunteer narrative is published testimonial, not aggregate student-outcome evidence."}
+{"id":"C9-04","frontier":"temporal","classification":"unit_not_conflict","finding":"5,478 volunteers and 5,983 roles reconcile only with an explicit many-role-per-person qualifier."}

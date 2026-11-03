@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-09-28T12:11:45.845600+00:00",
+  "acnc_documents_url": "https://www.acnc.gov.au/charity/charities/f1413902-d240-eb11-bf72-000d3ad1ce4e/documents/",
+  "latest_ais_year": 2023,
+  "official_ais_financial_report_date_received": "13/03/2024",
+  "outcome": "no_public_report_url_acquired",
+  "evidence": "The official 2023 AIS bulk row's 'financial report date received' field is '13/03/2024'. ACNC's public documents page was a client-rendered shell in v2 and did not expose document metadata or a direct report URL. This establishes only that this spike could not acquire a public lodged-report document; it does not assert no report was lodged or required.",
+  "limitations": [
+    "No direct public ACNC report/document URL or document metadata was exposed by the structured datasets.",
+    "A blank AIS field is not proof that no report was required."
+  ]
+}

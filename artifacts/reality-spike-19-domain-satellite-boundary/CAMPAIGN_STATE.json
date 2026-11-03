@@ -1,0 +1,15 @@
+{
+  "session_key": "cg-megarun3-170-domain-satellite-boundary-v1",
+  "state": "COMPLETE",
+  "acceptance_marker": "MEGARUN3_DOMAIN_BOUNDARY_COMPLETE",
+  "evidence": {
+    "sampled_propositions": 55,
+    "novel_cohort_propositions_available": 223,
+    "source_subjects": 8,
+    "query_trials": 22,
+    "observed_satellite_types": 6,
+    "predicted_unobserved_satellite_types": 1
+  },
+  "decision": "G2 is the universal attributed proposition spine. Measurements, offerings, service relationships, outcome observations, commitment assertions, and participation opportunities are bounded attached satellites when trigger conditions apply. Coverage/missingness and routing remain external/separate.",
+  "scope_guard": "Experimental artifact only; no canonical, production, S0, remote, credential, or Git configuration mutation."
+}

@@ -1,0 +1,3 @@
+# Not run
+
+Private archive root inaccessible: PermissionError(13, 'Access is denied'). Capture-first source acquisition was not started and no substitute archive was used.

@@ -1,0 +1,146 @@
+[
+  {
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS program and disclosure fields do not establish a complete relationship graph"
+  },
+  {
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS purpose/program fields do not establish an outcome measure, denominator or method"
+  },
+  {
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "reported program presence does not establish current service capacity or availability"
+  },
+  {
+    "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS totals do not preserve full statement/table context or comparative periods"
+  },
+  {
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS program and disclosure fields do not establish a complete relationship graph"
+  },
+  {
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS purpose/program fields do not establish an outcome measure, denominator or method"
+  },
+  {
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "reported program presence does not establish current service capacity or availability"
+  },
+  {
+    "subject": "Accelerated Evolution - The Break Inc.",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS totals do not preserve full statement/table context or comparative periods"
+  },
+  {
+    "subject": "Aboriginal Legal Rights Movement",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS program and disclosure fields do not establish a complete relationship graph"
+  },
+  {
+    "subject": "Aboriginal Legal Rights Movement",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS purpose/program fields do not establish an outcome measure, denominator or method"
+  },
+  {
+    "subject": "Aboriginal Legal Rights Movement",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "reported program presence does not establish current service capacity or availability"
+  },
+  {
+    "subject": "Aboriginal Legal Rights Movement",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS totals do not preserve full statement/table context or comparative periods"
+  },
+  {
+    "subject": "Project Underdog Rescue Inc",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS program and disclosure fields do not establish a complete relationship graph"
+  },
+  {
+    "subject": "Project Underdog Rescue Inc",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS purpose/program fields do not establish an outcome measure, denominator or method"
+  },
+  {
+    "subject": "Project Underdog Rescue Inc",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "reported program presence does not establish current service capacity or availability"
+  },
+  {
+    "subject": "Project Underdog Rescue Inc",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS totals do not preserve full statement/table context or comparative periods"
+  },
+  {
+    "subject": "International China Concern (Australia) Ltd",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS program and disclosure fields do not establish a complete relationship graph"
+  },
+  {
+    "subject": "International China Concern (Australia) Ltd",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS purpose/program fields do not establish an outcome measure, denominator or method"
+  },
+  {
+    "subject": "International China Concern (Australia) Ltd",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "reported program presence does not establish current service capacity or availability"
+  },
+  {
+    "subject": "International China Concern (Australia) Ltd",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS totals do not preserve full statement/table context or comparative periods"
+  },
+  {
+    "subject": "Australian National Capital Artists Inc",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS program and disclosure fields do not establish a complete relationship graph"
+  },
+  {
+    "subject": "Australian National Capital Artists Inc",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS purpose/program fields do not establish an outcome measure, denominator or method"
+  },
+  {
+    "subject": "Australian National Capital Artists Inc",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "reported program presence does not establish current service capacity or availability"
+  },
+  {
+    "subject": "Australian National Capital Artists Inc",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS totals do not preserve full statement/table context or comparative periods"
+  }
+]

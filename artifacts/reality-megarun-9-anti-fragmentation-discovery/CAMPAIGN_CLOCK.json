@@ -1,0 +1,10 @@
+{
+  "run_id": "CG-REALITY-MEGARUN9-ANTI-FRAGMENTATION-DISCOVERY-TERRA-183",
+  "started_utc": "2026-09-29T13:50:00Z",
+  "started_local": "2026-09-29T23:50:00+10:00",
+  "ended_utc": "2026-09-29T13:58:44Z",
+  "ended_local": "2026-09-29T23:58:44+10:00",
+  "status": "PREMATURE_TERMINATION",
+  "active_work_seconds": 524,
+  "note": "No global stop occurred. The required 30-minute active minimum was not reached, so the mandatory premature outcome is recorded."
+}

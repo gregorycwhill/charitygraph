@@ -1,0 +1,3 @@
+# D — Australian Red Cross Society: AI/search projection (P1)
+
+Use retained regulator/AIS data for baseline identity, purpose, programme/geography, workforce/scale and finance/funding. The 2024–25 annual report pp. 2–4 adds first-party, model-extracted candidates about divisions, stated code/value commitments, audit statements, impact coverage, participation/capacity and reach. Quote as “the report states/describes,” never as independent evidence of integrity, effectiveness, or safety. Uncertainties: history/classification/adverse processing incomplete; source claims must retain badges/locators.

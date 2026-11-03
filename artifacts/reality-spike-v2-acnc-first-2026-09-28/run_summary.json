@@ -1,0 +1,70 @@
+{
+  "non_production": true,
+  "started_at": "2026-09-28T11:55:26.918960+00:00",
+  "model_requested": "gpt-5.6-terra",
+  "model_calls": 3,
+  "charities": [
+    {
+      "name": "Medecins Sans Frontieres Australia Limited",
+      "acnc_record_id": "33ed3439-38af-e811-a962-000d3ad24a0d",
+      "abn_attribute": "74068758654",
+      "directory": "artifacts\\reality-spike-v2-acnc-first-2026-09-28\\01-msf-acnc-33ed3439",
+      "model": {
+        "model": "gpt-5.6-terra",
+        "response_id": "resp_040a3dc982d227b3006aba55b35f7087d081ca3139a60fc9c6",
+        "status": "completed",
+        "usage": {
+          "input_tokens": 21139,
+          "output_tokens": 1751,
+          "total_tokens": 22890
+        },
+        "transport_requests": 1
+      }
+    },
+    {
+      "name": "SUNRISE FOUNDATION LIMITED",
+      "acnc_record_id": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+      "abn_attribute": "37646526132",
+      "directory": "artifacts\\reality-spike-v2-acnc-first-2026-09-28\\02-sunrise-acnc-f1413902",
+      "model": {
+        "model": "gpt-5.6-terra",
+        "response_id": "resp_098ead0646d4b011006aba55ca012487d0bc8e5d4bf4b43152",
+        "status": "completed",
+        "usage": {
+          "input_tokens": 9374,
+          "output_tokens": 1781,
+          "total_tokens": 11155
+        },
+        "transport_requests": 1
+      }
+    },
+    {
+      "name": "Noongar Boodja Trust",
+      "acnc_record_id": "cf5f4d7d-6ab4-eb11-8236-000d3a6abd1c",
+      "abn_attribute": "47613674461",
+      "directory": "artifacts\\reality-spike-v2-acnc-first-2026-09-28\\03-noongar-boodja-acnc-cf5f4d7d",
+      "model": {
+        "model": "gpt-5.6-terra",
+        "response_id": "resp_0b856a8ad0b23cbd006aba55e2b0ac87d0a6d54be86bc6960e",
+        "status": "completed",
+        "usage": {
+          "input_tokens": 7021,
+          "output_tokens": 1351,
+          "total_tokens": 8372
+        },
+        "transport_requests": 1
+      }
+    }
+  ],
+  "warnings": [],
+  "acnc_access_limited": false,
+  "finished_at": "2026-09-28T11:56:32.378929+00:00",
+  "component_inventory": {
+    "openai_client": "REUSED_SUCCESSFULLY",
+    "spike_v1_rendering_and_retention_pattern": "REUSED_SUCCESSFULLY",
+    "acnc_first_acquisition": "NEW_LIGHTWEIGHT_SPIKE_COMPONENT",
+    "production_acquisition_governance": "BYPASSED_FOR_SPIKE",
+    "A3_reservations_accounting": "BYPASSED_FOR_SPIKE",
+    "S0_Attempt20_runtime": "NOT_NEEDED"
+  }
+}

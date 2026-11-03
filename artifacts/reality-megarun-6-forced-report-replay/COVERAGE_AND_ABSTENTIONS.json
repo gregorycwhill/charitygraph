@@ -1,0 +1,12 @@
+{
+  "abstentions": "Questions without a proposition ID abstain; counts are only new recovered narrative sentences.",
+  "readable_pages": 6,
+  "section_gains": {
+    "12": 0,
+    "15": 2,
+    "18": 2,
+    "6": 3,
+    "7": 5,
+    "9": 4
+  }
+}

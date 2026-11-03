@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "candidate_ref": {"type": "string", "pattern": "^C[0-9]{3}$"},
+          "verdict": {"type": "string", "enum": ["accept", "narrow_qualify", "reject"]},
+          "supporting_observations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "observation_ref": {"type": "string", "pattern": "^O[0-9]{3}$"},
+                "role": {"type": "string", "enum": ["supporting", "corroborating", "context"]}
+              },
+              "required": ["observation_ref", "role"]
+            }
+          },
+          "reason": {"type": "string"},
+          "revised_rationale": {"type": ["string", "null"]},
+          "revised_qualifications": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["candidate_ref", "verdict", "supporting_observations", "reason", "revised_rationale", "revised_qualifications"]
+      }
+    },
+    "strongly_supported_omissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "target_scope": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "kind": {"type": "string", "enum": ["subject", "named_program_or_service"]},
+              "label": {"type": "string"}
+            },
+            "required": ["kind", "label"]
+          },
+          "goal_id": {"type": "string"},
+          "supporting_observations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {"observation_ref": {"type": "string", "pattern": "^O[0-9]{3}$"}},
+              "required": ["observation_ref"]
+            }
+          },
+          "rationale": {"type": "string"},
+          "qualifications": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["target_scope", "goal_id", "supporting_observations", "rationale", "qualifications"]
+      }
+    }
+  },
+  "required": ["candidate_reviews", "strongly_supported_omissions"]
+}

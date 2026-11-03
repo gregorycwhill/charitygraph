@@ -1,0 +1,428 @@
+[
+  {
+    "subject": "Australian Red Cross Society",
+    "domain": "report_proposition_extraction",
+    "state": "not_established_from_retained_representation",
+    "reason": "retained report control has no newly readable source-native representation; prior evidence is not replayed"
+  },
+  {
+    "subject": "World Vision Australia",
+    "domain": "report_proposition_extraction",
+    "state": "not_established_from_retained_representation",
+    "reason": "retained report control has no newly readable source-native representation; prior evidence is not replayed"
+  },
+  {
+    "subject": "Bush Heritage Australia",
+    "domain": "report_proposition_extraction",
+    "state": "not_established_from_retained_representation",
+    "reason": "retained report control has no newly readable source-native representation; prior evidence is not replayed"
+  },
+  {
+    "subject": "DARWIN VOLUNTEER UNIT (NTES) ASSOCIATION INCORPORATION",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "DARWIN VOLUNTEER UNIT (NTES) ASSOCIATION INCORPORATION",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "DARWIN VOLUNTEER UNIT (NTES) ASSOCIATION INCORPORATION",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "DARWIN VOLUNTEER UNIT (NTES) ASSOCIATION INCORPORATION",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Bundi Yamatji Aboriginal Corporation",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Bundi Yamatji Aboriginal Corporation",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Bundi Yamatji Aboriginal Corporation",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Bundi Yamatji Aboriginal Corporation",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Mighty Livingwaters - Life Fellowship",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Mighty Livingwaters - Life Fellowship",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Mighty Livingwaters - Life Fellowship",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Mighty Livingwaters - Life Fellowship",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "The Russian Imperial Order of Saint Michael Archangel",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "The Russian Imperial Order of Saint Michael Archangel",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "The Russian Imperial Order of Saint Michael Archangel",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "The Russian Imperial Order of Saint Michael Archangel",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Access Church Limited",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Access Church Limited",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Access Church Limited",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Access Church Limited",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Ananda Marga Pracaraka Samgha Ltd Preschool",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Ananda Marga Pracaraka Samgha Ltd Preschool",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Ananda Marga Pracaraka Samgha Ltd Preschool",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Ananda Marga Pracaraka Samgha Ltd Preschool",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Northern Rivers Animal Services Inc.",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Northern Rivers Animal Services Inc.",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Northern Rivers Animal Services Inc.",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Northern Rivers Animal Services Inc.",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Geelong & District Day Nursery Incorporated",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Geelong & District Day Nursery Incorporated",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Geelong & District Day Nursery Incorporated",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Geelong & District Day Nursery Incorporated",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Dieback Working Group Inc",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Dieback Working Group Inc",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Dieback Working Group Inc",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Dieback Working Group Inc",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "CAMPBELLTOWN COMMUNITY CHILDREN'S CENTRE INC",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "CAMPBELLTOWN COMMUNITY CHILDREN'S CENTRE INC",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "CAMPBELLTOWN COMMUNITY CHILDREN'S CENTRE INC",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "CAMPBELLTOWN COMMUNITY CHILDREN'S CENTRE INC",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Thalanyji Foundation Limited",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Thalanyji Foundation Limited",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Thalanyji Foundation Limited",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Thalanyji Foundation Limited",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Australia Chung Tai Buddhist Foundation Inc",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Australia Chung Tai Buddhist Foundation Inc",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Australia Chung Tai Buddhist Foundation Inc",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Australia Chung Tai Buddhist Foundation Inc",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Aeiou Foundation",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Aeiou Foundation",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Aeiou Foundation",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Aeiou Foundation",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Habitat for Humanity Australia SA",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Habitat for Humanity Australia SA",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Habitat for Humanity Australia SA",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Habitat for Humanity Australia SA",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "4LIFESKILLS INC.",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "4LIFESKILLS INC.",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "4LIFESKILLS INC.",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "4LIFESKILLS INC.",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Steps Staffing Solutions Ltd",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Steps Staffing Solutions Ltd",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Steps Staffing Solutions Ltd",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Steps Staffing Solutions Ltd",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Castlemaine Art Museum Ltd",
+    "domain": "relationship_graph",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Castlemaine Art Museum Ltd",
+    "domain": "outcome_measurement",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Castlemaine Art Museum Ltd",
+    "domain": "service_capacity",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  },
+  {
+    "subject": "Castlemaine Art Museum Ltd",
+    "domain": "financial_statement_context",
+    "state": "not_established_from_retained_representation",
+    "reason": "AIS structured return does not establish this rich domain"
+  }
+]

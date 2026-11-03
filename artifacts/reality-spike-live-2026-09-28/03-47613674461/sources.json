@@ -1,0 +1,20 @@
+[
+  {
+    "url": "https://abr.business.gov.au/ABN/View?abn=47613674461",
+    "retrieved_at": "2026-09-28T11:14:10.546936+00:00",
+    "outcome": "retrieved",
+    "http_status": 200,
+    "content_type": "text/html",
+    "text": "Current details for ABN 47 613 674 461 | ABN Lookup Current details for ABN 47 613 674 461 | ABN Lookup (function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src = '//www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'GTM-NHD23K'); skip to content Home Search Advanced search Statistical query Tools & resources Web services ABN Lookup tools Deductible gift recipients ATO app Quick links Bulk extract ABN refresh Help Update your ABN details Frequently asked questions Glossary Deductible gift recipients Charitable tax concessions Search tips Entity types Government agencies Search by ABN, ACN or name: ABN Lookup > Search > Current details for ABN 47 613 674 461 Current details for ABN 47 613 674 461 Version: 9.9.7 Current details Historical details Print Email ABN details help Entity name: The Trustee for Noongar Boodja Trust ABN status: Active from 29 Mar 2021 Entity type: Fixed Trust Goods & Services Tax (GST): Registered from 29 Mar 2021 Main business location: WA 6000 Australian Charities and Not-for-profits Commission (ACNC) help The Trustee for Noongar Boodja Trust is registered with the Australian Charities and Not-for-profits Commission (ACNC) as follows: ACNC registration From Registered as a charity view ACNC registration 29 Mar 2021 Charity tax concession status help The Trustee for Noongar Boodja Trust is a Charity endorsed to access the following tax concessions: Tax concession From GST Concession 29 Mar 2021 Income Tax Exemption 29 Mar 2021 FBT Rebate 29 Mar 2021 Deductible gift recipient status help Not entitled to receive tax deductible gifts ABN last updated: 11 Oct 2023 Record extracted: 28 Sep 2026 Disclaimer The Registrar makes every reasonable effort to maintain current and accurate information on this site. The Commissioner of Taxation advises that if you use ABN Lookup for information about another entity for taxation purposes and that information turns out to be incorrect, in certain circumstances you will be protected from liability. For more information see disclaimer . Warning Statement If you use ABN Lookup for information about a person or entity that provides financial or investment products or advice, make sure they have an Australian Financial Services (AFS) licence. You can check licenced professional registers here . More information Update your ABN details Planning, starting and growing your business Trading names information Top About us Contact us Privacy policies Disclaimer Other languages Site map",
+    "role": "regulator_identity"
+  },
+  {
+    "url": "https://html.duckduckgo.com/html/?q=%22Noongar+Boodja+Trust%22+%2247613674461%22",
+    "retrieved_at": "2026-09-28T11:14:10.687849+00:00",
+    "outcome": "retrieved",
+    "http_status": 202,
+    "content_type": "text/html",
+    "text": "--> DuckDuckGo DuckDuckGo Unfortunately, bots use DuckDuckGo too. Please complete the following challenge to confirm this search was made by a human. Select all squares containing a duck: Submit Images not loading? Please email the following code to: error-lite+2a60@duckduckgo.com Code: 2a60 here . //-->",
+    "role": "live_web_discovery"
+  }
+]

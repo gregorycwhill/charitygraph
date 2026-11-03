@@ -1,0 +1,12 @@
+[
+  {"id":"A182-01","subject":"australian-red-cross","page":9,"prior_claim":"offers psychological first aid","classification":"directly_entailed_and_useful","finding":"The page explicitly lists psychological first aid among core activities."},
+  {"id":"A182-02","subject":"australian-red-cross","page":9,"prior_claim":"reached people through preparedness campaigns","classification":"entailed_but_over_atomised","finding":"The actual page says 5.8m+ people were reached and supplies a campaign context; omitted quantity, period and what was reached."},
+  {"id":"A182-03","subject":"world-vision-australia","page":11,"prior_claim":"conducts scheduled evaluations and reviews of programs and projects","classification":"directly_entailed_and_useful","finding":"Explicit, but must remain a first-party process statement."},
+  {"id":"A182-04","subject":"world-vision-australia","page":11,"prior_claim":"uses evaluation to assess effects on participants","classification":"qualifier_scope_loss","finding":"The source says it undertakes evaluations to assess impact; it does not establish that effects were found."},
+  {"id":"A182-05","subject":"the-smith-family","page":41,"prior_claim":"reported 5,478 individual volunteers","classification":"directly_entailed_and_useful","finding":"Explicit and time/page bounded."},
+  {"id":"A182-06","subject":"the-smith-family","page":41,"prior_claim":"uses volunteering as a measurable participation contribution","classification":"inferred_beyond_evidence","finding":"Reasonable modelling interpretation, not a source proposition."},
+  {"id":"A182-07","subject":"acfid","page":17,"prior_claim":"requires directed relationship/partner-role representation","classification":"template_or_model_generated","finding":"This is an architecture conclusion injected into a source-claim list, not a claim made by the page."},
+  {"id":"A182-08","subject":"wwf-australia","page":29,"prior_claim":"states commitment to Code compliance","classification":"source_role_loss","finding":"The page is WWF’s self-description; must not appear as independent compliance verification."},
+  {"id":"A182-09","subject":"all","page":null,"prior_claim":"satellite classifications","classification":"template_generated","finding":"Classification was assigned by semantic-area keyword plus modulo arithmetic."},
+  {"id":"A182-10","subject":"all","page":null,"prior_claim":"product Q&A and retrieval hits","classification":"synthetic_benchmark","finding":"Questions/intents are generated one-to-one from known claims, then expected to hit them."}
+]

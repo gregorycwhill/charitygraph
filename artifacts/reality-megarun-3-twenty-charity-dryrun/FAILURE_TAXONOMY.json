@@ -1,0 +1,20 @@
+[
+  {
+    "subject": "Australian Red Cross Society",
+    "taxonomy": "report_native_representation_unavailable",
+    "local": true,
+    "action": "coverage/card terminal; continue batch"
+  },
+  {
+    "subject": "World Vision Australia",
+    "taxonomy": "report_native_representation_unavailable",
+    "local": true,
+    "action": "coverage/card terminal; continue batch"
+  },
+  {
+    "subject": "Bush Heritage Australia",
+    "taxonomy": "report_native_representation_unavailable",
+    "local": true,
+    "action": "coverage/card terminal; continue batch"
+  }
+]

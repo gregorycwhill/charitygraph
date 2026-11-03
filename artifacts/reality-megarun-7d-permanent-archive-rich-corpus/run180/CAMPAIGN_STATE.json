@@ -1,0 +1,20 @@
+{
+  "schema": "charitygraph.supervisor-work/v1",
+  "state": "COMPLETE",
+  "outcome": "MEGARUN7_ARCHIVE_PROVEN_RICH_CORPUS_PARTIAL",
+  "completed_at": "2026-09-29T13:09:23.305625+00:00",
+  "archive_root": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\Source Archive",
+  "summary": {
+    "reports_bound": 5,
+    "represented_pages": 75,
+    "native_readable_pages": 75,
+    "archive_objects": 17,
+    "archive_bytes": 51054764,
+    "outcome": "MEGARUN7_ARCHIVE_PROVEN_RICH_CORPUS_PARTIAL",
+    "limitations": [
+      "Terra semantic review not invoked by this disposable runner; therefore no governed G2 propositions, satellites, Q&A, or 20 comparisons are claimed.",
+      "Mission/Bush discovery can fail independently; only bound reports count."
+    ]
+  },
+  "persistence_audit": "All experiment artifacts are under the single root; source object paths resolve outside Git."
+}

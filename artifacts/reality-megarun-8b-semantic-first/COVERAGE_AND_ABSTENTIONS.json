@@ -1,0 +1,22 @@
+{
+  "subjects": {
+    "australian-red-cross": 32,
+    "world-vision-australia": 37,
+    "plan-international-australia": 40,
+    "the-smith-family": 56,
+    "bush-heritage-australia": 56,
+    "caritas-australia": 64,
+    "acfid": 64,
+    "wwf-australia": 64
+  },
+  "substantive_propositions": 413,
+  "missingness": "Sparse/no evidence is retained as abstention, not false negative; financial pages were not used to inflate semantic coverage.",
+  "weak_sections_tested": [
+    "6",
+    "7",
+    "9",
+    "12",
+    "15",
+    "18"
+  ]
+}

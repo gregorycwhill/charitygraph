@@ -1,0 +1,93 @@
+{
+  "module_id": "M13",
+  "title": "Directed relationship stress",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 13,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/acfid-17.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/australian-red-cross-18.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-18.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-23.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/plan-international-australia-10.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "source": "acfid-17",
+      "time": "2023-24",
+      "edges": [
+        "ACFID → hosts → AP4D",
+        "ACMC → funds → AP4D",
+        "DFAT → funds → AP4D"
+      ],
+      "scope": "AP4D",
+      "role": "ACFID first-party description",
+      "trap": "DFAT is not shown funding all ACFID operations"
+    },
+    {
+      "source": "australian-red-cross-18",
+      "time": "2023-24",
+      "edges": [
+        "ARC, NZRC, ICRC → co-host → Pacific IHL forum",
+        "Swiss embassies Australia/New Zealand → fund → forum"
+      ],
+      "scope": "forum",
+      "role": "ARC report",
+      "trap": "Embassies are funders not necessarily co-hosts"
+    },
+    {
+      "source": "caritas-australia-18",
+      "time": "2023-24",
+      "edges": [
+        "Caritas Australia → supports → GAP",
+        "GAP → operates → GYE"
+      ],
+      "scope": "Palmerston youth program",
+      "role": "Caritas report",
+      "trap": "Caritas is not asserted to directly operate GAP"
+    },
+    {
+      "source": "bush-heritage-australia-23",
+      "time": "2025-26",
+      "edges": [
+        "Bush Heritage + Greening Australia + Rangers → restoration → Ediegarrup",
+        "Greening Australia + Canopy → nature-finance partnership → Bush Heritage"
+      ],
+      "scope": "Ediegarrup restoration versus finance",
+      "role": "Bush Heritage report",
+      "trap": "Restoration role does not imply carbon certification authority"
+    },
+    {
+      "source": "plan-international-australia-10",
+      "time": "FY24 report narrative",
+      "edges": [
+        "Plan + Taawon → hot meals → Gaza",
+        "Plan + TDH → cash assistance → Gaza",
+        "Plan + Juzoor → vaccination support → northern Gaza"
+      ],
+      "scope": "three interventions",
+      "role": "Plan report; Federation/Australia distinction unresolved for some statements",
+      "trap": "Do not assign each partner to every intervention"
+    }
+  ],
+  "defects": [
+    "D13: Role direction and entity level must be queryable."
+  ],
+  "counterexamples": [
+    "Source-role attribution remains necessary even after relationship direction is correct."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Five cases reasoned from text; no canonical entity resolutions; Terra requirement unmet."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\acfid-17.txt": "8040138b495d92afc42ab67627e657a12bd5849669f02445f774cc5396acf67d",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\australian-red-cross-18.txt": "49947ed2f772a7af642f597fbe9cee347e8a9b5b2955535dc49332fc1df324df",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-18.txt": "3793420efcab9e47fbae38aba14a20dabffc00d5162828fd110f4ebbcc1636ab",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-23.txt": "f2b297cd7095dcaeda34fa9f8f3a2a140563e43396a27d0d9917bbfd3dd12db4",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\plan-international-australia-10.txt": "79cd3206a99255c0088eb93fbcf31cf552e86df17bbf996b39f203785670f703"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

@@ -1,0 +1,325 @@
+from datetime import datetime, timezone
+import json
+from decimal import Decimal
+
+import pytest
+from pydantic import TypeAdapter, ValidationError
+
+from charitygraph.contracts import (
+    DIRECT_SERVICE_OUTPUT_SCHEMA,
+    DirectServiceEvidenceRef,
+    DirectServiceProposition,
+    DirectServiceSemanticOutput,
+    DirectServiceRelationship,
+    DirectServiceWireOutput,
+    DirectServiceV12WireOutput,
+    DirectServiceWireProposition,
+    DirectServiceWireEvidenceRef,
+    wire_to_domain,
+    v12_wire_to_domain,
+    project_observation,
+    ModelTaskType,
+    validate_scope_bindings,
+)
+from charitygraph.strict_schema import strictify_schema, validate_strict_schema
+from charitygraph.phase5_semantic_contracts import _production_direct_service
+from charitygraph.direct_service_recovery import (
+    recover_direct_service_result,
+    recover_historical_wire,
+    recovery_identity,
+)
+from charitygraph.phase5_semantic_contracts import direct_service_representation_schema_v1_2
+from charitygraph.contracts.semantic import TASK_OUTPUT_SCHEMAS
+
+
+NOW = datetime(2026, 8, 31, tzinfo=timezone.utc)
+EVIDENCE = (DirectServiceEvidenceRef(locator="evidence:S001:L0001", role="supporting"),)
+
+
+def proposition(kind="service_offer", **updates):
+    value = {
+        "proposition_type": kind,
+        "scope_id": "scope:" + "1" * 32,
+        "scope_kind": "service",
+        "scope_label": "Crisis support service",
+        "coverage_state": "supported",
+        "value": "offered",
+        "evidence": EVIDENCE,
+        "observation_time": {"observed_at": NOW},
+    }
+    value.update(updates)
+    return DirectServiceProposition.model_validate(value)
+
+
+def test_contract_is_typed_and_sections_are_not_collapsed():
+    participation = DirectServiceSemanticOutput(
+        section="participation",
+        propositions=(
+            proposition("participation_opportunity", scope_kind="organisation", scope_label="Australian Red Cross"),
+            proposition("participation_measure", value=16_000, unit="people"),
+        ),
+    )
+    assert {item.proposition_type for item in participation.propositions} == {
+        "participation_opportunity", "participation_measure",
+    }
+    with pytest.raises(ValidationError):
+        DirectServiceSemanticOutput(section="participation", propositions=(proposition("service_offer"),))
+
+
+def test_supported_and_absence_states_require_evidence_but_missingness_stays_distinct():
+    for state in ("supported", "asserted_none", "observed_absent"):
+        with pytest.raises(ValidationError):
+            proposition(coverage_state=state, evidence=())
+    values = [proposition("current_availability", coverage_state=state, evidence=()) for state in (
+        "source_silent", "not_found", "not_attempted", "unknown",
+    )]
+    assert [item.coverage_state for item in values] == ["source_silent", "not_found", "not_attempted", "unknown"]
+    with pytest.raises(ValidationError):
+        proposition("service_offer", evidence=(DirectServiceEvidenceRef(locator="evidence:S001:L0002", role="context"),))
+
+
+def test_service_existence_availability_and_capacity_are_distinct():
+    offer = proposition("service_offer")
+    availability = proposition("current_availability", value="unknown", coverage_state="source_silent", evidence=())
+    capacity = proposition("capacity_measure", value=24, unit="places")
+    assert offer.proposition_type != availability.proposition_type != capacity.proposition_type
+
+
+def test_scheme_scope_and_status_do_not_become_quality_claims():
+    accreditation = proposition(
+        "accreditation", scope_kind="program", scope_label="First aid program",
+        scheme_id="scheme:first-aid", scheme_version="2026", scheme_status="active",
+        scheme_identifier="CERT-123",
+    )
+    membership = proposition(
+        "scheme_membership", scope_kind="organisation", scope_label="Australian Red Cross",
+        scheme_id="scheme:pfra", scheme_status="member",
+    )
+    assert accreditation.scope_kind == "program"
+    assert membership.scope_kind == "organisation"
+    with pytest.raises(ValidationError):
+        proposition("accreditation", scheme_id="scheme:x", quality="high")
+
+
+def test_relationship_roles_remain_distinct_and_evidence_bound():
+    relationship = DirectServiceRelationship(
+        source_scope_kind="organisation", source_scope_id="scope:" + "1" * 32, source_label="Australian Red Cross",
+        target_scope_kind="service", target_scope_id="scope:" + "2" * 32, target_label="Emergency support",
+        role="deliverer", direction="source_to_target", evidence=EVIDENCE,
+    )
+    assert relationship.role == "deliverer"
+    with pytest.raises(ValidationError):
+        DirectServiceRelationship(
+            source_scope_kind="organisation", source_scope_id="scope:" + "1" * 32, source_label="Australian Red Cross",
+            target_scope_kind="service", target_scope_id="scope:" + "2" * 32, target_label="Emergency support",
+            role="operator", direction="source_to_target", evidence=(),
+        )
+
+
+def test_output_schema_and_task_registration_are_stable():
+    assert DIRECT_SERVICE_OUTPUT_SCHEMA == TASK_OUTPUT_SCHEMAS["direct_service_semantics"]
+    assert TypeAdapter(ModelTaskType).validate_python("direct_service_semantics") == "direct_service_semantics"
+
+
+def test_scope_bindings_require_task_visible_ids_and_do_not_use_label_matching():
+    output = DirectServiceSemanticOutput(section="participation", propositions=(proposition("participation_opportunity"),))
+    validate_scope_bindings(output, {"scope:" + "1" * 32})
+    with pytest.raises(ValueError, match="unknown proposition scope_id"):
+        validate_scope_bindings(output, {"scope:" + "9" * 32})
+
+
+def test_proposition_projects_to_existing_observation_without_collapsing_coverage():
+    item = proposition("current_availability", value=None, coverage_state="source_silent", evidence=())
+    projected = project_observation(
+        item,
+        record_id="observation:" + "a" * 32,
+        subject_id="subject:" + "1" * 32,
+        scope_id="scope:" + "2" * 32,
+        source_record_ids=("srcrec:" + "3" * 32,),
+        created_at=NOW,
+        producer={"kind": "code", "producer_id": "direct-service-fixture"},
+    )
+    assert projected.scope_id == "scope:" + "2" * 32
+    assert projected.predicate == "direct_service.current_availability"
+    assert projected.value["coverage_state"] == "source_silent"
+
+
+def test_subject_scope_projects_as_subject_observation_scope():
+    subject_id = "subject:" + "1" * 32
+    item = proposition("participation_opportunity", scope_id=subject_id, scope_kind="subject")
+    projected = project_observation(
+        item,
+        record_id="observation:" + "b" * 32,
+        subject_id=subject_id,
+        scope_id=None,
+        source_record_ids=("srcrec:" + "3" * 32,),
+        created_at=NOW,
+        producer={"kind": "code", "producer_id": "direct-service-fixture"},
+    )
+    assert projected.scope_id is None
+
+
+def test_provider_wire_schema_is_bounded_and_excludes_internal_value_algebra():
+    schema = strictify_schema(DirectServiceWireOutput.model_json_schema())
+    validate_strict_schema(schema)
+    serialized = str(schema)
+    assert "CanonicalValue" not in serialized
+    assert "pattern" not in serialized
+    assert "format" not in serialized
+    assert not any(
+        isinstance(node, dict) and isinstance(node.get("additionalProperties"), dict)
+        for node in schema.get("$defs", {}).values()
+        if isinstance(node, dict)
+    )
+
+
+def test_wire_output_converts_scalars_to_existing_domain_contract():
+    wire = DirectServiceWireOutput(
+        section="participation",
+        propositions=(DirectServiceWireProposition(
+            proposition_type="participation_measure", scope_id="scope:" + "1" * 32,
+            scope_kind="service", scope_label="Training", coverage_state="supported",
+            value=12.5, unit="people", evidence=(DirectServiceWireEvidenceRef(locator="evidence:S001:L0001", role="supporting"),),
+            observation_time={"observed_at": NOW.isoformat()},
+        ),),
+    )
+    domain = wire_to_domain(wire, allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"evidence:S001:L0001"})
+    assert domain.propositions[0].value == Decimal("12.5")
+    assert type(domain.propositions[0].value) is Decimal
+
+
+def test_provider_wire_owns_no_schema_identity_and_domain_injects_canonical_ref():
+    wire = DirectServiceWireOutput(section="participation")
+    assert "schema" not in wire.model_dump(mode="json")
+    domain = wire_to_domain(wire)
+    assert domain.schema_ref == DIRECT_SERVICE_OUTPUT_SCHEMA
+
+
+def test_historical_recovery_drops_only_known_schema_field_and_is_strict():
+    payload = {"schema": {"schema_id": "charitygraph.direct_service_semantics", "schema_version": "1.0"}, "section": "participation", "propositions": [], "relationships": []}
+    recovered = recover_historical_wire(json.dumps(payload))
+    assert recovered.section == "participation"
+    with pytest.raises(ValueError, match="unexpected historical wire fields"):
+        recover_historical_wire(json.dumps(payload | {"extra": True}))
+    with pytest.raises(ValueError):
+        recover_historical_wire(json.dumps({"schema": payload["schema"], "section": "participation", "propositions": [{"bad": 1}], "relationships": []}))
+
+
+def test_recovery_identity_is_deterministic_and_materially_bound():
+    first = recovery_identity(response_id="resp_x", old_wire_schema_sha="a" * 64, domain_schema_id=DIRECT_SERVICE_OUTPUT_SCHEMA.schema_id)
+    second = recovery_identity(response_id="resp_x", old_wire_schema_sha="a" * 64, domain_schema_id=DIRECT_SERVICE_OUTPUT_SCHEMA.schema_id)
+    assert first == second
+    assert first != recovery_identity(response_id="resp_y", old_wire_schema_sha="a" * 64, domain_schema_id=DIRECT_SERVICE_OUTPUT_SCHEMA.schema_id)
+
+
+def test_v12_representation_schema_discriminates_section_and_proposition_type():
+    schema = direct_service_representation_schema_v1_2()
+    assert schema["type"] == "object"
+    assert "oneOf" not in schema
+    assert schema["properties"]["participation"]["items"]["properties"]["proposition_type"]["enum"] == ["participation_opportunity", "participation_measure"]
+    assert schema["properties"]["capability_access_availability"]["items"]["properties"]["proposition_type"]["enum"] == ["service_offer", "eligibility", "access_pathway", "current_availability", "capacity_measure"]
+    assert schema["properties"]["scheme_accreditation"]["items"]["properties"]["proposition_type"]["enum"] == ["scheme_membership", "accreditation"]
+
+
+def test_v12_wire_adapter_preserves_valid_types_and_rejects_cross_section_shapes():
+    valid = DirectServiceV12WireOutput(
+        section="participation",
+        participation=(DirectServiceWireProposition(proposition_type="participation_opportunity", scope_id="scope:" + "1" * 32, scope_kind="organisation"),),
+    )
+    domain = v12_wire_to_domain(valid, allowed_scope_ids={"scope:" + "1" * 32})
+    assert domain.section == "participation"
+    assert domain.propositions[0].proposition_type == "participation_opportunity"
+    with pytest.raises(ValidationError, match="section"):
+        DirectServiceV12WireOutput(
+            section="participation",
+            capability_access_availability=(DirectServiceWireProposition(proposition_type="service_offer", scope_id="scope:" + "1" * 32, scope_kind="service"),),
+        )
+
+
+def test_wire_conversion_rejects_unknown_scope_and_evidence_locator():
+    wire = DirectServiceWireOutput(section="participation", propositions=(DirectServiceWireProposition(
+        proposition_type="participation_opportunity", scope_id="scope:" + "9" * 32,
+        scope_kind="service", value="available", evidence=(DirectServiceWireEvidenceRef(locator="missing", role="supporting"),),
+    ),))
+    with pytest.raises(ValueError, match="evidence locator"):
+        wire_to_domain(wire, allowed_scope_ids={"scope:" + "9" * 32}, evidence_locators={"evidence:S001:L0001"})
+    with pytest.raises(ValueError, match="unknown proposition scope_id"):
+        wire_to_domain(wire, allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"missing"})
+
+
+def _recovery_wire(*, section="capability_access_availability", proposition_type="service_offer", locator="locator:" + "a" * 64, **updates):
+    value = {
+        "section": section,
+        "propositions": [{
+            "proposition_type": proposition_type,
+            "scope_id": "scope:" + "1" * 32,
+            "scope_kind": "service",
+            "coverage_state": "supported",
+            "value": "offered",
+            "evidence": [{"locator": locator, "role": "supporting"}],
+        }],
+        "relationships": [],
+    }
+    value.update(updates)
+    return json.dumps(value)
+
+
+def test_result_recovery_restores_only_exact_authorized_locator_prefix():
+    raw = _recovery_wire(locator="a" * 64)
+    recovered = recover_direct_service_result(
+        raw, response_id="resp_test", allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"locator:" + "a" * 64},
+    )
+    assert recovered.is_usable
+    assert recovered.normalized_locator_count == 1
+    assert recovered.wire.propositions[0].evidence[0].locator == "locator:" + "a" * 64
+    assert recovered.discarded_propositions == ()
+
+
+def test_result_recovery_never_guesses_an_unrecognized_locator():
+    recovered = recover_direct_service_result(
+        _recovery_wire(locator="b" * 64), response_id="resp_test", allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"locator:" + "a" * 64},
+    )
+    assert not recovered.is_usable
+    assert recovered.discarded_propositions[0]["reason"] == "wire evidence locator is not present in the frozen packet"
+
+
+def test_result_recovery_retains_independently_valid_entries_without_reinterpreting_invalid_ones():
+    raw = _recovery_wire(
+        section="participation",
+        proposition_type="participation_measure",
+        locator="a" * 64,
+        propositions=[
+            {
+                "proposition_type": "participation_measure", "scope_id": "scope:" + "1" * 32,
+                "scope_kind": "service", "coverage_state": "supported", "value": 12,
+                "unit": "people", "evidence": [{"locator": "a" * 64, "role": "supporting"}],
+            },
+            {
+                "proposition_type": "service_offer", "scope_id": "scope:" + "1" * 32,
+                "scope_kind": "service", "coverage_state": "supported", "value": "offered",
+                "evidence": [{"locator": "a" * 64, "role": "supporting"}],
+            },
+        ],
+    )
+    recovered = recover_direct_service_result(
+        raw, response_id="resp_test", allowed_scope_ids={"scope:" + "1" * 32}, evidence_locators={"locator:" + "a" * 64},
+    )
+    assert [item.proposition_type for item in recovered.wire.propositions] == ["participation_measure"]
+    assert "proposition type does not belong" in recovered.discarded_propositions[0]["reason"]
+
+
+def test_result_recovery_is_deterministic_and_does_not_rewrite_raw_semantics():
+    raw = _recovery_wire(locator="a" * 64)
+    kwargs = {"response_id": "resp_test", "allowed_scope_ids": {"scope:" + "1" * 32}, "evidence_locators": {"locator:" + "a" * 64}}
+    first = recover_direct_service_result(raw, **kwargs)
+    second = recover_direct_service_result(raw, **kwargs)
+    assert first.recovery_identity == second.recovery_identity
+    assert DirectServiceWireOutput.model_validate_json(raw).propositions[0].evidence[0].locator == "a" * 64
+
+
+def test_production_prompt_states_domain_section_and_locator_invariants():
+    contract = _production_direct_service()
+    assert contract.contract_version == "1.1"
+    assert "`locator:`\nprefix" in contract.prompt_template
+    assert "For `participation`, emit only" in contract.prompt_template
+    assert "provide its\nnon-empty `scheme_id`" in contract.prompt_template

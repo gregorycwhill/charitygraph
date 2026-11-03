@@ -1,0 +1,10 @@
+{
+  "improved_pages": 0,
+  "native_characters": 0,
+  "newly_visible_factual_claims": 0,
+  "pages": 30,
+  "reason": "No page has retained bytes from which either A native-only or B OCR/visual representation can be produced.",
+  "recovered_characters": 0,
+  "schema": "cg.megarun4.ablation/v1",
+  "semantic_domains_unlocked": []
+}

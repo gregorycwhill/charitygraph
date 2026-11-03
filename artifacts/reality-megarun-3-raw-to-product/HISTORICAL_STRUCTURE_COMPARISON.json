@@ -1,0 +1,122 @@
+﻿[
+    {
+        "proposition_id":  "P-RF-001",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-002",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-003",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-004",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-005",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-006",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-007",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-008",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-009",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-010",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-011",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-012",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-013",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-014",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-015",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-016",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-017",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-018",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-019",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    },
+    {
+        "proposition_id":  "P-RF-020",
+        "historical_structure":  "finance/resource-flow observation",
+        "comparison":  "G2 preserves atomic line item, locator and reporting scope; historical richer record can retain statement grouping and comparative",
+        "projection_loss":  "statement/table context is satellite, not replaced"
+    }
+]

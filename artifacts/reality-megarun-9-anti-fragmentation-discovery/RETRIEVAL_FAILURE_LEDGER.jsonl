@@ -1,0 +1,5 @@
+{"id":"R9-01","intent":"Which organisations have evidence of compliance?","failure":"source-role_false_positive","finding":"A lexical match retrieves WWF self-assertion and can be presented as verified compliance.","status":"unresolved"}
+{"id":"R9-02","intent":"Who funds AP4D?","failure":"role_join_failure","finding":"Undirected partner retrieval cannot distinguish host ACFID from funders ACMC/DFAT.","status":"unresolved"}
+{"id":"R9-03","intent":"How many volunteers participated?","failure":"unit_ambiguity","finding":"A scalar search may return roles or persons and drop multi-role caveat.","status":"unresolved"}
+{"id":"R9-04","intent":"What outcomes did the Learning Club achieve?","failure":"testimonial_false_positive","finding":"A named volunteer narrative is semantically adjacent but is not outcome evaluation.","status":"unresolved"}
+{"id":"R9-05","intent":"Did AP4D influence policy in 2023–24?","failure":"causality_requires_reasoning","finding":"Text supplies activity and non-submission caveat; answer needs query-time reasoning rather than keyword ranking.","status":"unresolved"}

@@ -1,0 +1,118 @@
+{
+  "module_id": "M24",
+  "title": "Ten donor false-confidence questions",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 24,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M06.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M08.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M10.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M17.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M18.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M20.json"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "id": "Q24-1",
+      "question": "If I fund Smith volunteering, do 5,983 different people give their time?",
+      "answer": "No: the report distinguishes 5,478 individuals from 5,983 roles, with some people holding more than one.",
+      "source": "the-smith-family-41",
+      "risk": "people/roles",
+      "self_review": "Material qualifier retained in this response; no independent scoring"
+    },
+    {
+      "id": "Q24-2",
+      "question": "Did Bush Heritage already improve Ediegarrup from 45.1?",
+      "answer": "The cited page reports 45.1/100 and expects improvement at a later assessment; it supplies no later measured value.",
+      "source": "bush-heritage-australia-23",
+      "risk": "observed/expected",
+      "self_review": "Material qualifier retained in this response; no independent scoring"
+    },
+    {
+      "id": "Q24-3",
+      "question": "Can I cite WWF as independently confirmed Code-compliant today?",
+      "answer": "The 2021 note contains WWF's adherence assertion and a complaints route. It does not establish today's independent compliance finding.",
+      "source": "wwf-australia-29",
+      "risk": "freshness/assurance",
+      "self_review": "Material qualifier retained in this response; no independent scoring"
+    },
+    {
+      "id": "Q24-4",
+      "question": "Does Plan Australia directly operate programs in 83 countries?",
+      "answer": "The report assigns 83+ countries to the Federation; Australia's grant/public funds directly support programs in 25, implemented by Plan offices and local partners.",
+      "source": "plan-international-australia-5",
+      "risk": "entity scope",
+      "self_review": "Material qualifier retained in this response; no independent scoring"
+    },
+    {
+      "id": "Q24-5",
+      "question": "Does Smith's 49% mean its program fails half its young people?",
+      "answer": "No. That is external research about disadvantaged 24-year-olds, not an outcome rate for Smith's participants.",
+      "source": "the-smith-family-19",
+      "risk": "population/source",
+      "self_review": "Material qualifier retained in this response; no independent scoring"
+    },
+    {
+      "id": "Q24-6",
+      "question": "Did all 345 On PAR students improve like Amber?",
+      "answer": "The report describes 345 students helped and gives Amber's anonymised story. It does not report the same outcome for all 345.",
+      "source": "the-smith-family-27",
+      "risk": "anecdote/aggregate",
+      "self_review": "Material qualifier retained in this response; no independent scoring"
+    },
+    {
+      "id": "Q24-7",
+      "question": "Does WVA's Christian identity restrict help to Christians?",
+      "answer": "Its report explicitly says it serves people regardless of religion and works with people of all faiths and none.",
+      "source": "world-vision-australia-7",
+      "risk": "identity/eligibility",
+      "self_review": "Material qualifier retained in this response; no independent scoring"
+    },
+    {
+      "id": "Q24-8",
+      "question": "Did the Catch-Up trial prove the tutoring caused every improvement?",
+      "answer": "The inspected methods use pre/post assessments and a previous-year reference group. They do not establish randomised concurrent assignment; causal certainty would overstate these pages.",
+      "source": "M18:6-7",
+      "risk": "study design",
+      "self_review": "Material qualifier retained in this response; no independent scoring"
+    },
+    {
+      "id": "Q24-9",
+      "question": "Does RFDS's 345,136 mean that many different patients?",
+      "answer": "The RFDS page labels this as total patient contacts, so it cannot be restated as a deduplicated patient count.",
+      "source": "M17:8",
+      "risk": "contacts/persons",
+      "self_review": "Material qualifier retained in this response; no independent scoring"
+    },
+    {
+      "id": "Q24-10",
+      "question": "Can I say 71,818 families and students are the same population?",
+      "answer": "No. The live program page says families; the annual report says students. The equal number needs source clarification before reconciliation.",
+      "source": "M20 + the-smith-family-23",
+      "risk": "source discrepancy",
+      "self_review": "Material qualifier retained in this response; no independent scoring"
+    }
+  ],
+  "defects": [
+    "D24: Evidence exists for several donor questions but a terse answer can change the unit, subject, time or evidential force."
+  ],
+  "counterexamples": [
+    "Archive SHA alone would validate every misleading restatement above; it cannot establish semantic fidelity."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Direct current-agent product-response exercise; no deployed product output measured; questions/self-review not blind."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M06.json": "a4badd838663ed68b6196aaa5572af7d9069e7425743fea65fbc76928bc8512a",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M08.json": "44251902d856de66d16ebb627018e7c3162d8a88495f8df5d377d9c4b3a1944f",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M10.json": "7d5b4e7834ab2e7e1ea3ec319e095ab478c0aa91c2d56dcd15e406df20100f49",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M17.json": "5e1689062881a89e6f174b51a35c466f7584c0742aecc5860243734be05bc28b",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M18.json": "4993744361d23ee4b6a4c72a2ec8d74ea7d48e9f47f80cce042f5536004d7bb7",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M20.json": "4b722094eb2edbaaed05f1cb195b9ebbd6d5f41b6c102efc6ac5c87e71671869"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

@@ -1,0 +1,3 @@
+# Repair and rerun log
+
+Batch repaired the disposable experimental method conceptually: quarantine the run-182 hard-coded corpus; prohibit generation of claims/classifications/questions from templates; require direct-authored claim records with page id, source role, scope and time; treat low-character native extraction as inadequate rather than success. The integrated rerun was the ten-item direct semantic ledger and its page-by-page audit. It surfaced adjacent defects—testimonial inflation, directional-role loss, and causal-status retrieval—that were recorded rather than papered over. No canonical or production code was modified.

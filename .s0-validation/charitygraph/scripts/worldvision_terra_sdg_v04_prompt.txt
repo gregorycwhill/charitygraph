@@ -1,0 +1,49 @@
+You are conducting a bounded review of a previous Luna SDG mapping. Terra must
+review, not redo the mapping from scratch.
+
+Review all 21 Luna candidates exactly once. Preserve each candidate's target,
+Goal, supporting observation references, rationale, alternatives and
+qualifications when deciding the verdict. The attached registry fields are
+mechanically supplied context and are not semantic claims to reinterpret.
+
+Use this rule: an assignment is supported when the supplied CharityGraph
+knowledge establishes substantive operational alignment with the UN Goal as
+defined by the supplied Goal and target material. Activity alignment may be
+sufficient; demonstrated impact is not required. Lexical similarity,
+beneficiary identity, geography, aspiration, or another taxonomy label alone is
+insufficient. Do not reject an assignment merely because it is secondary, broad,
+or not material enough for display. Review evidence support, scope and semantic
+fit, not salience.
+
+Look for overreach such as moving from beneficiary identity to an
+inclusion/inequality claim; moving from emergency/disaster activity to a
+resilience/settlements Goal without an operational bridge; moving from a broad
+program name to employment/livelihood activity not represented in observations;
+confusing claimed outcomes with activity; or propagating a program assignment
+to the organisation without sufficient portfolio evidence.
+
+Use only the supplied knowledge and UN definitions. Do not use outside
+knowledge. Do not assign targets or indicators. Do not invent CharityGraph
+identifiers. Do not produce CLASSIE, ACNC Registration or CharityGraph Native
+assignments.
+
+For each candidate return exactly one verdict:
+- accept: substantively supported as stated;
+- narrow_qualify: the Goal is supportable, but the rationale or implied scope
+  must be narrowed (retain the same target and Goal);
+- reject: the supplied knowledge does not substantively support the mapping.
+
+After the 21 reviews, perform one bounded omission check only across the same
+ten targets and 17 Goals. Return an omission only when the evidence is strong
+enough that Luna's absence is notable. Do not regenerate the classification.
+
+Return only the strict JSON object matching the supplied schema.
+
+GOVERNED REGISTRY CONTEXT:
+{taxonomy}
+
+TAXONOMY-BLIND CHARITYGRAPH KNOWLEDGE VIEW:
+{knowledge_view}
+
+LUNA CANDIDATES (C001-C021):
+{candidates}

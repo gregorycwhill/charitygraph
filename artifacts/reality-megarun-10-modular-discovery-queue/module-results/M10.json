@@ -1,0 +1,106 @@
+{
+  "module_id": "M10",
+  "title": "Ethos/commitment semantic wave",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 10,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/world-vision-australia-7.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/plan-international-australia-4.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-3.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/wwf-australia-29.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/acfid-12.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-37.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/world-vision-australia-3.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/australian-red-cross-35.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-14.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/plan-international-australia-5.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "unit_id": "M10-U1",
+      "page_id": "world-vision-australia-7",
+      "claim": "WVA identifies as Christian and says it serves irrespective of religion, race, ethnicity or gender; faith identity does not imply faith-restricted eligibility.",
+      "source_role": "declared ethos"
+    },
+    {
+      "unit_id": "M10-U2",
+      "page_id": "plan-international-australia-4",
+      "claim": "Plan prioritises girls' equality but explicitly says this does not exclude boys or men.",
+      "source_role": "purpose with exception-preventing qualifier"
+    },
+    {
+      "unit_id": "M10-U3",
+      "page_id": "caritas-australia-3",
+      "claim": "Caritas expresses Catholic inspiration alongside a commitment to all people regardless of religion, race or political beliefs.",
+      "source_role": "mission and inclusion commitment"
+    },
+    {
+      "unit_id": "M10-U4",
+      "page_id": "wwf-australia-29",
+      "claim": "WWF asserts ACFID adherence in a 2021 report and describes a public complaints route; neither assertion nor mechanism proves complaint-free conduct.",
+      "source_role": "self-asserted adherence"
+    },
+    {
+      "unit_id": "M10-U5",
+      "page_id": "acfid-12",
+      "claim": "ACFID's revised Code was approved October 2023 and effective 30 June 2024; mapping to ACNC standards is alignment guidance, not equivalence or regulator accreditation.",
+      "source_role": "code/version change"
+    },
+    {
+      "unit_id": "M10-U6",
+      "page_id": "the-smith-family-37",
+      "claim": "Smith reports enhanced leave entitlements and ongoing DEI implementation; workplace aspiration and policy change do not establish all staff experience inclusiveness.",
+      "source_role": "policy and workforce report"
+    },
+    {
+      "unit_id": "M10-U7",
+      "page_id": "world-vision-australia-3",
+      "claim": "WVA supports First Nations self-determination, self-management and self-governance within a Christian acknowledgment; retain both elements.",
+      "source_role": "declared commitment"
+    },
+    {
+      "unit_id": "M10-U8",
+      "page_id": "australian-red-cross-35",
+      "claim": "ARC describes inclusion networks with over 200 registrations and a wellbeing strategy; registration counts are not a measure of achieved safety.",
+      "source_role": "workplace commitment"
+    },
+    {
+      "unit_id": "M10-U9",
+      "page_id": "caritas-australia-14",
+      "claim": "Caritas frames locally led action through subsidiarity and transformative partnerships, summarising evaluation learning; values and evidence roles coexist.",
+      "source_role": "learning/values statement"
+    },
+    {
+      "unit_id": "M10-U10",
+      "page_id": "plan-international-australia-5",
+      "claim": "Plan commits to strengthening systematic resilience practice after evaluation recommendations; this is evidence of acknowledged improvement needs.",
+      "source_role": "commitment following evaluation"
+    }
+  ],
+  "defects": [
+    "D10: Code version dates and source assertion roles must survive donor projections."
+  ],
+  "counterexamples": [
+    "Faith identity with explicit universal service commitment defeats eligibility inference from identity alone."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Ten pages interpreted; no independent conduct verification; Terra-specific requirement unmet."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\world-vision-australia-7.txt": "c3ee1c0e9ef07124be083697e4e15cda2de19d0012d3746be8bb6743c25ce303",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\plan-international-australia-4.txt": "dbb54d48726bea69a241fc0194306791f87a253246d180a72ced84111ee0c614",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-3.txt": "662d37b29b971ed187ea5882497bad5757589ac70f1ff6af292cca31db4085c4",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\wwf-australia-29.txt": "94f6677bd4e830837af7baf98cacd023fe6bc436a77dc0b6eba5db745f98742f",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\acfid-12.txt": "02ba868176180ac14cf85a366658ef037916c2d674ab4ba19e89e3ae3721383d",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-37.txt": "b15abd39bacbed754c77de1652ad37f405a22a416ae0dd28158155f9c47c2391",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\world-vision-australia-3.txt": "193ec44aa94d536ba84859957f2e3c6a4b817a2852c57bac177debbaef47c85f",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\australian-red-cross-35.txt": "dc4848c862201843f6345d9077c6d59ab5734fce901c70ea6fa2364c58b0841e",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-14.txt": "a5bae4fdc25b88d4d9063632bdc507dad2f73cf1d94158eb05b65d31583db7ac",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\plan-international-australia-5.txt": "d1e9f192b752336bdd05f75125fe4f106a9e9bd68f90f264599e8b01a64b5e97"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

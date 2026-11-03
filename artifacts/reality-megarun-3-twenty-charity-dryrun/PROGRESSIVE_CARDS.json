@@ -1,0 +1,263 @@
+[
+  {
+    "subject": "Australian Red Cross Society",
+    "terminal_state": "coverage_card_abstention",
+    "evidence_state": "bounded/unavailable for novel extraction",
+    "candidate_count": 0,
+    "progressive_routes": {},
+    "review_unit": "coverage abstention"
+  },
+  {
+    "subject": "World Vision Australia",
+    "terminal_state": "coverage_card_abstention",
+    "evidence_state": "bounded/unavailable for novel extraction",
+    "candidate_count": 0,
+    "progressive_routes": {},
+    "review_unit": "coverage abstention"
+  },
+  {
+    "subject": "Bush Heritage Australia",
+    "terminal_state": "coverage_card_abstention",
+    "evidence_state": "bounded/unavailable for novel extraction",
+    "candidate_count": 0,
+    "progressive_routes": {},
+    "review_unit": "coverage abstention"
+  },
+  {
+    "subject": "DARWIN VOLUNTEER UNIT (NTES) ASSOCIATION INCORPORATION",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Bundi Yamatji Aboriginal Corporation",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Mighty Livingwaters - Life Fellowship",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "The Russian Imperial Order of Saint Michael Archangel",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 14,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 3,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Access Church Limited",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Ananda Marga Pracaraka Samgha Ltd Preschool",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Northern Rivers Animal Services Inc.",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 15,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 4,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Geelong & District Day Nursery Incorporated",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Dieback Working Group Inc",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "CAMPBELLTOWN COMMUNITY CHILDREN'S CENTRE INC",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Thalanyji Foundation Limited",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 11,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Australia Chung Tai Buddhist Foundation Inc",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Aeiou Foundation",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Habitat for Humanity Australia SA",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 15,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 4,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "4LIFESKILLS INC.",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Steps Staffing Solutions Ltd",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 13,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 2,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  },
+  {
+    "subject": "Castlemaine Art Museum Ltd",
+    "terminal_state": "ledger_coverage_card",
+    "evidence_state": "no retained report selected; AIS structured return available",
+    "candidate_count": 14,
+    "progressive_routes": {
+      "section_1_identity": 3,
+      "section_3_purpose_programs": 3,
+      "section_12_finance_resource_flow": 5,
+      "section_6_workforce": 2,
+      "section_18_governance_controls": 1
+    },
+    "review_unit": "candidate plus exact JSON pointer"
+  }
+]

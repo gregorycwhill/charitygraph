@@ -1,0 +1,97 @@
+{
+  "non_production_reality_spike_v2": true,
+  "charity": {
+    "name": "SUNRISE FOUNDATION LIMITED",
+    "acnc_record_id": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+    "abn_attribute": "37646526132"
+  },
+  "generated_at": "2026-09-28T11:56:14.796992+00:00",
+  "model": {
+    "model": "gpt-5.6-terra",
+    "response_id": "resp_098ead0646d4b011006aba55ca012487d0bc8e5d4bf4b43152",
+    "status": "completed",
+    "usage": {
+      "input_tokens": 9374,
+      "output_tokens": 1781,
+      "total_tokens": 11155
+    },
+    "transport_requests": 1
+  },
+  "card": {
+    "identity": {
+      "statement": "The ACNC Charity Register page is titled \u201cSUNRISE FOUNDATION LIMITED\u201d and is associated with ACNC record ID f1413902-d240-eb11-bf72-000d3ad1ce4e.",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/f1413902-d240-eb11-bf72-000d3ad1ce4e"
+      ]
+    },
+    "purpose_mission": {
+      "statement": "Not established from the retained evidence.",
+      "source_urls": []
+    },
+    "programs_or_activity_scopes": [],
+    "beneficiaries": {
+      "statement": "Not established from the retained evidence.",
+      "source_urls": []
+    },
+    "geography": {
+      "statement": "Not established for the charity\u2019s activities from the retained evidence.",
+      "source_urls": []
+    },
+    "workforce_volunteers": {
+      "statement": "Not established from the retained evidence.",
+      "source_urls": []
+    },
+    "financial_scale": {
+      "statement": "No financial values or financial-report contents were available in the retained evidence.",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/f1413902-d240-eb11-bf72-000d3ad1ce4e/documents/"
+      ]
+    },
+    "governance": {
+      "statement": "No responsible-person or governance details were available in the retained evidence.",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/f1413902-d240-eb11-bf72-000d3ad1ce4e/people"
+      ]
+    },
+    "operating_evidence": {
+      "statement": "ACNC-hosted document pages are labelled as Annual Information Statements for reporting years 2021, 2022, and 2023. The retained page text supplies report titles and metadata only, not the statements\u2019 substantive responses or financial contents.",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/f1413902-d240-eb11-bf72-000d3ad1ce4e/documents/5a5f5e4a-39e0-ee11-904c-6045bdc2f3c2",
+        "https://www.acnc.gov.au/charity/charities/f1413902-d240-eb11-bf72-000d3ad0466e",
+        "https://www.acnc.gov.au/charity/charities/f1413902-d240-eb11-bf72-000d3ad1ce4e/documents/aeaa1ff5-e7e0-ee11-904c-002248970b4e"
+      ]
+    },
+    "source_reported_claims": [
+      {
+        "statement": "An external ABR attribute record for ABN 37 646 526 132 lists the entity name as SUNRISE FOUNDATION LIMITED, identifies the entity type as an Australian Public Company, and records an active ABN status from 10 December 2020. This ABN is retained only as an external attribute/join key, not as the charity\u2019s identity or as evidence of operations.",
+        "source_urls": [
+          "https://abr.business.gov.au/ABN/View?abn=37646526132"
+        ]
+      },
+      {
+        "statement": "The external ABR attribute record states that the named entity has ACNC registration from 10 December 2020 and lists Public Benevolent Institution tax-concession and DGR endorsements from that date. These are source-reported registry/tax-status claims, not evidence of charitable activities or delivery.",
+        "source_urls": [
+          "https://abr.business.gov.au/ABN/View?abn=37646526132"
+        ]
+      }
+    ],
+    "unknowns_not_established": [
+      "Mission or charitable purpose.",
+      "Programs, services, or activity scope.",
+      "Beneficiary groups.",
+      "Activity locations or geographic reach.",
+      "Workforce, volunteer, and staffing figures.",
+      "Financial income, expenses, assets, liabilities, or grants.",
+      "Responsible persons, board composition, or other governance details.",
+      "Substantive contents of the 2021, 2022, or 2023 Annual Information Statements.",
+      "Whether a later annual statement or financial report was lodged; the retained acquisition could not responsibly identify a latest report URL."
+    ],
+    "cautions": [
+      "The retained ACNC register, profile, people, documents-index, and AIS-page captures are largely scripted page shells. Apart from page titles and embedded metadata, they do not expose the underlying register fields, people, document contents, or financial values.",
+      "The 2021\u20132023 Annual Information Statement evidence establishes ACNC-hosted report pages labelled for those reporting years; it does not establish the content of those statements.",
+      "An active ABN is not treated as proof that the charity is currently operating or delivering activities.",
+      "No claims about any similarly named organisation, network, or global movement are attributed to this Australian charity."
+    ]
+  },
+  "source_manifest": "sources.json"
+}

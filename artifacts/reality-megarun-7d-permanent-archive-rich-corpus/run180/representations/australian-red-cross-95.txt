@@ -1,0 +1,43 @@
+Notes to the financial statements
+30 June 2024
+NOTE 18. DEFINED BENEFITSUPERANNUATION PLANS (continued)
+(b) Amountsrecognisedinthestatementofprofitandlossandothercomprehensiveincome
+2024 2023
+$'000 $'000
+Servicecost:
+Currentservicecost 305 303
+Employercontributions (258) (290)
+Membercontributions (25) (26)
+Netinterestcost (90) (65)
+Componentsofdefinedbenefitcostrecognisedin(deficit)/surplus (68) (78)
+Remeasurementonthenetdefinedbenefitliability:
+Returnonplanassets(excludingamountsincludedinnetinterestexpense) (306) (322)
+Actuarial(gain)/lossarisingfromchangesindemographicassumptions - -
+Actuarialloss/(gain)arisingfromchangesinfinancialassumptions 108 (446)
+Actuarial(gain)/lossarisingfromexperienceadjustment 22 427
+Componentsofdefinedbenefitgainrecognisedinothercomprehensiveincome (176) (341)
+Totaldefinedbenefit(gain)/loss (244) (419)
+Thecurrentservicecostandthenetinterestexpensefortheyearareincludedinstaffexpenditureinthestatementof
+profitorlossandothercomprehensiveincome.Theremeasurementofthenetdefinedbenefitliabilityisincludedin
+othercomprehensiveincome.
+(c) Amountsrecognisedinthestatementoffinancialposition
+Notes 2024 2023
+$'000 $'000
+Presentvalueoffundeddefinedbenefitplanobligation 18(d) 18,219 17,652
+Fairvalueofdefinedbenefitplanassets 18(e) (19,961) (19,150)
+Net(asset)/liabilityarisingfromdefinedbenefitplan
+obligation (1,742) (1,498)
+(d) Reconciliationofmovementinthepresentvalueofthedefinedbenefitplanobligation
+2024 2023
+$'000 $'000
+Balanceatbeginningoftheyear 17,652 17,473
+Currentservicecost 305 303
+Interestonobligation 955 862
+Remeasurement(gains)/losses
+Actuarial(gain)/lossarisingfromchangesindemographicassumptions -
+Actuarial(gain)/lossarisingfromchangesinfinancialassumptions 108 (446)
+Actuariallossarisingfromexperienceadjustments 22 427
+Benefitspaid(includingexpensesandtaxes) (739) (334)
+Other (84) (633)
+Balanceatendoftheyear 18,219 17,652
+95

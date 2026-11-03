@@ -1,0 +1,100 @@
+{
+  "fixture_kind": "privacy-scrubbed-structural-replay-of-historical-provider-response",
+  "source_response_id": "resp_0c6fa4b74febec07016aa60dd661e487d08ff316506924987a",
+  "source_response_body_sha256": "be181868ad75219a1c482337c80faae49e61c60e47aedd6d0d9fcb2ac401bee1",
+  "redaction_note": "All arbitrary text, amounts, and subject-specific identifiers were replaced; discriminator tags and source-role values are retained to reproduce historical validation behavior. The original response remains in the private run directory.",
+  "output": {
+    "propositions": [
+      {
+        "commitment_kind": "goal",
+        "epistemic_class": "first_party_claim",
+        "evidence": [
+          {
+            "effective_from": null,
+            "effective_to": null,
+            "locator_id": "locator:fixture-1",
+            "retrieved_at": null,
+            "source_date": null,
+            "source_role": "official_homepage"
+          }
+        ],
+        "instrument": "REDACTED_FIXTURE_TEXT",
+        "proposition_type": "commitment_stated",
+        "scope": {
+          "scope_id": "scope:fixture",
+          "scope_kind": "organisation",
+          "scope_label": "Fixture charity"
+        },
+        "stated_period": null
+      },
+      {
+        "commitment_kind": "goal",
+        "epistemic_class": "first_party_claim",
+        "evidence": [
+          {
+            "effective_from": null,
+            "effective_to": null,
+            "locator_id": "locator:fixture-2",
+            "retrieved_at": null,
+            "source_date": null,
+            "source_role": "historical_frozen_regulator_material"
+          }
+        ],
+        "instrument": "REDACTED_FIXTURE_TEXT",
+        "proposition_type": "commitment_stated",
+        "scope": {
+          "scope_id": "scope:fixture",
+          "scope_kind": "organisation",
+          "scope_label": "Fixture charity"
+        },
+        "stated_period": "REDACTED_FIXTURE_TEXT"
+      },
+      {
+        "activity": "REDACTED_FIXTURE_TEXT",
+        "activity_status": "reported_completed",
+        "epistemic_class": "first_party_claim",
+        "evidence": [
+          {
+            "effective_from": null,
+            "effective_to": null,
+            "locator_id": "locator:fixture-3",
+            "retrieved_at": null,
+            "source_date": null,
+            "source_role": "historical_frozen_regulator_material"
+          }
+        ],
+        "proposition_type": "implementation_activity_self_reported",
+        "reporting_period": "REDACTED_FIXTURE_TEXT",
+        "scope": {
+          "scope_id": "scope:fixture",
+          "scope_kind": "organisation",
+          "scope_label": "Fixture charity"
+        }
+      },
+      {
+        "activity": "REDACTED_FIXTURE_TEXT",
+        "activity_status": "in_progress",
+        "epistemic_class": "first_party_claim",
+        "evidence": [
+          {
+            "effective_from": null,
+            "effective_to": null,
+            "locator_id": "locator:fixture-4",
+            "retrieved_at": null,
+            "source_date": null,
+            "source_role": "official_homepage"
+          }
+        ],
+        "proposition_type": "implementation_activity_self_reported",
+        "reporting_period": null,
+        "scope": {
+          "scope_id": "scope:fixture",
+          "scope_kind": "organisation",
+          "scope_label": "Fixture charity"
+        }
+      }
+    ],
+    "slice_id": "commitments",
+    "subject_id": "REDACTED_FIXTURE_TEXT"
+  }
+}

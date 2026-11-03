@@ -1,0 +1,107 @@
+{
+  "module_id": "M08",
+  "title": "Outcome/evaluation semantic wave",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 8,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/world-vision-australia-11.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/world-vision-australia-13.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-19.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-10.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-7.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-8.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-14.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/plan-international-australia-5.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-23.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-27.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "unit_id": "M08-U1",
+      "page_id": "world-vision-australia-11",
+      "claim": "12 evaluations/reviews (7 evaluations, 5 mid-term reviews) are evaluation activity counts, not 12 demonstrated successful interventions.",
+      "source_role": "evaluation practice"
+    },
+    {
+      "unit_id": "M08-U2",
+      "page_id": "world-vision-australia-13",
+      "claim": "WVA says it concluded three named meta-reviews in 2024 and uses a standardised monitoring approach. This describes an evidence process; effect sizes remain absent.",
+      "source_role": "evaluation process"
+    },
+    {
+      "unit_id": "M08-U3",
+      "page_id": "the-smith-family-19",
+      "claim": "49% versus 18% of 24-year-olds not fully engaged in work/study is attributed to external 2020 research; it is background disadvantage evidence, not a Learning for Life outcome.",
+      "source_role": "external research reproduced in annual report"
+    },
+    {
+      "unit_id": "M08-U4",
+      "page_id": "bush-heritage-australia-10",
+      "claim": "Bush Heritage separates outputs (implementation), outcomes (threats) and impacts (focal value health); a functioning measurement framework alone is not a positive impact finding.",
+      "source_role": "declared methodology"
+    },
+    {
+      "unit_id": "M08-U5",
+      "page_id": "caritas-australia-7",
+      "claim": "Angeline's account links agriculture training to improved harvests and income; this is one participant story and does not supply a controlled estimate.",
+      "source_role": "published testimonial"
+    },
+    {
+      "unit_id": "M08-U6",
+      "page_id": "caritas-australia-8",
+      "claim": "Leaia's household water/toilet changes are described through a story and a one-year follow-up; left-panel organisation impact totals must not be assigned to her household/program.",
+      "source_role": "case story and multi-column counts"
+    },
+    {
+      "unit_id": "M08-U7",
+      "page_id": "caritas-australia-14",
+      "claim": "Caritas summarises four external program evaluations and their positive findings, but underlying reports, methods and sampling are not on this page.",
+      "source_role": "first-party summary of external evaluations"
+    },
+    {
+      "unit_id": "M08-U8",
+      "page_id": "plan-international-australia-5",
+      "claim": "Plan reports resilience successes alongside an evaluation recommendation for more systematic adoption; dropping the recommendation overstates consistency.",
+      "source_role": "evaluation summary"
+    },
+    {
+      "unit_id": "M08-U9",
+      "page_id": "bush-heritage-australia-23",
+      "claim": "Ediegarrup vegetation condition is 45.1/100; next-assessment improvement is expected, not observed. Environmental accounts are explicitly not linked to ACCUs absent eligibility assessment.",
+      "source_role": "measurement plus prospective assertion"
+    },
+    {
+      "unit_id": "M08-U10",
+      "page_id": "the-smith-family-27",
+      "claim": "Amber's reported improvement is an anonymised On PAR case story; '345 helped' is not evidence every participant achieved Amber's outcomes.",
+      "source_role": "anonymised case story"
+    }
+  ],
+  "defects": [
+    "D08: Outcome counts, output counts and background population statistics are easily conflated.",
+    "D08b: Inlined multi-column extraction can mix program and organisation counts."
+  ],
+  "counterexamples": [
+    "Ediegarrup's ACCU footnote defeats an inference from biodiversity certification to carbon-linked biodiversity verification."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Ten pages read; external evaluation methods not available on these pages; Terra-specific evidence unavailable."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\world-vision-australia-11.txt": "499064f91dca768530da0ca03a5029ff4ae3f216060b8890fe0590c8ef2297f7",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\world-vision-australia-13.txt": "57e3ad51f43c9ea25cd50ec50fa1a0399e3745d8196c7ef14ff92df66eaead1b",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-19.txt": "13fb8388f9653161761d8b76c7bd9b5385f254a64d3a2f9950fcd9c876744bab",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-10.txt": "bd8953b172a148b193bfdd7666e228c0e3914d606d51b67c6affa17471e76ead",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-7.txt": "e5a8db4f5b86f332a76e171e2da6b0cfe815fb21e42a7fff960886cd3f36fa24",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-8.txt": "6b2a5b8783e932e28d2dcea3f05a69ef74ac46eac7c54bf2b12ecec3d36a6fe0",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-14.txt": "a5bae4fdc25b88d4d9063632bdc507dad2f73cf1d94158eb05b65d31583db7ac",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\plan-international-australia-5.txt": "d1e9f192b752336bdd05f75125fe4f106a9e9bd68f90f264599e8b01a64b5e97",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-23.txt": "f2b297cd7095dcaeda34fa9f8f3a2a140563e43396a27d0d9917bbfd3dd12db4",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-27.txt": "f6ad3a4fb14da552ca763261cda01082c1124e3e07cc9b48f5281491faa85da7"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

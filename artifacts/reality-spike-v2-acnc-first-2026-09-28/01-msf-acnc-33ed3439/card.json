@@ -1,0 +1,121 @@
+{
+  "non_production_reality_spike_v2": true,
+  "charity": {
+    "name": "Medecins Sans Frontieres Australia Limited",
+    "acnc_record_id": "33ed3439-38af-e811-a962-000d3ad24a0d",
+    "abn_attribute": "74068758654"
+  },
+  "generated_at": "2026-09-28T11:55:49.019615+00:00",
+  "model": {
+    "model": "gpt-5.6-terra",
+    "response_id": "resp_040a3dc982d227b3006aba55b35f7087d081ca3139a60fc9c6",
+    "status": "completed",
+    "usage": {
+      "input_tokens": 21139,
+      "output_tokens": 1751,
+      "total_tokens": 22890
+    },
+    "transport_requests": 1
+  },
+  "card": {
+    "identity": {
+      "statement": "ACNC Charity Register materials identify the record as \u201cMedecins Sans Frontieres Australia Limited\u201d (ACNC record ID 33ed3439-38af-e811-a962-000d3ad24a0d).",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/33ed3439-38af-e811-a962-000d3ad24a0d"
+      ]
+    },
+    "purpose_mission": {
+      "statement": "The official Australian website states that M\u00e9decins Sans Fronti\u00e8res brings medical humanitarian assistance to people affected by conflict, disasters, epidemics, or exclusion from healthcare. The retained page presents this as an MSF-wide statement and does not establish it as a mission statement specifically adopted by the Australian legal entity.",
+      "source_urls": [
+        "https://www.msf.org.au/about-us"
+      ]
+    },
+    "programs_or_activity_scopes": [
+      {
+        "statement": "The official Australian website says the M\u00e9decins Sans Fronti\u00e8res Australia office supports more than 100 Australian and New Zealand professionals each year to work in international medical-humanitarian projects.",
+        "source_urls": [
+          "https://www.msf.org.au/about-us"
+        ]
+      },
+      {
+        "statement": "The official Australian website describes its work areas at a high level as where it works, how it works, medical issues, and crisis responses; retained evidence does not provide a project-level program inventory for the Australian legal entity.",
+        "source_urls": [
+          "https://www.msf.org.au/our-work"
+        ]
+      }
+    ],
+    "beneficiaries": {
+      "statement": "The official website describes MSF-wide assistance for people affected by conflict, disasters, epidemics, or exclusion from healthcare. Retained evidence does not establish the beneficiaries directly served by Medecins Sans Frontieres Australia Limited as a distinct legal entity.",
+      "source_urls": [
+        "https://www.msf.org.au/about-us"
+      ]
+    },
+    "geography": {
+      "statement": "ABN Lookup lists the joined entity\u2019s main business location as NSW 2007. The official Australian website says its Australia office supports Australian and New Zealand professionals for international medical-humanitarian projects; this does not establish the Australian entity itself as operating projects in all locations associated with the wider MSF movement.",
+      "source_urls": [
+        "https://abr.business.gov.au/ABN/View?abn=74068758654",
+        "https://www.msf.org.au/about-us"
+      ]
+    },
+    "workforce_volunteers": {
+      "statement": "The official Australian website states that the Australia office supports more than 100 Australian and New Zealand professionals each year for international medical-humanitarian projects. Retained evidence does not provide a headcount of the Australian legal entity\u2019s employees or volunteers.",
+      "source_urls": [
+        "https://www.msf.org.au/about-us"
+      ]
+    },
+    "financial_scale": {
+      "statement": "An ACNC Annual Information Statement titled \u201cMedecins Sans Frontieres Australia Limited Annual Information Statement 2024\u201d was retrieved, but the retained extract contains no AIS financial values. No financial-scale figure is established.",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/33ed3439-38af-e811-a962-000d3ad24a0d/documents/8378ce3c-fb40-f011-8779-0022489511f7"
+      ]
+    },
+    "governance": {
+      "statement": "No directors, responsible persons, or entity-specific governance arrangements are exposed in the retained ACNC people-page extract. The official website\u2019s description of an international Association is presented as an MSF-wide statement and is not attributed here to the Australian legal entity.",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/33ed3439-38af-e811-a962-000d3ad24a0d/people",
+        "https://www.msf.org.au/about-us"
+      ]
+    },
+    "operating_evidence": {
+      "statement": "The official Australian website reports that the Australia office supports more than 100 Australian and New Zealand professionals each year to work in international medical-humanitarian projects. This is source-reported activity evidence, not independently verified project-delivery evidence.",
+      "source_urls": [
+        "https://www.msf.org.au/about-us"
+      ]
+    },
+    "source_reported_claims": [
+      {
+        "statement": "ABN Lookup lists ABN 74 068 758 654 as an external attribute/join key for an entity named MEDECINS SANS FRONTIERES AUSTRALIA LIMITED; it records entity type as Australian Public Company, main business location as NSW 2007, and ABN status as active from 24 March 2000. These ABN attributes are not used as identity or as operating proof.",
+        "source_urls": [
+          "https://abr.business.gov.au/ABN/View?abn=74068758654"
+        ]
+      },
+      {
+        "statement": "ABN Lookup reports that the entity is registered with the ACNC from 3 December 2012 and is endorsed as a deductible gift recipient from 23 May 2020. These are regulatory/tax-status attributes and do not establish an organisational relationship or operational activity.",
+        "source_urls": [
+          "https://abr.business.gov.au/ABN/View?abn=74068758654"
+        ]
+      },
+      {
+        "statement": "The retained ACNC material includes a report titled \u201cMedecins Sans Frontieres Australia Limited Annual Information Statement 2024\u201d; no substantive AIS responses or financial metrics are visible in the retained extract.",
+        "source_urls": [
+          "https://www.acnc.gov.au/charity/charities/33ed3439-38af-e811-a962-000d3ad24a0d/documents/8378ce3c-fb40-f011-8779-0022489511f7"
+        ]
+      }
+    ],
+    "unknowns_not_established": [
+      "Entity-specific charitable purpose as recorded in an extractable ACNC profile or AIS response.",
+      "Direct beneficiaries of the Australian legal entity.",
+      "A project-level list of activities, locations, outputs, or outcomes for the Australian legal entity.",
+      "2024 AIS financial values, including revenue, expenses, assets, liabilities, or grants.",
+      "Australian-entity employee, volunteer, and responsible-person counts or identities.",
+      "The contents or URL of the latest lodged annual or financial report beyond the separately retrieved 2024 AIS title page."
+    ],
+    "cautions": [
+      "The retained ACNC register, profile, people, and document-index page extracts are largely navigation/title content and do not expose substantive register fields.",
+      "ABN 74 068 758 654 is retained only as an external attribute/join key, not as the charity\u2019s identity; active ABN status is not evidence of operations.",
+      "The official website contains statements about the wider international MSF movement. Those global claims are not attributed to Medecins Sans Frontieres Australia Limited unless the page specifically refers to the Australia office.",
+      "No financial claim is made from the 2024 AIS because the retained AIS extract supplies no financial values."
+    ]
+  },
+  "source_manifest": "sources.json"
+}

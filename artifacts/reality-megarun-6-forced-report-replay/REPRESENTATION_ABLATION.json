@@ -1,0 +1,10 @@
+{
+  "native_readable": 6,
+  "ocr_required": 0,
+  "pages_blocked": 24,
+  "pages_readable": 6,
+  "prior_native_characters": 0,
+  "recovered_characters": 5887,
+  "recovered_tokens": 925,
+  "render_required": 0
+}

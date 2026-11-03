@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-09-28T14:27:13.234088+00:00",
+  "results": [
+    {
+      "name": "SUNRISE FOUNDATION LIMITED",
+      "abn_join_key": "37646526132",
+      "acnc_uuid": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+      "latest_ais_year": "2024",
+      "filings": 2,
+      "outcome": "acquired"
+    },
+    {
+      "name": "Medecins Sans Frontieres Australia Limited",
+      "abn_join_key": "74068758654",
+      "acnc_uuid": "33ed3439-38af-e811-a962-000d3ad24a0d",
+      "latest_ais_year": "2025",
+      "filings": 1,
+      "outcome": "acquired"
+    },
+    {
+      "name": "Noongar Boodja Trust",
+      "abn_join_key": "47613674461",
+      "acnc_uuid": "cf5f4d7d-6ab4-eb11-8236-000d3a6abd1c",
+      "latest_ais_year": "2025",
+      "filings": 1,
+      "outcome": "acquired"
+    }
+  ],
+  "model_calls": 0,
+  "machinery": [
+    "acquire_acnc_public_profiles.acquire",
+    "discover_public_sources Documents semantics",
+    "select_filing_documents",
+    "run_baseline_charity_corpus_v1.fetch",
+    "represent_pdf"
+  ]
+}

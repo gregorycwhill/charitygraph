@@ -1,0 +1,11 @@
+{
+  "session_key": "cg-megarun3-172-twenty-charity-batch-dryrun-v1",
+  "state": "COMPLETE",
+  "counts": {
+    "subjects": 20,
+    "chunks": 179,
+    "propositions": 225,
+    "terminal": 20
+  },
+  "restart": "Disposable artifacts only; retained raw source bytes were not copied."
+}

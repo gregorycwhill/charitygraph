@@ -1,0 +1,282 @@
+{
+  "schema": "charitygraph.reality-megarun3.twenty-charity-dryrun/v1",
+  "run_id": "CG-MEGARUN3-172-TWENTY-CHARITY-BATCH-DRYRUN-TERRA",
+  "status": "complete_experimental_no_canonical_mutation",
+  "subjects": [
+    {
+      "subject": "Australian Red Cross Society",
+      "subject_id": "50169561394",
+      "cohort": "prior_rich_report_control",
+      "terminal_state": "coverage_card_abstention",
+      "report_representation": "bounded/unavailable for novel extraction",
+      "chunks": 3,
+      "propositions": 0,
+      "review_units": 1,
+      "novel": false
+    },
+    {
+      "subject": "World Vision Australia",
+      "subject_id": "28004778081",
+      "cohort": "prior_rich_report_control",
+      "terminal_state": "coverage_card_abstention",
+      "report_representation": "bounded/unavailable for novel extraction",
+      "chunks": 3,
+      "propositions": 0,
+      "review_units": 1,
+      "novel": false
+    },
+    {
+      "subject": "Bush Heritage Australia",
+      "subject_id": "78053639115",
+      "cohort": "prior_rich_report_control",
+      "terminal_state": "coverage_card_abstention",
+      "report_representation": "bounded/unavailable for novel extraction",
+      "chunks": 3,
+      "propositions": 0,
+      "review_units": 1,
+      "novel": false
+    },
+    {
+      "subject": "DARWIN VOLUNTEER UNIT (NTES) ASSOCIATION INCORPORATION",
+      "subject_id": "11580238789",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "Bundi Yamatji Aboriginal Corporation",
+      "subject_id": "11955042908",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "Mighty Livingwaters - Life Fellowship",
+      "subject_id": "12086262816",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "The Russian Imperial Order of Saint Michael Archangel",
+      "subject_id": "13103345213",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 14,
+      "review_units": 18,
+      "novel": true
+    },
+    {
+      "subject": "Access Church Limited",
+      "subject_id": "15602302867",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "Ananda Marga Pracaraka Samgha Ltd Preschool",
+      "subject_id": "15969822381",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "Northern Rivers Animal Services Inc.",
+      "subject_id": "16055396731",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 15,
+      "review_units": 19,
+      "novel": true
+    },
+    {
+      "subject": "Geelong & District Day Nursery Incorporated",
+      "subject_id": "16636320874",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "Dieback Working Group Inc",
+      "subject_id": "16734386980",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "CAMPBELLTOWN COMMUNITY CHILDREN'S CENTRE INC",
+      "subject_id": "17527786900",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "Thalanyji Foundation Limited",
+      "subject_id": "17624324741",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 11,
+      "review_units": 15,
+      "novel": true
+    },
+    {
+      "subject": "Australia Chung Tai Buddhist Foundation Inc",
+      "subject_id": "17855693573",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "Aeiou Foundation",
+      "subject_id": "19135897255",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "Habitat for Humanity Australia SA",
+      "subject_id": "19242782512",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 15,
+      "review_units": 19,
+      "novel": true
+    },
+    {
+      "subject": "4LIFESKILLS INC.",
+      "subject_id": "20140575274",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "Steps Staffing Solutions Ltd",
+      "subject_id": "20151472221",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 13,
+      "review_units": 17,
+      "novel": true
+    },
+    {
+      "subject": "Castlemaine Art Museum Ltd",
+      "subject_id": "21613667664",
+      "cohort": "new_retained_AIS",
+      "terminal_state": "ledger_coverage_card",
+      "report_representation": "no retained report selected; AIS structured return available",
+      "chunks": 10,
+      "propositions": 14,
+      "review_units": 18,
+      "novel": true
+    }
+  ],
+  "subject_count": 20,
+  "terminal_subjects": 20,
+  "pages_or_chunks_inspected": 179,
+  "substantive_chunks_per_AIS_subject": 10,
+  "proposition_count": 225,
+  "coverage_abstentions": 71,
+  "review_units": 296,
+  "section_coverage": {
+    "section_1_identity": 51,
+    "section_3_purpose_programs": 38,
+    "section_12_finance_resource_flow": 85,
+    "section_6_workforce": 34,
+    "section_18_governance_controls": 17
+  },
+  "failure_taxonomy": {
+    "report_native_representation_unavailable": 3
+  },
+  "maturity_distribution": {
+    "ledger_coverage_card": 17,
+    "coverage_card_abstention": 3
+  },
+  "automatable_share": {
+    "mechanically_renderable_subjects": 17,
+    "of_20": 0.85,
+    "note": "structured AIS-to-candidate construction; review/promotion remains governed"
+  },
+  "bespoke_exceptions": [],
+  "artifact_volume": {
+    "ledgers": 4,
+    "cards": 20,
+    "chunk_records": 179
+  },
+  "batch_bottlenecks": [
+    "retained report representation is sparse/unreadable for controls",
+    "rich relationship, measurement, capacity and statement-table semantics remain coverage gaps/satellites",
+    "candidate review units scale with proposition yield rather than subject count"
+  ],
+  "top_100_workload_model": {
+    "sample_subjects": 20,
+    "terminal_rate": 1.0,
+    "AIS_like_mix_projection": {
+      "subjects": 85,
+      "chunks": 850,
+      "candidate_propositions": 1125,
+      "coverage_abstentions": 340
+    },
+    "report_control_mix_projection": {
+      "subjects": 15,
+      "coverage_review_units": 15,
+      "representation_recovery_required_before_novel_report_claims": true
+    },
+    "cost_shape": "provider-free retained structured routing costs no model spend; human/governed review is approximately candidate propositions plus coverage units; uncalled providers excluded"
+  },
+  "provider_network_s0_github_activity": "none",
+  "canonical_mutations": false
+}

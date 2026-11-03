@@ -1,0 +1,15 @@
+{
+  "token": "REALITY_SPIKE_7_PRODUCT_TRUST_DISCOVERED",
+  "spec_identifier": "CG-REALITY-SPIKE-7-PRODUCT-SURFACE-TRUST-TERRA-158",
+  "inputs": "retained Spike 6 V0/V2/V4 artifacts and candidates only",
+  "provider_calls": 0,
+  "network_acquisition": 0,
+  "canonical_or_governance_mutation": false,
+  "subjects": ["World Vision", "Sunrise Foundation", "Australian Red Cross Society", "Noongar Boodja Trust", "The Smith Family"],
+  "surfaces": ["A North Star dossier", "B progressive donor card", "C evidence-first ledger", "D AI/query projection"],
+  "trust_policies": {"P0": "governed/regulator only", "P1": "attributed candidate visibility", "P2": "experimental auto-promotion stress control"},
+  "semantic_candidate_groups": {"total": 16, "world_vision": 9, "red_cross": 7, "newly_populated_sections": 14, "materially_deepened_cells": 20},
+  "recommended_pattern": "B backed by C, with A as audit surface and D as separate provenance-preserving projection",
+  "p2_recommended": false,
+  "next_tranche": "architecture simplification"
+}

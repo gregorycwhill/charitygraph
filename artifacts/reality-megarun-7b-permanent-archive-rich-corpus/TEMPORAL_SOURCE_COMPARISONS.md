@@ -1,0 +1,3 @@
+# Not run
+
+Corrected private archive root preflight failed; capture-first rule prevented every public-network request: PermissionError(13, 'Access is denied')

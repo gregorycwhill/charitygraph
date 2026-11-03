@@ -1,0 +1,48 @@
+Notes to the financial statements
+30 June 2024
+NOTE 3. .DIVISIONAL REPORTING
+Operatingdivisions
+TheAustralianRedCrossSocietycomprisesthefollowingoperatingdivisionsasdefinedinNote1tothisreport:
+•AustralianRedCrossHumanitarianServices(HumanitarianServices)
+•AustralianRedCrossLifeblood(Lifeblood)
+Theaccountingpoliciesofthereportabledivisionsarethesameasthegroup’saccountingpoliciesdescribedinNote
+1.Divisionsurplusrepresentsthesurplusearnedbyeachdivision.Thereisnoallocationofcentraladministration
+costs.
+Interdivisiontransactionsof$0.008million(FY23:$0.006million)forthecurrentfinancialyearprimarilyincludefees
+paidbyLifebloodoperatingdivisiontoHumanitarianServicesoperatingdivision.
+Divisional statement of profit or loss and other comprehensive income
+2024 2023
+Humanitarian Humanitarian
+Services Lifeblood Society Services Lifeblood Society
+$'000 $'000 $'000 $'000 $'000 $'000
+Revenue
+Governmentfunding
+Operating-Commonwealthfunded 90,495 695,026 785,521 73,358 626,330 699,688
+Operating-Statefunded 32,872 37,819 70,691 44,177 33,565 77,742
+Capital-Commonwealthandstate
+funded - 58,319 58,319 - 57,576 57,576
+Totalgovernmentfunding
+123,367 791,164 914,531 117,535 717,471 835,006
+Donations,bequestsand
+sponsorships 79,161 - 79,161 94,955 - 94,955
+Renderingofservices 7,802 - 7,802 8,834 - 8,834
+Saleofgoods 39,005 - 39,005 35,711 - 35,711
+Non-governmentgrant 13,829 - 13,829 10,964 - 10,964
+Investmentrevenue 3,157 13,090 16,247 1,796 9,266 11,062
+Otherincome 6,931 12,668 19,599 4,334 14,084 18,418
+Gainonassetsandinvestments - - - 45,998 (1,157) 44,841
+Totalrevenue
+273,252 816,922 1,090,174 320,127 739,664 1,059,791
+Expenditure
+Employeeexpenditure 148,537 424,386 572,923 149,560 385,021 534,581
+Operatingexpenditure 137,823 201,404 339,227 146,412 163,427 309,839
+Costofservices,saleofgoodsand
+consumables 3,378 127,066 130,444 3,849 112,347 116,196
+Depreciationandamortisation 15,420 70,986 86,406 16,326 66,164 82,490
+Interestcostsandtransactionfees 1,729 8,459 10,188 1,863 8,607 10,470
+Lossonassetsandinvestments 9 2,323 2,332 - - -
+Totalexpenditure 306,896 834,624 1,141,520 318,010 735,566 1,053,576
+NET(DEFICIT)/SURPLUSFOR
+THEYEAR
+(33,644) (17,702) (51,346) 2,117 4,098 6,215
+77

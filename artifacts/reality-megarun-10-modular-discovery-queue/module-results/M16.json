@@ -1,0 +1,71 @@
+{
+  "module_id": "M16",
+  "title": "Claim versus evidence-role stress",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 16,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-41.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-14.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/wwf-australia-29.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-19.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-23.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "page": "the-smith-family-41",
+      "claim": "Luke describes students gaining confidence",
+      "source_role": "named volunteer testimonial published by Smith",
+      "allows": "Luke's account",
+      "forbids": "aggregate causal effect"
+    },
+    {
+      "page": "caritas-australia-14",
+      "claim": "Four external evaluations reported positive change",
+      "source_role": "first-party summary of external evaluations",
+      "allows": "Caritas reports evaluation findings",
+      "forbids": "independently inspected methodology"
+    },
+    {
+      "page": "wwf-australia-29",
+      "claim": "WWF fully adheres to ACFID Code",
+      "source_role": "organisation assertion in report note",
+      "allows": "asserted compliance in 2021",
+      "forbids": "verified current compliance/no complaints"
+    },
+    {
+      "page": "the-smith-family-19",
+      "claim": "49% disadvantaged 24-year-olds not fully engaged",
+      "source_role": "external 2020 research quoted in first-party report",
+      "allows": "background population context with original citation",
+      "forbids": "program outcome attribution"
+    },
+    {
+      "page": "bush-heritage-australia-23",
+      "claim": "Independently audited/certified vegetation account",
+      "source_role": "first-party report describing third-party certification",
+      "allows": "reported certificate AU00057",
+      "forbids": "agent-verified certification, measured improvement, or carbon linkage"
+    }
+  ],
+  "defects": [
+    "D16: 'Official annual report' alone is an insufficient source-role vocabulary."
+  ],
+  "counterexamples": [
+    "A first-party container can contain testimonial, external research and evaluation summaries with different evidential force."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Five cases; no original evaluation/certification inspected; Terra requirement unmet."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-41.txt": "3f4e307b742fd97149a9b95af1c27f8b6c5bdde3d7bdbcaaa24f9ff93acb0895",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-14.txt": "a5bae4fdc25b88d4d9063632bdc507dad2f73cf1d94158eb05b65d31583db7ac",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\wwf-australia-29.txt": "94f6677bd4e830837af7baf98cacd023fe6bc436a77dc0b6eba5db745f98742f",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-19.txt": "13fb8388f9653161761d8b76c7bd9b5385f254a64d3a2f9950fcd9c876744bab",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-23.txt": "f2b297cd7095dcaeda34fa9f8f3a2a140563e43396a27d0d9917bbfd3dd12db4"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

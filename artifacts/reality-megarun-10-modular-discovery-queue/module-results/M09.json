@@ -1,0 +1,119 @@
+{
+  "module_id": "M09",
+  "title": "Service/capacity semantic wave",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 9,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-16.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/australian-red-cross-9.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/australian-red-cross-35.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-10.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/plan-international-australia-10.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/acfid-10.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/world-vision-australia-9.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-27.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-18.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-19.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/australian-red-cross-27.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "unit_id": "M09-U1",
+      "page_id": "the-smith-family-16",
+      "claim": "Digital Learning Essentials targets high-need Learning for Life students; 44% still face device/internet barriers. Devices delivered and cumulative beneficiaries are distinct; broadband initiative is described as concluded.",
+      "source_role": "first-party report",
+      "availability": "report-period only; current unverified"
+    },
+    {
+      "unit_id": "M09-U2",
+      "page_id": "australian-red-cross-9",
+      "claim": "ARC describes psychological first aid and disaster resilience activities; report-period delivery does not establish today's local capacity, opening times or intake.",
+      "source_role": "first-party report",
+      "availability": "report-period only; current unverified"
+    },
+    {
+      "unit_id": "M09-U3",
+      "page_id": "australian-red-cross-35",
+      "claim": "1,618 employees, 6,790 members and 10,065 active volunteers concern Humanitarian Services; they are not interchangeable staffing capacity measures.",
+      "source_role": "first-party report",
+      "availability": "report-period only; current unverified"
+    },
+    {
+      "unit_id": "M09-U4",
+      "page_id": "caritas-australia-10",
+      "claim": "Youth Capacity Strengthening provided Roland vocational training through local partnership; his individual income story does not establish universal service outcomes.",
+      "source_role": "first-party report",
+      "availability": "report-period only; current unverified"
+    },
+    {
+      "unit_id": "M09-U5",
+      "page_id": "plan-international-australia-10",
+      "claim": "Plan describes hot meals with Taawon, cash assistance with TDH and polio vaccination support with Juzoor. Global disaster reach and Australia-specific food assistance appear on the same page.",
+      "source_role": "first-party report",
+      "availability": "report-period only; current unverified"
+    },
+    {
+      "unit_id": "M09-U6",
+      "page_id": "acfid-10",
+      "claim": "ACFID offered member training, resource hubs and three new communities of practice; member services are not direct public beneficiary services.",
+      "source_role": "first-party report",
+      "availability": "report-period only; current unverified"
+    },
+    {
+      "unit_id": "M09-U7",
+      "page_id": "world-vision-australia-9",
+      "claim": "WVA works across five sectors, but programs are multisector; sector labels are not mutually exclusive capacity categories.",
+      "source_role": "first-party report",
+      "availability": "report-period only; current unverified"
+    },
+    {
+      "unit_id": "M09-U8",
+      "page_id": "the-smith-family-27",
+      "claim": "On PAR is offered in two communities with individual support up to two years, distinct from the six-and-a-half-year pilot duration.",
+      "source_role": "first-party report",
+      "availability": "report-period only; current unverified"
+    },
+    {
+      "unit_id": "M09-U9",
+      "page_id": "caritas-australia-18",
+      "claim": "GAP's Aunties Place offers cooking, housing/job application support; this is the partner's local operation, not a Caritas nationwide intake service.",
+      "source_role": "first-party report",
+      "availability": "report-period only; current unverified"
+    },
+    {
+      "unit_id": "M09-U10",
+      "page_id": "bush-heritage-australia-19",
+      "claim": "Edgbaston added fish breeding and emergency holding facilities; neither a capacity count nor a public-access service is supplied.",
+      "source_role": "first-party report",
+      "availability": "report-period only; current unverified"
+    }
+  ],
+  "defects": [
+    "D09: Reported delivery is not current availability.",
+    "D09b: A sampled 'Financial capital' title page yielded no capacity evidence and was replaced."
+  ],
+  "counterexamples": [
+    "A program's maximum support duration differs from the pilot lifespan."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Ten substantive pages read plus one failed title-page candidate; Terra-specific requirement unmet."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-16.txt": "828cc75f6491e263202334719d02afd865bee46c98ba5c643bcc45e66d38ba71",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\australian-red-cross-9.txt": "70deb91b0ca0d09527c7ead75fd9e9da6b6592c479774057c06dc1b1d8983ae3",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\australian-red-cross-35.txt": "dc4848c862201843f6345d9077c6d59ab5734fce901c70ea6fa2364c58b0841e",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-10.txt": "451c54da486eaab7af9a26fe145abdd01946b87d793e240ed5aebea8a4ec482d",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\plan-international-australia-10.txt": "79cd3206a99255c0088eb93fbcf31cf552e86df17bbf996b39f203785670f703",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\acfid-10.txt": "bbdc214a5fa810c3c98d6cf6dfbac018a74914ba728db12ec6670b50c45d8838",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\world-vision-australia-9.txt": "6c1b90b48f37155e121a50bc84998b741c02e86f61411997af624b912a9b08a3",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-27.txt": "f6ad3a4fb14da552ca763261cda01082c1124e3e07cc9b48f5281491faa85da7",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-18.txt": "3793420efcab9e47fbae38aba14a20dabffc00d5162828fd110f4ebbcc1636ab",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-19.txt": "3e50946b53b3807a9ad2ad2bd730f5c6f210b5962d6e77e86c6117155c996847",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\australian-red-cross-27.txt": "a3940ee48909e67d783045554ab70424409ef1e6466d8d6665d4f1c8b20ebf1a"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

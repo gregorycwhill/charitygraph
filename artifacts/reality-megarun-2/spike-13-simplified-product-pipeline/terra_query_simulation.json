@@ -1,0 +1,55 @@
+{
+  "model": "terra",
+  "mode": "constrained-ledger simulation",
+  "answers": [
+    {
+      "question": "What capacity evidence is retained?",
+      "subject": "Australian Red Cross",
+      "answer": "member-run services (service; 2024-25); branches (site/footprint; 2024-25); volunteers and employees (organisation; 2024-25).",
+      "citations": [
+        "RC-2",
+        "RC-3",
+        "RC-4"
+      ],
+      "bounded": true
+    },
+    {
+      "question": "What governance or audit evidence is retained?",
+      "subject": "World Vision Australia",
+      "answer": "named directors and committee responsibilities (organisation; 2025); account certification and auditor (organisation; 2025).",
+      "citations": [
+        "WV-1",
+        "WV-3"
+      ],
+      "bounded": true
+    },
+    {
+      "question": "What ethos evidence is organisation-wide?",
+      "subject": "World Vision Australia",
+      "answer": "The ledger has no candidate in that requested domain.",
+      "citations": [],
+      "bounded": true
+    },
+    {
+      "question": "What can you say about the charity?",
+      "subject": "MSF",
+      "answer": "I cannot answer from this ledger: coverage is no_compatible_retained_evidence.",
+      "citations": [],
+      "bounded": true
+    },
+    {
+      "question": "What can you say about the charity?",
+      "subject": "Bush Heritage",
+      "answer": "I cannot answer from this ledger: coverage is no_compatible_retained_evidence.",
+      "citations": [],
+      "bounded": true
+    },
+    {
+      "question": "What is current?",
+      "subject": "Sunrise Foundation",
+      "answer": "The ledger has no candidate in that requested domain.",
+      "citations": [],
+      "bounded": true
+    }
+  ]
+}

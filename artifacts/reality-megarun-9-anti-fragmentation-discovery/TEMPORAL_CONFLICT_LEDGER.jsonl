@@ -1,0 +1,4 @@
+{"id":"TC9-01","left":"WWF annual report page 29","right":"same page income statement","classification":"source-role_difference_not_conflict","finding":"Code-adherence assertion and financial disclosure coexist but answer different questions."}
+{"id":"TC9-02","left":"World Vision evaluation-practice declaration","right":"World Vision count of 12 evaluation/reviews in 2024","classification":"time_and_measurement_complement","finding":"Practice is not a result; count is a time-bounded activity measure."}
+{"id":"TC9-03","left":"AP4D submissions","right":"policy documents reflecting themes without submission","classification":"causal_ambiguity","finding":"Not a conflict: evidence supports neither a general causal attribution nor an absence of influence."}
+{"id":"TC9-04","left":"Smith Family individual volunteers","right":"Smith Family volunteer roles","classification":"different_units_not_conflict","finding":"Counts are reconciled by stated multiple roles per person."}

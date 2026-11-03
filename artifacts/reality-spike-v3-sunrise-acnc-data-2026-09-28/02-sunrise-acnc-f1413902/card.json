@@ -1,0 +1,110 @@
+{
+  "non_production_reality_spike_v3": true,
+  "charity": {
+    "name": "SUNRISE FOUNDATION LIMITED",
+    "acnc_record_id": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+    "abn_source_join_attribute": "37646526132"
+  },
+  "model": {
+    "model": "gpt-5.6-terra",
+    "response_id": "resp_0c51e1cc88b0d079006aba598433d487d0bca729667a2ad492",
+    "status": "completed",
+    "usage": {
+      "input_tokens": 4006,
+      "output_tokens": 1993,
+      "total_tokens": 5999
+    },
+    "transport_requests": 1,
+    "one_bounded_model_call": true
+  },
+  "card": {
+    "identity": {
+      "statement": "SUNRISE FOUNDATION LIMITED is the legal name on ACNC Charity Register record f1413902-d240-eb11-bf72-000d3ad1ce4e; the register also lists “Sunrise Foundation” as another organisation name.",
+      "evidence": [
+        "Canonical external charity identity: ACNC Charity Register record f1413902-d240-eb11-bf72-000d3ad1ce4e.",
+        "ACNC Register legal name: SUNRISE FOUNDATION LIMITED.",
+        "ACNC Register other organisation name: Sunrise Foundation.",
+        "ABN 37646526132 is retained only as an official bulk-dataset join key, not as CharityGraph or ACNC-record identity.",
+        "CharityGraph subject is provisional_spike_sequence 02-sunrise-acnc-f1413902."
+      ]
+    },
+    "purpose_and_activities": {
+      "statement": "The current ACNC Register records the charity as advancing social or public welfare and as a public benevolent institution (PBI). In its 2023 AIS, the charity reported acquiring and developing Australian properties for housing disadvantaged groups, financial support to other registered NFPs assisting domestic-violence victims, sector learning activities, and research/programme-development work concerning housing-crisis effects on families.",
+      "evidence": [
+        "Register facts: PBI = Y; Advancing_social_or_public_welfare = Y.",
+        "2023 AIS charity-reported ‘how purposes were pursued’: acquisition and development of a substantial Australia-wide property portfolio to provide housing for disadvantaged groups; financial support to registered NFPs specialising in assisting DV victims; attendance at conferences and seminars; research and commencing work on a programme addressing housing-crisis effects on family units.",
+        "2022 AIS charity-reported activities describe acquisition, planning and development of specialised real estate and assistance to third parties developing or acquiring such real estate."
+      ]
+    },
+    "beneficiaries_and_geography": {
+      "statement": "The current register identifies Australia as the operating country and lists a broad set of beneficiary groups. The 2023 programme entries identify Australia or Sydney, NSW as operating locations, with beneficiary selections varying by programme.",
+      "evidence": [
+        "Register operating country: AUS.",
+        "Register beneficiary fields marked Y: adults, aged persons, families, females, financially disadvantaged people, general community in Australia, males, other charities, people at risk of homelessness, people with disabilities, rural/regional/remote communities, and victims of crime.",
+        "2023 AIS reported no international activity involving overseas transfers, overseas operations/programmes, or other international activities.",
+        "2023 NDIS HOUSING PROGRAM entry: operating location Australia; selected people at risk of homelessness and financially disadvantaged people.",
+        "2023 Domestic Violence victim support and housing entry: operating location Sydney NSW, Australia; selected families, females, victims of crime including family violence, and other charities.",
+        "2023 Equitishare housing support program entry: operating location Australia; selected families, general community in Australia, adults aged 65 and over, females, males, people at risk of homelessness, people with disabilities, financially disadvantaged people, rural/regional/remote communities, and adults aged 25 to under 65."
+      ]
+    },
+    "workforce_and_governance": {
+      "statement": "The current register records four responsible persons. In the 2023 AIS, the charity reported 3 full-time, 5 part-time and 5 casual staff, zero volunteers, and total FTE staff of 0; it also reported no key management personnel and zero total paid to key management personnel.",
+      "evidence": [
+        "Current ACNC Register: Number_of_Responsible_Persons = 4.",
+        "2023 AIS charity-reported workforce: full-time 3; part-time 5; casual 5; total FTE 0; volunteers 0.",
+        "2022 AIS charity-reported workforce: full-time 0; part-time 5; casual 5; total FTE 0.00; volunteers 0.",
+        "2023 AIS: Key Management Personnel = No; Number of Key Management Personnel = 0; Total paid to Key Management Personnel = 0.",
+        "2023 AIS: report consolidated with more than one entity = n; charity report has a modification = n; charity has reportable related party transactions = n.",
+        "2022 AIS: charity has related party transactions = n; documented policies for related party transactions = y."
+      ]
+    },
+    "financial_scale": {
+      "statement": "For the year ended 30 June 2023, the charity reported total revenue of $3,393,036, total expenses of $635,752, a net surplus of $2,757,284, total assets of $46,235,544, total liabilities of $41,476,124, and net assets/liabilities of $4,759,420. These are charity-reported 2023 AIS figures.",
+      "evidence": [
+        "2023 AIS financial period: 01/07/2022 to 30/06/2023; financial statements: Special purpose financial statements.",
+        "2023 AIS: donations and bequests $3,249,666; revenue from investments $143,370; total revenue/gross income $3,393,036.",
+        "2023 AIS: employee expenses $8,045; interest expenses $21,651; grants and donations made for use in Australia $5,100; all other expenses $600,956; total expenses $635,752.",
+        "2023 AIS: net surplus/deficit and total comprehensive income $2,757,284.",
+        "2023 AIS: total current assets $8,595,332; total non-current assets $37,640,212; total assets $46,235,544.",
+        "2023 AIS: total current liabilities $3,124,224; total non-current liabilities $38,351,900; total liabilities $41,476,124; net assets/liabilities $4,759,420.",
+        "For comparison, 2022 AIS charity-reported total revenue was $1,511,528, total expenses $307,064, net surplus/deficit $1,204,464, total assets $7,987,515, total liabilities $5,985,379, and net assets/liabilities $2,002,136."
+      ]
+    },
+    "programs": {
+      "statement": "Three 2023 programme entries were supplied: NDIS HOUSING PROGRAM; Domestic Violence victim support and housing; and Equitishare housing support program for DVictims, young families and other disadvantaged groups. These are 2023 programme-reporting entries and do not establish current operation beyond that reporting year.",
+      "evidence": [
+        "2023 programme entry: “NDIS HOUSING PROGRAM”; classification: Housing for people with disabilities; operating location: Australia.",
+        "2023 programme entry: “Domestic Violence victim support and housing”; classification: Domestic and family violence; operating location: Sydney NSW, Australia.",
+        "2023 programme entry: “Equitishare housing support program for DVictims; young families; and other disadvantaged groups”; classification: Housing development; operating location: Australia.",
+        "Each supplied 2023 programme entry records Operating overseas = N and Operating online = N."
+      ]
+    },
+    "reporting_and_operating_evidence": {
+      "statement": "The register lists registration and establishment dates of 10 December 2020, a 30 June financial year end, and current charity size as Large. The 2023 AIS was received on 13 March 2024 and reports that activities were conducted. A financial-report receipt date is recorded, but no direct public report URL or document metadata was acquired from the ACNC documents page.",
+      "evidence": [
+        "Current ACNC Register: Registration_Date = 10/12/2020; Date_Organisation_Established = 10/12/2020; Financial_Year_End = 30-Jun; Charity_Size = Large.",
+        "2023 AIS: registration status Registered; charity size Large; conducted activities = y; AIS due date 31/01/2024; date AIS received 13/03/2024.",
+        "2023 AIS: financial report date received = 13/03/2024.",
+        "2022 AIS: registration status Registered; charity size Medium; conducted activities = y; AIS due date 31/01/2023; date AIS received 13/03/2024; financial report date received 13/03/2024.",
+        "Lodged-report check at 2026-09-28T12:11:45.845600+00:00: outcome = no_public_report_url_acquired.",
+        "The supplied check states that the ACNC public documents page was a client-rendered shell and did not expose document metadata or a direct report URL."
+      ]
+    },
+    "unknowns": [
+      "No direct public ACNC lodged financial-report URL or document metadata was acquired in the supplied evidence.",
+      "The supplied evidence does not provide a current programme-operating status after the 2023 reporting year.",
+      "The supplied evidence does not state why 2023 reported 13 staff across employment categories while reporting total FTE staff of 0.",
+      "No mission statement beyond the register’s charitable subtype and AIS-reported activities is supplied.",
+      "No public-document contents can be characterised from the supplied evidence."
+    ],
+    "cautions": [
+      "ABN 37646526132 is a source join key only and must not be used as the charity’s CharityGraph identity or ACNC-record identity.",
+      "AIS statements and financial figures are charity-reported and retain their respective 2022 and 2023 year labels.",
+      "The 2023 financial-report receipt date does not itself establish the contents, public availability, or accessibility of a financial report.",
+      "No public report URL acquired does not mean that no report was lodged or that no report was required.",
+      "A blank financial-report-date field, where present in other data, would not prove that no report was lodged or required.",
+      "Programme names, classifications, locations and beneficiary selections are limited to the supplied 2023 programme entries and should not be treated as proof of current operations."
+    ]
+  },
+  "baseline": "acnc_baseline.json"
+}

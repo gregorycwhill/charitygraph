@@ -1,0 +1,18 @@
+{
+  "archive_root": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\Source Archive",
+  "repository_root": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph",
+  "outside_git": true,
+  "checks": {
+    "create_write_flush_close": true,
+    "read_back": true,
+    "sha256": "02091ccff9fce1d7f881c25559965515d0f8cd4817f238b34edb7a5f1cf7e394",
+    "rename_within_root": true,
+    "delete_temporary_file": true,
+    "nested_create_write_read": true,
+    "nested_sha256": "5ce43eee444d18e769534b0ccb70c80ae41894b5fd7d06e6f8ca6c48203bfaa4",
+    "delete_temporary_subdirectory": true
+  },
+  "performed_at": "2026-09-29T13:08:11.943813+00:00",
+  "current_operation": "create_file_directly_inside_existing_archive_root",
+  "status": "FAIL"
+}

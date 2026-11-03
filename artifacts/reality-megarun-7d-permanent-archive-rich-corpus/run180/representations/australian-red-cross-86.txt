@@ -1,0 +1,37 @@
+Notes to the financial statements
+30 June 2024
+NOTE 11. .OTHER FINANCIAL ASSETS
+2024 2023
+$'000 $'000
+FairValuethroughOtherComprehensiveIncome(FVOCI)
+Shares 37,388 35,023
+ListedBonds - 3,366
+Unlistedbonds 109,540 106,447
+Totalfinancialassetsatfairvaluethroughothercomprehensiveincome
+(FVOCI) 146,928 144,836
+Totalotherfinancialassets 146,928 144,836
+Fairvaluemeasurementsrecognisedinthestatementoffinancialposition
+Thefollowingtableprovidesananalysisoffinancialinstrumentsthataremeasuredsubsequenttoinitialrecognitionat
+fairvalue,groupedintolevels1to3basedonthedegreetowhichthefairvalueisobservable.
+• Level1fairvaluemeasurementsarethosederivedfromquotedprices(unadjusted)inactivemarketsfor
+identicalassetsorliabilities.
+• Level2fairvaluemeasurementsarethosederivedfrominputsotherthanquotedpricesincludedwithinlevel
+1thatareobservablefortheassetorliability,eitherdirectly(i.e.asprices)orindirectly(i.e.derivedfrom
+prices).
+• Level3fairvaluemeasurementsarethosederivedfromvaluationtechniquesthatincludeinputsforthe
+assetorliabilitythatarenotbasedonobservablemarketdata(unobservableinputs).
+Level1 Level2 Total
+$'000 $'000 $'000
+YEARENDED30JUNE2023
+FinancialaseetsFVOCI
+Bonds 3,366 106,447 109,813
+Shares 35,023 - 35,023
+Totalotherfinancialassets 38,389 106,447 144,836
+Level1 Level2 Total
+$'000 $'000 $'000
+YEARENDED30JUNE2024
+FinancialassetsFVOCI
+Bonds - 109,540 109,540
+Shares 37,388 - 37,388
+Totalotherfinancialassets 37,388 109,540 146,928
+86

@@ -1,0 +1,50 @@
+[
+  {
+    "role": "current_charity_register",
+    "dataset_title": "ACNC Registered Charities",
+    "dataset_id": "b050b242-4487-4306-abf5-07ca073e5594",
+    "dataset_metadata_modified": "2026-09-27T19:57:42.705209",
+    "resource_name": "ACNC Register of Australian charities CSV",
+    "resource_url": "https://data.gov.au/data/dataset/b050b242-4487-4306-abf5-07ca073e5594/resource/8fb32972-24e9-4c95-885e-7140be51be8a/download/datadotgov_main.csv",
+    "resource_last_modified": "2026-09-27T19:00:35.049480",
+    "reporting_year": null,
+    "retrieved_at": "2026-09-28T12:11:45.838876+00:00",
+    "join": "ABN 37646526132 used only as an official source-row join to ACNC record f1413902-d240-eb11-bf72-000d3ad1ce4e"
+  },
+  {
+    "role": "latest_ais",
+    "dataset_title": "ACNC 2023 Annual Information Statement (AIS) Data",
+    "dataset_id": "ff6905d6-9d5d-4ef1-8478-72b833864fb7",
+    "dataset_metadata_modified": "2026-09-27T19:50:51.877121",
+    "resource_name": "2023 AIS data (csv)",
+    "resource_url": "https://data.gov.au/data/dataset/ff6905d6-9d5d-4ef1-8478-72b833864fb7/resource/2b0fb746-57c5-4523-bb4c-74b7b78279d9/download/datadotgov_ais23.csv",
+    "resource_last_modified": "2026-09-27T18:59:44.685400",
+    "reporting_year": 2023,
+    "retrieved_at": "2026-09-28T12:11:45.838903+00:00",
+    "join": "ABN 37646526132 used only as an official source-row join to ACNC record f1413902-d240-eb11-bf72-000d3ad1ce4e"
+  },
+  {
+    "role": "latest_ais_programs",
+    "dataset_title": "ACNC 2023 Annual Information Statement (AIS) Data",
+    "dataset_id": "ff6905d6-9d5d-4ef1-8478-72b833864fb7",
+    "dataset_metadata_modified": "2026-09-27T19:50:51.877121",
+    "resource_name": "2023 AIS programs (csv)",
+    "resource_url": "https://data.gov.au/data/dataset/ff6905d6-9d5d-4ef1-8478-72b833864fb7/resource/1fc1ecea-b9ec-45e4-a4f8-090ba2912e14/download/datadotgov_ais23_programs.csv",
+    "resource_last_modified": "2026-09-27T19:00:00.983942",
+    "reporting_year": 2023,
+    "retrieved_at": "2026-09-28T12:11:45.838908+00:00",
+    "join": "ABN 37646526132 used only as an official source-row join to ACNC record f1413902-d240-eb11-bf72-000d3ad1ce4e"
+  },
+  {
+    "role": "prior_ais",
+    "dataset_title": "ACNC 2022 Annual Information Statement (AIS) Data",
+    "dataset_id": "311c24f3-fc09-42e7-8362-f15a76334a75",
+    "dataset_metadata_modified": "2026-09-27T19:43:21.633858",
+    "resource_name": "ACNC 2022 AIS Dataset CSV",
+    "resource_url": "https://data.gov.au/data/dataset/311c24f3-fc09-42e7-8362-f15a76334a75/resource/cfbcf6f1-7ce5-472f-bfd3-a478e67e0366/download/datadotgov_ais22.csv",
+    "resource_last_modified": "2026-09-27T18:59:14.028448",
+    "reporting_year": 2022,
+    "retrieved_at": "2026-09-28T12:11:45.838912+00:00",
+    "join": "ABN 37646526132 used only as an official source-row join to ACNC record f1413902-d240-eb11-bf72-000d3ad1ce4e"
+  }
+]

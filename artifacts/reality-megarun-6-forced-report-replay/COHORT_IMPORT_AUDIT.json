@@ -1,0 +1,57 @@
+{
+  "actual_rows": 30,
+  "distinct_reports": 5,
+  "exact_page_ids": [
+    "MR4-P001",
+    "MR4-P002",
+    "MR4-P003",
+    "MR4-P004",
+    "MR4-P005",
+    "MR4-P006",
+    "MR4-P007",
+    "MR4-P008",
+    "MR4-P009",
+    "MR4-P010",
+    "MR4-P011",
+    "MR4-P012",
+    "MR4-P013",
+    "MR4-P014",
+    "MR4-P015",
+    "MR4-P016",
+    "MR4-P017",
+    "MR4-P018",
+    "MR4-P019",
+    "MR4-P020",
+    "MR4-P021",
+    "MR4-P022",
+    "MR4-P023",
+    "MR4-P024",
+    "MR4-P025",
+    "MR4-P026",
+    "MR4-P027",
+    "MR4-P028",
+    "MR4-P029",
+    "MR4-P030"
+  ],
+  "expected_rows": 30,
+  "hash_audit": [
+    {
+      "bytes": 22548,
+      "copied_path": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph\\artifacts\\reality-megarun-6-forced-report-replay\\predecessor-evidence\\megarun4\\BLOCKED_PAGE_COHORT.jsonl",
+      "copied_sha256": "fcbb7a4329d203f83dcd11d8ae6a01004ac501da086b91dc9b67191efd682287",
+      "name": "BLOCKED_PAGE_COHORT.jsonl",
+      "original_absolute_path": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph\\artifacts\\reality-megarun-4-rich-report-recovery\\BLOCKED_PAGE_COHORT.jsonl",
+      "original_sha256": "fcbb7a4329d203f83dcd11d8ae6a01004ac501da086b91dc9b67191efd682287",
+      "rows": 30
+    },
+    {
+      "bytes": 51948,
+      "copied_path": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph\\artifacts\\reality-megarun-6-forced-report-replay\\predecessor-evidence\\megarun4\\REPRESENTATION_RECOVERY_LEDGER.jsonl",
+      "copied_sha256": "41de57468f7193ef37083642c494fb1a4d4b4dd34c611baeb4307ca6188f41e6",
+      "name": "REPRESENTATION_RECOVERY_LEDGER.jsonl",
+      "original_absolute_path": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph\\artifacts\\reality-megarun-4-rich-report-recovery\\REPRESENTATION_RECOVERY_LEDGER.jsonl",
+      "original_sha256": "41de57468f7193ef37083642c494fb1a4d4b4dd34c611baeb4307ca6188f41e6",
+      "rows": 30
+    }
+  ]
+}

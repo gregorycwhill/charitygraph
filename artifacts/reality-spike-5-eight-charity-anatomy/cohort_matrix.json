@@ -1,0 +1,1262 @@
+[
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 1,
+    "title": "Identity / regulatory",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 4,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 4,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 4,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 4,
+        "basis": "observed_present"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 2,
+    "title": "Purpose / cause",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 3,
+        "basis": "observed_present"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 3,
+    "title": "Programs / services",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 22,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 3,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 3,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 24,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 17,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 15,
+        "basis": "observed_present"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 4,
+    "title": "Activities / SDGs",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 5,
+    "title": "Geography / beneficiaries",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 9,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 4,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 4,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 10,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 7,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 6,
+        "basis": "observed_present"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 6,
+    "title": "Participation",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 7,
+    "title": "Direct service / capacity",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 8,
+    "title": "Fundraising",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 9,
+    "title": "Governance / leadership",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 10,
+    "title": "People / workforce",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 11,
+    "title": "Scale / capability",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 2,
+        "basis": "observed_present"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 12,
+    "title": "Relationships",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 13,
+    "title": "Finances",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 14,
+    "title": "Funding / dependencies",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 15,
+    "title": "Ethos / values",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 16,
+    "title": "Conduct / adverse",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 17,
+    "title": "Notable history",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 18,
+    "title": "Evaluation / outcomes",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 19,
+    "title": "Classification / search / AI discovery",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "NOT_PROCESSED",
+        "observation_count": 0,
+        "basis": "no_domain_result"
+      }
+    ]
+  },
+  {
+    "projection_contract_id": "north-star-v0.2",
+    "section_id": 20,
+    "title": "Evidence / coverage / freshness / corrections",
+    "cells": [
+      {
+        "subject_id": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+        "subject_name": "World Vision Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_name": "The Smith Family",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+        "subject_name": "Medecins Sans Frontieres Australia Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:dfb1c8f7ffecc0f9c51c7729b3292675d734e3ccbbb4a669ac46ec09dd2c2f01",
+        "subject_name": "SUNRISE FOUNDATION LIMITED",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+        "subject_name": "Australian Red Cross Society",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_name": "Noongar Boodja Trust",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_name": "Bush Heritage Australia",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      },
+      {
+        "subject_id": "subject:37f9bd7bc5d2fcac443337755afb4920864e912344ddc02fd1da21c0817d1714",
+        "subject_name": "Greenpeace Australia Pacific Limited",
+        "status": "EXPERIMENTAL_REVIEW",
+        "observation_count": 1,
+        "basis": "observed_present"
+      }
+    ]
+  }
+]

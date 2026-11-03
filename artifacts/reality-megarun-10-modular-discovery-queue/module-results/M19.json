@@ -1,0 +1,50 @@
+{
+  "module_id": "M19",
+  "title": "Image-heavy PDF render/local OCR",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 19,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/megarun10b/render_ocr.py",
+    "C:/CharityGraph-runtime/megarun10b/M19-render-ocr-evidence.json",
+    "C:/CharityGraph-runtime/megarun10b/M19-ARC-27.png",
+    "C:/CharityGraph-runtime/megarun10b/M19-ARC-35.png"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "page": 27,
+      "native_characters": 37,
+      "render": "success; photo-led Financial capital divider visually inspected",
+      "ocr": "failed: No tessdata specified and Tesseract is not installed",
+      "finding": "Low text is appropriate for a divider; zero need to fabricate financial propositions."
+    },
+    {
+      "page": 35,
+      "native_characters": 5776,
+      "render": "success; visually inspected multi-column staff page and injury-frequency chart",
+      "ocr": "same local dependency failure",
+      "finding": "Chart bar/line geometry is lost despite abundant native text; exact annual plotted values cannot safely be recovered from text axes."
+    }
+  ],
+  "defects": [
+    "D19: Native character count cannot establish representation completeness.",
+    "D19b: Local OCR dependency absent."
+  ],
+  "counterexamples": [
+    "Image-heavy does not mean missing semantic evidence: the divider has almost no propositional content.",
+    "A text-heavy page can conceal chart-only evidence."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "No external OCR/vision service. Direct image inspection by current agent; exact chart values intentionally untranscribed."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\megarun10b\\render_ocr.py": "9b22825270913e98889f7ba5950bc427fa14fd6281cb598a6aba6ac948b7e7b6",
+    "C:\\CharityGraph-runtime\\megarun10b\\M19-render-ocr-evidence.json": "5bb12d44990cb388e0a64159cb1386294361b4b5fe877fcb5f9bf12cb5344ab4",
+    "C:\\CharityGraph-runtime\\megarun10b\\M19-ARC-27.png": "a673964c3eaa7fedc1916dcaa379bed5440f05380ff9061670249bb80c0209f1",
+    "C:\\CharityGraph-runtime\\megarun10b\\M19-ARC-35.png": "3c60ea244095d882210a730619340654dec161bd52c083db34eb95f6368632e0"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

@@ -1,0 +1,194 @@
+{
+  "token": "REALITY_SPIKE_8_ARCHITECTURE_INVERSION_DISCOVERED",
+  "provider_calls": 0,
+  "network_acquisition": 0,
+  "subjects": [
+    {
+      "abn": "28004778081",
+      "name": "World Vision Australia",
+      "a_positive_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        8,
+        10,
+        11,
+        13,
+        14,
+        20
+      ],
+      "b_positive_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        8,
+        10,
+        11,
+        13,
+        14,
+        20
+      ],
+      "a_b_section_parity": true,
+      "a_b_missingness_parity": true,
+      "propositions": 33,
+      "c_query_propositions": 31,
+      "source_authorities": [
+        "historical_governed_replay",
+        "regulator_structured"
+      ]
+    },
+    {
+      "abn": "37646526132",
+      "name": "Sunrise Foundation Limited",
+      "a_positive_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        8,
+        10,
+        11,
+        13,
+        14,
+        17,
+        20
+      ],
+      "b_positive_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        8,
+        10,
+        11,
+        13,
+        14,
+        17,
+        20
+      ],
+      "a_b_section_parity": true,
+      "a_b_missingness_parity": true,
+      "propositions": 14,
+      "c_query_propositions": 11,
+      "source_authorities": [
+        "regulator_structured"
+      ]
+    },
+    {
+      "abn": "50169561394",
+      "name": "Australian Red Cross Society",
+      "a_positive_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        8,
+        10,
+        11,
+        13,
+        14,
+        20
+      ],
+      "b_positive_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        8,
+        10,
+        11,
+        13,
+        14,
+        20
+      ],
+      "a_b_section_parity": true,
+      "a_b_missingness_parity": true,
+      "propositions": 36,
+      "c_query_propositions": 34,
+      "source_authorities": [
+        "historical_governed_replay",
+        "regulator_structured"
+      ]
+    },
+    {
+      "abn": "47613674461",
+      "name": "Noongar Boodja Trust",
+      "a_positive_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        8,
+        10,
+        11,
+        13,
+        14,
+        17,
+        20
+      ],
+      "b_positive_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        8,
+        10,
+        11,
+        13,
+        14,
+        17,
+        20
+      ],
+      "a_b_section_parity": true,
+      "a_b_missingness_parity": true,
+      "propositions": 12,
+      "c_query_propositions": 9,
+      "source_authorities": [
+        "regulator_structured"
+      ]
+    },
+    {
+      "abn": "28000030179",
+      "name": "The Smith Family",
+      "a_positive_sections": [
+        1,
+        2,
+        4,
+        8,
+        11,
+        20
+      ],
+      "b_positive_sections": [
+        1,
+        2,
+        4,
+        8,
+        11,
+        20
+      ],
+      "a_b_section_parity": true,
+      "a_b_missingness_parity": true,
+      "propositions": 6,
+      "c_query_propositions": 4,
+      "source_authorities": [
+        "regulator_structured"
+      ]
+    }
+  ],
+  "all_a_b_parity": true,
+  "paths": {
+    "A": "retained source representations → historical typed records → experimental promotion → integrated 20-section compiler → surface",
+    "B": "retained experimental records → one normalized envelope → deterministic existing assignment replay → progressive card + ledger",
+    "C": "retained envelope → query section selection → attributed response"
+  }
+}

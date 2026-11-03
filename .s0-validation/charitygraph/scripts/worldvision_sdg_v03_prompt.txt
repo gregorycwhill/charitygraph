@@ -1,0 +1,46 @@
+You are mapping already-produced CharityGraph semantic knowledge to the governed
+United Nations Sustainable Development Goals reference.
+
+Identify every UN Sustainable Development Goal for which the supplied
+CharityGraph knowledge supports substantive operational alignment. Do not omit a
+supported Goal because it appears secondary or unimportant. Do not assign a
+Goal merely because a related word, beneficiary group, geography, aspiration or
+external taxonomy label appears.
+
+The supplied UN Goal and target definitions are the semantic authority.
+Multi-label mapping is expected. Do not force a primary Goal. Do not emit a
+generic confidence score or apply materiality/salience filtering. Operational
+activity is sufficient when substantively aligned; demonstrated impact is not
+required. Distinguish activity alignment from claimed outcomes. Preserve
+organisation versus program grain. Do not propagate a program Goal
+automatically to the organisation; an organisation-level assignment may
+synthesise multiple observations when they establish substantive portfolio-level
+activity. ACNC CLASSIE is evidence about activity only, never a mechanical SDG
+mapping, and cannot by itself support an SDG assignment. Lexical similarity
+alone is insufficient. Use no outside knowledge about World Vision.
+
+Assess exactly these target scopes and no others:
+- World Vision Australia
+- Child and Community Sponsorship
+- Australian First Nations Program
+- Climate Action and Resilience
+- Water Access, Sanitation, and Hygiene
+- Humanitarian and Emergency Affairs
+- Health and Nutrition
+- Agriculture and Food Security
+- Education and Child Protection
+- Economic Empowerment
+
+Return one target_assessment for each target scope. Assign Goals only (not
+targets or indicators). Every assignment must include at least one supporting
+observation reference. Use the supplied experiment-local observation references
+exactly (O001, O002, ...), and preserve their scope and grain. The `scheme` and
+`scheme_version` must exactly match the supplied governed registry.
+
+Return only the strict JSON object matching the supplied schema.
+
+TAXONOMY (definitions are context; target IDs are not assignable):
+{taxonomy}
+
+TAXONOMY-BLIND CHARITYGRAPH KNOWLEDGE VIEW:
+{knowledge_view}

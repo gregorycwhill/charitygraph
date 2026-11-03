@@ -1,0 +1,530 @@
+{
+  "input_kind": "ranked_ais_row",
+  "source_families": {
+    "ACNC register/profile": "not retained",
+    "AIS detail": "available historical machine-readable (ranked row)",
+    "annual/financial reports": "not retained",
+    "official website": "not retained",
+    "Wikipedia/Wikimedia": "not retained",
+    "DGR/ABR": "not retained",
+    "PFRA": "not applicable",
+    "specialist/historical": "available Data frozen ranking snapshot"
+  },
+  "promotion_decision": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION",
+  "graph": {
+    "subjects": [
+      {
+        "record_id": "subjectrecord:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:subject-record:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "subject_kind": "organisation",
+        "lifecycle_status": "active",
+        "display_name": "The Smith Family",
+        "external_identifiers": [
+          {
+            "scheme": "ABN",
+            "value": "28000030179",
+            "issuing_authority": "ACNC",
+            "source_record_ids": [
+              "srcrec:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+            ],
+            "valid_from": null,
+            "valid_to": null
+          }
+        ],
+        "identity_authority_refs": [
+          {
+            "artifact_id": "srcrec:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+            "content_hash": "904d8920128891eddb4f0504b96d416c14d9827de9e03001056c9c53a61d5594",
+            "schema": {
+              "schema_id": "urn:charitygraph:builder:schema:source-record:1.0",
+              "schema_version": "1.0"
+            }
+          }
+        ],
+        "identity_policy_id": "EXPERIMENTAL_SPIKE5_RETAINED_JOIN_ONLY",
+        "predecessor_subject_ids": [],
+        "successor_subject_ids": [],
+        "lifecycle_reason": null
+      }
+    ],
+    "scopes": [
+      {
+        "record_id": "scope:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:scope-record:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "scope_kind": "organisation",
+        "label": "The Smith Family",
+        "parent_scope_id": null,
+        "valid_from": null,
+        "valid_to": null,
+        "lifecycle_status": "active"
+      }
+    ],
+    "observations": [
+      {
+        "record_id": "observation:a2e920246e7ebac5abb594a5fd0facc0d639807342ea18297a04c402fc98e46a",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "scope_id": "scope:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "predicate": "Name",
+        "value": "The Smith Family",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "source_record_ids": [
+          "srcrec:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:a3eb06b07909cfd8ce00a1ed252dd05a84023d0187e068416e46da4a92db7fbd",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "scope_id": "scope:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "predicate": "Status",
+        "value": "Registered",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "source_record_ids": [
+          "srcrec:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:9894751c6f6882588a71ee1e722283ba2594f59c3e6372b719b44ab9b4d904b7",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "scope_id": "scope:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "predicate": "Activity",
+        "value": "y",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "source_record_ids": [
+          "srcrec:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:101374eb8f1cfbbe2c5639dadf686a36a0a114872e07f6fbdb4f442783106f09",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "scope_id": "scope:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "predicate": "Charity size",
+        "value": "Large",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "source_record_ids": [
+          "srcrec:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:bfbb475f6d71f7fc2d1bb2fdeea3bbc465e698ebfafa0e05be429a7b35536c37",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "scope_id": "scope:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "predicate": "Fundraising",
+        "value": "y",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "source_record_ids": [
+          "srcrec:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:f1bd2c1e0b1a32876af853b7b3a0b56af5439e4d9327655fedde159cf4a89621",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "scope_id": "scope:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "predicate": "Evidence packet",
+        "value": {
+          "kind": "ranked_ais_row",
+          "provider_calls": 0
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "source_record_ids": [
+          "srcrec:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      }
+    ],
+    "relationships": [],
+    "evidence": [
+      {
+        "observation_id": "observation:a2e920246e7ebac5abb594a5fd0facc0d639807342ea18297a04c402fc98e46a",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          1
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:a3eb06b07909cfd8ce00a1ed252dd05a84023d0187e068416e46da4a92db7fbd",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          1
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:9894751c6f6882588a71ee1e722283ba2594f59c3e6372b719b44ab9b4d904b7",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          2,
+          4
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:101374eb8f1cfbbe2c5639dadf686a36a0a114872e07f6fbdb4f442783106f09",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          11
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:bfbb475f6d71f7fc2d1bb2fdeea3bbc465e698ebfafa0e05be429a7b35536c37",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          8
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:f1bd2c1e0b1a32876af853b7b3a0b56af5439e4d9327655fedde159cf4a89621",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          20
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      }
+    ],
+    "coverage_inputs": [
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 3,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 5,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 6,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 7,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 9,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 10,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 12,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 13,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 14,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 15,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 16,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 17,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 18,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:2d7db1d832be72cdaa9074e976f0c2037c26eba326254d629cb06c2386c28f3e",
+        "section_id": 19,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      }
+    ]
+  },
+  "observation_anatomy": {
+    "observation:a2e920246e7ebac5abb594a5fd0facc0d639807342ea18297a04c402fc98e46a": "positive_structured",
+    "observation:a3eb06b07909cfd8ce00a1ed252dd05a84023d0187e068416e46da4a92db7fbd": "positive_structured",
+    "observation:9894751c6f6882588a71ee1e722283ba2594f59c3e6372b719b44ab9b4d904b7": "positive_structured",
+    "observation:101374eb8f1cfbbe2c5639dadf686a36a0a114872e07f6fbdb4f442783106f09": "positive_structured",
+    "observation:bfbb475f6d71f7fc2d1bb2fdeea3bbc465e698ebfafa0e05be429a7b35536c37": "positive_structured",
+    "observation:f1bd2c1e0b1a32876af853b7b3a0b56af5439e4d9327655fedde159cf4a89621": "positive_structured"
+  }
+}

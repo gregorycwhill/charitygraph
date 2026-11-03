@@ -1,0 +1,137 @@
+{
+  "module_id": "M06",
+  "title": "Participation semantic wave",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 6,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-41.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/plan-international-australia-14.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/australian-red-cross-18.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-33.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/acfid-22.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/acfid-15.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-23.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-18.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-27.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/world-vision-australia-3.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "unit_id": "M06-U1",
+      "page_id": "the-smith-family-41",
+      "claim": "The Smith Family reports 5,478 people filling 5,983 national volunteer roles; a person can occupy multiple roles. Its 91% staff-support satisfaction has no respondent denominator on this page.",
+      "time": "FY2024-25",
+      "scope": "national volunteer roles",
+      "source_role": "first-party report",
+      "epistemic_status": "reported, not independently verified"
+    },
+    {
+      "unit_id": "M06-U2",
+      "page_id": "plan-international-australia-14",
+      "claim": "Plan reports five active office volunteers contributing 933 hours across three departments in FY24. The volunteer contact route is a report-period invitation, not verified current availability.",
+      "time": "FY24",
+      "scope": "office volunteering",
+      "source_role": "first-party report",
+      "epistemic_status": "reported, not independently verified"
+    },
+    {
+      "unit_id": "M06-U3",
+      "page_id": "australian-red-cross-18",
+      "claim": "Red Cross reports about 35 participants from 14 countries at the Pacific IHL forum; this is a separate event from its 30-person course and eight-team moot.",
+      "time": "FY2023-24",
+      "scope": "IHL event participants",
+      "source_role": "first-party report",
+      "epistemic_status": "reported, not independently verified"
+    },
+    {
+      "unit_id": "M06-U4",
+      "page_id": "bush-heritage-australia-33",
+      "claim": "Bush Heritage reports more than 47,235 volunteer hours in 2025-26; 98% placement satisfaction and 93% supported safety are survey claims with no sample size on the page.",
+      "time": "2025-26",
+      "scope": "volunteer program",
+      "source_role": "first-party report",
+      "epistemic_status": "reported, not independently verified"
+    },
+    {
+      "unit_id": "M06-U5",
+      "page_id": "acfid-22",
+      "claim": "ACFID describes member-led communities of practice led by volunteer convenors and interacting through MyACFID. A convenor's employer is an affiliation, not evidence that all that employer's staff participate.",
+      "time": "2023-24",
+      "scope": "membership communities",
+      "source_role": "first-party report",
+      "epistemic_status": "reported, not independently verified"
+    },
+    {
+      "unit_id": "M06-U6",
+      "page_id": "acfid-15",
+      "claim": "ACFID reports 494 delegates from 179 organisations and 22 countries at its hybrid 2023 conference; counts of delegates, organisations and countries must not be combined.",
+      "time": "2023",
+      "scope": "conference",
+      "source_role": "first-party report",
+      "epistemic_status": "reported, not independently verified"
+    },
+    {
+      "unit_id": "M06-U7",
+      "page_id": "the-smith-family-23",
+      "claim": "Learning for Life supported 71,818 students; broader programs and activities involved 186,499 children/young people. These are nested/different populations without an explicit disjointness guarantee.",
+      "time": "2024-25",
+      "scope": "program participation",
+      "source_role": "first-party report",
+      "epistemic_status": "reported, not independently verified"
+    },
+    {
+      "unit_id": "M06-U8",
+      "page_id": "caritas-australia-18",
+      "claim": "Caritas says its partner GAP runs participant-led Grassroots Youth Engagement for disengaged young Aboriginal people roughly 12–25, supported by local collaborations.",
+      "time": "2023-24",
+      "scope": "GAP/GYE in Palmerston",
+      "source_role": "first-party report",
+      "epistemic_status": "reported, not independently verified"
+    },
+    {
+      "unit_id": "M06-U9",
+      "page_id": "the-smith-family-27",
+      "claim": "On PAR pairs kindergarten-to-Year-5 students and families with a team member for up to two years, in two communities; the pilot has helped 345 students.",
+      "time": "2024-25 context",
+      "scope": "On PAR pilot",
+      "source_role": "first-party report",
+      "epistemic_status": "reported, not independently verified"
+    },
+    {
+      "unit_id": "M06-U10",
+      "page_id": "world-vision-australia-3",
+      "claim": "A photo caption identifies First Nations young people participating in Young Mob on an Uluru cultural exchange; it establishes an activity example, not total participation or recruitment eligibility.",
+      "time": "2024 context",
+      "scope": "caption-specific Young Mob activity",
+      "source_role": "first-party report",
+      "epistemic_status": "reported, not independently verified"
+    }
+  ],
+  "defects": [
+    "D06: People, role, hour and reach units are not interchangeable.",
+    "D06b: Survey denominators and current volunteering availability are absent."
+  ],
+  "counterexamples": [
+    "A caption is real participation evidence with very narrow scope."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "10 represented pages read; one is caption/acknowledgment-led rather than participation-heavy."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-41.txt": "3f4e307b742fd97149a9b95af1c27f8b6c5bdde3d7bdbcaaa24f9ff93acb0895",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\plan-international-australia-14.txt": "057ba96ff720b70d636605095827d118b306b2819664d5d1c75dee8f2fc9e174",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\australian-red-cross-18.txt": "49947ed2f772a7af642f597fbe9cee347e8a9b5b2955535dc49332fc1df324df",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-33.txt": "1856fb55033e00a2f556bb5ac45950cfb36ea6e0559a5fac85111900cd715c4c",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\acfid-22.txt": "4876448ed98240cd60b7b2370ecbda1403c8b5d9a3aea07abefc3871b1bb4915",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\acfid-15.txt": "e0e81cedbbb4f84e0573aedee8de5457d3460a053944c7f887b7d307a6d5e778",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-23.txt": "6660a6e99cb1921861a59a23b5da50740f907508ed66a7577a228aad3cba5221",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-18.txt": "3793420efcab9e47fbae38aba14a20dabffc00d5162828fd110f4ebbcc1636ab",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-27.txt": "f6ad3a4fb14da552ca763261cda01082c1124e3e07cc9b48f5281491faa85da7",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\world-vision-australia-3.txt": "193ec44aa94d536ba84859957f2e3c6a4b817a2852c57bac177debbaef47c85f"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

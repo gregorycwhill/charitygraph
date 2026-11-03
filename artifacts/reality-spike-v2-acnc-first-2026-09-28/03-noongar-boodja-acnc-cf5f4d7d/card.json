@@ -1,0 +1,103 @@
+{
+  "non_production_reality_spike_v2": true,
+  "charity": {
+    "name": "Noongar Boodja Trust",
+    "acnc_record_id": "cf5f4d7d-6ab4-eb11-8236-000d3a6abd1c",
+    "abn_attribute": "47613674461"
+  },
+  "generated_at": "2026-09-28T11:56:32.376965+00:00",
+  "model": {
+    "model": "gpt-5.6-terra",
+    "response_id": "resp_0b856a8ad0b23cbd006aba55e2b0ac87d0a6d54be86bc6960e",
+    "status": "completed",
+    "usage": {
+      "input_tokens": 7021,
+      "output_tokens": 1351,
+      "total_tokens": 8372
+    },
+    "transport_requests": 1
+  },
+  "card": {
+    "identity": {
+      "statement": "The ACNC Charity Register page\u2019s structured data identifies an organization named \u201cNoongar Boodja Trust.\u201d",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/cf5f4d7d-6ab4-eb11-8236-000d3a6abd1c"
+      ]
+    },
+    "purpose_mission": {
+      "statement": "Not established from the retained evidence.",
+      "source_urls": []
+    },
+    "programs_or_activity_scopes": [],
+    "beneficiaries": {
+      "statement": "Not established from the retained evidence.",
+      "source_urls": []
+    },
+    "geography": {
+      "statement": "An external ABR record for \u201cThe Trustee for Noongar Boodja Trust\u201d lists its main business location as WA 6000; this is an external attribute and does not establish the charity\u2019s service geography.",
+      "source_urls": [
+        "https://abr.business.gov.au/ABN/View?abn=47613674461"
+      ]
+    },
+    "workforce_volunteers": {
+      "statement": "Not established from the retained evidence.",
+      "source_urls": []
+    },
+    "financial_scale": {
+      "statement": "No financial values or financial-report contents were retained. The retained ACNC material identifies an Annual Information Statement for reporting year 2023, but its substantive fields were not available in the evidence.",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/cf5f4d7d-6ab4-eb11-8236-000d3a6abd1c/documents/4918ee03-10c7-ee11-9079-002248935564"
+      ]
+    },
+    "governance": {
+      "statement": "Not established from the retained evidence; the retained ACNC people-page capture contains no people or governance details.",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/cf5f4d7d-6ab4-eb11-8236-000d3a6abd1c/people"
+      ]
+    },
+    "operating_evidence": {
+      "statement": "No substantive activity, program-delivery, or operational evidence was retained. The retained ACNC Annual Information Statement page establishes the existence of a 2023 AIS page only, not the contents of the statement or current operations.",
+      "source_urls": [
+        "https://www.acnc.gov.au/charity/charities/cf5f4d7d-6ab4-eb11-8236-000d3a6abd1c/documents/4918ee03-10c7-ee11-9079-002248935564"
+      ]
+    },
+    "source_reported_claims": [
+      {
+        "statement": "The ACNC page metadata identifies \u201cNoongar Boodja Trust Annual Information Statement 2023\u201d as a report about Noongar Boodja Trust.",
+        "source_urls": [
+          "https://www.acnc.gov.au/charity/charities/cf5f4d7d-6ab4-eb11-8236-000d3a6abd1c/documents/4918ee03-10c7-ee11-9079-002248935564"
+        ]
+      },
+      {
+        "statement": "The external ABR record lists \u201cThe Trustee for Noongar Boodja Trust\u201d as an active Fixed Trust, with ABN status active from 29 March 2021, and states that it is registered with the ACNC from 29 March 2021. The ABN is retained only as an external attribute/join key, not as the charity\u2019s identity or proof of operation.",
+        "source_urls": [
+          "https://abr.business.gov.au/ABN/View?abn=47613674461"
+        ]
+      },
+      {
+        "statement": "The external ABR record states that \u201cThe Trustee for Noongar Boodja Trust\u201d is not entitled to receive tax-deductible gifts and lists GST Concession, Income Tax Exemption, and FBT Rebate from 29 March 2021.",
+        "source_urls": [
+          "https://abr.business.gov.au/ABN/View?abn=47613674461"
+        ]
+      }
+    ],
+    "unknowns_not_established": [
+      "Charitable purpose or mission.",
+      "Programs, services, or activity scope.",
+      "Beneficiary groups.",
+      "Service locations or geographic reach.",
+      "Workforce, volunteer, and staffing numbers.",
+      "Financial income, expenses, assets, liabilities, and reporting scale for any reporting year.",
+      "Responsible persons, board composition, and governance arrangements.",
+      "Contents of the 2023 Annual Information Statement.",
+      "Whether a later AIS or financial report was lodged or its contents."
+    ],
+    "cautions": [
+      "The retained ACNC register, profile, people, and document-index captures are largely navigation and metadata; they do not expose substantive register fields in the supplied evidence.",
+      "Do not infer purpose, activities, beneficiaries, or Indigenous/community focus from the name.",
+      "The ABR entry is an external attribute source. Its active ABN status is not evidence that the charity is currently operating.",
+      "No relationship, affiliation, or global-movement claim is established by the retained evidence."
+    ]
+  },
+  "source_manifest": "sources.json"
+}

@@ -1,0 +1,120 @@
+{
+  "module_id": "M25",
+  "title": "Ten donor abstention questions",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 25,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M06.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M08.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M09.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M10.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M17.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M18.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M19.json"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "id": "Q25-1",
+      "question": "Which of these charities gives the most benefit per dollar?",
+      "answer": "Abstain from ranking: comparable marginal costs, outcome measures and attribution are absent.",
+      "preferred_route": "abstain from requested conclusion",
+      "needed": "comparable cost-effectiveness studies",
+      "self_review": "Abstention warranted within inspected corpus; independent grader absent"
+    },
+    {
+      "id": "Q25-2",
+      "question": "Are all WWF complaints resolved?",
+      "answer": "Unknown from this corpus; the complaints mechanism says nothing about the complaint register.",
+      "preferred_route": "abstain from requested conclusion",
+      "needed": "current complaint outcomes",
+      "self_review": "Abstention warranted within inspected corpus; independent grader absent"
+    },
+    {
+      "id": "Q25-3",
+      "question": "Can my child join On PAR next week in Melbourne?",
+      "answer": "The report describes two communities in NSW/SA; it does not establish current Melbourne intake or eligibility.",
+      "preferred_route": "abstain from requested conclusion",
+      "needed": "current program intake/location",
+      "self_review": "Abstention warranted within inspected corpus; independent grader absent"
+    },
+    {
+      "id": "Q25-4",
+      "question": "What exact percentage of Bush volunteers felt unsafe?",
+      "answer": "The complement of supported safety cannot answer that; sample and response categories are missing.",
+      "preferred_route": "abstain from requested conclusion",
+      "needed": "survey instrument/respondent counts",
+      "self_review": "Abstention warranted within inspected corpus; independent grader absent"
+    },
+    {
+      "id": "Q25-5",
+      "question": "What was Ediegarrup's next vegetation score?",
+      "answer": "Not present in the inspected evidence.",
+      "preferred_route": "abstain from requested conclusion",
+      "needed": "next assessment with date",
+      "self_review": "Abstention warranted within inspected corpus; independent grader absent"
+    },
+    {
+      "id": "Q25-6",
+      "question": "What is the randomised causal effect size of Catch-Up Learning?",
+      "answer": "Not established by the inspected evaluation pages.",
+      "preferred_route": "abstain from requested conclusion",
+      "needed": "randomised design or justified causal model",
+      "self_review": "Abstention warranted within inspected corpus; independent grader absent"
+    },
+    {
+      "id": "Q25-7",
+      "question": "How many unique people did RFDS serve across all services?",
+      "answer": "Patient contacts may repeat people; no deduplicated national count inspected.",
+      "preferred_route": "abstain from requested conclusion",
+      "needed": "deduplicated person-level measure",
+      "self_review": "Abstention warranted within inspected corpus; independent grader absent"
+    },
+    {
+      "id": "Q25-8",
+      "question": "How many Caritas partner shelters have spaces available tonight?",
+      "answer": "Annual report describes partnerships, not live capacity.",
+      "preferred_route": "abstain from requested conclusion",
+      "needed": "current shelter availability",
+      "self_review": "Abstention warranted within inspected corpus; independent grader absent"
+    },
+    {
+      "id": "Q25-9",
+      "question": "Are WVA's outcomes still sustained five years after every project ends?",
+      "answer": "A stated goal of sustainability does not answer universal longitudinal outcomes.",
+      "preferred_route": "abstain from requested conclusion",
+      "needed": "follow-up studies with coverage",
+      "self_review": "Abstention warranted within inspected corpus; independent grader absent"
+    },
+    {
+      "id": "Q25-10",
+      "question": "Which charities have never harmed a beneficiary?",
+      "answer": "No such exhaustive evidence is present; lack of reported harm cannot support never.",
+      "preferred_route": "abstain from requested conclusion",
+      "needed": "defined surveillance coverage and period",
+      "self_review": "Abstention warranted within inspected corpus; independent grader absent"
+    }
+  ],
+  "defects": [
+    "D25: Coverage limits must be visible even for charities with many report claims."
+  ],
+  "counterexamples": [
+    "No-hit and insufficient-evidence differ: nine relevant themes have evidence but not the requested conclusion."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Manual response exercise; no production acceptance rate claimed."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M06.json": "a4badd838663ed68b6196aaa5572af7d9069e7425743fea65fbc76928bc8512a",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M08.json": "44251902d856de66d16ebb627018e7c3162d8a88495f8df5d377d9c4b3a1944f",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M09.json": "df1510df352160a8e7885fe8d9a8b7553c9c4585e59d0547e734a627b31d19d8",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M10.json": "7d5b4e7834ab2e7e1ea3ec319e095ab478c0aa91c2d56dcd15e406df20100f49",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M17.json": "5e1689062881a89e6f174b51a35c466f7584c0742aecc5860243734be05bc28b",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M18.json": "4993744361d23ee4b6a4c72a2ec8d74ea7d48e9f47f80cce042f5536004d7bb7",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M19.json": "1e55012416416d88268524489ac73579c13984e5b5c33a1b9f59282c854c3b21"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

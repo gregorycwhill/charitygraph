@@ -1,0 +1,12 @@
+{
+  "archive_root": "C:\\Users\\grego\\OneDrive\\Documents\\CharityGraph Source Archive",
+  "repository_root": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph",
+  "outside_git": true,
+  "checks": {},
+  "performed_at": "2026-09-29T13:02:56.687764+00:00",
+  "current_operation": "create_file_directly_inside_existing_archive_root",
+  "status": "FAIL",
+  "failed_operation": "create_file_directly_inside_existing_archive_root",
+  "error_type": "PermissionError",
+  "error": "PermissionError(13, 'Permission denied')"
+}

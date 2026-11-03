@@ -1,0 +1,126 @@
+{
+  "module_id": "M07",
+  "title": "Relationship semantic wave",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 7,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/acfid-17.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-14.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-23.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-19.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/world-vision-australia-9.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/plan-international-australia-5.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/australian-red-cross-18.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-18.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-33.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-27.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "unit_id": "M07-U1",
+      "page_id": "acfid-17",
+      "claim": "ACFID hosts AP4D; ACMC and DFAT fund AP4D. Hosting, funding and participation in consultations are separate directed roles.",
+      "scope": "AP4D",
+      "time": "2023-24",
+      "source_role": "first-party report"
+    },
+    {
+      "unit_id": "M07-U2",
+      "page_id": "caritas-australia-14",
+      "claim": "Caritas engaged CBM Australia and CBM International Advisory Group for disability training; 23 Caritas staff and 15 partners across nine Asian countries attended. Partners are not necessarily 15 people.",
+      "scope": "disability training",
+      "time": "2023-24",
+      "source_role": "first-party report"
+    },
+    {
+      "unit_id": "M07-U3",
+      "page_id": "bush-heritage-australia-23",
+      "claim": "Bush Heritage worked with Greening Australia, Nowanup and Badgebup Ngoolark Rangers on Ediegarrup restoration; Greening Australia and Canopy separately partnered on nature finance.",
+      "scope": "Ediegarrup",
+      "time": "2025-26",
+      "source_role": "first-party report"
+    },
+    {
+      "unit_id": "M07-U4",
+      "page_id": "bush-heritage-australia-19",
+      "claim": "The Australian Government Saving Native Species Program funded the Edgbaston captive breeding project.",
+      "scope": "captive breeding",
+      "time": "2025-26 context",
+      "source_role": "first-party report"
+    },
+    {
+      "unit_id": "M07-U5",
+      "page_id": "world-vision-australia-9",
+      "claim": "DFAT administers ANCP; WVA reports participation in 32 ANCP projects in 20 countries, distinct from its full 327-project portfolio.",
+      "scope": "ANCP subportfolio",
+      "time": "FY24",
+      "source_role": "first-party report"
+    },
+    {
+      "unit_id": "M07-U6",
+      "page_id": "plan-international-australia-5",
+      "claim": "Plan Australia funds programs in 25 countries implemented by Plan country organisations/local partners, while the Federation works in more than 83 countries.",
+      "scope": "Australian entity versus Federation",
+      "time": "FY24",
+      "source_role": "first-party report"
+    },
+    {
+      "unit_id": "M07-U7",
+      "page_id": "australian-red-cross-18",
+      "claim": "ARC co-hosted the Pacific IHL forum with New Zealand Red Cross and ICRC, with Swiss embassy funding support in Australia and New Zealand.",
+      "scope": "Pacific forum",
+      "time": "2023-24",
+      "source_role": "first-party report"
+    },
+    {
+      "unit_id": "M07-U8",
+      "page_id": "caritas-australia-18",
+      "claim": "Caritas supports GAP, which operates GYE; CatholicCare NT's knowledge-sharing visit relates to the separate Timor-Leste protection program.",
+      "scope": "two separate partnerships",
+      "time": "2023-24",
+      "source_role": "first-party report"
+    },
+    {
+      "unit_id": "M07-U9",
+      "page_id": "bush-heritage-australia-33",
+      "claim": "Bush Heritage partnered with Environmental Defenders Office on a forthcoming land-protection report; Wyss support is acknowledged via Friends of Australian Bush Heritage Fund.",
+      "scope": "land protection report and support",
+      "time": "2025-26",
+      "source_role": "first-party report"
+    },
+    {
+      "unit_id": "M07-U10",
+      "page_id": "the-smith-family-27",
+      "claim": "An individual donor and Paul Ramsay Foundation support On PAR; schools/local partners help build support around children.",
+      "scope": "On PAR",
+      "time": "2024-25",
+      "source_role": "first-party report"
+    }
+  ],
+  "defects": [
+    "D07: Undirected partner edges erase funding, host, implementer, intermediary and program boundaries."
+  ],
+  "counterexamples": [
+    "One source page describes several unrelated partnership activities; a page-wide relationship scope is unsafe."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Ten pages read; claimed model-specific Terra crossing cannot be supplied."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\acfid-17.txt": "8040138b495d92afc42ab67627e657a12bd5849669f02445f774cc5396acf67d",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-14.txt": "a5bae4fdc25b88d4d9063632bdc507dad2f73cf1d94158eb05b65d31583db7ac",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-23.txt": "f2b297cd7095dcaeda34fa9f8f3a2a140563e43396a27d0d9917bbfd3dd12db4",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-19.txt": "3e50946b53b3807a9ad2ad2bd730f5c6f210b5962d6e77e86c6117155c996847",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\world-vision-australia-9.txt": "6c1b90b48f37155e121a50bc84998b741c02e86f61411997af624b912a9b08a3",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\plan-international-australia-5.txt": "d1e9f192b752336bdd05f75125fe4f106a9e9bd68f90f264599e8b01a64b5e97",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\australian-red-cross-18.txt": "49947ed2f772a7af642f597fbe9cee347e8a9b5b2955535dc49332fc1df324df",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-18.txt": "3793420efcab9e47fbae38aba14a20dabffc00d5162828fd110f4ebbcc1636ab",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-33.txt": "1856fb55033e00a2f556bb5ac45950cfb36ea6e0559a5fac85111900cd715c4c",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-27.txt": "f6ad3a4fb14da552ca763261cda01082c1124e3e07cc9b48f5281491faa85da7"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

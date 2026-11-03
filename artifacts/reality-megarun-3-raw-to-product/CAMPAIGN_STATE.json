@@ -1,0 +1,11 @@
+﻿{
+    "session_key":  "cg-megarun3-167-raw-report-furnace-v1",
+    "state":  "COMPLETE",
+    "updated_at":  "2026-09-29T08:10:49.4472764Z",
+    "counts":  {
+                   "page_chunk_records":  248,
+                   "propositions":  117,
+                   "subjects":  8
+               },
+    "restart":  "Outputs are disposable experiment artifacts; raw report bytes were not copied."
+}

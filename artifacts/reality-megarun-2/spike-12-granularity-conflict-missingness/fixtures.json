@@ -1,0 +1,30 @@
+{
+  "fixture_status": "disposable; derived only from retained claims; no substantive fact fabricated",
+  "evidence_items": [
+    {"id":"RC-1","subject":"Australian Red Cross","claim":"two operating divisions","scope":"organisation","period":"2024-25","role":"first_party_report"},
+    {"id":"RC-2","subject":"Australian Red Cross","claim":"member-run services","scope":"service","period":"2024-25","role":"first_party_report"},
+    {"id":"RC-3","subject":"Australian Red Cross","claim":"branches","scope":"site/footprint","period":"2024-25","role":"first_party_report"},
+    {"id":"RC-4","subject":"Australian Red Cross","claim":"volunteers and employees","scope":"organisation","period":"2024-25","role":"first_party_report"},
+    {"id":"RC-5","subject":"Australian Red Cross","claim":"reported reach metrics","scope":"reported metric","period":"2024-25","role":"first_party_report"},
+    {"id":"RC-6","subject":"Australian Red Cross","claim":"ACFID Code commitment and stated values","scope":"organisation","period":"2024-25","role":"first_party_report"},
+    {"id":"RC-7","subject":"Australian Red Cross","claim":"external audit / separately audited programmes","scope":"organisation/programme","period":"2024-25","role":"first_party_report"},
+    {"id":"WV-1","subject":"World Vision Australia","claim":"named directors and committee responsibilities","scope":"organisation","period":"2025","role":"first_party_report"},
+    {"id":"WV-2","subject":"World Vision Australia","claim":"international-board relationship","scope":"organisation relationship","period":"2025","role":"first_party_report"},
+    {"id":"WV-3","subject":"World Vision Australia","claim":"account certification and auditor","scope":"organisation","period":"2025","role":"first_party_report"},
+    {"id":"WV-4","subject":"World Vision Australia","claim":"faith-related director statement","scope":"speaker/director","period":"2025","role":"first_party_report"},
+    {"id":"SUN-1","subject":"Sunrise Foundation","claim":"historical structured regulator bundles","scope":"organisation","period":"historical","role":"regulator_record"}
+  ],
+  "controlled_relation_cases": [
+    {"id":"R1","members_service_to_current_availability","inputs":["RC-2"],"expected":"abstain; period-bound service description does not establish current availability"},
+    {"id":"R2","organisation_audit_to_programme_audit","inputs":["RC-7"],"expected":"scope-split; do not merge or conflict"},
+    {"id":"R3","director_faith_statement_to_organisation_ethos","inputs":["WV-4"],"expected":"speaker-scope; do not promote organisation-wide ethos"},
+    {"id":"R4","historical_regulator_to_current_claim","inputs":["SUN-1"],"expected":"time-bound; no supersession or currentness inference"},
+    {"id":"R5","duplicate_evidence","inputs":["RC-6","RC-6"],"expected":"one proposition with repeated/supporting evidence, not two facts"}
+  ],
+  "coverage_controls": [
+    {"subject":"Sunrise Foundation","state":"not_processed","domains":["participation","capacity","governance","relationships","ethos","conduct","outcomes","classification"]},
+    {"subject":"Noongar Boodja Trust","state":"not_processed","domains":["eight semantic domains not represented by retained structured evidence"]},
+    {"subject":"The Smith Family","state":"not_processed","domains":["fourteen areas outside the six retained structured bundles"]}
+  ],
+  "granularity_totals":{"G1":12,"G2":23,"G3":68}
+}

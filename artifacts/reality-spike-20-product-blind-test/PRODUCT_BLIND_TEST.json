@@ -1,0 +1,2787 @@
+{
+  "cards": [
+    {
+      "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+      "proposition_count": 22,
+      "evidence_state": "retained regulator AIS structured evidence",
+      "progressive_card": {
+        "visible_routes": [
+          "section_12_finance_resource_flow",
+          "section_18_governance_controls",
+          "section_1_identity",
+          "section_3_purpose_programs",
+          "section_6_workforce"
+        ],
+        "visible_proposition_ids": [
+          "G2-BC-001",
+          "G2-BC-002",
+          "G2-BC-003",
+          "G2-BC-004",
+          "G2-BC-005",
+          "G2-BC-006",
+          "G2-BC-007",
+          "G2-BC-008"
+        ],
+        "coverage_note": "Only candidate reported facts are visible; absent domains are shown as coverage gaps."
+      },
+      "evidence_ledger": {
+        "review_units": [
+          {
+            "proposition_id": "G2-BC-001",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.LegalName"
+          },
+          {
+            "proposition_id": "G2-BC-002",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.CharitySize"
+          },
+          {
+            "proposition_id": "G2-BC-003",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.ActivityOperating"
+          },
+          {
+            "proposition_id": "G2-BC-004",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.ActivityPersuitPurposesDescription"
+          },
+          {
+            "proposition_id": "G2-BC-005",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.Programs[0].Name"
+          },
+          {
+            "proposition_id": "G2-BC-006",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.Programs[1].Name"
+          },
+          {
+            "proposition_id": "G2-BC-007",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.Programs[2].Name"
+          },
+          {
+            "proposition_id": "G2-BC-008",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.Programs[3].Name"
+          },
+          {
+            "proposition_id": "G2-BC-009",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.Programs[4].Name"
+          },
+          {
+            "proposition_id": "G2-BC-010",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.Programs[5].Name"
+          },
+          {
+            "proposition_id": "G2-BC-011",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.Programs[6].Name"
+          },
+          {
+            "proposition_id": "G2-BC-012",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.Programs[7].Name"
+          },
+          {
+            "proposition_id": "G2-BC-013",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.Programs[8].Name"
+          },
+          {
+            "proposition_id": "G2-BC-014",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.Programs[9].Name"
+          },
+          {
+            "proposition_id": "G2-BC-015",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.RevenueTotal"
+          },
+          {
+            "proposition_id": "G2-BC-016",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.ExpenseTotal"
+          },
+          {
+            "proposition_id": "G2-BC-017",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.TotalAssets"
+          },
+          {
+            "proposition_id": "G2-BC-018",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.TotalLiabilities"
+          },
+          {
+            "proposition_id": "G2-BC-019",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.NetSurplusDeficit"
+          },
+          {
+            "proposition_id": "G2-BC-020",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.HrFteStaff"
+          },
+          {
+            "proposition_id": "G2-BC-021",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.HrUnpainVolunteers"
+          },
+          {
+            "proposition_id": "G2-BC-022",
+            "source_record_id": "src:acnc-ais-detail:75442934320:0ee357b9-0654-f111-bec7-6045bde5be38:cb_17b5799156f848e2acd03529c3e1b451",
+            "locator": "$.source_payload.data.FinRelatedPartyTransactions"
+          }
+        ]
+      },
+      "full_20_section_dossier_on_demand": [
+        {
+          "section": 1,
+          "state": "grounded"
+        },
+        {
+          "section": 2,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 3,
+          "state": "grounded"
+        },
+        {
+          "section": 4,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 5,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 6,
+          "state": "grounded"
+        },
+        {
+          "section": 7,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 8,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 9,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 10,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 11,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 12,
+          "state": "grounded"
+        },
+        {
+          "section": 13,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 14,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 15,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 16,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 17,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 18,
+          "state": "grounded"
+        },
+        {
+          "section": 19,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 20,
+          "state": "latent_or_not_established"
+        }
+      ]
+    },
+    {
+      "subject": "Accelerated Evolution - The Break Inc.",
+      "proposition_count": 22,
+      "evidence_state": "retained regulator AIS structured evidence",
+      "progressive_card": {
+        "visible_routes": [
+          "section_12_finance_resource_flow",
+          "section_18_governance_controls",
+          "section_1_identity",
+          "section_3_purpose_programs",
+          "section_6_workforce"
+        ],
+        "visible_proposition_ids": [
+          "G2-BC-023",
+          "G2-BC-024",
+          "G2-BC-025",
+          "G2-BC-026",
+          "G2-BC-027",
+          "G2-BC-028",
+          "G2-BC-029",
+          "G2-BC-030"
+        ],
+        "coverage_note": "Only candidate reported facts are visible; absent domains are shown as coverage gaps."
+      },
+      "evidence_ledger": {
+        "review_units": [
+          {
+            "proposition_id": "G2-BC-023",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.LegalName"
+          },
+          {
+            "proposition_id": "G2-BC-024",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.CharitySize"
+          },
+          {
+            "proposition_id": "G2-BC-025",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.ActivityOperating"
+          },
+          {
+            "proposition_id": "G2-BC-026",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.ActivityPersuitPurposesDescription"
+          },
+          {
+            "proposition_id": "G2-BC-027",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.Programs[0].Name"
+          },
+          {
+            "proposition_id": "G2-BC-028",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.Programs[1].Name"
+          },
+          {
+            "proposition_id": "G2-BC-029",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.Programs[2].Name"
+          },
+          {
+            "proposition_id": "G2-BC-030",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.Programs[3].Name"
+          },
+          {
+            "proposition_id": "G2-BC-031",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.Programs[4].Name"
+          },
+          {
+            "proposition_id": "G2-BC-032",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.Programs[5].Name"
+          },
+          {
+            "proposition_id": "G2-BC-033",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.Programs[6].Name"
+          },
+          {
+            "proposition_id": "G2-BC-034",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.Programs[7].Name"
+          },
+          {
+            "proposition_id": "G2-BC-035",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.Programs[8].Name"
+          },
+          {
+            "proposition_id": "G2-BC-036",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.Programs[9].Name"
+          },
+          {
+            "proposition_id": "G2-BC-037",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.RevenueTotal"
+          },
+          {
+            "proposition_id": "G2-BC-038",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.ExpenseTotal"
+          },
+          {
+            "proposition_id": "G2-BC-039",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.TotalAssets"
+          },
+          {
+            "proposition_id": "G2-BC-040",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.TotalLiabilities"
+          },
+          {
+            "proposition_id": "G2-BC-041",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.NetSurplusDeficit"
+          },
+          {
+            "proposition_id": "G2-BC-042",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.HrFteStaff"
+          },
+          {
+            "proposition_id": "G2-BC-043",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.HrUnpainVolunteers"
+          },
+          {
+            "proposition_id": "G2-BC-044",
+            "source_record_id": "src:acnc-ais-detail:87684571829:48fa88dd-6d00-f111-8406-7ced8d33fdea:cb_d99ab915a62349db9d141ea3b359066a",
+            "locator": "$.source_payload.data.FinRelatedPartyTransactions"
+          }
+        ]
+      },
+      "full_20_section_dossier_on_demand": [
+        {
+          "section": 1,
+          "state": "grounded"
+        },
+        {
+          "section": 2,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 3,
+          "state": "grounded"
+        },
+        {
+          "section": 4,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 5,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 6,
+          "state": "grounded"
+        },
+        {
+          "section": 7,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 8,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 9,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 10,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 11,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 12,
+          "state": "grounded"
+        },
+        {
+          "section": 13,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 14,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 15,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 16,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 17,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 18,
+          "state": "grounded"
+        },
+        {
+          "section": 19,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 20,
+          "state": "latent_or_not_established"
+        }
+      ]
+    },
+    {
+      "subject": "Aboriginal Legal Rights Movement",
+      "proposition_count": 18,
+      "evidence_state": "retained regulator AIS structured evidence",
+      "progressive_card": {
+        "visible_routes": [
+          "section_12_finance_resource_flow",
+          "section_18_governance_controls",
+          "section_1_identity",
+          "section_3_purpose_programs",
+          "section_6_workforce"
+        ],
+        "visible_proposition_ids": [
+          "G2-BC-045",
+          "G2-BC-046",
+          "G2-BC-047",
+          "G2-BC-048",
+          "G2-BC-049",
+          "G2-BC-050",
+          "G2-BC-051",
+          "G2-BC-052"
+        ],
+        "coverage_note": "Only candidate reported facts are visible; absent domains are shown as coverage gaps."
+      },
+      "evidence_ledger": {
+        "review_units": [
+          {
+            "proposition_id": "G2-BC-045",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.LegalName"
+          },
+          {
+            "proposition_id": "G2-BC-046",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.CharitySize"
+          },
+          {
+            "proposition_id": "G2-BC-047",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.ActivityOperating"
+          },
+          {
+            "proposition_id": "G2-BC-048",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.ActivityPersuitPurposesDescription"
+          },
+          {
+            "proposition_id": "G2-BC-049",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.Programs[0].Name"
+          },
+          {
+            "proposition_id": "G2-BC-050",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.Programs[1].Name"
+          },
+          {
+            "proposition_id": "G2-BC-051",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.Programs[2].Name"
+          },
+          {
+            "proposition_id": "G2-BC-052",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.Programs[3].Name"
+          },
+          {
+            "proposition_id": "G2-BC-053",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.Programs[4].Name"
+          },
+          {
+            "proposition_id": "G2-BC-054",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.Programs[5].Name"
+          },
+          {
+            "proposition_id": "G2-BC-055",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.RevenueTotal"
+          },
+          {
+            "proposition_id": "G2-BC-056",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.ExpenseTotal"
+          },
+          {
+            "proposition_id": "G2-BC-057",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.TotalAssets"
+          },
+          {
+            "proposition_id": "G2-BC-058",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.TotalLiabilities"
+          },
+          {
+            "proposition_id": "G2-BC-059",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.NetSurplusDeficit"
+          },
+          {
+            "proposition_id": "G2-BC-060",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.HrFteStaff"
+          },
+          {
+            "proposition_id": "G2-BC-061",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.HrUnpainVolunteers"
+          },
+          {
+            "proposition_id": "G2-BC-062",
+            "source_record_id": "src:acnc-ais-detail:32942723464:a4b94e57-c4d4-f011-8544-6045bde61b96:cb_999209b0ed6d4b708b34bc58beee22e8",
+            "locator": "$.source_payload.data.FinRelatedPartyTransactions"
+          }
+        ]
+      },
+      "full_20_section_dossier_on_demand": [
+        {
+          "section": 1,
+          "state": "grounded"
+        },
+        {
+          "section": 2,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 3,
+          "state": "grounded"
+        },
+        {
+          "section": 4,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 5,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 6,
+          "state": "grounded"
+        },
+        {
+          "section": 7,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 8,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 9,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 10,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 11,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 12,
+          "state": "grounded"
+        },
+        {
+          "section": 13,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 14,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 15,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 16,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 17,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 18,
+          "state": "grounded"
+        },
+        {
+          "section": 19,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 20,
+          "state": "latent_or_not_established"
+        }
+      ]
+    },
+    {
+      "subject": "Project Underdog Rescue Inc",
+      "proposition_count": 15,
+      "evidence_state": "retained regulator AIS structured evidence",
+      "progressive_card": {
+        "visible_routes": [
+          "section_12_finance_resource_flow",
+          "section_18_governance_controls",
+          "section_1_identity",
+          "section_3_purpose_programs",
+          "section_6_workforce"
+        ],
+        "visible_proposition_ids": [
+          "G2-BC-063",
+          "G2-BC-064",
+          "G2-BC-065",
+          "G2-BC-066",
+          "G2-BC-067",
+          "G2-BC-068",
+          "G2-BC-069",
+          "G2-BC-070"
+        ],
+        "coverage_note": "Only candidate reported facts are visible; absent domains are shown as coverage gaps."
+      },
+      "evidence_ledger": {
+        "review_units": [
+          {
+            "proposition_id": "G2-BC-063",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.LegalName"
+          },
+          {
+            "proposition_id": "G2-BC-064",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.CharitySize"
+          },
+          {
+            "proposition_id": "G2-BC-065",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.ActivityOperating"
+          },
+          {
+            "proposition_id": "G2-BC-066",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.ActivityPersuitPurposesDescription"
+          },
+          {
+            "proposition_id": "G2-BC-067",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.Programs[0].Name"
+          },
+          {
+            "proposition_id": "G2-BC-068",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.Programs[1].Name"
+          },
+          {
+            "proposition_id": "G2-BC-069",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.Programs[2].Name"
+          },
+          {
+            "proposition_id": "G2-BC-070",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.RevenueTotal"
+          },
+          {
+            "proposition_id": "G2-BC-071",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.ExpenseTotal"
+          },
+          {
+            "proposition_id": "G2-BC-072",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.TotalAssets"
+          },
+          {
+            "proposition_id": "G2-BC-073",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.TotalLiabilities"
+          },
+          {
+            "proposition_id": "G2-BC-074",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.NetSurplusDeficit"
+          },
+          {
+            "proposition_id": "G2-BC-075",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.HrFteStaff"
+          },
+          {
+            "proposition_id": "G2-BC-076",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.HrUnpainVolunteers"
+          },
+          {
+            "proposition_id": "G2-BC-077",
+            "source_record_id": "src:acnc-ais-detail:82136720784:c9e3c624-29fe-f011-8407-6045bdc47a8f:cb_f2e7f36fef5d4a788b3280d0830ee21b",
+            "locator": "$.source_payload.data.FinRelatedPartyTransactions"
+          }
+        ]
+      },
+      "full_20_section_dossier_on_demand": [
+        {
+          "section": 1,
+          "state": "grounded"
+        },
+        {
+          "section": 2,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 3,
+          "state": "grounded"
+        },
+        {
+          "section": 4,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 5,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 6,
+          "state": "grounded"
+        },
+        {
+          "section": 7,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 8,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 9,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 10,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 11,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 12,
+          "state": "grounded"
+        },
+        {
+          "section": 13,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 14,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 15,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 16,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 17,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 18,
+          "state": "grounded"
+        },
+        {
+          "section": 19,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 20,
+          "state": "latent_or_not_established"
+        }
+      ]
+    },
+    {
+      "subject": "International China Concern (Australia) Ltd",
+      "proposition_count": 15,
+      "evidence_state": "retained regulator AIS structured evidence",
+      "progressive_card": {
+        "visible_routes": [
+          "section_12_finance_resource_flow",
+          "section_18_governance_controls",
+          "section_1_identity",
+          "section_3_purpose_programs",
+          "section_6_workforce"
+        ],
+        "visible_proposition_ids": [
+          "G2-BC-078",
+          "G2-BC-079",
+          "G2-BC-080",
+          "G2-BC-081",
+          "G2-BC-082",
+          "G2-BC-083",
+          "G2-BC-084",
+          "G2-BC-085"
+        ],
+        "coverage_note": "Only candidate reported facts are visible; absent domains are shown as coverage gaps."
+      },
+      "evidence_ledger": {
+        "review_units": [
+          {
+            "proposition_id": "G2-BC-078",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.LegalName"
+          },
+          {
+            "proposition_id": "G2-BC-079",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.CharitySize"
+          },
+          {
+            "proposition_id": "G2-BC-080",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.ActivityOperating"
+          },
+          {
+            "proposition_id": "G2-BC-081",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.ActivityPersuitPurposesDescription"
+          },
+          {
+            "proposition_id": "G2-BC-082",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.Programs[0].Name"
+          },
+          {
+            "proposition_id": "G2-BC-083",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.Programs[1].Name"
+          },
+          {
+            "proposition_id": "G2-BC-084",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.Programs[2].Name"
+          },
+          {
+            "proposition_id": "G2-BC-085",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.RevenueTotal"
+          },
+          {
+            "proposition_id": "G2-BC-086",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.ExpenseTotal"
+          },
+          {
+            "proposition_id": "G2-BC-087",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.TotalAssets"
+          },
+          {
+            "proposition_id": "G2-BC-088",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.TotalLiabilities"
+          },
+          {
+            "proposition_id": "G2-BC-089",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.NetSurplusDeficit"
+          },
+          {
+            "proposition_id": "G2-BC-090",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.HrFteStaff"
+          },
+          {
+            "proposition_id": "G2-BC-091",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.HrUnpainVolunteers"
+          },
+          {
+            "proposition_id": "G2-BC-092",
+            "source_record_id": "src:acnc-ais-detail:30091040649:8b28b687-a12b-f011-8c4d-6045bdc24e13:cb_6b2097060d424bdf8858dde71c901dbb",
+            "locator": "$.source_payload.data.FinRelatedPartyTransactions"
+          }
+        ]
+      },
+      "full_20_section_dossier_on_demand": [
+        {
+          "section": 1,
+          "state": "grounded"
+        },
+        {
+          "section": 2,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 3,
+          "state": "grounded"
+        },
+        {
+          "section": 4,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 5,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 6,
+          "state": "grounded"
+        },
+        {
+          "section": 7,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 8,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 9,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 10,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 11,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 12,
+          "state": "grounded"
+        },
+        {
+          "section": 13,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 14,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 15,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 16,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 17,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 18,
+          "state": "grounded"
+        },
+        {
+          "section": 19,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 20,
+          "state": "latent_or_not_established"
+        }
+      ]
+    },
+    {
+      "subject": "Australian National Capital Artists Inc",
+      "proposition_count": 14,
+      "evidence_state": "retained regulator AIS structured evidence",
+      "progressive_card": {
+        "visible_routes": [
+          "section_12_finance_resource_flow",
+          "section_18_governance_controls",
+          "section_1_identity",
+          "section_3_purpose_programs",
+          "section_6_workforce"
+        ],
+        "visible_proposition_ids": [
+          "G2-BC-093",
+          "G2-BC-094",
+          "G2-BC-095",
+          "G2-BC-096",
+          "G2-BC-097",
+          "G2-BC-098",
+          "G2-BC-099",
+          "G2-BC-100"
+        ],
+        "coverage_note": "Only candidate reported facts are visible; absent domains are shown as coverage gaps."
+      },
+      "evidence_ledger": {
+        "review_units": [
+          {
+            "proposition_id": "G2-BC-093",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.LegalName"
+          },
+          {
+            "proposition_id": "G2-BC-094",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.CharitySize"
+          },
+          {
+            "proposition_id": "G2-BC-095",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.ActivityOperating"
+          },
+          {
+            "proposition_id": "G2-BC-096",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.ActivityPersuitPurposesDescription"
+          },
+          {
+            "proposition_id": "G2-BC-097",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.Programs[0].Name"
+          },
+          {
+            "proposition_id": "G2-BC-098",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.Programs[1].Name"
+          },
+          {
+            "proposition_id": "G2-BC-099",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.RevenueTotal"
+          },
+          {
+            "proposition_id": "G2-BC-100",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.ExpenseTotal"
+          },
+          {
+            "proposition_id": "G2-BC-101",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.TotalAssets"
+          },
+          {
+            "proposition_id": "G2-BC-102",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.TotalLiabilities"
+          },
+          {
+            "proposition_id": "G2-BC-103",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.NetSurplusDeficit"
+          },
+          {
+            "proposition_id": "G2-BC-104",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.HrFteStaff"
+          },
+          {
+            "proposition_id": "G2-BC-105",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.HrUnpainVolunteers"
+          },
+          {
+            "proposition_id": "G2-BC-106",
+            "source_record_id": "src:acnc-ais-detail:11566496319:7680a362-936f-f111-ab0d-7ced8d33fe37:cb_8a89059f7be44ccba04cb181f8abf127",
+            "locator": "$.source_payload.data.FinRelatedPartyTransactions"
+          }
+        ]
+      },
+      "full_20_section_dossier_on_demand": [
+        {
+          "section": 1,
+          "state": "grounded"
+        },
+        {
+          "section": 2,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 3,
+          "state": "grounded"
+        },
+        {
+          "section": 4,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 5,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 6,
+          "state": "grounded"
+        },
+        {
+          "section": 7,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 8,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 9,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 10,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 11,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 12,
+          "state": "grounded"
+        },
+        {
+          "section": 13,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 14,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 15,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 16,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 17,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 18,
+          "state": "grounded"
+        },
+        {
+          "section": 19,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 20,
+          "state": "latent_or_not_established"
+        }
+      ]
+    },
+    {
+      "subject": "APNIC Foundation Limited",
+      "proposition_count": 47,
+      "evidence_state": "readable structured evidence",
+      "progressive_card": {
+        "visible_routes": [
+          "section_12_finance_resource_flow",
+          "section_18_governance_and_controls"
+        ],
+        "visible_proposition_ids": [
+          "P-RF-001",
+          "P-RF-002",
+          "P-RF-003",
+          "P-RF-004",
+          "P-RF-005",
+          "P-RF-006",
+          "P-RF-007",
+          "P-RF-008"
+        ],
+        "coverage_note": "Only candidate reported facts are visible; absent domains are shown as coverage gaps."
+      },
+      "evidence_ledger": {
+        "review_units": [
+          {
+            "proposition_id": "P-RF-001",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 3"
+          },
+          {
+            "proposition_id": "P-RF-002",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 4"
+          },
+          {
+            "proposition_id": "P-RF-003",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 5"
+          },
+          {
+            "proposition_id": "P-RF-004",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 6"
+          },
+          {
+            "proposition_id": "P-RF-005",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 7"
+          },
+          {
+            "proposition_id": "P-RF-006",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 8"
+          },
+          {
+            "proposition_id": "P-RF-007",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 9"
+          },
+          {
+            "proposition_id": "P-RF-008",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 10"
+          },
+          {
+            "proposition_id": "P-RF-009",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 11"
+          },
+          {
+            "proposition_id": "P-RF-010",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 12"
+          },
+          {
+            "proposition_id": "P-RF-011",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 13"
+          },
+          {
+            "proposition_id": "P-RF-012",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 14"
+          },
+          {
+            "proposition_id": "P-RF-013",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 16"
+          },
+          {
+            "proposition_id": "P-RF-014",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 21"
+          },
+          {
+            "proposition_id": "P-RF-015",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 22"
+          },
+          {
+            "proposition_id": "P-RF-016",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 23"
+          },
+          {
+            "proposition_id": "P-RF-017",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 24"
+          },
+          {
+            "proposition_id": "P-RF-018",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 28"
+          },
+          {
+            "proposition_id": "P-RF-019",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 29"
+          },
+          {
+            "proposition_id": "P-RF-020",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 31, text row 30"
+          },
+          {
+            "proposition_id": "P-RF-021",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 33"
+          },
+          {
+            "proposition_id": "P-RF-022",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 34"
+          },
+          {
+            "proposition_id": "P-RF-023",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 36"
+          },
+          {
+            "proposition_id": "P-RF-024",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 37"
+          },
+          {
+            "proposition_id": "P-RF-025",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 39"
+          },
+          {
+            "proposition_id": "P-RF-026",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 40"
+          },
+          {
+            "proposition_id": "P-RF-027",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 41"
+          },
+          {
+            "proposition_id": "P-RF-028",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 43"
+          },
+          {
+            "proposition_id": "P-RF-029",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 44"
+          },
+          {
+            "proposition_id": "P-RF-030",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 45"
+          },
+          {
+            "proposition_id": "P-RF-031",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 46"
+          },
+          {
+            "proposition_id": "P-RF-032",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 50"
+          },
+          {
+            "proposition_id": "P-RF-033",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 51"
+          },
+          {
+            "proposition_id": "P-RF-034",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 53"
+          },
+          {
+            "proposition_id": "P-RF-035",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 54"
+          },
+          {
+            "proposition_id": "P-RF-036",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 55"
+          },
+          {
+            "proposition_id": "P-RF-037",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 56"
+          },
+          {
+            "proposition_id": "P-RF-038",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 58"
+          },
+          {
+            "proposition_id": "P-RF-039",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 32, text row 59"
+          },
+          {
+            "proposition_id": "P-RF-040",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 33, text row 63"
+          },
+          {
+            "proposition_id": "P-RF-041",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 33, text row 64"
+          },
+          {
+            "proposition_id": "P-RF-042",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 33, text row 65"
+          },
+          {
+            "proposition_id": "P-RF-043",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 33, text row 66"
+          },
+          {
+            "proposition_id": "P-RF-044",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 33, text row 72"
+          },
+          {
+            "proposition_id": "P-RF-045",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 33, text row 73"
+          },
+          {
+            "proposition_id": "P-RF-046",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 33, text row 74"
+          },
+          {
+            "proposition_id": "P-RF-047",
+            "source_record_id": "src:report-extract:24646643156:a2a8898a4f64cead:cb_4434434d6c6e425faf0dd56cb29ef8bf",
+            "locator": "PDF page 33, text row 75"
+          }
+        ]
+      },
+      "full_20_section_dossier_on_demand": [
+        {
+          "section": 1,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 2,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 3,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 4,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 5,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 6,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 7,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 8,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 9,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 10,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 11,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 12,
+          "state": "grounded"
+        },
+        {
+          "section": 13,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 14,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 15,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 16,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 17,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 18,
+          "state": "grounded"
+        },
+        {
+          "section": 19,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 20,
+          "state": "latent_or_not_established"
+        }
+      ]
+    },
+    {
+      "subject": "Environmental Justice Australia Limited",
+      "proposition_count": 70,
+      "evidence_state": "readable structured evidence",
+      "progressive_card": {
+        "visible_routes": [
+          "section_12_finance_resource_flow",
+          "section_18_governance_and_controls"
+        ],
+        "visible_proposition_ids": [
+          "P-RF-048",
+          "P-RF-049",
+          "P-RF-050",
+          "P-RF-051",
+          "P-RF-052",
+          "P-RF-053",
+          "P-RF-054",
+          "P-RF-055"
+        ],
+        "coverage_note": "Only candidate reported facts are visible; absent domains are shown as coverage gaps."
+      },
+      "evidence_ledger": {
+        "review_units": [
+          {
+            "proposition_id": "P-RF-048",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 2"
+          },
+          {
+            "proposition_id": "P-RF-049",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 5"
+          },
+          {
+            "proposition_id": "P-RF-050",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 6"
+          },
+          {
+            "proposition_id": "P-RF-051",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 7"
+          },
+          {
+            "proposition_id": "P-RF-052",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 8"
+          },
+          {
+            "proposition_id": "P-RF-053",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 9"
+          },
+          {
+            "proposition_id": "P-RF-054",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 10"
+          },
+          {
+            "proposition_id": "P-RF-055",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 11"
+          },
+          {
+            "proposition_id": "P-RF-056",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 12"
+          },
+          {
+            "proposition_id": "P-RF-057",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 13"
+          },
+          {
+            "proposition_id": "P-RF-058",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 14"
+          },
+          {
+            "proposition_id": "P-RF-059",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 16"
+          },
+          {
+            "proposition_id": "P-RF-060",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 17"
+          },
+          {
+            "proposition_id": "P-RF-061",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 18"
+          },
+          {
+            "proposition_id": "P-RF-062",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 19"
+          },
+          {
+            "proposition_id": "P-RF-063",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 20"
+          },
+          {
+            "proposition_id": "P-RF-064",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 21"
+          },
+          {
+            "proposition_id": "P-RF-065",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 22"
+          },
+          {
+            "proposition_id": "P-RF-066",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 23"
+          },
+          {
+            "proposition_id": "P-RF-067",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 24"
+          },
+          {
+            "proposition_id": "P-RF-068",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 25"
+          },
+          {
+            "proposition_id": "P-RF-069",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 26"
+          },
+          {
+            "proposition_id": "P-RF-070",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 27"
+          },
+          {
+            "proposition_id": "P-RF-071",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 31"
+          },
+          {
+            "proposition_id": "P-RF-072",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 32"
+          },
+          {
+            "proposition_id": "P-RF-073",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 12, text row 33"
+          },
+          {
+            "proposition_id": "P-RF-074",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 35"
+          },
+          {
+            "proposition_id": "P-RF-075",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 39"
+          },
+          {
+            "proposition_id": "P-RF-076",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 40"
+          },
+          {
+            "proposition_id": "P-RF-077",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 41"
+          },
+          {
+            "proposition_id": "P-RF-078",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 42"
+          },
+          {
+            "proposition_id": "P-RF-079",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 44"
+          },
+          {
+            "proposition_id": "P-RF-080",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 45"
+          },
+          {
+            "proposition_id": "P-RF-081",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 46"
+          },
+          {
+            "proposition_id": "P-RF-082",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 47"
+          },
+          {
+            "proposition_id": "P-RF-083",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 48"
+          },
+          {
+            "proposition_id": "P-RF-084",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 49"
+          },
+          {
+            "proposition_id": "P-RF-085",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 52"
+          },
+          {
+            "proposition_id": "P-RF-086",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 53"
+          },
+          {
+            "proposition_id": "P-RF-087",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 54"
+          },
+          {
+            "proposition_id": "P-RF-088",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 55"
+          },
+          {
+            "proposition_id": "P-RF-089",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 57"
+          },
+          {
+            "proposition_id": "P-RF-090",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 58"
+          },
+          {
+            "proposition_id": "P-RF-091",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 59"
+          },
+          {
+            "proposition_id": "P-RF-092",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 60"
+          },
+          {
+            "proposition_id": "P-RF-093",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 61"
+          },
+          {
+            "proposition_id": "P-RF-094",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 63"
+          },
+          {
+            "proposition_id": "P-RF-095",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 64"
+          },
+          {
+            "proposition_id": "P-RF-096",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 13, text row 65"
+          },
+          {
+            "proposition_id": "P-RF-097",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 14, text row 71"
+          },
+          {
+            "proposition_id": "P-RF-098",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 14, text row 73"
+          },
+          {
+            "proposition_id": "P-RF-099",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 14, text row 74"
+          },
+          {
+            "proposition_id": "P-RF-100",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 14, text row 75"
+          },
+          {
+            "proposition_id": "P-RF-101",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 14, text row 80"
+          },
+          {
+            "proposition_id": "P-RF-102",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 14, text row 82"
+          },
+          {
+            "proposition_id": "P-RF-103",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 14, text row 83"
+          },
+          {
+            "proposition_id": "P-RF-104",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 14, text row 84"
+          },
+          {
+            "proposition_id": "P-RF-105",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 86"
+          },
+          {
+            "proposition_id": "P-RF-106",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 89"
+          },
+          {
+            "proposition_id": "P-RF-107",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 90"
+          },
+          {
+            "proposition_id": "P-RF-108",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 91"
+          },
+          {
+            "proposition_id": "P-RF-109",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 92"
+          },
+          {
+            "proposition_id": "P-RF-110",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 93"
+          },
+          {
+            "proposition_id": "P-RF-111",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 96"
+          },
+          {
+            "proposition_id": "P-RF-112",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 97"
+          },
+          {
+            "proposition_id": "P-RF-113",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 99"
+          },
+          {
+            "proposition_id": "P-RF-114",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 100"
+          },
+          {
+            "proposition_id": "P-RF-115",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 101"
+          },
+          {
+            "proposition_id": "P-RF-116",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 102"
+          },
+          {
+            "proposition_id": "P-RF-117",
+            "source_record_id": "src:report-extract:74052124375:8c1652a7ab5783f5:cb_604da7f26c6c48dd934e713edc493e9f",
+            "locator": "PDF page 15, text row 103"
+          }
+        ]
+      },
+      "full_20_section_dossier_on_demand": [
+        {
+          "section": 1,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 2,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 3,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 4,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 5,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 6,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 7,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 8,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 9,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 10,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 11,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 12,
+          "state": "grounded"
+        },
+        {
+          "section": 13,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 14,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 15,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 16,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 17,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 18,
+          "state": "grounded"
+        },
+        {
+          "section": 19,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 20,
+          "state": "latent_or_not_established"
+        }
+      ]
+    },
+    {
+      "subject": "Australian Red Cross Society",
+      "proposition_count": 0,
+      "evidence_state": "coverage-only; no novel readable retained material",
+      "progressive_card": {
+        "visible_routes": [],
+        "visible_proposition_ids": [],
+        "coverage_note": "Only candidate reported facts are visible; absent domains are shown as coverage gaps."
+      },
+      "evidence_ledger": {
+        "review_units": []
+      },
+      "full_20_section_dossier_on_demand": [
+        {
+          "section": 1,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 2,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 3,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 4,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 5,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 6,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 7,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 8,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 9,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 10,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 11,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 12,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 13,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 14,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 15,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 16,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 17,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 18,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 19,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 20,
+          "state": "latent_or_not_established"
+        }
+      ]
+    },
+    {
+      "subject": "World Vision Australia",
+      "proposition_count": 0,
+      "evidence_state": "coverage-only; no novel readable retained material",
+      "progressive_card": {
+        "visible_routes": [],
+        "visible_proposition_ids": [],
+        "coverage_note": "Only candidate reported facts are visible; absent domains are shown as coverage gaps."
+      },
+      "evidence_ledger": {
+        "review_units": []
+      },
+      "full_20_section_dossier_on_demand": [
+        {
+          "section": 1,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 2,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 3,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 4,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 5,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 6,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 7,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 8,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 9,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 10,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 11,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 12,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 13,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 14,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 15,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 16,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 17,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 18,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 19,
+          "state": "latent_or_not_established"
+        },
+        {
+          "section": 20,
+          "state": "latent_or_not_established"
+        }
+      ]
+    }
+  ],
+  "report": {
+    "schema": "charitygraph.reality-spike-20.product-blind-test/v1",
+    "run_id": "CG-MEGARUN3-171-PROGRESSIVE-PRODUCT-BLIND-TEST-TERRA",
+    "state": "COMPLETE",
+    "cohort": {
+      "cards_evaluated": 10,
+      "rich": 2,
+      "medium": 6,
+      "sparse": 2,
+      "subjects": [
+        "Craftsouth: Centre For Contemporary Craft & Design Inc",
+        "Accelerated Evolution - The Break Inc.",
+        "Aboriginal Legal Rights Movement",
+        "Project Underdog Rescue Inc",
+        "International China Concern (Australia) Ltd",
+        "Australian National Capital Artists Inc",
+        "APNIC Foundation Limited",
+        "Environmental Justice Australia Limited",
+        "Australian Red Cross Society",
+        "World Vision Australia"
+      ]
+    },
+    "question_evaluation": [
+      {
+        "id": "Q-01",
+        "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+        "domain": "work",
+        "question": "What does it say it does?",
+        "outcome": "useful_grounded",
+        "answer": "2025 was a year defined by artistic excellence, collective achievement and renewed purpose for Guildhouse. Guided by our new Strategic Plan and Manifesto, we stepped forward with conviction as sector leaders supporting the career development and livelihoods of South Australian artists at  every stage of their career.  Our suite of nationally recognised artistic programs continued to advance practice, encourage experimentation and increase visibility for visual artists, craft makers and designers. Whilst our unique exhibition series, in traditional and non-traditional gallery spaces, connected South Australian artists and their work to new  audiences of over 2 million people.  In 2025 Guildhouse provided an ambitious suite of tailored support services and meaningful employment for artists, generating more than $1.2 million in direct income for artists, artisans and creative  workers.",
+        "proposition_ids": [
+          "G2-BC-004"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-02",
+        "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+        "domain": "beneficiaries",
+        "question": "What named program could a donor inspect?",
+        "outcome": "useful_grounded",
+        "answer": "The Collections Project",
+        "proposition_ids": [
+          "G2-BC-005",
+          "G2-BC-006",
+          "G2-BC-007"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-03",
+        "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+        "domain": "capacity",
+        "question": "What paid capacity is reported?",
+        "outcome": "useful_grounded",
+        "answer": "7.4000000000",
+        "proposition_ids": [
+          "G2-BC-020"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-04",
+        "subject": "Craftsouth: Centre For Contemporary Craft & Design Inc",
+        "domain": "outcomes",
+        "question": "What measured outcome has been independently established?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-05",
+        "subject": "Accelerated Evolution - The Break Inc.",
+        "domain": "work",
+        "question": "What does it say it does?",
+        "outcome": "useful_grounded",
+        "answer": "The Break seeks to plug gaps lacking in other social services. We address these through innovative approaches combining evidence based research and world best practice approaches to attempt to provide as close to ideal levels of support as our funding and labour can provide.",
+        "proposition_ids": [
+          "G2-BC-026"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-06",
+        "subject": "Accelerated Evolution - The Break Inc.",
+        "domain": "beneficiaries",
+        "question": "What named program could a donor inspect?",
+        "outcome": "useful_grounded",
+        "answer": "Kayaking",
+        "proposition_ids": [
+          "G2-BC-027",
+          "G2-BC-028",
+          "G2-BC-029"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-07",
+        "subject": "Accelerated Evolution - The Break Inc.",
+        "domain": "capacity",
+        "question": "What paid capacity is reported?",
+        "outcome": "useful_grounded",
+        "answer": "1.7000000000",
+        "proposition_ids": [
+          "G2-BC-042"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-08",
+        "subject": "Accelerated Evolution - The Break Inc.",
+        "domain": "outcomes",
+        "question": "What measured outcome has been independently established?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-09",
+        "subject": "Aboriginal Legal Rights Movement",
+        "domain": "work",
+        "question": "What does it say it does?",
+        "outcome": "useful_grounded",
+        "answer": "ALRM's Principal Activity was to provide Legal Services and associated support activities to the Aboriginal and Torrens Strait Islander people of South Australia, by providing comprehensive advice, support and assistance for Civil and Criminal related matters.",
+        "proposition_ids": [
+          "G2-BC-048"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-10",
+        "subject": "Aboriginal Legal Rights Movement",
+        "domain": "beneficiaries",
+        "question": "What named program could a donor inspect?",
+        "outcome": "useful_grounded",
+        "answer": "Legal Support and Advisory services",
+        "proposition_ids": [
+          "G2-BC-049",
+          "G2-BC-050",
+          "G2-BC-051"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-11",
+        "subject": "Aboriginal Legal Rights Movement",
+        "domain": "capacity",
+        "question": "What paid capacity is reported?",
+        "outcome": "useful_grounded",
+        "answer": "102.0900000000",
+        "proposition_ids": [
+          "G2-BC-060"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-12",
+        "subject": "Aboriginal Legal Rights Movement",
+        "domain": "outcomes",
+        "question": "What measured outcome has been independently established?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-13",
+        "subject": "Project Underdog Rescue Inc",
+        "domain": "work",
+        "question": "What does it say it does?",
+        "outcome": "useful_grounded",
+        "answer": "Our charity s programs are dedicated to rescuing and supporting animals while assisting vulnerable members of our community. Through our foster program, we rescue, rehabilitate, and rehome special needs animals that might otherwise face euthanasia. Our mobile vet clinic provides fear-free, tailored veterinary care, particularly for anxious pets, helping guardians keep and care for their animals rather than surrendering them due to behavioural challenges. Additionally, our outreach programs support those in crisis, including terminally ill individuals, people at risk of homelessness, women escaping domestic violence, and communities affected by natural disasters, ensuring pets remain with their families during difficult times.",
+        "proposition_ids": [
+          "G2-BC-066"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-14",
+        "subject": "Project Underdog Rescue Inc",
+        "domain": "beneficiaries",
+        "question": "What named program could a donor inspect?",
+        "outcome": "useful_grounded",
+        "answer": "Foster Program",
+        "proposition_ids": [
+          "G2-BC-067",
+          "G2-BC-068",
+          "G2-BC-069"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-15",
+        "subject": "Project Underdog Rescue Inc",
+        "domain": "capacity",
+        "question": "What paid capacity is reported?",
+        "outcome": "useful_grounded",
+        "answer": "2.0000000000",
+        "proposition_ids": [
+          "G2-BC-075"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-16",
+        "subject": "Project Underdog Rescue Inc",
+        "domain": "outcomes",
+        "question": "What measured outcome has been independently established?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-17",
+        "subject": "International China Concern (Australia) Ltd",
+        "domain": "work",
+        "question": "What does it say it does?",
+        "outcome": "useful_grounded",
+        "answer": "Fundraising provided for the needs of abandoned children who are disabled and families with a child who has disabilities.  The needs include medical, therapy and education, nutrition and living accommodation and life skills training.",
+        "proposition_ids": [
+          "G2-BC-081"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-18",
+        "subject": "International China Concern (Australia) Ltd",
+        "domain": "beneficiaries",
+        "question": "What named program could a donor inspect?",
+        "outcome": "useful_grounded",
+        "answer": "Family Partners Program",
+        "proposition_ids": [
+          "G2-BC-082",
+          "G2-BC-083",
+          "G2-BC-084"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-19",
+        "subject": "International China Concern (Australia) Ltd",
+        "domain": "capacity",
+        "question": "What paid capacity is reported?",
+        "outcome": "useful_grounded",
+        "answer": "5.4600000000",
+        "proposition_ids": [
+          "G2-BC-090"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-20",
+        "subject": "International China Concern (Australia) Ltd",
+        "domain": "outcomes",
+        "question": "What measured outcome has been independently established?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-21",
+        "subject": "Australian National Capital Artists Inc",
+        "domain": "work",
+        "question": "What does it say it does?",
+        "outcome": "useful_grounded",
+        "answer": "ANCA Inc. provided affordable facilities for 55 artists to make work in the ACT. ANCA delivered 14 art exhibitions in its gallery space.",
+        "proposition_ids": [
+          "G2-BC-096"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-22",
+        "subject": "Australian National Capital Artists Inc",
+        "domain": "beneficiaries",
+        "question": "What named program could a donor inspect?",
+        "outcome": "useful_grounded",
+        "answer": "Exhibition Program",
+        "proposition_ids": [
+          "G2-BC-097",
+          "G2-BC-098"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-23",
+        "subject": "Australian National Capital Artists Inc",
+        "domain": "capacity",
+        "question": "What paid capacity is reported?",
+        "outcome": "useful_grounded",
+        "answer": "1.0000000000",
+        "proposition_ids": [
+          "G2-BC-104"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-24",
+        "subject": "Australian National Capital Artists Inc",
+        "domain": "outcomes",
+        "question": "What measured outcome has been independently established?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-25",
+        "subject": "APNIC Foundation Limited",
+        "domain": "finances",
+        "question": "What reported total income is available?",
+        "outcome": "useful_grounded",
+        "answer": "Total income: 10,235,277",
+        "proposition_ids": [
+          "P-RF-004"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Statement title and comparative are required satellites; do not treat one row as a full financial assessment."
+      },
+      {
+        "id": "Q-26",
+        "subject": "APNIC Foundation Limited",
+        "domain": "funding",
+        "question": "Is a specific funding/revenue line available?",
+        "outcome": "useful_grounded",
+        "answer": "Operating grant revenue: 8,757,058",
+        "proposition_ids": [
+          "P-RF-001"
+        ],
+        "baseline_acnc_ais_comparison": "AIS-only: field-level answer if known; no row-level report context.",
+        "progressive_card_vs_dossier": "dossier adds source, scope, qualifier and adjacent facts; it does not upgrade candidate status.",
+        "trust_note": "Candidate reported fact, not an independent finding."
+      },
+      {
+        "id": "Q-27",
+        "subject": "APNIC Foundation Limited",
+        "domain": "governance",
+        "question": "Which board controls are evidenced?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-28",
+        "subject": "APNIC Foundation Limited",
+        "domain": "partners",
+        "question": "Which delivery partners are established?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-29",
+        "subject": "Environmental Justice Australia Limited",
+        "domain": "finances",
+        "question": "What reported total income is available?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Statement title and comparative are required satellites; do not treat one row as a full financial assessment."
+      },
+      {
+        "id": "Q-30",
+        "subject": "Environmental Justice Australia Limited",
+        "domain": "funding",
+        "question": "Is a specific funding/revenue line available?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-31",
+        "subject": "Environmental Justice Australia Limited",
+        "domain": "governance",
+        "question": "Which board controls are evidenced?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-32",
+        "subject": "Environmental Justice Australia Limited",
+        "domain": "partners",
+        "question": "Which delivery partners are established?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-33",
+        "subject": "Australian Red Cross Society",
+        "domain": "finances",
+        "question": "What current reported income can be stated?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-34",
+        "subject": "Australian Red Cross Society",
+        "domain": "work",
+        "question": "What current programme is substantiated?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-35",
+        "subject": "Australian Red Cross Society",
+        "domain": "freshness",
+        "question": "How fresh is the retained evidence?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-36",
+        "subject": "Australian Red Cross Society",
+        "domain": "values",
+        "question": "What values are evidenced beyond self-description?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-37",
+        "subject": "World Vision Australia",
+        "domain": "finances",
+        "question": "What current reported income can be stated?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-38",
+        "subject": "World Vision Australia",
+        "domain": "work",
+        "question": "What current programme is substantiated?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-39",
+        "subject": "World Vision Australia",
+        "domain": "freshness",
+        "question": "How fresh is the retained evidence?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      },
+      {
+        "id": "Q-40",
+        "subject": "World Vision Australia",
+        "domain": "values",
+        "question": "What values are evidenced beyond self-description?",
+        "outcome": "abstain_coverage_gap",
+        "answer": "Not established from this retained representation; no claim is made.",
+        "proposition_ids": [],
+        "baseline_acnc_ais_comparison": "AIS-only: absent or too coarse.",
+        "progressive_card_vs_dossier": "dossier confirms the gap; no additional supported answer.",
+        "trust_note": "Explicit refusal prevents a plausible but unsupported inference."
+      }
+    ],
+    "outcomes": {
+      "useful_grounded": 20,
+      "abstain_coverage_gap": 20
+    },
+    "domains": {
+      "work": 8,
+      "beneficiaries": 6,
+      "capacity": 6,
+      "outcomes": 6,
+      "finances": 4,
+      "funding": 2,
+      "governance": 2,
+      "partners": 2,
+      "freshness": 2,
+      "values": 2
+    },
+    "comparative_findings": {
+      "progressive_card_wins": "Fast identity/work/finance answers where a small set of atomic records exists, while source locators remain one click away.",
+      "dossier_wins": "Financial interpretation needs adjacent statement rows, comparative values and statement title; dossier is also the honest place to show 20-section coverage.",
+      "baseline_ais_wins": "For simple regulator totals it is equivalent; the ledger adds review-unit IDs, explicit candidate status and cross-source portability rather than new facts.",
+      "latent_vs_visible": "Visible: identity, reported purpose/programs, workforce, totals and disclosed financial rows. Latent/not established: partners, beneficiary reach, outcomes, current capacity, governance quality, values and most dossier sections.",
+      "trust_failures": [
+        "A related-party Yes/No must not appear as a propriety judgement.",
+        "A purpose description must not appear as measured impact.",
+        "A visible financial line without statement title/comparative context invites misleading ratios.",
+        "Coverage-only cards must lead with unavailable representation, not a blank optimistic card."
+      ],
+      "product_changes_implied": [
+        "Make candidate/reported status and reporting period persistent on every visible answer.",
+        "Put coverage gaps beside each card section, with an abstain response as a first-class result.",
+        "Use progressive card as default; open the dossier for financial context, conflicts, and breadth inspection.",
+        "Keep provenance IDs and locators copyable at answer level; do not require a user to infer their source."
+      ]
+    },
+    "validation": {
+      "all_answers_have_outcome": true,
+      "grounded_answers_have_ids": true,
+      "no_canonical_mutation": true,
+      "no_provider_network_s0_github_activity": true
+    }
+  }
+}

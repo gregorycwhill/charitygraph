@@ -1,0 +1,17 @@
+{
+  "outcome": "MEGARUN8B_DIRECT_SEMANTIC_PRODUCT_CORE_PROVEN",
+  "direct_semantic_interpreter": "running GPT-5.6 Terra agent itself",
+  "subjects": 8,
+  "reports": 8,
+  "represented_pages": 120,
+  "propositions": 413,
+  "satellite_pressure_cases": 413,
+  "product_questions": 160,
+  "comparison_pairs": 20,
+  "retrieval_intents": 80,
+  "lineage_validation_failures": 0,
+  "network_activity": "zero in run 8B",
+  "external_model_provider_activity": "zero",
+  "authenticated_git_s0_activity": "zero",
+  "source_bytes_in_git": false
+}

@@ -1,0 +1,71 @@
+{
+  "module_id": "M11",
+  "title": "Five pure-G2 failures",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 11,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M06.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M07.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M08.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M09.json",
+    "charitygraph/artifacts/reality-megarun-10-modular-discovery-queue/module-results/M10.json"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "case": "volunteer roles",
+      "source": "the-smith-family-41",
+      "bare": "Smith has 5,983 volunteers",
+      "loss": "Count is roles, not people; 5,478 people fill them.",
+      "minimum": "Linked person/role count observation with multi-role caveat"
+    },
+    {
+      "case": "Ediegarrup",
+      "source": "bush-heritage-australia-23",
+      "bare": "Restoration improved biodiversity",
+      "loss": "45.1 is a baseline/current reported score; future improvement expected; carbon-account eligibility unassessed.",
+      "minimum": "Observation value/unit/reference state/time plus epistemic and carbon-link qualifier"
+    },
+    {
+      "case": "AP4D",
+      "source": "acfid-17",
+      "bare": "ACFID partners with DFAT",
+      "loss": "ACFID hosts initiative; DFAT/ACMC fund it, roles on different directed edges.",
+      "minimum": "N-ary initiative relationship or linked qualified edges"
+    },
+    {
+      "case": "On PAR",
+      "source": "the-smith-family-27",
+      "bare": "Smith offers two-year support",
+      "loss": "K–Y5, two communities, pilot scope, up-to duration and different pilot lifespan.",
+      "minimum": "Scoped service episode with eligibility/geography/duration"
+    },
+    {
+      "case": "Smith disadvantage",
+      "source": "the-smith-family-19",
+      "bare": "49% of Smith participants not engaged",
+      "loss": "Statistic concerns disadvantaged 24-year-olds in cited external 2020 research, not Smith participants.",
+      "minimum": "Attribution chain and measurement population"
+    }
+  ],
+  "defects": [
+    "D11: Bare triples fail in five real cases."
+  ],
+  "counterexamples": [
+    "Rich qualified G2 might encode every case; these examples demonstrate necessary information, not proof that separate satellite tables are mandatory."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Representational loss analysis, not executed schema round-trip; actual Terra interpreter unavailable."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M06.json": "a4badd838663ed68b6196aaa5572af7d9069e7425743fea65fbc76928bc8512a",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M07.json": "9b00c9c3fee7a6b5e20437a756030d523a385da50344a5117ba21e3269d7506c",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M08.json": "44251902d856de66d16ebb627018e7c3162d8a88495f8df5d377d9c4b3a1944f",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M09.json": "df1510df352160a8e7885fe8d9a8b7553c9c4585e59d0547e734a627b31d19d8",
+    "charitygraph\\artifacts\\reality-megarun-10-modular-discovery-queue\\module-results\\M10.json": "7d5b4e7834ab2e7e1ea3ec319e095ab478c0aa91c2d56dcd15e406df20100f49"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

@@ -1,0 +1,9 @@
+# Run 182 forensic audit
+
+**Verdict: mixed, with its claimed semantic corpus quarantined as pseudo-semantic.** `scripts/run_megarun8b_direct_semantic.py` embeds a 413-claim `units` dictionary before it opens the representation ledger. The program then labels every embedded string a proposition, assigns areas from keyword membership, assigns satellite status with `i % 2` / `i % 3`, generates product questions by interpolating each claim, and creates retrieval intents directly from each resulting proposition. It does validate that hard-coded page identifiers and SHAs exist, but that is lineage validation, not semantic validation.
+
+The 413 items might include observations originally made by an agent, but run 182 supplies no provenance that distinguishes direct reading from copied/prewritten claims. Its downstream 160 Q&A, 80 retrieval hits, 413 pressure cases and 20 comparisons are mechanically downstream of the embedded table. Those counts must not be used as semantic, product, retrieval, or architectural proof.
+
+Sample read against real representations found some plausible paraphrases (Red Cross disaster activity; World Vision scheduled evaluations; Smith Family volunteer counts; ACFID AP4D activity; WWF’s self-described Code commitment). However, even those cannot rescue the corpus: the script does not demonstrate the semantic reasoning and frequently loses qualifiers, source role, program scope, or the distinction between a self-report and fact. The claim “all 413 direct Terra readings reviewed” is contradicted by the executable generation mechanism.
+
+Repair rule for run 9: a direct-Terra item is written only after this agent reads its cited representation during the campaign; a formatter may check locators and required fields but must not create proposition content, classification, question text, or expected retrieval results.

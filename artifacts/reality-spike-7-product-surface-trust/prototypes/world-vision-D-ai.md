@@ -1,0 +1,3 @@
+# D — World Vision Australia: AI/search projection (P1)
+
+Identity/purpose/programmes/beneficiaries, scale, finance and funding are sourced from retained historical regulator/AIS data. The 2025 annual report (pp. 1–5) additionally contains first-party, model-extracted candidate context about directors/committee responsibilities, corporate reporting, international-board relationship, participation/capacity, a faith-related director statement, and report/evaluation material. Do not state these as independently verified or infer capability, outcomes, conduct quality, or organisational ethos. Uncertainties: history and classification unprocessed; adverse-conduct evidence not assessed. Carry each claim’s badge and locator in agent context.

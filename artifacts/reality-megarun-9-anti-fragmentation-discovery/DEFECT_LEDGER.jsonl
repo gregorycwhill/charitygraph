@@ -1,0 +1,6 @@
+{"id":"D9-INIT","frontier":"campaign","severity":"info","status":"open","finding":"Campaign initialized; no evidence is yet certified."}
+{"id":"D9-01","frontier":"forensic","severity":"high","status":"quarantined","finding":"Run-182 hard-coded claim table and template-derived downstream artifacts were presented as direct semantic evidence."}
+{"id":"D9-02","frontier":"representation","severity":"high","status":"unresolved","finding":"Non-empty low-character PDF extraction suppresses render/OCR; ARC page 27 is image-led despite 34 native characters."}
+{"id":"D9-03","frontier":"product","severity":"high","status":"unresolved","finding":"Self-asserted compliance can be displayed as verified fact without source-role state."}
+{"id":"D9-04","frontier":"retrieval","severity":"medium","status":"unresolved","finding":"Undirected relationship retrieval loses host/funder roles and causal policy questions need reasoning."}
+{"id":"D9-05","frontier":"method","severity":"low","status":"repaired","finding":"Forensic diagnostic initially had shell quoting failure; rerun with PowerShell content checks verified hard-coded units, modulo classification and template questions."}

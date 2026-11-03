@@ -1,0 +1,1 @@
+"""SQLite operational catalogue tests."""

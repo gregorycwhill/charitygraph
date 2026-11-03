@@ -1,0 +1,867 @@
+{
+  "input_kind": "spike3_packet",
+  "source_families": {
+    "ACNC register/profile": "available historical machine-readable",
+    "AIS detail": "available historical machine-readable",
+    "annual/financial reports": "available historical represented filing(s)",
+    "official website": "not retained",
+    "Wikipedia/Wikimedia": "not retained",
+    "DGR/ABR": "not retained",
+    "PFRA": "not applicable",
+    "specialist/historical": "available Spike 3 packet"
+  },
+  "promotion_decision": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION",
+  "graph": {
+    "subjects": [
+      {
+        "record_id": "subjectrecord:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:subject-record:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "subject_kind": "organisation",
+        "lifecycle_status": "active",
+        "display_name": "Noongar Boodja Trust",
+        "external_identifiers": [
+          {
+            "scheme": "ABN",
+            "value": "47613674461",
+            "issuing_authority": "ACNC",
+            "source_record_ids": [
+              "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+            ],
+            "valid_from": null,
+            "valid_to": null
+          }
+        ],
+        "identity_authority_refs": [
+          {
+            "artifact_id": "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+            "content_hash": "448f677ed41509d8c32d3bb471e72a2c68b2cbaeda3683108b664260e3190077",
+            "schema": {
+              "schema_id": "urn:charitygraph:builder:schema:source-record:1.0",
+              "schema_version": "1.0"
+            }
+          }
+        ],
+        "identity_policy_id": "EXPERIMENTAL_SPIKE5_RETAINED_JOIN_ONLY",
+        "predecessor_subject_ids": [],
+        "successor_subject_ids": [],
+        "lifecycle_reason": null
+      }
+    ],
+    "scopes": [
+      {
+        "record_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:scope-record:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_kind": "organisation",
+        "label": "Noongar Boodja Trust",
+        "parent_scope_id": null,
+        "valid_from": null,
+        "valid_to": null,
+        "lifecycle_status": "active"
+      }
+    ],
+    "observations": [
+      {
+        "record_id": "observation:f1ec75bdaceae60defba8d4367c4efbf4fea4e10cfcb1a3b05c5a8caaa6e5fbc",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "Name",
+        "value": "Noongar Boodja Trust",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:4b366ba09e75b7c9937cfc415034757cf7b1222e5291e14d3ecc6de0330f25a0",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "Status",
+        "value": "Registered",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:dc851ec3e4f7aab9b7c88b0ac328c6243a28b74be75f474e8b018ce77db91ae9",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "Activity",
+        "value": "Distribution of trust funds to Aboriginal communities for charitable purposes described in the trust deed",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:084dc8635f1dadfd502f6f74bbcd189326c4f3bfc586df7616aa97a2de06b9cd",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "Charity size",
+        "value": "Large",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:7e6d976a4e0cf5ce1a287a8e0f9b9e0a5d68f86b36233e315f98bd7a358e3c05",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "Employees",
+        "value": {
+          "HrFullTimeEmployees": "0",
+          "HrPartTimeEmployees": "0",
+          "HrCasualEmployees": "0",
+          "HrUnpainVolunteers": "0",
+          "HrFteStaff": "0.0000000000"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:e2a2a0aac54dcb1690dc31ccc94f3836b3c89328dbe4cdf6111e99925cf52f7e",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "Financials",
+        "value": {
+          "RevenueTotal": "102294377.0000",
+          "ExpenseTotal": "13233714.0000",
+          "NetSurplusDeficit": "89060663.0000",
+          "TotalAssets": "347306167.0000",
+          "TotalLiabilities": "292285.0000",
+          "NetAssetsLiabilities": "347013882.0000"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:7d5d9af736311871a5c0caf7b7b486ad660bf844c1e0b16dda3b14f0e340f1b5",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "Funding",
+        "value": {
+          "IncomeGovernmentGrants": "0.0000",
+          "IncomeDonationsBequests": "88992920.0000",
+          "IncomeOtherReceipts": "20105.0000",
+          "IncomeOther": "0.0000",
+          "IncomeTotalReceipts": "102294377.0000",
+          "IncomeOtherComprehinsive": "-2125598.0000",
+          "IncomeTotalComprehensive": "86935065.0000"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:b347ed9a974e49248140b936ab7e087db358b3d1238f895f4ef9dadc718e0edb",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "Established",
+        "value": "2021-03-28T13:00:00.0000000Z",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:a5f29d9f3bbef67687817d0d4e5e4f1309e3c269a3aa6f2d9037de6f3d643ce7",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "Fundraising",
+        "value": "No",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:d20b51c2d470a9392b80c43b2c37f35cafc690d445068f859c1089b7903cfaf5",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "Evidence packet",
+        "value": {
+          "kind": "spike3_packet",
+          "provider_calls": 0
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:e4cebd9c5258d7a69a2b4e5a1e675d0be4f28c9a796c8d98c3c5e5b3656b6916",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "ACNC listed program",
+        "value": {
+          "Name": "Leading Indigenous communities in Australia shape and change the lives of their members.\u00a0",
+          "ProgramLocations": [
+            {
+              "Name": null,
+              "FormattedAddress": "Western Australia, Australia",
+              "DisplayName": "Western Australia, Australia",
+              "Marker": {
+                "Latitude": "-27.6728168",
+                "Longitude": "121.6283098"
+              },
+              "uuid": "6fe15933-c400-f111-8406-00224812a1a7"
+            }
+          ],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Aboriginal and Torres Strait Islander people"
+          ],
+          "ProgramWeblink": null,
+          "ProgramClassification": "Aboriginal and/or Torres Strait Islander peoples' rights and interests",
+          "ProgramClassificationID": "456",
+          "ProgramCountries": [],
+          "AisUuid": "52e15933-c400-f111-8406-00224812a1a7",
+          "uuid": "65e15933-c400-f111-8406-00224812a1a7",
+          "ProgramClassie": [
+            {
+              "classie_id": "456",
+              "parent_id": "452",
+              "label": "Aboriginal and/or Torres Strait Islander peoples' rights and interests",
+              "selected": true
+            },
+            {
+              "classie_id": "452",
+              "parent_id": "451",
+              "label": "Anti-discrimination",
+              "selected": false
+            },
+            {
+              "classie_id": "451",
+              "parent_id": null,
+              "label": "Human rights",
+              "selected": false
+            }
+          ]
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:55493eb1997fa6c6cd367d79c2522e0c2ed8f4b19437cc3c0c5079bb7f570951",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "scope_id": "scope:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "predicate": "ACNC listed beneficiaries",
+        "value": [
+          {
+            "Name": "Aboriginal and Torres Strait Islander people",
+            "Description": null,
+            "uuid": "73e15933-c400-f111-8406-00224812a1a7"
+          }
+        ],
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "source_record_ids": [
+          "srcrec:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      }
+    ],
+    "relationships": [],
+    "evidence": [
+      {
+        "observation_id": "observation:f1ec75bdaceae60defba8d4367c4efbf4fea4e10cfcb1a3b05c5a8caaa6e5fbc",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          1
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:4b366ba09e75b7c9937cfc415034757cf7b1222e5291e14d3ecc6de0330f25a0",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          1
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:dc851ec3e4f7aab9b7c88b0ac328c6243a28b74be75f474e8b018ce77db91ae9",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          2,
+          4
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:084dc8635f1dadfd502f6f74bbcd189326c4f3bfc586df7616aa97a2de06b9cd",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          11
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:7e6d976a4e0cf5ce1a287a8e0f9b9e0a5d68f86b36233e315f98bd7a358e3c05",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          10,
+          11
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:e2a2a0aac54dcb1690dc31ccc94f3836b3c89328dbe4cdf6111e99925cf52f7e",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          13
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:7d5d9af736311871a5c0caf7b7b486ad660bf844c1e0b16dda3b14f0e340f1b5",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          14
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:b347ed9a974e49248140b936ab7e087db358b3d1238f895f4ef9dadc718e0edb",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          17
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:a5f29d9f3bbef67687817d0d4e5e4f1309e3c269a3aa6f2d9037de6f3d643ce7",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          8
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:d20b51c2d470a9392b80c43b2c37f35cafc690d445068f859c1089b7903cfaf5",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          20
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:e4cebd9c5258d7a69a2b4e5a1e675d0be4f28c9a796c8d98c3c5e5b3656b6916",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3,
+          5
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:55493eb1997fa6c6cd367d79c2522e0c2ed8f4b19437cc3c0c5079bb7f570951",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          5
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      }
+    ],
+    "coverage_inputs": [
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "section_id": 6,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "section_id": 7,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "section_id": 9,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "section_id": 12,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "section_id": 15,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "section_id": 16,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "section_id": 18,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:b882f7e3f34f77b728fab5d60eba1c549c79c0ce685fad6748a6f844ac0b5146",
+        "section_id": 19,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      }
+    ]
+  },
+  "observation_anatomy": {
+    "observation:f1ec75bdaceae60defba8d4367c4efbf4fea4e10cfcb1a3b05c5a8caaa6e5fbc": "positive_structured",
+    "observation:4b366ba09e75b7c9937cfc415034757cf7b1222e5291e14d3ecc6de0330f25a0": "positive_structured",
+    "observation:dc851ec3e4f7aab9b7c88b0ac328c6243a28b74be75f474e8b018ce77db91ae9": "positive_structured",
+    "observation:084dc8635f1dadfd502f6f74bbcd189326c4f3bfc586df7616aa97a2de06b9cd": "positive_structured",
+    "observation:7e6d976a4e0cf5ce1a287a8e0f9b9e0a5d68f86b36233e315f98bd7a358e3c05": "positive_structured",
+    "observation:e2a2a0aac54dcb1690dc31ccc94f3836b3c89328dbe4cdf6111e99925cf52f7e": "positive_structured",
+    "observation:7d5d9af736311871a5c0caf7b7b486ad660bf844c1e0b16dda3b14f0e340f1b5": "positive_structured",
+    "observation:b347ed9a974e49248140b936ab7e087db358b3d1238f895f4ef9dadc718e0edb": "positive_structured",
+    "observation:a5f29d9f3bbef67687817d0d4e5e4f1309e3c269a3aa6f2d9037de6f3d643ce7": "positive_structured",
+    "observation:d20b51c2d470a9392b80c43b2c37f35cafc690d445068f859c1089b7903cfaf5": "positive_structured",
+    "observation:e4cebd9c5258d7a69a2b4e5a1e675d0be4f28c9a796c8d98c3c5e5b3656b6916": "positive_structured",
+    "observation:55493eb1997fa6c6cd367d79c2522e0c2ed8f4b19437cc3c0c5079bb7f570951": "positive_structured"
+  }
+}

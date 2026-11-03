@@ -1,0 +1,61 @@
+{
+  "module_id": "M15",
+  "title": "Organisation versus program stress",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 15,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/plan-international-australia-5.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/world-vision-australia-9.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-27.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-8.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/plan-international-australia-10.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "page": "plan-international-australia-5",
+      "unsafe": "Plan Australia operates in 83+ countries",
+      "supported": "Federation works in 83+; Australian grant/public-funded programs in 25; sponsorship across Federation"
+    },
+    {
+      "page": "world-vision-australia-9",
+      "unsafe": "All WVA projects are ANCP projects",
+      "supported": "32 ANCP projects / 327 total; 92 Area Programs undertake 226 projects, overlaps not specified"
+    },
+    {
+      "page": "the-smith-family-27",
+      "unsafe": "Smith offers On PAR nationally for 6.5 years per child",
+      "supported": "Two-community pilot lasts 6.5 years; individual assistance up to two years"
+    },
+    {
+      "page": "caritas-australia-8",
+      "unsafe": "Leaia's program gave 84,091 people drinking water",
+      "supported": "84,091 organisation impact panel; 1,606 program achievements panel; household story separate; layout verification needed"
+    },
+    {
+      "page": "plan-international-australia-10",
+      "unsafe": "Plan Australia reached 12.2 million disaster beneficiaries",
+      "supported": "12.2m labelled collective global; Australia food assistance 858,191; figures are not additive"
+    }
+  ],
+  "defects": [
+    "D15: Report ownership is not claim subject identity."
+  ],
+  "counterexamples": [
+    "One page may combine global federation, Australian entity, program and household scopes."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Five real cases; layout assumptions flagged; model-specific requirement unmet."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\plan-international-australia-5.txt": "d1e9f192b752336bdd05f75125fe4f106a9e9bd68f90f264599e8b01a64b5e97",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\world-vision-australia-9.txt": "6c1b90b48f37155e121a50bc84998b741c02e86f61411997af624b912a9b08a3",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-27.txt": "f6ad3a4fb14da552ca763261cda01082c1124e3e07cc9b48f5281491faa85da7",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-8.txt": "6b2a5b8783e932e28d2dcea3f05a69ef74ac46eac7c54bf2b12ecec3d36a6fe0",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\plan-international-australia-10.txt": "79cd3206a99255c0088eb93fbcf31cf552e86df17bbf996b39f203785670f703"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

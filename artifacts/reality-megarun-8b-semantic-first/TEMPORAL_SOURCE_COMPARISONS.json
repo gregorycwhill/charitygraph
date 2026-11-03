@@ -1,0 +1,265 @@
+{
+  "pairs": [
+    {
+      "pair_id": "T-001",
+      "left": {
+        "proposition_id": "G2-8B-0001",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0081",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=5"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-002",
+      "left": {
+        "proposition_id": "G2-8B-0002",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0082",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=5"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-003",
+      "left": {
+        "proposition_id": "G2-8B-0003",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0083",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=5"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-004",
+      "left": {
+        "proposition_id": "G2-8B-0004",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0084",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=5"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-005",
+      "left": {
+        "proposition_id": "G2-8B-0005",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0085",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=5"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-006",
+      "left": {
+        "proposition_id": "G2-8B-0006",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0086",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=8"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-007",
+      "left": {
+        "proposition_id": "G2-8B-0007",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0087",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=8"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-008",
+      "left": {
+        "proposition_id": "G2-8B-0008",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=9"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0088",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=8"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-009",
+      "left": {
+        "proposition_id": "G2-8B-0009",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0089",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=8"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-010",
+      "left": {
+        "proposition_id": "G2-8B-0010",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0090",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=8"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-011",
+      "left": {
+        "proposition_id": "G2-8B-0011",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0091",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=8"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-012",
+      "left": {
+        "proposition_id": "G2-8B-0012",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0092",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=8"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-013",
+      "left": {
+        "proposition_id": "G2-8B-0013",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0093",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=8"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-014",
+      "left": {
+        "proposition_id": "G2-8B-0014",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0094",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=10"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-015",
+      "left": {
+        "proposition_id": "G2-8B-0015",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0095",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=10"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-016",
+      "left": {
+        "proposition_id": "G2-8B-0016",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=18"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0096",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=10"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-017",
+      "left": {
+        "proposition_id": "G2-8B-0017",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0097",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=10"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-018",
+      "left": {
+        "proposition_id": "G2-8B-0018",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0098",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=10"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-019",
+      "left": {
+        "proposition_id": "G2-8B-0019",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0099",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=10"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    },
+    {
+      "pair_id": "T-020",
+      "left": {
+        "proposition_id": "G2-8B-0020",
+        "locator": "archive-sha256:87546383d699c7b8e4119e9fc95e13eeef7343dfa6147c37f9155cf94358ac5b#page=35"
+      },
+      "right": {
+        "proposition_id": "G2-8B-0100",
+        "locator": "archive-sha256:840d79914e012c3cd27f36a4baebe3b7562d832c0c70f4c11c219360e98a810e#page=10"
+      },
+      "classification": "source-role/scoped difference",
+      "finding": "Different organisation, page and claim scope; retained as distinct records, not a conflict."
+    }
+  ],
+  "note": "20 genuine archived source comparisons at organisation/page scope; no conflicts manufactured."
+}

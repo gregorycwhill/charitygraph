@@ -1,0 +1,2063 @@
+{
+  "input_kind": "phase5_frozen_ais",
+  "source_families": {
+    "ACNC register/profile": "available historical machine-readable",
+    "AIS detail": "available historical machine-readable",
+    "annual/financial reports": "available historical text representation",
+    "official website": "not retained",
+    "Wikipedia/Wikimedia": "not retained",
+    "DGR/ABR": "not retained",
+    "PFRA": "not applicable",
+    "specialist/historical": "available Phase 5 human-adjudicated experiment records"
+  },
+  "promotion_decision": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION",
+  "graph": {
+    "subjects": [
+      {
+        "record_id": "subjectrecord:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:subject-record:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "subject_kind": "organisation",
+        "lifecycle_status": "active",
+        "display_name": "Bush Heritage Australia",
+        "external_identifiers": [
+          {
+            "scheme": "ABN",
+            "value": "78053639115",
+            "issuing_authority": "ACNC",
+            "source_record_ids": [
+              "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+            ],
+            "valid_from": null,
+            "valid_to": null
+          }
+        ],
+        "identity_authority_refs": [
+          {
+            "artifact_id": "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+            "content_hash": "057b0d0a205d32a5adc2606d59c9ac7b0279030bd53983ae58ef6e875295ccf4",
+            "schema": {
+              "schema_id": "urn:charitygraph:builder:schema:source-record:1.0",
+              "schema_version": "1.0"
+            }
+          }
+        ],
+        "identity_policy_id": "EXPERIMENTAL_SPIKE5_RETAINED_JOIN_ONLY",
+        "predecessor_subject_ids": [],
+        "successor_subject_ids": [],
+        "lifecycle_reason": null
+      }
+    ],
+    "scopes": [
+      {
+        "record_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:scope-record:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_kind": "organisation",
+        "label": "Bush Heritage Australia",
+        "parent_scope_id": null,
+        "valid_from": null,
+        "valid_to": null,
+        "lifecycle_status": "active"
+      }
+    ],
+    "observations": [
+      {
+        "record_id": "observation:6a6aaef46ceed311d1ae4206e8e2f8dc5ae27d5d05f751e55e3de031f83f746c",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "Name",
+        "value": "Bush Heritage Australia",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:97a61102793dd5940ce73e1897608794d33b2496bf190c57666172b91e976e5d",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "Activity",
+        "value": "Bush Heritage Australia is a not-for-profit conservation organisation focused on buying and managing land for the protection of some of Australia's most important and fragile ecosystems. To increase our impact, we partner with Traditional Custodians and other landholders.   During the 2024-2025 financial year, we recorded our second-highest revenue, enabling us to continue rising to the challenges posed by the dual crises of climate change and biodiversity loss. Guided by the focus areas of our 2030 Strategy, we stepped up for our irreplaceable landscapes and all those that call them home, working towards doubling and deepening our impact.    We acquired and began protecting two new conservation reserves:  -\tDodgey Downs in south-west Western Australia on Goreng Noongar Country, which extends the stronghold of privately protected areas in one of the country s most biodiverse and threatened regions and connects with existing Bush Heritage reserves.  -\tNil Desperandum in north-west New South Wales on Budjiti Country, which protects one of the least-disturbed parts of the Murray Darling Basin and a vital freshwater refuge in the face of climate change. The reserve also connects to Bush Heritage s Naree Station Reserve.  These reserves are part of the 1.46 million hectares we directly protect through our reserve network. Across this and partners  lands, we tackled 94 research projects and published 27 papers. We undertook five landscape rehydration projects to help water flow as needed through diverse ecosystems, and we planted 273 hectares in biodiverse revegetation projects. We also supported 62 emerging conservationists through our Seeding the Future program, bolstering the future of the industry with promising talent.     In addition, in 2024-25, we helped protect and contribute to the management of 10.4 million hectares with our Aboriginal and Torres Strait Islander partners. We deepened our commitment to right-way science and to the 39 Aboriginal and Torres Strait Islander partners who we work with, including the support of 134 on-Country events.   We sharpened our focus in our work with agricultural partners and other landholders, ensuring our impact supports landscapes we re already working to protect. We were also engaged to provide biodiversity assessments and advice for 10.7 million hectares of agricultural land.   Our strategy is strong. Our people are generous and proactive. We are in a robust position for 2025-2026 to continue stepping up for nature.",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:2505c3fb5b65a01bb331036ced886b8b6fe383fda4e78a004b2e4684624f2498",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "Charity size",
+        "value": "Large",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:6db48ec854402104615bff05d3e6569a077b963486e39eaa63f84d4e7d11cbd1",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "Employees",
+        "value": {
+          "HrCasualEmployees": "7",
+          "HrFteStaff": "162.9700000000",
+          "HrFullTimeEmployees": "131",
+          "HrPartTimeEmployees": "52",
+          "HrUnpainVolunteers": "544"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:ec5bf6954599b9825de4204e5159569486ce19f4aff5cb6b324d95064c5e84df",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "Financials",
+        "value": {
+          "ExpenseTotal": "41598000.0000",
+          "NetAssetsLiabilities": "96455000.0000",
+          "NetSurplusDeficit": "1335000.0000",
+          "RevenueTotal": "42538000.0000",
+          "TotalAssets": "104414000.0000",
+          "TotalLiabilities": "7959000.0000"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:f097592ec5a25706f9af6dc2d28eec5835beb99c40664331876682e04a3ac20b",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "Funding",
+        "value": {
+          "IncomeDonationsBequests": "33566000.0000",
+          "IncomeGovernmentGrants": "2209000.0000",
+          "IncomeOther": "395000.0000",
+          "IncomeOtherComprehinsive": "-87000.0000",
+          "IncomeOtherNeg": null,
+          "IncomeOtherReceipts": "2820000.0000",
+          "IncomeTotalComprehensive": "1248000.0000",
+          "IncomeTotalReceipts": "42933000.0000"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:84c332c86b56b6bf4fceb5d75d54c706ba16b11f57f7a8f2676915bb7261a93d",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "Fundraising",
+        "value": "Yes",
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:d5c554aacd088cd0fc7b6ef51f88d3a6a642477c7849351b8e448b10bb8586b1",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "Evidence packet",
+        "value": {
+          "kind": "phase5_frozen_ais",
+          "provider_calls": 0
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:28a8baad9b9a31fb2e50c1f7800b91e2293ae981829ebd8d47e1e50acc42411d",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "ACNC listed program",
+        "value": {
+          "AisUuid": "fa7de00b-c999-f011-b41c-7c1e528a8d67",
+          "Name": "Buying & Protecting Land For Conservation",
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Animals",
+            "Environment",
+            "General community in Australia"
+          ],
+          "ProgramClassification": "Environment",
+          "ProgramClassificationID": "216",
+          "ProgramCountries": [],
+          "ProgramLocations": [
+            {
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": "-25.274398",
+                "Longitude": "133.775136"
+              },
+              "Name": "Australia",
+              "uuid": "5e11e011-c999-f011-b41c-7c1e528a8d67"
+            }
+          ],
+          "ProgramWeblink": "https://www.bushheritage.org.au/what-we-do/our-priorities/buying-land",
+          "uuid": "d27fe00b-c999-f011-b41c-7c1e528a8d67"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:db9fab0b890c893ade9b152f2aff99bf938b7176c7ca7931f0c0d581c25f7afb",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "ACNC listed program",
+        "value": {
+          "AisUuid": "fa7de00b-c999-f011-b41c-7c1e528a8d67",
+          "Name": "Protecting Native Species",
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Animals",
+            "Environment",
+            "General community in Australia"
+          ],
+          "ProgramClassification": "Environment",
+          "ProgramClassificationID": "216",
+          "ProgramCountries": [],
+          "ProgramLocations": [
+            {
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": "-25.274398",
+                "Longitude": "133.775136"
+              },
+              "Name": "Australia",
+              "uuid": "ad11e011-c999-f011-b41c-7c1e528a8d67"
+            }
+          ],
+          "ProgramWeblink": "https://www.bushheritage.org.au/what-we-do/our-priorities/species",
+          "uuid": "6311e011-c999-f011-b41c-7c1e528a8d67"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:b87a518101ef7fe3cb8ce30f87191183b1de72933efd725515076c9b9fd718ad",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "ACNC listed program",
+        "value": {
+          "AisUuid": "fa7de00b-c999-f011-b41c-7c1e528a8d67",
+          "Name": "Conservation Science",
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Animals",
+            "Environment",
+            "General community in Australia"
+          ],
+          "ProgramClassification": "Environment",
+          "ProgramClassificationID": "216",
+          "ProgramCountries": [],
+          "ProgramLocations": [
+            {
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": "-25.274398",
+                "Longitude": "133.775136"
+              },
+              "Name": "Australia",
+              "uuid": "0112e011-c999-f011-b41c-7c1e528a8d67"
+            }
+          ],
+          "ProgramWeblink": "https://www.bushheritage.org.au/what-we-do/our-priorities/science",
+          "uuid": "c011e011-c999-f011-b41c-7c1e528a8d67"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:2c7c7c5fff4c29b6b536a2c4aa355fa6fe979a0719dadc42078fda076fa44a76",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "ACNC listed program",
+        "value": {
+          "AisUuid": "fa7de00b-c999-f011-b41c-7c1e528a8d67",
+          "Name": "Engaging with Traditional Custodians",
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Aboriginal and Torres Strait Islander people",
+            "Animals",
+            "Environment",
+            "General community in Australia"
+          ],
+          "ProgramClassification": "Environment",
+          "ProgramClassificationID": "216",
+          "ProgramCountries": [],
+          "ProgramLocations": [
+            {
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": "-25.274398",
+                "Longitude": "133.775136"
+              },
+              "Name": "Australia",
+              "uuid": "3f12e011-c999-f011-b41c-7c1e528a8d67"
+            }
+          ],
+          "ProgramWeblink": "https://www.bushheritage.org.au/what-we-do/our-priorities/aboriginal",
+          "uuid": "0812e011-c999-f011-b41c-7c1e528a8d67"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:6d46705f5bcebe7a22bcc07c125fb02e7d4cba8df1461ca50f2d82b86f62aada",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "ACNC listed program",
+        "value": {
+          "AisUuid": "fa7de00b-c999-f011-b41c-7c1e528a8d67",
+          "Name": "Climate Change Mitigation",
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Animals",
+            "Environment",
+            "General community in Australia"
+          ],
+          "ProgramClassification": "Climate change",
+          "ProgramClassificationID": "229",
+          "ProgramCountries": [],
+          "ProgramLocations": [
+            {
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": "-25.274398",
+                "Longitude": "133.775136"
+              },
+              "Name": "Australia",
+              "uuid": "6e12e011-c999-f011-b41c-7c1e528a8d67"
+            }
+          ],
+          "ProgramWeblink": "https://www.bushheritage.org.au/what-we-do/our-challenge/climate-change",
+          "uuid": "4712e011-c999-f011-b41c-7c1e528a8d67"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:76161751ade0211bb01599390bd55db461f82fb1fcf9bb51182edd5dc935571b",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "ACNC listed program",
+        "value": {
+          "AisUuid": "fa7de00b-c999-f011-b41c-7c1e528a8d67",
+          "Name": "Agricultural Partnerships",
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Animals",
+            "Environment",
+            "General community in Australia"
+          ],
+          "ProgramClassification": "Biodiversity",
+          "ProgramClassificationID": "217",
+          "ProgramCountries": [],
+          "ProgramLocations": [
+            {
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": "-25.274398",
+                "Longitude": "133.775136"
+              },
+              "Name": "Australia",
+              "uuid": "5b61d817-c999-f011-b41c-7c1e528a8d67"
+            }
+          ],
+          "ProgramWeblink": "https://www.bushheritage.org.au/what-we-do/our-priorities/agriculture",
+          "uuid": "7812e011-c999-f011-b41c-7c1e528a8d67"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:3420d159e0e66bcbe73c8fa2e7109bedfca6c31cd8c845b0ca90678e52247685",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "ACNC listed program",
+        "value": {
+          "AisUuid": "fa7de00b-c999-f011-b41c-7c1e528a8d67",
+          "Name": "Impact Measurement",
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Animals",
+            "Environment",
+            "General community in Australia"
+          ],
+          "ProgramClassification": "Biodiversity",
+          "ProgramClassificationID": "217",
+          "ProgramCountries": [],
+          "ProgramLocations": [
+            {
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": "-25.274398",
+                "Longitude": "133.775136"
+              },
+              "Name": "Australia",
+              "uuid": "8261d817-c999-f011-b41c-7c1e528a8d67"
+            }
+          ],
+          "ProgramWeblink": "https://www.bushheritage.org.au/what-we-do/our-impact/measuring",
+          "uuid": "5f61d817-c999-f011-b41c-7c1e528a8d67"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_SOURCE_NATIVE_TRANSLATION",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:da0d378275eb6b00a02c78d90536ae35f858200cacd4df0e9c4cac345979038d",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_legal_name",
+        "value": {
+          "north_star_section_ids": [
+            "1"
+          ],
+          "mapping_status": "assigned_by_source_structured_field",
+          "source_field_path": "#/LegalName",
+          "source_field_value": "Bush Heritage Australia",
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:9337927da2bc0ea45f97a112c6152b0baef3cb29915b99065fa61be49ffed90a",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_identifier",
+        "value": {
+          "north_star_section_ids": [
+            "1"
+          ],
+          "mapping_status": "assigned_by_source_structured_field",
+          "source_field_path": "#/Abn",
+          "source_field_value": "78053639115",
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:01149800699d755ffdc29da8f6b6aa20991d87b7d349576643931e821e377ce9",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_source_reporting_year",
+        "value": {
+          "north_star_section_ids": [
+            "1"
+          ],
+          "mapping_status": "assigned_by_source_structured_field",
+          "source_field_path": "#/StatementYear",
+          "source_field_value": "2024",
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:771ed6707f2c745e6ed333b0e566b56c8f502b34ec291f0895afc015780a68f3",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_activity_field_value",
+        "value": {
+          "north_star_section_ids": [
+            "3"
+          ],
+          "mapping_status": "literal_activity_field_value_only_no_availability_or_capacity_inference",
+          "source_field_path": "#/ActivityOperating",
+          "source_field_value": true,
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:698d8ffc0dc9f83df5740795772c031dc98f8e09db2ed27bb147f9fa37f4e0e4",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_activity_field_value",
+        "value": {
+          "north_star_section_ids": [
+            "3"
+          ],
+          "mapping_status": "literal_activity_field_value_only_no_availability_or_capacity_inference",
+          "source_field_path": "#/ActivityOperatingOverseas",
+          "source_field_value": false,
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:626a2247704124c8a630a5aa877e133a1b7d7d29ed2c7110db2fa36bc06fd2d1",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_program_record",
+        "value": {
+          "north_star_section_ids": [
+            "3"
+          ],
+          "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+          "source_field_path": "#/Programs/0",
+          "source_field_value": {
+            "Name": "Buying & Protecting Land For Conservation",
+            "ProgramClassification": "Environment",
+            "ProgramClassificationID": "216"
+          },
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:53d83ad50a3ddc2422bcfb2e2c3bdb4a52d4071a5c97429c4161b92f53d884ce",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_program_record",
+        "value": {
+          "north_star_section_ids": [
+            "3"
+          ],
+          "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+          "source_field_path": "#/Programs/1",
+          "source_field_value": {
+            "Name": "Protecting Native Species",
+            "ProgramClassification": "Environment",
+            "ProgramClassificationID": "216"
+          },
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:0746aae93adcd4a48659b3a82182e74649fd4035b294dde05c63370ce107cfa0",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_program_record",
+        "value": {
+          "north_star_section_ids": [
+            "3"
+          ],
+          "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+          "source_field_path": "#/Programs/2",
+          "source_field_value": {
+            "Name": "Conservation Science",
+            "ProgramClassification": "Environment",
+            "ProgramClassificationID": "216"
+          },
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:79310ab1f3c86618bcf8c80dbb07a0f38961870e9cdaad47a3ac3faebde6c80b",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_program_record",
+        "value": {
+          "north_star_section_ids": [
+            "3"
+          ],
+          "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+          "source_field_path": "#/Programs/3",
+          "source_field_value": {
+            "Name": "Engaging with Traditional Custodians",
+            "ProgramClassification": "Environment",
+            "ProgramClassificationID": "216"
+          },
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:1a51c4bc0b11448cec2c7ce3bc8dbff2264a962be93cce1c5899559c7c0f0e50",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_program_record",
+        "value": {
+          "north_star_section_ids": [
+            "3"
+          ],
+          "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+          "source_field_path": "#/Programs/4",
+          "source_field_value": {
+            "Name": "Climate Change Mitigation",
+            "ProgramClassification": "Climate change",
+            "ProgramClassificationID": "229"
+          },
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:6497d3b216f8adeaec87cb8b2b862011ce841dc4fd36639a5069302552ee7676",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_program_record",
+        "value": {
+          "north_star_section_ids": [
+            "3"
+          ],
+          "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+          "source_field_path": "#/Programs/5",
+          "source_field_value": {
+            "Name": "Agricultural Partnerships",
+            "ProgramClassification": "Biodiversity",
+            "ProgramClassificationID": "217"
+          },
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:a2b627519d7fb2875ccdabb38177cd564ae5f43f4619835ce4f44fd0ba12386b",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "acnc_carried_program_record",
+        "value": {
+          "north_star_section_ids": [
+            "3"
+          ],
+          "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+          "source_field_path": "#/Programs/6",
+          "source_field_value": {
+            "Name": "Impact Measurement",
+            "ProgramClassification": "Biodiversity",
+            "ProgramClassificationID": "217"
+          },
+          "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:1cd0af5a757b7d26f796f94041d5bf868fc9140d26cf4dd5a0cf9381e73cfe4b",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "source_stated_purpose",
+        "value": {
+          "proposition_type": "source_stated_purpose",
+          "north_star_section_id": "2",
+          "statement": "Bush Heritage Australia describes itself as a not-for-profit conservation organisation focused on buying and managing land to protect important and fragile Australian ecosystems.",
+          "source_text_segments": [
+            "Bush Heritage Australia is a not-for-profit conservation organisation focused on buying and managing land for the protection of some of Australia's most important and fragile ecosystems."
+          ],
+          "source_field_path": "#/ActivityPersuitPurposesDescription",
+          "source_locator_id": "locator:a514be10970040a2e18c0e51cbdab8a73d835c2070f4a41e20fd5ab7ff3525f6#/ActivityPersuitPurposesDescription",
+          "source_carrier_role": "historical_frozen_regulator_material",
+          "epistemic_status": "first_party_report_carried_by_regulator",
+          "scope": {
+            "scope_id": "scope:988dbcb7b533a9cb8a3103e45cc134768be52f71456d83acf44f836c6a0b8d5f",
+            "scope_kind": "organisation"
+          },
+          "candidate_lineage": {
+            "source_candidate_id": "candidate:context-v1-10681f39e038f1da485ed47b33410812",
+            "original_candidate_content_sha256": "10681f39e038f1da485ed47b334108129ecb7873ddddb812113f2165cd25e625",
+            "corrected_atom_index": 1
+          },
+          "time_boundary": "Historical/source-reported; no current status or period beyond the exact source fields is asserted.",
+          "human_atomization": true,
+          "canonical_public": false
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      },
+      {
+        "record_id": "observation:f8f88af3e879a028f7b66297b3e10f39eefef37ca37658c220f968fa2f89b463",
+        "schema": {
+          "schema_id": "urn:charitygraph:builder:schema:observation:1.0",
+          "schema_version": "1.0"
+        },
+        "created_at": "2026-09-28T15:03:35.659410Z",
+        "producer": {
+          "kind": "code",
+          "producer_id": "reality-spike-5-disposable-bridge",
+          "version": "1"
+        },
+        "about_subject_ids": [
+          "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "lineage": [],
+        "content_hash": null,
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "scope_id": "scope:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "predicate": "source_reported_activity",
+        "value": {
+          "proposition_type": "source_reported_activity",
+          "north_star_section_id": "3",
+          "statement": "Bush Heritage Australia reports buying and managing conservation land and partnering with Traditional Custodians and other landholders.",
+          "source_text_segments": [
+            "Bush Heritage Australia is a not-for-profit conservation organisation focused on buying and managing land",
+            "we partner with Traditional Custodians and other landholders."
+          ],
+          "source_field_path": "#/ActivityPersuitPurposesDescription",
+          "source_locator_id": "locator:a514be10970040a2e18c0e51cbdab8a73d835c2070f4a41e20fd5ab7ff3525f6#/ActivityPersuitPurposesDescription",
+          "source_carrier_role": "historical_frozen_regulator_material",
+          "epistemic_status": "first_party_report_carried_by_regulator",
+          "scope": {
+            "scope_id": "scope:988dbcb7b533a9cb8a3103e45cc134768be52f71456d83acf44f836c6a0b8d5f",
+            "scope_kind": "organisation"
+          },
+          "candidate_lineage": {
+            "source_candidate_id": "candidate:context-v1-10681f39e038f1da485ed47b33410812",
+            "original_candidate_content_sha256": "10681f39e038f1da485ed47b334108129ecb7873ddddb812113f2165cd25e625",
+            "corrected_atom_index": 2
+          },
+          "time_boundary": "Historical/source-reported; no current status or period beyond the exact source fields is asserted.",
+          "human_atomization": true,
+          "canonical_public": false
+        },
+        "outcome_state": "resolved",
+        "evidence_locator_ids": [
+          "evidence:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "source_record_ids": [
+          "srcrec:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7"
+        ],
+        "observation_time": {
+          "effective_from": null,
+          "effective_to": null,
+          "reporting_period": "retained historical source representation",
+          "observed_at": "2026-09-28T15:03:35.659410Z",
+          "assessed_at": null
+        },
+        "method": "EXPERIMENTAL_HISTORICAL_SEMANTIC_REPLAY",
+        "lifecycle_status": "accepted",
+        "confidence": null,
+        "qualifications": [],
+        "supersedes_observation_id": null
+      }
+    ],
+    "relationships": [],
+    "evidence": [
+      {
+        "observation_id": "observation:6a6aaef46ceed311d1ae4206e8e2f8dc5ae27d5d05f751e55e3de031f83f746c",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          1
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:97a61102793dd5940ce73e1897608794d33b2496bf190c57666172b91e976e5d",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          2,
+          4
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:2505c3fb5b65a01bb331036ced886b8b6fe383fda4e78a004b2e4684624f2498",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          11
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:6db48ec854402104615bff05d3e6569a077b963486e39eaa63f84d4e7d11cbd1",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          10,
+          11
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:ec5bf6954599b9825de4204e5159569486ce19f4aff5cb6b324d95064c5e84df",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          13
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:f097592ec5a25706f9af6dc2d28eec5835beb99c40664331876682e04a3ac20b",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          14
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:84c332c86b56b6bf4fceb5d75d54c706ba16b11f57f7a8f2676915bb7261a93d",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          8
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:d5c554aacd088cd0fc7b6ef51f88d3a6a642477c7849351b8e448b10bb8586b1",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          20
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:28a8baad9b9a31fb2e50c1f7800b91e2293ae981829ebd8d47e1e50acc42411d",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3,
+          5
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:db9fab0b890c893ade9b152f2aff99bf938b7176c7ca7931f0c0d581c25f7afb",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3,
+          5
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:b87a518101ef7fe3cb8ce30f87191183b1de72933efd725515076c9b9fd718ad",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3,
+          5
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:2c7c7c5fff4c29b6b536a2c4aa355fa6fe979a0719dadc42078fda076fa44a76",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3,
+          5
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:6d46705f5bcebe7a22bcc07c125fb02e7d4cba8df1461ca50f2d82b86f62aada",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3,
+          5
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:76161751ade0211bb01599390bd55db461f82fb1fcf9bb51182edd5dc935571b",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3,
+          5
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:3420d159e0e66bcbe73c8fa2e7109bedfca6c31cd8c845b0ca90678e52247685",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3,
+          5
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:da0d378275eb6b00a02c78d90536ae35f858200cacd4df0e9c4cac345979038d",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          1
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:9337927da2bc0ea45f97a112c6152b0baef3cb29915b99065fa61be49ffed90a",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          1
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:01149800699d755ffdc29da8f6b6aa20991d87b7d349576643931e821e377ce9",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          1
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:771ed6707f2c745e6ed333b0e566b56c8f502b34ec291f0895afc015780a68f3",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:698d8ffc0dc9f83df5740795772c031dc98f8e09db2ed27bb147f9fa37f4e0e4",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:626a2247704124c8a630a5aa877e133a1b7d7d29ed2c7110db2fa36bc06fd2d1",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:53d83ad50a3ddc2422bcfb2e2c3bdb4a52d4071a5c97429c4161b92f53d884ce",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:0746aae93adcd4a48659b3a82182e74649fd4035b294dde05c63370ce107cfa0",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:79310ab1f3c86618bcf8c80dbb07a0f38961870e9cdaad47a3ac3faebde6c80b",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:1a51c4bc0b11448cec2c7ce3bc8dbff2264a962be93cce1c5899559c7c0f0e50",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:6497d3b216f8adeaec87cb8b2b862011ce841dc4fd36639a5069302552ee7676",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:a2b627519d7fb2875ccdabb38177cd564ae5f43f4619835ce4f44fd0ba12386b",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:1cd0af5a757b7d26f796f94041d5bf868fc9140d26cf4dd5a0cf9381e73cfe4b",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          2
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      },
+      {
+        "observation_id": "observation:f8f88af3e879a028f7b66297b3e10f39eefef37ca37658c220f968fa2f89b463",
+        "disposition": "REUSABLE_EXPERIMENTAL_INPUT",
+        "section_ids": [
+          3
+        ],
+        "projection_contract_id": "north-star-v0.2",
+        "assignment_contract": "CANONICAL_COMPATIBLE",
+        "note": "EXPERIMENTAL_PRODUCT_OWNER_PROMOTION; retained source material"
+      }
+    ],
+    "coverage_inputs": [
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "section_id": 6,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "section_id": 7,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "section_id": 9,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "section_id": 12,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "section_id": 15,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "section_id": 16,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "section_id": 17,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "section_id": 18,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      },
+      {
+        "subject_id": "subject:84bb63f26714919f87f4921217597baff771f9af4a9b542bd114a6d1709509e7",
+        "section_id": 19,
+        "projection_contract_id": "north-star-v0.2",
+        "state": "NOT_PROCESSED",
+        "basis": "no_domain_result",
+        "note": "No retained compatible structured field or accepted historical replay observation."
+      }
+    ]
+  },
+  "observation_anatomy": {
+    "observation:6a6aaef46ceed311d1ae4206e8e2f8dc5ae27d5d05f751e55e3de031f83f746c": "positive_structured",
+    "observation:97a61102793dd5940ce73e1897608794d33b2496bf190c57666172b91e976e5d": "positive_structured",
+    "observation:2505c3fb5b65a01bb331036ced886b8b6fe383fda4e78a004b2e4684624f2498": "positive_structured",
+    "observation:6db48ec854402104615bff05d3e6569a077b963486e39eaa63f84d4e7d11cbd1": "positive_structured",
+    "observation:ec5bf6954599b9825de4204e5159569486ce19f4aff5cb6b324d95064c5e84df": "positive_structured",
+    "observation:f097592ec5a25706f9af6dc2d28eec5835beb99c40664331876682e04a3ac20b": "positive_structured",
+    "observation:84c332c86b56b6bf4fceb5d75d54c706ba16b11f57f7a8f2676915bb7261a93d": "positive_structured",
+    "observation:d5c554aacd088cd0fc7b6ef51f88d3a6a642477c7849351b8e448b10bb8586b1": "positive_structured",
+    "observation:28a8baad9b9a31fb2e50c1f7800b91e2293ae981829ebd8d47e1e50acc42411d": "positive_structured",
+    "observation:db9fab0b890c893ade9b152f2aff99bf938b7176c7ca7931f0c0d581c25f7afb": "positive_structured",
+    "observation:b87a518101ef7fe3cb8ce30f87191183b1de72933efd725515076c9b9fd718ad": "positive_structured",
+    "observation:2c7c7c5fff4c29b6b536a2c4aa355fa6fe979a0719dadc42078fda076fa44a76": "positive_structured",
+    "observation:6d46705f5bcebe7a22bcc07c125fb02e7d4cba8df1461ca50f2d82b86f62aada": "positive_structured",
+    "observation:76161751ade0211bb01599390bd55db461f82fb1fcf9bb51182edd5dc935571b": "positive_structured",
+    "observation:3420d159e0e66bcbe73c8fa2e7109bedfca6c31cd8c845b0ca90678e52247685": "positive_structured",
+    "observation:da0d378275eb6b00a02c78d90536ae35f858200cacd4df0e9c4cac345979038d": "positive_historical_replay",
+    "observation:9337927da2bc0ea45f97a112c6152b0baef3cb29915b99065fa61be49ffed90a": "positive_historical_replay",
+    "observation:01149800699d755ffdc29da8f6b6aa20991d87b7d349576643931e821e377ce9": "positive_historical_replay",
+    "observation:771ed6707f2c745e6ed333b0e566b56c8f502b34ec291f0895afc015780a68f3": "positive_historical_replay",
+    "observation:698d8ffc0dc9f83df5740795772c031dc98f8e09db2ed27bb147f9fa37f4e0e4": "positive_historical_replay",
+    "observation:626a2247704124c8a630a5aa877e133a1b7d7d29ed2c7110db2fa36bc06fd2d1": "positive_historical_replay",
+    "observation:53d83ad50a3ddc2422bcfb2e2c3bdb4a52d4071a5c97429c4161b92f53d884ce": "positive_historical_replay",
+    "observation:0746aae93adcd4a48659b3a82182e74649fd4035b294dde05c63370ce107cfa0": "positive_historical_replay",
+    "observation:79310ab1f3c86618bcf8c80dbb07a0f38961870e9cdaad47a3ac3faebde6c80b": "positive_historical_replay",
+    "observation:1a51c4bc0b11448cec2c7ce3bc8dbff2264a962be93cce1c5899559c7c0f0e50": "positive_historical_replay",
+    "observation:6497d3b216f8adeaec87cb8b2b862011ce841dc4fd36639a5069302552ee7676": "positive_historical_replay",
+    "observation:a2b627519d7fb2875ccdabb38177cd564ae5f43f4619835ce4f44fd0ba12386b": "positive_historical_replay",
+    "observation:1cd0af5a757b7d26f796f94041d5bf868fc9140d26cf4dd5a0cf9381e73cfe4b": "positive_historical_replay",
+    "observation:f8f88af3e879a028f7b66297b3e10f39eefef37ca37658c220f968fa2f89b463": "positive_historical_replay"
+  }
+}

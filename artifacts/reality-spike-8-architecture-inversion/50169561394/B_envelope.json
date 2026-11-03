@@ -1,0 +1,2060 @@
+{
+  "propositions": [
+    {
+      "id": "observation:3bae02cf641dae4612a1c360403c9d35d1235bad7aeeb209fc03475110c41bcb",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "Name",
+      "target_sections": [
+        1
+      ],
+      "value": "Australian Red Cross Society",
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:b301136acb9b3e237b2496d8f8e60226d3cea2db05c6b4184a8f21defede994d",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "Activity",
+      "target_sections": [
+        2,
+        4
+      ],
+      "value": "Australian Red Cross Society is a volunteer-based organisation that exists to reduce human suffering. Australian Red Cross Society operates through two operating divisions: Australian Red Cross Humanitarian Services and Australian Red Cross Lifeblood. Our work includes:  - Emergency services and disasters: we help build communities that are strong, resilient and able to anticipate, respond, and recover well from disasters and climate related emergencies.  - Migration: we help build fair, welcoming, and inclusive communities where migrants are safe and have their humanitarian needs met.  - Community activities and programs: we build connection and resilience through volunteering and responding to the humanitarian needs of local communities.  - International programs: we help build stronger, more resilient international communities with increased capacity to prepare for, anticipate, respond to and recover from crises.  - International Humanitarian Law: we better humanitarian outcomes for people and communities impacted by armed conflicts.  - Lifeblood: we increase the supply of safe and high-quality blood, plasma and other biological products, bolstering the capacity to respond to emergencies, support medical treatments, and improve patient and community outcomes.  - First Nations Centrality: our work is informed by the voices of First Nations people, so that we may work together in the purpose of Australian Red Cross, while fostering cultural safety, equity and greater inclusion of First Nations people in our programs, volunteering and as voices of advocacy.   For more information on our activities, see    https://www.redcross.org.au/about/what-we-do/",
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:158b5076a27be266c395abef75cf55465c4cf77c39f3e36c0ac86d90e873af86",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "Charity size",
+      "target_sections": [
+        11
+      ],
+      "value": "Large",
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:212d3f53bf2b87bfdbbd6bcc02112361efb262c528778ff8a252da399d66e6d2",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "Employees",
+      "target_sections": [
+        10,
+        11
+      ],
+      "value": {
+        "HrCasualEmployees": "390",
+        "HrFteStaff": "4412.0000000000",
+        "HrFullTimeEmployees": "2761",
+        "HrPartTimeEmployees": "2316",
+        "HrUnpainVolunteers": "11449"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:d9b54deb449764de875526052e293c61ec01cf6b7e1ff7c9e555cd3ed01f8c8a",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "Financials",
+      "target_sections": [
+        13
+      ],
+      "value": {
+        "ExpenseTotal": "1151220000.0000",
+        "NetAssetsLiabilities": "332346000.0000",
+        "NetSurplusDeficit": "-40450000.0000",
+        "RevenueTotal": "1110770000.0000",
+        "TotalAssets": "969976000.0000",
+        "TotalLiabilities": "637630000.0000"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:fec90c98a7b92dea7c5c0bbcf1fd065493747ff47d02b3e07551a0da670a2913",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "Funding",
+      "target_sections": [
+        14
+      ],
+      "value": {
+        "IncomeDonationsBequests": "76517000.0000",
+        "IncomeGovernmentGrants": "935303000.0000",
+        "IncomeOther": "0.0000",
+        "IncomeOtherComprehinsive": "6126000.0000",
+        "IncomeOtherNeg": null,
+        "IncomeOtherReceipts": "32220000.0000",
+        "IncomeTotalComprehensive": "-34324000.0000",
+        "IncomeTotalReceipts": "1110770000.0000"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:14d81815109c47673bef236a0a455e5f0d59e023bc75bf4e0dc0725489fe7cbe",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "Fundraising",
+      "target_sections": [
+        8
+      ],
+      "value": "Yes",
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:4026dc4bc4f5e46d127523bd1d58156916fa6bc9c3ba9f895be6b80d76a74ad8",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "Evidence packet",
+      "target_sections": [
+        20
+      ],
+      "value": {
+        "kind": "phase5_frozen_ais",
+        "provider_calls": 0
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:3c5355982bc3272b492c0194b108c56c01033a285226df964a611e1a60974205",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "804f9f79-dab9-f011-bbd2-7ced8d32320c",
+        "Name": "Australian Red Cross Lifeblood",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families"
+        ],
+        "ProgramClassification": "Blood banks",
+        "ProgramClassificationID": "384",
+        "ProgramCountries": [],
+        "ProgramLocations": [
+          {
+            "DisplayName": "Australia",
+            "Marker": {
+              "Latitude": "-25.274398",
+              "Longitude": "133.775136"
+            },
+            "Name": "Australia",
+            "uuid": "252e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          }
+        ],
+        "ProgramWeblink": "https://www.lifeblood.com.au/",
+        "uuid": "fc2d9a7f-dab9-f011-bbd2-7ced8d32320c"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:10aa7c154cc3a8b655c519dbb855a33f484b11783040c245384edebe2c07030c",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "804f9f79-dab9-f011-bbd2-7ced8d32320c",
+        "Name": "Humanitarian Settlement Program",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "Migrants, refugees or asylum seekers",
+          "People from a culturally and linguistically diverse background"
+        ],
+        "ProgramClassification": "Immigrant services",
+        "ProgramClassificationID": "550",
+        "ProgramCountries": [],
+        "ProgramLocations": [
+          {
+            "DisplayName": "Australian Capital Territory, Australia",
+            "Marker": {
+              "Latitude": "-35.4734679",
+              "Longitude": "149.0123679"
+            },
+            "Name": "Australian Capital Territory",
+            "uuid": "392e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "New South Wales, Australia",
+            "Marker": {
+              "Latitude": "-31.2532183",
+              "Longitude": "146.921099"
+            },
+            "Name": "New South Wales",
+            "uuid": "3e2e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Western Australia, Australia",
+            "Marker": {
+              "Latitude": "-27.6728168",
+              "Longitude": "121.6283098"
+            },
+            "Name": "Western Australia",
+            "uuid": "402e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          }
+        ],
+        "ProgramWeblink": "https://www.redcross.org.au/migration/humanitarian-settlement/",
+        "uuid": "2b2e9a7f-dab9-f011-bbd2-7ced8d32320c"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:e5fd40433cc3e1dc6f149802e54f96ac90910f1aecffeb8988ef67e758d90fc4",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "804f9f79-dab9-f011-bbd2-7ced8d32320c",
+        "Name": "Aged and Community Care services",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Adults - aged 65 and over"
+        ],
+        "ProgramClassification": "Attendant care",
+        "ProgramClassificationID": "530",
+        "ProgramCountries": [],
+        "ProgramLocations": [
+          {
+            "DisplayName": "New South Wales, Australia",
+            "Marker": {
+              "Latitude": "-31.2532183",
+              "Longitude": "146.921099"
+            },
+            "Name": "New South Wales",
+            "uuid": "4e2e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Northern Territory, Australia",
+            "Marker": {
+              "Latitude": "-19.4914108",
+              "Longitude": "132.5509603"
+            },
+            "Name": "Northern Territory",
+            "uuid": "522e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Queensland, Australia",
+            "Marker": {
+              "Latitude": "-22.575197",
+              "Longitude": "144.0847926"
+            },
+            "Name": "Queensland",
+            "uuid": "552e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "South Australia, Australia",
+            "Marker": {
+              "Latitude": "-30.0002315",
+              "Longitude": "136.2091547"
+            },
+            "Name": "South Australia",
+            "uuid": "5d2e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Tasmania, Australia",
+            "Marker": {
+              "Latitude": "-42.0409059",
+              "Longitude": "146.8087322"
+            },
+            "Name": "Tasmania",
+            "uuid": "622e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Victoria, Australia",
+            "Marker": {
+              "Latitude": "-36.9847807",
+              "Longitude": "143.3906074"
+            },
+            "Name": "Victoria",
+            "uuid": "652e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Western Australia, Australia",
+            "Marker": {
+              "Latitude": "-27.6728168",
+              "Longitude": "121.6283098"
+            },
+            "Name": "Western Australia",
+            "uuid": "6a2e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          }
+        ],
+        "ProgramWeblink": "https://www.redcross.org.au/aged-care/",
+        "uuid": "422e9a7f-dab9-f011-bbd2-7ced8d32320c"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:7ff89ad4e61a1fa36759f1bc3662161144174616bc55112d7f01fe2c7338f14a",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "804f9f79-dab9-f011-bbd2-7ced8d32320c",
+        "Name": "Emergency Relief - Family and domestic violence financial assistance",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "Victims of crime (including family violence)"
+        ],
+        "ProgramClassification": "Domestic and family violence",
+        "ProgramClassificationID": "669",
+        "ProgramCountries": [],
+        "ProgramLocations": [
+          {
+            "DisplayName": "New South Wales, Australia",
+            "Marker": {
+              "Latitude": "-31.2532183",
+              "Longitude": "146.921099"
+            },
+            "Name": "New South Wales",
+            "uuid": "962e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Northern Territory, Australia",
+            "Marker": {
+              "Latitude": "-19.4914108",
+              "Longitude": "132.5509603"
+            },
+            "Name": "Northern Territory",
+            "uuid": "a52e9a7f-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Queensland, Australia",
+            "Marker": {
+              "Latitude": "-22.575197",
+              "Longitude": "144.0847926"
+            },
+            "Name": "Queensland",
+            "uuid": "11979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "South Australia, Australia",
+            "Marker": {
+              "Latitude": "-30.0002315",
+              "Longitude": "136.2091547"
+            },
+            "Name": "South Australia",
+            "uuid": "1c979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Tasmania, Australia",
+            "Marker": {
+              "Latitude": "-42.0409059",
+              "Longitude": "146.8087322"
+            },
+            "Name": "Tasmania",
+            "uuid": "21979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Victoria, Australia",
+            "Marker": {
+              "Latitude": "-36.9847807",
+              "Longitude": "143.3906074"
+            },
+            "Name": "Victoria",
+            "uuid": "2a979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Western Australia, Australia",
+            "Marker": {
+              "Latitude": "-27.6728168",
+              "Longitude": "121.6283098"
+            },
+            "Name": "Western Australia",
+            "uuid": "2c979285-dab9-f011-bbd2-7ced8d32320c"
+          }
+        ],
+        "ProgramWeblink": "https://www.redcross.org.au/migration/family-and-domestic-violence-financial-assistance-program/",
+        "uuid": "6e2e9a7f-dab9-f011-bbd2-7ced8d32320c"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:7a32bb9951b225837d1d0aa1f4efd74163b7963b07060f7c134d2c96a1fba25c",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "804f9f79-dab9-f011-bbd2-7ced8d32320c",
+        "Name": "Support for Trafficked People",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65"
+        ],
+        "ProgramClassification": "Human trafficking",
+        "ProgramClassificationID": "693",
+        "ProgramCountries": [],
+        "ProgramLocations": [
+          {
+            "DisplayName": "New South Wales, Australia",
+            "Marker": {
+              "Latitude": "-31.2532183",
+              "Longitude": "146.921099"
+            },
+            "Name": "New South Wales",
+            "uuid": "50979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Northern Territory, Australia",
+            "Marker": {
+              "Latitude": "-19.4914108",
+              "Longitude": "132.5509603"
+            },
+            "Name": "Northern Territory",
+            "uuid": "53979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Queensland, Australia",
+            "Marker": {
+              "Latitude": "-22.575197",
+              "Longitude": "144.0847926"
+            },
+            "Name": "Queensland",
+            "uuid": "5c979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "South Australia, Australia",
+            "Marker": {
+              "Latitude": "-30.0002315",
+              "Longitude": "136.2091547"
+            },
+            "Name": "South Australia",
+            "uuid": "61979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Tasmania, Australia",
+            "Marker": {
+              "Latitude": "-42.0409059",
+              "Longitude": "146.8087322"
+            },
+            "Name": "Tasmania",
+            "uuid": "64979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Victoria, Australia",
+            "Marker": {
+              "Latitude": "-36.9847807",
+              "Longitude": "143.3906074"
+            },
+            "Name": "Victoria",
+            "uuid": "67979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Western Australia, Australia",
+            "Marker": {
+              "Latitude": "-27.6728168",
+              "Longitude": "121.6283098"
+            },
+            "Name": "Western Australia",
+            "uuid": "6a979285-dab9-f011-bbd2-7ced8d32320c"
+          }
+        ],
+        "ProgramWeblink": "https://www.redcross.org.au/migration/support-for-trafficked-people/",
+        "uuid": "32979285-dab9-f011-bbd2-7ced8d32320c"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:c725134d54e1d52dfbaf2eafee4073e20d81a8503480f1579246a932d6293ed5",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "804f9f79-dab9-f011-bbd2-7ced8d32320c",
+        "Name": "International Programming - DFAT Head Grant",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "Victims of disaster"
+        ],
+        "ProgramClassification": "International development",
+        "ProgramClassificationID": "625",
+        "ProgramCountries": [
+          "Cook Islands",
+          "Fiji",
+          "Indonesia",
+          "Mongolia",
+          "Myanmar",
+          "Papua New Guinea",
+          "Solomon Islands",
+          "Timor-Leste",
+          "Tonga",
+          "Vanuatu"
+        ],
+        "ProgramLocations": [],
+        "ProgramWeblink": "https://www.redcross.org.au/international-aid/",
+        "uuid": "70979285-dab9-f011-bbd2-7ced8d32320c"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:2a041e740f5a5b91abe779d11970a197aaa42af6f4d2a6f13f2d6c559843673f",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "804f9f79-dab9-f011-bbd2-7ced8d32320c",
+        "Name": "Homelessness services",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Aboriginal and Torres Strait Islander people",
+          "People at risk of homelessness/ people experiencing homelessness"
+        ],
+        "ProgramClassification": "Homeless services",
+        "ProgramClassificationID": "549",
+        "ProgramCountries": [],
+        "ProgramLocations": [
+          {
+            "DisplayName": "Australian Capital Territory, Australia",
+            "Marker": {
+              "Latitude": "-35.4734679",
+              "Longitude": "149.0123679"
+            },
+            "Name": "Australian Capital Territory",
+            "uuid": "cb979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Queensland, Australia",
+            "Marker": {
+              "Latitude": "-22.575197",
+              "Longitude": "144.0847926"
+            },
+            "Name": "Queensland",
+            "uuid": "d2979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Tasmania, Australia",
+            "Marker": {
+              "Latitude": "-42.0409059",
+              "Longitude": "146.8087322"
+            },
+            "Name": "Tasmania",
+            "uuid": "da979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Victoria, Australia",
+            "Marker": {
+              "Latitude": "-36.9847807",
+              "Longitude": "143.3906074"
+            },
+            "Name": "Victoria",
+            "uuid": "df979285-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "Western Australia, Australia",
+            "Marker": {
+              "Latitude": "-27.6728168",
+              "Longitude": "121.6283098"
+            },
+            "Name": "Western Australia",
+            "uuid": "fa979285-dab9-f011-bbd2-7ced8d32320c"
+          }
+        ],
+        "ProgramWeblink": "https://www.redcross.org.au/services/homelessness-services/",
+        "uuid": "95979285-dab9-f011-bbd2-7ced8d32320c"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:e960031f7fb8a0b16693ceb34814e2f3232bc876c253db502974789ee47c94eb",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "804f9f79-dab9-f011-bbd2-7ced8d32320c",
+        "Name": "Emergency Relief - Migration Support Program",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "Migrants, refugees or asylum seekers",
+          "People from a culturally and linguistically diverse background"
+        ],
+        "ProgramClassification": "Domestic and family violence",
+        "ProgramClassificationID": "669",
+        "ProgramCountries": [],
+        "ProgramLocations": [
+          {
+            "DisplayName": "Victoria, Australia",
+            "Marker": {
+              "Latitude": "-36.9847807",
+              "Longitude": "143.3906074"
+            },
+            "Name": "Victoria",
+            "uuid": "54989285-dab9-f011-bbd2-7ced8d32320c"
+          }
+        ],
+        "ProgramWeblink": "https://www.redcross.org.au/migration/emergency-relief/",
+        "uuid": "fe979285-dab9-f011-bbd2-7ced8d32320c"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:6b15531732bb9c4ec339e8172df77dc29a1331d9471c716d41e351ab1d6f1aed",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "804f9f79-dab9-f011-bbd2-7ced8d32320c",
+        "Name": "Young Parents Program",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Families"
+        ],
+        "ProgramClassification": "Adolescent parenting",
+        "ProgramClassificationID": "497",
+        "ProgramCountries": [],
+        "ProgramLocations": [
+          {
+            "DisplayName": "24 Coogee Bay Rd, Randwick NSW, Australia",
+            "Marker": {
+              "Latitude": "-33.9180098",
+              "Longitude": "151.2438499"
+            },
+            "Name": "24 Coogee Bay Rd",
+            "uuid": "7d388b8b-dab9-f011-bbd2-7ced8d32320c"
+          }
+        ],
+        "ProgramWeblink": "https://www.redcross.org.au/services/young-parents-program-nsw/",
+        "uuid": "59989285-dab9-f011-bbd2-7ced8d32320c"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:a3b9d00c3dd0d14e7d161a7df60392fb123b23e667700c448095c4cd44ce96bc",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "804f9f79-dab9-f011-bbd2-7ced8d32320c",
+        "Name": "Tropical Cyclone Alfred Appeal",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Victims of disaster"
+        ],
+        "ProgramClassification": "Disasters and emergency management",
+        "ProgramClassificationID": "699",
+        "ProgramCountries": [],
+        "ProgramLocations": [
+          {
+            "DisplayName": "Queensland, Australia",
+            "Marker": {
+              "Latitude": "-22.575197",
+              "Longitude": "144.0847926"
+            },
+            "Name": "Queensland",
+            "uuid": "da388b8b-dab9-f011-bbd2-7ced8d32320c"
+          },
+          {
+            "DisplayName": "New South Wales, Australia",
+            "Marker": {
+              "Latitude": "-31.2532183",
+              "Longitude": "146.921099"
+            },
+            "Name": "New South Wales",
+            "uuid": "dc388b8b-dab9-f011-bbd2-7ced8d32320c"
+          }
+        ],
+        "ProgramWeblink": "https://www.redcross.org.au/stories/2025/cyclone-alfred/",
+        "uuid": "82388b8b-dab9-f011-bbd2-7ced8d32320c"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:420234104df8c34802dbf306da7d07e1afcbf4445e8f08d044e8e174f694a64b",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_legal_name",
+      "target_sections": [
+        1
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "1"
+        ],
+        "mapping_status": "assigned_by_source_structured_field",
+        "source_field_path": "#/data/LegalName",
+        "source_field_value": "Australian Red Cross Society",
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:13bc441f6b3ef78e257cc87b15457a1fd9b10bb1b0c6af1af53c8ad3e308da5f",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_identifier",
+      "target_sections": [
+        1
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "1"
+        ],
+        "mapping_status": "assigned_by_source_structured_field",
+        "source_field_path": "#/data/Abn",
+        "source_field_value": "50169561394",
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:30f7298e91a10c098738b7ed42416b1d29a841982f4fcf696bf35310997f23cd",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_source_reporting_year",
+      "target_sections": [
+        1
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "1"
+        ],
+        "mapping_status": "assigned_by_source_structured_field",
+        "source_field_path": "#/data/StatementYear",
+        "source_field_value": "2025",
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:c7abf9f34825cb0034ba3db99276f6ef217d3f10cd4a040930af6b7d33008ac5",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_activity_field_value",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "literal_activity_field_value_only_no_availability_or_capacity_inference",
+        "source_field_path": "#/data/ActivityOperating",
+        "source_field_value": true,
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:1afbc706800dd2c56681ce070939606c7a57c70bdcae68e007e098e833d0544d",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_activity_field_value",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "literal_activity_field_value_only_no_availability_or_capacity_inference",
+        "source_field_path": "#/data/ActivityOperatingOverseas",
+        "source_field_value": true,
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:efd8d8f4515d24aab256fe8c9a3ecc625cfe43066df64eb3fa897afd126fe72e",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/0",
+        "source_field_value": {
+          "Name": "Australian Red Cross Lifeblood",
+          "ProgramClassification": "Blood banks",
+          "ProgramClassificationID": "384"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:579f7fa6e3ed7a79114c72d8e70f65ca140654d0e54f5d8b9e1065b0311dc839",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/1",
+        "source_field_value": {
+          "Name": "Humanitarian Settlement Program",
+          "ProgramClassification": "Immigrant services",
+          "ProgramClassificationID": "550"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:3710c2317a75ae1ebe31db92078a0b12f26ccb7868baf79ef5734a5c9462d42b",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/2",
+        "source_field_value": {
+          "Name": "Aged and Community Care services",
+          "ProgramClassification": "Attendant care",
+          "ProgramClassificationID": "530"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:d9efc722d850cc77f456339f7a9675cdf2761bdeceb3ad100280345ea6dd91be",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/3",
+        "source_field_value": {
+          "Name": "Emergency Relief - Family and domestic violence financial assistance",
+          "ProgramClassification": "Domestic and family violence",
+          "ProgramClassificationID": "669"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:d45cc9b683f438a96073e00b442c50004fca9be8ce04a5b4119975ab20a92538",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/4",
+        "source_field_value": {
+          "Name": "Support for Trafficked People",
+          "ProgramClassification": "Human trafficking",
+          "ProgramClassificationID": "693"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:5999d7cdd3f4025d19cfce4d14c55b339ac07d0d5914ef6dc0777f7f8696ad80",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/5",
+        "source_field_value": {
+          "Name": "International Programming - DFAT Head Grant",
+          "ProgramClassification": "International development",
+          "ProgramClassificationID": "625"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:f5cecc4d0796729f03267005bbe4e220526dfc3d3b37203a5fa657367fee802b",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/6",
+        "source_field_value": {
+          "Name": "Homelessness services",
+          "ProgramClassification": "Homeless services",
+          "ProgramClassificationID": "549"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:c858c53af3f2bad2e3f15928f8be69302ef0347e00e7a497fc67d815e4a82004",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/7",
+        "source_field_value": {
+          "Name": "Emergency Relief - Migration Support Program",
+          "ProgramClassification": "Domestic and family violence",
+          "ProgramClassificationID": "669"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:dc468047c15f6ca541152d3f31d95478c1b0688164fa004dc5ac5d27b50591e7",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/8",
+        "source_field_value": {
+          "Name": "Young Parents Program",
+          "ProgramClassification": "Adolescent parenting",
+          "ProgramClassificationID": "497"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:f2fd8bbb73bb1c11d91021021971b8abe93fdbb16a65e0dd70e5a0904b6092f6",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/9",
+        "source_field_value": {
+          "Name": "Tropical Cyclone Alfred Appeal",
+          "ProgramClassification": "Disasters and emergency management",
+          "ProgramClassificationID": "699"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:a0b859ae3b842563611346beadf21236dca154179ee0061f3fa1dec6643a40fe",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "source_stated_purpose",
+      "target_sections": [
+        2
+      ],
+      "value": {
+        "proposition_type": "source_stated_purpose",
+        "north_star_section_id": "2",
+        "statement": "Australian Red Cross Society states that it exists to reduce human suffering.",
+        "source_text_segments": [
+          "Australian Red Cross Society is a volunteer-based organisation that exists to reduce human suffering."
+        ],
+        "source_field_path": "#/data/ActivityPersuitPurposesDescription",
+        "source_locator_id": "locator:0097411e5a7590ae7e80b740f8c35b63e74f400b37286e4d61c905437569b706#/data/ActivityPersuitPurposesDescription",
+        "source_carrier_role": "historical_frozen_regulator_material",
+        "epistemic_status": "first_party_report_carried_by_regulator",
+        "scope": {
+          "scope_id": "scope:90fea7d1a516443d43bf268cf091155c91c10a1fddfbc67dbefe6219597a7f81",
+          "scope_kind": "organisation"
+        },
+        "candidate_lineage": {
+          "source_candidate_id": "candidate:context-v1-05c50edc247f4f68580bd6f7623cebab",
+          "original_candidate_content_sha256": "05c50edc247f4f68580bd6f7623cebab1622827773417c96f40a36b8189257f1",
+          "corrected_atom_index": 1
+        },
+        "time_boundary": "Historical/source-reported; no current status or period beyond the exact source fields is asserted.",
+        "human_atomization": true,
+        "canonical_public": false
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:c30457abfaf4d0b5c798cbb3b381a8d09e557842cd7f179b93b7cca0965785c8",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "source_reported_activity",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "proposition_type": "source_reported_activity",
+        "north_star_section_id": "3",
+        "statement": "Australian Red Cross reports work across emergency and disaster services, migration, and community activities and programs.",
+        "source_text_segments": [
+          "Emergency services and disasters: we help build communities that are strong, resilient and able to anticipate, respond, and recover well from disasters and climate related emergencies.",
+          "Migration: we help build fair, welcoming, and inclusive communities where migrants are safe and have their humanitarian needs met.",
+          "Community activities and programs: we build connection and resilience through volunteering and responding to the humanitarian needs of local communities."
+        ],
+        "source_field_path": "#/data/ActivityPersuitPurposesDescription",
+        "source_locator_id": "locator:0097411e5a7590ae7e80b740f8c35b63e74f400b37286e4d61c905437569b706#/data/ActivityPersuitPurposesDescription",
+        "source_carrier_role": "historical_frozen_regulator_material",
+        "epistemic_status": "first_party_report_carried_by_regulator",
+        "scope": {
+          "scope_id": "scope:90fea7d1a516443d43bf268cf091155c91c10a1fddfbc67dbefe6219597a7f81",
+          "scope_kind": "organisation"
+        },
+        "candidate_lineage": {
+          "source_candidate_id": "candidate:context-v1-05c50edc247f4f68580bd6f7623cebab",
+          "original_candidate_content_sha256": "05c50edc247f4f68580bd6f7623cebab1622827773417c96f40a36b8189257f1",
+          "corrected_atom_index": 2
+        },
+        "time_boundary": "Historical/source-reported; no current status or period beyond the exact source fields is asserted.",
+        "human_atomization": true,
+        "canonical_public": false
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:32d092e60905d2b72a62c46cf0525a57a5c8ce95247c2ac1b4d5acf340e9b4e3",
+      "subject": "subject:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "scope": "scope:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2",
+      "proposition_type": "source_reported_activity",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "proposition_type": "source_reported_activity",
+        "north_star_section_id": "3",
+        "statement": "Australian Red Cross reports international programs and International Humanitarian Law work, and describes Lifeblood as an operating division.",
+        "source_text_segments": [
+          "Australian Red Cross Society operates through two operating divisions: Australian Red Cross Humanitarian Services and Australian Red Cross Lifeblood.",
+          "International programs: we help build stronger, more resilient international communities with increased capacity to prepare for, anticipate, respond to and recover from crises.",
+          "International Humanitarian Law: we better humanitarian outcomes for people and communities impacted by armed conflicts."
+        ],
+        "source_field_path": "#/data/ActivityPersuitPurposesDescription",
+        "source_locator_id": "locator:0097411e5a7590ae7e80b740f8c35b63e74f400b37286e4d61c905437569b706#/data/ActivityPersuitPurposesDescription",
+        "source_carrier_role": "historical_frozen_regulator_material",
+        "epistemic_status": "first_party_report_carried_by_regulator",
+        "scope": {
+          "scope_id": "scope:90fea7d1a516443d43bf268cf091155c91c10a1fddfbc67dbefe6219597a7f81",
+          "scope_kind": "organisation"
+        },
+        "candidate_lineage": {
+          "source_candidate_id": "candidate:context-v1-05c50edc247f4f68580bd6f7623cebab",
+          "original_candidate_content_sha256": "05c50edc247f4f68580bd6f7623cebab1622827773417c96f40a36b8189257f1",
+          "corrected_atom_index": 3
+        },
+        "time_boundary": "Historical/source-reported; no current status or period beyond the exact source fields is asserted.",
+        "human_atomization": true,
+        "canonical_public": false
+      },
+      "evidence_locator": [
+        "evidence:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_locator": [
+        "srcrec:27c102376435777d7cf7612d9756197dd581090088962ae2b81b1d0ddf2958f2"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "section_id": 1,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 2,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 3,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 4,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 5,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 6,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 7,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 8,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 9,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 10,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 11,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 12,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 13,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 14,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 15,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 16,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 17,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 18,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 19,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 20,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    }
+  ]
+}

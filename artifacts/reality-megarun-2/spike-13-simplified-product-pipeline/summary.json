@@ -1,0 +1,62 @@
+{
+  "token": "REALITY_SPIKE_13_SIMPLIFIED_PIPELINE_DISCOVERED",
+  "spec_identifier": "CG-REALITY-SPIKE-13-SIMPLIFIED-PRODUCT-PIPELINE-TERRA-164",
+  "model": "terra",
+  "inputs": {
+    "spike_11": "read",
+    "spike_12": "read",
+    "spike_9_10": "absent; not reconstructed",
+    "spike_8": "read as legacy benchmark"
+  },
+  "subjects": [
+    "Australian Red Cross",
+    "World Vision Australia",
+    "MSF",
+    "Bush Heritage",
+    "Sunrise Foundation"
+  ],
+  "legacy": {
+    "stages": 10,
+    "translations_adapters": "8-9",
+    "record_types": "6+",
+    "semantic_retained": "governed replay; no better evidence coverage for absent reports",
+    "semantic_loss": "none measured in prior replay",
+    "useful_sections": "historically 6-12 depending subject",
+    "missingness_fidelity": "explicit coverage",
+    "provenance_fidelity": "retained through typed graph",
+    "conflicts_corrections": "separate governance/correction machinery",
+    "human_review_units": 16,
+    "glue_loc": "~100 bridge + historical compiler/runtime",
+    "runtime_ms": "not comparable: historical artifacts replayed",
+    "readability": "20-section compiled surface",
+    "ai_query": "requires a ledger/read model"
+  },
+  "challenger": {
+    "stages": 5,
+    "translations_adapters": 2,
+    "record_types": 4,
+    "semantic_retained": "12/12 attributed claims; scope/time on 12/12; capacity/ethos qualifier on 4/4 requiring it",
+    "semantic_loss": "no new extraction or promotion; values remain candidates",
+    "useful_sections": 7,
+    "missingness_fidelity": "5/5 explicit coverage states; MSF/Bush Heritage are not fabricated",
+    "provenance_fidelity": "12/12 evidence IDs and source roles retained",
+    "conflicts_corrections": "4 reviewable relations; no fabricated substantive conflict",
+    "human_review_units": 16,
+    "glue_loc": 154,
+    "runtime_ms": 0.065,
+    "readability": "one progressive card section per deterministic route plus evidence IDs",
+    "ai_query": "6/6 bounded; all supported answers cite evidence or abstain"
+  },
+  "compiler_runtime_test": {
+    "finding": "migration_residue_for_product_projection",
+    "basis": "Spike 8 demonstrated section/missingness parity through a straight-line envelope; this replay retains review/relations but does not invoke a compiler.",
+    "not_residue": "evidence attribution, scope/time, coverage, review status and correction relations"
+  },
+  "mutations": {
+    "s0": false,
+    "github": false,
+    "canonical": false,
+    "authorisation": false,
+    "provider_subsystem": false
+  }
+}

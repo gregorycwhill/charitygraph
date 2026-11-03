@@ -1,0 +1,79 @@
+{
+  "metadata": {
+    "model": "gpt-5.6-terra",
+    "response_id": "resp_0d8beeef9dfdc764006aba4c04491887d080b2345fe183ae60",
+    "status": "completed",
+    "usage": {
+      "input_tokens": 1287,
+      "output_tokens": 798,
+      "total_tokens": 2085
+    },
+    "transport_requests": 1
+  },
+  "output": {
+    "identity": {
+      "statement": "ABN Lookup identifies ABN 47 613 674 461 as “The Trustee for Noongar Boodja Trust.” Its entity type is recorded as a Fixed Trust, with ABN status Active from 29 Mar 2021.",
+      "source_urls": [
+        "https://abr.business.gov.au/ABN/View?abn=47613674461"
+      ]
+    },
+    "purpose_mission": {
+      "statement": "Not established from retained sources.",
+      "source_urls": []
+    },
+    "programs_or_activity_scopes": [],
+    "geography": {
+      "statement": "ABN Lookup records the entity’s main business location as WA 6000. This does not establish a service area or program geography.",
+      "source_urls": [
+        "https://abr.business.gov.au/ABN/View?abn=47613674461"
+      ]
+    },
+    "participation_workforce_scale": {
+      "statement": "Not established from retained sources.",
+      "source_urls": []
+    },
+    "financial_scale": {
+      "statement": "Not established from retained sources.",
+      "source_urls": []
+    },
+    "relationships_affiliations": {
+      "statement": "ABN Lookup states that The Trustee for Noongar Boodja Trust is registered with the Australian Charities and Not-for-profits Commission (ACNC) from 29 Mar 2021.",
+      "source_urls": [
+        "https://abr.business.gov.au/ABN/View?abn=47613674461"
+      ]
+    },
+    "current_operating_evidence": {
+      "statement": "ABN Lookup lists the ABN status as Active from 29 Mar 2021 and records GST registration from 29 Mar 2021. This is regulator-record evidence of an active ABN/GST registration, not evidence of current program delivery or operational activity.",
+      "source_urls": [
+        "https://abr.business.gov.au/ABN/View?abn=47613674461"
+      ]
+    },
+    "source_reported_claims": [
+      {
+        "statement": "The regulator record reports charity tax-concession endorsements from 29 Mar 2021: GST Concession, Income Tax Exemption, and FBT Rebate.",
+        "source_urls": [
+          "https://abr.business.gov.au/ABN/View?abn=47613674461"
+        ]
+      },
+      {
+        "statement": "The regulator record states that the entity is not entitled to receive tax-deductible gifts.",
+        "source_urls": [
+          "https://abr.business.gov.au/ABN/View?abn=47613674461"
+        ]
+      }
+    ],
+    "unknowns_not_established": [
+      "The trust’s charitable purpose, mission, beneficiaries, and activities are not established from retained sources.",
+      "Any programs, services, outcomes, impact, effectiveness, or return on investment are not established from retained sources.",
+      "Leadership, trustee identity, ownership, staffing, volunteer participation, and participant numbers are not established from retained sources.",
+      "Revenue, expenses, assets, grants, donations, and other financial scale measures are not established from retained sources.",
+      "Service geography beyond the recorded main business location of WA 6000 is not established from retained sources."
+    ],
+    "cautions": [
+      "This is an explicitly partial, non-production card based only on the retained regulator record and an unsuccessful web-discovery result.",
+      "The retained DuckDuckGo page contains a bot-verification challenge and supplies no substantive evidence about the entity.",
+      "ACNC registration and tax-concession status should not be treated as evidence of program delivery, impact, effectiveness, or current charitable operations.",
+      "The ABN Lookup page says its ABN record was last updated on 11 Oct 2023; its displayed extraction date should be interpreted only as text retained in the supplied source."
+    ]
+  }
+}

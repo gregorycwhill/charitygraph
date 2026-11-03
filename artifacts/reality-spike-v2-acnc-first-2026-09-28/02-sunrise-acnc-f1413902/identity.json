@@ -1,0 +1,18 @@
+{
+  "charitygraph_subject": {
+    "kind": "provisional_spike_sequence",
+    "value": "02-sunrise-acnc-f1413902"
+  },
+  "canonical_external_source": {
+    "system": "ACNC Charity Register",
+    "record_id": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+    "url": "https://www.acnc.gov.au/charity/charities/f1413902-d240-eb11-bf72-000d3ad1ce4e",
+    "resolution_provenance": "ACNC canonical charity URL resolved before acquisition"
+  },
+  "external_attributes": {
+    "abn": {
+      "value": "37646526132",
+      "role": "ABR join/enrichment attribute; not CharityGraph or ACNC identity"
+    }
+  }
+}

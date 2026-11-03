@@ -1,0 +1,58 @@
+﻿[
+    {
+        "subject":  "APNIC Foundation Limited",
+        "candidate_count":  47,
+        "card":  "Progressive card: report representation and candidate reported financial items",
+        "evidence_state":  "readable structured evidence",
+        "review_unit":  "proposition plus exact row locator"
+    },
+    {
+        "subject":  "Australian charity (ABN 32590616129)",
+        "candidate_count":  0,
+        "card":  "Progressive card: report representation and candidate reported financial items",
+        "evidence_state":  "coverage-only; no novel readable retained material",
+        "review_unit":  "representation coverage record"
+    },
+    {
+        "subject":  "Australian charity (ABN 49079016738)",
+        "candidate_count":  0,
+        "card":  "Progressive card: report representation and candidate reported financial items",
+        "evidence_state":  "coverage-only; no novel readable retained material",
+        "review_unit":  "representation coverage record"
+    },
+    {
+        "subject":  "Australian Red Cross Society",
+        "candidate_count":  0,
+        "card":  "Progressive card: report representation and candidate reported financial items",
+        "evidence_state":  "coverage-only; no novel readable retained material",
+        "review_unit":  "representation coverage record"
+    },
+    {
+        "subject":  "BMDI (ABN 45127505739)",
+        "candidate_count":  0,
+        "card":  "Progressive card: report representation and candidate reported financial items",
+        "evidence_state":  "coverage-only; no novel readable retained material",
+        "review_unit":  "representation coverage record"
+    },
+    {
+        "subject":  "Bush Heritage Australia",
+        "candidate_count":  0,
+        "card":  "Progressive card: report representation and candidate reported financial items",
+        "evidence_state":  "coverage-only; no novel readable retained material",
+        "review_unit":  "representation coverage record"
+    },
+    {
+        "subject":  "Environmental Justice Australia Limited",
+        "candidate_count":  70,
+        "card":  "Progressive card: report representation and candidate reported financial items",
+        "evidence_state":  "readable structured evidence",
+        "review_unit":  "proposition plus exact row locator"
+    },
+    {
+        "subject":  "World Vision Australia",
+        "candidate_count":  0,
+        "card":  "Progressive card: report representation and candidate reported financial items",
+        "evidence_state":  "coverage-only; no novel readable retained material",
+        "review_unit":  "representation coverage record"
+    }
+]

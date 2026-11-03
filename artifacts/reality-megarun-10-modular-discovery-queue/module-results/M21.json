@@ -1,0 +1,83 @@
+{
+  "module_id": "M21",
+  "title": "Ten synonym/indirect retrieval intents",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 21,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/megarun10b/retrieve.py",
+    "C:/CharityGraph-runtime/megarun10b/M21-queries.json",
+    "C:/CharityGraph-runtime/megarun10b/M21-retrieval-output.json"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "id": "R21-01",
+      "verdict": "partial",
+      "finding": "Smith page found rank 3, but tutoring detail omitted from indexed unit; Plan office volunteer false-positive rank 1."
+    },
+    {
+      "id": "R21-02",
+      "verdict": "false_negative",
+      "finding": "No hits; family internet support exists in Smith16 but wording/field conjunction lost."
+    },
+    {
+      "id": "R21-03",
+      "verdict": "hit_with_noise",
+      "finding": "Edgbaston funder at rank 2; AP4D funding is irrelevant hit."
+    },
+    {
+      "id": "R21-04",
+      "verdict": "hit_with_noise",
+      "finding": "ARC disaster services rank 1; no assurance of feeling safe."
+    },
+    {
+      "id": "R21-05",
+      "verdict": "false_negative",
+      "finding": "AP4D expansion omitted from units; no diplomacy/defence hits."
+    },
+    {
+      "id": "R21-06",
+      "verdict": "false_negative_and_false_positive",
+      "finding": "On PAR omitted primary/disadvantage wording; unrelated 24-year-old statistic returned."
+    },
+    {
+      "id": "R21-07",
+      "verdict": "hit",
+      "finding": "Bush CMP and Econd both returned; needs source-scoped synthesis."
+    },
+    {
+      "id": "R21-08",
+      "verdict": "false_negative",
+      "finding": "Gaza in source/page identity but omitted from indexed claim; no hit."
+    },
+    {
+      "id": "R21-09",
+      "verdict": "hit",
+      "finding": "WVA/Caritas non-exclusive religious commitments returned."
+    },
+    {
+      "id": "R21-10",
+      "verdict": "hit_with_noise",
+      "finding": "ACFID CoP returned ranks 2/5; Young Mob cultural exchange false positive rank 1."
+    }
+  ],
+  "defects": [
+    "D21: Four intents fail to retrieve required evidence; three of these produce zero hits.",
+    "D21b: Semantic compression itself causes discoverability loss; indexing only claim text drops source context."
+  ],
+  "counterexamples": [
+    "A correctly attributed claim can be an inadequate retrieval surface."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Actual FTS executed; author-written queries and relevance judgments, not blind independent benchmark. No production system or embeddings tested."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\megarun10b\\retrieve.py": "a7d7c1bb8e34256ac46c814bea2d1f3a493689c89c8a4ee2539afe63d4b35cf9",
+    "C:\\CharityGraph-runtime\\megarun10b\\M21-queries.json": "a9f5ba270d3a24bcb0b05f488435d33b14533aa88e20f32235da144195283e12",
+    "C:\\CharityGraph-runtime\\megarun10b\\M21-retrieval-output.json": "aacb6bb6ce79e82d215f6bd3181cfb67a1901eaa306306e1fed847a6107896ab"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

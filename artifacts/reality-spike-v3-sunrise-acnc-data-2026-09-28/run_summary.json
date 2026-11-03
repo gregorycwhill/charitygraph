@@ -1,0 +1,25 @@
+{
+  "non_production": true,
+  "finished_at": "2026-09-28T12:12:07.724549+00:00",
+  "acnc_record_id": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+  "abn_join_only": "37646526132",
+  "source_row_counts": {
+    "register": 1,
+    "ais_2023": 1,
+    "ais_2022": 1,
+    "programs_2023": 3
+  },
+  "model": {
+    "model": "gpt-5.6-terra",
+    "response_id": "resp_0c51e1cc88b0d079006aba598433d487d0bca729667a2ad492",
+    "status": "completed",
+    "usage": {
+      "input_tokens": 4006,
+      "output_tokens": 1993,
+      "total_tokens": 5999
+    },
+    "transport_requests": 1,
+    "one_bounded_model_call": true
+  },
+  "s0_attempt20": "untouched"
+}

@@ -1,0 +1,83 @@
+{
+  "module_id": "M23",
+  "title": "Ten negative/missingness retrieval intents",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 23,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/megarun10b/M23-queries.json",
+    "C:/CharityGraph-runtime/megarun10b/M23-retrieval-output.json",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/acfid-17.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "id": "R23-01",
+      "routing": "UNKNOWN",
+      "reason": "Complaints mechanism hit cannot establish zero complaints."
+    },
+    {
+      "id": "R23-02",
+      "routing": "UNSUPPORTED_UNIVERSAL",
+      "reason": "Narrative example does not establish universal failure or success."
+    },
+    {
+      "id": "R23-03",
+      "routing": "REPORTED_NEGATIVE",
+      "reason": "44% of school-aged LfL students face barriers; universal inclusion not achieved in report context."
+    },
+    {
+      "id": "R23-04",
+      "routing": "REPORTED_DENIAL_OF_RESTRICTION",
+      "reason": "WVA explicitly says it serves irrespective of religion."
+    },
+    {
+      "id": "R23-05",
+      "routing": "EXPLICIT_NOT_ASSESSED",
+      "reason": "Carbon-link eligibility unassessed; not equivalent to failed certification."
+    },
+    {
+      "id": "R23-06",
+      "routing": "UNKNOWN_COMPLEMENT",
+      "reason": "7% complement not safely interpretable as unsafe; sample/missing/neutral unknown."
+    },
+    {
+      "id": "R23-07",
+      "routing": "CURRENT_COVERAGE_MISSING",
+      "reason": "Report not live booking inventory."
+    },
+    {
+      "id": "R23-08",
+      "routing": "CAUSAL_SUPPORT_MISSING",
+      "reason": "Funding/host hit omits policy influence discussion; source expansion necessary."
+    },
+    {
+      "id": "R23-09",
+      "routing": "NO_APPLICABLE_COUNT",
+      "reason": "Returned counts are other volunteer groups, not current tutors."
+    },
+    {
+      "id": "R23-10",
+      "routing": "HARM_COVERAGE_MISSING",
+      "reason": "No comprehensive harms search or outcome study establishing zero."
+    }
+  ],
+  "defects": [
+    "D23: All ten intents retrieve hits, including questions requiring abstention; nonempty retrieval is not answerability.",
+    "D23b: Missingness has several distinct states, including explicit not-assessed and wrong-population."
+  ],
+  "counterexamples": [
+    "Automatic abstention on every negative question would suppress two explicit supported corrections and one explicit assessment-status statement."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Routes manually assessed by current agent; production abstention routing not invoked."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\megarun10b\\M23-queries.json": "b4081fa68702450c97055da5ca9fde36585cdec0213a0947360106742b812534",
+    "C:\\CharityGraph-runtime\\megarun10b\\M23-retrieval-output.json": "d758f51ba291df6d533c44a78952fef41f819d3a2a86ebffb600d1d42c4c7b79",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\acfid-17.txt": "8040138b495d92afc42ab67627e657a12bd5849669f02445f774cc5396acf67d"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

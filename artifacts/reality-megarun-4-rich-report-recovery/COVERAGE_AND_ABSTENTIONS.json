@@ -1,0 +1,70 @@
+{
+  "cells": [
+    {
+      "pages": 5,
+      "reason": "No newly recovered narrative evidence",
+      "section": 6,
+      "status": "abstain_representation_blocked"
+    },
+    {
+      "pages": 5,
+      "reason": "No newly recovered narrative evidence",
+      "section": 7,
+      "status": "abstain_representation_blocked"
+    },
+    {
+      "pages": 5,
+      "reason": "No newly recovered narrative evidence",
+      "section": 9,
+      "status": "abstain_representation_blocked"
+    },
+    {
+      "pages": 5,
+      "reason": "No newly recovered narrative evidence",
+      "section": 12,
+      "status": "abstain_representation_blocked"
+    },
+    {
+      "pages": 5,
+      "reason": "No newly recovered narrative evidence",
+      "section": 15,
+      "status": "abstain_representation_blocked"
+    },
+    {
+      "pages": 5,
+      "reason": "No newly recovered narrative evidence",
+      "section": 18,
+      "status": "abstain_representation_blocked"
+    }
+  ],
+  "cohort_pages": 30,
+  "controls": [
+    {
+      "control_only": true,
+      "document_identity": "annual report pp.6-122",
+      "reason": "historical native diagnostic/recovery reference has no reachable report bytes",
+      "source_role": "first_party_report",
+      "subject": "Australian Red Cross Society",
+      "subject_id": "50169561394"
+    },
+    {
+      "control_only": true,
+      "document_identity": "annual report pp.6-51",
+      "reason": "historical native diagnostic/recovery reference has no reachable report bytes",
+      "source_role": "first_party_report",
+      "subject": "World Vision Australia",
+      "subject_id": "28004778081"
+    },
+    {
+      "control_only": true,
+      "document_identity": "2024-25 Impact Report",
+      "reason": "historical native diagnostic/recovery reference has no reachable report bytes",
+      "source_role": "first_party_report",
+      "subject": "Bush Heritage Australia",
+      "subject_id": "78053639115"
+    }
+  ],
+  "provider_blocked_pages": 30,
+  "readable_pages": 0,
+  "schema": "cg.megarun4.coverage/v1"
+}

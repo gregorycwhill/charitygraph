@@ -1,0 +1,69 @@
+{
+  "module_id": "M14",
+  "title": "Measurement stress",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 14,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-41.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-33.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/bush-heritage-australia-23.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-16.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/australian-red-cross-9.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "page_id": "the-smith-family-41",
+      "value": "5,478 people / 5,983 roles / 113,792 hours",
+      "unit_scope": "national volunteers",
+      "nuance": "Multiple roles per person; hours not beneficiaries; period inherited from report",
+      "denominator": "not applicable to counts; survey denominator absent"
+    },
+    {
+      "page_id": "bush-heritage-australia-33",
+      "value": "98% satisfaction / 93% safety supported",
+      "unit_scope": "volunteer survey",
+      "nuance": "No respondent N, response rate or wording beyond report summary; cannot compare rankings",
+      "denominator": "missing"
+    },
+    {
+      "page_id": "bush-heritage-australia-23",
+      "value": "45.1/100",
+      "unit_scope": "Ediegarrup vegetation Econd relative to reference state",
+      "nuance": "Score not percent of species saved; assessment date requires underlying account; future improvement not observed"
+    },
+    {
+      "page_id": "the-smith-family-16",
+      "value": "2,759 devices this year / 8,026 since 2023",
+      "unit_scope": "Digital Learning Essentials",
+      "nuance": "Flow and cumulative total; 11,429 Optus beneficiaries mix students/family; no deduplicated sum"
+    },
+    {
+      "page_id": "australian-red-cross-9",
+      "value": "70 events",
+      "unit_scope": "Emergency Services activations July 2023–24 June 2024",
+      "nuance": "Heading says through 30 June while sentence says 24 June; preserve both and flag, do not silently repair"
+    }
+  ],
+  "defects": [
+    "D14: Event count period conflicts internally with graphic heading.",
+    "D14b: Survey missing denominators cannot be restored by a richer schema."
+  ],
+  "counterexamples": [
+    "Correct units still do not establish comparability or statistical quality."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "No full underlying survey/account inspected; Terra requirement unmet."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-41.txt": "3f4e307b742fd97149a9b95af1c27f8b6c5bdde3d7bdbcaaa24f9ff93acb0895",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-33.txt": "1856fb55033e00a2f556bb5ac45950cfb36ea6e0559a5fac85111900cd715c4c",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\bush-heritage-australia-23.txt": "f2b297cd7095dcaeda34fa9f8f3a2a140563e43396a27d0d9917bbfd3dd12db4",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-16.txt": "828cc75f6491e263202334719d02afd865bee46c98ba5c643bcc45e66d38ba71",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\australian-red-cross-9.txt": "70deb91b0ca0d09527c7ead75fd9e9da6b6592c479774057c06dc1b1d8983ae3"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

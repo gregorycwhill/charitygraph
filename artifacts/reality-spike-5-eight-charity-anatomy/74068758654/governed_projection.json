@@ -1,0 +1,273 @@
+{
+  "subject_id": "subject:25751a62a55c0d79874ea4d6fa068047138a8b41ef050eca2069ffcfad00756b",
+  "projection_contract_id": "north-star-v0.2",
+  "observation_ids": [
+    "observation:47429c6eece0b7bed58947e17130818a7bb18aed80110ca104acf9b1ebe093fe",
+    "observation:519eb103be0eb8fe6ddc76488f29bce5bc6fae273c82382bd657067c9c4da92f",
+    "observation:ad504bc49dcfaf875034475031f41728716ff30bb04fbc4d3214d1463218223b",
+    "observation:dfa3c6f4b5734a348d6973f9920d481c90b0969b9a8d293608ecdbf0959176ef",
+    "observation:49b674ea73aa820822b3f05c2a28fcd772a12600a3c046f135ec058441b7c8b0",
+    "observation:e297b5a78210a81ce0b7fd232470f5b07e5b4f1ab9eab4481eccd50373460f0d",
+    "observation:fd69ac0344f438664e4175c1d53f7946ed88950812db54b80dc8364d55b35db5",
+    "observation:a08496de8c858cd60a07dc0889e10c46f9443e28bd148ab69e1cffb5507aa9f0",
+    "observation:e0b2021203727e018104562ba20d81753cfeddf98a78b1162b11762bf62cba45",
+    "observation:416df6d8894bcf2f004bc2eebdd088986d3e723c6a26d3ae403eff4e7372368c",
+    "observation:79799baa06bc825dab263bac053b9defaa68f810f46f674a81273fd56f37cad4",
+    "observation:ac0aeb42639c1d8389a075f08d1182a8e59f31973186a4af14a3ca9cd371a466",
+    "observation:67cfd9737e78750556d1267a0db24a3e08e721e413f25d8358c4905ca517bac4"
+  ],
+  "relationship_ids": [],
+  "sections": [
+    {
+      "section_id": 1,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Identity / regulatory",
+      "observation_ids": [
+        "observation:47429c6eece0b7bed58947e17130818a7bb18aed80110ca104acf9b1ebe093fe",
+        "observation:519eb103be0eb8fe6ddc76488f29bce5bc6fae273c82382bd657067c9c4da92f"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 2
+      },
+      "basis": "observed_present"
+    },
+    {
+      "section_id": 2,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Purpose / cause",
+      "observation_ids": [
+        "observation:ad504bc49dcfaf875034475031f41728716ff30bb04fbc4d3214d1463218223b"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 1
+      },
+      "basis": "observed_present"
+    },
+    {
+      "section_id": 3,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Programs / services",
+      "observation_ids": [
+        "observation:416df6d8894bcf2f004bc2eebdd088986d3e723c6a26d3ae403eff4e7372368c",
+        "observation:79799baa06bc825dab263bac053b9defaa68f810f46f674a81273fd56f37cad4",
+        "observation:ac0aeb42639c1d8389a075f08d1182a8e59f31973186a4af14a3ca9cd371a466"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 3
+      },
+      "basis": "observed_present"
+    },
+    {
+      "section_id": 4,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Activities / SDGs",
+      "observation_ids": [
+        "observation:ad504bc49dcfaf875034475031f41728716ff30bb04fbc4d3214d1463218223b"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 1
+      },
+      "basis": "observed_present"
+    },
+    {
+      "section_id": 5,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Geography / beneficiaries",
+      "observation_ids": [
+        "observation:416df6d8894bcf2f004bc2eebdd088986d3e723c6a26d3ae403eff4e7372368c",
+        "observation:79799baa06bc825dab263bac053b9defaa68f810f46f674a81273fd56f37cad4",
+        "observation:ac0aeb42639c1d8389a075f08d1182a8e59f31973186a4af14a3ca9cd371a466",
+        "observation:67cfd9737e78750556d1267a0db24a3e08e721e413f25d8358c4905ca517bac4"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 4
+      },
+      "basis": "observed_present"
+    },
+    {
+      "section_id": 6,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Participation",
+      "observation_ids": [],
+      "relationship_ids": [],
+      "missingness": "NOT_PROCESSED",
+      "disposition_counts": {},
+      "basis": "no_domain_result"
+    },
+    {
+      "section_id": 7,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Direct service / capacity",
+      "observation_ids": [],
+      "relationship_ids": [],
+      "missingness": "NOT_PROCESSED",
+      "disposition_counts": {},
+      "basis": "no_domain_result"
+    },
+    {
+      "section_id": 8,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Fundraising",
+      "observation_ids": [
+        "observation:a08496de8c858cd60a07dc0889e10c46f9443e28bd148ab69e1cffb5507aa9f0"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 1
+      },
+      "basis": "observed_present"
+    },
+    {
+      "section_id": 9,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Governance / leadership",
+      "observation_ids": [],
+      "relationship_ids": [],
+      "missingness": "NOT_PROCESSED",
+      "disposition_counts": {},
+      "basis": "no_domain_result"
+    },
+    {
+      "section_id": 10,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "People / workforce",
+      "observation_ids": [
+        "observation:49b674ea73aa820822b3f05c2a28fcd772a12600a3c046f135ec058441b7c8b0"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 1
+      },
+      "basis": "observed_present"
+    },
+    {
+      "section_id": 11,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Scale / capability",
+      "observation_ids": [
+        "observation:dfa3c6f4b5734a348d6973f9920d481c90b0969b9a8d293608ecdbf0959176ef",
+        "observation:49b674ea73aa820822b3f05c2a28fcd772a12600a3c046f135ec058441b7c8b0"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 2
+      },
+      "basis": "observed_present"
+    },
+    {
+      "section_id": 12,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Relationships",
+      "observation_ids": [],
+      "relationship_ids": [],
+      "missingness": "NOT_PROCESSED",
+      "disposition_counts": {},
+      "basis": "no_domain_result"
+    },
+    {
+      "section_id": 13,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Finances",
+      "observation_ids": [
+        "observation:e297b5a78210a81ce0b7fd232470f5b07e5b4f1ab9eab4481eccd50373460f0d"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 1
+      },
+      "basis": "observed_present"
+    },
+    {
+      "section_id": 14,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Funding / dependencies",
+      "observation_ids": [
+        "observation:fd69ac0344f438664e4175c1d53f7946ed88950812db54b80dc8364d55b35db5"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 1
+      },
+      "basis": "observed_present"
+    },
+    {
+      "section_id": 15,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Ethos / values",
+      "observation_ids": [],
+      "relationship_ids": [],
+      "missingness": "NOT_PROCESSED",
+      "disposition_counts": {},
+      "basis": "no_domain_result"
+    },
+    {
+      "section_id": 16,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Conduct / adverse",
+      "observation_ids": [],
+      "relationship_ids": [],
+      "missingness": "NOT_PROCESSED",
+      "disposition_counts": {},
+      "basis": "no_domain_result"
+    },
+    {
+      "section_id": 17,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Notable history",
+      "observation_ids": [],
+      "relationship_ids": [],
+      "missingness": "NOT_PROCESSED",
+      "disposition_counts": {},
+      "basis": "no_domain_result"
+    },
+    {
+      "section_id": 18,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Evaluation / outcomes",
+      "observation_ids": [],
+      "relationship_ids": [],
+      "missingness": "NOT_PROCESSED",
+      "disposition_counts": {},
+      "basis": "no_domain_result"
+    },
+    {
+      "section_id": 19,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Classification / search / AI discovery",
+      "observation_ids": [],
+      "relationship_ids": [],
+      "missingness": "NOT_PROCESSED",
+      "disposition_counts": {},
+      "basis": "no_domain_result"
+    },
+    {
+      "section_id": 20,
+      "projection_contract_id": "north-star-v0.2",
+      "title": "Evidence / coverage / freshness / corrections",
+      "observation_ids": [
+        "observation:e0b2021203727e018104562ba20d81753cfeddf98a78b1162b11762bf62cba45"
+      ],
+      "relationship_ids": [],
+      "missingness": "EXPERIMENTAL_REVIEW",
+      "disposition_counts": {
+        "REUSABLE_EXPERIMENTAL_INPUT": 1
+      },
+      "basis": "observed_present"
+    }
+  ]
+}

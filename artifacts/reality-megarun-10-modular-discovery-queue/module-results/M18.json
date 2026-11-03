@@ -1,0 +1,59 @@
+{
+  "module_id": "M18",
+  "title": "Acquire new program/evaluation report",
+  "terminal_status": "PASS",
+  "sequence_position": 18,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/megarun10b/M18-discovery-binding.json",
+    "C:/CharityGraph-runtime/megarun10b/M18-report-binding.json",
+    "C:/CharityGraph-runtime/megarun10b/M18-report-pages/p002.txt",
+    "C:/CharityGraph-runtime/megarun10b/M18-report-pages/p003.txt",
+    "C:/CharityGraph-runtime/megarun10b/M18-report-pages/p006.txt",
+    "C:/CharityGraph-runtime/megarun10b/M18-report-pages/p007.txt",
+    "C:/CharityGraph-runtime/megarun10b/M18-report-pages/p016.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "source": "The Smith Family Catch-Up Learning second-trial evaluation",
+      "sha256": "4dfe4b409ace17df8512db33b6484978581849e260701033a77a7d35836f7e87",
+      "bytes": 1239224,
+      "pages": 20,
+      "capture_first": true
+    },
+    {
+      "page": 6,
+      "reading": "412 completers had pre/post literacy or numeracy assessments; 83% completion and 86% attendance are different denominators. Six had numeracy-only and one literacy-only."
+    },
+    {
+      "page": 7,
+      "reading": "2022 intervention compared with 2021 reference group, 6,687 numeracy and 6,413 literacy; not described here as randomised concurrent controls."
+    },
+    {
+      "page": 16,
+      "reading": "Persistent technology disruption associated with lower attendance and progress; intervention provision alone did not remove access barriers."
+    }
+  ],
+  "defects": [
+    "D18: Comparator year, completer selection and subject-specific denominators are material to effect interpretation."
+  ],
+  "counterexamples": [
+    "A genuine evaluation still requires cautious attribution; the annual-report label cannot encode study design."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Acquisition/representation obligation met; direct interpretations by GPT-6; no causal validity verdict on uninspected pages."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\megarun10b\\M18-discovery-binding.json": "3ed23e2337ae30ed48101ed40b22ac16e926f646d40daaedd7f37438a55f5d3b",
+    "C:\\CharityGraph-runtime\\megarun10b\\M18-report-binding.json": "f62d7fa8e0f70ed7eddad3ec6b65941ce0e7edb207c07273bd73e1120d3f9fb3",
+    "C:\\CharityGraph-runtime\\megarun10b\\M18-report-pages\\p002.txt": "6e702f34004c9de4afeece6bf64c72c4a91cb4160f76c29bae2c32b3aa736940",
+    "C:\\CharityGraph-runtime\\megarun10b\\M18-report-pages\\p003.txt": "3823165491d34576e4d3a1c1f981b154f4f5a73b59db301ecedcc07f2e24e18b",
+    "C:\\CharityGraph-runtime\\megarun10b\\M18-report-pages\\p006.txt": "35ad208fc7460d3a3a062cd7e833a43e6092f55cf35fb9d6457fcad2c534143d",
+    "C:\\CharityGraph-runtime\\megarun10b\\M18-report-pages\\p007.txt": "0d5d2aaa37ebefe5f970655c8285dc1082db48a9165c890c72d71808af6144de",
+    "C:\\CharityGraph-runtime\\megarun10b\\M18-report-pages\\p016.txt": "eaea809f40966ffcb95922a982c2803d45805177a350e57143afa45675597d0e"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

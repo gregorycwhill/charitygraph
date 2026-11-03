@@ -1,0 +1,107 @@
+{
+  "metadata": {
+    "model": "gpt-5.6-terra",
+    "response_id": "resp_0268bb1be4309952006aba4be9728887d0ac632a947bc761f3",
+    "status": "completed",
+    "usage": {
+      "input_tokens": 12050,
+      "output_tokens": 1352,
+      "total_tokens": 13402
+    },
+    "transport_requests": 1
+  },
+  "output": {
+    "identity": {
+      "statement": "CharityGraph judgment: Médecins Sans Frontières Australia Limited (ABN 74 068 758 654; ACN 068 758 654) is an active Australian Public Company. ABN Lookup records it as registered with the ACNC from 3 December 2012 and identifies its main business location as NSW 2007.",
+      "source_urls": [
+        "https://abr.business.gov.au/ABN/View?abn=74068758654"
+      ]
+    },
+    "purpose_mission": {
+      "statement": "Source-reported claim: Médecins Sans Frontières/Doctors Without Borders describes itself as an international, independent medical humanitarian organisation delivering emergency medical aid to people in crisis. It says its teams provide medical assistance to people affected by conflict, epidemics, disasters, or exclusion from healthcare.",
+      "source_urls": [
+        "https://www.msf.org.au/about-us"
+      ]
+    },
+    "programs_or_activity_scopes": [
+      {
+        "statement": "Source-reported claim: the organisation describes its work as medical humanitarian assistance, including emergency response in contexts of conflict, disasters, epidemics, and exclusion from healthcare.",
+        "source_urls": [
+          "https://www.msf.org.au/about-us"
+        ]
+      },
+      {
+        "statement": "Source-reported claim: its website presents work areas including where it works, how it works, medical issues, and crisis responses. The retained page does not establish particular current projects or durable programs.",
+        "source_urls": [
+          "https://www.msf.org.au/our-work"
+        ]
+      }
+    ],
+    "geography": {
+      "statement": "CharityGraph judgment: the registered entity's recorded main business location is NSW 2007. Source-reported claim: MSF has humanitarian projects in more than 70 countries; this is a claim about the broader MSF organisation, not independently verified evidence of the Australian legal entity's direct operations in each country.",
+      "source_urls": [
+        "https://abr.business.gov.au/ABN/View?abn=74068758654",
+        "https://www.msf.org.au/about-us"
+      ]
+    },
+    "participation_workforce_scale": {
+      "statement": "Source-reported claim: the website says the worldwide MSF movement comprises nearly 68,000 people and that, in 2022, it employed over 40,000 locally hired staff alongside internationally mobile staff, including 129 from Australia and New Zealand. These figures are not established as the headcount of Médecins Sans Frontières Australia Limited itself.",
+      "source_urls": [
+        "https://www.msf.org.au/about-us"
+      ]
+    },
+    "financial_scale": {
+      "statement": "Not established from retained sources. ABN Lookup records that the entity is endorsed as a Public Benevolent Institution for specified tax concessions and as a Deductible Gift Recipient; it lists the Médecins Sans Frontières Australia Overseas Fund as a current Item 1 DGR fund. No revenue, expenses, assets, grants, fundraising totals, or allocation figures were retained.",
+      "source_urls": [
+        "https://abr.business.gov.au/ABN/View?abn=74068758654"
+      ]
+    },
+    "relationships_affiliations": {
+      "statement": "Source-reported claim: the Australian website describes MSF as a worldwide movement and says the Australian office was set up in 1994; it also says Médecins Sans Frontières New Zealand was established in 2017. The source further says MSF is run by a private, international Association. The legal, governance, ownership, or control relationships between Médecins Sans Frontières Australia Limited and those bodies are not established from retained sources.",
+      "source_urls": [
+        "https://www.msf.org.au/about-us"
+      ]
+    },
+    "current_operating_evidence": {
+      "statement": "CharityGraph judgment: retained regulator evidence identifies the ABN as active (from 24 March 2000), with the record last updated 31 March 2025. Retained official-site pages also present current donation, team, and work-related navigation and describe ongoing activities; these web statements are not independent verification of present operations or outcomes.",
+      "source_urls": [
+        "https://abr.business.gov.au/ABN/View?abn=74068758654",
+        "https://www.msf.org.au/about-us",
+        "https://www.msf.org.au/our-work"
+      ]
+    },
+    "source_reported_claims": [
+      {
+        "statement": "Source-reported claim: MSF says it is guided by medical ethics and the principles of impartiality, independence, and neutrality.",
+        "source_urls": [
+          "https://www.msf.org.au/about-us"
+        ]
+      },
+      {
+        "statement": "Source-reported claim: the Australian office says it supports more than 100 Australian and New Zealand professionals each year to work in international medical-humanitarian projects.",
+        "source_urls": [
+          "https://www.msf.org.au/about-us"
+        ]
+      },
+      {
+        "statement": "Source-reported claim: MSF says it relies on more than seven million individual donors worldwide and that over 97 per cent of its funds comes from private donations. This is a claim about the wider MSF movement, not a verified financial measure for the named Australian entity.",
+        "source_urls": [
+          "https://www.msf.org.au/about-us"
+        ]
+      }
+    ],
+    "unknowns_not_established": [
+      "Not established from retained sources: audited financial results, financial scale, or use of funds for Médecins Sans Frontières Australia Limited.",
+      "Not established from retained sources: current board members, executives, beneficial ownership, or governance/control arrangements.",
+      "Not established from retained sources: specific current projects, service volumes, beneficiaries, or countries directly operated by the Australian legal entity.",
+      "Not established from retained sources: impact, effectiveness, cost-effectiveness, ROI, or independent evaluation results.",
+      "Not established from retained sources: legal relationship between the named entity and the global MSF movement, the international Association, or Médecins Sans Frontières New Zealand."
+    ],
+    "cautions": [
+      "This is an explicitly partial, non-production CharityGraph card based only on retained live-web material.",
+      "Statements drawn from the MSF Australia website are labelled source-reported claims and are not independently validated here.",
+      "Workforce, donor, funding-share, and country figures on the website are presented in global-MS​F terms; they should not be attributed to Médecins Sans Frontières Australia Limited alone.",
+      "The DuckDuckGo discovery URL returned a bot challenge and supplies no substantive evidence."
+    ]
+  }
+}

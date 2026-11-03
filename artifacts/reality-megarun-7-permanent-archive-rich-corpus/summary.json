@@ -1,0 +1,7 @@
+{
+  "outcome": "MEGARUN7_ARCHIVE_EXECUTION_BREAKS",
+  "archive_root": "C:\\Users\\grego\\OneDrive\\CharityGraph Source Archive",
+  "reason": "Private archive root inaccessible: PermissionError(13, 'Access is denied'). Capture-first source acquisition was not started and no substitute archive was used.",
+  "network_activity": "none after archive preflight",
+  "source_bytes_in_repository": false
+}

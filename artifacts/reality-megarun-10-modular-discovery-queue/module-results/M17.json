@@ -1,0 +1,55 @@
+{
+  "module_id": "M17",
+  "title": "Acquire new annual/impact report",
+  "terminal_status": "PASS",
+  "sequence_position": 17,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/megarun10b/M17-discovery-binding.json",
+    "C:/CharityGraph-runtime/megarun10b/M17-report-binding.json",
+    "C:/CharityGraph-runtime/megarun10b/M17-report-pages/p001.txt",
+    "C:/CharityGraph-runtime/megarun10b/M17-report-pages/p003.txt",
+    "C:/CharityGraph-runtime/megarun10b/M17-report-pages/p008.txt",
+    "C:/CharityGraph-runtime/megarun10b/M17-report-pages/p010.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "source": "RFDS Annual National Report 2023/2024",
+      "sha256": "ed386648b22d5872b2c615ff31a6743b2f0025d07b4b4543f1c0601bd538988b",
+      "bytes": 8662026,
+      "pages": 56,
+      "archive_first": true
+    },
+    {
+      "page": 8,
+      "printed_page": 6,
+      "reading": "345,136 total patient contacts, 32,949 aeromedical patients transported, 22,462 primary-health clinics; units differ."
+    },
+    {
+      "page": 10,
+      "reading": "87 aircraft and 292 road service vehicles are assets, not patient totals."
+    }
+  ],
+  "defects": [
+    "D17: Official download uses two RFDS S3 hostname forms; initial allowlist rejected both before archive capture.",
+    "D17b: Source-native entity/federation scope needs identity binding before canonical use."
+  ],
+  "counterexamples": [
+    "Patient contacts cannot be represented as a unique patient population."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "RFDS new relative to eight-subject report corpus; broader canonical subject identity not resolved. No PDF authored."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\megarun10b\\M17-discovery-binding.json": "981bba3a87e6cd9d3255e415a616bf39ed32e3d6f04c62b7ec99120ba4ebdfc9",
+    "C:\\CharityGraph-runtime\\megarun10b\\M17-report-binding.json": "15deee8f555571eb72f7952fdfabf7318d0ee6b819ff70ec23a1a5eff2e3dc7e",
+    "C:\\CharityGraph-runtime\\megarun10b\\M17-report-pages\\p001.txt": "f9aba492e1b0e7203607e884e4927d1f99a0efb81c6a9d94ab11d2c92c6c1e08",
+    "C:\\CharityGraph-runtime\\megarun10b\\M17-report-pages\\p003.txt": "db0919081a5cbc953aaca49ae5bc52ca570b78b3e69700e939a187db4d1bb6df",
+    "C:\\CharityGraph-runtime\\megarun10b\\M17-report-pages\\p008.txt": "f53fec3e24c8a0a96ecf4e0901fac8133a23d8d6d45fbd568f515ec7dbf956a9",
+    "C:\\CharityGraph-runtime\\megarun10b\\M17-report-pages\\p010.txt": "2d5acc4d71723f4034dcc7b709d64001710b5f5a5dc0e1dd721a2434b46d84a5"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

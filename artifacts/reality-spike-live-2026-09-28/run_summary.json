@@ -1,0 +1,112 @@
+{
+  "non_production": true,
+  "started_at": "2026-09-28T11:13:43.225161+00:00",
+  "model_requested": "gpt-5.6-terra",
+  "model_calls": 3,
+  "charities": [
+    {
+      "name": "Medecins Sans Frontieres Australia Limited",
+      "abn": "74068758654",
+      "directory": "artifacts\\reality-spike-live-2026-09-28\\01-74068758654",
+      "sources": [
+        {
+          "url": "https://abr.business.gov.au/ABN/View?abn=74068758654",
+          "role": "regulator_identity",
+          "outcome": "retrieved"
+        },
+        {
+          "url": "https://www.msf.org.au/about-us",
+          "role": "official_website",
+          "outcome": "retrieved"
+        },
+        {
+          "url": "https://www.msf.org.au/our-work",
+          "role": "official_website",
+          "outcome": "retrieved"
+        },
+        {
+          "url": "https://html.duckduckgo.com/html/?q=%22Medecins+Sans+Frontieres+Australia+Limited%22+%2274068758654%22",
+          "role": "live_web_discovery",
+          "outcome": "retrieved"
+        }
+      ],
+      "model": {
+        "model": "gpt-5.6-terra",
+        "response_id": "resp_0268bb1be4309952006aba4be9728887d0ac632a947bc761f3",
+        "status": "completed",
+        "usage": {
+          "input_tokens": 12050,
+          "output_tokens": 1352,
+          "total_tokens": 13402
+        },
+        "transport_requests": 1
+      }
+    },
+    {
+      "name": "SUNRISE FOUNDATION LIMITED",
+      "abn": "37646526132",
+      "directory": "artifacts\\reality-spike-live-2026-09-28\\02-37646526132",
+      "sources": [
+        {
+          "url": "https://abr.business.gov.au/ABN/View?abn=37646526132",
+          "role": "regulator_identity",
+          "outcome": "retrieved"
+        },
+        {
+          "url": "https://html.duckduckgo.com/html/?q=%22SUNRISE+FOUNDATION+LIMITED%22+%2237646526132%22",
+          "role": "live_web_discovery",
+          "outcome": "retrieved"
+        }
+      ],
+      "model": {
+        "model": "gpt-5.6-terra",
+        "response_id": "resp_0926ef7dc1bb67d0006aba4bfa8fe487d0b95c4c21f1c01a52",
+        "status": "completed",
+        "usage": {
+          "input_tokens": 1365,
+          "output_tokens": 765,
+          "total_tokens": 2130
+        },
+        "transport_requests": 1
+      }
+    },
+    {
+      "name": "Noongar Boodja Trust",
+      "abn": "47613674461",
+      "directory": "artifacts\\reality-spike-live-2026-09-28\\03-47613674461",
+      "sources": [
+        {
+          "url": "https://abr.business.gov.au/ABN/View?abn=47613674461",
+          "role": "regulator_identity",
+          "outcome": "retrieved"
+        },
+        {
+          "url": "https://html.duckduckgo.com/html/?q=%22Noongar+Boodja+Trust%22+%2247613674461%22",
+          "role": "live_web_discovery",
+          "outcome": "retrieved"
+        }
+      ],
+      "model": {
+        "model": "gpt-5.6-terra",
+        "response_id": "resp_0d8beeef9dfdc764006aba4c04491887d080b2345fe183ae60",
+        "status": "completed",
+        "usage": {
+          "input_tokens": 1287,
+          "output_tokens": 798,
+          "total_tokens": 2085
+        },
+        "transport_requests": 1
+      }
+    }
+  ],
+  "warnings": [],
+  "finished_at": "2026-09-28T11:14:19.737342+00:00",
+  "component_inventory": {
+    "openai_client": "REUSED_SUCCESSFULLY",
+    "North_Star_semantics": "REUSED_SUCCESSFULLY",
+    "production_acquisition_governance": "BYPASSED_FOR_SPIKE",
+    "reservations_A3_accounting": "BYPASSED_FOR_SPIKE",
+    "production_card_projection": "BYPASSED_FOR_SPIKE",
+    "S0_Attempt20_runtime": "NOT_NEEDED"
+  }
+}

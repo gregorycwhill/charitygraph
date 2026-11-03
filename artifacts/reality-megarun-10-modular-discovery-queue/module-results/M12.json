@@ -1,0 +1,66 @@
+{
+  "module_id": "M12",
+  "title": "Five unnecessary-satellite cases",
+  "terminal_status": "PARTIAL",
+  "sequence_position": 12,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/world-vision-australia-7.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/caritas-australia-3.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/australian-red-cross-9.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/world-vision-australia-13.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/plan-international-australia-4.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "page_id": "world-vision-australia-7",
+      "claim": "WVA identifies as Christian",
+      "minimum": "G2 attributed self-description, source date",
+      "reason": "A faith satellite adds no demonstrated query capability."
+    },
+    {
+      "page_id": "caritas-australia-3",
+      "claim": "Caritas describes its Catholic inspiration",
+      "minimum": "G2 mission claim with self-report qualifier",
+      "reason": "No obligation/breach lifecycle supplied."
+    },
+    {
+      "page_id": "australian-red-cross-9",
+      "claim": "ARC includes psychological first aid among core activities",
+      "minimum": "G2 scoped activity statement",
+      "reason": "No service intake/capacity data on page warrants service availability structure."
+    },
+    {
+      "page_id": "world-vision-australia-13",
+      "claim": "WVA says its evidence-building strategy was developed in 2020",
+      "minimum": "G2 event/time qualifier",
+      "reason": "Do not invent a strategy object hierarchy for one fact."
+    },
+    {
+      "page_id": "plan-international-australia-4",
+      "claim": "Plan's commitment to girls does not exclude boys or men",
+      "minimum": "G2 purpose with inseparable inclusivity qualifier",
+      "reason": "A universal beneficiary eligibility taxonomy would overstate this statement."
+    }
+  ],
+  "defects": [
+    "D12: Semantic-area membership alone is not a reason for a satellite."
+  ],
+  "counterexamples": [
+    "Five material facts remain intelligible as qualified attributed propositions."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "No runtime storage/query comparison; model-specific requirement unmet."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\world-vision-australia-7.txt": "c3ee1c0e9ef07124be083697e4e15cda2de19d0012d3746be8bb6743c25ce303",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\caritas-australia-3.txt": "662d37b29b971ed187ea5882497bad5757589ac70f1ff6af292cca31db4085c4",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\australian-red-cross-9.txt": "70deb91b0ca0d09527c7ead75fd9e9da6b6592c479774057c06dc1b1d8983ae3",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\world-vision-australia-13.txt": "57e3ad51f43c9ea25cd50ec50fa1a0399e3745d8196c7ef14ff92df66eaead1b",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\plan-international-australia-4.txt": "dbb54d48726bea69a241fc0194306791f87a253246d180a72ced84111ee0c614"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

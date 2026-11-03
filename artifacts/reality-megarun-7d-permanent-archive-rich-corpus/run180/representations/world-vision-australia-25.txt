@@ -1,0 +1,24 @@
+25
+AILARTSUA
+NOISIV
+DLROW
+|
+4202
+tropeR
+launnA
+STATEMENT OF
+COMPREHENSIVE
+INCOME
+FOR THE YEAR ENDED 30 SEPTEMBER 2024
+Notes FY24 FY23
+$’000 $’000
+(Deficit)/surplus of income over expenditure (27,349) 3,422
+Other comprehensive income
+Items that will not be reclassified subsequently to the income statement
+OCI related to derecognised shares transferred to retained earnings (16) 90
+Changes in the fair value of equity instruments at FVOCI 6(b) 1,151 470
+Items that may be reclassified subsequently to the income statement
+Changes in the fair value of cash flow hedges 6(c) (13,482) (9,461)
+Other comprehensive loss for the year (12,347) (8,901)
+Total comprehensive loss for the year (39,696) (5,479)
+The above should be read in conjunction with the accompanying notes which can be found on our website in the full version of our audited Annual Financial Statements for the year ended 30 September 2024.

@@ -1,0 +1,9 @@
+{
+  "archive_root": "C:\\Users\\grego\\OneDrive\\Documents\\CharityGraph Source Archive",
+  "repository_root": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph",
+  "outside_git": true,
+  "checks": {},
+  "performed_at": "2026-09-29T12:43:31.391724+00:00",
+  "status": "FAIL",
+  "error": "PermissionError(13, 'Access is denied')"
+}

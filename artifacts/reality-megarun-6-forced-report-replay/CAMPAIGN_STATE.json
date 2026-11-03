@@ -1,0 +1,57 @@
+{
+  "campaign_root": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph\\artifacts\\reality-megarun-6-forced-report-replay",
+  "git_dirty": [
+    " M scripts/run_v12_from_preflight.py",
+    " D scripts/run_v12_large_harvest.py",
+    "?? .campaign-builder/",
+    "?? .s0-factory-builder/",
+    "?? .s0-owner-attestation-builder/",
+    "?? .s0-validation/",
+    "?? artifacts/",
+    "?? charitygraph-archaeology-inventory.json",
+    "?? charitygraph-archaeology-summary.md",
+    "?? charitygraph-artefact-lineage-edges.json",
+    "?? scripts/reality_spike.py",
+    "?? scripts/reality_spike_4_disposable_bridge.py",
+    "?? scripts/reality_spike_5_disposable_bridge.py",
+    "?? scripts/reality_spike_6_source_ablation.py",
+    "?? scripts/reality_spike_8_architecture_inversion.py",
+    "?? scripts/reality_spike_v2_acnc_first.py",
+    "?? scripts/reality_spike_v3_sunrise_acnc_data.py",
+    "?? scripts/run_megarun3_blind_cohort.py",
+    "?? scripts/run_megarun3_product_blind_test.py",
+    "?? scripts/run_megarun3_raw_report_furnace.ps1",
+    "?? scripts/run_megarun3_twenty_charity_dryrun.py",
+    "?? scripts/run_megarun4_representation_boundary.py",
+    "?? scripts/run_megarun6_forced_report_replay.py",
+    "?? tests/test_reality_spike_v3_acnc_adapter.py"
+  ],
+  "git_head": "9768d61",
+  "megarun5_summary_consumed": {
+    "attributable_readable_pages": 0,
+    "exact_blocked_pages_replayed": 0,
+    "exact_reports_reacquired": 0,
+    "network_requests": 0,
+    "orphan_page_count": 3,
+    "orphan_source_object_sha256": "03c092980e9758b83cf575565b7ecdae8b2024830b18db1a960957b2da51ce5d",
+    "primary_outcome": "MEGARUN5_SOURCE_REACQUISITION_OR_RETENTION_MODEL_BREAKS",
+    "propositions": 0,
+    "qa_abstentions": 50,
+    "qa_cases": 50
+  },
+  "outcome": "MEGARUN6_SOURCE_BINDING_RECOVERY_PARTIAL",
+  "persistence_self_audit": "All required artifacts are written below this one campaign root.",
+  "predecessor_paths": [
+    "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph\\artifacts\\reality-megarun-4-rich-report-recovery\\BLOCKED_PAGE_COHORT.jsonl",
+    "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\charitygraph\\artifacts\\reality-megarun-4-rich-report-recovery\\REPRESENTATION_RECOVERY_LEDGER.jsonl"
+  ],
+  "provider_network_s0_github_activity": {
+    "github": 0,
+    "http_requests": 5,
+    "provider": 0,
+    "s0": 0
+  },
+  "resolved_megarun5_root": "C:\\Users\\grego\\OneDrive\\Documents\\GitHub\\CharityGraph\\.codex-v5rr-worktree\\artifacts\\reality-megarun-5-source-object-representation",
+  "schema": "charitygraph.supervisor-work/v1",
+  "state": "COMPLETE"
+}

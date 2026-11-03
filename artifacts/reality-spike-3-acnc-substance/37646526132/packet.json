@@ -1,0 +1,1619 @@
+{
+  "non_production_reality_spike_3": true,
+  "name": "SUNRISE FOUNDATION LIMITED",
+  "identity": {
+    "acnc_uuid": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+    "acnc_profile_url": "https://www.acnc.gov.au/charity/charities/f1413902-d240-eb11-bf72-000d3ad1ce4e/profile",
+    "abn_join_key": "37646526132"
+  },
+  "retrieved_at": "2026-09-28T14:26:40.459191+00:00",
+  "acnc_profile": {
+    "type": "charity",
+    "uuid": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+    "data": {
+      "Name": "SUNRISE FOUNDATION LIMITED",
+      "Status": "Registered",
+      "LastReported": "2025-04-08T21:45:54.0000000Z",
+      "RelatedPartyTransactions": null,
+      "RelevantTransactions": null,
+      "OtherDetails": null,
+      "NextReportDue": "2026-01-31T23:30:00.0000000Z",
+      "ReportingLate": "2026-07-31T23:30:00.0000000Z",
+      "OtherNames": [
+        {
+          "Name": "Sunrise Foundation",
+          "uuid": "d9a30595-435a-f111-89e7-002248104426"
+        }
+      ],
+      "Abn": "37646526132",
+      "TransparencyRegisterUrl": null,
+      "ReferendumReturnsUrl": null,
+      "AddressLine1": "Suite 5.01",
+      "AddressLine2": "Level 5",
+      "AddressLine3": "64 Castlereagh Street.",
+      "AddressSuburb": "Sydney",
+      "AddressStateOrProvince": "NSW",
+      "AddressPostalCode": "2000",
+      "AddressCountry": "Australia",
+      "Website": "www.sunrisefoundation.com.au",
+      "Email": "admin@sunrisefoundation.com.au",
+      "Phone": "02 9159-6177",
+      "CharitySize": "Large",
+      "Beneficiaries": [
+        {
+          "Name": "Victims of crime (including family violence)",
+          "Description": null,
+          "uuid": "57430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "People with disabilities",
+          "Description": null,
+          "uuid": "5a430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "People in rural/regional/remote communities",
+          "Description": null,
+          "uuid": "5e430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "People at risk of homelessness/ people experiencing homelessness",
+          "Description": null,
+          "uuid": "62430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "Other charities",
+          "Description": null,
+          "uuid": "66430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "Males",
+          "Description": null,
+          "uuid": "69430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "General community in Australia",
+          "Description": null,
+          "uuid": "71430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "Financially disadvantaged people",
+          "Description": null,
+          "uuid": "75430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "Females",
+          "Description": null,
+          "uuid": "7a430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "Families",
+          "Description": null,
+          "uuid": "7d430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "Adults - aged 65 and over",
+          "Description": null,
+          "uuid": "84430bd8-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "Adults - aged 25 to under 65",
+          "Description": null,
+          "uuid": "89430bd8-c214-f011-998a-00224893e05b"
+        }
+      ],
+      "DateEstablished": "2020-12-09T13:00:00.0000000Z",
+      "Countries": [
+        {
+          "Name": "Australia",
+          "uuid": "f57b5602-9a4d-e811-a951-000d3ad06f2d"
+        }
+      ],
+      "SummaryOfActivities": "provided considerable housing to bonafide disabled particpants under NDIS parameters; provided support programs and housing for domestic violence survivors and their familes.",
+      "OperatingInStates": [],
+      "TotalGrossIncomeGovernmentGrants": "0",
+      "TotalGrossIncomeOtherRevenues": "0",
+      "TotalGrossIncomeDonationsAndRequests": "99589376",
+      "TotalGrossIncomeGoodsOrServices": "0",
+      "TotalGrossIncomeInvestments": "726490",
+      "TotalExpensesGrantsAndDonationsInAustralia": "179999",
+      "TotalExpensesGrantsAndDonationsOutsideAustralia": "0",
+      "TotalExpensesInterest": "139083",
+      "TotalExpensesOther": "1415859",
+      "TotalExpensesEmployee": "27114",
+      "ChooseToProvideAis": null,
+      "AnnualReports": [
+        {
+          "type": "Annual Information Statement 2021",
+          "Year": "2021",
+          "IsAIS": true,
+          "DueDate": "2022-01-30T13:00:00.0000000Z",
+          "DateReceived": "2024-03-12T06:25:27.0000000Z",
+          "AISId": "5a5f5e4a-39e0-ee11-904c-6045bdc2f3c2",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "71de31db-228d-eb11-b1ac-000d3a6b266f"
+        },
+        {
+          "type": "Annual Information Statement 2022",
+          "Year": "2022",
+          "IsAIS": true,
+          "DueDate": "2023-01-31T00:00:00.0000000Z",
+          "DateReceived": "2024-03-13T00:51:08.0000000Z",
+          "AISId": "73d0c7c0-d3e0-ee11-904c-000d3ad0466e",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "75de31db-228d-eb11-b1ac-000d3a6b266f"
+        },
+        {
+          "type": "Financial Report 2021",
+          "Year": "2021",
+          "IsAIS": false,
+          "DueDate": "2022-01-30T13:00:00.0000000Z",
+          "DateReceived": "2024-03-12T06:25:23.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "ed126644-39e0-ee11-904c-6045bdc2f3c2",
+          "uuid": "78de31db-228d-eb11-b1ac-000d3a6b266f"
+        },
+        {
+          "type": "Financial Report 2022",
+          "Year": "2022",
+          "IsAIS": false,
+          "DueDate": "2023-01-31T00:00:00.0000000Z",
+          "DateReceived": "2024-03-13T00:50:22.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "12b032a1-d3e0-ee11-904c-000d3ad0466e",
+          "uuid": "7fde31db-228d-eb11-b1ac-000d3a6b266f"
+        },
+        {
+          "type": "Annual Information Statement 2026",
+          "Year": "2026",
+          "IsAIS": true,
+          "DueDate": "2027-01-31T00:00:00.0000000Z",
+          "DateReceived": null,
+          "AISId": null,
+          "Status": "Not yet submitted",
+          "DocumentUuid": null,
+          "uuid": "1f66d1b7-d4df-ef11-a732-0022481019a9"
+        },
+        {
+          "type": "Financial Report 2026",
+          "Year": "2026",
+          "IsAIS": false,
+          "DueDate": "2027-01-31T00:00:00.0000000Z",
+          "DateReceived": null,
+          "AISId": null,
+          "Status": "Pending",
+          "DocumentUuid": null,
+          "uuid": "8e66d1b7-d4df-ef11-a732-0022481019a9"
+        },
+        {
+          "type": "Annual Information Statement 2023",
+          "Year": "2023",
+          "IsAIS": true,
+          "DueDate": "2024-01-31T00:00:00.0000000Z",
+          "DateReceived": "2024-03-13T03:15:59.0000000Z",
+          "AISId": "aeaa1ff5-e7e0-ee11-904c-002248970b4e",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "598d3844-a782-ec11-8d20-00224892945b"
+        },
+        {
+          "type": "Financial Report 2023",
+          "Year": "2023",
+          "IsAIS": false,
+          "DueDate": "2024-01-31T00:00:00.0000000Z",
+          "DateReceived": "2024-03-13T03:15:18.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "984547e0-e7e0-ee11-904d-002248935564",
+          "uuid": "608d3844-a782-ec11-8d20-00224892945b"
+        },
+        {
+          "type": "Annual Information Statement 2025",
+          "Year": "2025",
+          "IsAIS": true,
+          "DueDate": "2026-01-31T00:00:00.0000000Z",
+          "DateReceived": null,
+          "AISId": null,
+          "Status": "Overdue",
+          "DocumentUuid": null,
+          "uuid": "c38858f3-a6c0-ee11-907a-00224893b0ed"
+        },
+        {
+          "type": "Financial Report 2025",
+          "Year": "2025",
+          "IsAIS": false,
+          "DueDate": "2026-01-31T00:00:00.0000000Z",
+          "DateReceived": null,
+          "AISId": null,
+          "Status": "Overdue",
+          "DocumentUuid": null,
+          "uuid": "d38858f3-a6c0-ee11-907a-00224893b0ed"
+        },
+        {
+          "type": "Annual Information Statement 2024",
+          "Year": "2024",
+          "IsAIS": true,
+          "DueDate": "2025-01-30T13:00:00.0000000Z",
+          "DateReceived": "2025-04-08T21:45:54.0000000Z",
+          "AISId": "e1c90bd2-c214-f011-998a-00224893e05b",
+          "Status": "Submitted",
+          "DocumentUuid": null,
+          "uuid": "e9ef4cbe-c8a1-ed11-aad1-00224893b8c7"
+        },
+        {
+          "type": "Financial Report 2024",
+          "Year": "2024",
+          "IsAIS": false,
+          "DueDate": "2025-01-30T13:00:00.0000000Z",
+          "DateReceived": "2025-04-08T21:45:43.0000000Z",
+          "AISId": null,
+          "Status": "Submitted",
+          "DocumentUuid": "b2b943cb-c214-f011-998a-6045bde677ba",
+          "uuid": "0bf04cbe-c8a1-ed11-aad1-00224893b8c7"
+        },
+        {
+          "type": "Annual Information Statement 2027",
+          "Year": "2027",
+          "IsAIS": true,
+          "DueDate": "2027-12-30T13:00:00.0000000Z",
+          "DateReceived": null,
+          "AISId": null,
+          "Status": "Not yet submitted",
+          "DocumentUuid": null,
+          "uuid": "ab08dffb-02ff-f011-8406-6045bdc27ae7"
+        },
+        {
+          "type": "Financial Report 2027",
+          "Year": "2027",
+          "IsAIS": false,
+          "DueDate": "2027-12-30T13:00:00.0000000Z",
+          "DateReceived": null,
+          "AISId": null,
+          "Status": "Pending",
+          "DocumentUuid": null,
+          "uuid": "e008dffb-02ff-f011-8406-6045bdc27ae7"
+        }
+      ],
+      "Documents": [
+        {
+          "type": "Governing Document",
+          "Date": "2024-03-13T00:00:00.0000000",
+          "Year": null,
+          "Title": "Constitution SUNRISE FOUNDATION  with PBI V7  5-10-23   COMMUNITY HOUSING  66.4 expanded DISABLED para 6 (pdf).pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Governing%20Document-fc765694-bce0-ee11-904c-6045bdc25c4f-Constitution_SUNRISE_FOUNDATION__with_PBI_V7__5-10-23___COMMUNITY_HOUSING__66.4_expanded_DISABLED_para_6_(pdf).pdf",
+          "uuid": "fc765694-bce0-ee11-904c-6045bdc25c4f"
+        },
+        {
+          "type": "Annual Report",
+          "Date": "2025-04-22T00:00:00.0000000",
+          "Year": "2024",
+          "Title": "Sunrise Foundation Social Impact Report  2024 COMPRESSED.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Annual%20Report-38732922-0e1f-f011-998a-00224812695f-Sunrise_Foundation_Social_Impact_Report__2024_COMPRESSED.pdf",
+          "uuid": "38732922-0e1f-f011-998a-00224812695f"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2024-03-13T00:00:00.0000000",
+          "Year": "2022",
+          "Title": "SUNRISE Balance Sheet Profit and Loss management format 30-6-22.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Financial%20Report-12b032a1-d3e0-ee11-904c-000d3ad0466e-SUNRISE_Balance_Sheet_Profit_and_Loss_management_format_30-6-22.pdf",
+          "uuid": "12b032a1-d3e0-ee11-904c-000d3ad0466e"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2024-03-13T00:00:00.0000000",
+          "Year": "2023",
+          "Title": "SUNRISE Balance Sheet Profit and Loss management format 30-6-23.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Financial%20Report-984547e0-e7e0-ee11-904d-002248935564-SUNRISE_Balance_Sheet_Profit_and_Loss_management_format_30-6-23.pdf",
+          "uuid": "984547e0-e7e0-ee11-904d-002248935564"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2024-03-12T00:00:00.0000000",
+          "Year": "2021",
+          "Title": "SUNRISE Balance Sheet management 30-6-21.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Financial%20Report-ed126644-39e0-ee11-904c-6045bdc2f3c2-SUNRISE_Balance_Sheet_management_30-6-21.pdf",
+          "uuid": "ed126644-39e0-ee11-904c-6045bdc2f3c2"
+        },
+        {
+          "type": "Financial Report",
+          "Date": "2025-04-09T00:00:00.0000000",
+          "Year": "2024",
+          "Title": "SPECIAL PURPOSE MANAGEMENT ACCOUNTS Sunrise Foundation 30-6-24 001.pdf",
+          "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Financial%20Report-b2b943cb-c214-f011-998a-6045bde677ba-SPECIAL_PURPOSE_MANAGEMENT_ACCOUNTS_Sunrise_Foundation_30-6-24_001.pdf",
+          "uuid": "b2b943cb-c214-f011-998a-6045bde677ba"
+        }
+      ],
+      "ResponsiblePersons": [
+        {
+          "Name": "Edward John Walsh",
+          "Role": "Director",
+          "uuid": "8e423902-d240-eb11-bf72-000d3ad1ce4e"
+        },
+        {
+          "Name": "John Batiste",
+          "Role": "Chairperson",
+          "uuid": "70f15490-0f1f-f011-998b-00224891e269"
+        },
+        {
+          "Name": "Glen-Marie Frost",
+          "Role": "Director",
+          "uuid": "a897e3f0-171f-f011-998b-00224895e766"
+        },
+        {
+          "Name": "Gregory Huxley",
+          "Role": "Other",
+          "uuid": "605f5e4a-39e0-ee11-904c-6045bdc2f3c2"
+        }
+      ],
+      "CharitySubtypeHistory": [
+        {
+          "Purpose": "Advancing social or public welfare",
+          "StartDate": "2020-12-09T13:00:00.0000000Z",
+          "EndDate": null,
+          "uuid": "a5e8d51f-228d-eb11-b1ac-000d3a6b21df"
+        },
+        {
+          "Purpose": "Public Benevolent Institution (PBI)",
+          "StartDate": "2020-12-09T13:00:00.0000000Z",
+          "EndDate": null,
+          "uuid": "06423902-d240-eb11-bf72-000d3ad1ce4e"
+        }
+      ],
+      "RegistrationStatusHistory": [
+        {
+          "EffectiveDate": "2020-12-09T13:00:00.0000000Z",
+          "TransactionDate": "2021-03-25T04:30:40.0000000Z",
+          "Status": "Registered",
+          "uuid": "d3b6b9d8-228d-eb11-b1ac-000d3a6b220f"
+        }
+      ],
+      "EnforcementOutcomes": [],
+      "GroupHeadFlag": false,
+      "ParentAccountId": null,
+      "ParentAccountAbn": null,
+      "ChildMemberStartDate": null,
+      "ChildMemberEndDate": null,
+      "AFSEmail": "info@sunrisefoundation.com",
+      "FinancialYearEnd": "30/06",
+      "GovernmentAgencies": [
+        {
+          "Name": "Australian Securities and Investment Commission",
+          "ReferenceNumber": "646526132",
+          "uuid": "59843108-d240-eb11-bf72-000d3ad1ce4e"
+        }
+      ],
+      "Programs": [
+        {
+          "Name": "NDIS HOUSING PROGRAM",
+          "ProgramLocations": [
+            {
+              "Name": "Australia",
+              "FormattedAddress": "Australia",
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": -25.274398,
+                "Longitude": 133.775136
+              },
+              "uuid": "19ca0bd2-c214-f011-998a-00224893e05b"
+            }
+          ],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "People at risk of homelessness/ people experiencing homelessness",
+            "Financially disadvantaged people"
+          ],
+          "ProgramWeblink": "www.sunrisefoundation.com.au",
+          "ProgramClassification": "Housing for people with disabilities",
+          "ProgramClassificationID": "542",
+          "ProgramCountries": [],
+          "AisUuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+          "uuid": "0bca0bd2-c214-f011-998a-00224893e05b",
+          "ProgramClassie": [
+            {
+              "classie_id": "542",
+              "parent_id": "539",
+              "label": "Housing for people with disabilities",
+              "selected": true
+            },
+            {
+              "classie_id": "539",
+              "parent_id": "527",
+              "label": "Supported housing",
+              "selected": false
+            },
+            {
+              "classie_id": "527",
+              "parent_id": "485",
+              "label": "Shelter and residential care",
+              "selected": false
+            },
+            {
+              "classie_id": "485",
+              "parent_id": null,
+              "label": "Human services",
+              "selected": false
+            }
+          ]
+        },
+        {
+          "Name": "Domestic Violence victim support and housing",
+          "ProgramLocations": [
+            {
+              "Name": "Sydney",
+              "FormattedAddress": "Sydney NSW, Australia",
+              "DisplayName": "Sydney NSW, Australia",
+              "Marker": {
+                "Latitude": -33.8688197,
+                "Longitude": 151.2092955
+              },
+              "uuid": "31ca0bd2-c214-f011-998a-00224893e05b"
+            }
+          ],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Families",
+            "Victims of crime (including family violence)",
+            "Females",
+            "Other charities"
+          ],
+          "ProgramWeblink": null,
+          "ProgramClassification": "Domestic and family violence",
+          "ProgramClassificationID": "669",
+          "ProgramCountries": [],
+          "AisUuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+          "uuid": "1bca0bd2-c214-f011-998a-00224893e05b",
+          "ProgramClassie": [
+            {
+              "classie_id": "669",
+              "parent_id": "666",
+              "label": "Domestic and family violence",
+              "selected": true
+            },
+            {
+              "classie_id": "666",
+              "parent_id": "665",
+              "label": "Abuse prevention",
+              "selected": false
+            },
+            {
+              "classie_id": "665",
+              "parent_id": null,
+              "label": "Public safety",
+              "selected": false
+            }
+          ]
+        },
+        {
+          "Name": "Equitishare housing support program for DVictims; young families; and other disadvantaged groups",
+          "ProgramLocations": [
+            {
+              "Name": "Australia",
+              "FormattedAddress": "Australia",
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": -25.274398,
+                "Longitude": 133.775136
+              },
+              "uuid": "50ca0bd2-c214-f011-998a-00224893e05b"
+            }
+          ],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Adults - aged 25 to under 65",
+            "Adults - aged 65 and over",
+            "Families",
+            "People in rural/regional/remote communities",
+            "Financially disadvantaged people",
+            "People at risk of homelessness/ people experiencing homelessness",
+            "People with disabilities",
+            "Females",
+            "Males",
+            "General community in Australia"
+          ],
+          "ProgramWeblink": null,
+          "ProgramClassification": "Housing development",
+          "ProgramClassificationID": "168",
+          "ProgramCountries": [],
+          "AisUuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+          "uuid": "33ca0bd2-c214-f011-998a-00224893e05b",
+          "ProgramClassie": [
+            {
+              "classie_id": "168",
+              "parent_id": "133",
+              "label": "Housing development",
+              "selected": true
+            },
+            {
+              "classie_id": "133",
+              "parent_id": null,
+              "label": "Economic development",
+              "selected": false
+            }
+          ]
+        }
+      ],
+      "CharityVersion": "107",
+      "type": "charity",
+      "uuid": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+      "AFSAddressPostalCode": "2000",
+      "AddressSuburbStatePostcode": "Sydney NSW 2000",
+      "__normalized": true
+    }
+  },
+  "latest_submitted_ais": {
+    "type": "Annual Information Statement 2024",
+    "Year": "2024",
+    "IsAIS": true,
+    "DueDate": "2025-01-30T13:00:00.0000000Z",
+    "DateReceived": "2025-04-08T21:45:54.0000000Z",
+    "AISId": "e1c90bd2-c214-f011-998a-00224893e05b",
+    "Status": "Submitted",
+    "DocumentUuid": null,
+    "uuid": "e9ef4cbe-c8a1-ed11-aad1-00224893b8c7"
+  },
+  "ais_detail": {
+    "type": "annual_information_statement",
+    "uuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+    "data": {
+      "StatementYear": "2024",
+      "LegalName": "SUNRISE FOUNDATION LIMITED",
+      "Abn": "37646526132",
+      "CharityUuid": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+      "OtherNames": [],
+      "CharityEmail": "admin@sunrisefoundation.com.au",
+      "CharityAddressLine1": "Suite 5.01",
+      "CharityAddressLine2": "Level 5",
+      "CharityAddressSuburb": "Sydney",
+      "CharityAddressStateOrProvince": "NSW",
+      "CharityAddressPostalCode": "2000",
+      "CharityAddressCountry": "Australia",
+      "CharitySize": "Large",
+      "ReliefOfPoverty": false,
+      "AdvancementOfEducation": false,
+      "AdvancementOfReligion": false,
+      "ChildCareServices": false,
+      "OtherPurposes": "False",
+      "OtherPurposeDescription": null,
+      "BasicReligiousCharity": false,
+      "ReportingGroupFlag": false,
+      "Website": "www.sunrisefoundation.com.au",
+      "ActivityOperating": true,
+      "ActivityMain": null,
+      "ActivityCultureAndArt": false,
+      "ActivitySports": false,
+      "ActivityRecreationSocialClub": false,
+      "ActivityPrimarySecondaryEducation": false,
+      "ActivityHigherEducation": false,
+      "ActivityOtherEducation": false,
+      "ActivityResearch": false,
+      "ActivityHealthRehabilitation": false,
+      "ActivityAgedCare": false,
+      "ActivityMentalHealthCrisisIntervention": false,
+      "ActivityOtherHealthServices": false,
+      "ActivitySocialServices": false,
+      "ActivityEmergencyNRelief": false,
+      "ActivityIncomeSupportNMaintenance": false,
+      "ActivityEnvironmental": false,
+      "ActivityAnimalProtection": false,
+      "ActivityEconomicSocialCommunity": false,
+      "ActivityHousing": false,
+      "ActivityEmploymentNTraining": false,
+      "ActivityAdvocacyNCivic": false,
+      "ActivityLawNLegalServices": false,
+      "ActivityGrantMaking": false,
+      "ActivityPhilanthropicPromotion": false,
+      "ActivityInternational": false,
+      "ActivityReligious": false,
+      "ActivityPolitical": false,
+      "ActivityOther": false,
+      "ActivityOtherDescription": null,
+      "ActivityPersuitPurposesDescription": "provided considerable housing to bonafide disabled particpants under NDIS parameters; provided support programs and housing for domestic violence survivors and their familes.",
+      "GrantCapacityBuildingPct": null,
+      "GrantPublicOpenApplicationPct": null,
+      "GrantRuralRegionPct": null,
+      "GrantMultiYearPct": null,
+      "ActivityTransferringFundsGoods": false,
+      "ActivityOperatingOverseas": false,
+      "ActivityInternationalOther": false,
+      "ActivityInternationalOtherDescription": null,
+      "ActivityInternationalDescription": null,
+      "BeneficiaryMain": null,
+      "BeneficiaryGeneral": false,
+      "BeneficiaryWomen": false,
+      "BeneficiaryMen": false,
+      "BeneficiaryEarlyChildhood": false,
+      "BeneficiaryChildren": false,
+      "BeneficiaryYouth": false,
+      "BeneficiaryAdults": false,
+      "BeneficiarySeniors": false,
+      "BeneficiaryAllAges": false,
+      "BeneficiaryAboriginalTorres": false,
+      "BeneficiaryLGBT": false,
+      "BeneficiaryMigrantsRefugees": false,
+      "BeneficiaryOtherCharities": false,
+      "BeneficiaryEthnic": false,
+      "BeneficiaryOverseas": false,
+      "BeneficiaryRuralRegionalRemote": false,
+      "BeneficiaryFamilies": false,
+      "BeneficiaryFinanciallyDisadvantaged": false,
+      "BeneficiaryHomelessnessRisk": false,
+      "BeneficiaryChronicIllness": false,
+      "BeneficiaryPeopleWithDisability": false,
+      "BeneficiaryOffenderFamilies": false,
+      "BeneficiaryUnemployed": false,
+      "BeneficiaryVeteranFamilies": false,
+      "BeneficiaryCrimeVictims": false,
+      "BeneficiaryDisasterVictims": false,
+      "BeneficiaryOther": false,
+      "BeneficiaryOtherDescription": null,
+      "ActivityNdisSupported": null,
+      "ActivityNdisSupportedNext": null,
+      "OperatingInACT": false,
+      "OperatingInNSW": false,
+      "OperatingInNT": false,
+      "OperatingInQLD": false,
+      "OperatingInSA": false,
+      "OperatingInTAS": false,
+      "OperatingInVIC": false,
+      "OperatingInWA": false,
+      "OperatingOverseas": false,
+      "OperatingCountries": null,
+      "ActivityPurposeChange": null,
+      "ActivityPurposeChangeDescription": null,
+      "HrFullTimeEmployees": "2",
+      "HrPartTimeEmployees": "8",
+      "HrCasualEmployees": "10",
+      "HrUnpainVolunteers": "10",
+      "HrFteStaff": "2.0000000000",
+      "FinFyeJune": false,
+      "FinSapDate": null,
+      "FinProvideVoluntarily": null,
+      "FinReportFrom": "2023-07-01T00:00:00.0000000Z",
+      "FinReportTo": "2024-06-30T00:00:00.0000000Z",
+      "FinAccrualAccounting": null,
+      "FinReportingType": "Special purpose financial statements",
+      "FinConsolidatedReportFromMiltiple": "No",
+      "FinRelatedPartyTransactions": "No",
+      "FinDocumentedPoliciesRelatedPartyTransactions": null,
+      "KeyManagementPersonnel": false,
+      "NumberOfKeyManagementPersonnel": "0",
+      "TotalPaidKMP": "$0.00",
+      "RelatedPartyTransactions": [],
+      "RelatedPartyDetails": null,
+      "IncomeGovernmentGrants": "0.0000",
+      "IncomeDonationsBequests": "99589376.0000",
+      "RevenueGoodsServices": "0.0000",
+      "RevenueInvestments": "726490.0000",
+      "IncomeOtherReceipts": "0.0000",
+      "RevenueTotal": "100315866.0000",
+      "IncomeOther": "0.0000",
+      "IncomeOtherNeg": null,
+      "IncomeTotalReceipts": "100315866.0000",
+      "ExpenseEmployees": "27114.0000",
+      "ExpenseGrantDonationsInAustralia": "179999.0000",
+      "ExpenseGrantDonationsOutsideAustralia": "0.0000",
+      "ExpensesOther": "1415859.0000",
+      "InterestExpense": "139083.0000",
+      "ExpenseTotal": "1762055.0000",
+      "NetSurplusDeficit": "98553811.0000",
+      "IncomeOtherComprehinsive": "0.0000",
+      "IncomeTotalComprehensive": "98553811.0000",
+      "TotalCurrentAssets": "33579681.0000",
+      "TotalNonCurrentLoansReceivable": "0.0000",
+      "OtherNonCurrentAssets": "463534740.0000",
+      "TotalNonCurrentAssets": "463534740.0000",
+      "TotalAssets": "497114421.0000",
+      "TotalCurrentLiabilities": "61600717.0000",
+      "NonCurrentLoansPayable": "329700164.0000",
+      "OtherNonCurrentLiabilities": "0.0000",
+      "TotalNonCurrentLiabilities": "329700164.0000",
+      "TotalLiabilities": "391300881.0000",
+      "NetAssetsLiabilities": "105813540.0000",
+      "HasSubmittedToRegulator": false,
+      "IncorporationStatus": null,
+      "AssetsandLiabilitiesDescription": null,
+      "FinReportACT": false,
+      "FinReportNSW": false,
+      "FinReportNT": false,
+      "FinReportQLD": false,
+      "FinReportSA": false,
+      "FinReportTAS": false,
+      "FinReportVIC": false,
+      "FinReportWA": false,
+      "IsIncorporatedAssociation": false,
+      "Regulator": null,
+      "RegulatorOtherDetails": null,
+      "RegulatorPrograms": null,
+      "RegulatorStates": false,
+      "RegulatorIncorporatedAssociationACT": false,
+      "RegulatorIncorporatedAssociationNSW": false,
+      "RegulatorIncorporatedAssociationNT": false,
+      "RegulatorIncorporatedAssociationQLD": false,
+      "RegulatorIncorporatedAssociationSA": false,
+      "RegulatorIncorporatedAssociationTAS": false,
+      "RegulatorIncorporatedAssociationVIC": false,
+      "RegulatorIncorporatedAssociationWA": false,
+      "RegulatedACT": false,
+      "RegulatedNSW": false,
+      "RegulatedNT": false,
+      "RegulatedQLD": false,
+      "RegulatedSA": false,
+      "RegulatedTAS": false,
+      "RegulatedVIC": false,
+      "RegulatedWA": false,
+      "HoursPaid": null,
+      "HoursVolunteer": null,
+      "HoursTotal": null,
+      "RegulatorIncorporatedAssociationNumberACT": null,
+      "RegulatorAGMDateACT": null,
+      "RegulatorMetRequirementACT": false,
+      "RegulatorIncorporatedAssociationNumberNSW": null,
+      "RegulatorIncorporatedAssociationNumberNT": null,
+      "RegulatorAGMDateNT": null,
+      "RegulatorIncorporatedAssociationNumberQLD": null,
+      "RegulatorIncorporatedAssociationNumberSA": null,
+      "RegulatorIncorporatedAssociationNumberTAS": null,
+      "RegulatorIncorporatedAssociationNumberVIC": null,
+      "RegulatorAGMDateVIC": null,
+      "RegulatorIncorporatedAssociationNumberWA": null,
+      "RegulatorAGMDateWA": null,
+      "RegulatorMetRequirementWA": null,
+      "RegulatorFundRaising": "No",
+      "RegulatorFundRaisingACT": false,
+      "RegulatorFundRaisingNSW": false,
+      "RegulatorFundRaisingNT": false,
+      "RegulatorFundRaisingQLD": false,
+      "RegulatorFundRaisingSA": false,
+      "RegulatorFundRaisingTAS": false,
+      "RegulatorFundRaisingVIC": false,
+      "RegulatorFundRaisingWA": false,
+      "FundRaisingNumberACT": null,
+      "FundRaisingNumberNSW": null,
+      "FundRaisingNumberQLD": null,
+      "FundRaisingNumberSA": null,
+      "FundRaisingNumberTAS": null,
+      "FundRaisingNumberVIC": null,
+      "FundRaisingNumberWA": null,
+      "RegulatorFundRaisingOnline": false,
+      "GovDocAccurate": null,
+      "ResponsiblePersonAccurate": null,
+      "SubTypesAccurate": null,
+      "Programs": [
+        {
+          "Name": "NDIS HOUSING PROGRAM",
+          "ProgramLocations": [
+            {
+              "Name": "Australia",
+              "FormattedAddress": "Australia",
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": -25.274398,
+                "Longitude": 133.775136
+              },
+              "uuid": "19ca0bd2-c214-f011-998a-00224893e05b"
+            }
+          ],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "People at risk of homelessness/ people experiencing homelessness",
+            "Financially disadvantaged people"
+          ],
+          "ProgramWeblink": "www.sunrisefoundation.com.au",
+          "ProgramClassification": "Housing for people with disabilities",
+          "ProgramClassificationID": "542",
+          "ProgramCountries": [],
+          "AisUuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+          "uuid": "0bca0bd2-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "Domestic Violence victim support and housing",
+          "ProgramLocations": [
+            {
+              "Name": "Sydney",
+              "FormattedAddress": "Sydney NSW, Australia",
+              "DisplayName": "Sydney NSW, Australia",
+              "Marker": {
+                "Latitude": -33.8688197,
+                "Longitude": 151.2092955
+              },
+              "uuid": "31ca0bd2-c214-f011-998a-00224893e05b"
+            }
+          ],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Families",
+            "Victims of crime (including family violence)",
+            "Females",
+            "Other charities"
+          ],
+          "ProgramWeblink": null,
+          "ProgramClassification": "Domestic and family violence",
+          "ProgramClassificationID": "669",
+          "ProgramCountries": [],
+          "AisUuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+          "uuid": "1bca0bd2-c214-f011-998a-00224893e05b"
+        },
+        {
+          "Name": "Equitishare housing support program for DVictims; young families; and other disadvantaged groups",
+          "ProgramLocations": [
+            {
+              "Name": "Australia",
+              "FormattedAddress": "Australia",
+              "DisplayName": "Australia",
+              "Marker": {
+                "Latitude": -25.274398,
+                "Longitude": 133.775136
+              },
+              "uuid": "50ca0bd2-c214-f011-998a-00224893e05b"
+            }
+          ],
+          "OperatesOnline": false,
+          "ProgramBeneficiaries": [
+            "Adults - aged 25 to under 65",
+            "Adults - aged 65 and over",
+            "Families",
+            "People in rural/regional/remote communities",
+            "Financially disadvantaged people",
+            "People at risk of homelessness/ people experiencing homelessness",
+            "People with disabilities",
+            "Females",
+            "Males",
+            "General community in Australia"
+          ],
+          "ProgramWeblink": null,
+          "ProgramClassification": "Housing development",
+          "ProgramClassificationID": "168",
+          "ProgramCountries": [],
+          "AisUuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+          "uuid": "33ca0bd2-c214-f011-998a-00224893e05b"
+        }
+      ],
+      "type": "annual_information_statement",
+      "entityTypeVersion": "",
+      "entityVersion": "1595185018",
+      "timeStamp": "2025-04-08T21:45:50.0000000Z",
+      "uuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+      "__normalized": true
+    }
+  },
+  "ais_acquisition_failure": null,
+  "ais_source_native_nonempty_fields": {
+    "StatementYear": "2024",
+    "LegalName": "SUNRISE FOUNDATION LIMITED",
+    "Abn": "37646526132",
+    "CharityUuid": "f1413902-d240-eb11-bf72-000d3ad1ce4e",
+    "CharityEmail": "admin@sunrisefoundation.com.au",
+    "CharityAddressLine1": "Suite 5.01",
+    "CharityAddressLine2": "Level 5",
+    "CharityAddressSuburb": "Sydney",
+    "CharityAddressStateOrProvince": "NSW",
+    "CharityAddressPostalCode": "2000",
+    "CharityAddressCountry": "Australia",
+    "CharitySize": "Large",
+    "ReliefOfPoverty": false,
+    "AdvancementOfEducation": false,
+    "AdvancementOfReligion": false,
+    "ChildCareServices": false,
+    "OtherPurposes": "False",
+    "BasicReligiousCharity": false,
+    "ReportingGroupFlag": false,
+    "Website": "www.sunrisefoundation.com.au",
+    "ActivityOperating": true,
+    "ActivityCultureAndArt": false,
+    "ActivitySports": false,
+    "ActivityRecreationSocialClub": false,
+    "ActivityPrimarySecondaryEducation": false,
+    "ActivityHigherEducation": false,
+    "ActivityOtherEducation": false,
+    "ActivityResearch": false,
+    "ActivityHealthRehabilitation": false,
+    "ActivityAgedCare": false,
+    "ActivityMentalHealthCrisisIntervention": false,
+    "ActivityOtherHealthServices": false,
+    "ActivitySocialServices": false,
+    "ActivityEmergencyNRelief": false,
+    "ActivityIncomeSupportNMaintenance": false,
+    "ActivityEnvironmental": false,
+    "ActivityAnimalProtection": false,
+    "ActivityEconomicSocialCommunity": false,
+    "ActivityHousing": false,
+    "ActivityEmploymentNTraining": false,
+    "ActivityAdvocacyNCivic": false,
+    "ActivityLawNLegalServices": false,
+    "ActivityGrantMaking": false,
+    "ActivityPhilanthropicPromotion": false,
+    "ActivityInternational": false,
+    "ActivityReligious": false,
+    "ActivityPolitical": false,
+    "ActivityOther": false,
+    "ActivityPersuitPurposesDescription": "provided considerable housing to bonafide disabled particpants under NDIS parameters; provided support programs and housing for domestic violence survivors and their familes.",
+    "ActivityTransferringFundsGoods": false,
+    "ActivityOperatingOverseas": false,
+    "ActivityInternationalOther": false,
+    "BeneficiaryGeneral": false,
+    "BeneficiaryWomen": false,
+    "BeneficiaryMen": false,
+    "BeneficiaryEarlyChildhood": false,
+    "BeneficiaryChildren": false,
+    "BeneficiaryYouth": false,
+    "BeneficiaryAdults": false,
+    "BeneficiarySeniors": false,
+    "BeneficiaryAllAges": false,
+    "BeneficiaryAboriginalTorres": false,
+    "BeneficiaryLGBT": false,
+    "BeneficiaryMigrantsRefugees": false,
+    "BeneficiaryOtherCharities": false,
+    "BeneficiaryEthnic": false,
+    "BeneficiaryOverseas": false,
+    "BeneficiaryRuralRegionalRemote": false,
+    "BeneficiaryFamilies": false,
+    "BeneficiaryFinanciallyDisadvantaged": false,
+    "BeneficiaryHomelessnessRisk": false,
+    "BeneficiaryChronicIllness": false,
+    "BeneficiaryPeopleWithDisability": false,
+    "BeneficiaryOffenderFamilies": false,
+    "BeneficiaryUnemployed": false,
+    "BeneficiaryVeteranFamilies": false,
+    "BeneficiaryCrimeVictims": false,
+    "BeneficiaryDisasterVictims": false,
+    "BeneficiaryOther": false,
+    "OperatingInACT": false,
+    "OperatingInNSW": false,
+    "OperatingInNT": false,
+    "OperatingInQLD": false,
+    "OperatingInSA": false,
+    "OperatingInTAS": false,
+    "OperatingInVIC": false,
+    "OperatingInWA": false,
+    "OperatingOverseas": false,
+    "HrFullTimeEmployees": "2",
+    "HrPartTimeEmployees": "8",
+    "HrCasualEmployees": "10",
+    "HrUnpainVolunteers": "10",
+    "HrFteStaff": "2.0000000000",
+    "FinFyeJune": false,
+    "FinReportFrom": "2023-07-01T00:00:00.0000000Z",
+    "FinReportTo": "2024-06-30T00:00:00.0000000Z",
+    "FinReportingType": "Special purpose financial statements",
+    "FinConsolidatedReportFromMiltiple": "No",
+    "FinRelatedPartyTransactions": "No",
+    "KeyManagementPersonnel": false,
+    "NumberOfKeyManagementPersonnel": "0",
+    "TotalPaidKMP": "$0.00",
+    "IncomeGovernmentGrants": "0.0000",
+    "IncomeDonationsBequests": "99589376.0000",
+    "RevenueGoodsServices": "0.0000",
+    "RevenueInvestments": "726490.0000",
+    "IncomeOtherReceipts": "0.0000",
+    "RevenueTotal": "100315866.0000",
+    "IncomeOther": "0.0000",
+    "IncomeTotalReceipts": "100315866.0000",
+    "ExpenseEmployees": "27114.0000",
+    "ExpenseGrantDonationsInAustralia": "179999.0000",
+    "ExpenseGrantDonationsOutsideAustralia": "0.0000",
+    "ExpensesOther": "1415859.0000",
+    "InterestExpense": "139083.0000",
+    "ExpenseTotal": "1762055.0000",
+    "NetSurplusDeficit": "98553811.0000",
+    "IncomeOtherComprehinsive": "0.0000",
+    "IncomeTotalComprehensive": "98553811.0000",
+    "TotalCurrentAssets": "33579681.0000",
+    "TotalNonCurrentLoansReceivable": "0.0000",
+    "OtherNonCurrentAssets": "463534740.0000",
+    "TotalNonCurrentAssets": "463534740.0000",
+    "TotalAssets": "497114421.0000",
+    "TotalCurrentLiabilities": "61600717.0000",
+    "NonCurrentLoansPayable": "329700164.0000",
+    "OtherNonCurrentLiabilities": "0.0000",
+    "TotalNonCurrentLiabilities": "329700164.0000",
+    "TotalLiabilities": "391300881.0000",
+    "NetAssetsLiabilities": "105813540.0000",
+    "HasSubmittedToRegulator": false,
+    "FinReportACT": false,
+    "FinReportNSW": false,
+    "FinReportNT": false,
+    "FinReportQLD": false,
+    "FinReportSA": false,
+    "FinReportTAS": false,
+    "FinReportVIC": false,
+    "FinReportWA": false,
+    "IsIncorporatedAssociation": false,
+    "RegulatorStates": false,
+    "RegulatorIncorporatedAssociationACT": false,
+    "RegulatorIncorporatedAssociationNSW": false,
+    "RegulatorIncorporatedAssociationNT": false,
+    "RegulatorIncorporatedAssociationQLD": false,
+    "RegulatorIncorporatedAssociationSA": false,
+    "RegulatorIncorporatedAssociationTAS": false,
+    "RegulatorIncorporatedAssociationVIC": false,
+    "RegulatorIncorporatedAssociationWA": false,
+    "RegulatedACT": false,
+    "RegulatedNSW": false,
+    "RegulatedNT": false,
+    "RegulatedQLD": false,
+    "RegulatedSA": false,
+    "RegulatedTAS": false,
+    "RegulatedVIC": false,
+    "RegulatedWA": false,
+    "RegulatorMetRequirementACT": false,
+    "RegulatorFundRaising": "No",
+    "RegulatorFundRaisingACT": false,
+    "RegulatorFundRaisingNSW": false,
+    "RegulatorFundRaisingNT": false,
+    "RegulatorFundRaisingQLD": false,
+    "RegulatorFundRaisingSA": false,
+    "RegulatorFundRaisingTAS": false,
+    "RegulatorFundRaisingVIC": false,
+    "RegulatorFundRaisingWA": false,
+    "RegulatorFundRaisingOnline": false,
+    "Programs": [
+      {
+        "Name": "NDIS HOUSING PROGRAM",
+        "ProgramLocations": [
+          {
+            "Name": "Australia",
+            "FormattedAddress": "Australia",
+            "DisplayName": "Australia",
+            "Marker": {
+              "Latitude": -25.274398,
+              "Longitude": 133.775136
+            },
+            "uuid": "19ca0bd2-c214-f011-998a-00224893e05b"
+          }
+        ],
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "People at risk of homelessness/ people experiencing homelessness",
+          "Financially disadvantaged people"
+        ],
+        "ProgramWeblink": "www.sunrisefoundation.com.au",
+        "ProgramClassification": "Housing for people with disabilities",
+        "ProgramClassificationID": "542",
+        "ProgramCountries": [],
+        "AisUuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+        "uuid": "0bca0bd2-c214-f011-998a-00224893e05b"
+      },
+      {
+        "Name": "Domestic Violence victim support and housing",
+        "ProgramLocations": [
+          {
+            "Name": "Sydney",
+            "FormattedAddress": "Sydney NSW, Australia",
+            "DisplayName": "Sydney NSW, Australia",
+            "Marker": {
+              "Latitude": -33.8688197,
+              "Longitude": 151.2092955
+            },
+            "uuid": "31ca0bd2-c214-f011-998a-00224893e05b"
+          }
+        ],
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Families",
+          "Victims of crime (including family violence)",
+          "Females",
+          "Other charities"
+        ],
+        "ProgramWeblink": null,
+        "ProgramClassification": "Domestic and family violence",
+        "ProgramClassificationID": "669",
+        "ProgramCountries": [],
+        "AisUuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+        "uuid": "1bca0bd2-c214-f011-998a-00224893e05b"
+      },
+      {
+        "Name": "Equitishare housing support program for DVictims; young families; and other disadvantaged groups",
+        "ProgramLocations": [
+          {
+            "Name": "Australia",
+            "FormattedAddress": "Australia",
+            "DisplayName": "Australia",
+            "Marker": {
+              "Latitude": -25.274398,
+              "Longitude": 133.775136
+            },
+            "uuid": "50ca0bd2-c214-f011-998a-00224893e05b"
+          }
+        ],
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "People in rural/regional/remote communities",
+          "Financially disadvantaged people",
+          "People at risk of homelessness/ people experiencing homelessness",
+          "People with disabilities",
+          "Females",
+          "Males",
+          "General community in Australia"
+        ],
+        "ProgramWeblink": null,
+        "ProgramClassification": "Housing development",
+        "ProgramClassificationID": "168",
+        "ProgramCountries": [],
+        "AisUuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+        "uuid": "33ca0bd2-c214-f011-998a-00224893e05b"
+      }
+    ],
+    "type": "annual_information_statement",
+    "entityVersion": "1595185018",
+    "timeStamp": "2025-04-08T21:45:50.0000000Z",
+    "uuid": "e1c90bd2-c214-f011-998a-00224893e05b",
+    "__normalized": true
+  },
+  "report_discovery": {
+    "basis": "ACNC profile Documents collection (discover_public_sources.py semantics)",
+    "selected_by": "baseline_corpus.select_filing_documents structured Year/type metadata",
+    "selected": [
+      {
+        "role": "annual_report",
+        "type": "Annual Report",
+        "Date": "2025-04-22T00:00:00.0000000",
+        "Year": "2024",
+        "Title": "Sunrise Foundation Social Impact Report  2024 COMPRESSED.pdf",
+        "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Annual%20Report-38732922-0e1f-f011-998a-00224812695f-Sunrise_Foundation_Social_Impact_Report__2024_COMPRESSED.pdf",
+        "uuid": "38732922-0e1f-f011-998a-00224812695f"
+      },
+      {
+        "role": "financial_report",
+        "type": "Financial Report",
+        "Date": "2025-04-09T00:00:00.0000000",
+        "Year": "2024",
+        "Title": "SPECIAL PURPOSE MANAGEMENT ACCOUNTS Sunrise Foundation 30-6-24 001.pdf",
+        "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Financial%20Report-b2b943cb-c214-f011-998a-6045bde677ba-SPECIAL_PURPOSE_MANAGEMENT_ACCOUNTS_Sunrise_Foundation_30-6-24_001.pdf",
+        "uuid": "b2b943cb-c214-f011-998a-6045bde677ba"
+      }
+    ]
+  },
+  "filings": [
+    {
+      "role": "annual_report",
+      "metadata": {
+        "role": "annual_report",
+        "type": "Annual Report",
+        "Date": "2025-04-22T00:00:00.0000000",
+        "Year": "2024",
+        "Title": "Sunrise Foundation Social Impact Report  2024 COMPRESSED.pdf",
+        "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Annual%20Report-38732922-0e1f-f011-998a-00224812695f-Sunrise_Foundation_Social_Impact_Report__2024_COMPRESSED.pdf",
+        "uuid": "38732922-0e1f-f011-998a-00224812695f"
+      },
+      "outcome": "acquired",
+      "resolved_url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Annual%20Report-38732922-0e1f-f011-998a-00224812695f-Sunrise_Foundation_Social_Impact_Report__2024_COMPRESSED.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "sha256": "f3fcd0b33f7396860b4eba44e80a05db03ec48d4683bd66922d0fabc4e0facda",
+      "bytes": 771559,
+      "representation": {
+        "readiness": "partial",
+        "page_gaps": [
+          4
+        ],
+        "gap_reasons": {
+          "low_text": [
+            4
+          ],
+          "image_only_or_scanned": [
+            4
+          ],
+          "visual_relationships_unresolved": []
+        },
+        "native_text_pages": 15,
+        "visual_escalations": 0,
+        "source_sha256": "f3fcd0b33f7396860b4eba44e80a05db03ec48d4683bd66922d0fabc4e0facda",
+        "page_count": 16,
+        "extracted_page_count": 16,
+        "pages": [
+          {
+            "page": 1,
+            "text": "SOCIAL\nIMPACT\nREPORT\n2024\nHOUSING WITH HEART",
+            "tables": [],
+            "native_text_characters": 44,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.772181,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 2,
+            "text": "These achievements reflect our dedication to providing diverse housing solutions\nthat cater to the unique needs of individuals and families at risk of or experiencing\nhomelessness. We are especially proud to have provided homes for 15 people,\nincluding women and their children, fleeing domestic abuse, supporting them on\ntheir journey to a better life.\nOur success is a testament to the dedication of our team, the generosity of our\ndonors, and the strength of our partnerships with charities, SDA providers, and\nother stakeholders. We are deeply grateful for the collaborative spirit and shared\nvision that fuels our work.\nAs we look towards 2025, we recognise the ongoing challenges of the housing crisis\nin Australia. We are energised by the opportunity to make a tangible difference and\nremain committed to strategically assessing the market to identify areas of greatest\nneed, acquiring and developing properties across all our programs, and securing\nnew funding opportunities to support our continued growth.\nWith your continued support, we are confident in our ability to continue reshaping\nthe concept of \"home.\" We strive to provide not just safe and secure housing, but to\ntransform the way we, as a society, perceive and value the meaning of home.\nLetter from the Board\nSincerely,\nIn 2024, the Sunrise Foundation experienced a period of significant growth and\npositive change. We are immensely proud of the impact we have achieved in such\na short time, driven by our unwavering commitment to addressing homelessness\nin Australia. Our mission is to provide a pathway to safe, stable, and affordable\nhousing, and in 2024, we made remarkable strides towards fulfilling this vision.\nKey Achievements:\nCommunity Housing Program: Our New South Wales Community Housing\nProgram successfully launched, providing Social, Transitional and Affordable\nHousing pathways to those in need of assistance. We facilitated safe havens for\nwomen and children escaping domestic abuse and saw essential workers and\nfamilies facing rental stress find affordable rental properties to call home.\nSDA-Compliant Housing: We emerged as a recognised leader in SDA-compliant\nhousing, completing 8 dwellings and commencing construction on 83 more across\nNew South Wales, Victoria, and Western Australia. We look forward to expanding\nthe program further and providing more SDA-compliant housing throughout 2025\nand beyond.\nEquitiShare: Recognising that homeownership is a cornerstone of financial\nsecurity and a dream for many Australians, we introduced EquitiShare. This\ninnovative program is designed to bridge the gap between renting and owning,\nmaking homeownership more accessible and affordable. By reducing the barriers\nto entry, EquitiShare empowers individuals and families to achieve their\nhomeownership goals sooner, fostering long-term stability and societal wellbeing.\nThis initiative reflects our deep commitment to providing not just housing, but\ncreating pathways for individuals and families to build a brighter future.",
+            "tables": [],
+            "native_text_characters": 3015,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.395353,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 3,
+            "text": "These achievements reflect our dedication to providing diverse housing solutions\nthat cater to the unique needs of individuals and families at risk of or experiencing\nhomelessness. We are especially proud to have provided homes for 15 people,\nincluding women and their children, fleeing domestic abuse, supporting them on\ntheir journey to a better life.\nOur success is a testament to the dedication of our team, the generosity of our\ndonors, and the strength of our partnerships with charities, SDA providers, and\nother stakeholders. We are deeply grateful for the collaborative spirit and shared\nvision that fuels our work.\nAs we look towards 2025, we recognise the ongoing challenges of the housing crisis\nin Australia. We are energised by the opportunity to make a tangible difference and\nremain committed to strategically assessing the market to identify areas of greatest\nneed, acquiring and developing properties across all our programs, and securing\nnew funding opportunities to support our continued growth.\nWith your continued support, we are confident in our ability to continue reshaping\nthe concept of \"home.\" We strive to provide not just safe and secure housing, but to\ntransform the way we, as a society, perceive and value the meaning of home.\nLetter from the Board\nSincerely,\nIn 2024, the Sunrise Foundation experienced a period of significant growth and\npositive change. We are immensely proud of the impact we have achieved in such\na short time, driven by our unwavering commitment to addressing homelessness\nin Australia. Our mission is to provide a pathway to safe, stable, and affordable\nhousing, and in 2024, we made remarkable strides towards fulfilling this vision. John Batiste\nChairman of the Board of Directors\nKey Achievements:\nSunrise Foundation.\nCommunity Housing Program: Our New South Wales Community Housing\nProgram successfully launched, providing Social, Transitional and Affordable\nHousing pathways to those in need of assistance. We facilitated safe havens for\nwomen and children escaping domestic abuse and saw essential workers and\nfamilies facing rental stress find affordable rental properties to call home.\nSDA-Compliant Housing: We emerged as a recognised leader in SDA-compliant\nhousing, completing 8 dwellings and commencing construction on 83 more across\nNew South Wales, Victoria, and Western Australia. We look forward to expanding\nthe program further and providing more SDA-compliant housing throughout 2025\nand beyond.\nEquitiShare: Recognising that homeownership is a cornerstone of financial\nsecurity and a dream for many Australians, we introduced EquitiShare. This\ninnovative program is designed to bridge the gap between renting and owning,\nmaking homeownership more accessible and affordable. By reducing the barriers\nto entry, EquitiShare empowers individuals and families to achieve their\nhomeownership goals sooner, fostering long-term stability and societal wellbeing.\nThis initiative reflects our deep commitment to providing not just housing, but\ncreating pathways for individuals and families to build a brighter future.",
+            "tables": [],
+            "native_text_characters": 3083,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.044704,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 4,
+            "text": "SOCIAL\nIMPACT\nREPORT\n2024",
+            "tables": [],
+            "native_text_characters": 25,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.994271,
+            "graphic_structure": false,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 5,
+            "text": "Content\nAbout Sunrise Foundation 05\nOur Mission 05\nOur Values 06\nOur Model 07\nImpact Highlights 08\nNational Response to Housing Need 09\nAddressing Housing Needs 10\nThe Community Housing Program 11\nSDA-Compliant Housing 12\nEquitiShare 12\nA Collaborative Approach 13\nStriving for Continuous Improvement 14",
+            "tables": [],
+            "native_text_characters": 303,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.978056,
+            "graphic_structure": false,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 6,
+            "text": "About Sunrise Foundation\nThe Sunrise Foundation is a charitable organisation dedicated to\nincreasing the supply of affordable housing solutions in Australia.\nFounded by property and finance expert Greg Huxley, the\nFoundation was established in response to the urgent need for\naffordable housing options across the country.\nThrough strategic partnerships and innovative programs, the\nSunrise Foundation has achieved significant progress in a short\nperiod. Our innovative model combines charitable aims with\nsustainable financial strategies, driven by a deep passion for\ncreating a brighter future for housing in Australia and a\ncommitment to making a lasting social impact.\nOur Mission\nSunrise Foundation's mission is\nto alleviate poverty and provide\nhousing assistance to\ndisadvantaged Australians.\nWe focus on developing\nproperties and funding various\nforms of housing for those at risk\nof or experiencing homelessness,\nincluding domestic abuse\nsurvivors, people with disabilities,\nand families struggling with\nrental stress.\nThrough support and subsidised\nhousing, we strive to make a\npositive difference in the lives of\nvulnerable members of our\ncommunity.\n05",
+            "tables": [],
+            "native_text_characters": 1162,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.611374,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 7,
+            "text": "Our Values\nThe Sunrise Foundation is committed to upholding the following\nvalues:\nInnovation: Integrity:\nPioneering Maintaining the\nnew approaches highest ethical\nto address standards in all\nhousing needs. our operations.\nSustainability:\nEnsuring our\nprojects have a\nlasting, positive\nimpact.\nCollaboration:\nWorking effectively\nwith stakeholders\nto achieve\ncommon goals.\nThese values form\nthe foundation of\nCompassion:\nour commitment\nDemonstrating\nto providing\nempathy and\nsupport and\nunderstanding\nresources to those\ntowards those\nin need.\nwe serve.\n06",
+            "tables": [],
+            "native_text_characters": 553,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.38262,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 8,
+            "text": "Our Model\nSunrise Foundation's rapid\ngrowth in 2024 is attributed\nto a highly experienced and\nwell-connected Board of\nDirectors, bringing together\nextensive governmental and\nindustry networks, coupled\nwith access to deep financial\nand property expertise.\n07",
+            "tables": [],
+            "native_text_characters": 257,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.990328,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 9,
+            "text": "Impact Highlights\nThe Foundation is thrilled with the remarkable progress achieved\nin 2024. Key successes include:\n15 Domestic Violence Survivors Housed:\nProviding homes for 15 people, including\nwomen and their children, who had\nexperienced domestic abuse, freeing up 10\nsafe refuge spaces for others in urgent need.\nEquitiShare Launch: Community Housing\nIntroducing EquitiShare, an Program Launch:\ninnovative program making The successful launch of our\nhomeownership more community housing program\naccessible to Australians. in New South Wales.\n83 SDA Construction:\nConstructing 8 SDA-compliant dwellings\nacross New South Wales, Victoria, and\nWestern Australia, with another 83\nunderway.\nSpecialist Disability Accommodation: 25\nHousing 25 people with disabilities in\nSDA-compliant homes in New South\nWales and Victoria, with 42 additional\nproperties released for occupancy.\nAffordable Housing:\n40\nOffering affordable housing to 4 young\ncouples and families, including essential\nworkers, and releasing 40 additional homes\nfor affordable housing, with hundreds of\napplications currently being processed.\n08",
+            "tables": [],
+            "native_text_characters": 1105,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.348902,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 10,
+            "text": "National Response\nto Housing Need\nThe Sunrise Foundation is dedicated to providing housing solutions\nacross Australia. In 2024, we demonstrated this commitment by\nacquiring properties in regional and suburban locations\nnationwide.\nSDA Property EquitiShare Community Housing\n09",
+            "tables": [],
+            "native_text_characters": 276,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.227604,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 11,
+            "text": "Addressing Housing Needs\nWe recognise the diverse housing needs of individuals and families\nat risk of or experiencing homelessness. Our expanding range of\nprograms includes:\nSocial and\nAffordable\nTransitional\nHousing:\nHousing:\nOffering subsidised\nProviding safe and\nhousing for low to\nsupportive housing for\nmoderate-income earners\nwomen and children\nfacing rental stress.\nescaping domestic abuse.\nSDA\nEquitiShare:\nCompliant\nHousing: A cutting-edge program\ndesigned to make\nhomeownership more\nDelivering specialised\naffordable and\nhousing for people with\naccessible.\ndisabilities.\n10",
+            "tables": [],
+            "native_text_characters": 584,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.595841,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 12,
+            "text": "+750\napplications\nreceived for\navailable apartments.\nThe Community\nHousing Program\nCommunity housing programs play a vital role in providing safe\nand affordable housing options for vulnerable populations. These\nprograms offer diverse housing solutions, including social housing,\ntransitional housing, and affordable housing, to meet the unique\nneeds of individuals and families facing homelessness or housing\ninsecurity.\nBy providing access to stable and affordable housing, community\nhousing programs empower individuals and families to rebuild\ntheir lives, enhance their well-being, and achieve greater economic\nsecurity. These programs serve as a critical safety net, preventing\nhomelessness and breaking the cycle of poverty.\nOur social and transitional housing program has launched in New\nSouth Wales, with plans for expansion into Victoria soon. Our\naffordable housing program operates in both New South Wales\nand Victoria, experiencing strong demand with over 750\napplications received for available apartments. We are committed\nto expanding our property portfolio to continue serving this vital\nsector.\n11",
+            "tables": [],
+            "native_text_characters": 1113,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.40261,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 13,
+            "text": "SDA-Compliant Housing\nSunrise Foundation has extensive experience in SDA-compliant\nhousing. In 2024, we became a recognised industry leader,\noverseeing the development and completion of compliant\ndwellings, completing 8 certified builds for NDIS enrolment, with\nanother 83 underway.\nEquitiShare\nWe have allocated a portion of our properties for sale to\nAustralians who face barriers to homeownership. Through\nEquitiShare, we sell homes to eligible buyers while retaining a\npartial interest of up to 20%, making the purchase more\naffordable. New homeowners have the option to buy out our\nshare at any time, or we receive our share of the proceeds upon\nthe eventual sale of the property.\nEquitiShare is a unique program, unlike any other in the market. It\nis not vendor finance, so new homeowners do not carry the\nburden of additional debt. It is a true equity partnership, with\nSunrise Foundation sharing in any depreciation with the\nhomeowner and gifting any property value increase over 10% to\nthe homeowner. As a charity with a clear purpose, we are\ndedicated to providing a pathway to homeownership for everyday\nAustralians.\n12",
+            "tables": [],
+            "native_text_characters": 1130,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.038382,
+            "graphic_structure": false,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 14,
+            "text": "A Collaborative Approach\nOur impact in 2024 is a direct result of successful collaborations\nwith various organisations, including charities offering safe refuge\nand outreach services to domestic abuse survivors. We express\nour gratitude to these charities for their invaluable expertise and\nongoing support for our social and transitional tenants.\nWe also extend our thanks to builders, SDA and SIL providers who\nwork alongside us to ensure residents are well-housed, as well as\nour many other supporters, including key service provider\nEquitiFund Group, our financiers, real estate agencies, donors,\nstaff, and countless others.\n13",
+            "tables": [],
+            "native_text_characters": 632,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.570262,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 15,
+            "text": "Striving for Continuous\nImprovement\nThe Sunrise Foundation is excited about the future and remains\nfocused on:\nEnhancing our market reach.\nStrategically assessing the market\nto identify areas of greatest need\nand acquire properties across all\nour programs.\nIncreasing funding\nopportunities with government\nand private partners.\nTogether,\nwe can continue to\ncreate a brighter future for\nhousing in Australia.\n14",
+            "tables": [],
+            "native_text_characters": 410,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.279112,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 16,
+            "text": "HOUSING WITH HEART\n1800 043 671 Head Office: Suite 5.01, Level 5, 64 Castlereagh\nadmin@sunrisefoundation.com.au Street, Sydney NSW 2000\nwww.sunrisefoundation.com.au Postal: PO Box R1438, Royal Exchange NSW 1225",
+            "tables": [],
+            "native_text_characters": 210,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": false,
+            "page_state": "native_text_sufficient",
+            "page_states": [
+              "native_text_sufficient"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.990473,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": null,
+            "visual_observations": [],
+            "vision_escalation": null
+          }
+        ]
+      }
+    },
+    {
+      "role": "financial_report",
+      "metadata": {
+        "role": "financial_report",
+        "type": "Financial Report",
+        "Date": "2025-04-09T00:00:00.0000000",
+        "Year": "2024",
+        "Title": "SPECIAL PURPOSE MANAGEMENT ACCOUNTS Sunrise Foundation 30-6-24 001.pdf",
+        "Url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Financial%20Report-b2b943cb-c214-f011-998a-6045bde677ba-SPECIAL_PURPOSE_MANAGEMENT_ACCOUNTS_Sunrise_Foundation_30-6-24_001.pdf",
+        "uuid": "b2b943cb-c214-f011-998a-6045bde677ba"
+      },
+      "outcome": "acquired",
+      "resolved_url": "https://acncpubfilesprodstorage.blob.core.windows.net/public/f1413902-d240-eb11-bf72-000d3ad1ce4e-c341bc57-65e0-4dd6-b199-a104a14a96e8-Financial%20Report-b2b943cb-c214-f011-998a-6045bde677ba-SPECIAL_PURPOSE_MANAGEMENT_ACCOUNTS_Sunrise_Foundation_30-6-24_001.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "sha256": "6299076b08bf537eb2df6150f78202177925d78591c685d0e882eeb0abcd12b8",
+      "bytes": 444116,
+      "representation": {
+        "readiness": "partial",
+        "page_gaps": [
+          1,
+          2
+        ],
+        "gap_reasons": {
+          "low_text": [
+            1,
+            2
+          ],
+          "image_only_or_scanned": [
+            1,
+            2
+          ],
+          "visual_relationships_unresolved": []
+        },
+        "native_text_pages": 0,
+        "visual_escalations": 0,
+        "source_sha256": "6299076b08bf537eb2df6150f78202177925d78591c685d0e882eeb0abcd12b8",
+        "page_count": 2,
+        "extracted_page_count": 2,
+        "pages": [
+          {
+            "page": 1,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.04503,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          },
+          {
+            "page": 2,
+            "text": "",
+            "tables": [],
+            "native_text_characters": 0,
+            "table_count": 0,
+            "extraction_method": "native_text_and_tables",
+            "needs_ocr_review": true,
+            "page_state": "image_only_or_scanned",
+            "page_states": [
+              "image_only_or_scanned"
+            ],
+            "visually_nonempty": true,
+            "raster_coverage": 0.055604,
+            "graphic_structure": true,
+            "ocr_text": "",
+            "ocr_warning": "local_ocr_unavailable",
+            "visual_observations": [],
+            "vision_escalation": null
+          }
+        ]
+      }
+    }
+  ],
+  "model_calls": 0
+}

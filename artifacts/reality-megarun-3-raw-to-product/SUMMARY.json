@@ -1,0 +1,65 @@
+﻿{
+    "schema":  "charitygraph.reality-megarun3.raw-report-furnace/v1",
+    "status":  "complete_experimental_no_canonical_mutation",
+    "subjects":  [
+                     "APNIC Foundation Limited",
+                     "Australian charity (ABN 32590616129)",
+                     "Australian charity (ABN 49079016738)",
+                     "Australian Red Cross Society",
+                     "BMDI (ABN 45127505739)",
+                     "Bush Heritage Australia",
+                     "Environmental Justice Australia Limited",
+                     "World Vision Australia"
+                 ],
+    "subject_count":  8,
+    "documents":  7,
+    "report_pages_or_equivalent_attempted":  467,
+    "page_chunk_records":  248,
+    "readable_records":  7,
+    "unreadable_or_unavailable_records":  241,
+    "proposition_count":  117,
+    "abstentions":  [
+                        "No proposition generated from pages whose retained representation is empty.",
+                        "Primary-subject bounded Spike 15 claims were controls only and not replayed."
+                    ],
+    "coverage":  {
+                     "primary_controls":  3,
+                     "reason":  "retained source-records preserve page counts and diagnostics but most report pages have no usable text rows",
+                     "native_empty_pages":  241
+                 },
+    "routing":  {
+                    "note":  "No quota forcing; only financial structured rows were readable.",
+                    "other_routes":  0,
+                    "section_12_finance_resource_flow":  117
+                },
+    "satellites":  [
+                       "statement title",
+                       "statement type",
+                       "comparative amount",
+                       "table/row grouping"
+                   ],
+    "projection_loss":  "A standalone proposition does not preserve full statement/table context; retain it as a satellite.",
+    "review_units":  "one candidate proposition with source record and exact PDF text-row locator",
+    "novel_vs_replayed":  {
+                              "replayed":  0,
+                              "controls":  3,
+                              "novel":  117
+                          },
+    "historical_comparisons":  20,
+    "validation":  {
+                       "json_parse":  "PowerShell ConvertTo-Json produced valid JSON",
+                       "candidate_status_completeness":  true,
+                       "locator_completeness":  true
+                   },
+    "provider_network_s0_github_activity":  "none",
+    "files_changed":  [
+                          "PAGE_CHUNK_LEDGER.jsonl",
+                          "G2_PROPOSITION_LEDGER.json",
+                          "HISTORICAL_STRUCTURE_COMPARISON.json",
+                          "PROGRESSIVE_CARDS.json",
+                          "SUMMARY.json",
+                          "CAMPAIGN_STATE.json",
+                          "READOUT.md"
+                      ],
+    "next_question":  "Can existing authorised OCR/visual machinery recover a representative sample of the empty native pages without a new subsystem?"
+}

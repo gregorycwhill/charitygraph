@@ -1,0 +1,20 @@
+[
+  {
+    "url": "https://abr.business.gov.au/ABN/View?abn=37646526132",
+    "retrieved_at": "2026-09-28T11:13:59.955419+00:00",
+    "outcome": "retrieved",
+    "http_status": 200,
+    "content_type": "text/html",
+    "text": "Current details for ABN 37 646 526 132 | ABN Lookup Current details for ABN 37 646 526 132 | ABN Lookup (function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src = '//www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'GTM-NHD23K'); skip to content Home Search Advanced search Statistical query Tools & resources Web services ABN Lookup tools Deductible gift recipients ATO app Quick links Bulk extract ABN refresh Help Update your ABN details Frequently asked questions Glossary Deductible gift recipients Charitable tax concessions Search tips Entity types Government agencies Search by ABN, ACN or name: ABN Lookup > Search > Current details for ABN 37 646 526 132 Current details for ABN 37 646 526 132 Version: 9.9.7 Current details Historical details Print Email ABN details help Entity name: SUNRISE FOUNDATION LIMITED ABN status: Active from 10 Dec 2020 Entity type: Australian Public Company Goods & Services Tax (GST): Registered from 10 Dec 2020 Main business location: NSW 2323 Australian Charities and Not-for-profits Commission (ACNC) help SUNRISE FOUNDATION LIMITED is registered with the Australian Charities and Not-for-profits Commission (ACNC) as follows: ACNC registration From Registered as a charity view ACNC registration 10 Dec 2020 ASIC registration - ACN or ARBN or ARSN or ARFN 646 526 132 View record on the ASIC website Charity tax concession status help SUNRISE FOUNDATION LIMITED is a Public Benevolent Institution endorsed to access the following tax concessions: Tax concession From GST Concession 10 Dec 2020 Income Tax Exemption 10 Dec 2020 FBT Exemption 10 Dec 2020 Deductible gift recipient status help SUNRISE FOUNDATION LIMITED is endorsed as a Deductible Gift Recipient (DGR) from 10 Dec 2020 . It is covered by Item 1 of the table in section 30-15 of the Income Tax Assessment Act 1997 . Important Please read Deductible Gift Recipient (DGR) information before making a gift. ABN last updated: 16 Apr 2021 Record extracted: 28 Sep 2026 Disclaimer The Registrar makes every reasonable effort to maintain current and accurate information on this site. The Commissioner of Taxation advises that if you use ABN Lookup for information about another entity for taxation purposes and that information turns out to be incorrect, in certain circumstances you will be protected from liability. For more information see disclaimer . Warning Statement If you use ABN Lookup for information about a person or entity that provides financial or investment products or advice, make sure they have an Australian Financial Services (AFS) licence. You can check licenced professional registers here . More information Update your ABN details Planning, starting and growing your business Trading names information Top About us Contact us Privacy policies Disclaimer Other languages Site map",
+    "role": "regulator_identity"
+  },
+  {
+    "url": "https://html.duckduckgo.com/html/?q=%22SUNRISE+FOUNDATION+LIMITED%22+%2237646526132%22",
+    "retrieved_at": "2026-09-28T11:14:00.937376+00:00",
+    "outcome": "retrieved",
+    "http_status": 202,
+    "content_type": "text/html",
+    "text": "--> DuckDuckGo DuckDuckGo Unfortunately, bots use DuckDuckGo too. Please complete the following challenge to confirm this search was made by a human. Select all squares containing a duck: Submit Images not loading? Please email the following code to: error-lite+2a60@duckduckgo.com Code: 2a60 here . //-->",
+    "role": "live_web_discovery"
+  }
+]

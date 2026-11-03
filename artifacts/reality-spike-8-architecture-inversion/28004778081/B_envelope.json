@@ -1,0 +1,1841 @@
+{
+  "propositions": [
+    {
+      "id": "observation:c327dea2b5a3089087a2c1c806e1fe589aadfd762075be5152ca9a10de97b2cb",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "Name",
+      "target_sections": [
+        1
+      ],
+      "value": "World Vision Australia",
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:a18999ac5ea3ebcc02fea234d2240794be655cb49c996c7b45f201e345343e11",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "Activity",
+      "target_sections": [
+        2,
+        4
+      ],
+      "value": "World Vision Australia is at the heart of the World Vision International Partnership which unites people from all walks of life across almost 100 countries. Australian sponsors and donors provide funds for World Vision field offices to run relief and development projects in their countries, with technical support from the World Vision Australia team. At different points along each project s lifecycle, monitoring and evaluation takes place to assess performance against plans, determine what s working and what s not, and define what impact the project is having on people s lives. For projects in Australia, we work directly with First Nations communities to run activities and ensure they are the ones driving their own development.",
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:b7f09de5d8ffe3ab69635fc04010e4363aa7e1383d0c1821c2ca07606cbf8ab2",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "Charity size",
+      "target_sections": [
+        11
+      ],
+      "value": "Large",
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:33b1c5c858c9cec1fe7a402aedb1a7b7b341a3971b2262d40f18d870ecce2a46",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "Employees",
+      "target_sections": [
+        10,
+        11
+      ],
+      "value": {
+        "HrCasualEmployees": "69",
+        "HrFteStaff": "493.0000000000",
+        "HrFullTimeEmployees": "374",
+        "HrPartTimeEmployees": "56",
+        "HrUnpainVolunteers": "13"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:f3d5141f0d4cdb3fa039bbc8d2a9b5a73f48d8471a9720bd5d20efebfb0eb8ab",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "Financials",
+      "target_sections": [
+        13
+      ],
+      "value": {
+        "ExpenseTotal": "326960000.0000",
+        "NetAssetsLiabilities": "73418000.0000",
+        "NetSurplusDeficit": "14024000.0000",
+        "RevenueTotal": "340984000.0000",
+        "TotalAssets": "124386000.0000",
+        "TotalLiabilities": "50968000.0000"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:6f9c1eccd8bea366aa62c7e0f8a0c3d888d33fe7e921e4a674c40d2cec753605",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "Funding",
+      "target_sections": [
+        14
+      ],
+      "value": {
+        "IncomeDonationsBequests": "220611000.0000",
+        "IncomeGovernmentGrants": "61333000.0000",
+        "IncomeOther": "0.0000",
+        "IncomeOtherComprehinsive": "2273000.0000",
+        "IncomeOtherNeg": null,
+        "IncomeOtherReceipts": "55745000.0000",
+        "IncomeTotalComprehensive": "16297000.0000",
+        "IncomeTotalReceipts": "340984000.0000"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:130b45e5885bffbdcf098eca393c3aeb2d786f88ef9b70b0e402b79015181255",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "Fundraising",
+      "target_sections": [
+        8
+      ],
+      "value": "Yes",
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:5301e6bc28671f665cd2e25e0988e982b5840c65b0f7817e4044bcab10cdc2b3",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "Evidence packet",
+      "target_sections": [
+        20
+      ],
+      "value": {
+        "kind": "phase5_frozen_ais",
+        "provider_calls": 0
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:51170a445cc1e95c4840667cea8df7ca10fb988c529025fc3800889d6f96bf5c",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "8aaf1465-3e27-f111-8341-0022489549a2",
+        "Name": "Child and Community Sponsorship",
+        "OperatesOnline": true,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Families",
+          "People with disabilities",
+          "Overseas communities or charities"
+        ],
+        "ProgramClassification": "Community development",
+        "ProgramClassificationID": "118",
+        "ProgramCountries": [
+          "Bangladesh",
+          "Brazil",
+          "Burundi",
+          "Cambodia",
+          "Chad",
+          "Ethiopia",
+          "Indonesia",
+          "Kenya",
+          "Lao People's Democratic Republic",
+          "Malawi",
+          "Mozambique",
+          "Myanmar",
+          "Nepal",
+          "Peru",
+          "Rwanda",
+          "Sri Lanka",
+          "Tanzania, United Republic of",
+          "Uganda",
+          "Viet Nam",
+          "Zambia",
+          "Zimbabwe"
+        ],
+        "ProgramLocations": [],
+        "ProgramWeblink": "https://www.worldvision.com.au/sponsor-a-child",
+        "uuid": "277f0d6b-3e27-f111-8341-0022489549a2"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:5cfe150e2d3786b4e6d4d045bea519d56ba30c3aa0716d680eb00633ae91f702",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "8aaf1465-3e27-f111-8341-0022489549a2",
+        "Name": "Australian First Nations Program",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Families",
+          "Aboriginal and Torres Strait Islander people"
+        ],
+        "ProgramClassification": "Community development",
+        "ProgramClassificationID": "118",
+        "ProgramCountries": [],
+        "ProgramLocations": [
+          {
+            "DisplayName": "Australian Capital Territory, Australia",
+            "Marker": {
+              "Latitude": "-35.4734679",
+              "Longitude": "149.0123679"
+            },
+            "Name": "Australian Capital Territory",
+            "uuid": "6f7f0d6b-3e27-f111-8341-0022489549a2"
+          },
+          {
+            "DisplayName": "New South Wales, Australia",
+            "Marker": {
+              "Latitude": "-31.2532183",
+              "Longitude": "146.921099"
+            },
+            "Name": "New South Wales",
+            "uuid": "747f0d6b-3e27-f111-8341-0022489549a2"
+          },
+          {
+            "DisplayName": "Queensland, Australia",
+            "Marker": {
+              "Latitude": "-22.575197",
+              "Longitude": "144.0847926"
+            },
+            "Name": "Queensland",
+            "uuid": "797f0d6b-3e27-f111-8341-0022489549a2"
+          },
+          {
+            "DisplayName": "South Australia, Australia",
+            "Marker": {
+              "Latitude": "-30.0002315",
+              "Longitude": "136.2091547"
+            },
+            "Name": "South Australia",
+            "uuid": "7e7f0d6b-3e27-f111-8341-0022489549a2"
+          },
+          {
+            "DisplayName": "Tasmania, Australia",
+            "Marker": {
+              "Latitude": "-42.0409059",
+              "Longitude": "146.8087322"
+            },
+            "Name": "Tasmania",
+            "uuid": "837f0d6b-3e27-f111-8341-0022489549a2"
+          },
+          {
+            "DisplayName": "Victoria, Australia",
+            "Marker": {
+              "Latitude": 0,
+              "Longitude": 0
+            },
+            "Name": null,
+            "uuid": "887f0d6b-3e27-f111-8341-0022489549a2"
+          },
+          {
+            "DisplayName": "Western Australia, Australia",
+            "Marker": {
+              "Latitude": "-27.6728168",
+              "Longitude": "121.6283098"
+            },
+            "Name": "Western Australia",
+            "uuid": "8d7f0d6b-3e27-f111-8341-0022489549a2"
+          },
+          {
+            "DisplayName": "Northern Territory, Australia",
+            "Marker": {
+              "Latitude": "-19.4914108",
+              "Longitude": "132.5509603"
+            },
+            "Name": "Northern Territory",
+            "uuid": "927f0d6b-3e27-f111-8341-0022489549a2"
+          }
+        ],
+        "ProgramWeblink": "https://www.worldvision.com.au/global-issues/work-we-do/supporting-indigenous-australia",
+        "uuid": "457f0d6b-3e27-f111-8341-0022489549a2"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:4b5fc0040090d7793401eecde9fad682fc8c6f2fa567bf287810e6e454028bb8",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "8aaf1465-3e27-f111-8341-0022489549a2",
+        "Name": "Climate Action and Resilience",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "People in rural/regional/remote communities",
+          "Overseas communities or charities",
+          "Environment",
+          "Other - Farmers"
+        ],
+        "ProgramClassification": "Climate change",
+        "ProgramClassificationID": "229",
+        "ProgramCountries": [
+          "Ethiopia",
+          "Ghana",
+          "Iraq",
+          "Kenya",
+          "Lebanon",
+          "Papua New Guinea",
+          "Rwanda",
+          "Senegal",
+          "Solomon Islands",
+          "Somalia",
+          "South Sudan",
+          "Timor-Leste",
+          "Uganda",
+          "Vanuatu",
+          "Zambia"
+        ],
+        "ProgramLocations": [],
+        "ProgramWeblink": "https://www.worldvision.com.au/our-work/about-us/what-we-do",
+        "uuid": "997f0d6b-3e27-f111-8341-0022489549a2"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:761d1f1c3a0689839d5501eb80fe2eab746a435188a6e741a63ad161c3e6eba7",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "8aaf1465-3e27-f111-8341-0022489549a2",
+        "Name": "Water Access, Sanitation, and Hygiene",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "People with disabilities",
+          "Overseas communities or charities"
+        ],
+        "ProgramClassification": "Public health",
+        "ProgramClassificationID": "418",
+        "ProgramCountries": [
+          "Afghanistan",
+          "Bangladesh",
+          "Congo, the Democratic Republic of the",
+          "Ethiopia",
+          "Kenya",
+          "Lebanon",
+          "Malawi",
+          "Papua New Guinea",
+          "Rwanda",
+          "Solomon Islands",
+          "South Sudan",
+          "Vanuatu",
+          "Zambia",
+          "Zimbabwe"
+        ],
+        "ProgramLocations": [],
+        "ProgramWeblink": "https://www.worldvision.com.au/",
+        "uuid": "d57f0d6b-3e27-f111-8341-0022489549a2"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:52a9f5a1c3353dd0351892168373b1bd82b32fc48afc19005a6dac337dc919c0",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "8aaf1465-3e27-f111-8341-0022489549a2",
+        "Name": "Humanitarian and Emergency Affairs",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "Victims of disaster",
+          "Overseas communities or charities"
+        ],
+        "ProgramClassification": "Disasters and emergency management",
+        "ProgramClassificationID": "699",
+        "ProgramCountries": [
+          "Afghanistan",
+          "Bangladesh",
+          "Burundi",
+          "Congo, the Democratic Republic of the",
+          "Ethiopia",
+          "Kenya",
+          "Lao People's Democratic Republic",
+          "Lebanon",
+          "Malawi",
+          "Mozambique",
+          "Myanmar",
+          "Nepal",
+          "Philippines",
+          "Somalia",
+          "South Sudan",
+          "Sri Lanka",
+          "Sudan",
+          "Syrian Arab Republic",
+          "Turkiye",
+          "Uganda",
+          "Ukraine",
+          "Vanuatu",
+          "Zimbabwe"
+        ],
+        "ProgramLocations": [],
+        "ProgramWeblink": "https://www.worldvision.com.au/global-issues/world-emergencies",
+        "uuid": "e27f0d6b-3e27-f111-8341-0022489549a2"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:26dfc53f5aef8ec581ce57a601077fd71d4188fb31605bc413fd37126a3a98f6",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "8aaf1465-3e27-f111-8341-0022489549a2",
+        "Name": "Health and Nutrition",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Families",
+          "Adults - aged 65 and over",
+          "Adults - aged 25 to under 65",
+          "Youth - 15 to under 25",
+          "Children - aged 6 to under 15",
+          "People with disabilities",
+          "Overseas communities or charities"
+        ],
+        "ProgramClassification": "Health",
+        "ProgramClassificationID": "264",
+        "ProgramCountries": [
+          "Bangladesh",
+          "Brazil",
+          "Burundi",
+          "Cambodia",
+          "Chad",
+          "Colombia",
+          "Congo, the Democratic Republic of the",
+          "Ethiopia",
+          "Indonesia",
+          "Kenya",
+          "Lao People's Democratic Republic",
+          "Myanmar",
+          "Nepal",
+          "Papua New Guinea",
+          "Sri Lanka",
+          "Tanzania, United Republic of",
+          "Timor-Leste",
+          "Uganda",
+          "Viet Nam",
+          "Zambia",
+          "Zimbabwe"
+        ],
+        "ProgramLocations": [],
+        "ProgramWeblink": "https://www.worldvision.com.au/",
+        "uuid": "9ac60371-3e27-f111-8341-0022489549a2"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:d3572948bc6b5abf277fd2e61bc25dbff95f9eba1484721c155f6f8680b34357",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "8aaf1465-3e27-f111-8341-0022489549a2",
+        "Name": "Agriculture and Food Security",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "People with disabilities",
+          "Females",
+          "Overseas communities or charities"
+        ],
+        "ProgramClassification": "Food security",
+        "ProgramClassificationID": "14",
+        "ProgramCountries": [
+          "Afghanistan",
+          "Burundi",
+          "Congo, the Democratic Republic of the",
+          "Ethiopia",
+          "Indonesia",
+          "Kenya",
+          "Lebanon",
+          "Malawi",
+          "Myanmar",
+          "Papua New Guinea",
+          "Rwanda",
+          "Somalia",
+          "South Sudan",
+          "Sudan",
+          "Syrian Arab Republic",
+          "Timor-Leste",
+          "Turkiye",
+          "Uganda"
+        ],
+        "ProgramLocations": [],
+        "ProgramWeblink": "https://www.worldvision.com.au/our-work/about-us/what-we-do",
+        "uuid": "adc60371-3e27-f111-8341-0022489549a2"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:921570fcc30f94674140308d7e71021a1d8504e672aa2285874e1c5c766d6ecc",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "8aaf1465-3e27-f111-8341-0022489549a2",
+        "Name": "Education and Child Protection",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Aboriginal and Torres Strait Islander people"
+        ],
+        "ProgramClassification": "Education",
+        "ProgramClassificationID": "170",
+        "ProgramCountries": [
+          "Bangladesh",
+          "Brazil",
+          "Burundi",
+          "Cambodia",
+          "Chad",
+          "Congo, the Democratic Republic of the",
+          "Ethiopia",
+          "Indonesia",
+          "Kenya",
+          "Lao People's Democratic Republic",
+          "Lebanon",
+          "Myanmar",
+          "Nepal",
+          "Papua New Guinea",
+          "Peru",
+          "Rwanda",
+          "Sri Lanka",
+          "Syrian Arab Republic",
+          "Tanzania, United Republic of",
+          "Timor-Leste",
+          "Turkiye",
+          "Uganda",
+          "Vanuatu",
+          "Viet Nam",
+          "Zambia",
+          "Zimbabwe"
+        ],
+        "ProgramLocations": [
+          {
+            "DisplayName": "Australia",
+            "Marker": {
+              "Latitude": "-25.274398",
+              "Longitude": "133.775136"
+            },
+            "Name": "Australia",
+            "uuid": "cbc60371-3e27-f111-8341-0022489549a2"
+          }
+        ],
+        "ProgramWeblink": "https://www.worldvision.com.au/our-work/about-us/what-we-do",
+        "uuid": "c0c60371-3e27-f111-8341-0022489549a2"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:ff86c503257779e2fcbf70178faaf60fbfd732977b4056b447f4afbedd7735e1",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "ACNC listed program",
+      "target_sections": [
+        3,
+        5
+      ],
+      "value": {
+        "AisUuid": "8aaf1465-3e27-f111-8341-0022489549a2",
+        "Name": "Economic Empowerment",
+        "OperatesOnline": false,
+        "ProgramBeneficiaries": [
+          "Early childhood - aged under 6",
+          "Children - aged 6 to under 15",
+          "Youth - 15 to under 25",
+          "Adults - aged 25 to under 65",
+          "Adults - aged 65 and over",
+          "Families",
+          "People with disabilities",
+          "Females",
+          "Overseas communities or charities"
+        ],
+        "ProgramClassification": "Economic development",
+        "ProgramClassificationID": "133",
+        "ProgramCountries": [
+          "Bangladesh",
+          "Cambodia",
+          "Iraq",
+          "Kenya",
+          "Lao People's Democratic Republic",
+          "Malawi",
+          "Myanmar",
+          "Papua New Guinea",
+          "Somalia",
+          "Sri Lanka",
+          "Timor-Leste",
+          "Uganda",
+          "Vanuatu",
+          "Viet Nam",
+          "Zambia",
+          "Zimbabwe"
+        ],
+        "ProgramLocations": [],
+        "ProgramWeblink": "https://www.worldvision.com.au/global-issues/work-we-do/poverty/how-world-vision-helps-people-earn-more",
+        "uuid": "cec60371-3e27-f111-8341-0022489549a2"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "regulator_structured",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "structured_fact",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:57a15b726f023573d17eff1e9bb73c4ae031a06bc9d230d6b76b4e0462a21608",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_legal_name",
+      "target_sections": [
+        1
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "1"
+        ],
+        "mapping_status": "assigned_by_source_structured_field",
+        "source_field_path": "#/data/LegalName",
+        "source_field_value": "World Vision Australia",
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:b3bfbba370180586564182bb0d164b1ce2786a20e479028e91288da8e1a7bf32",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_identifier",
+      "target_sections": [
+        1
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "1"
+        ],
+        "mapping_status": "assigned_by_source_structured_field",
+        "source_field_path": "#/data/Abn",
+        "source_field_value": "28004778081",
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:1af4feeba8369038344a7c15904fe98469be091c65575a738e7cb7cf65622eeb",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_source_reporting_year",
+      "target_sections": [
+        1
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "1"
+        ],
+        "mapping_status": "assigned_by_source_structured_field",
+        "source_field_path": "#/data/StatementYear",
+        "source_field_value": "2025",
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:e69c38354ebea66899047c38ef8471ee479d1b852a2b91281682a6ce2251fc67",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_activity_field_value",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "literal_activity_field_value_only_no_availability_or_capacity_inference",
+        "source_field_path": "#/data/ActivityOperating",
+        "source_field_value": true,
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:301d42e0d1f724b52322b225fe293d43fcac81f616baddb4740bff29bcaa80b0",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_activity_field_value",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "literal_activity_field_value_only_no_availability_or_capacity_inference",
+        "source_field_path": "#/data/ActivityOperatingOverseas",
+        "source_field_value": true,
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:1b9e5fd90c2e53e876901f86b086a0d6c3bbd24ec00aee1dece2dd6f077846d7",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/0",
+        "source_field_value": {
+          "Name": "Child and Community Sponsorship",
+          "ProgramClassification": "Community development",
+          "ProgramClassificationID": "118"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:01f091b62d671297eb8debda48fd29aa69a0c3c87f75f1c85e447b2ed629429e",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/1",
+        "source_field_value": {
+          "Name": "Australian First Nations Program",
+          "ProgramClassification": "Community development",
+          "ProgramClassificationID": "118"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:ba665994c93b67ad806e35667dea2a668568fba31c92fc614b90e9496c234ebe",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/2",
+        "source_field_value": {
+          "Name": "Climate Action and Resilience",
+          "ProgramClassification": "Climate change",
+          "ProgramClassificationID": "229"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:d674c0cbb3645b8f7c564fe895bb9bc5101ac71e710b49d962b7636ef11754b0",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/3",
+        "source_field_value": {
+          "Name": "Water Access, Sanitation, and Hygiene",
+          "ProgramClassification": "Public health",
+          "ProgramClassificationID": "418"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:f324b655251921060a4194bb726c8c9e3c8b2273715e91efe52eeae0641c3c19",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/4",
+        "source_field_value": {
+          "Name": "Humanitarian and Emergency Affairs",
+          "ProgramClassification": "Disasters and emergency management",
+          "ProgramClassificationID": "699"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:9d1feee3c7f11df8a5233761423038a0221a13286de52be76a4abd8561162a87",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/5",
+        "source_field_value": {
+          "Name": "Health and Nutrition",
+          "ProgramClassification": "Health",
+          "ProgramClassificationID": "264"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:6759e1ccdda1e440548c59845c096e4b707ff5e6e19e7b7c0b5e05dfca8e0d8d",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/6",
+        "source_field_value": {
+          "Name": "Agriculture and Food Security",
+          "ProgramClassification": "Food security",
+          "ProgramClassificationID": "14"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:29cf8b43125dcdd7b77c8cab5a1e2c28ffa025c715392b6459c9b61a15136cdd",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/7",
+        "source_field_value": {
+          "Name": "Education and Child Protection",
+          "ProgramClassification": "Education",
+          "ProgramClassificationID": "170"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:8bba1b55d0219ac0a04f136e5c5f5a8c227529afd678c431625e58bec18fad16",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "acnc_carried_program_record",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "north_star_section_ids": [
+          "3"
+        ],
+        "mapping_status": "organization_scoped_source_program_record_not_current_service_availability",
+        "source_field_path": "#/data/Programs/8",
+        "source_field_value": {
+          "Name": "Economic Empowerment",
+          "ProgramClassification": "Economic development",
+          "ProgramClassificationID": "133"
+        },
+        "derivation_method": "DETERMINISTIC_STRUCTURED_EXTRACTION"
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:a2dd5f921e42efa950c6dd650841f24fb0ac697f3fe9aca68fc2f18713819638",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "source_reported_activity",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "proposition_type": "source_reported_activity",
+        "north_star_section_id": "3",
+        "statement": "Australian sponsors and donors provide funds for World Vision field offices to run relief and development projects, with technical support from the World Vision Australia team.",
+        "source_text_segments": [
+          "Australian sponsors and donors provide funds for World Vision field offices to run relief and development projects in their countries, with technical support from the World Vision Australia team."
+        ],
+        "source_field_path": "#/data/ActivityPersuitPurposesDescription",
+        "source_locator_id": "locator:8a4138ff78752b6d745530e19d82cc82da253e818e034f0257f2527878f49609#/data/ActivityPersuitPurposesDescription",
+        "source_carrier_role": "historical_frozen_regulator_material",
+        "epistemic_status": "first_party_report_carried_by_regulator",
+        "scope": {
+          "scope_id": "scope:28215361e26ec51e458fff956adfa89a2d6deed65d67376bb97cc18cac358051",
+          "scope_kind": "organisation"
+        },
+        "candidate_lineage": {
+          "source_candidate_id": "candidate:context-v1-062183c75bbae1c694f56f3c52bc9dfe",
+          "original_candidate_content_sha256": "062183c75bbae1c694f56f3c52bc9dfe2dc01512d34ecd4eab8ca71a4d881ed1",
+          "corrected_atom_index": 1
+        },
+        "time_boundary": "Historical/source-reported; no current status or period beyond the exact source fields is asserted.",
+        "human_atomization": true,
+        "canonical_public": false
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    },
+    {
+      "id": "observation:fd5d72f94cde0e569daacc77736ff2c85d5604b3d2f887da4548a885b4840e9c",
+      "subject": "subject:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "scope": "scope:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668",
+      "proposition_type": "source_reported_activity",
+      "target_sections": [
+        3
+      ],
+      "value": {
+        "proposition_type": "source_reported_activity",
+        "north_star_section_id": "3",
+        "statement": "For projects in Australia, World Vision Australia reports working directly with First Nations communities to run activities, with communities described as driving their own development.",
+        "source_text_segments": [
+          "For projects in Australia, we work directly with First Nations communities to run activities and ensure they are the ones driving their own development."
+        ],
+        "source_field_path": "#/data/ActivityPersuitPurposesDescription",
+        "source_locator_id": "locator:8a4138ff78752b6d745530e19d82cc82da253e818e034f0257f2527878f49609#/data/ActivityPersuitPurposesDescription",
+        "source_carrier_role": "historical_frozen_regulator_material",
+        "epistemic_status": "first_party_report_carried_by_regulator",
+        "scope": {
+          "scope_id": "scope:28215361e26ec51e458fff956adfa89a2d6deed65d67376bb97cc18cac358051",
+          "scope_kind": "organisation"
+        },
+        "candidate_lineage": {
+          "source_candidate_id": "candidate:context-v1-062183c75bbae1c694f56f3c52bc9dfe",
+          "original_candidate_content_sha256": "062183c75bbae1c694f56f3c52bc9dfe2dc01512d34ecd4eab8ca71a4d881ed1",
+          "corrected_atom_index": 2
+        },
+        "time_boundary": "Historical/source-reported; no current status or period beyond the exact source fields is asserted.",
+        "human_atomization": true,
+        "canonical_public": false
+      },
+      "evidence_locator": [
+        "evidence:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_locator": [
+        "srcrec:2c6cd705453d93b12c431361c4bb65983cc4ede0daf0e47d9ca37a7f409aa668"
+      ],
+      "source_authority": "historical_governed_replay",
+      "attribution": "retained historical source representation",
+      "time": {
+        "effective_from": null,
+        "effective_to": null,
+        "reporting_period": "retained historical source representation",
+        "observed_at": "2026-09-28T15:03:35.659410Z",
+        "assessed_at": null
+      },
+      "epistemic_status": "governed",
+      "missingness": null,
+      "coverage": null,
+      "dropped_from_canonical": {
+        "outcome_state": "resolved",
+        "qualifications": [],
+        "supersedes": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "section_id": 1,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 2,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 3,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 4,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 5,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 6,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 7,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 8,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 9,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 10,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 11,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 12,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 13,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 14,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    },
+    {
+      "section_id": 15,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 16,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 17,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 18,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 19,
+      "state": "NOT_PROCESSED",
+      "basis": "no_retained_compatible_proposition"
+    },
+    {
+      "section_id": 20,
+      "state": "POPULATED",
+      "basis": "computed_from_envelope_presence"
+    }
+  ]
+}

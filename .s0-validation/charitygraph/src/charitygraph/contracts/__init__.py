@@ -1,0 +1,91 @@
+"""Supported Python surface for the isolated Builder vNext contracts."""
+
+from .canonical import canonical_data, canonical_json_bytes, canonical_sha256, seal_record, verify_record_hash
+from .common import (
+    ArtifactRecord, ArtifactRef, CanonicalObject, CanonicalScalar, CanonicalValue, IdPrefix,
+    JsonValue, LineageEdge, ProducerRef, SchemaRef, Sha256, StrictModel, VersionedPolicy, VersionedTool,
+)
+from .discovery import (DiscoveryDisposition, OperationalStatus, DISCOVERY_OUTPUT_SCHEMA, DISCOVERY_OUTPUT_SCHEMA_V2, DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED, ProgramServiceDiscoveryOutput, ProgramServiceDiscoveryOutputV2, ProgramServiceProposal, ProgramServiceProposalV2, discovery_schema, discovery_schema_hash, discovery_schema_v2, discovery_schema_v2_hash, discovery_schema_v2_corrected, discovery_schema_v2_corrected_hash, discovery_output_schema_ref, discovery_output_schema_ref_v2, discovery_output_schema_ref_v2_corrected)
+from .economics import (
+    BudgetCohort, CostLedger, CostLedgerEntry, CostReservation, FxRateSnapshot, Money, SignedMoney,
+    PriceRate, PricingSnapshot, ReservationReconciliation, RunManifest,
+)
+from .ids import deterministic_id, new_opaque_id, validate_typed_id
+from .knowledge import (
+    ArtifactRef as KnowledgeArtifactRef, AutomationAuthority, CandidateObservation, CanonicalObservation,
+    DecisionAuthority, DecisionRecord, DerivativeArtifact, EvidenceFragment, ExternalIdentifier,
+    HumanAuthority, Observation, ObservationTime, OutcomeState, Assertion, AdjudicationDecision,
+    PartyRole, RelationshipRole, RelationshipStatement, ScopeRecord, SourceRecord, SubjectRecord, validate_promotion_chain,
+)
+from .tasks import (
+    EmbeddingResult, EvidenceInput, ModelResult, ModelTask, ModelTaskType, NamedUsage,
+    PaidOutputCategory, ProviderUsage, TaskRun, model_task_cache_key, validate_task_run_tasks,
+)
+from .program import ProgramCandidate
+from .direct_service import (
+    CoverageState, DirectServiceEvidenceRef, DirectServiceProposition,
+    DirectServiceSemanticOutput, DirectServiceSection, DirectServicePropositionType,
+    DirectServiceRelationship, RelationshipDirection, ScopeKind, DIRECT_SERVICE_OUTPUT_SCHEMA,
+    project_observation, validate_scope_bindings,
+)
+from .direct_service_wire import (
+    WireScalar, DirectServiceWireEvidenceRef, DirectServiceWireObservationTime,
+    DirectServiceWireProposition, DirectServiceWireRelationship, DirectServiceWireOutput,
+    DirectServiceV12WireOutput, wire_to_domain, v12_wire_to_domain,
+)
+from .conduct_compliance import (
+    ConductPropositionClass, ConductProceduralStatus, PropositionOwnerKind,
+    ConductComplianceWireTemporal, ConductComplianceWireEvidenceRef,
+    ConductComplianceWireProposition, ConductComplianceWireOutput,
+    ConductWireOtherNamedParty, ConductWireSourcePublisher, ConductWireTargetSubject,
+    ConductWireUnknownOwner,
+    ConductComplianceSemanticProposition, ConductComplianceSemanticOutput,
+    wire_to_domain as conduct_wire_to_domain,
+    project_observation as conduct_project_observation,
+    review_flags as conduct_review_flags,
+)
+from .semantic import (
+    EvidenceMeaning, EvidenceSelectionOutput, ProgramCandidateOutput, SDGAlignmentOutput,
+    SemanticConclusion, SemanticEvidence, TaxonomyAssignmentOutput, TaxonomySelection,
+)
+from .taxonomy import (
+    ConceptMapping, MappingPredicate, SchemeDisposition, TaxonomyAssignment,
+    TaxonomyConcept, TaxonomyScheme, TaxonomyVersion,
+)
+from .source import (
+    AcquisitionReceipt, DocumentLocator, EvidenceLocator, PropositionAuthorityRole,
+    SourceDefinition, StructuredFieldLocator, TextSpanLocator,
+)
+from ..source_rights import ArtifactRightsDecision
+
+__all__ = [
+    'AcquisitionReceipt', 'DocumentLocator', 'EvidenceLocator', 'PropositionAuthorityRole', 'SourceDefinition',
+    'StructuredFieldLocator', 'TextSpanLocator', 'ArtifactRightsDecision',
+    "ArtifactRecord", "ArtifactRef", "AutomationAuthority", "BudgetCohort", "CandidateObservation",
+    "CanonicalObservation", "CanonicalObject", "CanonicalScalar", "CanonicalValue", "CostLedger",
+    "CostLedgerEntry", "CostReservation", "DecisionAuthority", "DecisionRecord", "DerivativeArtifact",
+    "EmbeddingResult", "EvidenceFragment", "EvidenceInput", "ExternalIdentifier", "FxRateSnapshot",
+    "HumanAuthority", "IdPrefix", "JsonValue", "LineageEdge", "ModelResult", "ModelTask", "ModelTaskType",
+    "Money", "NamedUsage", "SignedMoney", "Observation", "ObservationTime", "OutcomeState", "Assertion",
+    "AdjudicationDecision", "PartyRole", "RelationshipRole", "RelationshipStatement", "ScopeRecord", "PaidOutputCategory", "PriceRate", "PricingSnapshot",
+    "ProducerRef", "ProviderUsage", "ReservationReconciliation", "RunManifest", "SchemaRef", "Sha256", "SourceRecord", "StrictModel",
+    "SubjectRecord", "TaskRun", "VersionedPolicy", "VersionedTool", "canonical_data", "canonical_json_bytes",
+    "canonical_sha256", "deterministic_id", "model_task_cache_key", "new_opaque_id", "seal_record",
+    "validate_promotion_chain", "validate_task_run_tasks", "validate_typed_id", "verify_record_hash",
+    "ConceptMapping", "MappingPredicate", "ProgramCandidate", "ProgramCandidateOutput",
+    "EvidenceSelectionOutput", "DiscoveryDisposition", "OperationalStatus", "DISCOVERY_OUTPUT_SCHEMA", "DISCOVERY_OUTPUT_SCHEMA_V2", "DISCOVERY_OUTPUT_SCHEMA_V2_CORRECTED", "ProgramServiceDiscoveryOutput", "ProgramServiceDiscoveryOutputV2", "ProgramServiceProposal", "ProgramServiceProposalV2", "discovery_schema", "discovery_schema_hash", "discovery_schema_v2", "discovery_schema_v2_hash", "discovery_schema_v2_corrected", "discovery_schema_v2_corrected_hash", "discovery_output_schema_ref", "discovery_output_schema_ref_v2", "discovery_output_schema_ref_v2_corrected", "SDGAlignmentOutput", "SchemeDisposition", "SemanticConclusion",
+    "EvidenceMeaning", "SemanticEvidence", "TaxonomyAssignment", "TaxonomyAssignmentOutput", "TaxonomyConcept",
+    "TaxonomyScheme", "TaxonomySelection", "TaxonomyVersion",
+    "CoverageState", "DirectServiceEvidenceRef", "DirectServiceProposition",
+    "DirectServiceSemanticOutput", "DirectServiceSection", "DirectServicePropositionType",
+    "DirectServiceRelationship", "RelationshipDirection", "ScopeKind", "DIRECT_SERVICE_OUTPUT_SCHEMA",
+    "project_observation", "validate_scope_bindings",
+    "WireScalar", "DirectServiceWireEvidenceRef", "DirectServiceWireObservationTime",
+    "DirectServiceWireProposition", "DirectServiceWireRelationship", "DirectServiceWireOutput",
+    "DirectServiceV12WireOutput", "wire_to_domain", "v12_wire_to_domain",
+    "ConductPropositionClass", "ConductProceduralStatus", "PropositionOwnerKind",
+    "ConductComplianceWireTemporal", "ConductComplianceWireEvidenceRef",
+    "ConductComplianceWireProposition", "ConductComplianceWireOutput",
+    "ConductComplianceSemanticProposition", "ConductComplianceSemanticOutput",
+    "conduct_wire_to_domain", "conduct_project_observation", "conduct_review_flags",
+]

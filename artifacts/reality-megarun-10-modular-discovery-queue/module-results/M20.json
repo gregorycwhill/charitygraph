@@ -1,0 +1,49 @@
+{
+  "module_id": "M20",
+  "title": "Non-PDF official source object",
+  "terminal_status": "PASS",
+  "sequence_position": 20,
+  "interpreter": "running GPT-6 Codex agent; not GPT-5.6 Terra",
+  "sources_artifacts_consumed": [
+    "C:/CharityGraph-runtime/megarun10b/M20-html-binding.json",
+    "C:/CharityGraph-runtime/megarun10b/M20-html-text.txt",
+    "C:/CharityGraph-runtime/reality-megarun-8-rich-semantic-furnace/representations/the-smith-family-23.txt"
+  ],
+  "physical_work_performed": "Directly read cited evidence and performed the case analyses below; code only persists and hashes agent-authored results.",
+  "findings": [
+    {
+      "source": "Smith Learning for Life live HTML",
+      "sha256": "f914d74c4549a50426c050b3979cde39067c88d578fbc125bd92eee0b8029f73",
+      "bytes": 114399,
+      "capture_first": true,
+      "representation": "BeautifulSoup visible text after exact HTML archive"
+    },
+    {
+      "finding": "Current page calls 71,818 'families', while the FY2024-25 report page 23 calls 71,818 students. Preserve different units; do not reconcile by equality of number."
+    },
+    {
+      "finding": "Live page mixes 2021 attendance, a Year-12-2022 cohort measured 2.5 years later, and a 2022-23 footnote. Retrieval time is not claim measurement time."
+    },
+    {
+      "finding": "90% student2student reading improvement is followed by a footnote naming Learning Clubs outcomes; source linkage needs verification before treating as audited impact."
+    }
+  ],
+  "defects": [
+    "D20: Real source-native unit discrepancy: families versus students.",
+    "D20b: Outcome footnotes and temporal labels are not consistently aligned on the live HTML page."
+  ],
+  "counterexamples": [
+    "A fresh HTML capture can contain older and inconsistently attributed claims."
+  ],
+  "remaining_limitations": [
+    "Requested Terra interpreter unavailable after session model switch; no second model/API invoked.",
+    "Dynamic sponsorship counter is capture-time content, not a stable waiting-list measure; no browser JS execution."
+  ],
+  "later_modules_remain_independent": true,
+  "source_file_hashes": {
+    "C:\\CharityGraph-runtime\\megarun10b\\M20-html-binding.json": "cb88841fafce5f80ab52c84b9bf0c23aa90cec47266d70681e8bf3cb1368d2fe",
+    "C:\\CharityGraph-runtime\\megarun10b\\M20-html-text.txt": "bd3010250efe55d0f622c63aa342c617b8ff11060b81ba2ddb86aa531f90c81b",
+    "C:\\CharityGraph-runtime\\reality-megarun-8-rich-semantic-furnace\\representations\\the-smith-family-23.txt": "6660a6e99cb1921861a59a23b5da50740f907508ed66a7577a228aad3cba5221"
+  },
+  "persistence": "create-exclusive staging file, flushed, Windows no-overwrite atomic rename"
+}

@@ -1,0 +1,155 @@
+{
+  "sections": [
+    {
+      "section_id": 1,
+      "title": "Identity / regulatory",
+      "proposition_ids": [
+        "observation:4a0421454bc33419e9a2c9a79fbe5b8fe528d8162c8f825516c6f29db43739c3",
+        "observation:460bdd4411243a1a8c0237b927da97378bf0bb7840ccaa2217e3c972a23644ed"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 2,
+      "title": "Purpose / cause",
+      "proposition_ids": [
+        "observation:fb14eddb7c0d0a783eaaa93eb2ab55ac64cfd7e621e8df8abb535c15ab91e484"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 3,
+      "title": "Programs / services",
+      "proposition_ids": [
+        "observation:00b298d21e0e5ea8e343613caa541ac59c70ab65d4e8b30949ba12510d70cae7",
+        "observation:43479fda68602461381c48ec638bd393a93206da9cf9b6897095231b4513c2dd",
+        "observation:dcd9d0fa65581d67f206abb999691f27d438348bd8aba5c05ea1213b81045c52"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 4,
+      "title": "Activities / SDGs",
+      "proposition_ids": [
+        "observation:fb14eddb7c0d0a783eaaa93eb2ab55ac64cfd7e621e8df8abb535c15ab91e484"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 5,
+      "title": "Geography / beneficiaries",
+      "proposition_ids": [
+        "observation:00b298d21e0e5ea8e343613caa541ac59c70ab65d4e8b30949ba12510d70cae7",
+        "observation:43479fda68602461381c48ec638bd393a93206da9cf9b6897095231b4513c2dd",
+        "observation:dcd9d0fa65581d67f206abb999691f27d438348bd8aba5c05ea1213b81045c52",
+        "observation:ccd574c65006857f5c2124593da6314b2d1e5082e550bbd2f9e213af36b16b6a"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 6,
+      "title": "Participation",
+      "proposition_ids": [],
+      "missingness": "NOT_PROCESSED"
+    },
+    {
+      "section_id": 7,
+      "title": "Direct service / capacity",
+      "proposition_ids": [],
+      "missingness": "NOT_PROCESSED"
+    },
+    {
+      "section_id": 8,
+      "title": "Fundraising",
+      "proposition_ids": [
+        "observation:609d0ce236a95abc74d1bf4eea0b7cf0d63d9bb8971ebd90d0796f5a5486d1bf"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 9,
+      "title": "Governance / leadership",
+      "proposition_ids": [],
+      "missingness": "NOT_PROCESSED"
+    },
+    {
+      "section_id": 10,
+      "title": "People / workforce",
+      "proposition_ids": [
+        "observation:b53a0cb06c9954eebea95cb9d4678ca9d5cba94d20a10569b488e3f5ac766b71"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 11,
+      "title": "Scale / capability",
+      "proposition_ids": [
+        "observation:84e37013c2aec0a1db6d51a1839795bff55c62b38dbed84b59d44b6630fa51e0",
+        "observation:b53a0cb06c9954eebea95cb9d4678ca9d5cba94d20a10569b488e3f5ac766b71"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 12,
+      "title": "Relationships",
+      "proposition_ids": [],
+      "missingness": "NOT_PROCESSED"
+    },
+    {
+      "section_id": 13,
+      "title": "Finances",
+      "proposition_ids": [
+        "observation:8239ea1c463f0e97573cb078081b8b4e59565a863c0ceb5a306bcc6414e2f80d"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 14,
+      "title": "Funding / dependencies",
+      "proposition_ids": [
+        "observation:43bac924a97a4b445b1e5729a1a9e03e742387805e319bbaedc85a5e1415cf68"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 15,
+      "title": "Ethos / values",
+      "proposition_ids": [],
+      "missingness": "NOT_PROCESSED"
+    },
+    {
+      "section_id": 16,
+      "title": "Conduct / adverse",
+      "proposition_ids": [],
+      "missingness": "NOT_PROCESSED"
+    },
+    {
+      "section_id": 17,
+      "title": "Notable history",
+      "proposition_ids": [
+        "observation:8fd31c11aa18aa1695354f1b81e4862b6391b6b0a02d7659665797da87d39d05"
+      ],
+      "missingness": "POPULATED"
+    },
+    {
+      "section_id": 18,
+      "title": "Evaluation / outcomes",
+      "proposition_ids": [],
+      "missingness": "NOT_PROCESSED"
+    },
+    {
+      "section_id": 19,
+      "title": "Classification / search / AI discovery",
+      "proposition_ids": [],
+      "missingness": "NOT_PROCESSED"
+    },
+    {
+      "section_id": 20,
+      "title": "Evidence / coverage / freshness / corrections",
+      "proposition_ids": [
+        "observation:1033b1d3c4600e020d762f96e80238e30e7521da140697dbe6dff41c01344820"
+      ],
+      "missingness": "POPULATED"
+    }
+  ]
+}
