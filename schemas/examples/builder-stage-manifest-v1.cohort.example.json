@@ -1,0 +1,12 @@
+{
+  "format": "charitygraph.builder-stage-manifest.v1",
+  "stage": "cohort",
+  "artifact": {
+    "path": "cohort.json",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "bindings": {
+    "cohort_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "manifest_sha256": "b5814614a2c9d1369dc608331abf1663bb2a6519df78ad04c36b74d27e4b21df"
+}

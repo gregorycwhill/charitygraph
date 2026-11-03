@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CharityGraph Builder immutable stage manifest v1",
+  "type": "object",
+  "required": ["format", "stage", "artifact", "bindings", "manifest_sha256"],
+  "properties": {
+    "format": {"const": "charitygraph.builder-stage-manifest.v1"},
+    "stage": {"enum": ["cohort", "authorised_corpus", "evidence_registry_packet", "extraction_request_set", "structured_output", "semantic_demand_evaluation"]},
+    "artifact": {"type": "object", "required": ["path", "sha256"], "properties": {"path": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}},
+    "bindings": {"type": "object", "required": ["cohort_sha256"], "properties": {"cohort_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "authorised_corpus_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "evidence_registry_packet_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "extraction_request_set_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "structured_output_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "semantic_demand_evaluation_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}},
+    "predecessor_manifest_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "manifest_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}
