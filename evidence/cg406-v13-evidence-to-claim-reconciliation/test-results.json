@@ -1,9 +1,0 @@
-{
-  "schema": "charitygraph.cg406-v13-evidence-to-claim-tests/v1",
-  "focused_command": "python -m pytest -q -p no:cacheprovider tests/test_frozen_experiment.py tests/test_frozen_experiment_cli.py tests/test_phase5_standard_transport.py tests/test_standard_delivery_job.py tests/test_phase5_execution_packet.py",
-  "focused_result": "47 passed",
-  "full_command": "python -m pytest -q -p no:cacheprovider",
-  "full_collected": 1125,
-  "full_result": "15 failures, 1 skipped; all failures are isolated to absent C:/CharityGraph-clean/.s0-policy-data immutable Scale S0 test fixtures, before or outside this evidence-selection path",
-  "provider_posts": 0
-}
