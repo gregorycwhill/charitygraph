@@ -10,7 +10,7 @@ Final audit: **195 distinct accessible Git checkouts report empty `git status --
 
 Primary continuation checkout: `C:\CharityGraph-clean\charitygraph`, branch `gate3-cg406-remediation`. Sibling canonical Data checkout: `C:\CharityGraph-clean\charitygraph-data`. Viewer and Playbooks checkouts remain under `C:\Users\grego\OneDrive\Documents\GitHub\CharityGraph`.
 
-Recent work (27 October–3 November) includes exact source/representation and acquisition-lineage retention, provider authority and rights registry changes, scope/physical-identity isolation, governed factory integration, real ACNC/register binding and source ingestion, project-cost reconciliation, durable accounting exports, operator health, bounded authority and bridge recovery/adoption changes. Preservation commits combine pre-existing concurrent work; they are not independent product acceptance.
+Recent work (27 Octoberâ€“3 November) includes exact source/representation and acquisition-lineage retention, provider authority and rights registry changes, scope/physical-identity isolation, governed factory integration, real ACNC/register binding and source ingestion, project-cost reconciliation, durable accounting exports, operator health, bounded authority and bridge recovery/adoption changes. Preservation commits combine pre-existing concurrent work; they are not independent product acceptance.
 
 Important recent source paths: `src/charitygraph/phase5_factory.py`, `phase5_t3_acnc_real_evidence_retention.py`, `phase5_t4d_e3_factory_handoff.py`, `phase5_governed_factory_integration.py`, `source_rights.py`, `bounded_authority.py`, `runtime/catalog.py`; bridge changes are retained for archaeology only.
 
@@ -30,7 +30,7 @@ Read `reports/G4_FACTORY_INTEGRATION_THREE_TEST_REPAIR_V102_20261102.md`, `repor
 
 Windows denied access while scanning old generated test directories in **31 audited checkouts**. Git still returned empty porcelain output, but those inaccessible contents cannot be certified. Ownership/access repair was attempted for `C:\CharityGraph-clean\charitygraph\CharityGraph-runtimecg405-pytest` and Windows denied it. No destructive cleanup was used to bypass this. Detailed warnings appear in the appendix.
 
-Generated nested test repositories were retained outside the main source checkout at `C:\CharityGraph-clean\decommission-preserved-test-fixtures-20261103`. A nested historical experiment was preserved at `C:\Users\grego\OneDrive\Documents\GitHub\CharityGraph\decommission-preserved-nested-experiment-20261103`; its Git HEAD and parent experiment HEAD were pushed to `decommission-20261103/nested-*`. Existing registered worktree metadata may still reference that experiment’s former path; repair metadata before using that archival copy.
+Generated nested test repositories were retained outside the main source checkout at `C:\CharityGraph-clean\decommission-preserved-test-fixtures-20261103`. A nested historical experiment was preserved at `C:\Users\grego\OneDrive\Documents\GitHub\CharityGraph\decommission-preserved-nested-experiment-20261103`; its Git HEAD and parent experiment HEAD were pushed to `decommission-20261103/nested-*`. Existing registered worktree metadata may still reference that experimentâ€™s former path; repair metadata before using that archival copy.
 
 The audit covers the discovered project roots, their registered existing worktrees and the additional top-level CharityGraph clones. Missing/prunable registrations are not live checkouts. Ignored runtime datasets/caches and inaccessible directories are retained locally; this is not a claim that all operational data is stored in Git.
 
@@ -784,3 +784,6 @@ warning: could not open directory '.test-t06-vocab/': Permission denied
 warning: could not open directory '.pytest-t09/': Permission denied
 warning: could not open directory '.pytest-t09-rerun/': Permission denied
 ```
+
+## VS Code startup shutdown correction
+A subsequent VS Code folder open launched the legacy watcher from the outer workspace `.vscode/tasks.json`. Watcher PID 14692 and child Codex PID 19260 were terminated. Removed the CharityGraph Bridge task from both the outer OneDrive workspace and the primary clean checkout. Set VS Code user `task.allowAutomaticTasks` to `off`. The earlier shutdown had missed these folder-open tasks. Keep these launch tasks removed when merging historical branches.

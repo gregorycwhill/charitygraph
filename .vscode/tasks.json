@@ -2,29 +2,13 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "CharityGraph Bridge",
-      "type": "process",
-      "command": "C:\\Users\\grego\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
-      "args": [
-        "${workspaceFolder}\\bridge\\managed_launcher.py",
-        "--artifacts-root",
-        "C:\\Users\\grego\\My Drive\\CharityGraph Agent Bridge\\artifacts",
-        "--workspace-root",
-        "${workspaceFolder}",
-        "--runtime-root",
-        "${workspaceFolder}\\runtime\\g4-o1b-controlled-cutover-20261020",
-        "--no-sound"
-      ],
-      "isBackground": true,
-      "runOptions": {"runOn": "folderOpen", "instanceLimit": 1},
-      "presentation": {"reveal": "never", "panel": "dedicated"},
-      "problemMatcher": []
-    },
-    {
       "label": "CauseBase: tests",
       "type": "shell",
       "command": "uv run pytest",
-      "group": {"kind": "test", "isDefault": true},
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
       "problemMatcher": []
     },
     {
