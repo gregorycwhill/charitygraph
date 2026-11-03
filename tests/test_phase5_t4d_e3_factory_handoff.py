@@ -4,6 +4,7 @@ import json
 from dataclasses import replace
 from datetime import date, datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -23,10 +24,11 @@ from charitygraph.contracts import (
 from charitygraph.contracts.canonical import canonical_sha256
 from charitygraph.contracts.ids import deterministic_id
 from charitygraph.evidence_store import ContentAddressedArtifactStore
-from charitygraph.phase5_factory import ReferenceFactory
+from charitygraph.phase5_factory import FactoryPlan, ReferenceFactory
 from charitygraph.phase5_governed_cohort_rehearsal import CountingFakeProvider
 from charitygraph.phase5_t4b_source_answer_projection import build_source_answer_projection
 from charitygraph.phase5_t4c_private_answer_brief import compose_private_answer_brief
+import charitygraph.phase5_t4d_e3_factory_handoff as t4d_handoff
 from charitygraph.phase5_t4d_e3_factory_handoff import (
     BUILD_ID,
     ROUTE_POLICY_VERSION,
@@ -42,6 +44,7 @@ from charitygraph.runtime.rights_governance_record import (
     RightsGovernanceStore,
     RightsStorageError,
 )
+from charitygraph.source_rights import ArtifactRightsDecision, OPENAI_PROVIDER_POLICY_ID
 
 
 NOW = datetime(2026, 10, 31, tzinfo=timezone.utc)
@@ -327,6 +330,41 @@ class _Fixture:
                 retention_review_due_on=date(2027, 10, 31),
             )
             self.rights_store.put_record(rights_record)
+            self.catalog.record_artifact_rights_decision(
+                ArtifactRightsDecision(
+                    decision_id=rights_record.decision_id,
+                    source_artifact_id=rights_record.source_artifact_id,
+                    representation_artifact_id=rights_record.representation_artifact_id,
+                    source_record_id=rights_record.source_record_id,
+                    source_origin_url=rights_record.source_origin_url,
+                    source_role=rights_record.source_role,
+                    acquisition_lineage_ids=rights_record.acquisition_lineage_ids,
+                    transmitted_representation_sha256=rights_record.representation_sha256,
+                    rights_policy_id=rights_record.rights_policy_id,
+                    rights_policy_version=rights_record.rights_policy_version,
+                    provider_processing_policy_id=OPENAI_PROVIDER_POLICY_ID,
+                    provider_processing_policy_version="1",
+                    rights_basis=rights_record.rights_basis,
+                    evidence_locator=rights_record.evidence_locator,
+                    evidence_sha256=rights_record.evidence_sha256,
+                    assessed_on=rights_record.assessed_on,
+                    assessment_scope=rights_record.scope,
+                    assessment_authority=rights_record.actor_id,
+                    local_retention_allowed=True,
+                    provider_transmission_allowed=False,
+                    public_redistribution_allowed=False,
+                    factual_representation_only=rights_record.factual_representation_only,
+                    representation_class=rights_record.representation_class,
+                    publicly_accessible_without_circumvention=rights_record.publicly_accessible_without_circumvention,
+                    access_controls_bypassed=rights_record.access_controls_bypassed,
+                    lawfully_acquired=rights_record.lawfully_acquired,
+                    analytical_purpose=rights_record.analytical_purpose or rights_record.purpose,
+                    provider_no_training_default=rights_record.provider_no_training_default,
+                    provider_data_sharing_opt_in=rights_record.provider_data_sharing_opt_in,
+                    status="authorized",
+                ),
+                now=NOW,
+            )
             self.rights_ids[row["rights_record_id"]] = rights_record.content_hash
 
         self.synthetic_rows = [
@@ -386,9 +424,15 @@ def _preflight(fixture: _Fixture, **kwargs: Any) -> Any:
     )
 
 
-def test_accepted_e3_lowers_to_ten_deterministic_factory_children_and_replays(tmp_path: Path):
+def test_synthetic_authorized_internal_policy_fixture_lowers_to_ten_children_and_replays(tmp_path: Path):
     fixture = _Fixture(tmp_path)
     try:
+        committed = _read_manifest()["rows"]
+        assert all(row["rights_policy_id"] == INTERNAL_PRIVATE_USE_POLICY_ID for row in fixture.synthetic_rows)
+        assert all(
+            row["rights_record_id"] != committed[index]["rights_record_id"]
+            for index, row in enumerate(fixture.synthetic_rows)
+        )
         first = _preflight(fixture)
         second = _preflight(fixture)
         assert not first.diagnostics
@@ -396,6 +440,20 @@ def test_accepted_e3_lowers_to_ten_deterministic_factory_children_and_replays(tm
         assert first.summary["subjects"] == 5
         assert first.summary["answer_slots"] == 15
         assert first.summary["coverage_entries"] == 20
+        assert first.summary["north_star_coverage"] == tuple(
+            entry.as_dict() for entry in fixture.brief.north_star_coverage
+        )
+        assert len(first.summary["north_star_coverage"]) == 20
+        assert first.summary["source_silent_currentness"] == tuple(
+            record.as_dict()
+            for record in fixture.brief.answer_slots
+            if record.question_id == "current_giving_capacity_outcomes_governance_conduct"
+        )
+        assert len(first.summary["source_silent_currentness"]) == 5
+        assert all(
+            record["missingness"]["status"] == "source_silent"
+            for record in first.summary["source_silent_currentness"]
+        )
         assert first.summary["source_hashes"] == 10
         assert first.summary["rights_bindings"] == 10
         assert first.summary["build_id"] == BUILD_ID
@@ -432,6 +490,147 @@ def test_accepted_e3_lowers_to_ten_deterministic_factory_children_and_replays(tm
         )
     finally:
         fixture.close()
+
+
+def test_exact_committed_t3_rights_authority_is_explicitly_blocked_without_records(tmp_path: Path):
+    """The exact T3 authority is ineligible and must not be replaced by a fixture."""
+
+    manifest = _read_manifest()
+    exact_rows = [dict(row) for row in manifest["rows"]]
+    exact_brief = compose_private_answer_brief(
+        build_source_answer_projection(
+            manifest_path=MANIFEST_PATH,
+            representation_root=REPRESENTATION_ROOT,
+        )
+    )
+    assert all(row["rights_policy_id"] == "CG_PUBLIC_SOURCE_PRIVATE_PROVIDER_TRANSMISSION_V1" for row in exact_rows)
+    assert all(row["rights_policy_version"] == "1.0.0" for row in exact_rows)
+    assert all(row["status"] == "bound_not_task_eligible" for row in exact_rows)
+    assert all(row["provider_processing_status"] == "blocked_provider_contract_not_bound" for row in exact_rows)
+    assert {
+        (record.source_record_id, record.representation_sha256, record.rights_record_id)
+        for record in exact_brief.answer_slots
+    } == {
+        (row["source_record_id"], row["representation_sha256"], row["rights_record_id"])
+        for row in exact_rows
+    }
+
+    catalog = SQLiteCatalog(tmp_path / "catalog.sqlite3").open(initialize=True)
+    projection = RightsGovernanceProjection(catalog.path).open()
+    rights_store = RightsGovernanceStore(tmp_path / "exact-rights")
+    try:
+        result = preflight_e3_private_answer_brief(
+            exact_brief,
+            manifest,
+            rights_store,
+            projection,
+            catalog,
+            NOW.date(),
+            lambda artifact_id: _representation_bytes(artifact_id.split(":", 1)[-1]),
+        )
+        assert result.accepted_count == 0
+        assert result.factory_plan.logical_tasks == ()
+        assert len(result.diagnostics) == 10
+        assert all(diagnostic.state == "blocked" for diagnostic in result.diagnostics)
+        assert all("authoritative rights record is unavailable" in diagnostic.reason for diagnostic in result.diagnostics)
+    finally:
+        projection.close()
+        catalog.close()
+
+
+def _physical_scope_task(
+    logical_task_id: str,
+    *,
+    scope_id: str,
+    source_record_id: str,
+    representation_sha256: str,
+) -> dict[str, Any]:
+    return {
+        "logical_task_id": logical_task_id,
+        "subject_id": "subject:same-subject",
+        "scope_id": scope_id,
+        "difficulty": "lower_cost_constrained_semantic",
+        "physical_bundle_opportunity": "bundle:same-subject",
+        "source_record_ids": (source_record_id,),
+        "representation_hashes": {f"artifact:{representation_sha256}": representation_sha256},
+    }
+
+
+def test_mixed_scope_physical_package_is_rejected_with_zero_seedable_work():
+    plan = FactoryPlan.from_manifest([
+        _physical_scope_task(
+            "task:scope-a",
+            scope_id="scope:a",
+            source_record_id="srcrec:a",
+            representation_sha256="a" * 64,
+        ),
+        _physical_scope_task(
+            "task:scope-b",
+            scope_id="scope:b",
+            source_record_id="srcrec:b",
+            representation_sha256="b" * 64,
+        ),
+    ])
+    diagnostic = t4d_handoff._scope_boundary_diagnostic(plan)
+    assert diagnostic is not None
+    assert diagnostic.state == "blocked"
+    assert "single scope" in diagnostic.reason
+    assert "srcrec:a" in str(diagnostic.details)
+    assert "srcrec:b" in str(diagnostic.details)
+
+
+def test_adapter_blocks_mixed_scope_plan_before_any_catalogue_seed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    fixture = _Fixture(tmp_path)
+    try:
+        unsafe_tasks = (
+            _physical_scope_task(
+                "task:scope-a",
+                scope_id="scope:a",
+                source_record_id="srcrec:a",
+                representation_sha256="a" * 64,
+            ),
+            _physical_scope_task(
+                "task:scope-b",
+                scope_id="scope:b",
+                source_record_id="srcrec:b",
+                representation_sha256="b" * 64,
+            ),
+        )
+        unsafe_result = SimpleNamespace(
+            tasks=unsafe_tasks,
+            diagnostics=(),
+            factory_plan=FactoryPlan.from_manifest(list(unsafe_tasks)),
+        )
+        monkeypatch.setattr(
+            t4d_handoff,
+            "preflight_governed_rights",
+            lambda *args, **kwargs: unsafe_result,
+        )
+        result = _preflight(fixture)
+        assert result.accepted_count == 0
+        assert result.factory_plan.logical_tasks == ()
+        assert result.diagnostics[0].state == "blocked"
+        assert _counts(fixture.catalog)["tasks"] == 0
+    finally:
+        fixture.close()
+
+
+def test_same_scope_physical_package_with_distinct_source_identities_is_allowed():
+    plan = FactoryPlan.from_manifest([
+        _physical_scope_task(
+            "task:source-a",
+            scope_id="scope:same",
+            source_record_id="srcrec:a",
+            representation_sha256="a" * 64,
+        ),
+        _physical_scope_task(
+            "task:source-b",
+            scope_id="scope:same",
+            source_record_id="srcrec:b",
+            representation_sha256="b" * 64,
+        ),
+    ])
+    assert t4d_handoff._scope_boundary_diagnostic(plan) is None
 
 
 @pytest.mark.parametrize(

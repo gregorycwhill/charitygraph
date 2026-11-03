@@ -29,19 +29,34 @@ class FactoryPlan:
 
     def packages(self) -> tuple[tuple[dict[str, Any], ...], ...]:
         """Package only same-subject compatible opportunities; IDs stay logical."""
-        groups: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+        groups: dict[tuple[str, str | None, str], list[dict[str, Any]]] = defaultdict(list)
         for item in self.logical_tasks:
-            groups[(item["subject_id"], item.get("physical_bundle_opportunity") or item["logical_task_id"])].append(item)
-        return tuple(tuple(sorted(group, key=lambda item: item["logical_task_id"])) for _, group in sorted(groups.items()))
+            groups[(item["subject_id"], item.get("scope_id"), item.get("physical_bundle_opportunity") or item["logical_task_id"])].append(item)
+        return tuple(tuple(sorted(group, key=lambda item: item["logical_task_id"])) for _, group in sorted(groups.items(), key=lambda pair: (pair[0][0], pair[0][1] or "", pair[0][2])))
 
     def physical_packages(self, *, delivery_mode: str = "standard") -> tuple[tuple[dict[str, Any], ...], ...]:
         """Only semantic work is batchable; deterministic work stays single-task."""
+        if delivery_mode not in {"batch", "flex", "standard"}: raise ValueError("unknown delivery mode")
+        groups: dict[tuple[str, str | None, str, str], list[dict[str, Any]]] = defaultdict(list)
+        for item in self.logical_tasks:
+            kind = "single" if item.get("difficulty") == "deterministic" else (item.get("physical_bundle_opportunity") or item["logical_task_id"])
+            groups[(item["subject_id"], item.get("scope_id"), kind, delivery_mode)].append(item)
+        return tuple(tuple(sorted(group,key=lambda item:item["logical_task_id"])) for _,group in sorted(groups.items(), key=lambda pair: (pair[0][0], pair[0][1] or "", pair[0][2], pair[0][3])))
+
+    def physical_identity_packages(self, *, delivery_mode: str = "standard") -> tuple[tuple[dict[str, Any], ...], ...]:
+        """Return physical identities before scope isolation is applied.
+
+        Scope is a hard execution boundary, but it is not part of the
+        provider-package identity.  Keeping this view separate lets callers
+        reject a physically mixed-scope bundle before the scope-keyed
+        execution groups conceal the conflict.
+        """
         if delivery_mode not in {"batch", "flex", "standard"}: raise ValueError("unknown delivery mode")
         groups: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
         for item in self.logical_tasks:
             kind = "single" if item.get("difficulty") == "deterministic" else (item.get("physical_bundle_opportunity") or item["logical_task_id"])
             groups[(item["subject_id"], kind, delivery_mode)].append(item)
-        return tuple(tuple(sorted(group,key=lambda item:item["logical_task_id"])) for _,group in sorted(groups.items()))
+        return tuple(tuple(sorted(group, key=lambda item: item["logical_task_id"])) for _, group in sorted(groups.items()))
 
     def runtime_tasks(self, *, cohort_id: str) -> tuple[dict[str, Any], ...]:
         tasks=[]

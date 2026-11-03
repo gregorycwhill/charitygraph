@@ -27,7 +27,7 @@ JSON `content` string only.
 Required top-level keys are:
 
 ```json
-{"authority":{"approved":true,"authority_envelope":"gate4-engineering","source":"chatgpt"},"content":"<bounded local repository engineering task>","content_sha256":"<sha256 of content UTF-8 bytes>","created_at":"<timezone-aware ISO-8601 timestamp>","execution":{"change_policy":"report_only","mode":"codex_exec","model":"luna-high","report_path":"reports/<fresh-report-name>.md","timeout_seconds":300},"instruction_id":"gate4:engineering:<unique-id>","operation":"codex_engineering","schema_version":"charitygraph.autonomous-instruction/v1","target":{"branch":"gate3-cg406-remediation","head":"068561551a43bbeaa0e8347e4ddff1a5caa8044d","model":"luna-high","repository":"charitygraph","workspace_path":"C:\\CharityGraph-clean\\charitygraph"}}
+{"authority":{"approved":true,"authority_envelope":"gate4-engineering","source":"chatgpt"},"content":"<bounded local repository engineering task>","content_sha256":"<sha256 of content UTF-8 bytes>","created_at":"<timezone-aware ISO-8601 timestamp>","execution":{"change_policy":"report_only","mode":"codex_exec","model":"luna-high","report_path":"reports/<fresh-report-name>.md","timeout_seconds":300},"instruction_id":"gate4:engineering:<unique-id>","operation":"codex_engineering","schema_version":"charitygraph.autonomous-instruction/v1","target":{"branch":"gate3-cg406-remediation","head":"6c8901222726e985c71e2ee94404cadbbecddbcd","model":"luna-high","repository":"charitygraph","workspace_path":"C:\\CharityGraph-clean\\charitygraph"}}
 ```
 
 The engineering authority is exact: `source=chatgpt`, `approved=true`, and

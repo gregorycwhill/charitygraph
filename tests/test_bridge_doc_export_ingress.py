@@ -7,12 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from bridge.bridge import CutoverWatcher
+from bridge.bridge import CutoverWatcher, DocExportIngressConfig
 from bridge.g4_doc_export_ingress import (
     DOC_EXPORT_PREFIX,
     DOC_EXPORT_SUFFIX,
     DocExportContext,
     DocExportError,
+    DocExportScanConfig,
     parse_doc_export,
     read_doc_export,
     scan_doc_exports,
@@ -30,7 +31,8 @@ ALLOWLIST = (
     "bridge/bridge.py",
     "bridge/g4_doc_export_ingress.py",
     "tests/test_bridge_doc_export_ingress.py",
-    "reports/G4_DOC_EXPORT_SECOND_INGRESS_DORMANT_IMPLEMENTATION_20261031.md",
+    "tests/test_bridge_cutover.py",
+    "reports/G4_DOC_EXPORT_INGRESS_HARDENING_OPTIN_IMPLEMENTATION_20261031.md",
 )
 
 
@@ -230,7 +232,7 @@ def test_doc_export_scanner_is_dormant_and_live_raw_json_regression_remains(tmp_
     raw_json_bytes = _instruction_bytes(_envelope(context, "gate4:doc-export:raw"))
     raw_json.write_bytes(raw_json_bytes)
     assert scan_doc_exports(tmp_path) == ()
-    assert scan_doc_exports(tmp_path, activate=True) == ()
+    assert scan_doc_exports(tmp_path, config=DocExportScanConfig(enabled=True, trusted_root=str(tmp_path.resolve()))) == (export,)
 
     watcher = CutoverWatcher(
         artifacts_root=tmp_path,
@@ -264,3 +266,35 @@ def test_existing_ledger_keeps_single_claim_and_rejects_conflicting_identity(tmp
     assert claimed.instruction_id == envelope.instruction_id
     with pytest.raises(ClaimUnavailable):
         bridge.claim(owner="second-owner")
+
+
+def test_symlink_and_toctou_substitution_are_rejected_when_os_allows(tmp_path, monkeypatch):
+    context = _context()
+    raw = _instruction_bytes(_envelope(context, "gate4:doc-export-links"))
+    target = tmp_path / f"{DOC_EXPORT_PREFIX}link{DOC_EXPORT_SUFFIX}"
+    target.write_bytes(_export(raw))
+    link = tmp_path / f"{DOC_EXPORT_PREFIX}symlink{DOC_EXPORT_SUFFIX}"
+    try:
+        link.symlink_to(target)
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(f"OS does not permit disposable symlink creation: {exc}")
+    with pytest.raises(DocExportError, match="non-link"):
+        read_doc_export(link, artifacts_root=tmp_path, context=context)
+    assert scan_doc_exports(
+        tmp_path,
+        config=DocExportScanConfig(enabled=True, trusted_root=str(tmp_path.resolve())),
+    ) == (target,)
+
+    replacement = tmp_path / f"{DOC_EXPORT_PREFIX}replacement{DOC_EXPORT_SUFFIX}"
+    replacement.write_bytes(_export(raw))
+    real_open = __import__("bridge.g4_doc_export_ingress", fromlist=["_open_no_follow"])._open_no_follow
+
+    def substitute(path):
+        if path == target:
+            target.unlink()
+            replacement.replace(target)
+        return real_open(path)
+
+    monkeypatch.setattr("bridge.g4_doc_export_ingress._open_no_follow", substitute)
+    with pytest.raises(DocExportError, match="identity"):
+        read_doc_export(target, artifacts_root=tmp_path, context=context)

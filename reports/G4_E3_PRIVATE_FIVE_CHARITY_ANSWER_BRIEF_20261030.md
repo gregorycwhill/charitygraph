@@ -1,168 +1,110 @@
-# Gate 4 E3 private five-charity answer brief
+# Gate 4 E3 independent technical and semantic product acceptance
 
 Date: 2026-10-30 (Australia/Sydney)
-Disposition: **DELIVERED — private derivative; not Gate 4 closure**
+Disposition: **PARTIAL — not Gate 4 closure**
 
-## What was delivered
+## Scope and identity
 
-`phase5_t4c_private_answer_brief.py` composes the accepted E2B
-`AnswerProjection` without reopening SQLite, reading source bodies, acquiring
-anything, or copying the E2B T3 authority constants. It produces five subject
-briefs, all 15 E2B answer slots, ten source-record/hash bindings, a comparison
-view, and a 20-section coverage map. Display labels are optional metadata;
-`subject_id` and `scope_id` remain the identity fields.
+Reviewed local branch `gate3-cg406-remediation` at exact HEAD
+`beb2765e2136e9b11bd0610767e4f9ee6ac4b735`, whose direct parent is
+`6442e9abdc39d40d55b1653a1b98b24dfa78821b`. The supplied supervisor fence is
+`v64`, SHA-256
+`5c69de1c6eb282f239e8e84dba835ffcbe3f59fa19f22ac6597aac1e73e504a6`;
+that fence value was not found in local repository evidence, so its external
+provenance is not independently reproducible here.
 
-The fenced inputs were branch `gate3-cg406-remediation`, HEAD
-`6442e9abdc39d40d55b1653a1b98b24dfa78821b`, fence `v63`, SHA-256
-`a5d598ab2d3509c2a95506a4d225d2a4f3d0f661d7ae4e91dca5d64290f99095`, the
-accepted T3 selected manifest SHA-256
-`41b4ce5f1c39afd31a28b1f819d2a9759c89880eb0ddb2d2b143662cf4dda7a9`, and
-the ten local representations consumed by E2B.
+The exact parent-to-HEAD diff is the requested three paths only:
 
-## Human-readable evidence sample
+- `src/charitygraph/phase5_t4c_private_answer_brief.py`
+- `tests/test_phase5_t4c_private_answer_brief.py`
+- this E3 report
 
-All supported values below are E2B source-native facts or mechanical counts;
-they retain `subject_id`, `scope_id`, source family, source record, exact
-representation SHA, field basis, reporting date/period, and the E2B label
-`fact` in the adapter output. The display names are only for readability.
+`git diff --check` for that direct-child diff is clean. The worktree was already
+dirty before this review: 11 tracked status entries and 112 untracked entries.
+They were preserved; no code, test, source/rights, manifest, Git, watcher or
+host-process state was changed other than this report.
 
-### Guide Dogs NSW/ACT
+## Verification result
 
-- Subject: `subject:02649cdcb42049bb8dedd30f2333e150`; scope:
-  `scope:0a10077aee9363200199a815e8198f3807fef97737ad89bfd1e2e17f61d63248`.
-- Activity fact: 10 named programs; operating in New South Wales and the
-  Australian Capital Territory; country Australia; 13 named beneficiary
-  categories. Source: `acnc_register`,
-  `srcrec:4978c7ff7f9694d9d9d6db9ad871a8048cde5940c6e699a2dd4bd15360bcd28d`,
-  representation SHA
-  `f7b0522efbf6253cfa13713750a96100c601fd801fd209524f948dc134f0ada2`,
-  source date `2025-12-18T23:31:00.0000000Z`; field basis
-  `$.Programs[].Name`, `$.OperatingInStates[].Name`, `$.Countries[].Name`,
-  `$.Beneficiaries[].Name`.
-- Reporting-period fact: 1 July 2024–30 June 2025; receipts `$51,977,920`,
-  expenses `$52,253,502`, net surplus/deficit `-$275,582`; employees
-  `208/94/40` (full-time/part-time/casual), unpaid volunteers `849`.
-  Source: `acnc_ais_bundle`,
-  `srcrec:554fa9df1414f0096b9035fea5ac5eee7ffb59e46eb767d6306d40d8f326f08a`,
-  representation SHA
-  `70734f7c268aba097a37ab30c75640aca151583c2d616004cc90dffc0e878f1b`,
-  AIS period `2024-07-01T00:00:00.0000000Z` to
-  `2025-06-30T00:00:00.0000000Z`; field basis
-  `$.FinReportFrom`, `$.FinReportTo`, `$.FinReportingType`,
-  `$.IncomeTotalReceipts`, `$.ExpenseTotal`, `$.NetSurplusDeficit`,
-  `$.HrFullTimeEmployees`, `$.HrPartTimeEmployees`,
-  `$.HrCasualEmployees`, `$.HrUnpainVolunteers`.
-- Current giving terms, current capacity, outcomes/effectiveness, governance,
-  and conduct/adverse history are **unanswered**. This is source silence in
-  the retained E2B evidence, not a negative or clean finding.
+Focused local command:
 
-### OzHarvest
+```text
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python -B -m pytest -p no:cacheprovider -o addopts= tests/test_phase5_t4c_private_answer_brief.py tests/test_phase5_t4b_source_answer_projection.py -q
+19 passed in 0.77s
+```
 
-- Subject: `subject:1823309bdd06417c9928033603cb6e39`; scope:
-  `scope:95767a26704b78a0c75411dbb3322b5076ed5874fc56e335e5a9e20ea4ac0d4a`.
-- Activity fact: 6 named programs; 8 Australian states/territories; country
-  Australia; 25 named beneficiary categories. Source: `acnc_register`,
-  `srcrec:5e1c9ac1b0378a22557a9bf804697719133663123e7f603d76eb41fd2601adf4`,
-  representation SHA
-  `1ba64e644b28ff4528f6b075d42babb34ad5ee66fa9ce78177ceef45170e6`,
-  source date `2025-12-14T23:11:19.0000000Z`; field basis
-  `$.Programs[].Name`, `$.OperatingInStates[].Name`, `$.Countries[].Name`,
-  `$.Beneficiaries[].Name`.
-- Reporting-period fact: 1 July 2024–30 June 2025; receipts `$31,880,971`,
-  expenses `$33,375,185`, net surplus/deficit `-$1,494,214`; employees
-  `118/137/115` (full-time/part-time/casual), unpaid volunteers `2,085`.
-  Source: `acnc_ais_bundle`,
-  `srcrec:e94d13fec302f9cefc42569b4d191dae5b360565c8c3d8b4e1cded8ece5c0c52`,
-  representation SHA
-  `692829d7188a787f2df3b91df982a2de34e6c86787b19d31d202737a072e07eb`,
-  AIS period `2024-07-01T00:00:00.0000000Z` to
-  `2025-06-30T00:00:00.0000000Z`; field basis is the same ten AIS paths
-  listed in the Guide Dogs sample.
-- The same five currentness dimensions remain **unanswered**, with source
-  silence explicitly preserved.
+The actual local composition produced 5 subjects, 15 answer slots, 10 unique
+representation hashes, 20 North Star coverage entries, five source-native
+activity/scale pairs, and five unanswered currentness slots. Reporting periods
+and field-basis locators are retained in citation-bearing values. Replay was
+deterministic and all declared side-effect counters were zero.
 
-## Five-subject comparison
+The implementation is mechanically bounded: E3 composes only accepted E2B
+records (`phase5_t4c_private_answer_brief.py:231-262, 344-409`), and E2B reads
+only the supplied manifest and ten exact content-addressed JSON files, checking
+the bytes, ABN and source type (`phase5_t4b_source_answer_projection.py:350-383`).
+No provider/model/network, acquisition, SQLite/WAL, budget, publication,
+release, GitHub or watcher effect was observed. No unrestricted prose heuristic
+or discovery path is introduced.
 
-These are source-reported measures, not a ranking. Reporting periods and
-accounting bases differ: Human Appeal and Islamic Relief report calendar 2025;
-Guide Dogs, Peter & Lyndy White, and OzHarvest report July 2024–June 2025.
-Peter & Lyndy White uses special-purpose financial statements. No efficiency,
-effectiveness, suitability, current availability, or giving-term conclusion is
-drawn.
+## Semantic and product acceptance
 
-| Display label | Subject ID | Programs | Named states | AIS period | Receipts | Expenses | Net surplus/deficit | Employees FT/PT/casual | Unpaid volunteers |
-|---|---|---:|---:|---|---:|---:|---:|---:|---:|
-| Guide Dogs NSW/ACT | `subject:02649…e150` | 10 | 2 | Jul 2024–Jun 2025 | $51,977,920 | $52,253,502 | -$275,582 | 208/94/40 | 849 |
-| Human Appeal International Australia | `subject:0889…5c03` | 4 | 0 | Jan–Dec 2025 | $40,400,264 | $39,506,382 | $893,882 | 48/0/0 | 150 |
-| Peter & Lyndy White Foundation | `subject:16fba…8b8d` | 2 | 1 | Jul 2024–Jun 2025 | $78,917,379 | $27,721,425 | $51,195,954 | 0/1/0 | 2 |
-| OzHarvest | `subject:1823…e39` | 6 | 8 | Jul 2024–Jun 2025 | $31,880,971 | $33,375,185 | -$1,494,214 | 118/137/115 | 2,085 |
-| Islamic Relief Australia | `subject:1a9e…e31b` | 10 | 1 | Jan–Dec 2025 | $25,561,829 | $26,230,877 | -$669,048 | 13/6/2 | 250 |
+PASS for the core private answer boundary:
 
-The comparison values are all citation-bearing `CitedValue` objects in the
-adapter, not free-floating table numbers. The two rows with nested source
-layout retain `$.data.<field>` basis where that is what E2B supplied.
+- Supported values are selected from explicit source-native structured fields,
+  marked `fact`, and retain subject, scope, source family, source record, exact
+  representation SHA, reporting period/date and field basis
+  (`phase5_t4b_source_answer_projection.py:423-531`;
+  `phase5_t4c_private_answer_brief.py:28-70`).
+- The comparison is mechanical and explicitly non-ranking. The two ACNC
+  representations are kept as separate source-family records; their agreement
+  is not treated as independent corroboration.
+- The output carries all 20 coverage sections with per-subject status and
+  explicit boundaries (`phase5_t4c_private_answer_brief.py:207-227, 315-341`).
+  The coverage is honest partial/unassessed coverage, not North Star completion.
+- No current giving, capacity, effectiveness, governance or conduct/adverse
+  conclusion is fabricated.
 
-## Ten source hash bindings
+Currentness missingness is substantively correct: each slot is
+`answer_state="unanswered"`, `answer=None`, `missingness.status="not_established"`,
+and `source_silence_is_not_absence=True`
+(`phase5_t4b_source_answer_projection.py:387-418`). The value
+`fact_vs_source_statement_vs_inference="not_applicable"` is only the epistemic
+basis label for a slot with no answer, not the serialized missingness status.
+This does not currently assert substantive inapplicability, but the terminology
+is easy to misread and must remain distinct from true `not_applicable` coverage
+under `ARCHITECTURE.md:216` and `BUILDER_MACHINERY.md:30`.
 
-| Subject ID | Scope ID | Register source record / representation SHA | AIS source record / representation SHA |
-|---|---|---|---|
-| `subject:02649…e150` | `scope:0a100…d63248` | `srcrec:4978c7…bcd28d` / `f7b052…f0ada2` | `srcrec:554fa9…326f08a` / `70734f…e878f1b` |
-| `subject:0889…5c03` | `scope:be9c7f…640913` | `srcrec:f05f13…c251d2` / `8382a8…4234773` | `srcrec:045161…95237f8` / `ea9b75…438ab33` |
-| `subject:16fba…8b8d` | `scope:dd27dd…dc6e81` | `srcrec:188a39…b91dd8a` / `ead4a7…24f925c` | `srcrec:5cc396…6fda25` / `964948…e9678` |
-| `subject:1823…e39` | `scope:95767a…ac0d4a` | `srcrec:5e1c9a…01adf4` / `1ba64e…5170e6` | `srcrec:e94d13…5c0c52` / `692829…e07eb` |
-| `subject:1a9e…e31b` | `scope:e71cd1…d46aa1` | `srcrec:e6529d…737544c` / `a0f9c0…eac74c` | `srcrec:39443d…f4aea9` / `b02a40…63f0b7f` |
+## Acceptance defect: source-role and rights metadata drift
 
-The abbreviated table is only a reading aid; the full exact strings remain in
-the E2B records and the adapter's `source_hash_bindings` field.
+The requested output does **not** contain explicit `source_role` values. E2B's
+`SourceCitation` and `AnswerRecord` expose `source_family` but no role field
+(`phase5_t4b_source_answer_projection.py:158-199`), and E3 copies that reduced
+envelope (`phase5_t4c_private_answer_brief.py:28-70`). The governed T3 manifest
+does contain `register_identity` and `annual_information_statement` roles
+(`evidence/gate4-t3-five-subject-v1/selected-binding-manifest.json:38,66`).
 
-## North Star v0.3 coverage and missingness map
+An independent in-memory tamper probe changed one row at a time, recomputed the
+manifest self-hash, and observed that `_validate_rows()` accepted changes to
+`source_role`, `rights_policy_id`, `rights_policy_version`, and
+`provider_processing_status`. The validator enforces the source-record,
+subject/scope, representation-hash and rights-record tuple
+(`phase5_t4b_source_answer_projection.py:293-347`), but not those additional
+rights/role fields. This is a real fail-closed identity/rights drift gap, not a
+test-environment limitation.
 
-Codes: `S` = supported by the bounded E2B projection; `P` = partial or
-scope-limited source-native support; `M` = unassessed in this derivative. `M`
-does not mean the charity lacks the field. The same code applies to all five
-subjects because they share the same E2B slot contract; per-subject codes are
-also emitted as `status_by_subject`.
+## Prioritised next bounded product-value task
 
-| Section | Code | What is retained | Explicit missingness / boundary |
-|---:|:---:|---|---|
-| 1 Identity / regulatory | P | durable subject/scope IDs and source bindings | identity attributes and regulatory detail are outside E2B |
-| 2 Purpose / cause | M | — | no purpose narrative selected |
-| 3 Programs / services | P | named source-native programs | currentness, delivery party, access route |
-| 4 Activities / SDGs | P | program classifications and activity fields | no SDG or independent activity assessment |
-| 5 Geography / beneficiaries | P | named states, countries, beneficiaries | named is not the same as served or reached |
-| 6 Participation | M | — | no participation proposition |
-| 7 Direct service / capacity | M | — | current capacity, eligibility, throughput, waitlist |
-| 8 Fundraising | M | — | current giving terms / offer |
-| 9 Governance / leadership | M | — | governance and appointments |
-| 10 People / workforce | S | AIS employee and unpaid-volunteer counts | roles, location, capability |
-| 11 Scale / capability | P | selected programs, footprint and AIS measures | independent capability and constraints |
-| 12 Relationships | M | — | no governed relationship edge |
-| 13 Finances | S | AIS period, accounting basis, receipts, expenses, result | no independent reconciliation |
-| 14 Funding / dependencies | M | — | dependency, concentration, conditionality |
-| 15 Ethos / values | M | — | no values assessment |
-| 16 Conduct / adverse | M | — | not assessed; no clean-record claim |
-| 17 Notable history | M | — | no broader history review |
-| 18 Evaluation / outcomes | M | — | no evaluation, outcome or effectiveness evidence |
-| 19 Classification / search / AI discovery | P | source-native program classifications | no CharityGraph discovery decision |
-| 20 Evidence / coverage / freshness / corrections | S | exact citations, hashes and missingness | reviewed universe is only these ten representations |
+Harden the same provider-free five-subject path by reloading or hash-anchoring
+the governed T3 row authority, carrying explicit `source_role`, rights policy
+ID/version and relevant processing/publication statuses into E2B/E3, and
+rejecting tampering of each field. Add focused negative tests for those four
+drifts, plus an explicit North Star v0.3 contract/version identifier in the
+coverage document. Keep the currentness state as `unanswered`/
+`not_established`; reserve substantive `not_applicable` for genuine scoped
+non-applicability and test that distinction.
 
-## Answerability and boundary result
-
-The five subjects have 10 supported source-native slots (activity and scale)
-and 5 explicitly unanswered currentness slots. The adapter preserves all
-three E2B labels: supported records remain `fact`; the currentness records
-remain `not_applicable` with `source_silence_is_not_absence: true`; no source
-statement or unrestricted-prose inference is introduced. Program counts and
-the comparison measures are mechanical selection/counting only.
-
-Focused verification: `19 passed` across the new E3 test and the E2B focused
-test. The E3 tests exercise five subjects, 15 slots, ten hash bindings,
-deterministic replay, provenance and periods, explicit missingness, tampered
-hash rejection, unknown-label rejection, and non-zero-side-effect rejection.
-
-The derivative is private and read-only. It performed no provider/model or
-network calls, source acquisition, budget reservation/spend, SQLite/WAL/SHM
-access, publication, canonical promotion, public release, GitHub action,
-watcher control, or follow-on dispatch. Pre-existing dirty and untracked paths
-were preserved; only the new module, its focused test, and this report are
-allowlisted outputs.
+Until that bounded repair is complete, the private five-charity answer brief is
+technically useful and reproducible but not independently acceptable as a
+fully role- and rights-bound product answer. No Gate 4 closure, publication,
+release, provider spend or follow-on dispatch is claimed.

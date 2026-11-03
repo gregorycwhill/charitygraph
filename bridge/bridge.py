@@ -19,6 +19,7 @@ import tempfile
 import threading
 import time
 from datetime import datetime, timezone
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -48,7 +49,28 @@ from charitygraph.bounded_authority import (  # noqa: E402
     verify_clean_commit_changes,
     verify_local_commit,
     verify_allowed_changes,
+    WorkspaceSnapshot,
 )
+try:
+    from bridge.g4_doc_export_ingress import (  # noqa: E402
+        DocExport,
+        DocExportContext,
+        DocExportError,
+        DocExportScanConfig,
+        read_doc_export,
+        scan_doc_exports,
+    )
+except ModuleNotFoundError:
+    # Direct ``python bridge/bridge.py`` execution places bridge/ on sys.path,
+    # where bridge.py shadows the namespace package named bridge.
+    from g4_doc_export_ingress import (  # type: ignore[no-redef]  # noqa: E402
+        DocExport,
+        DocExportContext,
+        DocExportError,
+        DocExportScanConfig,
+        read_doc_export,
+        scan_doc_exports,
+    )
 
 
 FENCE_NAME = "cg-g4-o1b-dormant-state-fence-20261020.json"
@@ -62,7 +84,6 @@ INSTRUCTION_SUFFIX = ".json"
 # integration; preserving this raw-JSON-only set is a deliberate safety fence.
 DOC_EXPORT_PREFIX = "cg-g4-o1b-doc-export-"
 DOC_EXPORT_SUFFIX = ".txt"
-DOC_EXPORT_INGRESS_ACTIVE = False
 RESULT_PREFIX = "cg-g4-o1b-result-"
 ENGINEERING_RESULT_PREFIX = "cg-g4-o1c-result-"
 ENGINEERING_OPERATION = "codex_engineering"
@@ -73,6 +94,133 @@ RESULT_PUBLICATION_GRACE_SECONDS = 180
 IMPLEMENTATION_AUTHORITY_VERSION = "charitygraph.g4-o1d-local-implementation/v1"
 IMPLEMENTATION_SCOPE = "bounded_local_builder_code_change"
 CODE_CHANGE_ROUTE_ACTIVE = True
+
+
+def _verify_bounded_product_changes(
+    before: WorkspaceSnapshot,
+    after: WorkspaceSnapshot,
+    *,
+    allowed_paths: list[str] | tuple[str, ...],
+    reconciliation_evidence_dir: str | Path | None = None,
+) -> dict[str, Any]:
+    """Attest bounded worker bytes while admitting an allowlisted dirty product file.
+
+    The ordinary bounded route still owns the exact allowlist and all path
+    safety checks.  A tracked regular file that was dirty at launch is the
+    one explicit product exception: its current post-worker bytes are the
+    approved outcome, even when they overlap the pre-existing edit.  The
+    private pre-work bytes and hashes remain recorded as reconciliation
+    evidence; unrelated paths and unsafe file kinds remain fail-closed.
+    """
+    allowed = {path.replace("\\", "/") for path in allowed_paths}
+    if before.workspace_path != after.workspace_path:
+        raise DirtyBaselineViolation("workspace path changed during execution")
+    if before.branch != after.branch or before.head != after.head:
+        raise DirtyBaselineViolation(
+            f"repository identity changed during execution: {before.branch}@{before.head} -> {after.branch}@{after.head}"
+        )
+    changed = sorted(path for path in set(before.entries) | set(after.entries) if before.entries.get(path) != after.entries.get(path))
+    unexpected = sorted(path for path in changed if path not in allowed)
+    root = Path(after.workspace_path)
+    escaped: list[str] = []
+    for relative in changed:
+        candidate = root / relative
+        try:
+            candidate.relative_to(root)
+        except ValueError:
+            escaped.append(relative)
+            continue
+        current = root
+        for part in Path(relative).parts:
+            current = current / part
+            if current.is_symlink():
+                escaped.append(relative)
+                break
+    if escaped:
+        unexpected = sorted(set(unexpected) | set(escaped))
+    if unexpected:
+        reason = "unexpected bounded workspace changes: " + ", ".join(unexpected)
+        if escaped:
+            reason += "; symlink/path escape detected"
+        raise DirtyBaselineViolation(reason)
+
+    reconciled: dict[str, dict[str, str]] = {}
+    adopted: dict[str, dict[str, str]] = {}
+    for relative in changed:
+        current_path = root / relative
+        after_entry = after.entries.get(relative)
+        if after_entry is None:
+            raise DirtyBaselineViolation(f"changed bounded path is missing after execution: {relative}")
+        status = after_entry[0]
+        if status[:1] in {"D", "R", "C"} or status[1:2] in {"D", "R", "C"}:
+            raise DirtyBaselineViolation(f"deletion, rename or copy is not permitted: {relative}")
+        if current_path.is_symlink() or not current_path.is_file():
+            raise DirtyBaselineViolation(f"bounded changed path must be a regular file: {relative}")
+
+        adopted_baseline = before.adopted_file_baselines.get(relative)
+        if adopted_baseline is not None:
+            if status != "??":
+                raise DirtyBaselineViolation(f"adopted path is no longer an untracked regular file: {relative}")
+            adopted[relative] = {
+                "preexisting_sha256": adopted_baseline,
+                "after_sha256": after_entry[1],
+                "method": "provenance-bound-adoption",
+            }
+            continue
+
+        baseline = before.dirty_file_baselines.get(relative)
+        if baseline is None:
+            # A clean tracked file changed by the worker or a fresh report is
+            # still an exact allowlisted output; its regular-file checks above
+            # prevent type, deletion and symlink changes.
+            continue
+        if any(character not in {" ", "M"} for character in status):
+            raise DirtyBaselineViolation(f"allowlisted dirty product path changed file type or status: {relative}")
+        after_bytes = current_path.read_bytes()
+        if reconciliation_evidence_dir is not None:
+            evidence = Path(reconciliation_evidence_dir) / hashlib.sha256(relative.encode("utf-8")).hexdigest()
+            evidence.mkdir(parents=True, exist_ok=True)
+            (evidence / "base.bin").write_bytes(baseline.base_bytes)
+            (evidence / "local.bin").write_bytes(baseline.dirty_bytes)
+            (evidence / "post.bin").write_bytes(after_bytes)
+            (evidence / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "path": relative,
+                        "method": "allowlisted-current-worktree-product",
+                        "base_sha256": hashlib.sha256(baseline.base_bytes).hexdigest(),
+                        "preexisting_sha256": hashlib.sha256(baseline.dirty_bytes).hexdigest(),
+                        "post_worker_sha256": hashlib.sha256(after_bytes).hexdigest(),
+                    },
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        reconciled[relative] = {
+            "base_sha256": hashlib.sha256(baseline.base_bytes).hexdigest(),
+            "preexisting_sha256": hashlib.sha256(baseline.dirty_bytes).hexdigest(),
+            "after_sha256": hashlib.sha256(after_bytes).hexdigest(),
+            "method": "allowlisted-current-worktree-product",
+        }
+    return {
+        "changed_paths": changed,
+        "unexpected_paths": unexpected,
+        "baseline_preserved": True,
+        "dirty_allowlisted_reconciliation": reconciled,
+        "provenance_bound_adoption": adopted,
+    }
+
+
+@dataclass(frozen=True)
+class DocExportIngressConfig:
+    """Default-off trusted host capability for the second logical ingress."""
+
+    enabled: bool = False
+    allowed_paths: tuple[str, ...] = ()
+
+    def scan_config(self, artifacts_root: Path) -> DocExportScanConfig:
+        return DocExportScanConfig(enabled=self.enabled, trusted_root=str(artifacts_root.resolve()))
 
 
 def _quiet_subprocess_kwargs() -> dict[str, Any]:
@@ -249,10 +397,19 @@ def _event_summary(raw: bytes) -> dict[str, Any]:
 class CutoverWatcher:
     """One managed child with one adapter ledger and one safe ingress prefix."""
 
-    def __init__(self, *, artifacts_root: str | Path, workspace_root: str | Path, runtime_root: str | Path, launcher_pid: int | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        artifacts_root: str | Path,
+        workspace_root: str | Path,
+        runtime_root: str | Path,
+        launcher_pid: int | None = None,
+        doc_export_ingress: DocExportIngressConfig | None = None,
+    ) -> None:
         self.artifacts_root = Path(artifacts_root).resolve()
         self.workspace_root = Path(workspace_root).resolve()
         self.runtime_root = Path(runtime_root).resolve()
+        self.doc_export_ingress = doc_export_ingress or DocExportIngressConfig()
         self.bridge_root = self.runtime_root / "bridge"
         self.adapter = LocalAutonomousBridge(self.bridge_root, workspace=self.workspace_root).open()
         self.launcher_pid = launcher_pid
@@ -582,6 +739,46 @@ class CutoverWatcher:
             (p for p in self.artifacts_root.iterdir() if p.is_file() and p.name.startswith(INSTRUCTION_PREFIX) and p.name.endswith(INSTRUCTION_SUFFIX)),
             key=lambda p: p.name,
         )
+
+    def _doc_export_context(self) -> DocExportContext:
+        """Carry the current host identity into an explicitly opted-in read."""
+        fence = self._read_fence()
+        return DocExportContext(
+            repository="charitygraph",
+            workspace_path=str(self.workspace_root),
+            branch=str(fence["branch"]),
+            head=str(fence["head"]),
+            fence_bytes=self.fence_path.read_bytes(),
+            allowed_paths=tuple(self.doc_export_ingress.allowed_paths),
+        )
+
+    def _doc_export_paths(self) -> list[Path]:
+        if not self.doc_export_ingress.enabled or not self.doc_export_ingress.allowed_paths:
+            return []
+        return list(
+            scan_doc_exports(
+                self.artifacts_root,
+                config=self.doc_export_ingress.scan_config(self.artifacts_root),
+            )
+        )
+
+    def _process_doc_export(self, source: Path) -> dict[str, Any] | None:
+        try:
+            exported = read_doc_export(
+                source,
+                artifacts_root=self.artifacts_root,
+                context=self._doc_export_context(),
+            )
+        except DocExportError as exc:
+            # Invalid text exports never enter the claim ledger.  The live
+            # raw-JSON candidate path remains independent and unchanged.
+            return {
+                "source_path": str(source),
+                "state": "REJECTED",
+                "error": str(exc),
+                "ingress": "doc_export",
+            }
+        return self._process_candidate(source, doc_export=exported)
 
     def _mirror_result(self, instruction_id: str, result: dict[str, Any]) -> str:
         safe = "".join(ch if ch.isalnum() or ch in "-_." else "_" for ch in instruction_id)
@@ -985,6 +1182,16 @@ class CutoverWatcher:
         safe = "".join(ch if ch.isalnum() or ch in "-_." else "_" for ch in envelope.instruction_id)
         run_root = self.runtime_root / "executions" / safe
         run_root.mkdir(parents=True, exist_ok=True)
+        # Reconciliation evidence can add a SHA-256 directory and several
+        # files below its root.  Keeping it below the already long immutable
+        # execution identifier exceeds Windows' legacy path limit for valid
+        # bounded tasks.  Retain the evidence privately under a short,
+        # deterministic runtime location instead.
+        reconciliation_evidence_dir = (
+            self.runtime_root
+            / "reconciliation"
+            / hashlib.sha256(envelope.instruction_id.encode("utf-8")).hexdigest()
+        )
         output_path = run_root / "codex-output.jsonl"
         last_message_path = run_root / "codex-last-message.txt"
         model_config = CODEX_MODEL_MAP[envelope.target["model"]]
@@ -1155,17 +1362,26 @@ class CutoverWatcher:
                     raise DirtyBaselineViolation("worker changed HEAD; only the host bridge may write the local commit")
                 else:
                     if execution.get("change_policy") in {"bounded_workspace", "provenance_bound_adoption"}:
-                        workspace_verification = verify_clean_commit_changes(
-                            before_workspace,
-                            after_workspace,
-                            allowed_paths=sorted(allowed_paths),
+                        workspace_verification = (
+                            _verify_bounded_product_changes(
+                                before_workspace,
+                                after_workspace,
+                                allowed_paths=sorted(allowed_paths),
+                                reconciliation_evidence_dir=reconciliation_evidence_dir,
+                            )
+                            if execution.get("change_policy") == "bounded_workspace"
+                            else verify_clean_commit_changes(
+                                before_workspace,
+                                after_workspace,
+                                allowed_paths=sorted(allowed_paths),
+                            )
                         )
                     else:
                         workspace_verification = verify_allowed_changes(
                             before_workspace,
                             after_workspace,
                             allowed_paths=sorted(allowed_paths),
-                            reconciliation_evidence_dir=run_root / "dirty-reconciliation",
+                            reconciliation_evidence_dir=reconciliation_evidence_dir,
                         )
                     changed_paths = workspace_verification["changed_paths"]
                     unexpected_changes = workspace_verification["unexpected_paths"]
@@ -1202,10 +1418,38 @@ class CutoverWatcher:
                         paths=commit_paths,
                     )
                 after_workspace = capture_workspace(self.workspace_root)
+                precommit_verification = workspace_verification
+                dirty_product_paths = {
+                    path
+                    for path in changed_paths
+                    if path in before_workspace.dirty_file_baselines and path in allowed_paths
+                }
+                commit_before = before_workspace
+                if dirty_product_paths:
+                    # The exact allowlist already authorised these tracked
+                    # product bytes.  Hide only those paths from the generic
+                    # clean-commit baseline test; the pre-commit verifier and
+                    # its private evidence remain the source of preservation
+                    # and path-safety proof.
+                    commit_before = WorkspaceSnapshot(
+                        workspace_path=before_workspace.workspace_path,
+                        branch=before_workspace.branch,
+                        head=before_workspace.head,
+                        entries={
+                            path: entry
+                            for path, entry in before_workspace.entries.items()
+                            if path not in dirty_product_paths
+                        },
+                        dirty_file_baselines=before_workspace.dirty_file_baselines,
+                        adopted_file_baselines=before_workspace.adopted_file_baselines,
+                    )
                 commit_attestation = verify_local_commit(
-                    before_workspace,
+                    commit_before,
                     after_workspace,
                     allowed_paths=sorted(allowed_paths),
+                )
+                commit_attestation["dirty_allowlisted_reconciliation"] = precommit_verification.get(
+                    "dirty_allowlisted_reconciliation", {}
                 )
                 workspace_verification = commit_attestation
                 changed_paths = commit_attestation["changed_paths"]
@@ -1226,7 +1470,10 @@ class CutoverWatcher:
             "changed_paths": changed_paths,
             "unexpected_paths": unexpected_changes,
             "baseline_error": attestation_error,
-            "dirty_reconciliation_evidence_dir": str(run_root / "dirty-reconciliation"),
+            "dirty_reconciliation_evidence_dir": str(reconciliation_evidence_dir),
+            "dirty_allowlisted_reconciliation": {}
+            if workspace_verification is None
+            else workspace_verification.get("dirty_allowlisted_reconciliation", {}),
             "local_commit": commit_attestation,
             "bridge_owned_commit": bridge_owned_commit,
             "before": None if before_workspace is None else {
@@ -1317,9 +1564,10 @@ class CutoverWatcher:
             result["report_publication"]["product_accepted"] = False
         return result
 
-    def _process_candidate(self, source: Path) -> dict[str, Any] | None:
-        source_bytes = source.read_bytes()
-        source_sha = hashlib.sha256(source_bytes).hexdigest()
+    def _process_candidate(self, source: Path, *, doc_export: DocExport | None = None) -> dict[str, Any] | None:
+        source_bytes = b"" if doc_export is not None else source.read_bytes()
+        source_sha = doc_export.export_sha256 if doc_export is not None else hashlib.sha256(source_bytes).hexdigest()
+        preview: InstructionEnvelope | None = None if doc_export is None else doc_export.envelope
         previous = self.processed_sources.get(str(source))
         if previous == source_sha:
             # Usually the persisted source cache is an optimization.  A
@@ -1328,12 +1576,13 @@ class CutoverWatcher:
             # pending row, so a restarted watcher must revisit precisely that
             # safe, zero-attempt state.
             try:
-                known_preview, _ = self.adapter.read_materialized_instruction(source)
-                known = self.adapter.inspect(known_preview.instruction_id)
+                if preview is None:
+                    preview, _ = self.adapter.read_materialized_instruction(source)
+                known = self.adapter.inspect(preview.instruction_id)
             except BridgeError:
                 return None
             if not (
-                known["content_sha256"] == known_preview.content_sha256
+                known["content_sha256"] == preview.content_sha256
                 and known["status"] == "pending"
                 and int(known["attempts"]) == 0
                 and known["owner"] is None
@@ -1342,7 +1591,8 @@ class CutoverWatcher:
             ):
                 return None
         try:
-            preview, _ = self.adapter.read_materialized_instruction(source)
+            if preview is None:
+                preview, _ = self.adapter.read_materialized_instruction(source)
             try:
                 existing = self.adapter.inspect(preview.instruction_id)
             except BridgeError:
@@ -1364,7 +1614,7 @@ class CutoverWatcher:
                 # instruction. Otherwise a rejected envelope can become a
                 # zero-attempt pending row that blocks later dispatch.
                 self._validate_engineering(preview)
-            imported = self.adapter.import_materialized_instruction(source)
+            imported = self.adapter.submit(preview) if doc_export is not None else self.adapter.import_materialized_instruction(source)
             instruction_id = imported["instruction_id"]
             summary = self.adapter.status_summary(instruction_id)
             if imported.get("duplicate") and summary["status"] == "complete":
@@ -1372,7 +1622,7 @@ class CutoverWatcher:
                 return {"source_path": str(source), "source_sha256": source_sha, **summary, "duplicate": True}
         except (InvalidInstruction, DuplicateInstruction) as exc:
             result = None
-            if isinstance(exc, InvalidInstruction) and "preview" in locals() and preview.operation == ENGINEERING_OPERATION:
+            if isinstance(exc, InvalidInstruction) and preview is not None and preview.operation == ENGINEERING_OPERATION:
                 try:
                     stored = self.adapter.inspect(preview.instruction_id)
                 except BridgeError:
@@ -1465,6 +1715,8 @@ class CutoverWatcher:
                 }
             elif envelope.operation == ENGINEERING_OPERATION:
                 result = self._run_codex(envelope, source, source_sha, execution or {})
+                result.setdefault("source_path", str(source))
+                result.setdefault("source_sha256", source_sha)
             else:
                 raise InvalidInstruction(f"unsupported cutover operation: {envelope.operation}")
             if envelope.operation == ENGINEERING_OPERATION and self._active_execution is not None:
@@ -1497,6 +1749,10 @@ class CutoverWatcher:
         results: list[dict[str, Any]] = []
         for source in self._candidate_paths():
             outcome = self._process_candidate(source)
+            if outcome is not None:
+                results.append(outcome)
+        for source in self._doc_export_paths():
+            outcome = self._process_doc_export(source)
             if outcome is not None:
                 results.append(outcome)
         self._write_status(state="READY", publication_kind="heartbeat")

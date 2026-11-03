@@ -11,7 +11,9 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
 import re
+import stat
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -22,7 +24,6 @@ from charitygraph.autonomous_loop import InstructionEnvelope, InvalidInstruction
 DOC_EXPORT_PREFIX = "cg-g4-o1b-doc-export-"
 DOC_EXPORT_SUFFIX = ".txt"
 DOC_EXPORT_MAGIC = "CGDOC1"
-DOC_EXPORT_INGRESS_ACTIVE = False
 INSTRUCTION_SCHEMA = "charitygraph.autonomous-instruction/v1"
 ENGINEERING_OPERATION = "codex_engineering"
 ENGINEERING_MODEL = "luna-high"
@@ -56,12 +57,21 @@ class DocExportContext:
 
 
 @dataclass(frozen=True)
+class DocExportScanConfig:
+    """Explicit host capability for the otherwise dormant scanner."""
+
+    enabled: bool = False
+    trusted_root: str = ""
+
+
+@dataclass(frozen=True)
 class DocExport:
     """Validated export and the exact instruction bytes it contains."""
 
     path: Path | None
     raw_instruction_bytes: bytes
     raw_instruction_sha256: str
+    export_sha256: str
     envelope: InstructionEnvelope
 
 
@@ -256,59 +266,168 @@ def parse_doc_export(raw: bytes, *, filename: str, context: DocExportContext) ->
         path=None,
         raw_instruction_bytes=embedded,
         raw_instruction_sha256=hashlib.sha256(embedded).hexdigest(),
+        export_sha256=hashlib.sha256(raw).hexdigest(),
         envelope=envelope,
     )
 
 
+def _has_reparse_attribute(value: os.stat_result) -> bool:
+    return bool(getattr(value, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400))
+
+
+def _reject_non_regular(path: Path, value: os.stat_result, *, label: str) -> None:
+    if path.is_symlink() or _has_reparse_attribute(value) or not stat.S_ISREG(value.st_mode):
+        raise DocExportError(f"{label} must be a non-link regular file")
+
+
+def _same_file_identity(left: os.stat_result, right: os.stat_result) -> bool:
+    return (left.st_dev, left.st_ino, left.st_mode) == (right.st_dev, right.st_ino, right.st_mode)
+
+
+def _open_no_follow(path: Path) -> int:
+    """Open a regular file without following a final link/reparse point."""
+    if os.name != "nt":
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+        return os.open(path, flags)
+
+    # Windows has no portable O_NOFOLLOW.  OPEN_REPARSE_POINT makes a final
+    # reparse point open as the link itself, so the subsequent regular-file
+    # check fails closed instead of following a junction/symlink target.
+    import ctypes
+    import msvcrt
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.CreateFileW.argtypes = [
+        ctypes.c_wchar_p,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_void_p,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_void_p,
+    ]
+    kernel32.CreateFileW.restype = ctypes.c_void_p
+    handle = kernel32.CreateFileW(
+        str(path),
+        0x80000000,  # GENERIC_READ
+        0x00000001 | 0x00000002 | 0x00000004,  # share read/write/delete
+        None,
+        3,  # OPEN_EXISTING
+        0x00200000,  # FILE_FLAG_OPEN_REPARSE_POINT
+        None,
+    )
+    invalid = ctypes.c_void_p(-1).value
+    if handle in {None, invalid}:
+        error = ctypes.get_last_error()
+        raise OSError(error, f"CreateFileW failed for {path}")
+    try:
+        return msvcrt.open_osfhandle(handle, os.O_RDONLY | getattr(os, "O_BINARY", 0))
+    except BaseException:
+        kernel32.CloseHandle(handle)
+        raise
+
+
+def _read_regular_file_no_follow(path: Path) -> bytes:
+    """Read one stable regular-file identity through an opened descriptor."""
+    try:
+        before = path.lstat()
+        _reject_non_regular(path, before, label="Doc export")
+        fd = _open_no_follow(path)
+        with os.fdopen(fd, "rb", closefd=True) as stream:
+            opened = os.fstat(stream.fileno())
+            if not _same_file_identity(before, opened):
+                raise DocExportError("Doc export file identity changed before read")
+            raw = stream.read()
+            after = os.fstat(stream.fileno())
+            if not _same_file_identity(opened, after):
+                raise DocExportError("Doc export file identity changed during read")
+            return raw
+    except DocExportError:
+        raise
+    except OSError as exc:
+        raise DocExportError("Doc export could not be read without following a link") from exc
+
+
+def _direct_child(path: str | Path, root: Path) -> Path:
+    source = Path(path)
+    if source.is_absolute():
+        if source.parent != root:
+            raise DocExportError("Doc export must be a direct child of the trusted artifacts folder")
+        return source
+    if len(source.parts) != 1:
+        raise DocExportError("Doc export path must be one direct-child filename")
+    return root / source.name
+
+
 def read_doc_export(path: str | Path, *, artifacts_root: str | Path, context: DocExportContext) -> DocExport:
     """Read one safe direct-child export from the trusted artifacts folder."""
-    source = Path(path)
-    root = Path(artifacts_root).resolve()
-    if any(part in {".", ".."} for part in source.parts):
-        raise DocExportError("Doc export path contains traversal components")
-    resolved = source.resolve()
-    if resolved.parent != root:
-        raise DocExportError("Doc export must be a direct child of the trusted artifacts folder")
-    _safe_filename(source.name)
+    root_input = Path(artifacts_root)
     try:
-        raw = resolved.read_bytes()
+        root_input_stat = root_input.lstat()
     except OSError as exc:
-        raise DocExportError("Doc export could not be read") from exc
+        raise DocExportError("trusted artifacts folder is not a regular directory") from exc
+    if root_input.is_symlink() or _has_reparse_attribute(root_input_stat):
+        raise DocExportError("trusted artifacts folder is not a regular directory")
+    root = root_input.resolve()
+    if not root.is_dir() or _has_reparse_attribute(root.lstat()):
+        raise DocExportError("trusted artifacts folder is not a regular directory")
+    source = _direct_child(path, root)
+    _safe_filename(source.name)
+    raw = _read_regular_file_no_follow(source)
     value = parse_doc_export(raw, filename=source.name, context=context)
-    return DocExport(path=resolved, raw_instruction_bytes=value.raw_instruction_bytes, raw_instruction_sha256=value.raw_instruction_sha256, envelope=value.envelope)
-
-
-def scan_doc_exports(artifacts_root: str | Path, *, activate: bool = False) -> tuple[Path, ...]:
-    """List safe exports only when a future caller explicitly activates it.
-
-    The live bridge never calls this function.  Its default is intentionally
-    empty, making the second logical ingress dormant by construction.
-    """
-    if not activate or not DOC_EXPORT_INGRESS_ACTIVE:
-        return ()
-    root = Path(artifacts_root).resolve()
-    if not root.is_dir():
-        return ()
-    return tuple(
-        sorted(
-            path
-            for path in root.iterdir()
-            if path.is_file()
-            and path.name.startswith(DOC_EXPORT_PREFIX)
-            and path.name.endswith(DOC_EXPORT_SUFFIX)
-            and _SAFE_NAME.fullmatch(path.name[len(DOC_EXPORT_PREFIX) : -len(DOC_EXPORT_SUFFIX)])
-        )
+    return DocExport(
+        path=source,
+        raw_instruction_bytes=value.raw_instruction_bytes,
+        raw_instruction_sha256=value.raw_instruction_sha256,
+        export_sha256=value.export_sha256,
+        envelope=value.envelope,
     )
 
 
+def scan_doc_exports(artifacts_root: str | Path, *, config: DocExportScanConfig | None = None) -> tuple[Path, ...]:
+    """List safe exports only with an explicit trusted host capability.
+
+    The default is intentionally empty.  A mutable module flag is not an
+    activation mechanism; the caller must provide a fresh explicit config
+    bound to the exact trusted root.
+    """
+    if config is None or not config.enabled:
+        return ()
+    root_input = Path(artifacts_root)
+    try:
+        root_input_stat = root_input.lstat()
+    except OSError:
+        return ()
+    if root_input.is_symlink() or _has_reparse_attribute(root_input_stat):
+        return ()
+    root = root_input.resolve()
+    if config.trusted_root != str(root) or not root.is_dir():
+        return ()
+    if _has_reparse_attribute(root.lstat()):
+        return ()
+    candidates: list[Path] = []
+    for path in root.iterdir():
+        if not path.name.startswith(DOC_EXPORT_PREFIX) or not path.name.endswith(DOC_EXPORT_SUFFIX):
+            continue
+        if not _SAFE_NAME.fullmatch(path.name[len(DOC_EXPORT_PREFIX) : -len(DOC_EXPORT_SUFFIX)]):
+            continue
+        try:
+            value = path.lstat()
+            _reject_non_regular(path, value, label="Doc export")
+        except (DocExportError, OSError):
+            continue
+        candidates.append(path)
+    return tuple(sorted(candidates))
+
+
 __all__ = [
-    "DOC_EXPORT_INGRESS_ACTIVE",
     "DOC_EXPORT_MAGIC",
     "DOC_EXPORT_PREFIX",
     "DOC_EXPORT_SUFFIX",
     "DocExport",
     "DocExportContext",
     "DocExportError",
+    "DocExportScanConfig",
     "parse_doc_export",
     "read_doc_export",
     "scan_doc_exports",

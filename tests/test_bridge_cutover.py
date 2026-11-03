@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import json
 import os
@@ -14,6 +15,7 @@ from bridge.managed_launcher import matching_fence_identity
 from bridge.managed_watchdog import ensure_launcher
 from bridge.bridge import (
     CutoverWatcher,
+    DocExportIngressConfig,
     ENGINEERING_OPERATION,
     ENGINEERING_RESULT_PREFIX,
     FENCE_NAME,
@@ -314,6 +316,98 @@ def _engineering_artifacts(tmp_path, workspace, head, envelope):
     source = artifacts / "cg-g4-o1b-instruction-engineering.json"
     source.write_text(canonical_json(envelope.as_dict()) + "\n", encoding="utf-8", newline="\n")
     return artifacts, runtime
+
+
+def _doc_export_bytes(envelope):
+    raw = (canonical_json(envelope.as_dict()) + "\n").encode("utf-8")
+    encoded = base64.urlsafe_b64encode(raw).rstrip(b"=")
+    return b"CGDOC1:" + encoded + b":" + hashlib.sha256(raw).hexdigest().encode("ascii")
+
+
+def test_opt_in_doc_export_uses_existing_ledger_and_preserves_raw_json_ingress(tmp_path, monkeypatch):
+    workspace, head = _engineering_workspace(tmp_path)
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    runtime = tmp_path / "runtime"
+    allowed = ("README.md", "reports/g4-o1c-doc-report.md")
+    fence = _fence(workspace, head, "gate4-test")
+    (artifacts / FENCE_NAME).write_text(json.dumps(fence), encoding="utf-8")
+    envelope = InstructionEnvelope.create(
+        instruction_id="gate4:doc-export:opt-in",
+        content="Record the bounded local test instruction.",
+        target={"repository": "charitygraph", "workspace_path": str(workspace.resolve()), "branch": "gate4-test", "head": head, "model": "luna-high"},
+        operation=ENGINEERING_OPERATION,
+        authority={"source": "chatgpt", "approved": True, "authority_envelope": "gate4-engineering"},
+        execution={
+            "mode": "codex_exec",
+            "change_policy": "bounded_workspace",
+            "model": "luna-high",
+            "report_path": allowed[-1],
+            "timeout_seconds": 30,
+            "authority_version": "charitygraph.g4-o1d-local-implementation/v1",
+            "scope": "bounded_local_builder_code_change",
+            "allowed_paths": list(allowed),
+            "commit_policy": "local_commit_only",
+        },
+        created_at=datetime(2026, 10, 31, tzinfo=timezone.utc),
+    )
+    export = artifacts / "cg-g4-o1b-doc-export-opt-in.txt"
+    export.write_bytes(_doc_export_bytes(envelope))
+    watcher = CutoverWatcher(
+        artifacts_root=artifacts,
+        workspace_root=workspace,
+        runtime_root=runtime,
+        doc_export_ingress=DocExportIngressConfig(enabled=True, allowed_paths=allowed),
+    )
+
+    def fake_run(envelope, source, source_sha, execution):
+        return {
+            "schema": "charitygraph.g4-o1c-result/v1",
+            "instruction_id": envelope.instruction_id,
+            "execution_state": "CODEX_ENGINEERING_COMPLETED",
+            "codex_process": {"finished_at": "2026-10-31T00:00:00+00:00"},
+        }
+
+    monkeypatch.setattr(watcher, "_run_codex", fake_run)
+    first = watcher.process_once()
+    assert first[0]["execution_state"] == "CODEX_ENGINEERING_COMPLETED"
+    assert first[0]["source_path"] == str(export)
+    assert watcher.adapter.status_summary(envelope.instruction_id)["status"] == "complete"
+    assert watcher._candidate_paths() == []
+
+    replay = watcher.process_once()
+    assert replay == []
+    assert watcher.adapter.status_summary(envelope.instruction_id)["status"] == "complete"
+
+    conflicting = InstructionEnvelope.create(
+        instruction_id=envelope.instruction_id,
+        content="A conflicting immutable instruction.",
+        target=envelope.target,
+        operation=envelope.operation,
+        authority=envelope.authority,
+        execution=envelope.execution,
+        created_at=datetime(2026, 10, 31, tzinfo=timezone.utc),
+    )
+    export.write_bytes(_doc_export_bytes(conflicting))
+    rejected = watcher.process_once()
+    assert rejected[0]["state"] == "REJECTED"
+    assert "different content" in rejected[0]["error"]
+    assert watcher.adapter.status_summary(envelope.instruction_id)["status"] == "complete"
+
+    dirty = InstructionEnvelope.create(
+        instruction_id="gate4:doc-export:dirty",
+        content="A dirty-baseline instruction.",
+        target=envelope.target,
+        operation=envelope.operation,
+        authority=envelope.authority,
+        execution=envelope.execution,
+        created_at=datetime(2026, 10, 31, tzinfo=timezone.utc),
+    )
+    (workspace / "README.md").write_text("pre-existing dirty baseline\n", encoding="utf-8")
+    export.write_bytes(_doc_export_bytes(dirty))
+    dirty_outcome = watcher.process_once()
+    assert dirty_outcome[0]["state"] == "REJECTED"
+    assert "pre-dirty or staged" in dirty_outcome[0]["error"]
 
 
 def test_engineering_operation_launches_codex_and_is_single_use(tmp_path, monkeypatch):

@@ -17,6 +17,19 @@ def test_factory_plan_keeps_logical_identity_and_never_crosses_subjects() -> Non
     assert [len(x) for x in plan.physical_packages()] == [2, 1]
 
 
+def test_factory_plan_keeps_distinct_scopes_out_of_logical_and_physical_packages() -> None:
+    plan = FactoryPlan.from_manifest([
+        {"logical_task_id": "a", "subject_id": "subject:one", "scope_id": "scope:one", "physical_bundle_opportunity": "bundle:x"},
+        {"logical_task_id": "b", "subject_id": "subject:one", "scope_id": "scope:one", "physical_bundle_opportunity": "bundle:x"},
+        {"logical_task_id": "c", "subject_id": "subject:one", "scope_id": "scope:two", "physical_bundle_opportunity": "bundle:x"},
+        {"logical_task_id": "d", "subject_id": "subject:two", "scope_id": "scope:three", "physical_bundle_opportunity": "bundle:x"},
+    ])
+
+    expected = {frozenset({"a", "b"}), frozenset({"c"}), frozenset({"d"})}
+    assert {frozenset(item["logical_task_id"] for item in package) for package in plan.packages()} == expected
+    assert {frozenset(item["logical_task_id"] for item in package) for package in plan.physical_packages(delivery_mode="batch")} == expected
+
+
 def test_rehearsal_provider_is_deterministic_and_has_no_output_payload() -> None:
     from charitygraph.phase5_factory import RehearsalFakeProvider
     task={"cache_key":"a"*64}

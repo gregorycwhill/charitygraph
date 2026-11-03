@@ -276,20 +276,28 @@ def _path_has_symlink_component(root: Path, relative: str) -> bool:
 
 
 def validate_clean_commit_paths(workspace: WorkspaceSnapshot, *, allowed_paths: list[str] | tuple[str, ...]) -> None:
-    """Require ordinary bridge-owned commit paths to be clean at launch.
+    """Require ordinary bridge-owned commit paths to be safe at launch.
 
-    A tracked, clean file may be edited by the worker and a path absent from
-    the worktree may be created by it.  Existing dirty, staged, ignored,
-    symlinked, directory and deleted paths are not safe ordinary-commit
-    inputs.  Adoption is intentionally excluded: it has its own provenance
-    and untracked-file rules.
+    An explicitly allowlisted tracked regular file may already have an
+    ordinary worktree or index modification.  The execution baseline captures
+    those bytes for post-worker reconciliation.  Additions, deletions,
+    renames, copies, type changes, ignored/untracked, symlinked and directory
+    paths remain unsafe ordinary-commit inputs.  Adoption is intentionally
+    excluded: it has its own provenance and untracked-file rules.
     """
     root = Path(workspace.workspace_path)
     allowed = {path.replace("\\", "/") for path in allowed_paths}
     for relative in sorted(allowed):
-        if relative in workspace.entries:
-            raise DirtyBaselineViolation(f"ordinary commit path was pre-dirty or staged: {relative}")
         candidate = root / relative
+        entry = workspace.entries.get(relative)
+        if entry is not None:
+            status_code = entry[0]
+            # Only ordinary tracked modifications can use the dirty-file
+            # reconciliation captured by the execution baseline.  This keeps
+            # staged additions/deletions, renames/copies, type changes and
+            # conflict states fail-closed while admitting dirty product files.
+            if any(character not in {" ", "M"} for character in status_code) or not candidate.exists():
+                raise DirtyBaselineViolation(f"ordinary commit path is not an existing tracked regular file: {relative}")
         if _path_has_symlink_component(root, relative):
             raise DirtyBaselineViolation(f"ordinary commit path has a symlink component: {relative}")
         if not candidate.exists():

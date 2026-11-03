@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable, Mapping
@@ -33,6 +34,20 @@ from .phase5_t3_source_evidence_binding import (
 
 RETENTION_SCHEMA = "charitygraph.gate4.t3.acnc-real-evidence-retention/v1"
 REPRESENTATION_SCHEMA = "charitygraph.gate4.t3.acnc-source-native-representation/v1"
+PUBLICDATA_TRANSPORT_SCHEMA = "charitygraph.private-source-transport/v1"
+PUBLICDATA_REGISTER_SOURCE_KIND = "independent_publicdata_au_api_representation_of_acnc_register"
+PUBLICDATA_REGISTER_BODY_SHA256 = "07b83ca8f241b23445818c2079883924929ecc5c72dd0aed04b10c3f8b5372fc"
+PUBLICDATA_REGISTER_BODY_BYTES = 4086
+PUBLICDATA_REGISTER_VERSION = "2026-10-26"
+PUBLICDATA_REGISTER_URL = "https://publicdata.au/api/v1/datasets/acnc-register/versions/2026-10-26/rows?abn=eq.52000399744"
+PUBLICDATA_REGISTER_BATCH_TRANSPORT_SCHEMA = "charitygraph.g4-acnc-register-source-transport/v1"
+PUBLICDATA_REGISTER_BATCH_UPSTREAM_SHA256 = "1ff76b510e8155d7ab35df4b45b8791315c1f0a15f43f9c3057dff16646f816d"
+PUBLICDATA_REGISTER_BATCH_EXPECTATIONS = {
+    "26164251245": (4173, "3ad023beed624de3ca5f1ed17f29b01a64141b70e3166eb6c6df99e7ebf1e357"),
+    "52404606134": (4085, "7ae05d8b38a106663a28c4a70c1c573828519f5d9d64742da7c362f1d830cd93"),
+    "33107782196": (4028, "d80552005dcafc554f978e1d863db141d6c9f3aa15c7f5bcc9d276668a741425"),
+    "82147006639": (4219, "48750195040c4e829f82d9f0f7bb7584e9732d615d8fe343dfe9efffaab4b8f8"),
+}
 _ACNC_FAMILIES = frozenset({"acnc_register", "acnc_ais_bundle"})
 _RIGHTS_AXES = ("private_provider_processing", "public_redistribution")
 
@@ -80,6 +95,19 @@ def _validate_url(value: Any) -> str:
     if parsed.scheme != "https" or not parsed.netloc:
         raise RetentionInputError("source_url must be an absolute HTTPS URL")
     return url
+
+
+def _json_safe_metadata(value: Any, field_name: str) -> Any:
+    """Reject private bytes from persisted provenance metadata."""
+    if isinstance(value, bytes):
+        raise RetentionInputError(f"{field_name} cannot contain raw bytes")
+    if isinstance(value, Mapping):
+        return {str(key): _json_safe_metadata(item, f"{field_name}.{key}") for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe_metadata(item, f"{field_name}[]") for item in value]
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    raise RetentionInputError(f"{field_name} contains unsupported metadata")
 
 
 def _normalise_authority(
@@ -258,6 +286,8 @@ def retain_acnc_source_evidence(
     source_definition_id: str | None = None,
     source_record_id: str | None = None,
     rights_authority: Mapping[str, Mapping[str, Any]] | None = None,
+    source_provenance: Mapping[str, Any] | None = None,
+    acquisition_method: str = "caller_supplied_official_acnc_bytes",
 ) -> AcncRetentionRecord:
     """Retain one already-acquired ACNC source for one exact subject and scope.
 
@@ -281,6 +311,8 @@ def retain_acnc_source_evidence(
         raise RetentionInputError("source_family must be acnc_register or acnc_ais_bundle")
     source_role = _text(source_role, "source_role")
     source_url = _validate_url(source_url)
+    acquisition_method = _text(acquisition_method, "acquisition_method")
+    safe_source_provenance = {} if source_provenance is None else _json_safe_metadata(source_provenance, "source_provenance")
     received_at, acquired_at_utc = _utc_receipt(acquired_at)
     if not isinstance(raw_bytes, bytes) or not raw_bytes:
         raise RetentionInputError("raw_bytes must be non-empty bytes")
@@ -351,6 +383,7 @@ def retain_acnc_source_evidence(
             "acquisition_receipt_id": acquisition_receipt_id,
             "source_artifact_id": source_artifact_id,
             "source_sha256": source_sha256,
+            **safe_source_provenance,
         },
     }
     acquisition_receipt = {
@@ -362,7 +395,8 @@ def retain_acnc_source_evidence(
         "source_url": source_url,
         "received_at_utc": acquired_at_utc,
         "outcome": "available",
-        "method": "caller_supplied_official_acnc_bytes",
+        "method": acquisition_method,
+        "source_provenance": safe_source_provenance,
     }
     representation_record = {
         "id": representation_artifact_id,
@@ -377,6 +411,7 @@ def retain_acnc_source_evidence(
         "evidence_locator_ids": [evidence_locator_id],
         "citation_locator": source_url,
         "date_or_period": acquired_at_utc[:10],
+        "source_provenance": safe_source_provenance,
     }
     local_retention_decision = {
         "id": f"rights:local:{representation_sha256}",
@@ -406,6 +441,7 @@ def retain_acnc_source_evidence(
         representation_sha256=representation_sha256,
         scope_id=scope_id,
     )
+
     return AcncRetentionRecord(
         subject_id=subject_id,
         scope_id=scope_id,
@@ -430,7 +466,265 @@ def retain_acnc_source_evidence(
         representation=representation_record,
         local_retention_decision=local_retention_decision,
         rights_status=rights_status,
-        rights_decisions={axis: item for item in _RIGHTS_AXES for item in [rights_decisions.get(next((key for key, value in rights_decisions.items() if value.get("axis") == axis), ""))] if item is not None},
+        rights_decisions={axis: item for axis in _RIGHTS_AXES for item in [rights_decisions.get(next((key for key, value in rights_decisions.items() if value.get("axis") == axis), ""))] if item is not None},
+    )
+
+
+def retain_publicdata_acnc_register_transport(
+    transport: Mapping[str, Any],
+    *,
+    subject_id: str,
+    scope_id: str,
+    subject: Mapping[str, Any],
+    scope: Mapping[str, Any],
+    source_definition_id: str | None = None,
+    source_record_id: str | None = None,
+    rights_authority: Mapping[str, Mapping[str, Any]] | None = None,
+) -> AcncRetentionRecord:
+    """Validate and retain one supplied publicdata.au ACNC API transport.
+
+    This is a bounded equivalent-register adapter.  It consumes a transport
+    envelope already present on local disk; it never fetches the API and never
+    relabels the third-party representation as ACNC publisher bytes.
+    """
+    if not isinstance(transport, Mapping):
+        raise RetentionInputError("transport must be a mapping")
+    if transport.get("schema") != PUBLICDATA_TRANSPORT_SCHEMA:
+        raise RetentionInputError("unsupported private source transport schema")
+    if transport.get("source_kind") != PUBLICDATA_REGISTER_SOURCE_KIND:
+        raise RetentionInputError("transport is not the admitted publicdata.au ACNC register representation")
+    if transport.get("subject_abn") != "52000399744":
+        raise RetentionInputError("transport subject ABN does not match the bounded target")
+    if transport.get("subject_name") != "Guide Dogs NSW/ACT":
+        raise RetentionInputError("transport subject name does not match the bounded target")
+    if transport.get("source_row_count") != 1:
+        raise RetentionInputError("transport must contain exactly one source row")
+    if transport.get("upstream_dataset_version") != PUBLICDATA_REGISTER_VERSION:
+        raise RetentionInputError("transport dataset version is not the admitted 2026-10-26 version")
+    if transport.get("source_url") != PUBLICDATA_REGISTER_URL:
+        raise RetentionInputError("transport API locator does not match the admitted versioned query")
+    rights = transport.get("rights")
+    if rights != {
+        "id": "CC-BY-3.0-AU",
+        "title": "CC BY 3.0 AU",
+        "url": "https://creativecommons.org/licenses/by/3.0/au/",
+    }:
+        raise RetentionInputError("transport rights are not the supplied CC-BY-3.0-AU record")
+    body_text = transport.get("http_body_utf8")
+    if not isinstance(body_text, str):
+        raise RetentionInputError("transport http_body_utf8 must be text")
+    raw_bytes = body_text.encode("utf-8")
+    declared_hash = transport.get("http_body_sha256")
+    if declared_hash != PUBLICDATA_REGISTER_BODY_SHA256 or _sha256(raw_bytes) != declared_hash:
+        raise RetentionInputError("transport HTTP body SHA-256 does not match the admitted response")
+    if len(raw_bytes) != PUBLICDATA_REGISTER_BODY_BYTES:
+        raise RetentionInputError("transport HTTP body byte size does not match the admitted response")
+    try:
+        body = json.loads(body_text)
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise RetentionInputError("transport HTTP body is not valid JSON") from exc
+    if not isinstance(body, Mapping) or not isinstance(body.get("rows"), list) or len(body["rows"]) != 1:
+        raise RetentionInputError("transport HTTP body must contain exactly one row")
+    row = body["rows"][0]
+    if not isinstance(row, Mapping) or row.get("abn") != transport["subject_abn"] or row.get("charity_legal_name") != transport["subject_name"]:
+        raise RetentionInputError("transport row identity does not match the bounded subject")
+    publicdata = body.get("publicdata")
+    if not isinstance(publicdata, Mapping) or publicdata.get("version") != PUBLICDATA_REGISTER_VERSION:
+        raise RetentionInputError("transport body does not carry the admitted publicdata version")
+    if body.get("this_version") != PUBLICDATA_REGISTER_URL:
+        raise RetentionInputError("transport body query locator does not match the transport envelope")
+    upstream_claim = transport.get("upstream_original_csv_claimed_sha256")
+    upstream = publicdata.get("source")
+    if not isinstance(upstream, Mapping) or upstream.get("sha256") != upstream_claim:
+        raise RetentionInputError("upstream CSV SHA claim is not preserved consistently")
+    if not isinstance(subject, Mapping):
+        raise RetentionInputError("subject must be a durable record mapping")
+    external_identifiers = subject.get("external_identifiers", ())
+    identifier_values = {
+        item.get("value") for item in external_identifiers
+        if isinstance(item, Mapping) and item.get("scheme") == "ABN"
+    }
+    if subject.get("abn") != transport["subject_abn"] and transport["subject_abn"] not in identifier_values:
+        raise RetentionInputError("durable subject does not carry the exact target ABN")
+
+    representation = {
+        "representation_kind": "third_party_api_register_row",
+        "representation_origin": "publicdata.au independent republication; not ACNC publisher original bytes",
+        "publisher": publicdata.get("publisher"),
+        "republisher": publicdata.get("operator"),
+        "dataset": publicdata.get("dataset"),
+        "dataset_version": PUBLICDATA_REGISTER_VERSION,
+        "api_locator": transport["source_url"],
+        "api_response_sha256": declared_hash,
+        "license": dict(rights),
+        "row": dict(row),
+        "upstream_original_csv_claim": {
+            "sha256": upstream_claim,
+            "bytes": transport.get("upstream_original_csv_claimed_bytes"),
+            "verification_status": "mirror_claim_not_locally_verified",
+        },
+    }
+    source_provenance = {
+        "transport_schema": PUBLICDATA_TRANSPORT_SCHEMA,
+        "source_kind": PUBLICDATA_REGISTER_SOURCE_KIND,
+        "transport_capture_method": transport.get("capture_method"),
+        "transport_captured_at": transport.get("captured_at"),
+        "rights": dict(rights),
+        "publisher_original_bytes": False,
+        "upstream_original_csv_sha256_claim": upstream_claim,
+        "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+        "currentness": {
+            "source_version": PUBLICDATA_REGISTER_VERSION,
+            "source_version_url": body.get("version_page"),
+            "captured_at": transport.get("captured_at"),
+            "status": "versioned_source_currentness_observed",
+        },
+    }
+    return retain_acnc_source_evidence(
+        subject_id=subject_id,
+        scope_id=scope_id,
+        subject=subject,
+        scope=scope,
+        source_family="acnc_register",
+        source_role="register_identity",
+        source_url=transport["source_url"],
+        raw_bytes=raw_bytes,
+        representation=representation,
+        acquired_at=transport["captured_at"],
+        source_definition_id=source_definition_id,
+        source_record_id=source_record_id,
+        rights_authority=rights_authority,
+        source_provenance=source_provenance,
+        acquisition_method="caller_supplied_publicdata_api_transport",
+    )
+
+
+def retain_publicdata_acnc_register_batch_entry(
+    transport: Mapping[str, Any],
+    entry: Mapping[str, Any],
+    *,
+    subject_id: str,
+    scope_id: str,
+    subject: Mapping[str, Any],
+    scope: Mapping[str, Any],
+    source_definition_id: str | None = None,
+    source_record_id: str | None = None,
+    rights_authority: Mapping[str, Mapping[str, Any]] | None = None,
+) -> AcncRetentionRecord:
+    """Retain one exact entry from the four-row publicdata.au batch transport.
+
+    The batch contains third-party API response bodies, never publisher-original
+    CSV bytes.  This adapter verifies the envelope, independently hashes the
+    selected UTF-8 body, and then delegates all identity/lineage/rights handling
+    to the existing T3 retention seam.
+    """
+    if not isinstance(transport, Mapping) or transport.get("schema") != PUBLICDATA_REGISTER_BATCH_TRANSPORT_SCHEMA:
+        raise RetentionInputError("unsupported publicdata.au batch transport schema")
+    if transport.get("source_dataset") != "acnc-register" or transport.get("source_version") != PUBLICDATA_REGISTER_VERSION:
+        raise RetentionInputError("batch transport dataset/version is not the admitted ACNC register")
+    if transport.get("source_family") != "acnc_register":
+        raise RetentionInputError("batch transport source family is not acnc_register")
+    if transport.get("upstream_original_csv_sha256") != PUBLICDATA_REGISTER_BATCH_UPSTREAM_SHA256:
+        raise RetentionInputError("batch transport upstream CSV claim is not preserved")
+    if transport.get("upstream_original_csv_sha256_status") != "mirror_claim_not_locally_verified":
+        raise RetentionInputError("batch transport upstream CSV claim is not explicitly unverified")
+    if not isinstance(entry, Mapping):
+        raise RetentionInputError("batch transport entry must be a mapping")
+    abn = entry.get("abn")
+    expected = PUBLICDATA_REGISTER_BATCH_EXPECTATIONS.get(abn)
+    if expected is None:
+        raise RetentionInputError("batch transport entry ABN is not one of the four admitted rows")
+    body_text = entry.get("response_raw_utf8")
+    if not isinstance(body_text, str):
+        raise RetentionInputError("batch transport response must be raw UTF-8 text")
+    raw_bytes = body_text.encode("utf-8")
+    expected_bytes, expected_sha256 = expected
+    if len(raw_bytes) != expected_bytes or _sha256(raw_bytes) != expected_sha256:
+        raise RetentionInputError("batch transport response length or independently observed SHA-256 mismatches")
+    if entry.get("response_body_chars") != len(body_text) or entry.get("rows") != 1:
+        raise RetentionInputError("batch transport response metadata is inconsistent")
+    try:
+        body = json.loads(body_text)
+    except json.JSONDecodeError as exc:
+        raise RetentionInputError("batch transport response is not valid JSON") from exc
+    if not isinstance(body, Mapping) or not isinstance(body.get("rows"), list) or len(body["rows"]) != 1:
+        raise RetentionInputError("batch transport response must contain one row")
+    row = body["rows"][0]
+    publicdata = body.get("publicdata")
+    if not isinstance(row, Mapping) or row.get("abn") != abn:
+        raise RetentionInputError("batch transport row ABN does not match entry")
+    if not isinstance(publicdata, Mapping) or publicdata.get("version") != PUBLICDATA_REGISTER_VERSION or publicdata.get("fields") != 69:
+        raise RetentionInputError("batch transport response is not the admitted 69-field register version")
+    if body.get("this_version") != entry.get("api_url"):
+        raise RetentionInputError("batch transport query URL does not match response lineage")
+    if publicdata.get("source", {}).get("sha256") != PUBLICDATA_REGISTER_BATCH_UPSTREAM_SHA256:
+        raise RetentionInputError("batch response does not preserve the unverified upstream CSV claim")
+    licence = publicdata.get("licence")
+    if licence != {"id": "CC-BY-3.0-AU", "title": "CC BY 3.0 AU", "url": "https://creativecommons.org/licenses/by/3.0/au/"}:
+        raise RetentionInputError("batch response does not carry the admitted CC BY 3.0 AU record")
+    publisher = publicdata.get("publisher")
+    operator = publicdata.get("operator")
+    if not isinstance(publisher, Mapping) or publisher.get("name") != "Australian Charities and Not-for-profits Commission":
+        raise RetentionInputError("batch response ACNC attribution is missing")
+    if not isinstance(operator, Mapping) or operator.get("name") != "National Digital":
+        raise RetentionInputError("batch response National Digital attribution is missing")
+    external_identifiers = subject.get("external_identifiers", ()) if isinstance(subject, Mapping) else ()
+    identifier_values = {item.get("value") for item in external_identifiers if isinstance(item, Mapping) and item.get("scheme") == "ABN"}
+    if subject.get("abn") != abn and abn not in identifier_values:
+        raise RetentionInputError("durable subject does not carry the exact batch-entry ABN")
+    representation = {
+        "representation_kind": "third_party_api_register_row",
+        "representation_origin": "publicdata.au independent republication; not ACNC publisher original bytes",
+        "publisher": dict(publisher),
+        "republisher": dict(operator),
+        "dataset": publicdata.get("dataset"),
+        "dataset_version": PUBLICDATA_REGISTER_VERSION,
+        "api_locator": entry.get("api_url"),
+        "api_response_sha256": expected_sha256,
+        "response_fields": publicdata.get("fields"),
+        "license": dict(licence),
+        "row": dict(row),
+        "upstream_original_csv_claim": {
+            "sha256": PUBLICDATA_REGISTER_BATCH_UPSTREAM_SHA256,
+            "verification_status": "mirror_claim_not_locally_verified",
+        },
+    }
+    source_provenance = {
+        "transport_schema": PUBLICDATA_REGISTER_BATCH_TRANSPORT_SCHEMA,
+        "source_kind": PUBLICDATA_REGISTER_SOURCE_KIND,
+        "transport_capture_method": transport.get("acquisition_channel"),
+        "transport_captured_at": transport.get("acquisition_observed_at"),
+        "observed_mirror_origin": "publicdata.au",
+        "source_version": PUBLICDATA_REGISTER_VERSION,
+        "response_fields": 69,
+        "attribution": transport.get("rights_observed"),
+        "rights": dict(licence),
+        "publisher_original_bytes": False,
+        "upstream_original_csv_sha256_claim": PUBLICDATA_REGISTER_BATCH_UPSTREAM_SHA256,
+        "upstream_original_csv_verification": "mirror_claim_not_locally_verified",
+        "currentness": {
+            "source_version": PUBLICDATA_REGISTER_VERSION,
+            "source_version_url": body.get("version_page"),
+            "captured_at": transport.get("acquisition_observed_at"),
+            "status": "versioned_source_currentness_observed",
+        },
+    }
+    return retain_acnc_source_evidence(
+        subject_id=subject_id,
+        scope_id=scope_id,
+        subject=subject,
+        scope=scope,
+        source_family="acnc_register",
+        source_role="register_identity",
+        source_url=entry.get("api_url"),
+        raw_bytes=raw_bytes,
+        representation=representation,
+        acquired_at=transport.get("acquisition_observed_at"),
+        source_definition_id=source_definition_id,
+        source_record_id=source_record_id,
+        rights_authority=rights_authority,
+        source_provenance=source_provenance,
+        acquisition_method="caller_supplied_publicdata_batch_transport",
     )
 
 
@@ -459,10 +753,21 @@ bind_t3_acnc_real_evidence = bind_retained_acnc_source_evidence
 
 __all__ = [
     "AcncRetentionRecord",
+    "PUBLICDATA_REGISTER_BODY_BYTES",
+    "PUBLICDATA_REGISTER_BODY_SHA256",
+    "PUBLICDATA_REGISTER_BATCH_EXPECTATIONS",
+    "PUBLICDATA_REGISTER_BATCH_TRANSPORT_SCHEMA",
+    "PUBLICDATA_REGISTER_BATCH_UPSTREAM_SHA256",
+    "PUBLICDATA_REGISTER_SOURCE_KIND",
+    "PUBLICDATA_REGISTER_URL",
+    "PUBLICDATA_REGISTER_VERSION",
+    "PUBLICDATA_TRANSPORT_SCHEMA",
     "RETENTION_SCHEMA",
     "REPRESENTATION_SCHEMA",
     "RetentionInputError",
     "bind_retained_acnc_source_evidence",
     "bind_t3_acnc_real_evidence",
     "retain_acnc_source_evidence",
+    "retain_publicdata_acnc_register_transport",
+    "retain_publicdata_acnc_register_batch_entry",
 ]

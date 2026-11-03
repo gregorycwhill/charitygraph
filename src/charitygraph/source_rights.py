@@ -52,6 +52,21 @@ _ANALYTICAL_PURPOSES = {
 }
 
 
+def governed_rights_policy(
+    policy_id: str,
+    policy_version: str | None,
+    *,
+    rights_basis: str | None = None,
+) -> dict[str, object] | None:
+    """Resolve one exact, in-repository governed rights-policy identity."""
+    policy = RIGHTS_POLICY_REGISTRY.get(policy_id)
+    if policy is None or policy.get("version") != policy_version:
+        return None
+    if rights_basis is not None and policy.get("basis") != rights_basis:
+        return None
+    return policy
+
+
 class ArtifactRightsDecision(StrictModel):
     """One append-only decision for a source artefact and its sent rendering."""
 
@@ -86,15 +101,33 @@ class ArtifactRightsDecision(StrictModel):
     explicit_prohibition_found: bool = False
     provider_no_training_default: bool = False
     provider_data_sharing_opt_in: bool | None = None
+    decision_version: str = "1"
+    representation_artifact_id: str | None = None
+    rights_policy_version: str | None = None
+    provider_processing_policy_version: str | None = None
+    assessment_authority: str | None = None
+    expires_on: date | None = None
+    status: Literal["authorized", "blocked", "revoked", "superseded"] = "authorized"
+    supersedes_decision_id: str | None = None
 
     @model_validator(mode="after")
     def _fail_closed(self) -> "ArtifactRightsDecision":
         for field in ("decision_id", "source_artifact_id", "source_record_id", "source_origin_url", "source_role", "rights_policy_id", "provider_processing_policy_id", "evidence_locator", "assessment_scope"):
             require_nonblank(str(getattr(self, field)), field)
+        for field in (
+            "decision_version", "representation_artifact_id", "rights_policy_version",
+            "provider_processing_policy_version", "assessment_authority",
+            "supersedes_decision_id",
+        ):
+            value = getattr(self, field)
+            if value is not None:
+                require_nonblank(str(value), field)
         if not self.acquisition_lineage_ids or any(not item.strip() for item in self.acquisition_lineage_ids):
             raise ValueError("provider rights require acquisition lineage")
         if self.rights_basis in {"unknown", "prohibited"} and self.provider_transmission_allowed:
             raise ValueError("this rights basis cannot authorize provider transmission")
+        if self.provider_transmission_allowed and self.status != "authorized":
+            raise ValueError("non-authorized decision status cannot authorize provider transmission")
         if self.explicit_prohibition_found and self.provider_transmission_allowed:
             raise ValueError("explicit prohibitory terms block provider transmission")
         if self.rights_basis == "public_facts_only" and self.provider_transmission_allowed:
@@ -224,11 +257,20 @@ class BoundedLocalRetentionDecision(StrictModel):
         return self
 
 
-def require_provider_rights(decisions: list[ArtifactRightsDecision], sources: list[dict]) -> list[str]:
+def require_provider_rights(
+    decisions: list[ArtifactRightsDecision],
+    sources: list[dict],
+    *,
+    planned_processing_at: date | None = None,
+) -> list[str]:
     """Return deterministic blockers for the exact frozen source representations."""
     by_pair = {}
     for item in decisions:
-        key = (item.source_artifact_id, str(item.transmitted_representation_sha256))
+        key = (
+            item.source_artifact_id,
+            item.representation_artifact_id,
+            str(item.transmitted_representation_sha256),
+        )
         if key in by_pair:
             raise ValueError("duplicate artifact/representation rights decisions are ambiguous")
         by_pair[key] = item
@@ -236,20 +278,51 @@ def require_provider_rights(decisions: list[ArtifactRightsDecision], sources: li
     for source in sources:
         artifact_id = source.get("source_artifact_id") or source.get("artifact_id") or source.get("source_record_id")
         representation = source.get("exact_transmitted_representation")
-        if not isinstance(artifact_id, str) or not isinstance(representation, str):
+        representation_hash = source.get("transmitted_representation_sha256")
+        if representation_hash is None and isinstance(representation, str):
+            import hashlib
+            representation_hash = hashlib.sha256(representation.encode("utf-8")).hexdigest()
+        if not isinstance(artifact_id, str) or not isinstance(representation_hash, str):
             blockers.append("source identity or frozen representation is absent")
             continue
-        import hashlib
-        decision = by_pair.get((artifact_id, hashlib.sha256(representation.encode("utf-8")).hexdigest()))
+        representation_artifact_id = source.get("representation_artifact_id")
+        decision = by_pair.get((artifact_id, representation_artifact_id, representation_hash))
+        if decision is None and representation_artifact_id is None:
+            decision = by_pair.get((artifact_id, None, representation_hash))
         if decision is None:
             blockers.append(f"{artifact_id}: no artifact-bound rights decision")
         elif (
             decision.source_record_id != source.get("source_record_id")
-            or decision.source_origin_url != source.get("source_locator")
+            or decision.source_origin_url != source.get("source_locator", source.get("source_origin_url"))
             or decision.source_role != source.get("source_role")
             or not decision.acquisition_lineage_ids
+            or source.get("acquisition_lineage_ids") is not None
+            and set(decision.acquisition_lineage_ids) != set(source.get("acquisition_lineage_ids") or ())
+            or source.get("rights_policy_id") is not None
+            and decision.rights_policy_id != source.get("rights_policy_id")
+            or source.get("rights_policy_version") is not None
+            and decision.rights_policy_version != source.get("rights_policy_version")
+            or source.get("provider_processing_policy_id") is not None
+            and decision.provider_processing_policy_id != source.get("provider_processing_policy_id")
+            or source.get("provider_processing_policy_version") is not None
+            and decision.provider_processing_policy_version != source.get("provider_processing_policy_version")
         ):
             blockers.append(f"{artifact_id}: source identity, role, origin, or acquisition lineage mismatch")
-        elif not decision.provider_transmission_allowed:
+        elif decision.status in {"blocked", "revoked", "superseded"} or not decision.provider_transmission_allowed:
             blockers.append(f"{artifact_id}: provider transmission is not permitted")
+        elif decision.expires_on is not None and planned_processing_at is not None and planned_processing_at > decision.expires_on:
+            blockers.append(f"{artifact_id}: provider rights decision is expired")
+        elif governed_rights_policy(
+            decision.rights_policy_id,
+            decision.rights_policy_version,
+            rights_basis=decision.rights_basis,
+        ) is None:
+            blockers.append(f"{artifact_id}: rights policy identity is unknown or version-mismatched")
+        elif decision.provider_transmission_allowed and (
+            not decision.representation_artifact_id
+            or not decision.rights_policy_version
+            or not decision.provider_processing_policy_version
+            or not decision.assessment_authority
+        ):
+            blockers.append(f"{artifact_id}: provider rights decision lacks durable version/authority binding")
     return blockers

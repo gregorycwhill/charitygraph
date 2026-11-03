@@ -189,6 +189,15 @@ def _brief_records(brief: PrivateAnswerBrief) -> tuple[Any, ...]:
         raise ValueError("E3 North Star coverage must contain sections one through twenty")
     if any(item.projection_contract != "north-star-v0.3" for item in brief.north_star_coverage):
         raise ValueError("E3 coverage contract is not North Star v0.3")
+    currentness = tuple(
+        record for record in brief.answer_slots if record.question_id == QUESTION_CURRENTNESS
+    )
+    if len(currentness) != 5 or any(
+        not isinstance(record.missingness, Mapping)
+        or record.missingness.get("status") != "source_silent"
+        for record in currentness
+    ):
+        raise ValueError("E3 must retain five source_silent currentness records")
     if set(brief.source_hash_bindings) != {
         (record.source_record_id, record.representation_sha256) for record in brief.answer_slots
     } or len(brief.source_hash_bindings) != 10:
@@ -236,8 +245,49 @@ def _current_rights_matches(row: Mapping[str, Any], record: Any) -> str | None:
     return None
 
 
+def _scope_boundary_diagnostic(plan: FactoryPlan) -> PreflightDiagnostic | None:
+    """Reject any physical package that cannot prove one scope.
+
+    Factory execution groups isolate scopes, but scope is not part of the
+    physical package identity.  Inspect the pre-scope-grouping identities so
+    a same-subject bundle cannot hide a mixed-scope input before task seeding.
+    """
+
+    for package in plan.physical_identity_packages(delivery_mode="standard"):
+        if len(package) < 2:
+            continue
+        scopes = {item.get("scope_id") for item in package}
+        if len(scopes) == 1 and None not in scopes:
+            continue
+        subject_ids = {str(item.get("subject_id", "unresolved")) for item in package}
+        source_identities = tuple(
+            sorted(
+                (
+                    str(item.get("source_record_ids", ())),
+                    str(item.get("representation_hashes", {})),
+                )
+                for item in package
+            )
+        )
+        return _diagnostic(
+            "blocked",
+            "Factory physical package cannot prove a single scope",
+            f"scopes={tuple(sorted(str(scope) for scope in scopes))}",
+            f"source_identities={source_identities}",
+            subject_id=next(iter(subject_ids), "unresolved") if len(subject_ids) == 1 else "unresolved",
+            reference_id=f"{TASK_IDENTITY}:scope-boundary",
+        )
+    return None
+
+
 def _summary(tasks: tuple[dict[str, Any], ...], brief: PrivateAnswerBrief) -> dict[str, Any]:
     plan = FactoryPlan.from_manifest(list(tasks))
+    currentness = tuple(
+        record.as_dict()
+        for record in brief.answer_slots
+        if record.question_id == QUESTION_CURRENTNESS
+    )
+    coverage = tuple(entry.as_dict() for entry in brief.north_star_coverage)
     return {
         "task_identity": TASK_IDENTITY,
         "schema_version": SCHEMA_VERSION,
@@ -248,6 +298,8 @@ def _summary(tasks: tuple[dict[str, Any], ...], brief: PrivateAnswerBrief) -> di
         "subjects": len(brief.subjects),
         "answer_slots": len(brief.answer_slots),
         "coverage_entries": len(brief.north_star_coverage),
+        "north_star_coverage": coverage,
+        "source_silent_currentness": currentness,
         "source_hashes": len(brief.source_hash_bindings),
         "rights_bindings": len(brief.source_rights_bindings),
         "accepted_tasks": len(tasks),
@@ -388,6 +440,21 @@ def preflight_e3_private_answer_brief(
         return E3FactoryHandoff((), (diagnostic,), FactoryPlan.from_manifest([]), {"accepted_tasks": 0})
     if result.diagnostics:
         return E3FactoryHandoff((), result.diagnostics, FactoryPlan.from_manifest([]), {"accepted_tasks": 0})
+    try:
+        scope_diagnostic = _scope_boundary_diagnostic(result.factory_plan)
+    except Exception as exc:
+        scope_diagnostic = _diagnostic(
+            "blocked",
+            "Factory physical package scope check failed closed",
+            str(exc),
+        )
+    if scope_diagnostic is not None:
+        return E3FactoryHandoff(
+            (),
+            (scope_diagnostic,),
+            FactoryPlan.from_manifest([]),
+            {"accepted_tasks": 0},
+        )
     tasks = tuple(result.tasks)
     return E3FactoryHandoff(tasks, (), result.factory_plan, _summary(tasks, brief))
 

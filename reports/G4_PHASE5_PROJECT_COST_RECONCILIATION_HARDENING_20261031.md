@@ -1,45 +1,102 @@
-# G4 Phase-5 project-cost reconciliation hardening
+# G4 Phase-5 project-cost multi-attempt hardening — independent acceptance
 
 Date: 2026-10-31 (Australia/Sydney)  
-Disposition: **bounded local hardening complete; independent acceptance remains required**
+Disposition: **PARTIAL** — bounded local hardening is accepted; project-wide spend authority is not established.
 
-## Implementation
+## Authority and path proof
 
-The existing read-only diagnostic now preserves and evaluates all safe-exported request, delivery-attempt, physical-attempt and receipt rows. It no longer selects the first request, attempt or physical receipt. Exact source-native request/attempt/receipt identities may disambiguate a historical row; otherwise it emits `AMBIGUOUS_LINKAGE` or `INCOMPLETE_ATTEMPT_HISTORY`. Contradictory request, attempt, physical and receipt identities emit `CONTRADICTORY_RUNTIME_IDENTITIES` and the affected actual charge is excluded from a known actual total.
+Audited branch `gate3-cg406-remediation` at exact HEAD
+`4fbd894f607e11eff03307a5fc75d1955ce69c39`, parent
+`a9aa4ccc4b97be7cad80a69aedd59d80314a0ba9`, for instruction
+`gate4:engineering:20261031-g4-phase5-project-cost-multi-attempt-hardening-v84-sol-1201-c5be0dd8`.
+The supplied immutable v85 fence is recorded as
+`a6ce616ba5832c69687bf6c31cc91d41180a896aac72d3cdc38c9f7e2057a3ea`; no
+separate v85 fence artifact was present locally for an independent byte
+recalculation.
 
-Reservation rows are identity-deduplicated and amount/currency conflicts fail closed. Persisted release entries are reconciled separately into gross, active-status reserved, released and net reservation-exposure records. `remaining_spend` is always `unknown`: the migration-29 export has no authority for a current remaining budget. Actual charges, reservations and estimates remain separate Decimal-based projections.
+`git diff-tree --no-commit-id --name-status -r 4fbd894f607e11eff03307a5fc75d1955ce69c39`
+shows exactly these three committed paths:
 
-The diagnostic remains read-only and deterministic: safe identifiers and provenance only, stable ordering and SHA-256 canonical output, no raw provider payloads/prompts/credentials, no schema or database change, and no provider/model/source access.
+1. `src/charitygraph/phase5_project_cost_reconciliation.py` — Git blob
+   `27630eb87d99021d531264377e0e2c0ea56e3d4b`
+2. `tests/test_phase5_project_cost_reconciliation.py` — Git blob
+   `042983fb1062948ac1fa50dbaabc29212a17aae3`
+3. `reports/G4_PHASE5_PROJECT_COST_RECONCILIATION_HARDENING_20261031.md` —
+   Git blob at the audited commit
+   `9ed6c7a0008865e55eff63695112628b38b1f4c6`
 
-## What the export can and cannot prove
+The source and test worktree bytes matched the commit. No staged changes or
+unrelated dirty material were absorbed. The four unadopted CGDOC1 ingress
+paths remained present and untouched:
 
-It can prove bounded arithmetic over the selected safe catalogue rows, exact persisted identities, supported-schema/run-selection state, receipt-linked charge candidates, explicit reservation/release rows, and deterministic missingness or contradiction blockers. It cannot prove provider-side exactly-once effects, invoice truth, pricing or FX authority validity, unpersisted charges, project-wide completeness without an authenticated complete boundary, cumulative AUD10 spend, or remaining spend authority. Source and snapshot hashes are lineage, not independent accounting authority.
+- `runtime/g4-o1b-controlled-cutover-20261020/bridge/inbox/gate4_engineering_20261031-g4-doc-export-ingress-hardening-optin-v83-sol-1018-50f8ef0a.json`
+- `runtime/g4-o1b-controlled-cutover-20261020/bridge/inbox/gate4_engineering_20261031-g4-doc-export-second-ingress-dormant-v82-sol-0957-04ff9b8f.json`
+- `runtime/g4-o1b-controlled-cutover-20261020/bridge/inbox/gate4_engineering_20261031-g4-doc-export-second-ingress-independent-accept-v83-sol-1010-4cd6c671.json`
+- `runtime/g4-o1b-controlled-cutover-20261020/bridge/inbox/gate4_engineering_20261031-g4-doc-export-timeout-independent-review-v83-sol-1036-f0ec86.json`
 
-## Evidence
+## Independent verification
 
-Cache-free, bytecode-free, local-only and provider-free:
+Commands were local-only, provider-free, bytecode-disabled and cache-free;
+pytest used a disposable basetemp under `C:\CharityGraph-runtime`:
 
 ```text
-python -m pytest -p no:cacheprovider tests/test_phase5_project_cost_reconciliation.py
-15 passed in 1.71s
+$env:PYTHONDONTWRITEBYTECODE='1'
+python -m pytest -p no:cacheprovider --basetemp C:\CharityGraph-runtime\g4-phase5-cost-acceptance-d37b380f7aa14abbace813f88c598e9e tests/test_phase5_project_cost_reconciliation.py
+15 passed
 
-python -m pytest -p no:cacheprovider tests/test_phase5_project_cost_reconciliation.py tests/test_phase5_operator_health_catalogue.py tests/test_phase5_operator_health_runtime_contract.py tests/test_phase5_t4a9_sqlite_accounting_contract.py tests/test_phase5_t4a8_durable_accounting_export.py tests/runtime/test_currency_accounting.py
-55 passed in 3.40s
-
-python -m py_compile src/charitygraph/phase5_project_cost_reconciliation.py
-passed
+python -m pytest -p no:cacheprovider --basetemp C:\CharityGraph-runtime\g4-phase5-cost-acceptance-d37b380f7aa14abbace813f88c598e9e tests/test_phase5_project_cost_reconciliation.py tests/test_phase5_operator_health_catalogue.py tests/test_phase5_operator_health_runtime_contract.py tests/test_phase5_t4a9_sqlite_accounting_contract.py tests/test_phase5_t4a8_durable_accounting_export.py tests/runtime/test_currency_accounting.py
+55 passed
 ```
 
-The new fixtures cover multiple requests, multiple delivery attempts, contradictory receipt IDs, multiple physical receipts, replay/idempotence, reservation release and unknown release state, partial actuals without silent undercounting, stable hashing, unchanged SQLite bytes, and raw-payload exclusion. No test failures remain in the executed selections.
+The implementation and migration-29 catalogue contract were read against the
+architecture, Builder machinery, supervisor protocol, Data documentation
+authority, current policies/plans/tests and North Star v0.3. The focused tests
+and code inspection verify:
 
-## Remaining gaps and bounded next step
+- all safe-exported request, delivery-attempt, physical-attempt and receipt
+  rows are retained and reconciled as groups; first-row selection is not used
+  for charge identity resolution;
+- contradictory request/attempt/physical/receipt identities emit
+  `CONTRADICTORY_RUNTIME_IDENTITIES`; unresolved crossings emit
+  `AMBIGUOUS_LINKAGE` or `INCOMPLETE_ATTEMPT_HISTORY`, and affected actuals
+  are excluded from a known total;
+- identical receipt replays are not double-counted, conflicting receipts fail
+  closed, and partial linkage does not become a project total;
+- reservation identity/amount conflicts and unreconciled releases fail
+  closed; gross, active-status reserved, explicit released and net amounts
+  remain distinct, while `remaining_spend` stays `UNKNOWN`;
+- actual charges, reservations and explicit estimates remain separate and
+  use `Decimal`; canonical ordering and SHA-256 output are stable;
+- stale/unsupported schema, missing runs and missing authenticated complete
+  project-wide ledger coverage are represented as unknown/incomplete rather
+  than zero; and
+- the allowlist excludes raw prompts, provider payloads/results, credentials
+  and transport exceptions. The read-only SQLite fixture hash is asserted
+  unchanged by the focused tests.
 
-Provider-route authority, source-owned pricing/FX snapshots, authenticated project ledger coverage, external invoice/effect reconciliation, and cumulative budget authority remain unresolved. This change does not activate a provider route or make the diagnostic pre-send authority.
+No provider/model/source acquisition, provider call, spend, publication,
+bridge/watchers/process change or GitHub mutation occurred. No new semantic
+bug was reproducibly found in this bounded review.
 
-The bounded next step is an independently authenticated, source-owned ledger export and acceptance fixture that supplies exact project/run coverage, provider contract identity, pricing/FX snapshots, reservation/release semantics, and receipt identity across historical attempts. Any external acquisition or provider work remains separately authorised.
+## Unresolved authority and disposition
 
-## North Star impact
+The local diagnostic does not establish a source-owned provider route,
+pricing authority, FX authority, invoice/exactly-once effect reconciliation,
+or an authenticated complete project ledger. The cumulative approved AUD10
+provider-call ceiling remains unknown from this export and is not a spend
+ledger. These gaps prevent a full PASS and do not authorise provider work.
 
-Directly advances North Star v0.3 sections **13 Finances**, **14 Funding / dependencies**, and **20 Evidence / coverage / freshness / corrections** through better scoped operational cost evidence and explicit missingness. Adjacent reusable evidence touches **11 Scale / capability** and **19 Classification / search / AI discovery** through runtime-task economics and provenance. This is private Builder operational telemetry, not charity expenditure knowledge or a public release projection; it earns no Gate 4 closure or scorecard progress.
+North Star v0.3 impact is limited to internal operational evidence supporting
+sections 13 Finances, 14 Funding / dependencies, and 20 Evidence / coverage /
+freshness / corrections. It is not charity expenditure knowledge or a public
+release projection. Gate 1 remains CLOSED, Gate 2 ACTIVE, 12% earned; this
+report claims no scorecard progress, Gate 4 closure or release.
 
-No private source material, runtime databases, caches, prompts, model responses, credentials, logs, raw provider bodies or public projections were added or modified. Existing unrelated dirty work, including the four unadopted CGDOC1 ingress paths, was preserved.
+Highest-value successor: obtain an independently authenticated, source-owned
+project-ledger export with exact run coverage, provider contract identity,
+pricing/FX snapshots, reservation-release semantics and receipt identity;
+then add a read-only acceptance fixture for stale scope, retries and
+contradictory identities.
+
+No private material, runtime database, cache, prompt, model response,
+credential, raw source or generated public projection was added or modified.

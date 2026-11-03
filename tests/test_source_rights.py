@@ -16,6 +16,7 @@ ORIGIN = "https://example.test/public"
 SOURCE = {
     "source_artifact_id": "srcblob:a", "source_record_id": "srcrec:a",
     "source_locator": ORIGIN, "source_role": "official_homepage",
+    "representation_artifact_id": "representation:a",
     "exact_transmitted_representation": "bounded text",
 }
 
@@ -25,7 +26,9 @@ def decision(**changes):
         decision_id="rights:1", source_artifact_id="srcblob:a", source_record_id="srcrec:a",
         source_origin_url=ORIGIN, source_role="official_homepage", acquisition_lineage_ids=("acq:a",),
         transmitted_representation_sha256=hashlib.sha256(b"bounded text").hexdigest(),
-        rights_policy_id=FAIR_DEALING_POLICY_ID, provider_processing_policy_id=OPENAI_PROVIDER_POLICY_ID,
+        representation_artifact_id="representation:a", rights_policy_id=FAIR_DEALING_POLICY_ID,
+        rights_policy_version="1.0.0", provider_processing_policy_id=OPENAI_PROVIDER_POLICY_ID,
+        provider_processing_policy_version="1", assessment_authority="fixture-authority-v1",
         rights_basis="statutory_exception", evidence_locator="https://example.test/policy",
         evidence_sha256="b" * 64, assessed_on=date(2026, 9, 13), assessment_scope="private bounded analytical processing",
         local_retention_allowed=False, provider_transmission_allowed=True, public_redistribution_allowed=False,

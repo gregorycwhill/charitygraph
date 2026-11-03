@@ -74,6 +74,56 @@ S0_LIVE_SEND_ATTESTER = "Greg"
 ATTESTATION_WINDOW = timedelta(hours=24)
 
 
+ARTIFACT_RIGHTS_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS artifact_rights_decisions (
+    decision_id TEXT PRIMARY KEY,
+    decision_version TEXT NOT NULL,
+    source_artifact_id TEXT NOT NULL,
+    representation_artifact_id TEXT NOT NULL,
+    source_record_id TEXT NOT NULL,
+    source_origin_url TEXT NOT NULL,
+    source_role TEXT NOT NULL,
+    acquisition_lineage_json TEXT NOT NULL,
+    representation_sha256 TEXT NOT NULL,
+    rights_policy_id TEXT NOT NULL,
+    rights_policy_version TEXT NOT NULL,
+    provider_processing_policy_id TEXT NOT NULL,
+    provider_processing_policy_version TEXT NOT NULL,
+    rights_basis TEXT NOT NULL,
+    provider_transmission_allowed INTEGER NOT NULL CHECK(provider_transmission_allowed IN (0,1)),
+    decision_status TEXT NOT NULL CHECK(decision_status IN ('authorized','blocked','revoked','superseded')),
+    assessed_on TEXT NOT NULL,
+    assessment_authority TEXT NOT NULL,
+    expires_on TEXT,
+    supersedes_decision_id TEXT,
+    material_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL UNIQUE,
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS artifact_rights_decisions_representation_idx
+    ON artifact_rights_decisions(representation_artifact_id, representation_sha256);
+CREATE TABLE IF NOT EXISTS artifact_rights_decision_events (
+    event_id TEXT PRIMARY KEY,
+    decision_id TEXT NOT NULL REFERENCES artifact_rights_decisions(decision_id),
+    event_type TEXT NOT NULL CHECK(event_type IN ('recorded','revoked','superseded')),
+    material_hash TEXT NOT NULL UNIQUE,
+    recorded_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS provider_rights_diagnostics (
+    diagnostic_id TEXT PRIMARY KEY,
+    reference_id TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    state TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    details_json TEXT NOT NULL,
+    material_hash TEXT NOT NULL UNIQUE,
+    recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS provider_rights_diagnostics_reference_idx
+    ON provider_rights_diagnostics(reference_id, recorded_at);
+""".strip()
+
+
 def default_database_path(runtime_root: str | Path) -> Path:
     """Return the production path without creating a directory or database."""
 
@@ -422,6 +472,7 @@ class SQLiteCatalog:
                         (migration.version, migration.name, migration.checksum, datetime.now(timezone.utc).isoformat()),
                     )
                     applied[migration.version] = (migration.name, migration.checksum)
+                self._ensure_artifact_rights_tables(conn)
                 self._commit(conn)
                 return max(applied) if applied else 0
         except MigrationError:
@@ -437,6 +488,12 @@ class SQLiteCatalog:
             if result != "ok":
                 raise CatalogError(f"SQLite integrity check failed: {result}")
             return result
+
+    @staticmethod
+    def _ensure_artifact_rights_tables(conn: sqlite3.Connection) -> None:
+        for statement in ARTIFACT_RIGHTS_TABLE_SQL.split(";"):
+            if statement.strip():
+                conn.execute(statement)
 
     def record_scale_s0_halt(self, *, halt_id: str, slice_id: str, scope: str, reason: str,
                              created_at: datetime | str, task_key: str | None = None,
@@ -2933,6 +2990,138 @@ class SQLiteCatalog:
         with self._connection() as conn:
             return [dict(row) for row in conn.execute('SELECT * FROM artifact_lineage WHERE artifact_id=? ORDER BY input_artifact_id', (artifact_id,)).fetchall()]
 
+    def record_artifact_rights_decision(self, decision: Any, *, now: datetime | str | None = None) -> dict[str, Any]:
+        """Persist one immutable, exact-representation provider-rights decision."""
+        self._require_migrated()
+        from ..source_rights import ArtifactRightsDecision
+
+        model = decision if isinstance(decision, ArtifactRightsDecision) else ArtifactRightsDecision.model_validate(decision)
+        if not model.representation_artifact_id:
+            raise CatalogError("provider rights require an exact representation artifact binding")
+        if not model.rights_policy_version or not model.provider_processing_policy_version:
+            raise CatalogError("provider rights require versioned rights and provider policies")
+        if not model.assessment_authority:
+            raise CatalogError("provider rights require an assessment authority")
+        recorded_at = _utc(now or datetime.now(timezone.utc), "recorded_at")
+        material = {"catalogue_schema_version": "1", "decision": _dump(model)}
+        material_hash = _canonical_hash(material)
+        with self._connection(immediate=True) as conn:
+            self._ensure_artifact_rights_tables(conn)
+            source_artifact = conn.execute("SELECT content_hash FROM artifact_index WHERE artifact_id=?", (model.source_artifact_id,)).fetchone()
+            representation = conn.execute("SELECT content_hash FROM artifact_index WHERE artifact_id=?", (model.representation_artifact_id,)).fetchone()
+            if source_artifact is None or representation is None:
+                raise CatalogError("provider rights require durable source and representation artifacts")
+            if representation["content_hash"] != str(model.transmitted_representation_sha256):
+                raise ConflictError("rights decision representation hash does not match the durable artifact")
+            source = conn.execute("SELECT source_locator, source_role, payload_hash FROM source_records WHERE source_record_id=?", (model.source_record_id,)).fetchone()
+            if source is None:
+                raise CatalogError("provider rights require a durable source record")
+            if source["source_locator"] != model.source_origin_url or source["source_role"] != model.source_role:
+                raise ConflictError("rights decision source origin or role does not match the source record")
+            receipts = []
+            for lineage_id in model.acquisition_lineage_ids:
+                receipt = conn.execute("SELECT acquisition_id, artifact_id, content_hash FROM acquisition_receipts WHERE acquisition_id=?", (lineage_id,)).fetchone()
+                if receipt is None:
+                    raise CatalogError("provider rights require durable acquisition receipt lineage")
+                receipts.append(receipt)
+            if not any(item["artifact_id"] == model.source_artifact_id for item in receipts):
+                raise ConflictError("rights decision source artifact is not bound to its acquisition receipt lineage")
+            if model.supersedes_decision_id:
+                prior = conn.execute("SELECT source_artifact_id, representation_artifact_id FROM artifact_rights_decisions WHERE decision_id=?", (model.supersedes_decision_id,)).fetchone()
+                if prior is None:
+                    raise CatalogError("rights decision supersession target is not durable")
+                if (prior["source_artifact_id"], prior["representation_artifact_id"]) != (model.source_artifact_id, model.representation_artifact_id):
+                    raise ConflictError("rights decision supersession crosses artifact or representation identity")
+            existing = conn.execute("SELECT * FROM artifact_rights_decisions WHERE decision_id=?", (model.decision_id,)).fetchone()
+            if existing is not None:
+                if existing["material_hash"] != material_hash:
+                    raise ConflictError("rights decision identity was reused with different material")
+                return dict(existing)
+            conn.execute(
+                """INSERT INTO artifact_rights_decisions(
+                    decision_id, decision_version, source_artifact_id, representation_artifact_id,
+                    source_record_id, source_origin_url, source_role, acquisition_lineage_json,
+                    representation_sha256, rights_policy_id, rights_policy_version,
+                    provider_processing_policy_id, provider_processing_policy_version,
+                    rights_basis, provider_transmission_allowed, decision_status, assessed_on,
+                    assessment_authority, expires_on, supersedes_decision_id, material_json,
+                    material_hash, recorded_at
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    model.decision_id, model.decision_version, model.source_artifact_id,
+                    model.representation_artifact_id, model.source_record_id, model.source_origin_url,
+                    model.source_role, json.dumps(list(model.acquisition_lineage_ids), sort_keys=True),
+                    str(model.transmitted_representation_sha256), model.rights_policy_id,
+                    model.rights_policy_version, model.provider_processing_policy_id,
+                    model.provider_processing_policy_version, model.rights_basis,
+                    int(model.provider_transmission_allowed), model.status, model.assessed_on.isoformat(),
+                    model.assessment_authority, model.expires_on.isoformat() if model.expires_on else None,
+                    model.supersedes_decision_id, json.dumps(material, sort_keys=True), material_hash,
+                    recorded_at,
+                ),
+            )
+            event_type = "revoked" if model.status == "revoked" else "superseded" if model.status == "superseded" else "recorded"
+            event_material = {"decision_id": model.decision_id, "event_type": event_type, "material_hash": material_hash}
+            conn.execute(
+                "INSERT INTO artifact_rights_decision_events(event_id,decision_id,event_type,material_hash,recorded_at) VALUES (?,?,?,?,?)",
+                ("rights-event:" + _canonical_hash(event_material), model.decision_id, event_type, _canonical_hash(event_material), recorded_at),
+            )
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM artifact_rights_decisions WHERE decision_id=?", (model.decision_id,)).fetchone())
+
+    def get_artifact_rights_decision(self, decision_id: str) -> dict[str, Any] | None:
+        with self._connection() as conn:
+            self._ensure_artifact_rights_tables(conn)
+            return _row(conn.execute("SELECT * FROM artifact_rights_decisions WHERE decision_id=?", (decision_id,)).fetchone())
+
+    def get_artifact_rights_decisions(self, decision_ids: tuple[str, ...] | list[str]) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            self._ensure_artifact_rights_tables(conn)
+            return [
+                dict(row)
+                for row in conn.execute(
+                    "SELECT * FROM artifact_rights_decisions WHERE decision_id IN ({}) ORDER BY decision_id".format(",".join("?" for _ in decision_ids)),
+                    tuple(decision_ids),
+                ).fetchall()
+            ] if decision_ids else []
+
+    def list_artifact_rights_decisions(self, *, representation_artifact_id: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            self._ensure_artifact_rights_tables(conn)
+            return [
+                dict(row)
+                for row in conn.execute(
+                    "SELECT * FROM artifact_rights_decisions WHERE representation_artifact_id=? ORDER BY recorded_at, decision_id",
+                    (representation_artifact_id,),
+                ).fetchall()
+            ]
+
+    def record_provider_rights_diagnostic(
+        self, *, reference_id: str, subject_id: str, state: str, reason: str,
+        details: tuple[str, ...] | list[str] = (), recorded_at: datetime | str | None = None,
+    ) -> dict[str, Any]:
+        """Retain a deterministic fail-closed rights diagnostic for restart/audit."""
+        when = _utc(recorded_at or datetime.now(timezone.utc), "recorded_at")
+        material = {"reference_id": reference_id, "subject_id": subject_id, "state": state, "reason": reason, "details": list(details)}
+        material_hash = _canonical_hash(material)
+        diagnostic_id = "rights-diagnostic:" + material_hash
+        with self._connection(immediate=True) as conn:
+            self._ensure_artifact_rights_tables(conn)
+            existing = conn.execute("SELECT * FROM provider_rights_diagnostics WHERE diagnostic_id=?", (diagnostic_id,)).fetchone()
+            if existing is not None:
+                return dict(existing)
+            conn.execute(
+                "INSERT INTO provider_rights_diagnostics(diagnostic_id,reference_id,subject_id,state,reason,details_json,material_hash,recorded_at) VALUES (?,?,?,?,?,?,?,?)",
+                (diagnostic_id, reference_id, subject_id, state, reason, json.dumps(list(details), sort_keys=True), material_hash, when),
+            )
+            self._commit(conn)
+            return dict(conn.execute("SELECT * FROM provider_rights_diagnostics WHERE diagnostic_id=?", (diagnostic_id,)).fetchone())
+
+    def get_provider_rights_diagnostics(self, reference_id: str) -> list[dict[str, Any]]:
+        with self._connection() as conn:
+            self._ensure_artifact_rights_tables(conn)
+            return [dict(row) for row in conn.execute("SELECT * FROM provider_rights_diagnostics WHERE reference_id=? ORDER BY recorded_at, diagnostic_id", (reference_id,)).fetchall()]
+
     def register_evidence_locator(self, locator: Any, *, evidence_locator_id: str | None = None, now: datetime | str | None = None) -> dict[str, Any]:
         self._require_migrated()
         model = locator if isinstance(locator, EvidenceLocator) else EvidenceLocator.model_validate(locator)
@@ -3870,19 +4059,64 @@ class SQLiteCatalog:
             "relationships": [row for row in state["relationships"] if _valid_at({"effective_from": row.get("valid_from"), "effective_to": row.get("valid_to")}, "", point)],
         }
 
+    @staticmethod
+    def _physical_member_identity(conn: sqlite3.Connection, physical_attempt_id: str, *, run_id: str, subject_id: str) -> tuple[set[str], str | None]:
+        rows = conn.execute(
+            """
+            SELECT m.model_task_id, t.run_id, t.subject_id, t.scope_id
+            FROM physical_attempt_members AS m
+            JOIN tasks AS t ON t.model_task_id = m.model_task_id
+            WHERE m.physical_attempt_id=?
+            ORDER BY m.model_task_id
+            """,
+            (physical_attempt_id,),
+        ).fetchall()
+        if not rows:
+            raise ConflictError("physical attempt has no durable members; explicit repair is required")
+        if any(row["run_id"] != run_id or row["subject_id"] != subject_id for row in rows):
+            raise ConflictError("physical attempt has a historical member run or subject conflict; explicit repair is required")
+        scopes = {row["scope_id"] for row in rows}
+        if len(scopes) > 1:
+            raise ConflictError("physical attempt has historical mixed task scopes; explicit repair is required")
+        return {row["model_task_id"] for row in rows}, next(iter(scopes))
+
     def prepare_physical_attempt(self, *, physical_attempt_id: str, run_id: str, subject_id: str, delivery_mode: str, provider_request_id: str, model_task_ids: tuple[str, ...], reservation_id: str | None, now: datetime | str, provider_batch_id: str | None = None) -> dict[str, Any]:
         """Persist a package before its provider send boundary can be crossed."""
         when = _utc(now, "now")
         if delivery_mode not in {"standard", "flex", "batch"} or not model_task_ids:
             raise CatalogError("physical attempt needs a delivery mode and members")
+        if len(set(model_task_ids)) != len(model_task_ids):
+            raise ConflictError("physical attempt members must have stable unique identities")
         with self._connection(immediate=True) as conn:
             existing = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone()
-            if existing:
-                return dict(existing)
+            member_scopes = set()
             for task_id in model_task_ids:
-                task = conn.execute("SELECT run_id, subject_id FROM tasks WHERE model_task_id=?", (task_id,)).fetchone()
+                task = conn.execute("SELECT run_id, subject_id, scope_id FROM tasks WHERE model_task_id=?", (task_id,)).fetchone()
                 if task is None or task["run_id"] != run_id or task["subject_id"] != subject_id:
                     raise ConflictError("physical attempt members must belong to its run and subject")
+                member_scopes.add(task["scope_id"])
+            if len(member_scopes) > 1:
+                raise ConflictError("physical attempt members must share one task scope_id; null and non-null scopes cannot be mixed")
+            if existing:
+                identity = {
+                    "run_id": run_id,
+                    "subject_id": subject_id,
+                    "delivery_mode": delivery_mode,
+                    "provider_request_id": provider_request_id,
+                    "reservation_id": reservation_id,
+                    "provider_batch_id": provider_batch_id,
+                }
+                for key, value in identity.items():
+                    if existing[key] != value:
+                        raise ConflictError(f"physical attempt re-entry {key} conflicts with durable identity")
+                persisted_member_ids, _ = self._physical_member_identity(conn, physical_attempt_id, run_id=existing["run_id"], subject_id=existing["subject_id"])
+                existing_member_ids = {
+                    row
+                    for row in persisted_member_ids
+                }
+                if existing_member_ids != set(model_task_ids):
+                    raise ConflictError("physical attempt re-entry member set conflicts with existing attempt")
+                return dict(existing)
             conn.execute("INSERT INTO physical_attempts(physical_attempt_id,run_id,subject_id,delivery_mode,status,provider_request_id,reservation_id,provider_batch_id,created_at,updated_at) VALUES (?,?,?,?, 'prepared',?,?,?,?,?)", (physical_attempt_id,run_id,subject_id,delivery_mode,provider_request_id,reservation_id,provider_batch_id,when,when))
             conn.executemany("INSERT INTO physical_attempt_members(physical_attempt_id,model_task_id) VALUES (?,?)", [(physical_attempt_id, task_id) for task_id in model_task_ids])
             self._commit(conn); return dict(conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (physical_attempt_id,)).fetchone())
@@ -4121,8 +4355,26 @@ class SQLiteCatalog:
         with self._connection(immediate=True) as conn:
             existing = conn.execute("SELECT * FROM provider_pre_send_replacements WHERE replacement_id=?", (replacement_id,)).fetchone()
             if existing is not None:
-                if existing["provider_request_item_id"] != provider_request_item_id or existing["provider_material_sha256"] != provider_material_sha256:
+                identity = {
+                    "provider_request_item_id": provider_request_item_id,
+                    "new_physical_attempt_id": new_physical_attempt_id,
+                    "new_delivery_attempt_id": new_delivery_attempt_id,
+                    "authorization_id": authorization_id,
+                    "provider_material_sha256": provider_material_sha256,
+                    "reason": reason,
+                }
+                if any(existing[key] != value for key, value in identity.items()):
                     raise ConflictError("pre-send replacement identity conflicts with durable material")
+                old_physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (existing["old_physical_attempt_id"],)).fetchone()
+                new_physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (new_physical_attempt_id,)).fetchone()
+                new_attempt = conn.execute("SELECT * FROM provider_request_attempts WHERE delivery_attempt_id=?", (new_delivery_attempt_id,)).fetchone()
+                if old_physical is None:
+                    raise ConflictError("pre-send replacement has no durable old physical attempt; explicit repair is required")
+                self._physical_member_identity(conn, old_physical["physical_attempt_id"], run_id=old_physical["run_id"], subject_id=old_physical["subject_id"])
+                expected_new_provider_request_id = "physical-request:" + hashlib.sha256((provider_request_item_id + ":" + new_physical_attempt_id).encode()).hexdigest()
+                if new_physical is None or new_attempt is None or new_physical["run_id"] != old_physical["run_id"] or new_physical["subject_id"] != old_physical["subject_id"] or new_physical["delivery_mode"] != old_physical["delivery_mode"] or new_physical["provider_request_id"] != expected_new_provider_request_id or new_physical["reservation_id"] != new_reservation_id or new_attempt["provider_request_item_id"] != provider_request_item_id or new_attempt["physical_attempt_id"] != new_physical_attempt_id or new_attempt["delivery_job_id"] != new_delivery_job_id or new_attempt["authorization_id"] != authorization_id:
+                    raise ConflictError("pre-send replacement re-entry conflicts with durable execution identity")
+                self._physical_member_identity(conn, new_physical_attempt_id, run_id=old_physical["run_id"], subject_id=old_physical["subject_id"])
                 return dict(existing)
             item = conn.execute("SELECT * FROM provider_request_items WHERE provider_request_item_id=?", (provider_request_item_id,)).fetchone()
             if item is None or item["status"] not in {"failed", "prepared"}:
@@ -4134,24 +4386,30 @@ class SQLiteCatalog:
             physical = conn.execute("SELECT * FROM physical_attempts WHERE physical_attempt_id=?", (old["physical_attempt_id"],)).fetchone()
             if physical is None or physical["status"] not in {"failed", "prepared"} or physical["send_started_at"] is not None or physical["status"] != ("failed" if old["status"] == "failed" else "prepared"):
                 raise ConflictError("old physical attempt crossed the provider boundary")
+            member_ids, _ = self._physical_member_identity(conn, physical["physical_attempt_id"], run_id=physical["run_id"], subject_id=physical["subject_id"])
+            if item["run_id"] != physical["run_id"] or item["model_task_id"] not in member_ids:
+                raise ConflictError("replacement request item does not preserve the old physical attempt identity")
             job = conn.execute("SELECT * FROM delivery_jobs WHERE delivery_job_id=?", (new_delivery_job_id,)).fetchone()
             reservation = conn.execute("SELECT * FROM budget_reservations WHERE reservation_id=?", (new_reservation_id,)).fetchone()
             if job is None or job["status"] != "prepared" or reservation is None or reservation["status"] != "active" or reservation["run_id"] != job["run_id"]:
                 raise ConflictError("replacement requires a prepared job and active replacement reservation")
-            if conn.execute("SELECT 1 FROM provider_request_attempts WHERE delivery_attempt_id=? OR physical_attempt_id=?", (new_delivery_attempt_id, new_physical_attempt_id)).fetchone() is not None:
+            if job["run_id"] != physical["run_id"] or job["delivery_mode"] != physical["delivery_mode"]:
+                raise ConflictError("replacement job does not preserve the old physical attempt identity")
+            if new_reservation_id == physical["reservation_id"]:
+                raise ConflictError("replacement requires a distinct reservation identity")
+            if conn.execute("SELECT 1 FROM physical_attempts WHERE physical_attempt_id=? OR provider_request_id=?", (new_physical_attempt_id, "physical-request:" + hashlib.sha256((provider_request_item_id + ":" + new_physical_attempt_id).encode()).hexdigest())).fetchone() is not None or conn.execute("SELECT 1 FROM provider_request_attempts WHERE delivery_attempt_id=? OR physical_attempt_id=?", (new_delivery_attempt_id, new_physical_attempt_id)).fetchone() is not None:
                 raise ConflictError("replacement execution identity is already in use")
             new_provider_physical_id = "physical-request:" + hashlib.sha256((provider_request_item_id + ":" + new_physical_attempt_id).encode()).hexdigest()
             conn.execute("INSERT INTO physical_attempts(physical_attempt_id,run_id,subject_id,delivery_mode,status,provider_request_id,reservation_id,provider_batch_id,created_at,updated_at) VALUES (?,?,?,?, 'prepared',?,?,?,?,?)", (new_physical_attempt_id, job["run_id"], physical["subject_id"], physical["delivery_mode"], new_provider_physical_id, new_reservation_id, None, when, when))
-            members = conn.execute("SELECT model_task_id FROM physical_attempt_members WHERE physical_attempt_id=?", (physical["physical_attempt_id"],)).fetchall()
-            conn.executemany("INSERT INTO physical_attempt_members(physical_attempt_id,model_task_id) VALUES (?,?)", [(new_physical_attempt_id, row[0]) for row in members])
+            conn.executemany("INSERT INTO physical_attempt_members(physical_attempt_id,model_task_id) VALUES (?,?)", [(new_physical_attempt_id, task_id) for task_id in sorted(member_ids)])
             if old["status"] == "prepared":
                 conn.execute("UPDATE provider_request_attempts SET status='cancelled', failure_class='superseded_pre_send', failure_message_redacted='rebound under superseding mandate before provider send', completed_at=?, updated_at=? WHERE delivery_attempt_id=?", (when, when, old["delivery_attempt_id"]))
                 conn.execute("UPDATE provider_request_items SET status='cancelled', updated_at=? WHERE provider_request_item_id=?", (when, provider_request_item_id))
                 conn.execute("UPDATE physical_attempts SET status='failed', updated_at=? WHERE physical_attempt_id=?", (when, physical["physical_attempt_id"]))
             conn.execute("INSERT INTO provider_request_attempts(delivery_attempt_id,provider_request_item_id,physical_attempt_id,delivery_job_id,attempt_ordinal,authorization_id,attempt_class,predecessor_attempt_id,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?, 'prepared',?,?)", (new_delivery_attempt_id, provider_request_item_id, new_physical_attempt_id, new_delivery_job_id, int(old["attempt_ordinal"]) + 1, authorization_id, "reviewed_transport_correction", old["delivery_attempt_id"], when, when))
-            conn.execute("UPDATE provider_request_items SET physical_attempt_id=?,delivery_job_id=?,run_id=?,updated_at=? WHERE provider_request_item_id=?", (new_physical_attempt_id, new_delivery_job_id, job["run_id"], when, provider_request_item_id))
+            conn.execute("UPDATE provider_request_items SET physical_attempt_id=?,delivery_job_id=?,updated_at=? WHERE provider_request_item_id=?", (new_physical_attempt_id, new_delivery_job_id, when, provider_request_item_id))
             event_type = "zero_crossing_pre_send_replacement" if old["status"] == "failed" else "prepared_pre_send_rebind"
-            event = {"replacement_id": replacement_id, "event_type": event_type, "provider_request_item_id": provider_request_item_id, "old_delivery_attempt_id": old["delivery_attempt_id"], "old_physical_attempt_id": old["physical_attempt_id"], "new_delivery_attempt_id": new_delivery_attempt_id, "new_physical_attempt_id": new_physical_attempt_id, "authorization_id": authorization_id, "provider_material_sha256": provider_material_sha256, "reason": reason}
+            event = {"replacement_id": replacement_id, "event_type": event_type, "provider_request_item_id": provider_request_item_id, "old_delivery_attempt_id": old["delivery_attempt_id"], "old_physical_attempt_id": old["physical_attempt_id"], "new_delivery_attempt_id": new_delivery_attempt_id, "new_physical_attempt_id": new_physical_attempt_id, "new_delivery_job_id": new_delivery_job_id, "new_reservation_id": new_reservation_id, "run_id": physical["run_id"], "subject_id": physical["subject_id"], "authorization_id": authorization_id, "provider_material_sha256": provider_material_sha256, "reason": reason}
             event_hash = _canonical_hash(event)
             conn.execute("INSERT INTO provider_pre_send_replacements(replacement_id,provider_request_item_id,old_delivery_attempt_id,old_physical_attempt_id,new_delivery_attempt_id,new_physical_attempt_id,authorization_id,provider_material_sha256,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (replacement_id, provider_request_item_id, old["delivery_attempt_id"], old["physical_attempt_id"], new_delivery_attempt_id, new_physical_attempt_id, authorization_id, provider_material_sha256, reason, when))
             conn.execute("INSERT INTO execution_mandate_events(event_id,mandate_id,event_type,event_hash,event_json,recorded_at) VALUES (?,?,?,?,?,?)", ("mandateevent:" + replacement_id, authorization_id, "zero_crossing_pre_send_replacement", event_hash, json.dumps(event, sort_keys=True, separators=(",", ":")), when))
