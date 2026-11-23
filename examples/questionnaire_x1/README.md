@@ -90,3 +90,15 @@ live input is the exact previously reviewed AIS input part, not the financial
 page. Once the X3 ledger exists, preparation and replay are blocked. Source
 classifications are model candidates and ACNC self-report remains source-native;
 neither establishes a canonical observation or direct operator role.
+
+## X3B paired source diagnostic
+
+`x3b.py` prepares two separately hashed source packs for one existing
+source-scoped program: a retained AIS part, and the identical AIS part plus a
+previously reviewed bounded report representation. Both arms use identical,
+independent evidence questions. Source dates remain distinct; a cross-period
+name match does not establish program continuity. The two calls reserve within
+the task and cumulative budget before transport, and separate exclusive
+ledgers prevent retries. Runtime evidence, responses and typed answers remain
+outside Git. A supported model selection is still subject to source and role
+review; the runner does not promote it.
