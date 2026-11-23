@@ -1,0 +1,118 @@
+{
+  "schema_version": "x1-questionnaire-1",
+  "questionnaire_id": "x1-test-instrument",
+  "version": "0.2.0",
+  "questions": [
+    {
+      "question_id": "X1-P03-01",
+      "north_star_contract": "north-star-v0.3",
+      "section": "P03",
+      "scope": "program",
+      "wording": "Which operational-status choice is best supported for this program by the supplied material?",
+      "answer_type": "categorical",
+      "choices": [
+        {
+          "value": "currently_operating",
+          "description": "currently operating"
+        },
+        {
+          "value": "planned",
+          "description": "planned"
+        },
+        {
+          "value": "paused",
+          "description": "paused"
+        },
+        {
+          "value": "historical_or_completed",
+          "description": "historical or completed"
+        },
+        {
+          "value": "unknown",
+          "description": "unknown"
+        }
+      ],
+      "rubric": "Use only status supported for this program and period.",
+      "unknown_semantics": "Available evidence does not establish the answer.",
+      "depends_on": []
+    },
+    {
+      "question_id": "X1-P06-01",
+      "north_star_contract": "north-star-v0.3",
+      "section": "P06",
+      "scope": "program",
+      "wording": "What does the supplied material establish about volunteer participation in this program?",
+      "answer_type": "categorical",
+      "choices": [
+        {
+          "value": "explicitly_recruiting",
+          "description": "explicitly recruiting"
+        },
+        {
+          "value": "volunteers_involved_recruitment_unconfirmed",
+          "description": "volunteers involved recruitment unconfirmed"
+        },
+        {
+          "value": "explicitly_no_volunteer_participation",
+          "description": "explicitly no volunteer participation"
+        },
+        {
+          "value": "unknown",
+          "description": "unknown"
+        }
+      ],
+      "rubric": "Volunteer involvement alone does not establish current recruitment.",
+      "unknown_semantics": "Available evidence does not establish the answer.",
+      "depends_on": []
+    },
+    {
+      "question_id": "X1-P05-01",
+      "north_star_contract": "north-star-v0.3",
+      "section": "P05",
+      "scope": "program",
+      "wording": "How centrally does this program focus on veterans as intended beneficiaries?",
+      "answer_type": "ordinal",
+      "choices": [
+        {
+          "value": "A",
+          "description": "Core mission specifically organised around veterans."
+        },
+        {
+          "value": "B",
+          "description": "Veterans specifically targeted with tailored services."
+        },
+        {
+          "value": "C",
+          "description": "Veterans explicitly included among intended beneficiaries."
+        },
+        {
+          "value": "D",
+          "description": "Incidental veteran inclusion supported by evidence."
+        },
+        {
+          "value": "F",
+          "description": "Explicit evidence that veterans are outside the intended beneficiary population."
+        },
+        {
+          "value": "unknown",
+          "description": "Available evidence does not establish the relationship."
+        }
+      ],
+      "rubric": "Ordinal categories are labels; never convert to numbers or average.",
+      "unknown_semantics": "Available evidence does not establish the answer.",
+      "depends_on": []
+    },
+    {
+      "question_id": "X1-P13-01",
+      "north_star_contract": "north-star-v0.3",
+      "section": "P13",
+      "scope": "charity",
+      "wording": "What fundraising expenditure amount, if any, is explicitly disclosed in the supplied financial statements or notes?",
+      "answer_type": "numeric",
+      "choices": [],
+      "rubric": "Retain amount, currency, reporting period, source reference and reported versus calculated; missing disclosure is not zero.",
+      "unknown_semantics": "Available evidence does not establish the answer.",
+      "depends_on": []
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "x1-source-pack-1",
+  "pack_id": "fixture-pack-1",
+  "snapshot_id": "fixture-snapshot-2025",
+  "charitygraph_id": "fixture-charity-001",
+  "acnc_uuid": null,
+  "external_identifiers": {
+    "fixture": "not-a-real-registration"
+  },
+  "source_representations": [
+    {
+      "representation_id": "charity-source",
+      "source_family": "fixture_regulator",
+      "snapshot_id": "fixture-snapshot-2025",
+      "representation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "reference": "fixture://charity-source",
+      "reporting_period": "2025",
+      "state": "available",
+      "provenance": "Synthetic fixture: no real source text."
+    }
+  ],
+  "programs": [
+    {
+      "program_id": "fixture-program-01",
+      "source_scoped_id": "fixture-source/program/01",
+      "source_representations": [
+        {
+          "representation_id": "program-source",
+          "source_family": "fixture_program",
+          "snapshot_id": "fixture-snapshot-2025",
+          "representation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "reference": "fixture://program-source",
+          "reporting_period": "2025",
+          "state": "available",
+          "provenance": "Synthetic fixture: no real source text."
+        }
+      ]
+    },
+    {
+      "program_id": "fixture-program-02",
+      "source_scoped_id": "fixture-source/program/02",
+      "source_representations": []
+    }
+  ],
+  "program_inventory_state": "available"
+}
