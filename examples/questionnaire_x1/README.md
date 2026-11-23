@@ -61,3 +61,18 @@ the existing Decisions client through a separately verified mapping, budget
 reservation, processing decisions and provider-data controls. Establish source
 reference resolution and content-hash validation before live transmission. X1
 does not grant permission to run a provider call or promote an answer.
+
+## X2 bounded Plan Australia experiment
+
+`x2_plan.py` prepares a private pack from the already captured E5A AIS,
+report-page and website input parts, verifying every exact part hash against
+the existing E5A decisions. It binds two AIS program UUIDs provisionally and
+retains all source provenance; these are not promoted subject identities.
+Its `prepare` step writes only to the private temporary experiment directory.
+The separate `live` step uses the existing Decisions SDK, checks the frozen
+payload, source and prior-ledger hashes, and creates a durable exclusive
+pre-call reservation. It makes at most one attempt and retains the reservation
+on uncertainty. An existing ledger blocks preparation and any repeat call.
+Source references in its answers describe the input bundle, not citations
+selected by the model. A fresh task requires fresh source, policy and budget
+preflight; do not rerun the historical X2 request.
