@@ -29,10 +29,16 @@ class Representation(Strict):
         return self
 
 
+class ProgramSourceContext(Strict):
+    representation_id: str = Field(min_length=1)
+    locator: str = Field(pattern=r"^/")
+
+
 class Program(Strict):
     program_id: str = Field(min_length=1)
     source_scoped_id: str = Field(min_length=1)
     source_representations: list[Representation]
+    source_context: list[ProgramSourceContext] = []
 
 
 class SourcePack(Strict):
@@ -57,6 +63,11 @@ class SourcePack(Strict):
         reps = self.source_representations + [r for p in self.programs for r in p.source_representations]
         if len({r.representation_id for r in reps}) != len(reps):
             raise ValueError("duplicate representation identifier")
+        shared = {r.representation_id for r in self.source_representations if r.state == "available"}
+        for program in self.programs:
+            allowed = shared | {r.representation_id for r in program.source_representations if r.state == "available"}
+            if any(item.representation_id not in allowed for item in program.source_context):
+                raise ValueError("program source context must reference an available scoped representation")
         return self
 
 
@@ -121,7 +132,7 @@ class CapturedAnswer(Strict):
     questionnaire_id: str
     questionnaire_version: str
     source_snapshot_id: str
-    status: Literal["answered", "unknown", "not_applicable", "processing_failure"]
+    status: Literal["answered", "unknown", "not_applicable", "conflict", "insufficient_evidence", "processing_failure"]
     method: Literal["fixture", "captured_decisions", "source_native"]
     value: str | bool | NumericValue | None = None
     probabilities: dict[str, float] | None = None
@@ -141,14 +152,14 @@ def prepare(pack: SourcePack, questionnaire: Questionnaire) -> list[dict]:
     """Produce independent requests referencing existing representations only."""
     requests = []
     for q in questionnaire.questions:
-        subjects = [(pack.charitygraph_id, pack.source_representations)] if q.scope == "charity" else [
-            (p.program_id, pack.source_representations + p.source_representations) for p in pack.programs
+        subjects = [(pack.charitygraph_id, pack.source_representations, [])] if q.scope == "charity" else [
+            (p.program_id, pack.source_representations + p.source_representations, p.source_context) for p in pack.programs
         ]
-        for subject, sources in subjects:
+        for subject, sources, context in subjects:
             requests.append({"questionnaire_id": questionnaire.questionnaire_id,
                 "questionnaire_version": questionnaire.version, "question": q.model_dump(),
                 "subject_id": subject, "charitygraph_id": pack.charitygraph_id,
-                "snapshot_id": pack.snapshot_id,
+                "snapshot_id": pack.snapshot_id, "program_source_context": [c.model_dump() for c in context],
                 "source_representations": [s.model_dump() for s in sources]})
     return requests
 
@@ -185,6 +196,8 @@ def answer(pack: SourcePack, questionnaire: Questionnaire, records: list[dict]) 
         q = expected[key]["question"]
         values = {c["value"] for c in q["choices"]}
         value = record.value
+        if record.method == "captured_decisions" and record.status in {"unknown", "not_applicable", "conflict", "insufficient_evidence"} and record.status not in values:
+            raise ValueError("captured non-answer status is not an allowed choice")
         if record.status == "answered":
             if q["answer_type"] == "numeric":
                 if not isinstance(value, NumericValue):
@@ -240,10 +253,11 @@ def adapt_decisions_choice(raw: dict, *, question_id: str, subject_id: str,
         if len(values) != len(set(values)):
             raise ValueError("duplicate native probability choice")
         probabilities = {p["value"]: p["probability"] for p in probabilities}
+    special = {"unknown", "not_applicable", "conflict", "insufficient_evidence"}
     return {"question_id": question_id, "subject_id": subject_id,
         "questionnaire_id": questionnaire_id, "questionnaire_version": questionnaire_version, "source_snapshot_id": source_snapshot_id,
-        "status": "unknown" if choice == "unknown" else "answered", "method": "captured_decisions",
-        "value": choice, "probabilities": probabilities, "confidence": raw.get("confidence"),
+        "status": choice if choice in special else "answered", "method": "captured_decisions",
+        "value": None if choice in special and choice != "unknown" else choice, "probabilities": probabilities, "confidence": raw.get("confidence"),
         "source_references": source_references}
 
 

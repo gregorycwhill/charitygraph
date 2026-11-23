@@ -136,3 +136,28 @@ def test_missing_inventory_and_missing_representation_are_explicit(inputs):
     assert out["program_inventory_state"] == "unavailable"
     assert len(out["program_questions_without_subjects"]) == 3
     assert len(out["answers"]) == 1 and out["answers"][0]["status"] == "unknown"
+
+
+def test_program_context_points_into_shared_representation(inputs):
+    pack, q = inputs; data = pack.model_dump()
+    data["programs"][0]["source_context"] = [{"representation_id": "charity-source", "locator": "/data/Programs/0"}]
+    pack = SourcePack.model_validate(data); requests = prepare(pack, q)
+    first = next(r for r in requests if r["subject_id"] == "fixture-program-01")
+    second = next(r for r in requests if r["subject_id"] == "fixture-program-02")
+    assert first["program_source_context"] == [{"representation_id": "charity-source", "locator": "/data/Programs/0"}]
+    assert second["program_source_context"] == []
+    data["programs"][0]["source_context"][0]["representation_id"] = "missing-source"
+    with pytest.raises(ValidationError): SourcePack.model_validate(data)
+
+
+def test_captured_conflict_is_not_treated_as_affirmative_answer(inputs):
+    pack, questionnaire = inputs; data = questionnaire.model_dump()
+    data["questions"][0]["choices"].append({"value": "conflict", "description": "Sources conflict"})
+    questionnaire = Questionnaire.model_validate(data); rs = records(prepare(pack, questionnaire))
+    raw = {"type": "choice", "name": rs[0]["question_id"], "choice": "conflict",
+           "probabilities": [{"value": "conflict", "probability": 0.8}]}
+    rs[0] = adapt_decisions_choice(raw, question_id=rs[0]["question_id"], subject_id=rs[0]["subject_id"],
+        questionnaire_id=questionnaire.questionnaire_id, questionnaire_version=questionnaire.version,
+        source_snapshot_id=pack.snapshot_id, source_references=[])
+    result = answer(pack, questionnaire, rs)["answers"][0]
+    assert result["status"] == "conflict" and result["value"] is None

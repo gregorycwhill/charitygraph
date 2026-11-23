@@ -76,3 +76,17 @@ on uncertainty. An existing ledger blocks preparation and any repeat call.
 Source references in its answers describe the input bundle, not citations
 selected by the model. A fresh task requires fresh source, policy and budget
 preflight; do not rerun the historical X2 request.
+
+## X3 source context and financial example
+
+`x3_prepare.py` adds source-context pointers into the existing shared AIS
+representation, verifies the program UUID at each pointer, and records the
+visually checked, source-native financial disclosure in a private experiment
+directory. It does not infer the number from prose or change the X2 pack.
+`x3_run.py` freezes an independent instrument using the Product Owner-approved
+young-children focus rubric and unchanged reviewed activity choices, then uses
+the existing Decisions SDK under a separate single-attempt reservation. The
+live input is the exact previously reviewed AIS input part, not the financial
+page. Once the X3 ledger exists, preparation and replay are blocked. Source
+classifications are model candidates and ACNC self-report remains source-native;
+neither establishes a canonical observation or direct operator role.
