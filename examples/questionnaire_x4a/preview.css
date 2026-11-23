@@ -1,0 +1,25 @@
+.index-pane h2 { margin: 6px 4px 0; font-size: 1rem; }
+.index-pane p { margin: 4px; font-size: .88rem; }
+.result { width: 100%; font: inherit; }
+.result small { color: #64645f; }
+.intro { background: #f2f5ee; padding: 14px 16px; border-radius: 7px; color: #354638; margin: 20px 0; }
+.program { border: 1px solid #dddeda; border-radius: 8px; padding: 17px 19px; margin: 12px 0; background: white; }
+.program h3 { font-size: 1rem; margin: 0 0 8px; }
+.program .muted { font-size: .88rem; }
+.answer { border-top: 1px solid #ecece8; padding: 12px 0 2px; }
+.answer p { margin: 5px 0; }
+.answer .meta { color: #63635e; font-size: .83rem; }
+.pill { display: inline-block; border-radius: 4px; padding: 2px 6px; margin-right: 6px; font-size: .76rem; font-weight: 650; background: #edf1f7; color: #33465c; }
+.pill.historical { background: #f9f0dc; color: #725315; }
+.pill.caution { background: #f9ecea; color: #813f36; }
+.pill.source { background: #e8f2eb; color: #315e3e; }
+.source-list { font-size: .9rem; line-height: 1.7; padding-left: 20px; }
+.number { font-size: 1.55rem; font-weight: 700; margin: 4px 0; }
+@media (max-width: 700px) {
+  html, body { height: auto; overflow: auto; }
+  .layout { display: block; height: auto; overflow: visible; }
+  .index-pane { border-right: 0; border-bottom: 1px solid #ddd; }
+  .results { display: flex; flex-wrap: wrap; overflow: visible; }
+  .result { width: auto; flex: 1 1 180px; }
+  .card-pane { overflow: visible; height: auto; padding: 24px 18px; }
+}
